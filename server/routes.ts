@@ -35,6 +35,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const localizationRoutes = await import('./routes/localization');
   app.use('/api/localization', localizationRoutes.default);
 
+  // Import and mount tenant provisioning routes
+  const tenantProvisioningRoutes = await import('./routes/tenant-provisioning');
+  app.use('/api/tenant-provisioning', tenantProvisioningRoutes.default);
+
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
   const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
