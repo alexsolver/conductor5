@@ -64,6 +64,25 @@ export const customers = pgTable("customers", {
   company: varchar("company", { length: 255 }),
   tags: jsonb("tags").default([]),
   metadata: jsonb("metadata").default({}),
+  
+  // Status fields
+  verified: boolean("verified").default(false),
+  active: boolean("active").default(true),
+  suspended: boolean("suspended").default(false),
+  lastLogin: timestamp("last_login"),
+  
+  // Localization fields
+  timezone: varchar("timezone", { length: 50 }).default("UTC"),
+  locale: varchar("locale", { length: 10 }).default("en-US"),
+  language: varchar("language", { length: 10 }).default("en"),
+  
+  // Additional fields
+  externalId: varchar("external_id", { length: 100 }),
+  role: varchar("role", { length: 50 }).default("customer"),
+  notes: text("notes"),
+  avatar: varchar("avatar", { length: 255 }),
+  signature: text("signature"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

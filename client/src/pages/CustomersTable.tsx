@@ -14,7 +14,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, User, Building } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, User, Building, Shield, Globe, Settings } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Schema for customer creation/editing
 const customerSchema = z.object({
@@ -24,6 +27,23 @@ const customerSchema = z.object({
   phone: z.string().optional(),
   company: z.string().optional(),
   tags: z.array(z.string()).default([]),
+  
+  // Status fields
+  verified: z.boolean().default(false),
+  active: z.boolean().default(true),
+  suspended: z.boolean().default(false),
+  
+  // Localization fields
+  timezone: z.string().default("UTC"),
+  locale: z.string().default("en-US"),
+  language: z.string().default("en"),
+  
+  // Additional fields
+  externalId: z.string().optional(),
+  role: z.string().default("customer"),
+  notes: z.string().optional(),
+  avatar: z.string().optional(),
+  signature: z.string().optional(),
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
@@ -37,6 +57,25 @@ interface Customer {
   phone?: string;
   company?: string;
   tags: string[];
+  
+  // Status fields
+  verified: boolean;
+  active: boolean;
+  suspended: boolean;
+  lastLogin?: string;
+  
+  // Localization fields
+  timezone: string;
+  locale: string;
+  language: string;
+  
+  // Additional fields
+  externalId?: string;
+  role: string;
+  notes?: string;
+  avatar?: string;
+  signature?: string;
+  
   createdAt: string;
   updatedAt: string;
 }
@@ -94,6 +133,17 @@ export default function CustomersTable() {
       phone: "",
       company: "",
       tags: [],
+      verified: false,
+      active: true,
+      suspended: false,
+      timezone: "UTC",
+      locale: "en-US",
+      language: "en",
+      externalId: "",
+      role: "customer",
+      notes: "",
+      avatar: "",
+      signature: "",
     },
   });
 
@@ -185,6 +235,17 @@ export default function CustomersTable() {
       phone: customer.phone || "",
       company: customer.company || "",
       tags: customer.tags || [],
+      verified: customer.verified || false,
+      active: customer.active !== undefined ? customer.active : true,
+      suspended: customer.suspended || false,
+      timezone: customer.timezone || "UTC",
+      locale: customer.locale || "en-US",
+      language: customer.language || "en",
+      externalId: customer.externalId || "",
+      role: customer.role || "customer",
+      notes: customer.notes || "",
+      avatar: customer.avatar || "",
+      signature: customer.signature || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -204,81 +265,320 @@ export default function CustomersTable() {
   const CustomerForm = () => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter first name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="basic" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Basic
+            </TabsTrigger>
+            <TabsTrigger value="status" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Status
+            </TabsTrigger>
+            <TabsTrigger value="locale" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Locale
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Advanced
+            </TabsTrigger>
+          </TabsList>
 
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter last name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+          <TabsContent value="basic" className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter first name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="Enter email address" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter last name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter phone number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Enter email address" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter company name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <div className="flex justify-end space-x-2 pt-4">
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter company name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="status" className="space-y-4 mt-4">
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="verified"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Verified</FormLabel>
+                      <div className="text-sm text-muted-foreground">Email verified</div>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Active</FormLabel>
+                      <div className="text-sm text-muted-foreground">Account active</div>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="suspended"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Suspended</FormLabel>
+                      <div className="text-sm text-muted-foreground">Account suspended</div>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="customer">Customer</SelectItem>
+                      <SelectItem value="vip">VIP Customer</SelectItem>
+                      <SelectItem value="partner">Partner</SelectItem>
+                      <SelectItem value="vendor">Vendor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
+
+          <TabsContent value="locale" className="space-y-4 mt-4">
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="timezone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Timezone</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="UTC">UTC</SelectItem>
+                        <SelectItem value="America/Sao_Paulo">São Paulo (GMT-3)</SelectItem>
+                        <SelectItem value="America/New_York">New York (GMT-5)</SelectItem>
+                        <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
+                        <SelectItem value="Europe/Paris">Paris (GMT+1)</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="locale"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Locale</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select locale" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="en-US">English (US)</SelectItem>
+                        <SelectItem value="pt-BR">Portuguese (Brazil)</SelectItem>
+                        <SelectItem value="es-ES">Spanish (Spain)</SelectItem>
+                        <SelectItem value="fr-FR">French (France)</SelectItem>
+                        <SelectItem value="de-DE">German (Germany)</SelectItem>
+                        <SelectItem value="ja-JP">Japanese (Japan)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="pt">Portuguese</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                        <SelectItem value="ja">Japanese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="advanced" className="space-y-4 mt-4">
+            <FormField
+              control={form.control}
+              name="externalId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>External ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="External system ID" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="avatar"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Avatar URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Profile picture URL" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Internal notes about this customer" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="signature"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Signature</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Customer signature/bio" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-end space-x-2 pt-4 border-t">
           <Button
             type="button"
             variant="outline"
@@ -330,7 +630,7 @@ export default function CustomersTable() {
               New Customer
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Customer</DialogTitle>
             </DialogHeader>
@@ -373,6 +673,8 @@ export default function CustomersTable() {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Company</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -402,6 +704,33 @@ export default function CustomersTable() {
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        {customer.verified && (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            ✓ Verified
+                          </Badge>
+                        )}
+                        {customer.suspended ? (
+                          <Badge variant="destructive">
+                            Suspended
+                          </Badge>
+                        ) : customer.active ? (
+                          <Badge variant="default" className="bg-blue-100 text-blue-800">
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            Inactive
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {customer.role || 'customer'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {new Date(customer.createdAt).toLocaleDateString()}
@@ -469,7 +798,7 @@ export default function CustomersTable() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Customer</DialogTitle>
           </DialogHeader>
