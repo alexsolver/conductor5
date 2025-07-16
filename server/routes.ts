@@ -1,25 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
+import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Add cookie parser middleware
+  app.use(cookieParser());
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Import and mount authentication routes
+  const { authRouter } = await import('./modules/auth/routes');
+  app.use('/api/auth', authRouter);
 
   // Import microservice routers
   const { dashboardRouter } = await import('./modules/dashboard/routes');
@@ -34,16 +27,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/knowledge-base', knowledgeBaseRouter);
 
   // Schema management (admin only)
-  app.post("/api/admin/init-schema/:tenantId", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/init-schema/:tenantId", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.params.tenantId;
-      const userId = req.user?.claims?.sub;
-      
-      // Check if user is admin
-      const user = await storage.getUser(userId);
-      if (!user || user.role !== 'admin') {
+      if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
+
+      const { tenantId } = req.params;
       
       // Initialize tenant schema
       await storage.initializeTenantSchema(tenantId);

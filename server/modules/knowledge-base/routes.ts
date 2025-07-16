@@ -1,106 +1,113 @@
-// Knowledge Base Microservice Routes
+// Knowledge Base Microservice Routes - JWT Authentication
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { storage } from "../../storage";
 
 const knowledgeBaseRouter = Router();
 
-// Get all knowledge base articles
-knowledgeBaseRouter.get('/articles', isAuthenticated, async (req: any, res) => {
+// Get all knowledge base articles with pagination and filtering
+knowledgeBaseRouter.get('/articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const category = req.query.category as string;
-    const search = req.query.search as string;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-
     // Mock knowledge base articles for now
-    let articles = [
+    // In a real implementation, these would come from a dedicated knowledge base table
+    const articles = [
       {
-        id: '1',
-        title: 'How to Create a Support Ticket',
-        content: 'Step-by-step guide to creating support tickets...',
-        category: 'getting-started',
-        tags: ['tickets', 'basics'],
-        author: 'Support Team',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15'),
-        views: 245,
-        helpful: 23,
-        notHelpful: 2
-      },
-      {
-        id: '2',
-        title: 'Account Settings and Profile Management',
-        content: 'Learn how to manage your account settings...',
-        category: 'account',
-        tags: ['account', 'settings'],
-        author: 'Support Team',
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-12'),
-        views: 189,
-        helpful: 18,
-        notHelpful: 1
-      },
-      {
-        id: '3',
-        title: 'Troubleshooting Login Issues',
-        content: 'Common solutions for login and authentication problems...',
-        category: 'troubleshooting',
-        tags: ['login', 'authentication', 'troubleshooting'],
-        author: 'Technical Team',
-        createdAt: new Date('2024-01-08'),
-        updatedAt: new Date('2024-01-08'),
-        views: 156,
-        helpful: 14,
+        id: "1",
+        title: "Getting Started with Conductor",
+        excerpt: "Learn the basics of using Conductor for customer support.",
+        category: "Getting Started",
+        tags: ["basics", "introduction"],
+        author: "Support Team",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        views: 1250,
+        helpful: 42,
         notHelpful: 3
       },
       {
-        id: '4',
-        title: 'API Documentation and Integration Guide',
-        content: 'Complete guide to using our REST API...',
-        category: 'developers',
-        tags: ['api', 'integration', 'developers'],
-        author: 'Developer Team',
-        createdAt: new Date('2024-01-05'),
-        updatedAt: new Date('2024-01-07'),
-        views: 98,
-        helpful: 12,
-        notHelpful: 0
+        id: "2",
+        title: "Managing Customer Tickets",
+        excerpt: "Complete guide to creating, updating, and resolving tickets.",
+        category: "Ticket Management",
+        tags: ["tickets", "workflow"],
+        author: "Product Team",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        views: 890,
+        helpful: 35,
+        notHelpful: 2
+      },
+      {
+        id: "3",
+        title: "Customer Communication Best Practices",
+        excerpt: "Tips for effective communication with customers.",
+        category: "Communication",
+        tags: ["communication", "best-practices"],
+        author: "Training Team",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        views: 675,
+        helpful: 28,
+        notHelpful: 1
+      },
+      {
+        id: "4",
+        title: "Troubleshooting Common Issues",
+        excerpt: "Solutions to frequently encountered problems.",
+        category: "Troubleshooting",
+        tags: ["troubleshooting", "FAQ"],
+        author: "Technical Team",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        views: 1100,
+        helpful: 55,
+        notHelpful: 4
       }
     ];
 
-    // Apply filters
-    if (category) {
-      articles = articles.filter(article => article.category === category);
-    }
+    // Apply filters if provided
+    const category = req.query.category as string;
+    const search = req.query.search as string;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
 
-    if (search) {
-      const searchLower = search.toLowerCase();
-      articles = articles.filter(article => 
-        article.title.toLowerCase().includes(searchLower) ||
-        article.content.toLowerCase().includes(searchLower) ||
-        article.tags.some(tag => tag.toLowerCase().includes(searchLower))
+    let filteredArticles = articles;
+
+    if (category) {
+      filteredArticles = filteredArticles.filter(article => 
+        article.category.toLowerCase() === category.toLowerCase()
       );
     }
 
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const paginatedArticles = articles.slice(startIndex, startIndex + limit);
+    if (search) {
+      filteredArticles = filteredArticles.filter(article =>
+        article.title.toLowerCase().includes(search.toLowerCase()) ||
+        article.excerpt.toLowerCase().includes(search.toLowerCase()) ||
+        article.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+      );
+    }
+
+    // Apply pagination
+    const paginatedArticles = filteredArticles.slice(offset, offset + limit);
 
     res.json({
       articles: paginatedArticles,
       pagination: {
-        page,
+        total: filteredArticles.length,
         limit,
-        total: articles.length,
-        totalPages: Math.ceil(articles.length / limit)
+        offset,
+        hasMore: offset + limit < filteredArticles.length
       },
-      filters: { category, search }
+      categories: [
+        { name: "Getting Started", count: 1 },
+        { name: "Ticket Management", count: 1 },
+        { name: "Communication", count: 1 },
+        { name: "Troubleshooting", count: 1 }
+      ]
     });
   } catch (error) {
     console.error("Error fetching knowledge base articles:", error);
@@ -108,198 +115,105 @@ knowledgeBaseRouter.get('/articles', isAuthenticated, async (req: any, res) => {
   }
 });
 
-// Get article by ID
-knowledgeBaseRouter.get('/articles/:id', isAuthenticated, async (req: any, res) => {
+// Get specific article by ID
+knowledgeBaseRouter.get('/articles/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // Mock article data
+    const articleId = req.params.id;
+    
+    // Mock article content (in real implementation, fetch from database)
     const articles = {
-      '1': {
-        id: '1',
-        title: 'How to Create a Support Ticket',
-        content: `# How to Create a Support Ticket
+      "1": {
+        id: "1",
+        title: "Getting Started with Conductor",
+        content: `# Getting Started with Conductor
 
-Creating a support ticket is the best way to get help with any issues you're experiencing. Follow these steps:
+Conductor is a comprehensive customer support platform designed to streamline your support operations.
 
-## Step 1: Navigate to the Support Section
-- Click on the "Support" or "Help" button in your dashboard
-- Select "Create New Ticket" from the options
+## Key Features
 
-## Step 2: Fill in the Details
-- **Subject**: Write a clear, descriptive subject line
-- **Description**: Provide detailed information about your issue
-- **Priority**: Select the appropriate priority level
-- **Category**: Choose the most relevant category
+- **Ticket Management**: Create, assign, and track support tickets
+- **Customer Database**: Maintain detailed customer profiles
+- **Knowledge Base**: Build and manage your support documentation
+- **Analytics**: Monitor performance with detailed dashboards
 
-## Step 3: Attach Files (Optional)
-- Add screenshots or documents that help explain your issue
-- Supported formats: PDF, PNG, JPG, DOC, DOCX
+## First Steps
 
-## Step 4: Submit Your Ticket
-- Review all information for accuracy
-- Click "Submit Ticket"
-- You'll receive a confirmation email with your ticket number
+1. Set up your tenant and invite team members
+2. Configure ticket workflows and priorities
+3. Import your existing customer data
+4. Create your first knowledge base articles
 
-## What Happens Next?
-- Our support team will review your ticket
-- You'll receive updates via email
-- Average response time: 2-4 hours during business hours
+## Need Help?
 
-## Tips for Better Support
-- Be specific about the problem
-- Include error messages if any
-- Mention what you were trying to do when the issue occurred`,
-        category: 'getting-started',
-        tags: ['tickets', 'basics'],
-        author: 'Support Team',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15'),
-        views: 245,
-        helpful: 23,
-        notHelpful: 2
+Contact our support team or check out our other guides for more detailed information.`,
+        category: "Getting Started",
+        tags: ["basics", "introduction"],
+        author: "Support Team",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        views: 1250,
+        helpful: 42,
+        notHelpful: 3
       }
     };
 
-    const article = articles[req.params.id as keyof typeof articles];
+    const article = articles[articleId as keyof typeof articles];
     
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
 
-    // Increment view count (in real implementation, this would update the database)
-    article.views += 1;
-
     res.json(article);
   } catch (error) {
-    console.error("Error fetching article:", error);
+    console.error("Error fetching knowledge base article:", error);
     res.status(500).json({ message: "Failed to fetch article" });
   }
 });
 
-// Get knowledge base categories
-knowledgeBaseRouter.get('/categories', isAuthenticated, async (req: any, res) => {
+// Search articles
+knowledgeBaseRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const categories = [
-      {
-        id: 'getting-started',
-        name: 'Getting Started',
-        description: 'Basic guides and tutorials for new users',
-        articleCount: 8,
-        icon: 'rocket'
-      },
-      {
-        id: 'account',
-        name: 'Account Management',
-        description: 'Profile settings, billing, and account security',
-        articleCount: 12,
-        icon: 'user'
-      },
-      {
-        id: 'troubleshooting',
-        name: 'Troubleshooting',
-        description: 'Common issues and their solutions',
-        articleCount: 15,
-        icon: 'wrench'
-      },
-      {
-        id: 'developers',
-        name: 'For Developers',
-        description: 'API documentation and integration guides',
-        articleCount: 6,
-        icon: 'code'
-      },
-      {
-        id: 'billing',
-        name: 'Billing & Plans',
-        description: 'Subscription management and billing information',
-        articleCount: 9,
-        icon: 'credit-card'
-      }
-    ];
-
-    res.json(categories);
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    res.status(500).json({ message: "Failed to fetch categories" });
-  }
-});
-
-// Search knowledge base
-knowledgeBaseRouter.get('/search', isAuthenticated, async (req: any, res) => {
-  try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
     const query = req.query.q as string;
-    const limit = parseInt(req.query.limit as string) || 10;
-
-    if (!query || query.trim().length < 2) {
-      return res.status(400).json({ message: "Search query must be at least 2 characters" });
+    
+    if (!query) {
+      return res.status(400).json({ message: "Search query is required" });
     }
 
-    // Mock search results
+    // This would be implemented with full-text search in a real database
     const searchResults = [
       {
-        id: '1',
-        title: 'How to Create a Support Ticket',
-        excerpt: 'Step-by-step guide to creating support tickets...',
-        category: 'getting-started',
+        id: "1",
+        title: "Getting Started with Conductor",
+        excerpt: "Learn the basics of using Conductor for customer support.",
         relevance: 0.95
       },
       {
-        id: '3',
-        title: 'Troubleshooting Login Issues',
-        excerpt: 'Common solutions for login and authentication problems...',
-        category: 'troubleshooting',
-        relevance: 0.87
+        id: "2", 
+        title: "Managing Customer Tickets",
+        excerpt: "Complete guide to creating, updating, and resolving tickets.",
+        relevance: 0.85
       }
     ].filter(result => 
       result.title.toLowerCase().includes(query.toLowerCase()) ||
       result.excerpt.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, limit);
+    );
 
     res.json({
       query,
       results: searchResults,
-      totalResults: searchResults.length
+      total: searchResults.length
     });
   } catch (error) {
     console.error("Error searching knowledge base:", error);
     res.status(500).json({ message: "Failed to search articles" });
-  }
-});
-
-// Rate article helpfulness
-knowledgeBaseRouter.post('/articles/:id/rate', isAuthenticated, async (req: any, res) => {
-  try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
-    }
-
-    const { helpful } = req.body;
-    const articleId = req.params.id;
-
-    if (typeof helpful !== 'boolean') {
-      return res.status(400).json({ message: "Rating must be a boolean value" });
-    }
-
-    // In real implementation, this would update the database
-    // For now, just return success
-    res.json({ 
-      message: "Rating recorded successfully",
-      articleId,
-      helpful
-    });
-  } catch (error) {
-    console.error("Error rating article:", error);
-    res.status(500).json({ message: "Failed to record rating" });
   }
 });
 

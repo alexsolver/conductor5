@@ -1,6 +1,6 @@
-// Customers Microservice Routes
+// Customers Microservice Routes - JWT Authentication
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { CustomerController } from "../../application/controllers/CustomerController";
 import { storage } from "../../storage";
 import { insertCustomerSchema } from "../../../shared/schema";
@@ -10,38 +10,31 @@ const customersRouter = Router();
 const customerController = new CustomerController();
 
 // Get all customers with pagination
-customersRouter.get('/', isAuthenticated, async (req: any, res) => {
-  const user = await storage.getUser(req.user.claims.sub);
-  req.user = user;
+customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   await customerController.getCustomers(req, res);
 });
 
 // Get customer by ID
-customersRouter.get('/:id', isAuthenticated, async (req: any, res) => {
-  const user = await storage.getUser(req.user.claims.sub);
-  req.user = user;
+customersRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   await customerController.getCustomer(req, res);
 });
 
 // Create new customer
-customersRouter.post('/', isAuthenticated, async (req: any, res) => {
-  const user = await storage.getUser(req.user.claims.sub);
-  req.user = user;
+customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   await customerController.createCustomer(req, res);
 });
 
 // Update customer
-customersRouter.put('/:id', isAuthenticated, async (req: any, res) => {
+customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
     const customerId = req.params.id;
     const updates = req.body;
 
-    const updatedCustomer = await storage.updateCustomer(customerId, user.tenantId, updates);
+    const updatedCustomer = await storage.updateCustomer(customerId, req.user.tenantId, updates);
     
     if (!updatedCustomer) {
       return res.status(404).json({ message: "Customer not found" });
@@ -49,8 +42,8 @@ customersRouter.put('/:id', isAuthenticated, async (req: any, res) => {
 
     // Log activity
     await storage.createActivityLog({
-      tenantId: user.tenantId,
-      userId: user.id,
+      tenantId: req.user.tenantId,
+      userId: req.user.id,
       entityType: 'customer',
       entityId: customerId,
       action: 'updated',
@@ -65,15 +58,14 @@ customersRouter.put('/:id', isAuthenticated, async (req: any, res) => {
 });
 
 // Delete customer
-customersRouter.delete('/:id', isAuthenticated, async (req: any, res) => {
+customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
     const customerId = req.params.id;
-    const success = await storage.deleteCustomer(customerId, user.tenantId);
+    const success = await storage.deleteCustomer(customerId, req.user.tenantId);
     
     if (!success) {
       return res.status(404).json({ message: "Customer not found" });
@@ -81,8 +73,8 @@ customersRouter.delete('/:id', isAuthenticated, async (req: any, res) => {
 
     // Log activity
     await storage.createActivityLog({
-      tenantId: user.tenantId,
-      userId: user.id,
+      tenantId: req.user.tenantId,
+      userId: req.user.id,
       entityType: 'customer',
       entityId: customerId,
       action: 'deleted',
@@ -97,15 +89,14 @@ customersRouter.delete('/:id', isAuthenticated, async (req: any, res) => {
 });
 
 // Search customers
-customersRouter.get('/search/:query', isAuthenticated, async (req: any, res) => {
+customersRouter.get('/search/:query', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
     const query = req.params.query;
-    const customers = await storage.getCustomers(user.tenantId, 100, 0);
+    const customers = await storage.getCustomers(req.user.tenantId, 100, 0);
     
     // Simple search implementation
     const filteredCustomers = customers.filter(customer => 

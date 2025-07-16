@@ -1,203 +1,140 @@
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Plus, Mail, Phone, Building } from "lucide-react";
-import type { Customer } from "@/types";
-
-function getInitials(firstName?: string | null, lastName?: string | null) {
-  const first = firstName?.charAt(0) || "";
-  const last = lastName?.charAt(0) || "";
-  return `${first}${last}`.toUpperCase() || "CU";
-}
-
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { Plus, Search, Mail, Phone } from "lucide-react";
 
 export default function Customers() {
-  const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
-
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
-
-  const { data: customers, isLoading: customersLoading, error } = useQuery<Customer[]>({
+  const { data: customers, isLoading } = useQuery({
     queryKey: ["/api/customers"],
     retry: false,
   });
 
-  // Handle unauthorized errors
-  useEffect(() => {
-    if (error && isUnauthorizedError(error as Error)) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
+  const getInitials = (firstName?: string | null, lastName?: string | null) => {
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
     }
-  }, [error, toast]);
+    if (firstName) {
+      return firstName[0].toUpperCase();
+    }
+    return "?";
+  };
 
-  if (isLoading || !isAuthenticated) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <AppShell>
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Page Header */}
-          <Card className="gradient-card mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Customers
-                  </h1>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Manage customer profiles and contact information
-                  </p>
-                </div>
-                <Button className="gradient-primary text-white mt-4 sm:mt-0">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Customer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Search */}
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search customers by name, email, or company..."
-                  className="pl-10"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Customers Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {customersLoading ? (
-              [...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded" />
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/6" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : customers?.length ? (
-              customers.map((customer) => (
-                <Card key={customer.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="gradient-primary text-white font-medium">
-                          {getInitials(customer.firstName, customer.lastName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-                          {customer.firstName} {customer.lastName}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          Customer since {formatDate(customer.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                        <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                        <span className="truncate">{customer.email}</span>
-                      </div>
-                      
-                      {customer.phone && (
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                          <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                          <span>{customer.phone}</span>
-                        </div>
-                      )}
-                      
-                      {customer.company && (
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                          <Building className="w-4 h-4 mr-2 text-gray-400" />
-                          <span className="truncate">{customer.company}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full">
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <div className="w-12 h-12 gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <Plus className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                      No customers found
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Get started by adding your first customer
-                    </p>
-                    <Button className="gradient-primary text-white">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Customer
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your customer database and relationships</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline">
+            <Search className="h-4 w-4 mr-2" />
+            Search
+          </Button>
+          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Customer
+          </Button>
         </div>
       </div>
-    </AppShell>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {customers?.map((customer: any) => (
+          <Card key={customer.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold">
+                    {getInitials(customer.firstName, customer.lastName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                      {customer.firstName} {customer.lastName}
+                    </h3>
+                    <Badge variant={customer.isActive ? "default" : "secondary"}>
+                      {customer.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">{customer.email}</span>
+                    </div>
+                    
+                    {customer.phone && (
+                      <div className="flex items-center text-gray-600 dark:text-gray-400">
+                        <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{customer.phone}</span>
+                      </div>
+                    )}
+                    
+                    {customer.company && (
+                      <div className="text-gray-600 dark:text-gray-400">
+                        <span className="font-medium">Company:</span> {customer.company}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Joined {new Date(customer.createdAt).toLocaleDateString()}</span>
+                      {customer.lastContactAt && (
+                        <span>Last contact {new Date(customer.lastContactAt).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex space-x-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      View Profile
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      Create Ticket
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )) || (
+          <div className="col-span-full">
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="text-gray-500">
+                  <div className="text-lg font-medium mb-2">No customers found</div>
+                  <p className="text-sm">Add your first customer to get started.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

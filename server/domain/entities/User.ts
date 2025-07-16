@@ -36,7 +36,7 @@ export class User {
     return this.role === 'agent';
   }
 
-  get canAccessTenant(tenantId: string): boolean {
+  canAccessTenant(tenantId: string): boolean {
     return this.tenantId === tenantId || this.isAdmin;
   }
 

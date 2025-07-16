@@ -1,19 +1,18 @@
-// Dashboard Microservice Routes
+// Dashboard Microservice Routes - JWT Authentication
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { storage } from "../../storage";
 
 const dashboardRouter = Router();
 
 // Dashboard statistics endpoint
-dashboardRouter.get('/stats', isAuthenticated, async (req: any, res) => {
+dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const stats = await storage.getDashboardStats(user.tenantId);
+    const stats = await storage.getDashboardStats(req.user.tenantId);
     res.json(stats);
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -22,15 +21,14 @@ dashboardRouter.get('/stats', isAuthenticated, async (req: any, res) => {
 });
 
 // Dashboard activity feed endpoint
-dashboardRouter.get('/activity', isAuthenticated, async (req: any, res) => {
+dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
     const limit = parseInt(req.query.limit as string) || 20;
-    const activity = await storage.getRecentActivity(user.tenantId, limit);
+    const activity = await storage.getRecentActivity(req.user.tenantId, limit);
     res.json(activity);
   } catch (error) {
     console.error("Error fetching dashboard activity:", error);
@@ -39,10 +37,9 @@ dashboardRouter.get('/activity', isAuthenticated, async (req: any, res) => {
 });
 
 // Dashboard metrics endpoint
-dashboardRouter.get('/metrics', isAuthenticated, async (req: any, res) => {
+dashboardRouter.get('/metrics', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user?.tenantId) {
+    if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 

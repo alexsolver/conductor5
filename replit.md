@@ -42,10 +42,11 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Authentication System
-- **Provider**: Replit OpenID Connect integration
-- **Session Storage**: PostgreSQL-backed sessions using connect-pg-simple
-- **Security**: JWT tokens with proper cookie management
-- **Authorization**: Role-based access control (admin, agent roles)
+- **Provider**: Local JWT authentication with clean architecture
+- **Token Management**: Access tokens (15min) and refresh tokens (7 days) with httpOnly cookies
+- **Security**: bcrypt password hashing, JWT token verification, role-based access control
+- **Domain Layer**: User entity with business rules, password service interfaces
+- **Authorization**: Role-based middleware (admin, agent, customer) with tenant isolation
 
 ### Database Schema
 - **Multi-tenancy**: True schema separation - each tenant has dedicated PostgreSQL schema
@@ -74,16 +75,17 @@ Preferred communication style: Simple, everyday language.
 - **Data Display**: Tables, cards, and badges with gradient styling
 
 ## Recent Changes
-- **2025-01-16**: Implemented Complete Microservices Architecture
-  - Separated Dashboard, Tickets, Customers, and Knowledge Base into independent microservices
-  - Each module has dedicated routes and API endpoints for complete isolation
-  - Created Clean Architecture with Domain-Driven Design
-  - Implemented Domain Layer with pure business entities (Customer, Ticket)
-  - Added Use Cases for application logic separation (CreateCustomer, GetCustomers)
-  - Repository interfaces for dependency inversion (ICustomerRepository, ITicketRepository)
-  - Domain Events system for decoupled business logic (CustomerCreated, TicketAssigned)
-  - PostgreSQL schema separation for true multitenancy
-  - Created SchemaManager class for tenant schema lifecycle management
+- **2025-01-16**: Replaced Replit Authentication with Local JWT System
+  - Completely removed Replit OpenID Connect dependencies (openid-client, memoizee)
+  - Implemented clean architecture JWT authentication with domain-driven design
+  - Created User domain entity with business rules and validation
+  - Built authentication microservice with login, register, logout, and user endpoints
+  - Added JWT middleware for request authentication and authorization
+  - Updated all four microservices (Dashboard, Tickets, Customers, Knowledge Base) to use JWT
+  - Created comprehensive AuthProvider with React Query integration
+  - Built modern authentication page with login/register forms
+  - Updated database schema to support local authentication with password hashing
+  - Maintained complete microservices architecture with clean separation
 
 ## Data Flow
 
