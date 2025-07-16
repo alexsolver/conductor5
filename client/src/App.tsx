@@ -19,6 +19,8 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Roadmap from "./pages/Roadmap";
 import Compliance from "./pages/Compliance";
+import SaasAdmin from "./pages/SaasAdmin";
+import TenantAdmin from "./pages/TenantAdmin";
 import NotFound from "./pages/not-found";
 
 // Components
@@ -60,6 +62,8 @@ function AppRouter() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/roadmap" component={Roadmap} />
         <Route path="/compliance" component={Compliance} />
+        <Route path="/saas-admin" component={SaasAdmin} />
+        <Route path="/tenant-admin" component={TenantAdmin} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

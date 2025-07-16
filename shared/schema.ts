@@ -44,7 +44,7 @@ export const users = pgTable("users", {
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
-  role: varchar("role", { length: 50 }).default("agent").notNull(), // admin, agent, customer
+  role: varchar("role", { length: 50 }).default("agent").notNull(), // saas_admin, tenant_admin, agent, customer
   tenantId: uuid("tenant_id").references(() => tenants.id),
   profileImageUrl: varchar("profile_image_url"),
   isActive: boolean("is_active").default(true),

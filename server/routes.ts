@@ -26,6 +26,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/tickets', ticketsRouter);
   app.use('/api/knowledge-base', knowledgeBaseRouter);
 
+  // Import and mount admin routes
+  const saasAdminRoutes = await import('./modules/saas-admin/routes');
+  const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
+  app.use('/api/saas-admin', saasAdminRoutes.default);
+  app.use('/api/tenant-admin', tenantAdminRoutes.default);
+
   // Schema management (admin only)
   app.post("/api/admin/init-schema/:tenantId", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {

@@ -65,7 +65,9 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async findByTenant(tenantId: string, limit = 50, offset = 0): Promise<User[]> {
+  async findByTenant(tenantId: string, options?: { page?: number; limit?: number }): Promise<User[]> {
+    const limit = options?.limit || 50;
+    const offset = options?.page ? (options.page - 1) * limit : 0;
     try {
       const userData = await db
         .select()
@@ -184,6 +186,62 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       console.error('Error deleting user:', error);
       return false;
+    }
+  }
+
+  async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
+    const limit = options?.limit || 50;
+    const offset = options?.page ? (options.page - 1) * limit : 0;
+    
+    try {
+      const userData = await db
+        .select()
+        .from(users)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(users.createdAt));
+
+      return userData.map(data => new User(
+        data.id,
+        data.email!,
+        data.passwordHash!,
+        data.firstName,
+        data.lastName,
+        data.role as any,
+        data.tenantId,
+        data.profileImageUrl,
+        data.isActive ?? true,
+        data.lastLoginAt,
+        data.createdAt || new Date(),
+        data.updatedAt || new Date()
+      ));
+    } catch (error) {
+      console.error('Error finding all users:', error);
+      return [];
+    }
+  }
+
+  async create(userData: { email: string; passwordHash: string; firstName?: string; lastName?: string; role: string; tenantId?: string }): Promise<User> {
+    try {
+      const user = new User(
+        crypto.randomUUID(),
+        userData.email,
+        userData.passwordHash,
+        userData.firstName,
+        userData.lastName,
+        userData.role as any,
+        userData.tenantId,
+        undefined,
+        true,
+        undefined,
+        new Date(),
+        new Date()
+      );
+
+      return await this.save(user);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error('Failed to create user');
     }
   }
 

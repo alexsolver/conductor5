@@ -1,16 +1,19 @@
 // Dependency Injection Container - Clean Architecture
 import { UserRepository } from "../../infrastructure/repositories/UserRepository";
+import { TenantRepository } from "../../infrastructure/repositories/TenantRepository";
 import { PasswordHasher } from "../../infrastructure/services/PasswordHasher";
 import { TokenService } from "../../infrastructure/services/TokenService";
 import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
 import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
 import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
+import { storage } from "../../storage";
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
   
   // Repositories
   private _userRepository?: UserRepository;
+  private _tenantRepository?: TenantRepository;
   
   // Services
   private _passwordHasher?: PasswordHasher;
@@ -34,6 +37,17 @@ export class DependencyContainer {
       this._userRepository = new UserRepository();
     }
     return this._userRepository;
+  }
+
+  get tenantRepository(): TenantRepository {
+    if (!this._tenantRepository) {
+      this._tenantRepository = new TenantRepository();
+    }
+    return this._tenantRepository;
+  }
+
+  get storage() {
+    return storage;
   }
 
   // Services
