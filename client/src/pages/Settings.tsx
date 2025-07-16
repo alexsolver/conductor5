@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,8 +66,7 @@ export default function Settings() {
   }
 
   return (
-    <AppShell>
-      <div className="py-6">
+    <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Page Header */}
           <Card className="gradient-card mb-6">
@@ -583,6 +582,5 @@ export default function Settings() {
           </Tabs>
         </div>
       </div>
-    </AppShell>
   );
 }
