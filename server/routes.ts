@@ -43,6 +43,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const translationsRoutes = await import('./routes/translations');
   app.use('/api/translations', translationsRoutes.default);
 
+  // Import and mount validation routes
+  const validationRoutes = await import('./routes/validation');
+  app.use('/api/validation', validationRoutes.default);
+
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
   const tenantAdminRoutes = await import('./modules/tenant-admin/routes');

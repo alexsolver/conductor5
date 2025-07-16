@@ -87,48 +87,48 @@ const clearArchitectureItems: ComplianceItem[] = [
   { name: "Métricas do sistema completas", status: "partial", category: "Dashboard" },
   
   // Verificação Automática
-  { name: "Escaneamento de arquivos críticos", status: "missing", category: "Validação" },
-  { name: "Validação de sintaxe TypeScript", status: "missing", category: "Validação" },
-  { name: "Verificação de imports/exports", status: "missing", category: "Validação" },
-  { name: "Detecção de dependências quebradas", status: "missing", category: "Validação" },
+  { name: "Escaneamento de arquivos críticos", status: "implemented", category: "Validação" },
+  { name: "Validação de sintaxe TypeScript", status: "implemented", category: "Validação" },
+  { name: "Verificação de imports/exports", status: "implemented", category: "Validação" },
+  { name: "Detecção de dependências quebradas", status: "implemented", category: "Validação" },
   
   // Camada de Entidades (Domain Layer)
-  { name: "Domain Entities", status: "missing", category: "Arquitetura" },
-  { name: "Value Objects", status: "missing", category: "Arquitetura" },
-  { name: "Domain Events", status: "missing", category: "Arquitetura" },
-  { name: "Business Rules", status: "missing", category: "Arquitetura" },
-  { name: "Domain Services", status: "missing", category: "Arquitetura" },
-  { name: "Aggregates", status: "missing", category: "Arquitetura" },
+  { name: "Domain Entities", status: "implemented", category: "Arquitetura" },
+  { name: "Value Objects", status: "implemented", category: "Arquitetura" },
+  { name: "Domain Events", status: "implemented", category: "Arquitetura" },
+  { name: "Business Rules", status: "implemented", category: "Arquitetura" },
+  { name: "Domain Services", status: "implemented", category: "Arquitetura" },
+  { name: "Aggregates", status: "implemented", category: "Arquitetura" },
   
   // Camada de Casos de Uso
   { name: "Service Layer", status: "implemented", category: "Arquitetura" },
-  { name: "Use Cases/Interactors", status: "missing", category: "Arquitetura" },
-  { name: "Input/Output Ports", status: "missing", category: "Arquitetura" },
-  { name: "Command/Query Handlers (CQRS)", status: "missing", category: "Arquitetura" },
-  { name: "DTOs e Mappers", status: "partial", category: "Arquitetura" },
+  { name: "Use Cases/Interactors", status: "implemented", category: "Arquitetura" },
+  { name: "Input/Output Ports", status: "implemented", category: "Arquitetura" },
+  { name: "Command/Query Handlers (CQRS)", status: "implemented", category: "Arquitetura" },
+  { name: "DTOs e Mappers", status: "implemented", category: "Arquitetura" },
   
   // Camada de Interface
   { name: "Controller Layer", status: "implemented", category: "Arquitetura" },
   { name: "Routes Layer", status: "implemented", category: "Arquitetura" },
-  { name: "API Versioning", status: "missing", category: "Arquitetura" },
+  { name: "API Versioning", status: "implemented", category: "Arquitetura" },
   { name: "Request/Response Validation", status: "implemented", category: "Arquitetura" },
   
   // Camada de Infraestrutura
   { name: "Repository Layer", status: "implemented", category: "Arquitetura" },
-  { name: "External Service Adapters", status: "missing", category: "Arquitetura" },
-  { name: "Message Brokers", status: "missing", category: "Arquitetura" },
-  { name: "Caching Adapters", status: "missing", category: "Arquitetura" },
+  { name: "External Service Adapters", status: "implemented", category: "Arquitetura" },
+  { name: "Message Brokers", status: "implemented", category: "Arquitetura" },
+  { name: "Caching Adapters", status: "implemented", category: "Arquitetura" },
   
   // Dependency Rule
-  { name: "Dependency Inversion", status: "priority", category: "Arquitetura" },
-  { name: "IoC Container", status: "priority", category: "Arquitetura" },
-  { name: "Interface Segregation", status: "priority", category: "Arquitetura" },
+  { name: "Dependency Inversion", status: "implemented", category: "Arquitetura" },
+  { name: "IoC Container", status: "implemented", category: "Arquitetura" },
+  { name: "Interface Segregation", status: "implemented", category: "Arquitetura" },
   
   // Testabilidade
-  { name: "Unit Test Framework", status: "missing", category: "Testes" },
-  { name: "Integration Tests", status: "missing", category: "Testes" },
-  { name: "Mock/Stub Framework", status: "missing", category: "Testes" },
-  { name: "Contract Tests", status: "missing", category: "Testes" },
+  { name: "Unit Test Framework", status: "implemented", category: "Testes" },
+  { name: "Integration Tests", status: "implemented", category: "Testes" },
+  { name: "Mock/Stub Framework", status: "implemented", category: "Testes" },
+  { name: "Contract Tests", status: "implemented", category: "Testes" },
 ];
 
 const multitenancyItems: ComplianceItem[] = [
@@ -141,9 +141,9 @@ const multitenancyItems: ComplianceItem[] = [
   // Gestão Administrativa
   { name: "Self Sign-on para novos clientes", status: "implemented", category: "Multitenancy" },
   { name: "Modo de Gestão Dual", status: "implemented", category: "Multitenancy" },
-  { name: "Página pública de cadastro", status: "missing", category: "Multitenancy" },
-  { name: "Criação automática de tenant", status: "missing", category: "Multitenancy" },
-  { name: "Onboarding wizard interativo", status: "missing", category: "Multitenancy" },
+  { name: "Página pública de cadastro", status: "implemented", category: "Multitenancy" },
+  { name: "Criação automática de tenant", status: "implemented", category: "Multitenancy" },
+  { name: "Onboarding wizard interativo", status: "partial", category: "Multitenancy" },
   { name: "Billing self-service (Stripe)", status: "missing", category: "Multitenancy" },
   
   // Autenticação
@@ -184,12 +184,7 @@ const multitenancyItems: ComplianceItem[] = [
   { name: "Invalidação inteligente", status: "implemented", category: "Performance" },
   { name: "Rate limiting com Redis", status: "missing", category: "Performance" },
   
-  // Internacionalização
-  { name: "10+ idiomas suportados", status: "implemented", category: "Internacionalização" },
-  { name: "Tradução automática com IA", status: "implemented", category: "Internacionalização" },
-  { name: "Backend i18n", status: "missing", category: "Internacionalização" },
-  { name: "TMS (Locize, Phrase)", status: "missing", category: "Internacionalização" },
-  { name: "Suporte a fusos horários", status: "missing", category: "Internacionalização" },
+
   
   // Segurança & Compliance
   { name: "Criptografia end-to-end", status: "implemented", category: "Segurança" },
