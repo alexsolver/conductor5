@@ -9,6 +9,7 @@ import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import Tickets from "@/pages/Tickets";
 import Customers from "@/pages/Customers";
+import KnowledgeBase from "@/pages/KnowledgeBase";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
 import Roadmap from "@/pages/Roadmap";
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/tickets" component={Tickets} />
           <Route path="/customers" component={Customers} />
+          <Route path="/knowledge-base" component={KnowledgeBase} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/roadmap" component={Roadmap} />
           <Route path="/compliance" component={Compliance} />

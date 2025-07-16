@@ -1,0 +1,232 @@
+// Tickets Microservice Routes
+import { Router } from "express";
+import { isAuthenticated } from "../../replitAuth";
+import { storage } from "../../storage";
+import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/schema";
+import { z } from "zod";
+
+const ticketsRouter = Router();
+
+// Get all tickets with pagination and filters
+ticketsRouter.get('/', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const status = req.query.status as string;
+    const priority = req.query.priority as string;
+    const assignedTo = req.query.assignedTo as string;
+
+    const offset = (page - 1) * limit;
+    let tickets = await storage.getTickets(user.tenantId, limit, offset);
+
+    // Apply filters
+    if (status) {
+      tickets = tickets.filter(ticket => ticket.status === status);
+    }
+    if (priority) {
+      tickets = tickets.filter(ticket => ticket.priority === priority);
+    }
+    if (assignedTo) {
+      tickets = tickets.filter(ticket => ticket.assignedToId === assignedTo);
+    }
+
+    res.json({
+      tickets,
+      pagination: {
+        page,
+        limit,
+        total: tickets.length
+      },
+      filters: { status, priority, assignedTo }
+    });
+  } catch (error) {
+    console.error("Error fetching tickets:", error);
+    res.status(500).json({ message: "Failed to fetch tickets" });
+  }
+});
+
+// Get ticket by ID with messages
+ticketsRouter.get('/:id', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const ticket = await storage.getTicket(req.params.id, user.tenantId);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    res.json(ticket);
+  } catch (error) {
+    console.error("Error fetching ticket:", error);
+    res.status(500).json({ message: "Failed to fetch ticket" });
+  }
+});
+
+// Create new ticket
+ticketsRouter.post('/', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const ticketData = insertTicketSchema.parse({
+      ...req.body,
+      tenantId: user.tenantId,
+    });
+
+    const ticket = await storage.createTicket(ticketData);
+    
+    // Log activity
+    await storage.createActivityLog({
+      tenantId: user.tenantId,
+      userId: user.id,
+      entityType: 'ticket',
+      entityId: ticket.id,
+      action: 'created',
+      details: { subject: ticket.subject, priority: ticket.priority },
+    });
+
+    res.status(201).json(ticket);
+  } catch (error) {
+    console.error("Error creating ticket:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid ticket data", errors: error.errors });
+    }
+    res.status(500).json({ message: "Failed to create ticket" });
+  }
+});
+
+// Update ticket
+ticketsRouter.put('/:id', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const ticketId = req.params.id;
+    const updates = req.body;
+
+    const updatedTicket = await storage.updateTicket(ticketId, user.tenantId, updates);
+    
+    if (!updatedTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Log activity
+    await storage.createActivityLog({
+      tenantId: user.tenantId,
+      userId: user.id,
+      entityType: 'ticket',
+      entityId: ticketId,
+      action: 'updated',
+      details: { changes: updates },
+    });
+
+    res.json(updatedTicket);
+  } catch (error) {
+    console.error("Error updating ticket:", error);
+    res.status(500).json({ message: "Failed to update ticket" });
+  }
+});
+
+// Get urgent tickets
+ticketsRouter.get('/priority/urgent', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const urgentTickets = await storage.getUrgentTickets(user.tenantId);
+    res.json(urgentTickets);
+  } catch (error) {
+    console.error("Error fetching urgent tickets:", error);
+    res.status(500).json({ message: "Failed to fetch urgent tickets" });
+  }
+});
+
+// Add message to ticket
+ticketsRouter.post('/:id/messages', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const ticketId = req.params.id;
+    const messageData = insertTicketMessageSchema.parse({
+      ...req.body,
+      ticketId,
+      authorId: user.id,
+    });
+
+    const message = await storage.createTicketMessage(messageData);
+    
+    // Log activity
+    await storage.createActivityLog({
+      tenantId: user.tenantId,
+      userId: user.id,
+      entityType: 'ticket',
+      entityId: ticketId,
+      action: 'message_added',
+      details: { messagePreview: message.message.substring(0, 100) },
+    });
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error("Error adding ticket message:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid message data", errors: error.errors });
+    }
+    res.status(500).json({ message: "Failed to add message" });
+  }
+});
+
+// Assign ticket to agent
+ticketsRouter.post('/:id/assign', isAuthenticated, async (req: any, res) => {
+  try {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const ticketId = req.params.id;
+    const { assignedToId } = req.body;
+
+    const updatedTicket = await storage.updateTicket(ticketId, user.tenantId, { 
+      assignedToId,
+      status: 'in_progress'
+    });
+    
+    if (!updatedTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Log activity
+    await storage.createActivityLog({
+      tenantId: user.tenantId,
+      userId: user.id,
+      entityType: 'ticket',
+      entityId: ticketId,
+      action: 'assigned',
+      details: { assignedToId },
+    });
+
+    res.json(updatedTicket);
+  } catch (error) {
+    console.error("Error assigning ticket:", error);
+    res.status(500).json({ message: "Failed to assign ticket" });
+  }
+});
+
+export { ticketsRouter };
