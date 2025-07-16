@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart3, 
   Users, 
@@ -19,9 +20,10 @@ import {
   LogOut
 } from "lucide-react";
 
-const navigation = [
+// Base navigation without dynamic badges
+const baseNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
-  { name: "Tickets", href: "/tickets", icon: Ticket, badge: "12" },
+  { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
@@ -43,6 +45,23 @@ const secondaryNavigation = [
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+
+  // Fetch tickets count for badge
+  const { data: ticketsData } = useQuery({
+    queryKey: ["/api/tickets"], // Simple query key for consistent caching
+    enabled: !!user,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  const activeTicketsCount = ticketsData?.tickets?.length || 0;
+
+  // Create navigation with dynamic badges
+  const navigation = baseNavigation.map(item => {
+    if (item.name === "Tickets" && activeTicketsCount > 0) {
+      return { ...item, badge: activeTicketsCount.toString() };
+    }
+    return item;
+  });
 
   return (
     <div className="hidden lg:flex lg:w-64 lg:flex-col">

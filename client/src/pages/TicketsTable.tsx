@@ -174,6 +174,7 @@ export default function TicketsTable() {
     ticketsError,
     isLoading,
     ticketsCount: tickets.length,
+    actualTicketsData: ticketsData?.tickets,
     customersCount: customers.length,
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
