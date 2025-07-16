@@ -25,6 +25,11 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: Replit's OpenID Connect integration
 - **Session Management**: Express sessions with PostgreSQL storage
 - **API Design**: RESTful endpoints with structured error handling
+- **Architecture Pattern**: Clean Architecture with Domain-Driven Design
+- **Domain Layer**: Pure business entities and domain logic
+- **Application Layer**: Use Cases and application services
+- **Infrastructure Layer**: Database repositories and external services
+- **Domain Events**: Event-driven architecture for decoupling
 
 ### Design System
 - **Primary Theme**: Gradient-focused design with purple/blue color scheme
@@ -69,11 +74,16 @@ Preferred communication style: Simple, everyday language.
 - **Data Display**: Tables, cards, and badges with gradient styling
 
 ## Recent Changes
-- **2025-01-16**: Implemented PostgreSQL schema separation for true multitenancy
+- **2025-01-16**: Implemented Clean Architecture with Domain-Driven Design
+  - Created Domain Layer with pure business entities (Customer, Ticket)
+  - Implemented Use Cases for application logic separation (CreateCustomer, GetCustomers)
+  - Added Repository interfaces for dependency inversion (ICustomerRepository, ITicketRepository)
+  - Created Domain Events system for decoupled business logic (CustomerCreated, TicketAssigned)
+  - Extracted business logic from controllers into dedicated Use Cases
+  - Implemented PostgreSQL schema separation for true multitenancy
   - Created SchemaManager class for tenant schema lifecycle management
   - Updated DatabaseStorage to use tenant-specific database connections
   - Migrated existing data to tenant-specific schemas
-  - Added automatic schema creation on tenant registration
 
 ## Data Flow
 
@@ -91,10 +101,31 @@ Preferred communication style: Simple, everyday language.
 3. Tenant data completely isolated - no cross-tenant data access possible
 4. Shared resources (users, sessions) remain in public schema
 
+### Clean Architecture Implementation
+
+#### Domain Layer (server/domain/)
+- **Entities**: Pure business objects with invariants (Customer, Ticket)
+- **Repository Interfaces**: Abstractions for data access (ICustomerRepository, ITicketRepository)
+- **Domain Events**: Business event definitions (CustomerCreated, TicketAssigned)
+- **Business Rules**: Entity methods enforce business logic and validation
+
+#### Application Layer (server/application/)
+- **Use Cases**: Orchestrate business logic (CreateCustomerUseCase, GetCustomersUseCase)
+- **Controllers**: Handle HTTP requests and responses
+- **Services**: Cross-cutting concerns (DependencyContainer)
+- **DTOs**: Request/Response data transfer objects
+
+#### Infrastructure Layer (server/infrastructure/)
+- **Repositories**: Concrete implementations using Drizzle ORM
+- **Event Publishers**: Handle domain event distribution
+- **Database**: Schema management and connection handling
+- **External Services**: Third-party integrations
+
 ### State Management
 - **Server State**: TanStack React Query for API data
 - **Client State**: React hooks for local component state
 - **Authentication State**: Global auth hook with user context
+- **Domain Events**: Event-driven updates across bounded contexts
 
 ### Real-time Updates
 - **Architecture**: Polling-based updates via React Query

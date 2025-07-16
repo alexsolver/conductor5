@@ -74,77 +74,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Customer routes
+  // Customer routes - using clean architecture
   app.get('/api/customers', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.tenantId) {
-        return res.status(400).json({ message: "User not associated with a tenant" });
-      }
-
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = (page - 1) * limit;
-
-      const customers = await storage.getCustomers(user.tenantId, limit, offset);
-      res.json(customers);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      res.status(500).json({ message: "Failed to fetch customers" });
-    }
+    const { CustomerController } = await import('./application/controllers/CustomerController');
+    const controller = new CustomerController();
+    
+    // Add user context to request
+    const user = await storage.getUser(req.user.claims.sub);
+    req.user = user;
+    
+    await controller.getCustomers(req, res);
   });
 
   app.get('/api/customers/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.tenantId) {
-        return res.status(400).json({ message: "User not associated with a tenant" });
-      }
-
-      const customer = await storage.getCustomer(req.params.id, user.tenantId);
-      if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
-      }
-
-      res.json(customer);
-    } catch (error) {
-      console.error("Error fetching customer:", error);
-      res.status(500).json({ message: "Failed to fetch customer" });
-    }
+    const { CustomerController } = await import('./application/controllers/CustomerController');
+    const controller = new CustomerController();
+    
+    const user = await storage.getUser(req.user.claims.sub);
+    req.user = user;
+    
+    await controller.getCustomer(req, res);
   });
 
   app.post('/api/customers', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.tenantId) {
-        return res.status(400).json({ message: "User not associated with a tenant" });
-      }
-
-      const customerData = insertCustomerSchema.parse({
-        ...req.body,
-        tenantId: user.tenantId,
-      });
-
-      const customer = await storage.createCustomer(customerData);
-      
-      // Log activity
-      await storage.createActivityLog({
-        tenantId: user.tenantId,
-        userId: user.id,
-        entityType: 'customer',
-        entityId: customer.id,
-        action: 'created',
-        details: { customerName: `${customer.firstName} ${customer.lastName}` },
-      });
-
-      res.status(201).json(customer);
-    } catch (error) {
-      console.error("Error creating customer:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create customer" });
-    }
+    const { CustomerController } = await import('./application/controllers/CustomerController');
+    const controller = new CustomerController();
+    
+    const user = await storage.getUser(req.user.claims.sub);
+    req.user = user;
+    
+    await controller.createCustomer(req, res);
   });
 
   // Ticket routes
