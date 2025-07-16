@@ -42,6 +42,7 @@ const adminNavigation = [
 
 const secondaryNavigation = [
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Security", href: "/security", icon: Shield },
   { name: "Help & Support", href: "/help", icon: HelpCircle },
 ];
 

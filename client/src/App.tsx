@@ -17,6 +17,7 @@ import CustomersTable from "./pages/CustomersTable";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
+import SecuritySettings from "./pages/SecuritySettings";
 import Roadmap from "./pages/Roadmap";
 import Compliance from "./pages/Compliance";
 import SaasAdmin from "./pages/SaasAdmin";
@@ -69,6 +70,7 @@ function AppRouter() {
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/settings" component={Settings} />
+        <Route path="/security" component={SecuritySettings} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>

@@ -149,10 +149,15 @@ const multitenancyItems: ComplianceItem[] = [
   // Autenticação
   { name: "Sistema de autenticação local", status: "implemented", category: "Autenticação" },
   { name: "Sessões persistentes PostgreSQL", status: "implemented", category: "Autenticação" },
-  { name: "JWT + Refresh Tokens", status: "missing", category: "Autenticação" },
+  { name: "JWT + Refresh Tokens", status: "implemented", category: "Autenticação" },
   { name: "OAuth2 (Auth0, Cognito)", status: "missing", category: "Autenticação" },
-  { name: "Magic Link, 2FA", status: "missing", category: "Autenticação" },
-  { name: "Brute-force protection", status: "missing", category: "Autenticação" },
+  { name: "Magic Link authentication", status: "implemented", category: "Autenticação" },
+  { name: "Two-Factor Authentication (2FA)", status: "implemented", category: "Autenticação" },
+  { name: "Brute-force protection", status: "implemented", category: "Autenticação" },
+  { name: "Password reset flow", status: "implemented", category: "Autenticação" },
+  { name: "Account lockout policies", status: "implemented", category: "Autenticação" },
+  { name: "Rate limiting middleware", status: "implemented", category: "Autenticação" },
+  { name: "Security events logging", status: "implemented", category: "Autenticação" },
   
   // Autorização
   { name: "RBAC inicial", status: "implemented", category: "Autorização" },

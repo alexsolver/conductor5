@@ -2,13 +2,22 @@
 import { Router } from "express";
 import { DependencyContainer } from "../../application/services/DependencyContainer";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
+import { createRateLimitMiddleware, recordLoginAttempt } from "../../middleware/rateLimitMiddleware";
+import { authSecurityService } from "../../services/authSecurityService";
 import { z } from "zod";
 
 const authRouter = Router();
 const container = DependencyContainer.getInstance();
 
+// Rate limiting middleware
+const authRateLimit = createRateLimitMiddleware({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxAttempts: 5,
+  blockDurationMs: 30 * 60 * 1000 // 30 minutes
+});
+
 // Login endpoint
-authRouter.post('/login', async (req, res) => {
+authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req, res) => {
   try {
     const loginSchema = z.object({
       email: z.string().email(),
@@ -40,7 +49,7 @@ authRouter.post('/login', async (req, res) => {
 });
 
 // Register endpoint
-authRouter.post('/register', async (req, res) => {
+authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res) => {
   try {
     const registerSchema = z.object({
       email: z.string().email(),

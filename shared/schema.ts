@@ -174,6 +174,54 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Security tables
+export const securityEvents = pgTable("security_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ip: varchar("ip_address"),
+  email: varchar("email"),
+  identifier: varchar("identifier"),
+  eventType: varchar("event_type").notNull(),
+  attempts: integer("attempts").default(1),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userTwoFactor = pgTable("user_two_factor", {
+  userId: varchar("user_id").primaryKey().notNull().references(() => users.id),
+  secret: varchar("secret").notNull(),
+  enabled: boolean("enabled").default(false),
+  backupCodes: jsonb("backup_codes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  verifiedAt: timestamp("verified_at"),
+});
+
+export const accountLockouts = pgTable("account_lockouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  reason: varchar("reason"),
+  active: boolean("active").default(true),
+  lockedAt: timestamp("locked_at").defaultNow(),
+  unlockedAt: timestamp("unlocked_at"),
+});
+
+export const passwordResets = pgTable("password_resets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: varchar("token").unique().notNull(),
+  used: boolean("used").default(false),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const magicLinks = pgTable("magic_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: varchar("email").notNull(),
+  token: varchar("token").unique().notNull(),
+  used: boolean("used").default(false),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const tenantsRelations = relations(tenants, ({ many }) => ({
   users: many(users),

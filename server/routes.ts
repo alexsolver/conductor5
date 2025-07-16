@@ -47,6 +47,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const validationRoutes = await import('./routes/validation');
   app.use('/api/validation', validationRoutes.default);
 
+  // Import and mount auth security routes
+  const authSecurityRoutes = await import('./routes/authSecurity');
+  app.use('/api/auth-security', authSecurityRoutes.default);
+
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
   const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
