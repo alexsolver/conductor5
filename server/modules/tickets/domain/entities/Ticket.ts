@@ -142,7 +142,7 @@ export class Ticket {
   }
 
   // Factory method
-  static create(props: TicketCreateProps, ticketNumber: string): Ticket {
+  static create(props: TicketCreateProps, ticketNumber: string, idGenerator: { generate(): string }): Ticket {
     // Business validation
     if (!props.subject?.trim()) {
       throw new Error('Ticket subject is required');
@@ -167,7 +167,7 @@ export class Ticket {
     const now = new Date();
     
     return new Ticket(
-      crypto.randomUUID(), // Note: Should use dependency injection in production
+      idGenerator.generate(),
       props.tenantId,
       props.customerId,
       props.callerId,

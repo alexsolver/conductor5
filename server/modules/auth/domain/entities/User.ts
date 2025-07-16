@@ -143,7 +143,7 @@ export class User {
   }
 
   // Factory method
-  static create(props: UserCreateProps, passwordHash: string): User {
+  static create(props: UserCreateProps, passwordHash: string, idGenerator: { generate(): string }): User {
     // Business validation
     if (!props.email?.trim()) {
       throw new Error('User email is required');
@@ -169,7 +169,7 @@ export class User {
     const now = new Date();
     
     return new User(
-      crypto.randomUUID(), // Note: Should use dependency injection in production
+      idGenerator.generate(),
       props.email.toLowerCase().trim(),
       passwordHash,
       props.firstName?.trim() || null,

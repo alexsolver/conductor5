@@ -7,6 +7,7 @@ import { Customer } from '../../domain/entities/Customer';
 import { ICustomerRepository } from '../../domain/ports/ICustomerRepository';
 import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
 import { CustomerCreatedEvent } from '../../domain/events/CustomerCreatedEvent';
+import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator';
 
 export interface CreateCustomerInput {
   tenantId: string;
@@ -33,7 +34,8 @@ export interface CreateCustomerOutput {
 export class CreateCustomerUseCase {
   constructor(
     private customerRepository: ICustomerRepository,
-    private eventPublisher: IDomainEventPublisher
+    private eventPublisher: IDomainEventPublisher,
+    private idGenerator: IIdGenerator
   ) {}
 
   async execute(input: CreateCustomerInput): Promise<CreateCustomerOutput> {
@@ -69,7 +71,7 @@ export class CreateCustomerUseCase {
         verified: false,
         active: true,
         suspended: false
-      });
+      }, this.idGenerator);
 
       // Save customer
       const savedCustomer = await this.customerRepository.save(customer);

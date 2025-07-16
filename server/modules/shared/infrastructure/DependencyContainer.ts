@@ -147,6 +147,7 @@ export const TOKENS = {
   // External Services
   EMAIL_SERVICE: Symbol('IEmailService'),
   FILE_STORAGE_SERVICE: Symbol('IFileStorageService'),
+  PASSWORD_SERVICE: Symbol('IPasswordService'),
   
   // Infrastructure
   DATABASE_CONNECTION: Symbol('DatabaseConnection'),

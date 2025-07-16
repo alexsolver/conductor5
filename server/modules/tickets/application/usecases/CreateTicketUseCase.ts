@@ -7,6 +7,7 @@ import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/ports/ITicketRepository';
 import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
 import { TicketCreatedEvent } from '../../domain/events/TicketCreatedEvent';
+import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator';
 
 export interface CreateTicketInput {
   tenantId: string;
@@ -46,7 +47,8 @@ export interface CreateTicketOutput {
 export class CreateTicketUseCase {
   constructor(
     private ticketRepository: ITicketRepository,
-    private eventPublisher: IDomainEventPublisher
+    private eventPublisher: IDomainEventPublisher,
+    private idGenerator: IIdGenerator
   ) {}
 
   async execute(input: CreateTicketInput): Promise<CreateTicketOutput> {
@@ -83,7 +85,7 @@ export class CreateTicketUseCase {
         configurationItem: input.configurationItem,
         businessService: input.businessService,
         notify: input.notify
-      }, ticketNumber);
+      }, ticketNumber, this.idGenerator);
 
       // Save ticket
       const savedTicket = await this.ticketRepository.save(ticket);
