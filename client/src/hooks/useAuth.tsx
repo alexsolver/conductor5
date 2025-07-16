@@ -87,18 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       try {
-        console.log('Attempting login with:', { email: credentials.email, passwordLength: credentials.password?.length });
         const res = await apiRequest('POST', '/api/auth/login', credentials);
-        console.log('Login response status:', res.status, res.statusText);
-        const data = await res.json();
-        console.log('Login response data:', data);
-        return data;
+        return await res.json();
       } catch (error) {
-        console.error('Login API error details:', {
-          error,
-          message: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined
-        });
+        console.error('Login API error:', error);
         throw error;
       }
     },

@@ -8,12 +8,6 @@ async function throwIfResNotOk(res: Response) {
     } catch (e) {
       text = res.statusText || 'Unknown error';
     }
-    console.error('API Error Response:', {
-      status: res.status,
-      statusText: res.statusText,
-      text,
-      url: res.url
-    });
     throw new Error(`${res.status}: ${text || res.statusText}`);
   }
 }
