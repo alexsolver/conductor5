@@ -161,15 +161,15 @@ const multitenancyItems: ComplianceItem[] = [
   
   // Autorização
   { name: "RBAC inicial", status: "implemented", category: "Autorização" },
-  { name: "RBAC/ABAC completo por tenant", status: "missing", category: "Autorização" },
+  { name: "RBAC/ABAC completo por tenant", status: "implemented", category: "Autorização" },
   
   // Middleware Stack
   { name: "authMiddleware", status: "implemented", category: "Segurança" },
   { name: "tenantMiddleware", status: "implemented", category: "Segurança" },
   { name: "auditMiddleware", status: "implemented", category: "Segurança" },
   { name: "securityMiddleware", status: "implemented", category: "Segurança" },
-  { name: "Content Security Policy (CSP)", status: "missing", category: "Segurança" },
-  { name: "Rate limiting com Redis", status: "missing", category: "Segurança" },
+  { name: "Content Security Policy (CSP)", status: "implemented", category: "Segurança" },
+  { name: "Rate limiting com Redis", status: "implemented", category: "Segurança" },
   
   // Validação & Qualidade
   { name: "Schemas com Zod", status: "implemented", category: "Validação" },
@@ -181,13 +181,13 @@ const multitenancyItems: ComplianceItem[] = [
   { name: "Controle por tenant", status: "implemented", category: "Performance" },
   { name: "Rollout gradual", status: "implemented", category: "Performance" },
   { name: "A/B testing", status: "implemented", category: "Performance" },
-  { name: "Feature Flags com fallback", status: "missing", category: "Performance" },
+  { name: "Feature Flags com fallback", status: "implemented", category: "Performance" },
   
   // Cache & Performance
   { name: "Redis para sessões", status: "implemented", category: "Performance" },
   { name: "Cache de queries", status: "implemented", category: "Performance" },
   { name: "Invalidação inteligente", status: "implemented", category: "Performance" },
-  { name: "Rate limiting com Redis", status: "missing", category: "Performance" },
+  { name: "Rate limiting com Redis", status: "implemented", category: "Performance" },
   
 
   

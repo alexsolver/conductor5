@@ -2,6 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
+import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
+import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
+import { createRedisRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
+import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema";
 import { z } from "zod";
@@ -9,6 +13,91 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
+  
+  // Apply CSP middleware
+  app.use(createCSPMiddleware({
+    environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+    nonce: true
+  }));
+  
+  // Apply rate limiting middleware
+  app.use('/api/auth/login', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
+  app.use('/api/auth/register', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
+  app.use('/api/auth/password-reset', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
+  app.use('/api', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL));
+  
+  // Apply feature flag middleware
+  app.use(createFeatureFlagMiddleware());
+  
+  // CSP reporting endpoint
+  app.post('/api/csp-report', createCSPReportingEndpoint());
+  
+  // CSP management routes (admin only)
+  app.use('/api/csp', requirePermission('platform', 'manage_security'), createCSPManagementRoutes());
+  
+  // Feature flags routes
+  app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { featureFlagService } = await import('./services/featureFlagService');
+      const context = {
+        userId: req.user?.id,
+        tenantId: req.user?.tenantId,
+        userAttributes: req.user,
+        tenantAttributes: req.tenant
+      };
+      
+      const flags = await featureFlagService.getAllFlags(context);
+      res.json({ flags });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch feature flags' });
+    }
+  });
+  
+  app.get('/api/feature-flags/:flagId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { featureFlagService } = await import('./services/featureFlagService');
+      const context = {
+        userId: req.user?.id,
+        tenantId: req.user?.tenantId,
+        userAttributes: req.user,
+        tenantAttributes: req.tenant
+      };
+      
+      const isEnabled = await featureFlagService.isEnabled(req.params.flagId, context);
+      res.json({ flagId: req.params.flagId, enabled: isEnabled });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to check feature flag' });
+    }
+  });
+
+  // RBAC management routes
+  app.get('/api/rbac/permissions', jwtAuth, requirePermission('platform', 'manage_security'), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { PERMISSIONS } = await import('./middleware/rbacMiddleware');
+      res.json({ permissions: PERMISSIONS });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch permissions' });
+    }
+  });
+  
+  app.get('/api/rbac/roles', jwtAuth, requirePermission('platform', 'manage_security'), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { ROLE_PERMISSIONS } = await import('./middleware/rbacMiddleware');
+      res.json({ roles: ROLE_PERMISSIONS });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch roles' });
+    }
+  });
+  
+  app.get('/api/rbac/user-permissions/:userId', jwtAuth, requirePermission('platform', 'manage_users'), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { rbacService } = await import('./middleware/rbacMiddleware');
+      const permissions = await rbacService.getUserPermissions(req.params.userId, req.user?.tenantId);
+      res.json({ permissions });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch user permissions' });
+    }
+  });
 
   // Import and mount authentication routes
   const { authRouter } = await import('./modules/auth/routes');
