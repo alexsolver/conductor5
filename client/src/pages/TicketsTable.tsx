@@ -113,75 +113,18 @@ export default function TicketsTable() {
   // Fetch tickets with pagination and filters
   const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
     queryKey: ["/api/tickets", { page: currentPage, limit: itemsPerPage, search: searchTerm, status: statusFilter, priority: priorityFilter }],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: itemsPerPage.toString(),
-      });
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (priorityFilter !== 'all') params.append('priority', priorityFilter);
-      
-      const response = await fetch(`/api/tickets?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        console.error(`Tickets fetch failed: ${response.status}`, await response.text());
-        throw new Error(`Failed to fetch tickets: ${response.status}`);
-      }
-      
-      return response.json();
-    },
     retry: 3,
   });
 
   // Fetch customers for the dropdown
   const { data: customersData } = useQuery({
     queryKey: ["/api/customers"],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/customers', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch customers: ${response.status}`);
-      }
-      
-      return response.json();
-    },
     retry: 3,
   });
 
   // Fetch users for assignment
   const { data: usersData } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/tenant-admin/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status}`);
-      }
-      
-      return response.json();
-    },
     retry: 3,
   });
 
