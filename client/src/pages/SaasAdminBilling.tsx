@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/app-shell";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,7 @@ import { CreditCard, DollarSign, TrendingUp, Users, Download, AlertCircle } from
 
 export default function SaasAdminBilling() {
   return (
-    <AppShell>
-      <div className="space-y-8">
+    <div className="space-y-8 p-8">
         {/* Header */}
         <div className="border-b border-gray-200 pb-4">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -363,7 +362,6 @@ export default function SaasAdminBilling() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </AppShell>
+    </div>
   );
 }

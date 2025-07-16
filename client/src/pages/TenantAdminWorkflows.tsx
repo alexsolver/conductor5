@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/app-shell";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,7 @@ import { Workflow, Clock, Target, AlertCircle, Plus, Edit, Trash2, PlayCircle, P
 
 export default function TenantAdminWorkflows() {
   return (
-    <AppShell>
-      <div className="space-y-8">
+    <div className="space-y-8 p-8">
         {/* Header */}
         <div className="border-b border-gray-200 pb-4">
           <div className="flex justify-between items-center">
@@ -437,7 +436,6 @@ export default function TenantAdminWorkflows() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </AppShell>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/app-shell";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,7 @@ import { UserPlus, Users, Target, TrendingUp, Clock, Mail, Phone, Edit, Trash2 }
 
 export default function TenantAdminTeam() {
   return (
-    <AppShell>
-      <div className="space-y-8">
+    <div className="space-y-8 p-8">
         {/* Header */}
         <div className="border-b border-gray-200 pb-4">
           <div className="flex justify-between items-center">
@@ -308,7 +307,6 @@ export default function TenantAdminTeam() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </AppShell>
+    </div>
   );
 }
