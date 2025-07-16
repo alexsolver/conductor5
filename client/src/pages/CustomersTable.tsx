@@ -56,16 +56,29 @@ export default function CustomersTable() {
   const { data: customersData, isLoading } = useQuery({
     queryKey: ["/api/customers", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
     queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
       });
       if (searchTerm) params.append('search', searchTerm);
       
-      const response = await fetch(`/api/customers?${params}`);
+      const response = await fetch(`/api/customers?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        console.error(`Customers fetch failed: ${response.status}`, await response.text());
+        throw new Error(`Failed to fetch customers: ${response.status}`);
+      }
+      
       return response.json();
     },
-    retry: false,
+    retry: 3,
   });
 
   const customers = customersData?.customers || [];
