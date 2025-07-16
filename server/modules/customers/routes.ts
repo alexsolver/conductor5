@@ -1,16 +1,90 @@
-// Customers Module Routes - Clean Architecture
 import { Router } from "express";
-import { jwtAuth } from "../../middleware/jwtAuth";
-import { CustomersController } from "./application/controllers/CustomersController";
+import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
+import { storage } from "../../storage";
+import { insertCustomerSchema } from "@shared/schema";
+import { z } from "zod";
 
-const customersRouter = Router();
-const customersController = new CustomersController();
+export const customersRouter = Router();
 
-// Bind controller methods to maintain 'this' context
-customersRouter.get('/', jwtAuth, customersController.getCustomers.bind(customersController));
-customersRouter.get('/:id', jwtAuth, customersController.getCustomer.bind(customersController));
-customersRouter.post('/', jwtAuth, customersController.createCustomer.bind(customersController));
-customersRouter.put('/:id', jwtAuth, customersController.updateCustomer.bind(customersController));
-customersRouter.delete('/:id', jwtAuth, customersController.deleteCustomer.bind(customersController));
+// Get all customers
+customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
 
-export { customersRouter };
+    const { limit, offset } = req.query;
+    const customers = await storage.getCustomers(
+      req.user.tenantId,
+      limit ? parseInt(limit as string) : 50,
+      offset ? parseInt(offset as string) : 0
+    );
+
+    res.json({ customers });
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    res.status(500).json({ message: "Failed to fetch customers" });
+  }
+});
+
+// Create new customer
+customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Validate input using the schema
+    const validatedData = insertCustomerSchema.parse({
+      ...req.body,
+      tenantId: req.user.tenantId
+    });
+
+    const customer = await storage.createCustomer(validatedData);
+    res.status(201).json(customer);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
+    }
+    console.error("Error creating customer:", error);
+    res.status(500).json({ message: "Failed to create customer" });
+  }
+});
+
+// Update customer
+customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const customer = await storage.updateCustomer(req.params.id, req.user.tenantId, req.body);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.json(customer);
+  } catch (error) {
+    console.error("Error updating customer:", error);
+    res.status(500).json({ message: "Failed to update customer" });
+  }
+});
+
+// Delete customer
+customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const deleted = await storage.deleteCustomer(req.params.id, req.user.tenantId);
+    if (!deleted) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting customer:", error);
+    res.status(500).json({ message: "Failed to delete customer" });
+  }
+});

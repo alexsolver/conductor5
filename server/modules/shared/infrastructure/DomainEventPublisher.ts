@@ -1,36 +1,51 @@
-// Shared infrastructure for domain event publishing
-import { IDomainEvent, IDomainEventPublisher } from "../events/IDomainEventPublisher";
+/**
+ * Domain Event Publisher Implementation
+ * Clean Architecture - Infrastructure Layer
+ */
+
+import { IDomainEventPublisher } from '../domain/IDomainEventPublisher';
+import { IDomainEvent } from '../domain/IDomainEvent';
 
 export class DomainEventPublisher implements IDomainEventPublisher {
-  
+  private eventHandlers = new Map<string, Array<(event: IDomainEvent) => Promise<void>>>();
+
   async publish(event: IDomainEvent): Promise<void> {
-    try {
-      // Log the event for debugging and audit
-      console.log(`Domain event published: ${event.eventName}`, {
-        eventId: event.eventId,
-        aggregateId: event.aggregateId,
-        tenantId: event.tenantId,
-        occurredOn: event.occurredOn
-      });
-      
-      // Here you could add other event handlers:
-      // - Send notifications
-      // - Update search indexes
-      // - Trigger workflows
-      // - Send webhooks
-      // - Store in event store
-      
-    } catch (error) {
-      console.error('Error publishing domain event:', error);
-      // In production, you might want to store failed events for retry
+    const handlers = this.eventHandlers.get(event.eventName) || [];
+    
+    // Execute all handlers in parallel
+    await Promise.all(
+      handlers.map(handler => handler(event).catch(error => {
+        console.error(`Error handling event ${event.eventName}:`, error);
+      }))
+    );
+
+    // Log the event for debugging
+    console.log(`Domain event published: ${event.eventName}`, {
+      aggregateId: event.aggregateId,
+      occurredOn: event.occurredOn,
+      data: event.getEventData()
+    });
+  }
+
+  subscribe(eventName: string, handler: (event: IDomainEvent) => Promise<void>): void {
+    if (!this.eventHandlers.has(eventName)) {
+      this.eventHandlers.set(eventName, []);
+    }
+    
+    this.eventHandlers.get(eventName)!.push(handler);
+  }
+
+  unsubscribe(eventName: string, handler: (event: IDomainEvent) => Promise<void>): void {
+    const handlers = this.eventHandlers.get(eventName);
+    if (handlers) {
+      const index = handlers.indexOf(handler);
+      if (index > -1) {
+        handlers.splice(index, 1);
+      }
     }
   }
 
-  async publishMany(events: IDomainEvent[]): Promise<void> {
-    try {
-      await Promise.all(events.map(event => this.publish(event)));
-    } catch (error) {
-      console.error('Error publishing multiple domain events:', error);
-    }
+  clear(): void {
+    this.eventHandlers.clear();
   }
 }

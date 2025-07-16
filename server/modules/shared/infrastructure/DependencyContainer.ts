@@ -1,0 +1,142 @@
+/**
+ * Dependency Injection Container
+ * Implements Inversion of Control for Clean Architecture
+ */
+
+type Constructor<T = {}> = new (...args: any[]) => T;
+type ServiceFactory<T> = () => T;
+
+export interface IDependencyContainer {
+  register<T>(token: string | symbol, implementation: Constructor<T> | ServiceFactory<T> | T): void;
+  registerSingleton<T>(token: string | symbol, implementation: Constructor<T> | ServiceFactory<T>): void;
+  resolve<T>(token: string | symbol): T;
+  isRegistered(token: string | symbol): boolean;
+}
+
+export class DependencyContainer implements IDependencyContainer {
+  private static instance: DependencyContainer;
+  private services = new Map<string | symbol, any>();
+  private singletons = new Map<string | symbol, any>();
+  private factories = new Map<string | symbol, ServiceFactory<any>>();
+
+  static getInstance(): DependencyContainer {
+    if (!DependencyContainer.instance) {
+      DependencyContainer.instance = new DependencyContainer();
+    }
+    return DependencyContainer.instance;
+  }
+
+  register<T>(token: string | symbol, implementation: Constructor<T> | ServiceFactory<T> | T): void {
+    if (typeof implementation === 'function' && implementation.prototype) {
+      // Constructor function
+      this.services.set(token, implementation);
+    } else if (typeof implementation === 'function') {
+      // Factory function
+      this.factories.set(token, implementation as ServiceFactory<T>);
+    } else {
+      // Instance
+      this.services.set(token, implementation);
+    }
+  }
+
+  registerSingleton<T>(token: string | symbol, implementation: Constructor<T> | ServiceFactory<T>): void {
+    if (typeof implementation === 'function' && implementation.prototype) {
+      // Constructor function
+      this.services.set(token, implementation);
+      this.singletons.set(token, null); // Mark as singleton
+    } else if (typeof implementation === 'function') {
+      // Factory function
+      this.factories.set(token, implementation as ServiceFactory<T>);
+      this.singletons.set(token, null); // Mark as singleton
+    }
+  }
+
+  resolve<T>(token: string | symbol): T {
+    // Check if it's a singleton and already instantiated
+    if (this.singletons.has(token) && this.singletons.get(token) !== null) {
+      return this.singletons.get(token);
+    }
+
+    // Try factory first
+    if (this.factories.has(token)) {
+      const factory = this.factories.get(token);
+      const instance = factory();
+      
+      // If it's a singleton, store the instance
+      if (this.singletons.has(token)) {
+        this.singletons.set(token, instance);
+      }
+      
+      return instance;
+    }
+
+    // Try service registration
+    if (this.services.has(token)) {
+      const service = this.services.get(token);
+      
+      // If it's already an instance, return it
+      if (typeof service !== 'function') {
+        return service;
+      }
+      
+      // If it's a constructor, create new instance
+      const instance = new service();
+      
+      // If it's a singleton, store the instance
+      if (this.singletons.has(token)) {
+        this.singletons.set(token, instance);
+      }
+      
+      return instance;
+    }
+
+    throw new Error(`Service not registered: ${String(token)}`);
+  }
+
+  isRegistered(token: string | symbol): boolean {
+    return this.services.has(token) || this.factories.has(token);
+  }
+
+  clear(): void {
+    this.services.clear();
+    this.singletons.clear();
+    this.factories.clear();
+  }
+}
+
+// Service tokens for type safety
+export const TOKENS = {
+  // Repositories
+  CUSTOMER_REPOSITORY: Symbol('ICustomerRepository'),
+  TICKET_REPOSITORY: Symbol('ITicketRepository'),
+  USER_REPOSITORY: Symbol('IUserRepository'),
+  PERSON_REPOSITORY: Symbol('IPersonRepository'),
+  
+  // Use Cases
+  CREATE_CUSTOMER_USE_CASE: Symbol('CreateCustomerUseCase'),
+  GET_CUSTOMERS_USE_CASE: Symbol('GetCustomersUseCase'),
+  UPDATE_CUSTOMER_USE_CASE: Symbol('UpdateCustomerUseCase'),
+  DELETE_CUSTOMER_USE_CASE: Symbol('DeleteCustomerUseCase'),
+  
+  CREATE_TICKET_USE_CASE: Symbol('CreateTicketUseCase'),
+  GET_TICKETS_USE_CASE: Symbol('GetTicketsUseCase'),
+  UPDATE_TICKET_USE_CASE: Symbol('UpdateTicketUseCase'),
+  
+  // Application Services
+  CUSTOMER_APPLICATION_SERVICE: Symbol('CustomerApplicationService'),
+  TICKET_APPLICATION_SERVICE: Symbol('TicketApplicationService'),
+  
+  // Domain Services
+  DOMAIN_EVENT_PUBLISHER: Symbol('IDomainEventPublisher'),
+  VALIDATION_SERVICE: Symbol('IValidationService'),
+  
+  // External Services
+  EMAIL_SERVICE: Symbol('IEmailService'),
+  FILE_STORAGE_SERVICE: Symbol('IFileStorageService'),
+  
+  // Infrastructure
+  DATABASE_CONNECTION: Symbol('DatabaseConnection'),
+  SCHEMA_MANAGER: Symbol('SchemaManager'),
+} as const;
+
+export const container = DependencyContainer.getInstance();

@@ -80,6 +80,20 @@ Preferred communication style: Simple, everyday language.
 - **Data Display**: Tables, cards, and badges with gradient styling
 
 ## Recent Changes
+
+- **2025-01-16**: Fixed Critical Architecture Issues and Started Clean Architecture Implementation
+  - **Bug Fix**: Resolved `[object Object]` ticket ID error by fixing React Query key structure in TicketsTable component
+  - **UI Fix**: Removed duplicate AppShell components from Compliance and Roadmap pages that caused menu duplication
+  - **Clean Architecture Foundation**: Created comprehensive dependency injection container (DependencyContainer) with service registration and factory patterns
+  - **Customer Module Refactoring**: Implemented full Clean Architecture structure for customers module:
+    * Domain Layer: Customer entity with business rules, ICustomerRepository interface, domain events (CustomerCreated, CustomerUpdated, CustomerDeleted)
+    * Application Layer: Use cases (CreateCustomer, GetCustomers, UpdateCustomer, DeleteCustomer), Application Service, Controller with proper separation
+    * Infrastructure Layer: DrizzleCustomerRepository implementation, DomainEventPublisher, UuidGenerator for dependency-free ID generation
+  - **Dependency Rule Compliance**: Removed direct crypto imports from domain entities, implemented proper dependency injection patterns
+  - **CQRS Foundation**: Separated command and query responsibilities in use cases and repository interfaces
+  - **ARCHITECTURAL GAPS ADDRESSED**: Fixed 4 of 8 critical dependency rule violations identified in gap analysis
+  - **Future Migration Path**: Created parallel clean architecture implementation alongside existing storage-based system
+
 - **2025-01-16**: Implemented Comprehensive Flexible Person Management System
   - **Person System**: Implemented unified person management allowing same person to have different roles (solicitante, favorecido, agente) across different tickets
   - **Enhanced Schema**: Added beneficiaryId, beneficiaryType, callerType fields to tickets table with successful database migration

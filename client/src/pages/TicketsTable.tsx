@@ -112,7 +112,7 @@ export default function TicketsTable() {
 
   // Fetch tickets with pagination and filters
   const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
-    queryKey: ["/api/tickets", { page: currentPage, limit: itemsPerPage, search: searchTerm, status: statusFilter, priority: priorityFilter }],
+    queryKey: ["/api/tickets", currentPage, itemsPerPage, searchTerm, statusFilter, priorityFilter],
     retry: 3,
   });
 

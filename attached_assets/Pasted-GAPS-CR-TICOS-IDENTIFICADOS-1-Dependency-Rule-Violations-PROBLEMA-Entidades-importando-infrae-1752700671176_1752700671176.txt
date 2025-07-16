@@ -1,0 +1,91 @@
+GAPS CRÍTICOS IDENTIFICADOS
+❌ 1. Dependency Rule Violations
+// PROBLEMA: Entidades importando infraestrutura
+// server/domain/entities/Customer.ts linha 89
+return new Customer(
+  crypto.randomUUID(), // ❌ Dependência de Web API
+  // ...
+);
+❌ 2. Missing Dependency Injection
+Sem IoC Container
+Controllers instanciando dependências diretamente
+Acoplamento forte entre camadas
+❌ 3. Repository Interfaces Not Properly Used
+// PROBLEMA: Use cases importando implementações concretas
+// server/application/usecases/CreateCustomerUseCase.ts
+import { CustomerRepository } from '../infrastructure/repositories/CustomerRepository';
+// ❌ Deveria importar ICustomerRepository
+❌ 4. Missing Application Services
+Lógica de negócio complexa espalhada nos controllers
+Sem orquestração adequada entre use cases
+❌ 5. Inconsistent Error Handling
+Sem strategy pattern para tratamento de erros
+Exceptions do domínio vazando para a infraestrutura
+❌ 6. Missing Ports and Adapters
+// FALTA: Interfaces para serviços externos
+interface IEmailService {
+  sendNotification(to: string, message: string): Promise<void>;
+}
+interface IFileStorageService {
+  uploadFile(file: Buffer, path: string): Promise<string>;
+}
+❌ 7. CQRS Pattern Missing
+Read e Write models misturados
+Queries complexas nos mesmos repositories
+❌ 8. Validation Architecture Issues
+// PROBLEMA: Validação espalhada
+// Deveria ter Input/Output boundaries claros
+interface CreateCustomerInput {
+  email: string;
+  name: string;
+}
+interface CreateCustomerOutput {
+  id: string;
+  success: boolean;
+}
+PRINCIPAIS PROBLEMAS ARQUITETURAIS
+🔴 1. Schema Manager Violating Clean Architecture
+// server/modules/shared/database/SchemaManager.ts
+// ❌ Infrastructure concerns no domain layer
+🔴 2. Direct Database Access in Routes
+// server/modules/tickets/routes.ts linha 59
+const ticket = await storage.getTicket(id, tenantId);
+// ❌ Deveria usar Use Case
+🔴 3. Domain Logic in Controllers
+// Controllers fazendo validações de negócio
+// que deveriam estar no domínio
+RECOMENDAÇÕES PRIORITÁRIAS
+🎯 1. Implementar Dependency Injection
+// Criar container DI
+interface IDependencyContainer {
+  resolve<T>(token: string): T;
+  register<T>(token: string, implementation: T): void;
+}
+🎯 2. Separar Concerns nos Use Cases
+// Exemplo correto:
+class CreateCustomerUseCase {
+  constructor(
+    private customerRepo: ICustomerRepository,
+    private eventPublisher: IDomainEventPublisher,
+    private validator: IValidator
+  ) {}
+}
+🎯 3. Implementar Application Services
+class CustomerApplicationService {
+  constructor(
+    private createCustomerUseCase: CreateCustomerUseCase,
+    private updateCustomerUseCase: UpdateCustomerUseCase
+  ) {}
+}
+🎯 4. Criar Boundaries Claras
+// Input/Output ports
+interface ICustomerInputPort {
+  createCustomer(input: CreateCustomerInput): Promise<CreateCustomerOutput>;
+}
+🎯 5. Implementar CQRS
+// Separar Read/Write models
+interface ICustomerQueryService {
+  getCustomers(filter: CustomerFilter): Promise<CustomerView[]>;
+}
+interface ICustomerCommandService {
+  createCustomer(command: CreateCustomerComman

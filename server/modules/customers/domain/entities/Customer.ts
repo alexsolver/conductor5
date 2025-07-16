@@ -93,6 +93,7 @@ export class Customer {
       throw new Error('Invalid email format');
     }
 
+    // Note: This should use dependency injection for ID generation in production
     return new Customer(
       crypto.randomUUID(),
       props.tenantId,

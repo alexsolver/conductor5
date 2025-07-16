@@ -20,6 +20,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { ticketsRouter } = await import('./modules/tickets/routes');
   const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
+  
+  // Initialize clean architecture (for future migration)
+  // await setupCustomerDependencies();
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
