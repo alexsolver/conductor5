@@ -45,37 +45,54 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
-  const { data: user, error, isLoading } = useQuery<User | undefined, Error>({
+  const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
-    queryFn: async () => {
+    queryFn: async (): Promise<User | null> => {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        return undefined;
+        return null;
       }
       
-      const response = await fetch('/api/auth/user', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          localStorage.removeItem('accessToken');
-          return undefined;
+      try {
+        const response = await fetch('/api/auth/user', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('accessToken');
+            return null;
+          }
+          console.warn(`Auth check failed: ${response.status}`);
+          return null;
         }
-        throw new Error('Failed to fetch user');
+        
+        const userData = await response.json();
+        return userData || null;
+      } catch (error) {
+        console.error('Auth query error:', error);
+        localStorage.removeItem('accessToken');
+        return null;
       }
-      
-      return response.json();
     },
     retry: false,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest('POST', '/api/auth/login', credentials);
-      return await res.json();
+      try {
+        const res = await apiRequest('POST', '/api/auth/login', credentials);
+        return await res.json();
+      } catch (error) {
+        console.error('Login API error:', error);
+        throw error;
+      }
     },
     onSuccess: (result: { user: User; accessToken: string }) => {
       localStorage.setItem('accessToken', result.accessToken);
@@ -89,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Login error:', error);
       toast({
         title: 'Login failed',
-        description: error.message,
+        description: error.message || 'Please check your credentials and try again.',
         variant: 'destructive',
       });
     },
@@ -97,8 +114,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
-      const res = await apiRequest('POST', '/api/auth/register', credentials);
-      return await res.json();
+      try {
+        const res = await apiRequest('POST', '/api/auth/register', credentials);
+        return await res.json();
+      } catch (error) {
+        console.error('Registration API error:', error);
+        throw error;
+      }
     },
     onSuccess: (result: { user: User; accessToken: string }) => {
       localStorage.setItem('accessToken', result.accessToken);
@@ -112,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Registration error:', error);
       toast({
         title: 'Registration failed',
-        description: error.message,
+        description: error.message || 'Please try again with a different email.',
         variant: 'destructive',
       });
     },
@@ -120,7 +142,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('POST', '/api/auth/logout');
+      try {
+        await apiRequest('POST', '/api/auth/logout');
+      } catch (error) {
+        console.warn('Logout API call failed:', error);
+        // Continue with logout even if API call fails
+      }
     },
     onSuccess: () => {
       localStorage.removeItem('accessToken');
@@ -133,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error('Logout error:', error);
+      // Still clear local state on error
       localStorage.removeItem('accessToken');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
