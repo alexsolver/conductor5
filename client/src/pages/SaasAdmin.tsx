@@ -215,55 +215,107 @@ export default function SaasAdmin() {
         </Card>
       </div>
 
-      {/* Tenants Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Building className="w-5 h-5 mr-2" />
-            Tenants
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoadingTenants ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Subdomínio</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      {/* Tenants and Users Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Tenants Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Building className="w-5 h-5 mr-2" />
+              Tenants
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingTenants ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <div className="space-y-4">
                 {tenantsData?.tenants?.map((tenant: any) => (
-                  <TableRow key={tenant.id}>
-                    <TableCell className="font-medium">{tenant.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{tenant.subdomain}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell>
+                  <div key={tenant.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{tenant.name}</h3>
                       <Badge className="bg-green-100 text-green-700">Ativo</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <Settings className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center">
+                        <span className="font-medium mr-2">Subdomínio:</span>
+                        <Badge variant="outline">{tenant.subdomain}</Badge>
+                      </div>
+                      <div>
+                        <span className="font-medium mr-2">Criado em:</span>
+                        {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <Button variant="ghost" size="sm" className="text-purple-600">
+                        <Settings className="w-4 h-4 mr-1" />
+                        Gerenciar
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Users Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Usuários da Plataforma
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {usersData ? (
+              <div className="space-y-4">
+                {usersData?.users?.slice(0, 5).map((user: any) => (
+                  <div key={user.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                        {user.firstName} {user.lastName}
+                      </h3>
+                      <Badge 
+                        variant={user.role === 'saas_admin' ? 'default' : 'secondary'}
+                        className={user.role === 'saas_admin' ? 'bg-red-100 text-red-700' : ''}
+                      >
+                        {user.role.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                      <div>{user.email}</div>
+                      <div>
+                        <span className="font-medium mr-2">Status:</span>
+                        <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                          {user.isActive ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </div>
+                      {user.lastLoginAt && (
+                        <div>
+                          <span className="font-medium mr-2">Último login:</span>
+                          {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-2 border-t">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ver todos os usuários
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

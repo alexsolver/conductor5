@@ -1,5 +1,5 @@
 // Tenant Repository Implementation - Infrastructure Layer
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { tenants } from "@shared/schema";
 import { ITenantRepository } from "../../domain/repositories/ITenantRepository";
@@ -164,6 +164,19 @@ export class TenantRepository implements ITenantRepository {
         .from(tenants);
       
       return result.length;
+    } catch (error) {
+      console.error('Error counting tenants:', error);
+      return 0;
+    }
+  }
+
+  async count(): Promise<number> {
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(tenants);
+      
+      return result[0]?.count || 0;
     } catch (error) {
       console.error('Error counting tenants:', error);
       return 0;

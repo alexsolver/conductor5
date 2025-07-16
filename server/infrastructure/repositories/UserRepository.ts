@@ -258,4 +258,62 @@ export class UserRepository implements IUserRepository {
       return 0;
     }
   }
+
+  async findAllWithPagination(options: { limit: number; offset: number }): Promise<User[]> {
+    const { limit, offset } = options;
+    
+    try {
+      const userData = await db
+        .select()
+        .from(users)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(users.createdAt));
+
+      return userData.map(data => new User(
+        data.id,
+        data.email!,
+        data.passwordHash!,
+        data.firstName,
+        data.lastName,
+        data.role as any,
+        data.tenantId,
+        data.profileImageUrl,
+        data.isActive ?? true,
+        data.lastLoginAt,
+        data.createdAt || new Date(),
+        data.updatedAt || new Date()
+      ));
+    } catch (error) {
+      console.error('Error finding users with pagination:', error);
+      return [];
+    }
+  }
+
+  async count(): Promise<number> {
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users);
+      
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error counting users:', error);
+      return 0;
+    }
+  }
+
+  async countActive(): Promise<number> {
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(eq(users.isActive, true));
+      
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error counting active users:', error);
+      return 0;
+    }
+  }
 }

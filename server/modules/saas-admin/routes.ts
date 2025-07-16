@@ -165,4 +165,114 @@ router.delete('/tenants/:tenantId', requirePermission(Permission.PLATFORM_MANAGE
   }
 });
 
+/**
+ * GET /api/saas-admin/analytics
+ * Analytics da plataforma SaaS
+ */
+router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
+  try {
+    const container = DependencyContainer.getInstance();
+    const userRepository = container.userRepository;
+    const tenantRepository = container.tenantRepository;
+    
+    // Buscar estatísticas globais
+    const totalUsers = await userRepository.count();
+    const activeUsers = await userRepository.countActive();
+    const totalTenants = await tenantRepository.count();
+    
+    // TODO: Implementar contagem de tickets quando o modelo estiver disponível
+    const totalTickets = 0;
+    
+    res.json({
+      totalUsers,
+      activeUsers,
+      totalTenants,
+      totalTickets
+    });
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ message: 'Failed to fetch analytics' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/users
+ * Lista todos os usuários da plataforma
+ */
+router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    const container = DependencyContainer.getInstance();
+    const userRepository = container.userRepository;
+    
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = (page - 1) * limit;
+    
+    const users = await userRepository.findAllWithPagination({ limit, offset });
+    const total = await userRepository.count();
+    
+    res.json({
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
+/**
+ * POST /api/saas-admin/users
+ * Criar novo usuário (SaaS admin)
+ */
+router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { email, password, firstName, lastName, role, tenantId } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const container = DependencyContainer.getInstance();
+    const userRepository = container.userRepository;
+    const passwordHasher = container.passwordHasher;
+    
+    // Verificar se email já existe
+    const existingUser = await userRepository.findByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
+    
+    // Hash da senha
+    const hashedPassword = await passwordHasher.hash(password);
+    
+    // Criar entidade usuário
+    const { User } = await import('../../domain/entities/User');
+    const userEntity = new User(
+      crypto.randomUUID(),
+      email,
+      hashedPassword,
+      firstName || null,
+      lastName || null,
+      role || 'customer',
+      tenantId || null
+    );
+    
+    const user = await userRepository.save(userEntity);
+    
+    // Remover senha do retorno
+    const { password: _, ...userResponse } = user;
+    
+    res.status(201).json(userResponse);
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Failed to create user' });
+  }
+});
+
 export default router;
