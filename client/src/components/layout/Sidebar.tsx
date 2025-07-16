@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   BarChart3, 
   Users, 
@@ -14,7 +15,8 @@ import {
   ChevronDown,
   Zap,
   Map,
-  Shield
+  Shield,
+  LogOut
 } from "lucide-react";
 
 const navigation = [
@@ -36,6 +38,7 @@ const secondaryNavigation = [
 
 export function Sidebar() {
   const [location] = useLocation();
+  const { user, logoutMutation } = useAuth();
 
   return (
     <div className="hidden lg:flex lg:w-64 lg:flex-col">
@@ -71,8 +74,8 @@ export function Sidebar() {
             const isActive = location === item.href;
             return (
               <Link key={item.name} href={item.href}>
-                <a className={cn(
-                  "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                <div className={cn(
+                  "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                   isActive
                     ? "bg-white bg-opacity-20 text-white"
                     : "text-white hover:bg-white hover:bg-opacity-10"
@@ -84,7 +87,7 @@ export function Sidebar() {
                       {item.badge}
                     </Badge>
                   )}
-                </a>
+                </div>
               </Link>
             );
           })}
@@ -94,15 +97,15 @@ export function Sidebar() {
               const isActive = location === item.href;
               return (
                 <Link key={item.name} href={item.href}>
-                  <a className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                  <div className={cn(
+                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                     isActive
                       ? "bg-white bg-opacity-20 text-white"
                       : "text-white hover:bg-white hover:bg-opacity-10"
                   )}>
                     <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                     {item.name}
-                  </a>
+                  </div>
                 </Link>
               );
             })}
@@ -113,21 +116,24 @@ export function Sidebar() {
         <div className="flex-shrink-0 px-4 pb-4">
           <div className="flex items-center bg-white bg-opacity-10 rounded-lg p-3">
             <div className="w-8 h-8 gradient-secondary rounded-full flex items-center justify-center mr-3">
-              <span className="text-white text-sm font-semibold">JD</span>
+              <span className="text-white text-sm font-semibold">
+                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
+              </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">John Doe</p>
-              <p className="text-xs text-white text-opacity-80 truncate">Admin</p>
+              <p className="text-sm font-medium text-white truncate">
+                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
+              </p>
+              <p className="text-xs text-white text-opacity-80 truncate capitalize">{user?.role}</p>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
               className="text-white hover:text-opacity-80 p-1"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>

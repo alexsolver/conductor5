@@ -22,7 +22,7 @@ import Compliance from "./pages/Compliance";
 import NotFound from "./pages/not-found";
 
 // Components
-import { AppShell } from "./components/app-shell";
+import { AppShell } from "./components/layout/AppShell";
 
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
