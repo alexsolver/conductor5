@@ -17,7 +17,8 @@ import {
   Zap,
   Map,
   Shield,
-  LogOut
+  LogOut,
+  Languages
 } from "lucide-react";
 
 // Base navigation without dynamic badges
@@ -36,6 +37,7 @@ const adminNavigation = [
   { name: "SaaS Admin", href: "/saas-admin", icon: Shield, roles: ['saas_admin'] },
   { name: "Tenant Admin", href: "/tenant-admin", icon: Settings, roles: ['saas_admin', 'tenant_admin'] },
   { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug, roles: ['saas_admin'] },
+  { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages, roles: ['saas_admin'] },
 ];
 
 const secondaryNavigation = [
