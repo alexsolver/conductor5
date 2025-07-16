@@ -87,10 +87,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       try {
+        console.log('Attempting login with:', { email: credentials.email, passwordLength: credentials.password?.length });
         const res = await apiRequest('POST', '/api/auth/login', credentials);
-        return await res.json();
+        console.log('Login response status:', res.status, res.statusText);
+        const data = await res.json();
+        console.log('Login response data:', data);
+        return data;
       } catch (error) {
-        console.error('Login API error:', error);
+        console.error('Login API error details:', {
+          error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
         throw error;
       }
     },
@@ -104,9 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error('Login error:', error);
+      const errorMessage = error.message?.includes('400:') 
+        ? error.message.split('400:')[1]?.trim() || 'Invalid credentials'
+        : error.message || 'Please check your credentials and try again.';
+      
       toast({
         title: 'Login failed',
-        description: error.message || 'Please check your credentials and try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -132,9 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error('Registration error:', error);
+      const errorMessage = error.message?.includes('400:') 
+        ? error.message.split('400:')[1]?.trim() || 'Registration failed'
+        : error.message || 'Please try again with a different email.';
+      
       toast({
         title: 'Registration failed',
-        description: error.message || 'Please try again with a different email.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
