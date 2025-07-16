@@ -6,10 +6,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Search, Mail, Phone } from "lucide-react";
 
 export default function Customers() {
-  const { data: customers, isLoading } = useQuery({
+  const { data: customersData, isLoading } = useQuery({
     queryKey: ["/api/customers"],
     retry: false,
   });
+
+  const customers = customersData?.customers || [];
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
     if (firstName && lastName) {

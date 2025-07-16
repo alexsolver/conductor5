@@ -41,12 +41,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Components
 
-### Authentication System
+### Authentication & Authorization System
 - **Provider**: Local JWT authentication with clean architecture
 - **Token Management**: Access tokens (15min) and refresh tokens (7 days) with httpOnly cookies
-- **Security**: bcrypt password hashing, JWT token verification, role-based access control
+- **Security**: bcrypt password hashing, JWT token verification, comprehensive role-based access control
 - **Domain Layer**: User entity with business rules, password service interfaces
-- **Authorization**: Role-based middleware (admin, agent, customer) with tenant isolation
+- **Role Hierarchy**: Four-tier system (saas_admin, tenant_admin, agent, customer) with granular permissions
+- **Authorization**: Permission-based middleware with tenant isolation and cross-tenant access control
+- **Admin Functions**: Complete admin interfaces for platform and tenant management
 
 ### Database Schema
 - **Multi-tenancy**: True schema separation - each tenant has dedicated PostgreSQL schema
@@ -66,7 +68,10 @@ Preferred communication style: Simple, everyday language.
 - **Dashboard**: `/api/dashboard/*` - Statistics and activity feeds
 - **Customers**: `/api/customers/*` - Customer management
 - **Tickets**: `/api/tickets/*` - Support ticket operations
+- **SaaS Admin**: `/api/saas-admin/*` - Platform-wide tenant and user management
+- **Tenant Admin**: `/api/tenant-admin/*` - Tenant-specific user and settings management
 - **Error Handling**: Centralized error middleware with structured responses
+- **Authorization**: Permission-based route protection with role validation
 
 ### UI Components
 - **Layout**: AppShell with Sidebar and Header components
@@ -90,6 +95,18 @@ Preferred communication style: Simple, everyday language.
   - **AUTHENTICATION SYSTEM FULLY OPERATIONAL**: Users can register and login successfully
   - Created admin user account (alex@lansolver.com) for testing
   - Maintained complete microservices architecture with clean separation
+
+- **2025-01-16**: Implemented Comprehensive Role-Based Access Control System
+  - **Role Hierarchy**: Created four-tier role system (saas_admin, tenant_admin, agent, customer)
+  - **Permission System**: Granular permissions for platform, tenant, ticket, customer, and analytics operations
+  - **Authorization Middleware**: Role-based middleware with permission checking and tenant isolation
+  - **Admin Routes**: Dedicated API routes for SaaS admin and tenant admin operations
+  - **Admin Pages**: Functional UI for SaaS Admin (platform management) and Tenant Admin (tenant management)
+  - **Repository Layer**: Created TenantRepository and enhanced UserRepository with admin functions
+  - **Dynamic Navigation**: Role-based sidebar navigation showing admin options based on user permissions
+  - **User Management**: Tenant admins can create and manage users within their tenant
+  - **Tenant Management**: SaaS admins can create and manage tenants across the platform
+  - **RBAC SYSTEM FULLY OPERATIONAL**: Complete role-based access control with secure permissions
 
 ## Data Flow
 
