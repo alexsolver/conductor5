@@ -59,8 +59,8 @@ export function AppShell({ children }: AppShellProps) {
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigation.map((item) => (
               <Link key={item.name} href={item.href}>
-                <a
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                <div
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                     location === item.href
                       ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200"
                       : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -69,7 +69,7 @@ export function AppShell({ children }: AppShellProps) {
                 >
                   <span className="mr-3 text-base">{item.icon}</span>
                   {item.name}
-                </a>
+                </div>
               </Link>
             ))}
           </nav>
