@@ -89,9 +89,10 @@ export default function TicketsTable() {
   const queryClient = useQueryClient();
 
   // Fetch tickets with pagination and filters
-  const { data: ticketsData, isLoading } = useQuery({
+  const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
     queryKey: ["/api/tickets", { page: currentPage, limit: itemsPerPage, search: searchTerm, status: statusFilter, priority: priorityFilter }],
     queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
@@ -100,28 +101,83 @@ export default function TicketsTable() {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (priorityFilter !== 'all') params.append('priority', priorityFilter);
       
-      const response = await fetch(`/api/tickets?${params}`);
+      const response = await fetch(`/api/tickets?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        console.error(`Tickets fetch failed: ${response.status}`, await response.text());
+        throw new Error(`Failed to fetch tickets: ${response.status}`);
+      }
+      
       return response.json();
     },
-    retry: false,
+    retry: 3,
   });
 
   // Fetch customers for the dropdown
   const { data: customersData } = useQuery({
     queryKey: ["/api/customers"],
-    retry: false,
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/customers', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch customers: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: 3,
   });
 
   // Fetch users for assignment
   const { data: usersData } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
-    retry: false,
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/tenant-admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: 3,
   });
 
   const tickets = ticketsData?.tickets || [];
   const pagination = ticketsData?.pagination || { total: 0, totalPages: 0 };
   const customers = customersData?.customers || [];
   const users = usersData?.users || [];
+
+  // Debug logging
+  console.log('TicketsTable - Data:', {
+    ticketsData,
+    ticketsError,
+    isLoading,
+    ticketsCount: tickets.length,
+    customersCount: customers.length,
+    usersCount: users.length,
+    hasToken: !!localStorage.getItem('accessToken')
+  });
 
   // Form setup
   const form = useForm<TicketFormData>({
@@ -842,7 +898,29 @@ export default function TicketsTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tickets.map((ticket: Ticket) => (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center py-8">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                        <span className="ml-2">Loading tickets...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : tickets.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                      {ticketsError ? (
+                        <div>
+                          <p>Error loading tickets: {ticketsError.message}</p>
+                          <p className="text-sm mt-1">Check console for details</p>
+                        </div>
+                      ) : (
+                        "No tickets found"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ) : tickets.map((ticket: Ticket) => (
                   <TableRow key={ticket.id}>
                     <TableCell className="font-mono text-sm">
                       {(ticket as any).number || `#${ticket.id.slice(-8)}`}
