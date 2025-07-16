@@ -1,14 +1,98 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
 
+// Schema for ticket creation
+const createTicketSchema = z.object({
+  customerId: z.string().min(1, "Customer is required"),
+  subject: z.string().min(1, "Subject is required"),
+  description: z.string().min(1, "Description is required"),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  assignedToId: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+});
+
+type CreateTicketFormData = z.infer<typeof createTicketSchema>;
+
 export default function Tickets() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["/api/tickets"],
     retry: false,
   });
+
+  // Fetch customers for the dropdown
+  const { data: customersData } = useQuery({
+    queryKey: ["/api/customers"],
+    retry: false,
+  });
+
+  // Fetch users for assignment
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/tenant-admin/users"],
+    retry: false,
+  });
+
+  const customers = customersData?.customers || [];
+  const users = usersData?.users || [];
+
+  // Form setup
+  const form = useForm<CreateTicketFormData>({
+    resolver: zodResolver(createTicketSchema),
+    defaultValues: {
+      customerId: "",
+      subject: "",
+      description: "",
+      priority: "medium",
+      assignedToId: "",
+      tags: [],
+    },
+  });
+
+  // Create ticket mutation
+  const createTicketMutation = useMutation({
+    mutationFn: async (data: CreateTicketFormData) => {
+      const response = await apiRequest("POST", "/api/tickets", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Ticket created successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create ticket",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: CreateTicketFormData) => {
+    createTicketMutation.mutate(data);
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -62,10 +146,148 @@ export default function Tickets() {
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            New Ticket
-          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                New Ticket
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Create New Ticket</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="customerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Customer</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a customer" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {customers.map((customer: any) => (
+                              <SelectItem key={customer.id} value={customer.id}>
+                                {customer.fullName} ({customer.email})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter ticket subject" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Describe the issue or request"
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Priority</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select priority" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="low">Low</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="high">High</SelectItem>
+                              <SelectItem value="urgent">Urgent</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="assignedToId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assign to</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select agent (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Unassigned</SelectItem>
+                              {users.map((user: any) => (
+                                <SelectItem key={user.id} value={user.id}>
+                                  {user.firstName} {user.lastName} ({user.email})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCreateDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      disabled={createTicketMutation.isPending}
+                    >
+                      {createTicketMutation.isPending ? "Creating..." : "Create Ticket"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
