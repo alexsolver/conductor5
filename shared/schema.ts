@@ -37,16 +37,18 @@ export const tenants = pgTable("tenants", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// User storage table (mandatory for Replit Auth)
+// User storage table - JWT Authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
+  passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role", { length: 50 }).default("agent").notNull(), // admin, agent, customer
   tenantId: uuid("tenant_id").references(() => tenants.id),
-  role: varchar("role", { length: 50 }).default("agent"),
+  profileImageUrl: varchar("profile_image_url"),
   isActive: boolean("is_active").default(true),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

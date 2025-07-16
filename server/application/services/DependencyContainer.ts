@@ -1,46 +1,25 @@
-// Dependency Injection Container
-import { CustomerRepository } from "../../infrastructure/repositories/CustomerRepository";
-import { DomainEventPublisher } from "../../infrastructure/events/DomainEventPublisher";
-import { CreateCustomerUseCase } from "../usecases/CreateCustomerUseCase";
-import { GetCustomersUseCase } from "../usecases/GetCustomersUseCase";
-import { CreateTicketUseCase } from "../usecases/CreateTicketUseCase";
-import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
-import { ITicketRepository } from "../../domain/repositories/ITicketRepository";
-import { IDomainEventPublisher } from "../../domain/events/DomainEvent";
+// Dependency Injection Container - Clean Architecture
+import { UserRepository } from "../../infrastructure/repositories/UserRepository";
+import { PasswordHasher } from "../../infrastructure/services/PasswordHasher";
+import { TokenService } from "../../infrastructure/services/TokenService";
+import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
+import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
+import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
   
   // Repositories
-  private _customerRepository: ICustomerRepository;
-  private _eventPublisher: IDomainEventPublisher;
+  private _userRepository?: UserRepository;
+  
+  // Services
+  private _passwordHasher?: PasswordHasher;
+  private _tokenService?: TokenService;
   
   // Use Cases
-  private _createCustomerUseCase: CreateCustomerUseCase;
-  private _getCustomersUseCase: GetCustomersUseCase;
-  private _createTicketUseCase: CreateTicketUseCase;
-
-  private constructor() {
-    // Initialize repositories
-    this._customerRepository = new CustomerRepository();
-    this._eventPublisher = new DomainEventPublisher();
-    
-    // Initialize use cases with dependencies
-    this._createCustomerUseCase = new CreateCustomerUseCase(
-      this._customerRepository,
-      this._eventPublisher
-    );
-    
-    this._getCustomersUseCase = new GetCustomersUseCase(
-      this._customerRepository
-    );
-    
-    this._createTicketUseCase = new CreateTicketUseCase(
-      null as any, // TODO: Implement TicketRepository
-      this._customerRepository,
-      this._eventPublisher
-    );
-  }
+  private _loginUseCase?: LoginUseCase;
+  private _registerUseCase?: RegisterUseCase;
+  private _refreshTokenUseCase?: RefreshTokenUseCase;
 
   static getInstance(): DependencyContainer {
     if (!DependencyContainer.instance) {
@@ -49,25 +28,59 @@ export class DependencyContainer {
     return DependencyContainer.instance;
   }
 
-  // Repository getters
-  get customerRepository(): ICustomerRepository {
-    return this._customerRepository;
+  // Repositories
+  get userRepository(): UserRepository {
+    if (!this._userRepository) {
+      this._userRepository = new UserRepository();
+    }
+    return this._userRepository;
   }
 
-  get eventPublisher(): IDomainEventPublisher {
-    return this._eventPublisher;
+  // Services
+  get passwordHasher(): PasswordHasher {
+    if (!this._passwordHasher) {
+      this._passwordHasher = new PasswordHasher();
+    }
+    return this._passwordHasher;
   }
 
-  // Use case getters
-  get createCustomerUseCase(): CreateCustomerUseCase {
-    return this._createCustomerUseCase;
+  get tokenService(): TokenService {
+    if (!this._tokenService) {
+      this._tokenService = new TokenService();
+    }
+    return this._tokenService;
   }
 
-  get getCustomersUseCase(): GetCustomersUseCase {
-    return this._getCustomersUseCase;
+  // Use Cases
+  get loginUseCase(): LoginUseCase {
+    if (!this._loginUseCase) {
+      this._loginUseCase = new LoginUseCase(
+        this.userRepository,
+        this.passwordHasher,
+        this.tokenService
+      );
+    }
+    return this._loginUseCase;
   }
 
-  get createTicketUseCase(): CreateTicketUseCase {
-    return this._createTicketUseCase;
+  get registerUseCase(): RegisterUseCase {
+    if (!this._registerUseCase) {
+      this._registerUseCase = new RegisterUseCase(
+        this.userRepository,
+        this.passwordHasher,
+        this.tokenService
+      );
+    }
+    return this._registerUseCase;
+  }
+
+  get refreshTokenUseCase(): RefreshTokenUseCase {
+    if (!this._refreshTokenUseCase) {
+      this._refreshTokenUseCase = new RefreshTokenUseCase(
+        this.userRepository,
+        this.tokenService
+      );
+    }
+    return this._refreshTokenUseCase;
   }
 }
