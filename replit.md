@@ -43,14 +43,17 @@ Preferred communication style: Simple, everyday language.
 - **Authorization**: Role-based access control (admin, agent roles)
 
 ### Database Schema
-- **Multi-tenancy**: Tenant isolation with `tenantId` foreign keys
+- **Multi-tenancy**: True schema separation - each tenant has dedicated PostgreSQL schema
+- **Schema Structure**:
+  - Public schema: Users, Tenants, Sessions (shared resources)
+  - Tenant schemas: `tenant_{uuid}` with isolated Customers, Tickets, Messages, Activity Logs
 - **Core Entities**:
-  - Users (with tenant association)
-  - Tenants (for multi-tenancy)
-  - Customers (tenant-scoped)
-  - Tickets (with customer and agent relations)
-  - Ticket Messages (threaded conversations)
-  - Activity Logs (audit trail)
+  - Users (stored in public schema with tenant association)
+  - Tenants (public schema for tenant management)
+  - Customers (tenant-specific schema for complete isolation)
+  - Tickets (tenant-specific schema with references to public users)
+  - Ticket Messages (tenant-specific schema)
+  - Activity Logs (tenant-specific schema)
 
 ### API Structure
 - **Authentication**: `/api/auth/*` - User authentication and profile
@@ -65,14 +68,28 @@ Preferred communication style: Simple, everyday language.
 - **Forms**: React Hook Form with Zod validation
 - **Data Display**: Tables, cards, and badges with gradient styling
 
+## Recent Changes
+- **2025-01-16**: Implemented PostgreSQL schema separation for true multitenancy
+  - Created SchemaManager class for tenant schema lifecycle management
+  - Updated DatabaseStorage to use tenant-specific database connections
+  - Migrated existing data to tenant-specific schemas
+  - Added automatic schema creation on tenant registration
+
 ## Data Flow
 
 ### Request Flow
 1. Client makes authenticated request
 2. Replit auth middleware validates session
 3. Route handler extracts user and tenant context
-4. Database query filtered by tenant scope
-5. Response returned with proper error handling
+4. SchemaManager provides tenant-specific database connection
+5. Database operations execute in isolated tenant schema
+6. Response returned with proper error handling
+
+### Schema Isolation
+1. Each tenant gets dedicated PostgreSQL schema `tenant_{uuid}`
+2. SchemaManager maintains connection pool per tenant
+3. Tenant data completely isolated - no cross-tenant data access possible
+4. Shared resources (users, sessions) remain in public schema
 
 ### State Management
 - **Server State**: TanStack React Query for API data

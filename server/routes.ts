@@ -52,6 +52,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Schema management (admin only)
+  app.post("/api/admin/init-schema/:tenantId", isAuthenticated, async (req, res) => {
+    try {
+      const tenantId = req.params.tenantId;
+      const userId = req.user?.claims?.sub;
+      
+      // Check if user is admin
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      // Initialize tenant schema
+      await storage.initializeTenantSchema(tenantId);
+      
+      res.json({ message: `Schema initialized for tenant ${tenantId}` });
+    } catch (error) {
+      console.error("Error initializing schema:", error);
+      res.status(500).json({ message: "Failed to initialize schema" });
+    }
+  });
+
   // Customer routes
   app.get('/api/customers', isAuthenticated, async (req: any, res) => {
     try {

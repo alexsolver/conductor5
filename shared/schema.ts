@@ -219,3 +219,96 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+
+// Function to create tenant-specific schema with proper naming
+export function getTenantSpecificSchema(schemaName: string) {
+  // Customers table for tenant schema
+  const tenantCustomers = pgTable("customers", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    firstName: varchar("first_name", { length: 255 }),
+    lastName: varchar("last_name", { length: 255 }),
+    email: varchar("email", { length: 255 }).notNull(),
+    phone: varchar("phone", { length: 50 }),
+    company: varchar("company", { length: 255 }),
+    tags: jsonb("tags").default([]),
+    metadata: jsonb("metadata").default({}),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  });
+
+  // Tickets table for tenant schema
+  const tenantTickets = pgTable("tickets", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    customerId: uuid("customer_id").notNull().references(() => tenantCustomers.id),
+    assignedToId: varchar("assigned_to_id"), // References public.users
+    subject: varchar("subject", { length: 500 }).notNull(),
+    description: text("description"),
+    status: varchar("status", { length: 50 }).default("open"),
+    priority: varchar("priority", { length: 50 }).default("medium"),
+    tags: jsonb("tags").default([]),
+    metadata: jsonb("metadata").default({}),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  });
+
+  // Ticket Messages table for tenant schema
+  const tenantTicketMessages = pgTable("ticket_messages", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ticketId: uuid("ticket_id").notNull().references(() => tenantTickets.id),
+    authorId: varchar("author_id"), // References public.users
+    customerId: uuid("customer_id").references(() => tenantCustomers.id),
+    content: text("content").notNull(),
+    isInternal: boolean("is_internal").default(false),
+    attachments: jsonb("attachments").default([]),
+    createdAt: timestamp("created_at").defaultNow(),
+  });
+
+  // Activity Logs table for tenant schema
+  const tenantActivityLogs = pgTable("activity_logs", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: varchar("user_id"), // References public.users
+    action: varchar("action", { length: 255 }).notNull(),
+    entityType: varchar("entity_type", { length: 100 }),
+    entityId: uuid("entity_id"),
+    details: jsonb("details").default({}),
+    createdAt: timestamp("created_at").defaultNow(),
+  });
+
+  // Relations for tenant schema
+  const tenantCustomersRelations = relations(tenantCustomers, ({ many }) => ({
+    tickets: many(tenantTickets),
+    messages: many(tenantTicketMessages),
+  }));
+
+  const tenantTicketsRelations = relations(tenantTickets, ({ one, many }) => ({
+    customer: one(tenantCustomers, {
+      fields: [tenantTickets.customerId],
+      references: [tenantCustomers.id],
+    }),
+    messages: many(tenantTicketMessages),
+  }));
+
+  const tenantTicketMessagesRelations = relations(tenantTicketMessages, ({ one }) => ({
+    ticket: one(tenantTickets, {
+      fields: [tenantTicketMessages.ticketId],
+      references: [tenantTickets.id],
+    }),
+    customer: one(tenantCustomers, {
+      fields: [tenantTicketMessages.customerId],
+      references: [tenantCustomers.id],
+    }),
+  }));
+
+  const tenantActivityLogsRelations = relations(tenantActivityLogs, ({ one }) => ({}));
+
+  return {
+    customers: tenantCustomers,
+    tickets: tenantTickets,
+    ticketMessages: tenantTicketMessages,
+    activityLogs: tenantActivityLogs,
+    customersRelations: tenantCustomersRelations,
+    ticketsRelations: tenantTicketsRelations,
+    ticketMessagesRelations: tenantTicketMessagesRelations,
+    activityLogsRelations: tenantActivityLogsRelations,
+  };
+}

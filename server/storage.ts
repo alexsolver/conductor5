@@ -18,7 +18,7 @@ import {
   type ActivityLog,
   type InsertActivityLog,
 } from "@shared/schema";
-import { db } from "./db";
+import { db, schemaManager } from "./db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -30,6 +30,7 @@ export interface IStorage {
   getTenant(id: string): Promise<Tenant | undefined>;
   getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined>;
   createTenant(tenant: InsertTenant): Promise<Tenant>;
+  initializeTenantSchema(tenantId: string): Promise<void>;
   
   // Customer operations
   getCustomers(tenantId: string, limit?: number, offset?: number): Promise<Customer[]>;
@@ -132,46 +133,85 @@ export class DatabaseStorage implements IStorage {
 
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
     const [newTenant] = await db.insert(tenants).values(tenant).returning();
+    
+    // Initialize the tenant's dedicated schema
+    await this.initializeTenantSchema(newTenant.id);
+    
     return newTenant;
   }
 
-  // Customer operations
+  async initializeTenantSchema(tenantId: string): Promise<void> {
+    await schemaManager.createTenantSchema(tenantId);
+  }
+
+  // Customer operations (using tenant-specific schema)
   async getCustomers(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
-    return await db
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
+    const results = await tenantDb
       .select()
-      .from(customers)
-      .where(eq(customers.tenantId, tenantId))
+      .from(tenantCustomers)
       .limit(limit)
       .offset(offset)
-      .orderBy(desc(customers.createdAt));
+      .orderBy(desc(tenantCustomers.createdAt));
+    
+    // Add tenantId to each result since it's stored in the public.users table
+    return results.map(customer => ({ ...customer, tenantId }));
   }
 
   async getCustomer(id: string, tenantId: string): Promise<Customer | undefined> {
-    const [customer] = await db
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
+    const [customer] = await tenantDb
       .select()
-      .from(customers)
-      .where(and(eq(customers.id, id), eq(customers.tenantId, tenantId)));
-    return customer;
+      .from(tenantCustomers)
+      .where(eq(tenantCustomers.id, id));
+    
+    return customer ? { ...customer, tenantId } : undefined;
   }
 
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const [newCustomer] = await db.insert(customers).values(customer).returning();
-    return newCustomer;
+    if (!customer.tenantId) {
+      throw new Error('Customer must have a tenantId');
+    }
+    
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(customer.tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
+    // Remove tenantId from customer data since it's not part of tenant schema
+    const { tenantId, ...customerData } = customer;
+    
+    const [newCustomer] = await tenantDb
+      .insert(tenantCustomers)
+      .values(customerData)
+      .returning();
+    return { ...newCustomer, tenantId };
   }
 
   async updateCustomer(id: string, tenantId: string, updates: Partial<InsertCustomer>): Promise<Customer | undefined> {
-    const [updatedCustomer] = await db
-      .update(customers)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(customers.id, id), eq(customers.tenantId, tenantId)))
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
+    // Remove tenantId from updates since it's not part of tenant schema
+    const { tenantId: _, ...updateData } = updates;
+    
+    const [updatedCustomer] = await tenantDb
+      .update(tenantCustomers)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(tenantCustomers.id, id))
       .returning();
-    return updatedCustomer;
+    return updatedCustomer ? { ...updatedCustomer, tenantId } : undefined;
   }
 
   async deleteCustomer(id: string, tenantId: string): Promise<boolean> {
-    const result = await db
-      .delete(customers)
-      .where(and(eq(customers.id, id), eq(customers.tenantId, tenantId)));
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
+    const result = await tenantDb
+      .delete(tenantCustomers)
+      .where(eq(tenantCustomers.id, id));
     return (result.rowCount || 0) > 0;
   }
 
