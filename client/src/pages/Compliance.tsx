@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { 
   CheckCircle, 
   Clock, 
@@ -224,7 +224,6 @@ export default function Compliance() {
   const multitenancyCategories = groupByCategory(multitenancyItems);
 
   return (
-    <AppShell>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl p-6 text-white">
@@ -389,6 +388,5 @@ export default function Compliance() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
   );
 }

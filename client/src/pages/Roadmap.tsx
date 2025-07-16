@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { CheckCircle2, Circle, Clock, Star } from "lucide-react";
 
 interface FeatureCategory {
@@ -309,7 +309,6 @@ export default function Roadmap() {
   );
 
   return (
-    <AppShell>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="space-y-4">
@@ -411,6 +410,5 @@ export default function Roadmap() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
   );
 }
