@@ -120,15 +120,29 @@ export const TOKENS = {
   
   CREATE_TICKET_USE_CASE: Symbol('CreateTicketUseCase'),
   GET_TICKETS_USE_CASE: Symbol('GetTicketsUseCase'),
-  UPDATE_TICKET_USE_CASE: Symbol('UpdateTicketUseCase'),
+  ASSIGN_TICKET_USE_CASE: Symbol('AssignTicketUseCase'),
+  RESOLVE_TICKET_USE_CASE: Symbol('ResolveTicketUseCase'),
   
   // Application Services
   CUSTOMER_APPLICATION_SERVICE: Symbol('CustomerApplicationService'),
   TICKET_APPLICATION_SERVICE: Symbol('TicketApplicationService'),
   
+  // CQRS
+  QUERY_BUS: Symbol('IQueryBus'),
+  COMMAND_BUS: Symbol('ICommandBus'),
+  
+  // Query Handlers
+  GET_CUSTOMERS_QUERY_HANDLER: Symbol('GetCustomersQueryHandler'),
+  GET_TICKETS_QUERY_HANDLER: Symbol('GetTicketsQueryHandler'),
+  
+  // Command Handlers
+  CREATE_CUSTOMER_COMMAND_HANDLER: Symbol('CreateCustomerCommandHandler'),
+  CREATE_TICKET_COMMAND_HANDLER: Symbol('CreateTicketCommandHandler'),
+  
   // Domain Services
   DOMAIN_EVENT_PUBLISHER: Symbol('IDomainEventPublisher'),
   VALIDATION_SERVICE: Symbol('IValidationService'),
+  ID_GENERATOR: Symbol('IIdGenerator'),
   
   // External Services
   EMAIL_SERVICE: Symbol('IEmailService'),

@@ -1,60 +1,52 @@
-// Ticket Number Generator - ServiceNow style
-export class TicketNumberGenerator {
-  private static instance: TicketNumberGenerator;
-  private lastNumbers = new Map<string, number>();
+/**
+ * Ticket Number Generator
+ * Generates unique ticket numbers for each tenant
+ */
 
-  static getInstance(): TicketNumberGenerator {
-    if (!this.instance) {
-      this.instance = new TicketNumberGenerator();
-    }
-    return this.instance;
-  }
+import { db } from '../db';
+import { tickets } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
-  /**
-   * Generate a unique ticket number for a tenant
-   * Format: INC0010001, INC0010002, etc.
-   */
-  async generateTicketNumber(tenantId: string, prefix: string = "INC"): Promise<string> {
-    const key = `${tenantId}-${prefix}`;
-    
-    // Get the last number for this tenant and prefix
-    let lastNumber = this.lastNumbers.get(key) || 0;
-    
-    // Increment and store
-    const newNumber = lastNumber + 1;
-    this.lastNumbers.set(key, newNumber);
-    
-    // Format with padding
-    const paddedNumber = newNumber.toString().padStart(7, '0');
-    
-    return `${prefix}${paddedNumber}`;
-  }
+class TicketNumberGenerator {
+  private counters = new Map<string, number>();
 
-  /**
-   * Initialize from database - called on startup
-   */
-  async initializeFromDatabase(tenantId: string, lastTicketNumber?: string) {
-    if (lastTicketNumber) {
-      // Extract number from format like INC0010001
-      const match = lastTicketNumber.match(/([A-Z]+)(\d+)/);
-      if (match) {
-        const prefix = match[1];
-        const number = parseInt(match[2], 10);
-        const key = `${tenantId}-${prefix}`;
-        this.lastNumbers.set(key, number);
+  async generateTicketNumber(tenantId: string, prefix = 'INC'): Promise<string> {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const cacheKey = `${tenantId}-${year}`;
+
+    // Check if we have a cached counter for this tenant and year
+    if (!this.counters.has(cacheKey)) {
+      // Get the highest number for this tenant and year
+      const latestTicket = await db
+        .select({ number: tickets.number })
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId))
+        .orderBy(tickets.createdAt)
+        .limit(1);
+
+      let nextNumber = 1;
+      
+      if (latestTicket.length > 0) {
+        const match = latestTicket[0].number.match(/(\d+)$/);
+        if (match) {
+          nextNumber = parseInt(match[1]) + 1;
+        }
       }
+      
+      this.counters.set(cacheKey, nextNumber);
     }
+
+    const number = this.counters.get(cacheKey)!;
+    this.counters.set(cacheKey, number + 1);
+
+    // Format: INC2025001234
+    return `${prefix}${year}${number.toString().padStart(6, '0')}`;
   }
 
-  /**
-   * Get next number without incrementing (for preview)
-   */
-  previewNextNumber(tenantId: string, prefix: string = "INC"): string {
-    const key = `${tenantId}-${prefix}`;
-    const lastNumber = this.lastNumbers.get(key) || 0;
-    const nextNumber = (lastNumber + 1).toString().padStart(7, '0');
-    return `${prefix}${nextNumber}`;
+  // Clear cache for testing
+  clearCache(): void {
+    this.counters.clear();
   }
 }
 
-export const ticketNumberGenerator = TicketNumberGenerator.getInstance();
+export const ticketNumberGenerator = new TicketNumberGenerator();
