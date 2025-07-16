@@ -1,8 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ticket, Clock, Users, TrendingUp } from "lucide-react";
+import { useLocalization } from "@/hooks/useLocalization";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+  const { formatDate, formatNumber } = useLocalization();
+  
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     retry: false,
@@ -34,25 +39,25 @@ export default function Dashboard() {
 
   const metrics = [
     {
-      title: "Active Tickets",
-      value: stats?.activeTickets || 0,
+      title: t('dashboard.stats.active_tickets'),
+      value: formatNumber(stats?.activeTickets || 0),
       icon: Ticket,
       trend: "+12%",
     },
     {
-      title: "Resolved Today",
-      value: stats?.resolvedToday || 0,
+      title: t('dashboard.stats.resolved_today'),
+      value: formatNumber(stats?.resolvedToday || 0),
       icon: Clock,
       trend: "+8%",
     },
     {
-      title: "Avg Resolution Time",
+      title: t('dashboard.stats.avg_resolution_time'),
       value: `${stats?.avgResolutionTime || 0}h`,
       icon: TrendingUp,
       trend: "-15%",
     },
     {
-      title: "Online Agents",
+      title: t('dashboard.stats.online_agents'),
       value: `${stats?.onlineAgents || 0}/${stats?.totalAgents || 0}`,
       icon: Users,
       trend: "100%",
@@ -62,8 +67,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400">Welcome back! Here's what's happening today.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-400">{t('dashboard.welcome')}</p>
       </div>
 
       {/* Metrics Grid */}

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { LanguageSelector } from "./LanguageSelector";
 
 interface AppShellProps {
   children: ReactNode;
@@ -119,6 +120,9 @@ export function AppShell({ children }: AppShellProps) {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {navigation.find(item => item.href === location)?.name || "Dashboard"}
             </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageSelector variant="icon-only" />
           </div>
         </div>
 

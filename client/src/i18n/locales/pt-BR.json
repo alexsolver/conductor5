@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "actions": "Ações",
+    "settings": "Configurações",
+    "profile": "Perfil",
+    "logout": "Sair",
+    "login": "Entrar",
+    "register": "Registrar",
+    "yes": "Sim",
+    "no": "Não",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "reset": "Limpar"
+  },
+  "navigation": {
+    "dashboard": "Painel",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Análises",
+    "knowledge_base": "Base de Conhecimento",
+    "settings": "Configurações",
+    "admin": "Administração",
+    "saas_admin": "Admin SaaS",
+    "tenant_admin": "Admin Tenant"
+  },
+  "dashboard": {
+    "title": "Painel de Controle",
+    "welcome": "Bem-vindo ao Conductor",
+    "stats": {
+      "active_tickets": "Tickets Ativos",
+      "resolved_today": "Resolvidos Hoje",
+      "avg_resolution_time": "Tempo Médio de Resolução",
+      "satisfaction_score": "Nota de Satisfação",
+      "online_agents": "Agentes Online",
+      "total_agents": "Total de Agentes"
+    },
+    "recent_activity": "Atividade Recente",
+    "urgent_tickets": "Tickets Urgentes"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "create_ticket": "Criar Ticket",
+    "ticket_number": "Número do Ticket",
+    "subject": "Assunto",
+    "description": "Descrição",
+    "status": "Status",
+    "priority": "Prioridade",
+    "assigned_to": "Atribuído Para",
+    "customer": "Cliente",
+    "created_at": "Criado em",
+    "updated_at": "Atualizado em",
+    "categories": {
+      "incident": "Incidente",
+      "request": "Solicitação",
+      "problem": "Problema",
+      "change": "Mudança"
+    },
+    "priorities": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "statuses": {
+      "new": "Novo",
+      "open": "Aberto",
+      "in_progress": "Em Andamento",
+      "pending": "Pendente",
+      "resolved": "Resolvido",
+      "closed": "Fechado"
+    }
+  },
+  "customers": {
+    "title": "Clientes",
+    "create_customer": "Criar Cliente",
+    "first_name": "Nome",
+    "last_name": "Sobrenome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "company": "Empresa",
+    "status": "Status",
+    "verified": "Verificado",
+    "active": "Ativo",
+    "suspended": "Suspenso",
+    "timezone": "Fuso Horário",
+    "language": "Idioma",
+    "locale": "Localização"
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Registrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "first_name": "Nome",
+    "last_name": "Sobrenome",
+    "forgot_password": "Esqueceu a senha?",
+    "remember_me": "Lembrar de mim",
+    "already_have_account": "Já tem uma conta?",
+    "dont_have_account": "Não tem uma conta?",
+    "sign_in": "Entrar",
+    "sign_up": "Registrar"
+  },
+  "admin": {
+    "title": "Administração",
+    "users": "Usuários",
+    "tenants": "Tenants",
+    "create_user": "Criar Usuário",
+    "create_tenant": "Criar Tenant",
+    "role": "Função",
+    "tenant": "Tenant",
+    "permissions": "Permissões"
+  },
+  "settings": {
+    "title": "Configurações",
+    "general": "Geral",
+    "language": "Idioma",
+    "timezone": "Fuso Horário",
+    "currency": "Moeda",
+    "notifications": "Notificações",
+    "appearance": "Aparência",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema"
+  },
+  "errors": {
+    "generic": "Ocorreu um erro. Tente novamente.",
+    "network": "Erro de rede. Verifique sua conexão.",
+    "unauthorized": "Você não tem autorização para esta ação.",
+    "not_found": "O recurso solicitado não foi encontrado.",
+    "validation": "Verifique os dados inseridos e tente novamente."
+  },
+  "success": {
+    "saved": "Alterações salvas com sucesso",
+    "created": "{{item}} criado com sucesso",
+    "updated": "{{item}} atualizado com sucesso",
+    "deleted": "{{item}} excluído com sucesso"
+  }
+}

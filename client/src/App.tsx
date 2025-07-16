@@ -16,7 +16,7 @@ import TicketsTable from "./pages/TicketsTable";
 import CustomersTable from "./pages/CustomersTable";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
+import Settings from "./pages/SettingsSimple";
 import Roadmap from "./pages/Roadmap";
 import Compliance from "./pages/Compliance";
 import SaasAdmin from "./pages/SaasAdmin";

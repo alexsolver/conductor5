@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "actions": "Actions",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "yes": "Oui",
+    "no": "Non",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "submit": "Soumettre",
+    "reset": "Réinitialiser"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "tickets": "Tickets",
+    "customers": "Clients",
+    "analytics": "Analyses",
+    "knowledge_base": "Base de connaissances",
+    "settings": "Paramètres",
+    "admin": "Administration",
+    "saas_admin": "Admin SaaS",
+    "tenant_admin": "Admin Tenant"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue sur Conductor",
+    "stats": {
+      "active_tickets": "Tickets Actifs",
+      "resolved_today": "Résolus Aujourd'hui",
+      "avg_resolution_time": "Temps Moyen de Résolution",
+      "satisfaction_score": "Score de Satisfaction",
+      "online_agents": "Agents en Ligne",
+      "total_agents": "Total des Agents"
+    },
+    "recent_activity": "Activité Récente",
+    "urgent_tickets": "Tickets Urgents"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "create_ticket": "Créer un Ticket",
+    "ticket_number": "Numéro de Ticket",
+    "subject": "Sujet",
+    "description": "Description",
+    "status": "Statut",
+    "priority": "Priorité",
+    "assigned_to": "Assigné à",
+    "customer": "Client",
+    "created_at": "Créé le",
+    "updated_at": "Mis à jour le",
+    "categories": {
+      "incident": "Incident",
+      "request": "Demande",
+      "problem": "Problème",
+      "change": "Changement"
+    },
+    "priorities": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "urgent": "Urgente"
+    },
+    "statuses": {
+      "new": "Nouveau",
+      "open": "Ouvert",
+      "in_progress": "En Cours",
+      "pending": "En Attente",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    }
+  },
+  "customers": {
+    "title": "Clients",
+    "create_customer": "Créer un Client",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "email": "Email",
+    "phone": "Téléphone",
+    "company": "Entreprise",
+    "status": "Statut",
+    "verified": "Vérifié",
+    "active": "Actif",
+    "suspended": "Suspendu",
+    "timezone": "Fuseau Horaire",
+    "language": "Langue",
+    "locale": "Localisation"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "email": "Email",
+    "password": "Mot de passe",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "forgot_password": "Mot de passe oublié?",
+    "remember_me": "Se souvenir de moi",
+    "already_have_account": "Vous avez déjà un compte?",
+    "dont_have_account": "Vous n'avez pas de compte?",
+    "sign_in": "Se connecter",
+    "sign_up": "S'inscrire"
+  },
+  "admin": {
+    "title": "Administration",
+    "users": "Utilisateurs",
+    "tenants": "Tenants",
+    "create_user": "Créer un Utilisateur",
+    "create_tenant": "Créer un Tenant",
+    "role": "Rôle",
+    "tenant": "Tenant",
+    "permissions": "Permissions"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "general": "Général",
+    "language": "Langue",
+    "timezone": "Fuseau Horaire",
+    "currency": "Devise",
+    "notifications": "Notifications",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite. Veuillez réessayer.",
+    "network": "Erreur réseau. Vérifiez votre connexion.",
+    "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
+    "not_found": "La ressource demandée n'a pas été trouvée.",
+    "validation": "Veuillez vérifier vos données et réessayer."
+  },
+  "success": {
+    "saved": "Modifications enregistrées avec succès",
+    "created": "{{item}} créé avec succès",
+    "updated": "{{item}} mis à jour avec succès",
+    "deleted": "{{item}} supprimé avec succès"
+  }
+}

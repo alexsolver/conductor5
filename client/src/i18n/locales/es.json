@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "actions": "Acciones",
+    "settings": "Configuraciones",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "yes": "Sí",
+    "no": "No",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "reset": "Limpiar"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Análisis",
+    "knowledge_base": "Base de Conocimiento",
+    "settings": "Configuraciones",
+    "admin": "Administración",
+    "saas_admin": "Admin SaaS",
+    "tenant_admin": "Admin Tenant"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "welcome": "Bienvenido a Conductor",
+    "stats": {
+      "active_tickets": "Tickets Activos",
+      "resolved_today": "Resueltos Hoy",
+      "avg_resolution_time": "Tiempo Promedio de Resolución",
+      "satisfaction_score": "Puntuación de Satisfacción",
+      "online_agents": "Agentes Online",
+      "total_agents": "Total de Agentes"
+    },
+    "recent_activity": "Actividad Reciente",
+    "urgent_tickets": "Tickets Urgentes"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "create_ticket": "Crear Ticket",
+    "ticket_number": "Número de Ticket",
+    "subject": "Asunto",
+    "description": "Descripción",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "assigned_to": "Asignado a",
+    "customer": "Cliente",
+    "created_at": "Creado el",
+    "updated_at": "Actualizado el",
+    "categories": {
+      "incident": "Incidente",
+      "request": "Solicitud",
+      "problem": "Problema",
+      "change": "Cambio"
+    },
+    "priorities": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "statuses": {
+      "new": "Nuevo",
+      "open": "Abierto",
+      "in_progress": "En Progreso",
+      "pending": "Pendiente",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    }
+  },
+  "customers": {
+    "title": "Clientes",
+    "create_customer": "Crear Cliente",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "company": "Empresa",
+    "status": "Estado",
+    "verified": "Verificado",
+    "active": "Activo",
+    "suspended": "Suspendido",
+    "timezone": "Zona Horaria",
+    "language": "Idioma",
+    "locale": "Localización"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "email": "Correo",
+    "password": "Contraseña",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "forgot_password": "¿Olvidaste tu contraseña?",
+    "remember_me": "Recordarme",
+    "already_have_account": "¿Ya tienes una cuenta?",
+    "dont_have_account": "¿No tienes una cuenta?",
+    "sign_in": "Entrar",
+    "sign_up": "Registrarse"
+  },
+  "admin": {
+    "title": "Administración",
+    "users": "Usuarios",
+    "tenants": "Tenants",
+    "create_user": "Crear Usuario",
+    "create_tenant": "Crear Tenant",
+    "role": "Rol",
+    "tenant": "Tenant",
+    "permissions": "Permisos"
+  },
+  "settings": {
+    "title": "Configuraciones",
+    "general": "General",
+    "language": "Idioma",
+    "timezone": "Zona Horaria",
+    "currency": "Moneda",
+    "notifications": "Notificaciones",
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "errors": {
+    "generic": "Ocurrió un error. Inténtalo de nuevo.",
+    "network": "Error de red. Verifica tu conexión.",
+    "unauthorized": "No tienes autorización para esta acción.",
+    "not_found": "El recurso solicitado no fue encontrado.",
+    "validation": "Verifica los datos ingresados e inténtalo de nuevo."
+  },
+  "success": {
+    "saved": "Cambios guardados exitosamente",
+    "created": "{{item}} creado exitosamente",
+    "updated": "{{item}} actualizado exitosamente",
+    "deleted": "{{item}} eliminado exitosamente"
+  }
+}
