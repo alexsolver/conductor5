@@ -5,6 +5,8 @@ export type TicketState = 'new' | 'in_progress' | 'resolved' | 'closed' | 'cance
 export type TicketImpact = 'low' | 'medium' | 'high';
 export type TicketUrgency = 'low' | 'medium' | 'high';
 
+export type PersonType = 'user' | 'customer';
+
 export class Ticket {
   constructor(
     public readonly id: string,
@@ -25,7 +27,11 @@ export class Ticket {
     public readonly impact: TicketImpact = 'medium',
     public readonly urgency: TicketUrgency = 'medium',
     public readonly state: TicketState = 'new',
-    public readonly callerId: string | null = null,
+    // Enhanced person referencing - Flexible caller and beneficiary
+    public readonly callerId: string,
+    public readonly callerType: PersonType = 'customer',
+    public readonly beneficiaryId: string | null = null,
+    public readonly beneficiaryType: PersonType = 'customer',
     public readonly openedById: string | null = null,
     public readonly assignmentGroup: string | null = null,
     public readonly location: string | null = null,
@@ -46,7 +52,13 @@ export class Ticket {
     public readonly workaround: string | null = null,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
-  ) {}
+  ) {
+    // Auto-assign beneficiary if not provided
+    if (!this.beneficiaryId) {
+      (this as any).beneficiaryId = this.callerId;
+      (this as any).beneficiaryType = this.callerType;
+    }
+  }
 
   // Business rules
   get isOpen(): boolean {
@@ -63,6 +75,26 @@ export class Ticket {
 
   get isAssigned(): boolean {
     return this.assignedToId !== null;
+  }
+
+  get isAutoService(): boolean {
+    return this.callerId === this.beneficiaryId && this.callerType === this.beneficiaryType;
+  }
+
+  get isProxyService(): boolean {
+    return this.callerId !== this.beneficiaryId || this.callerType !== this.beneficiaryType;
+  }
+
+  get isInternalService(): boolean {
+    return this.callerType === 'user' && this.beneficiaryType === 'user';
+  }
+
+  get isCustomerService(): boolean {
+    return this.callerType === 'customer' || this.beneficiaryType === 'customer';
+  }
+
+  get isHybridService(): boolean {
+    return this.callerType !== this.beneficiaryType;
   }
 
   get isUrgent(): boolean {
@@ -107,6 +139,29 @@ export class Ticket {
     return this.isAssigned && (this.assignedToId === userId || !this.isClosed);
   }
 
+  // Validation methods for person references
+  validateReferences(): void {
+    if (!this.callerId) {
+      throw new Error('Caller is required');
+    }
+    
+    if (!this.beneficiaryId) {
+      throw new Error('Beneficiary must be set (defaults to caller)');
+    }
+    
+    // Business rule: caller and beneficiary must belong to same tenant
+    // (This validation should be implemented in repository layer)
+  }
+
+  // Helper methods for person identification
+  getCallerReference(): { id: string; type: PersonType } {
+    return { id: this.callerId, type: this.callerType };
+  }
+
+  getBeneficiaryReference(): { id: string; type: PersonType } {
+    return { id: this.beneficiaryId!, type: this.beneficiaryType };
+  }
+
   canBeReopened(): boolean {
     return this.isResolved || this.isClosed;
   }
@@ -149,7 +204,11 @@ export class Ticket {
     impact?: TicketImpact;
     urgency?: TicketUrgency;
     assignedToId?: string;
-    callerId?: string;
+    // Enhanced person referencing
+    callerId: string;
+    callerType?: PersonType;
+    beneficiaryId?: string;
+    beneficiaryType?: PersonType;
     openedById?: string;
     assignmentGroup?: string;
     location?: string;
@@ -177,8 +236,17 @@ export class Ticket {
       throw new Error('Ticket must be associated with a customer');
     }
 
+    if (!props.callerId) {
+      throw new Error('Caller is required');
+    }
+
     // Generate ticket number
     const ticketNumber = `INC${Date.now().toString().slice(-8)}`;
+
+    // Default values for person referencing
+    const callerType = props.callerType || 'customer';
+    const beneficiaryId = props.beneficiaryId || props.callerId;
+    const beneficiaryType = props.beneficiaryType || callerType;
 
     return new Ticket(
       crypto.randomUUID(),
@@ -198,7 +266,10 @@ export class Ticket {
       props.impact || 'medium',
       props.urgency || 'medium',
       'new',
-      props.callerId || props.customerId,
+      props.callerId,
+      callerType,
+      beneficiaryId,
+      beneficiaryType,
       props.openedById || null,
       props.assignmentGroup || null,
       props.location || null,

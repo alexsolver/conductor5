@@ -103,12 +103,15 @@ export const tickets = pgTable("tickets", {
   urgency: varchar("urgency", { length: 20 }).default("medium"), // high, medium, low
   state: varchar("state", { length: 20 }).notNull().default("new"), // new, in_progress, resolved, closed, cancelled
   
-  // Assignment Fields
-  callerId: uuid("caller_id").notNull().references(() => customers.id), // Customer who reported
+  // Assignment Fields - Enhanced for flexible person referencing
+  callerId: uuid("caller_id").notNull(), // Person who reported (flexible reference)
+  callerType: varchar("caller_type", { length: 20 }).notNull().default("customer"), // 'user' | 'customer'
+  beneficiaryId: uuid("beneficiary_id"), // Person who benefits from resolution (flexible reference)
+  beneficiaryType: varchar("beneficiary_type", { length: 20 }).default("customer"), // 'user' | 'customer'
   openedById: varchar("opened_by_id").notNull().references(() => users.id), // Who opened the ticket
-  assignedToId: varchar("assigned_to_id").references(() => users.id),
+  assignedToId: varchar("assigned_to_id").references(() => users.id), // Agent who resolves
   assignmentGroup: varchar("assignment_group", { length: 100 }),
-  customerId: uuid("customer_id").notNull().references(() => customers.id),
+  customerId: uuid("customer_id").notNull().references(() => customers.id), // Legacy compatibility
   location: varchar("location", { length: 200 }),
   
   // Control Fields
@@ -206,10 +209,8 @@ export const ticketsRelations = relations(tickets, ({ one, many }) => ({
     fields: [tickets.customerId],
     references: [customers.id],
   }),
-  caller: one(customers, {
-    fields: [tickets.callerId],
-    references: [customers.id],
-  }),
+  // Note: caller and beneficiary relations are handled dynamically based on type
+  // Use callerType and beneficiaryType to determine if referencing users or customers
   openedBy: one(users, {
     fields: [tickets.openedById],
     references: [users.id],
@@ -273,6 +274,9 @@ export const insertTicketSchema = createInsertSchema(tickets).omit({
   state: z.string().optional(),
   impact: z.string().optional(),
   urgency: z.string().optional(),
+  beneficiaryId: z.string().optional(), // Optional - defaults to callerId
+  beneficiaryType: z.enum(["user", "customer"]).optional(),
+  callerType: z.enum(["user", "customer"]).optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
   resolutionCode: z.string().optional(),

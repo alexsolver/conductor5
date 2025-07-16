@@ -1,0 +1,132 @@
+O sistema é um multitenant ticket system com Clean Architecture, usando:
+
+Backend: Node.js/Express com TypeScript, PostgreSQL por schema
+Frontend: React com TypeScript, TanStack Query
+Arquitetura: Clean Architecture com Domain → Application → Infrastructure
+Autenticação: JWT com roles: saas_admin, tenant_admin, agent, customer
+Problema Atual
+O sistema possui apenas customerId nos tickets, mas precisa diferenciar:
+
+Solicitante (quem reporta o problema)
+Favorecido (quem se beneficia da resolução)
+Agente (quem resolve o problema)
+Objetivo da Implementação
+Implementar o conceito de Solicitantes, Favorecidos e Agentes permitindo:
+
+Flexibilidade total: Pessoas podem ter múltiplas funções
+Referência cruzada: Users podem ser solicitantes/favorecidos e customers podem ser agentes
+Evolução de funções: Pessoas podem mudar de papel sem perder histórico
+Compatibilidade: Manter sistema atual funcionando
+Especificações Técnicas Detalhadas
+1. Atualização do Schema (shared/schema.ts)
+Adicionar no esquema de tickets:
+
+// Novos campos para referência flexível
+beneficiaryId: uuid("beneficiary_id").references(() => customers.id), // Favorecido
+beneficiaryType: varchar("beneficiary_type", { length: 20 }).default("customer"), // 'user' | 'customer'
+callerType: varchar("caller_type", { length: 20 }).default("customer"), // 'user' | 'customer'
+Regras de migração:
+
+Todos os tickets existentes: beneficiaryId = callerId (se null) ou customerId
+beneficiaryType = callerType = "customer" para tickets existentes
+2. Atualização das Entidades Domain
+Ticket Entity (server/domain/entities/Ticket.ts):
+
+Adicionar campos: beneficiaryId, beneficiaryType, callerType
+Implementar validações de negócio:
+Se beneficiaryId for null, assumir beneficiário = solicitante
+Validar que caller e beneficiary existam no tenant correto
+Permitir referência cruzada entre users e customers
+Validações de negócio:
+
+// Regras de negócio
+validateReferences(): void {
+  if (!this.callerId) throw new Error('Caller is required');
+  if (!this.beneficiaryId) this.beneficiaryId = this.callerId;
+  
+  // Validar que caller e beneficiary pertencem ao mesmo tenant
+  // (implementar via repository)
+}
+3. Casos de Uso Suportados
+Autoatendimento: callerId = beneficiaryId (customer → customer)
+Atendimento por proxy: callerId ≠ beneficiaryId (secretária → chefe)
+Suporte interno: user → user (TI para funcionário)
+Suporte híbrido: user → customer ou customer → user
+4. Atualização da Interface (client/src/pages/TicketsTable.tsx)
+Formulário de ticket:
+
+// Campos separados no formulário
+<FormField name="callerId" label="Solicitante (Quem Reporta)" />
+<FormField name="callerType" label="Tipo do Solicitante" />
+<FormField name="beneficiaryId" label="Favorecido (Quem se Beneficia)" />
+<FormField name="beneficiaryType" label="Tipo do Favorecido" />
+Busca unificada:
+
+Implementar busca que permita selecionar users OU customers
+Usar dropdown com separação visual (Users / Customers)
+Auto-completar nome e email independente da tabela
+Tabela de tickets:
+
+// Colunas na tabela
+<TableHead>Solicitante</TableHead>
+<TableHead>Favorecido</TableHead>
+<TableHead>Agente</TableHead>
+5. Atualização dos Repositories
+CustomerRepository e UserRepository:
+
+Criar método findPersonByIdAndType(id: string, type: 'user' | 'customer')
+Implementar busca unificada para interface
+TicketRepository:
+
+Atualizar queries para incluir novos campos
+Implementar joins para buscar dados de solicitante e favorecido
+Suportar filtros por tipo de pessoa
+6. Migração de Dados
+-- Migração para tickets existentes
+UPDATE tickets 
+SET 
+  beneficiary_id = COALESCE(caller_id, customer_id),
+  beneficiary_type = 'customer',
+  caller_type = 'customer'
+WHERE beneficiary_id IS NULL;
+7. Regras de Validação
+Solicitante: Obrigatório, pode ser user ou customer
+Favorecido: Opcional (default = solicitante), pode ser user ou customer
+Agente: Deve ser user válido com acesso ao tenant
+Tenant: Todos devem pertencer ao mesmo tenant
+8. Compatibilidade com Sistema Atual
+Manter campos customerId para compatibilidade
+Mapear customerId para beneficiaryId quando necessário
+Não quebrar funcionalidades existentes
+Estrutura de Implementação
+Ordem de Implementação:
+Schema: Atualizar shared/schema.ts com novos campos
+Entities: Atualizar Ticket.ts com validações
+Repositories: Implementar suporte aos novos campos
+Use Cases: Atualizar lógica de criação/atualização
+Controllers: Modificar para aceitar novos campos
+Frontend: Atualizar interface e formulários
+Migração: Implementar script de migração
+Testes: Validar todos os casos de uso
+Deliverables Esperados:
+ Schema atualizado com campos beneficiaryId, beneficiaryType, callerType
+ Ticket entity com validações de negócio
+ Repositories com suporte a referência cruzada
+ Interface atualizada com campos separados
+ Busca unificada de pessoas (users + customers)
+ Migração de dados implementada
+ Casos de uso testados e funcionando
+ Compatibilidade com sistema atual mantida
+Requisitos Técnicos
+Manter JWT authentication
+Respeitar isolamento por tenant
+Seguir padrões TypeScript existentes
+Usar estrutura de validação com Zod
+Manter Clean Architecture
+Preservar sistema de logs de atividade
+Casos de Teste Obrigatórios
+Autoatendimento: Cliente abre ticket para si mesmo
+Proxy: Secretária abre ticket para chefe
+Suporte interno: TI abre ticket para funcionário
+Migração: Tickets existentes continuam funcionando
+Validação: Tentativa de referência inválida é rejeitada

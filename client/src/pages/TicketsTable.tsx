@@ -16,6 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { PersonSelector } from "@/components/PersonSelector";
 
 // Schema for ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -29,9 +30,12 @@ const ticketSchema = z.object({
   urgency: z.enum(["low", "medium", "high"]).optional(),
   state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
   
-  // Assignment Fields
-  callerId: z.string().min(1, "Caller is required"),
-  customerId: z.string().min(1, "Customer is required"),
+  // Assignment Fields - Enhanced for flexible person referencing
+  callerId: z.string().min(1, "Solicitante é obrigatório"),
+  callerType: z.enum(["user", "customer"]).default("customer"),
+  beneficiaryId: z.string().optional(), // Optional - defaults to callerId
+  beneficiaryType: z.enum(["user", "customer"]).optional(),
+  customerId: z.string().min(1, "Customer is required"), // Legacy compatibility
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
@@ -60,10 +64,28 @@ interface Ticket {
   priority: string;
   createdAt: string;
   updatedAt: string;
+  // Enhanced person referencing
+  callerId: string;
+  callerType: 'user' | 'customer';
+  beneficiaryId?: string;
+  beneficiaryType?: 'user' | 'customer';
   customer: {
     id: string;
     firstName: string;
     lastName: string;
+    email: string;
+    fullName: string;
+  };
+  // Related persons (populated by join)
+  caller?: {
+    id: string;
+    type: 'user' | 'customer';
+    email: string;
+    fullName: string;
+  };
+  beneficiary?: {
+    id: string;
+    type: 'user' | 'customer';
     email: string;
     fullName: string;
   };
@@ -193,6 +215,9 @@ export default function TicketsTable() {
       urgency: "medium",
       state: "new",
       callerId: "",
+      callerType: "customer",
+      beneficiaryId: "",
+      beneficiaryType: "customer",
       customerId: "",
       assignedToId: "unassigned",
       assignmentGroup: "",
@@ -212,7 +237,10 @@ export default function TicketsTable() {
     mutationFn: async (data: TicketFormData) => {
       const submitData = {
         ...data,
-        assignedToId: data.assignedToId === "unassigned" ? undefined : data.assignedToId
+        assignedToId: data.assignedToId === "unassigned" ? undefined : data.assignedToId,
+        // Ensure beneficiary defaults to caller if not set
+        beneficiaryId: data.beneficiaryId || data.callerId,
+        beneficiaryType: data.beneficiaryType || data.callerType,
       };
       const response = await apiRequest("POST", "/api/tickets", submitData);
       return response.json();
@@ -307,6 +335,9 @@ export default function TicketsTable() {
       urgency: (ticket as any).urgency || "medium",
       state: (ticket as any).state || ticket.status as any,
       callerId: (ticket as any).callerId || ticket.customer.id,
+      callerType: (ticket as any).callerType || "customer",
+      beneficiaryId: (ticket as any).beneficiaryId || (ticket as any).callerId || ticket.customer.id,
+      beneficiaryType: (ticket as any).beneficiaryType || "customer",
       customerId: ticket.customer.id,
       assignedToId: ticket.assignedTo?.id || "unassigned",
       assignmentGroup: (ticket as any).assignmentGroup || "",
@@ -523,21 +554,49 @@ export default function TicketsTable() {
               name="callerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Caller (Who Reported) *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select caller" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {customers.map((customer: any) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.fullName} ({customer.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Solicitante (Caller) *</FormLabel>
+                  <FormControl>
+                    <PersonSelector
+                      value={field.value}
+                      onValueChange={(personId, personType) => {
+                        field.onChange(personId);
+                        form.setValue('callerType', personType);
+                        // Auto-set legacy customer field if caller is customer
+                        if (personType === 'customer') {
+                          form.setValue('customerId', personId);
+                        }
+                        // Auto-set beneficiary to caller if not already set
+                        if (!form.getValues('beneficiaryId')) {
+                          form.setValue('beneficiaryId', personId);
+                          form.setValue('beneficiaryType', personType);
+                        }
+                      }}
+                      placeholder="Buscar solicitante..."
+                      allowedTypes={['user', 'customer']}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="beneficiaryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Favorecido (Beneficiary)</FormLabel>
+                  <FormControl>
+                    <PersonSelector
+                      value={field.value}
+                      onValueChange={(personId, personType) => {
+                        field.onChange(personId);
+                        form.setValue('beneficiaryType', personType);
+                      }}
+                      placeholder="Buscar favorecido (opcional)..."
+                      allowedTypes={['user', 'customer']}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -548,7 +607,7 @@ export default function TicketsTable() {
               name="customerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Affected Customer *</FormLabel>
+                  <FormLabel>Customer (Legacy) *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>

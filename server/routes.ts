@@ -19,12 +19,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { customersRouter } = await import('./modules/customers/routes');
   const { ticketsRouter } = await import('./modules/tickets/routes');
   const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
+  const { peopleRouter } = await import('./modules/people/routes');
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/customers', customersRouter);
   app.use('/api/tickets', ticketsRouter);
   app.use('/api/knowledge-base', knowledgeBaseRouter);
+  app.use('/api/people', peopleRouter);
 
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
