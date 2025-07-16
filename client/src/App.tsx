@@ -24,6 +24,11 @@ import SaasAdmin from "./pages/SaasAdmin";
 import TenantAdmin from "./pages/TenantAdmin";
 import TenantProvisioning from "./pages/TenantProvisioning";
 import TranslationManager from "./pages/TranslationManager";
+import SaasAdminPerformance from "./pages/SaasAdminPerformance";
+import SaasAdminBilling from "./pages/SaasAdminBilling";
+import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
+import TenantAdminTeam from "./pages/TenantAdminTeam";
+import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 import NotFound from "./pages/not-found";
 
 // Components
@@ -66,7 +71,12 @@ function AppRouter() {
         <Route path="/roadmap" component={Roadmap} />
         <Route path="/compliance" component={Compliance} />
         <Route path="/saas-admin" component={SaasAdmin} />
+        <Route path="/saas-admin/performance" component={SaasAdminPerformance} />
+        <Route path="/saas-admin/billing" component={SaasAdminBilling} />
+        <Route path="/saas-admin/disaster-recovery" component={SaasAdminDisasterRecovery} />
         <Route path="/tenant-admin" component={TenantAdmin} />
+        <Route path="/tenant-admin/team" component={TenantAdminTeam} />
+        <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/settings" component={Settings} />

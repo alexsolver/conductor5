@@ -2,8 +2,10 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { 
   BarChart3, 
   Users, 
@@ -14,11 +16,22 @@ import {
   Settings, 
   HelpCircle,
   ChevronDown,
+  ChevronRight,
   Zap,
   Map,
   Shield,
   LogOut,
-  Languages
+  Languages,
+  Database,
+  TrendingUp,
+  Activity,
+  CreditCard,
+  HardDrive,
+  UserCog,
+  Workflow,
+  Target,
+  Palette,
+  PieChart
 } from "lucide-react";
 
 // Base navigation without dynamic badges
@@ -32,12 +45,36 @@ const baseNavigation = [
   { name: "Compliance", href: "/compliance", icon: Shield },
 ];
 
-// Admin navigation (conditional based on role)
+// Admin navigation with hierarchical structure
 const adminNavigation = [
-  { name: "SaaS Admin", href: "/saas-admin", icon: Shield, roles: ['saas_admin'] },
-  { name: "Tenant Admin", href: "/tenant-admin", icon: Settings, roles: ['saas_admin', 'tenant_admin'] },
-  { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug, roles: ['saas_admin'] },
-  { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages, roles: ['saas_admin'] },
+  { 
+    name: "SaaS Admin", 
+    icon: Shield, 
+    roles: ['saas_admin'],
+    children: [
+      { name: "Dashboard", href: "/saas-admin", icon: BarChart3 },
+      { name: "Gestão de Tenants", href: "/saas-admin/tenants", icon: Database },
+      { name: "Performance & Saúde", href: "/saas-admin/performance", icon: TrendingUp },
+      { name: "Configurações de Segurança", href: "/saas-admin/security", icon: Shield },
+      { name: "Billing & Usage", href: "/saas-admin/billing", icon: CreditCard },
+      { name: "Disaster Recovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
+      { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
+      { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages },
+    ]
+  },
+  { 
+    name: "Tenant Admin", 
+    icon: Settings, 
+    roles: ['saas_admin', 'tenant_admin'],
+    children: [
+      { name: "Dashboard", href: "/tenant-admin", icon: BarChart3 },
+      { name: "Gestão da Equipe", href: "/tenant-admin/team", icon: UserCog },
+      { name: "Workflows & SLAs", href: "/tenant-admin/workflows", icon: Workflow },
+      { name: "Gestão de Clientes", href: "/tenant-admin/customers", icon: Users },
+      { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
+      { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
+    ]
+  },
 ];
 
 const secondaryNavigation = [
@@ -49,6 +86,7 @@ const secondaryNavigation = [
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   // Fetch tickets count for badge
   const { data: ticketsData } = useQuery({
@@ -66,6 +104,11 @@ export function Sidebar() {
     }
     return item;
   });
+
+  // Toggle menu function
+  const toggleMenu = (menuName: string) => {
+    setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+  };
 
   return (
     <div className="hidden lg:flex lg:w-64 lg:flex-col">
@@ -119,7 +162,7 @@ export function Sidebar() {
             );
           })}
 
-          {/* Admin Navigation - Role-based */}
+          {/* Admin Navigation - Role-based with hierarchy */}
           {user && ['saas_admin', 'tenant_admin'].includes(user.role) && (
             <div className="pt-4 mt-4 border-t border-white border-opacity-20">
               <div className="px-2 mb-2">
@@ -130,19 +173,46 @@ export function Sidebar() {
               {adminNavigation
                 .filter(item => item.roles.includes(user.role))
                 .map((item) => {
-                  const isActive = location === item.href;
+                  const isOpen = openMenus[item.name] || false;
+                  const hasActiveChild = item.children?.some(child => location === child.href);
+                  
                   return (
-                    <Link key={item.name} href={item.href}>
-                      <div className={cn(
-                        "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                        isActive
-                          ? "bg-white bg-opacity-20 text-white"
-                          : "text-white hover:bg-white hover:bg-opacity-10"
-                      )}>
-                        <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                        {item.name}
-                      </div>
-                    </Link>
+                    <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
+                      <CollapsibleTrigger className="w-full">
+                        <div className={cn(
+                          "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                          hasActiveChild
+                            ? "bg-white bg-opacity-20 text-white"
+                            : "text-white hover:bg-white hover:bg-opacity-10"
+                        )}>
+                          <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                          {item.name}
+                          {isOpen ? (
+                            <ChevronDown className="ml-auto h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="ml-auto h-4 w-4" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                        {item.children?.map((child) => {
+                          const isActive = location === child.href;
+                          return (
+                            <Link key={child.name} href={child.href}>
+                              <div className={cn(
+                                "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                                isActive
+                                  ? "bg-white bg-opacity-20 text-white"
+                                  : "text-white hover:bg-white hover:bg-opacity-10"
+                              )}>
+                                <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                                {child.name}
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </CollapsibleContent>
+                    </Collapsible>
                   );
                 })}
             </div>
