@@ -222,4 +222,43 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
   }
 });
 
+// Delete ticket
+ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const ticketId = req.params.id;
+    
+    // First check if ticket exists
+    const existingTicket = await storage.getTicket(ticketId, req.user.tenantId);
+    if (!existingTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Mark as deleted by updating status
+    const success = await storage.updateTicket(ticketId, req.user.tenantId, { status: 'deleted' });
+    
+    if (!success) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Log activity
+    await storage.createActivityLog({
+      tenantId: req.user.tenantId,
+      userId: req.user.id,
+      entityType: 'ticket',
+      entityId: ticketId,
+      action: 'deleted',
+      details: { subject: existingTicket.subject },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    res.status(500).json({ message: "Failed to delete ticket" });
+  }
+});
+
 export { ticketsRouter };

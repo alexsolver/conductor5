@@ -12,8 +12,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Pages
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
-import Tickets from "./pages/Tickets";
-import Customers from "./pages/Customers";
+import TicketsTable from "./pages/TicketsTable";
+import CustomersTable from "./pages/CustomersTable";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
@@ -56,8 +56,8 @@ function AppRouter() {
     <AppShell>
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/tickets" component={Tickets} />
-        <Route path="/customers" component={Customers} />
+        <Route path="/tickets" component={TicketsTable} />
+        <Route path="/customers" component={CustomersTable} />
         <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/roadmap" component={Roadmap} />

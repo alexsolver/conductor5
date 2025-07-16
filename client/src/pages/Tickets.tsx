@@ -60,7 +60,7 @@ export default function Tickets() {
       subject: "",
       description: "",
       priority: "medium",
-      assignedToId: "",
+      assignedToId: "unassigned",
       tags: [],
     },
   });
@@ -68,7 +68,11 @@ export default function Tickets() {
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: async (data: CreateTicketFormData) => {
-      const response = await apiRequest("POST", "/api/tickets", data);
+      const submitData = {
+        ...data,
+        assignedToId: data.assignedToId === "unassigned" ? undefined : data.assignedToId
+      };
+      const response = await apiRequest("POST", "/api/tickets", submitData);
       return response.json();
     },
     onSuccess: () => {
@@ -254,7 +258,7 @@ export default function Tickets() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Unassigned</SelectItem>
+                              <SelectItem value="unassigned">Unassigned</SelectItem>
                               {users.map((user: any) => (
                                 <SelectItem key={user.id} value={user.id}>
                                   {user.firstName} {user.lastName} ({user.email})
