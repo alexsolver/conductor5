@@ -12,7 +12,8 @@ import {
   Settings, 
   HelpCircle,
   ChevronDown,
-  Zap
+  Zap,
+  Map
 } from "lucide-react";
 
 const navigation = [
@@ -20,6 +21,7 @@ const navigation = [
   { name: "Tickets", href: "/tickets", icon: Ticket, badge: "12" },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Roadmap", href: "/roadmap", icon: Map },
   { name: "Automation", href: "/automation", icon: Bot },
   { name: "Knowledge Base", href: "/knowledge", icon: BookOpen },
   { name: "Integrations", href: "/integrations", icon: Plug },

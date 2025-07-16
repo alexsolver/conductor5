@@ -1,0 +1,138 @@
+Atendimento ao Cliente (Customer Support)
+Sistema de tickets centralizado
+Gestão de conversas omnichanais (email, chat, telefone, redes sociais)
+Respostas automáticas e templates
+Escalação automática de tickets
+SLA (Service Level Agreement) management
+Base de conhecimento integrada
+Formulários personalizáveis
+Pesquisas de satisfação
+Relatórios e analytics de atendimento
+Canais de Comunicação
+Email integrado
+Chat ao vivo (web widget)
+WhatsApp Business
+Facebook Messenger
+Instagram Direct
+Twitter/X
+Telefone/VoIP
+SMS
+Slack integration
+Microsoft Teams
+Automação e Fluxos de Trabalho
+Triggers automáticos
+Automações baseadas em tempo
+Macros para respostas rápidas
+Roteamento inteligente de tickets
+Classificação automática
+Priorização dinâmica
+Workflows personalizados
+Gestão de Agentes e Equipes
+Perfis de agentes com permissões
+Grupos e organizações
+Distribuição de carga de trabalho
+Controle de capacidade
+Horários de trabalho
+Gestão de ausências
+Performance tracking
+Inteligência Artificial
+Answer Bot (chatbot com IA)
+Sugestões de respostas automáticas
+Classificação inteligente de tickets
+Análise de sentimento
+Tradução automática
+Detecção de intenção do cliente
+Previsão de satisfação
+Analytics e Relatórios
+Dashboards personalizáveis
+Relatórios de performance
+Métricas de SLA
+Análise de tendências
+Relatórios de satisfação
+Insights de produtividade
+Forecasting
+Explore (análise avançada de dados)
+Base de Conhecimento
+Artigos de ajuda
+FAQs organizadas
+Busca inteligente
+Versionamento de conteúdo
+Aprovação de conteúdo
+Analytics de artigos
+Portal do cliente
+Comunidade/fórum
+Integrações
+Salesforce
+HubSpot
+Shopify
+Jira
+Confluence
+Office 365
+Google Workspace
+Slack
+Microsoft Teams
+APIs RESTful
+Webhooks
+Zapier
+Customização
+Campos personalizados
+Layouts customizáveis
+Branding personalizado
+Apps do marketplace
+Desenvolvimento de apps próprios
+Triggers e automações personalizadas
+Views personalizadas
+Segurança e Compliance
+Criptografia de dados
+SSO (Single Sign-On)
+SAML integration
+Compliance GDPR
+Auditoria de logs
+Controle de acesso baseado em funções
+Backup de dados
+Certificações de segurança
+Mobile e Acessibilidade
+Apps móveis para agentes
+Portal móvel para clientes
+Interface responsiva
+Acessibilidade WCAG
+Suporte offline
+Gestão de Clientes (CRM)
+Perfis detalhados de clientes
+Histórico completo de interações
+Organizações e usuários finais
+Tags e segmentação
+Campos personalizados
+Notas e contexto
+Telefonia e Call Center
+Talk (sistema de telefonia integrado)
+Gravação de chamadas
+IVR (Interactive Voice Response)
+Distribuição automática de chamadas
+Filas de atendimento
+Analytics de chamadas
+Click-to-call
+Gestão de Problemas
+Problem management
+Incident management
+Change management
+Asset management
+Service catalog
+ITIL compliance
+Colaboração
+Notas internas nos tickets
+@mentions
+Compartilhamento de tickets
+Colaboração entre equipes
+Side conversations
+Approval workflows
+Marketplace e Extensões
+App marketplace
+Integrações de terceiros
+Widgets personalizados
+Extensions framework
+API developer tools
+Planos e Escalabilidade
+Team, Professional, Enterprise, Elite
+Support para múltiplas marcas
+Multi-tenancy

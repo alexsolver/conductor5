@@ -11,6 +11,7 @@ import Tickets from "@/pages/Tickets";
 import Customers from "@/pages/Customers";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
+import Roadmap from "@/pages/Roadmap";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -25,6 +26,7 @@ function Router() {
           <Route path="/tickets" component={Tickets} />
           <Route path="/customers" component={Customers} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/roadmap" component={Roadmap} />
           <Route path="/settings" component={Settings} />
         </>
       )}

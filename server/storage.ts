@@ -72,15 +72,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
+    // First, try to find an existing user
+    const existingUser = await this.getUser(userData.id);
+    
+    if (existingUser) {
+      // Update existing user
+      const [user] = await db
+        .update(users)
+        .set({
           ...userData,
           updatedAt: new Date(),
-        },
+        })
+        .where(eq(users.id, userData.id))
+        .returning();
+      return user;
+    }
+
+    // For new users, create a default tenant first
+    let defaultTenant;
+    try {
+      defaultTenant = await this.createTenant({
+        name: `${userData.firstName || userData.email || 'User'}'s Organization`,
+        subdomain: `tenant-${userData.id}`,
+        settings: {}
+      });
+    } catch (error) {
+      // If tenant creation fails, try to get default tenant
+      const existingTenants = await db.select().from(tenants).limit(1);
+      if (existingTenants.length > 0) {
+        defaultTenant = existingTenants[0];
+      } else {
+        throw new Error('Failed to create or find default tenant');
+      }
+    }
+
+    // Create new user with tenant association
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        tenantId: defaultTenant.id,
+        role: 'admin', // First user is admin
+        isActive: true
       })
       .returning();
     return user;
@@ -139,27 +172,14 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(customers)
       .where(and(eq(customers.id, id), eq(customers.tenantId, tenantId)));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Ticket operations
   async getTickets(tenantId: string, limit = 50, offset = 0): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
-    return await db
+    const results = await db
       .select({
-        id: tickets.id,
-        tenantId: tickets.tenantId,
-        customerId: tickets.customerId,
-        assignedToId: tickets.assignedToId,
-        subject: tickets.subject,
-        description: tickets.description,
-        status: tickets.status,
-        priority: tickets.priority,
-        channel: tickets.channel,
-        tags: tickets.tags,
-        metadata: tickets.metadata,
-        resolvedAt: tickets.resolvedAt,
-        createdAt: tickets.createdAt,
-        updatedAt: tickets.updatedAt,
+        ticket: tickets,
         customer: customers,
         assignedTo: users,
       })
@@ -170,25 +190,18 @@ export class DatabaseStorage implements IStorage {
       .limit(limit)
       .offset(offset)
       .orderBy(desc(tickets.createdAt));
+
+    return results.map(row => ({
+      ...row.ticket,
+      customer: row.customer,
+      assignedTo: row.assignedTo || undefined
+    }));
   }
 
   async getTicket(id: string, tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User; messages: (TicketMessage & { author?: User; customer?: Customer })[] }) | undefined> {
-    const [ticket] = await db
+    const [result] = await db
       .select({
-        id: tickets.id,
-        tenantId: tickets.tenantId,
-        customerId: tickets.customerId,
-        assignedToId: tickets.assignedToId,
-        subject: tickets.subject,
-        description: tickets.description,
-        status: tickets.status,
-        priority: tickets.priority,
-        channel: tickets.channel,
-        tags: tickets.tags,
-        metadata: tickets.metadata,
-        resolvedAt: tickets.resolvedAt,
-        createdAt: tickets.createdAt,
-        updatedAt: tickets.updatedAt,
+        ticket: tickets,
         customer: customers,
         assignedTo: users,
       })
@@ -197,10 +210,15 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(tickets.assignedToId, users.id))
       .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)));
 
-    if (!ticket) return undefined;
+    if (!result) return undefined;
 
     const messages = await this.getTicketMessages(id);
-    return { ...ticket, messages };
+    return { 
+      ...result.ticket, 
+      customer: result.customer,
+      assignedTo: result.assignedTo || undefined,
+      messages 
+    };
   }
 
   async createTicket(ticket: InsertTicket): Promise<Ticket> {
@@ -218,22 +236,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUrgentTickets(tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
-    return await db
+    const results = await db
       .select({
-        id: tickets.id,
-        tenantId: tickets.tenantId,
-        customerId: tickets.customerId,
-        assignedToId: tickets.assignedToId,
-        subject: tickets.subject,
-        description: tickets.description,
-        status: tickets.status,
-        priority: tickets.priority,
-        channel: tickets.channel,
-        tags: tickets.tags,
-        metadata: tickets.metadata,
-        resolvedAt: tickets.resolvedAt,
-        createdAt: tickets.createdAt,
-        updatedAt: tickets.updatedAt,
+        ticket: tickets,
         customer: customers,
         assignedTo: users,
       })
@@ -247,21 +252,19 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(tickets.createdAt))
       .limit(10);
+
+    return results.map(row => ({
+      ...row.ticket,
+      customer: row.customer,
+      assignedTo: row.assignedTo || undefined
+    }));
   }
 
   // Ticket message operations
   async getTicketMessages(ticketId: string): Promise<(TicketMessage & { author?: User; customer?: Customer })[]> {
-    return await db
+    const results = await db
       .select({
-        id: ticketMessages.id,
-        ticketId: ticketMessages.ticketId,
-        authorId: ticketMessages.authorId,
-        customerId: ticketMessages.customerId,
-        content: ticketMessages.content,
-        type: ticketMessages.type,
-        isPublic: ticketMessages.isPublic,
-        attachments: ticketMessages.attachments,
-        createdAt: ticketMessages.createdAt,
+        message: ticketMessages,
         author: users,
         customer: customers,
       })
@@ -270,6 +273,12 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(customers, eq(ticketMessages.customerId, customers.id))
       .where(eq(ticketMessages.ticketId, ticketId))
       .orderBy(ticketMessages.createdAt);
+
+    return results.map(row => ({
+      ...row.message,
+      author: row.author || undefined,
+      customer: row.customer || undefined
+    }));
   }
 
   async createTicketMessage(message: InsertTicketMessage): Promise<TicketMessage> {
@@ -279,16 +288,9 @@ export class DatabaseStorage implements IStorage {
 
   // Activity log operations
   async getRecentActivity(tenantId: string, limit = 20): Promise<(ActivityLog & { user?: User })[]> {
-    return await db
+    const results = await db
       .select({
-        id: activityLogs.id,
-        tenantId: activityLogs.tenantId,
-        userId: activityLogs.userId,
-        entityType: activityLogs.entityType,
-        entityId: activityLogs.entityId,
-        action: activityLogs.action,
-        details: activityLogs.details,
-        createdAt: activityLogs.createdAt,
+        activity: activityLogs,
         user: users,
       })
       .from(activityLogs)
@@ -296,6 +298,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(activityLogs.tenantId, tenantId))
       .orderBy(desc(activityLogs.createdAt))
       .limit(limit);
+
+    return results.map(row => ({
+      ...row.activity,
+      user: row.user || undefined
+    }));
   }
 
   async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
