@@ -1,5 +1,25 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    localStorage.setItem('accessToken', data.accessToken);
+    return data.accessToken;
+  } catch (error) {
+    console.error('Token refresh failed:', error);
+    return null;
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     let text = '';
@@ -24,17 +44,31 @@ export async function apiRequest(
   }
   
   // Add authorization header if token exists
-  const token = localStorage.getItem('accessToken');
+  let token = localStorage.getItem('accessToken');
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  let res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
+
+  // If unauthorized, try to refresh token and retry
+  if (res.status === 401 && token) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers["Authorization"] = `Bearer ${newToken}`;
+      res = await fetch(url, {
+        method,
+        headers,
+        body: data ? JSON.stringify(data) : undefined,
+        credentials: "include",
+      });
+    }
+  }
 
   await throwIfResNotOk(res);
   return res;
@@ -49,15 +83,27 @@ export const getQueryFn: <T>(options: {
     const headers: Record<string, string> = {};
     
     // Add authorization header if token exists
-    const token = localStorage.getItem('accessToken');
+    let token = localStorage.getItem('accessToken');
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(queryKey.join("/") as string, {
+    let res = await fetch(queryKey.join("/") as string, {
       headers,
       credentials: "include",
     });
+
+    // If unauthorized, try to refresh token and retry
+    if (res.status === 401 && token) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        headers["Authorization"] = `Bearer ${newToken}`;
+        res = await fetch(queryKey.join("/") as string, {
+          headers,
+          credentials: "include",
+        });
+      }
+    }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;

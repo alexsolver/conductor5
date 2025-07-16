@@ -84,11 +84,26 @@ authRouter.post('/refresh', async (req, res) => {
       return res.status(401).json({ message: 'Refresh token required' });
     }
 
-    const refreshTokenUseCase = container.refreshTokenUseCase;
-    const result = await refreshTokenUseCase.execute({ refreshToken });
+    const tokenService = container.tokenService;
+    const payload = tokenService.verifyRefreshToken(refreshToken);
+    
+    if (!payload) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
 
-    // Update refresh token cookie
-    res.cookie('refreshToken', result.refreshToken, {
+    // Get user and generate new tokens
+    const userRepository = container.userRepository;
+    const user = await userRepository.findById(payload.userId);
+    
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'User not found or inactive' });
+    }
+
+    const newAccessToken = tokenService.generateAccessToken(user);
+    const newRefreshToken = tokenService.generateRefreshToken(user);
+
+    // Set new refresh token as httpOnly cookie
+    res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -96,12 +111,23 @@ authRouter.post('/refresh', async (req, res) => {
     });
 
     res.json({
-      accessToken: result.accessToken
+      accessToken: newAccessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        tenantId: user.tenantId,
+        profileImageUrl: user.profileImageUrl,
+        isActive: user.isActive,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt
+      }
     });
   } catch (error) {
     console.error('Refresh token error:', error);
-    const message = error instanceof Error ? error.message : 'Token refresh failed';
-    res.status(401).json({ message });
+    res.status(401).json({ message: 'Token refresh failed' });
   }
 });
 
