@@ -12,6 +12,7 @@ import Customers from "@/pages/Customers";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
 import Roadmap from "@/pages/Roadmap";
+import Compliance from "@/pages/Compliance";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,6 +28,7 @@ function Router() {
           <Route path="/customers" component={Customers} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/roadmap" component={Roadmap} />
+          <Route path="/compliance" component={Compliance} />
           <Route path="/settings" component={Settings} />
         </>
       )}

@@ -13,7 +13,8 @@ import {
   HelpCircle,
   ChevronDown,
   Zap,
-  Map
+  Map,
+  Shield
 } from "lucide-react";
 
 const navigation = [
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Roadmap", href: "/roadmap", icon: Map },
+  { name: "Compliance", href: "/compliance", icon: Shield },
   { name: "Automation", href: "/automation", icon: Bot },
   { name: "Knowledge Base", href: "/knowledge", icon: BookOpen },
   { name: "Integrations", href: "/integrations", icon: Plug },
