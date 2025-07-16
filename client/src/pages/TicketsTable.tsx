@@ -17,14 +17,36 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Schema for ticket creation/editing
+// Schema for ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
-  customerId: z.string().min(1, "Customer is required"),
-  subject: z.string().min(1, "Subject is required"),
+  // Basic Fields
+  shortDescription: z.string().min(1, "Short description is required"),
   description: z.string().min(1, "Description is required"),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  impact: z.enum(["low", "medium", "high"]).optional(),
+  urgency: z.enum(["low", "medium", "high"]).optional(),
+  state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
+  
+  // Assignment Fields
+  callerId: z.string().min(1, "Caller is required"),
+  customerId: z.string().min(1, "Customer is required"),
   assignedToId: z.string().optional(),
+  assignmentGroup: z.string().optional(),
+  location: z.string().optional(),
+  
+  // Communication Fields
+  contactType: z.enum(["email", "phone", "self_service", "chat"]).optional(),
+  
+  // Business Fields
+  businessImpact: z.string().optional(),
+  symptoms: z.string().optional(),
+  workaround: z.string().optional(),
+  
+  // Legacy compatibility
+  subject: z.string().min(1, "Subject is required"),
+  status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
   tags: z.array(z.string()).default([]),
 });
 
@@ -105,12 +127,25 @@ export default function TicketsTable() {
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {
-      customerId: "",
-      subject: "",
+      shortDescription: "",
       description: "",
+      category: "",
+      subcategory: "",
       priority: "medium",
-      status: "open",
+      impact: "medium",
+      urgency: "medium",
+      state: "new",
+      callerId: "",
+      customerId: "",
       assignedToId: "unassigned",
+      assignmentGroup: "",
+      location: "",
+      contactType: "email",
+      businessImpact: "",
+      symptoms: "",
+      workaround: "",
+      subject: "",
+      status: "open",
       tags: [],
     },
   });
@@ -206,12 +241,25 @@ export default function TicketsTable() {
   const handleEdit = (ticket: Ticket) => {
     setEditingTicket(ticket);
     form.reset({
-      customerId: ticket.customer.id,
-      subject: ticket.subject,
-      description: ticket.description,
+      shortDescription: (ticket as any).shortDescription || ticket.subject,
+      description: ticket.description || "",
+      category: (ticket as any).category || "",
+      subcategory: (ticket as any).subcategory || "",
       priority: ticket.priority as any,
-      status: ticket.status as any,
+      impact: (ticket as any).impact || "medium",
+      urgency: (ticket as any).urgency || "medium",
+      state: (ticket as any).state || ticket.status as any,
+      callerId: (ticket as any).callerId || ticket.customer.id,
+      customerId: ticket.customer.id,
       assignedToId: ticket.assignedTo?.id || "unassigned",
+      assignmentGroup: (ticket as any).assignmentGroup || "",
+      location: (ticket as any).location || "",
+      contactType: (ticket as any).contactType || "email",
+      businessImpact: (ticket as any).businessImpact || "",
+      symptoms: (ticket as any).symptoms || "",
+      workaround: (ticket as any).workaround || "",
+      subject: ticket.subject,
+      status: ticket.status as any,
       tags: [],
     });
     setIsEditDialogOpen(true);
@@ -251,143 +299,410 @@ export default function TicketsTable() {
 
   const TicketForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="customerId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Customer</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a customer" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {customers.map((customer: any) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.fullName} ({customer.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="subject"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Subject</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter ticket subject" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Describe the issue or request"
-                  className="min-h-[100px]"
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Basic Information</h3>
+          
           <FormField
             control={form.control}
-            name="priority"
+            name="shortDescription"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormLabel>Short Description *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Brief summary of the issue" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {editingTicket && (
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Detailed Description *</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Detailed description of the problem or request"
+                    className="min-h-[100px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="status"
+              name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>Category</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
+                      <SelectItem value="hardware">Hardware</SelectItem>
+                      <SelectItem value="software">Software</SelectItem>
+                      <SelectItem value="network">Network</SelectItem>
+                      <SelectItem value="security">Security</SelectItem>
+                      <SelectItem value="access">Access Request</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          )}
 
+            <FormField
+              control={form.control}
+              name="subcategory"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subcategory</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Specific subcategory" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Priority & Impact */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Priority & Impact</h3>
+          
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="impact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Impact</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select impact" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="urgency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Urgency</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select urgency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Assignment */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Assignment</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="callerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Caller (Who Reported) *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select caller" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {customers.map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.fullName} ({customer.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="customerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Affected Customer *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select customer" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {customers.map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.fullName} ({customer.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign to Agent</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select agent" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {users.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignmentGroup"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assignment Group</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select group" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="level1">Level 1 Support</SelectItem>
+                      <SelectItem value="level2">Level 2 Support</SelectItem>
+                      <SelectItem value="level3">Level 3 Support</SelectItem>
+                      <SelectItem value="network">Network Team</SelectItem>
+                      <SelectItem value="security">Security Team</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Physical location" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contactType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Type</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select contact type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="phone">Phone</SelectItem>
+                      <SelectItem value="chat">Chat</SelectItem>
+                      <SelectItem value="self_service">Self Service</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Business Impact */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
+          
           <FormField
             control={form.control}
-            name="assignedToId"
+            name="businessImpact"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Assign to</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select agent (optional)" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {users.map((user: any) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Business Impact</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Describe the business impact"
+                    className="min-h-[80px]"
+                    {...field} 
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="symptoms"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Symptoms</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Observed symptoms"
+                      className="min-h-[80px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workaround"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workaround</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Temporary solution or workaround"
+                      className="min-h-[80px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        {/* Legacy Fields (Hidden but mapped) */}
+        <FormField
+          control={form.control}
+          name="subject"
+          render={({ field }) => (
+            <input type="hidden" {...field} value={form.watch("shortDescription")} />
+          )}
+        />
+
+        {editingTicket && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Status</h3>
+            <FormField
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        <div className="flex justify-end space-x-2 pt-4 border-t">
           <Button
             type="button"
             variant="outline"
@@ -439,7 +754,7 @@ export default function TicketsTable() {
               New Ticket
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Ticket</DialogTitle>
             </DialogHeader>
@@ -514,11 +829,13 @@ export default function TicketsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>Number</TableHead>
                   <TableHead>Subject</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>State</TableHead>
                   <TableHead>Priority</TableHead>
+                  <TableHead>Impact</TableHead>
                   <TableHead>Assigned To</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -528,10 +845,10 @@ export default function TicketsTable() {
                 {tickets.map((ticket: Ticket) => (
                   <TableRow key={ticket.id}>
                     <TableCell className="font-mono text-sm">
-                      #{ticket.id.slice(-8)}
+                      {(ticket as any).number || `#${ticket.id.slice(-8)}`}
                     </TableCell>
                     <TableCell className="font-medium max-w-xs truncate">
-                      {ticket.subject}
+                      {(ticket as any).shortDescription || ticket.subject}
                     </TableCell>
                     <TableCell>
                       <div>
@@ -540,13 +857,23 @@ export default function TicketsTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(ticket.status)}>
-                        {ticket.status.replace('_', ' ')}
+                      <Badge variant="outline">
+                        {(ticket as any).category || 'Other'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor((ticket as any).state || ticket.status)}>
+                        {((ticket as any).state || ticket.status).replace('_', ' ')}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={getPriorityColor(ticket.priority)}>
                         {ticket.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {(ticket as any).impact || 'Medium'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -625,7 +952,7 @@ export default function TicketsTable() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Ticket</DialogTitle>
           </DialogHeader>

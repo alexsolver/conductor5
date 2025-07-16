@@ -262,7 +262,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTicket(ticket: InsertTicket): Promise<Ticket> {
-    const [newTicket] = await db.insert(tickets).values(ticket).returning();
+    // Generate ticket number if not provided
+    const ticketNumber = `INC${Date.now().toString().slice(-8)}`;
+    
+    // Map legacy fields to new fields for compatibility
+    const ticketData = {
+      ...ticket,
+      number: ticket.number || ticketNumber,
+      shortDescription: ticket.shortDescription || ticket.subject,
+      state: ticket.state || "new",
+      callerId: ticket.callerId || ticket.customerId,
+      openedById: ticket.openedById,
+      contactType: ticket.contactType || ticket.channel || "email",
+    };
+    
+    const [newTicket] = await db.insert(tickets).values(ticketData).returning();
     return newTicket;
   }
 

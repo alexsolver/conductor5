@@ -68,20 +68,61 @@ export const customers = pgTable("customers", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Tickets table
+// Tickets table - ServiceNow style professional fields
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
-  customerId: uuid("customer_id").notNull().references(() => customers.id),
-  assignedToId: varchar("assigned_to_id").references(() => users.id),
-  subject: varchar("subject", { length: 500 }).notNull(),
+  
+  // Basic Fields
+  number: varchar("number", { length: 50 }).notNull().unique(), // Auto-generated unique number like INC0010001
+  shortDescription: varchar("short_description", { length: 500 }).notNull(),
   description: text("description"),
-  status: varchar("status", { length: 50 }).default("open"),
-  priority: varchar("priority", { length: 50 }).default("medium"),
-  channel: varchar("channel", { length: 50 }).default("email"),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  priority: varchar("priority", { length: 20 }).notNull().default("medium"), // critical, high, medium, low
+  impact: varchar("impact", { length: 20 }).default("medium"), // high, medium, low
+  urgency: varchar("urgency", { length: 20 }).default("medium"), // high, medium, low
+  state: varchar("state", { length: 20 }).notNull().default("new"), // new, in_progress, resolved, closed, cancelled
+  
+  // Assignment Fields
+  callerId: uuid("caller_id").notNull().references(() => customers.id), // Customer who reported
+  openedById: varchar("opened_by_id").notNull().references(() => users.id), // Who opened the ticket
+  assignedToId: varchar("assigned_to_id").references(() => users.id),
+  assignmentGroup: varchar("assignment_group", { length: 100 }),
+  customerId: uuid("customer_id").notNull().references(() => customers.id),
+  location: varchar("location", { length: 200 }),
+  
+  // Control Fields
+  openedAt: timestamp("opened_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+  closedAt: timestamp("closed_at"),
+  resolutionCode: varchar("resolution_code", { length: 100 }),
+  resolutionNotes: text("resolution_notes"),
+  workNotes: text("work_notes"),
+  additionalComments: text("additional_comments"),
+  
+  // CI/CMDB Fields
+  configurationItem: varchar("configuration_item", { length: 200 }),
+  businessService: varchar("business_service", { length: 200 }),
+  
+  // Communication Fields
+  contactType: varchar("contact_type", { length: 20 }).default("email"), // email, phone, self_service, chat
+  notify: boolean("notify").default(true),
+  closeNotes: text("close_notes"),
+  
+  // Business Fields
+  businessImpact: text("business_impact"),
+  symptoms: text("symptoms"),
+  rootCause: text("root_cause"),
+  workaround: text("workaround"),
+  
+  // Legacy compatibility (mantém campos existentes)
+  subject: varchar("subject", { length: 500 }).notNull(), // Maps to shortDescription
+  status: varchar("status", { length: 50 }).default("open"), // Maps to state
+  channel: varchar("channel", { length: 50 }).default("email"), // Maps to contactType
   tags: jsonb("tags").default([]),
   metadata: jsonb("metadata").default({}),
-  resolvedAt: timestamp("resolved_at"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -146,6 +187,14 @@ export const ticketsRelations = relations(tickets, ({ one, many }) => ({
     fields: [tickets.customerId],
     references: [customers.id],
   }),
+  caller: one(customers, {
+    fields: [tickets.callerId],
+    references: [customers.id],
+  }),
+  openedBy: one(users, {
+    fields: [tickets.openedById],
+    references: [users.id],
+  }),
   assignedTo: one(users, {
     fields: [tickets.assignedToId],
     references: [users.id],
@@ -196,6 +245,29 @@ export const insertTicketSchema = createInsertSchema(tickets).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  resolvedAt: true,
+  closedAt: true,
+  openedAt: true,
+}).extend({
+  // Make some fields optional for creation
+  number: z.string().optional(), // Auto-generated
+  state: z.string().optional(),
+  impact: z.string().optional(),
+  urgency: z.string().optional(),
+  assignmentGroup: z.string().optional(),
+  location: z.string().optional(),
+  resolutionCode: z.string().optional(),
+  resolutionNotes: z.string().optional(),
+  workNotes: z.string().optional(),
+  additionalComments: z.string().optional(),
+  configurationItem: z.string().optional(),
+  businessService: z.string().optional(),
+  contactType: z.string().optional(),
+  closeNotes: z.string().optional(),
+  businessImpact: z.string().optional(),
+  symptoms: z.string().optional(),
+  rootCause: z.string().optional(),
+  workaround: z.string().optional(),
 });
 
 export const insertTicketMessageSchema = createInsertSchema(ticketMessages).omit({
