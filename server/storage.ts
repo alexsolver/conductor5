@@ -290,10 +290,15 @@ export class DatabaseStorage implements IStorage {
     const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(customer.tenantId);
     const { customers: tenantCustomers } = tenantSchema;
     
+    console.log("Tenant schema customers table:", tenantCustomers);
+    console.log("Tenant DB config:", tenantDb.config);
+    
     // Usando schema específico do tenant para criação do cliente
     
     // Remove tenantId from customer data since it's not part of tenant schema
     const { tenantId, ...customerData } = customer;
+    
+    console.log("Customer data without tenantId:", customerData);
     
     const [newCustomer] = await tenantDb
       .insert(tenantCustomers)
