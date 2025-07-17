@@ -26,9 +26,9 @@ type ActivityLog = {
   action: string;
   performedById?: string;
   performedByType?: string;
-  details: any;
-  previousValues: any;
-  newValues: any;
+  details: Record<string, unknown>;
+  previousValues: Record<string, unknown>;
+  newValues: Record<string, unknown>;
   createdAt: Date;
 };
 type InsertActivityLog = Omit<ActivityLog, 'id' | 'createdAt'>;
@@ -187,7 +187,7 @@ export class DatabaseStorage implements IStorage {
       `);
       
       // Map results and add tenantId
-      return result.rows.map((row: any) => ({ ...row, tenantId }));
+      return result.rows.map((row: Record<string, unknown>) => ({ ...row, tenantId }));
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError('Error fetching customers', error, { tenantId, limit, offset });
@@ -293,7 +293,7 @@ export class DatabaseStorage implements IStorage {
       
       // Get customers for each ticket
       const ticketsWithCustomers = await Promise.all(
-        ticketResult.rows.map(async (ticket: any) => {
+        ticketResult.rows.map(async (ticket: Record<string, unknown>) => {
           let customer = null;
           if (ticket.customer_id) {
             try {
