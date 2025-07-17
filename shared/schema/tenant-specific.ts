@@ -9,7 +9,7 @@ import {
   boolean,
   integer,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+// Removed relations import to fix ExtraConfigBuilder error
 
 /**
  * Creates tenant-specific tables with proper schema isolation
@@ -141,41 +141,11 @@ export function getTenantSpecificSchema(schemaName: string) {
     createdAt: timestamp("created_at").defaultNow(),
   }, { schema: schemaName });
 
-  // Relations for tenant schema
-  const tenantCustomersRelations = relations(tenantCustomers, ({ many }) => ({
-    tickets: many(tenantTickets),
-    messages: many(tenantTicketMessages),
-  }));
-
-  const tenantTicketsRelations = relations(tenantTickets, ({ one, many }) => ({
-    customer: one(tenantCustomers, {
-      fields: [tenantTickets.customerId],
-      references: [tenantCustomers.id],
-    }),
-    messages: many(tenantTicketMessages),
-  }));
-
-  const tenantTicketMessagesRelations = relations(tenantTicketMessages, ({ one }) => ({
-    ticket: one(tenantTickets, {
-      fields: [tenantTicketMessages.ticketId],
-      references: [tenantTickets.id],
-    }),
-    customer: one(tenantCustomers, {
-      fields: [tenantTicketMessages.customerId],
-      references: [tenantCustomers.id],
-    }),
-  }));
-
-  const tenantActivityLogsRelations = relations(tenantActivityLogs, ({ one }) => ({}));
-
+  // Return schema object compatible with Drizzle (without relations to avoid ExtraConfigBuilder error)
   return {
     customers: tenantCustomers,
     tickets: tenantTickets,
     ticketMessages: tenantTicketMessages,
     activityLogs: tenantActivityLogs,
-    customersRelations: tenantCustomersRelations,
-    ticketsRelations: tenantTicketsRelations,
-    ticketMessagesRelations: tenantTicketMessagesRelations,
-    activityLogsRelations: tenantActivityLogsRelations,
   };
 }

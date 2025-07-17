@@ -20,7 +20,7 @@ export const db = drizzle({ client: pool, schema });
 // Schema manager for tenant isolation
 export class SchemaManager {
   private static instance: SchemaManager;
-  private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: ReturnType<typeof schema.getTenantSpecificSchema> }>();
+  private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
 
   static getInstance(): SchemaManager {
     if (!SchemaManager.instance) {
@@ -49,7 +49,7 @@ export class SchemaManager {
   }
 
   // Get database connection for a specific tenant
-  getTenantDb(tenantId: string): { db: ReturnType<typeof drizzle>; schema: ReturnType<typeof schema.getTenantSpecificSchema> } {
+  getTenantDb(tenantId: string): { db: ReturnType<typeof drizzle>; schema: any } {
     const schemaName = this.getSchemaName(tenantId);
     
     if (!this.tenantConnections.has(tenantId)) {
@@ -67,13 +67,12 @@ export class SchemaManager {
         connectionString: connectionUrl.toString()
       });
       
-      const tenantSchema = schema.getTenantSpecificSchema(schemaName);
+      // Use simplified schema approach to avoid ExtraConfigBuilder error
       const tenantDb = drizzle({ 
-        client: tenantPool, 
-        schema: tenantSchema
+        client: tenantPool
       });
       
-      this.tenantConnections.set(tenantId, { db: tenantDb, schema: tenantSchema });
+      this.tenantConnections.set(tenantId, { db: tenantDb, schema: {} });
     }
     
     return this.tenantConnections.get(tenantId)!;
