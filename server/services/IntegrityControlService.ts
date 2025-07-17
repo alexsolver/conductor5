@@ -14,6 +14,15 @@ interface ModuleFile {
   integrity: 'healthy' | 'warning' | 'error';
   dependencies: string[];
   checksum: string;
+  issues?: FileIssue[];
+}
+
+interface FileIssue {
+  type: 'warning' | 'error';
+  line?: number;
+  description: string;
+  problemFound: string;
+  correctionPrompt: string;
 }
 
 interface ModuleInfo {
@@ -199,6 +208,7 @@ export class IntegrityControlService {
             const stats = await fs.stat(fullPath);
             const content = await fs.readFile(fullPath, 'utf-8');
             const dependencies = await this.extractDependencies(content, filePath);
+            const integrityResult = await this.checkFileIntegrity(filePath, content);
             const checksum = crypto.createHash('md5').update(content).digest('hex');
             
             files.push({
@@ -206,9 +216,10 @@ export class IntegrityControlService {
               type: this.determineFileType(filePath),
               size: stats.size,
               lastModified: stats.mtime.toISOString(),
-              integrity: await this.checkFileIntegrity(fullPath, content),
+              integrity: integrityResult.status,
               dependencies,
-              checksum
+              checksum,
+              issues: integrityResult.issues
             });
           } catch (error) {
             console.warn(`Could not process file ${filePath}:`, error.message);
@@ -305,30 +316,188 @@ export class IntegrityControlService {
     return [...new Set(dependencies)];
   }
 
-  private async checkFileIntegrity(filePath: string, content: string): Promise<'healthy' | 'warning' | 'error'> {
+  private async checkFileIntegrity(filePath: string, content: string): Promise<{ status: 'healthy' | 'warning' | 'error'; issues: FileIssue[] }> {
+    const issues: FileIssue[] = [];
+    
     try {
       // Check for syntax errors
       if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
-        // Basic TypeScript syntax check
-        if (content.includes('TODO') || content.includes('FIXME')) {
-          return 'warning';
+        // Check for TODO/FIXME comments
+        const todoMatches = content.match(/\/\/\s*(TODO|FIXME).*/gi);
+        if (todoMatches) {
+          const lines = content.split('\n');
+          todoMatches.forEach(match => {
+            const lineIndex = lines.findIndex(line => line.includes(match));
+            issues.push({
+              type: 'warning',
+              line: lineIndex + 1,
+              description: 'Código incompleto encontrado',
+              problemFound: match.trim(),
+              correctionPrompt: `Complete a implementação pendente no arquivo ${filePath} linha ${lineIndex + 1}: "${match.trim()}". Implemente a funcionalidade necessária e remova o comentário TODO/FIXME.`
+            });
+          });
         }
         
-        // Check for common problematic patterns
-        if (content.includes('any') && content.split('any').length > 3) {
-          return 'warning';
+        // Check for excessive use of 'any' type
+        const anyMatches = content.match(/:\s*any\b/g);
+        if (anyMatches && anyMatches.length > 3) {
+          issues.push({
+            type: 'warning',
+            description: 'Uso excessivo do tipo "any"',
+            problemFound: `${anyMatches.length} ocorrências do tipo "any" encontradas`,
+            correctionPrompt: `Refatore o arquivo ${filePath} para substituir tipos "any" por tipos específicos. Identifique cada uso de "any" e crie interfaces ou tipos TypeScript apropriados para melhorar a type safety.`
+          });
         }
         
-        // Check for console.log statements (should be removed in production)
-        if (content.includes('console.log') && !filePath.includes('dev')) {
-          return 'warning';
+        // Check for console.log in production files
+        const consoleMatches = content.match(/console\.log\(.*\)/g);
+        if (consoleMatches && !filePath.includes('dev') && !filePath.includes('debug')) {
+          const lines = content.split('\n');
+          consoleMatches.forEach(match => {
+            const lineIndex = lines.findIndex(line => line.includes(match));
+            issues.push({
+              type: 'warning',
+              line: lineIndex + 1,
+              description: 'Console.log encontrado em código de produção',
+              problemFound: match.trim(),
+              correctionPrompt: `Remova ou substitua o console.log no arquivo ${filePath} linha ${lineIndex + 1} por um sistema de logging apropriado ou remova completamente se for código de debug.`
+            });
+          });
+        }
+
+        // Check for missing error handling in async functions
+        const asyncFunctionMatches = content.match(/async\s+function\s+\w+|async\s+\w+\s*=>/g);
+        if (asyncFunctionMatches) {
+          asyncFunctionMatches.forEach(match => {
+            const functionStart = content.indexOf(match);
+            const functionBlock = this.extractFunctionBlock(content, functionStart);
+            
+            if (functionBlock && !functionBlock.includes('try') && !functionBlock.includes('catch')) {
+              issues.push({
+                type: 'warning',
+                description: 'Função async sem tratamento de erro',
+                problemFound: `Função async "${match}" sem try/catch`,
+                correctionPrompt: `Adicione tratamento de erro adequado na função async no arquivo ${filePath}. Envolva o código em try/catch e implemente tratamento apropriado para erros potenciais.`
+              });
+            }
+          });
+        }
+
+        // Check for hardcoded values that should be environment variables
+        const hardcodedPatterns = [
+          { pattern: /(https?:\/\/localhost:\d+)/g, type: 'URL local hardcoded' },
+          { pattern: /(api_key|secret|password)\s*[:=]\s*['"][^'"]+['"]/gi, type: 'Credenciais hardcoded' },
+          { pattern: /port\s*[:=]\s*\d{4,5}/gi, type: 'Porta hardcoded' }
+        ];
+
+        hardcodedPatterns.forEach(({ pattern, type }) => {
+          const matches = content.match(pattern);
+          if (matches) {
+            matches.forEach(match => {
+              issues.push({
+                type: 'warning',
+                description: `${type} encontrado`,
+                problemFound: match,
+                correctionPrompt: `Mova o valor hardcoded "${match}" no arquivo ${filePath} para uma variável de ambiente. Crie uma variável no .env e use process.env.VARIABLE_NAME para acessá-la.`
+              });
+            });
+          }
+        });
+
+        // Check for SQL injection vulnerabilities
+        if (content.includes('SELECT') || content.includes('INSERT') || content.includes('UPDATE') || content.includes('DELETE')) {
+          const sqlInjectionPatterns = [
+            /\$\{.*\}.*SELECT|INSERT|UPDATE|DELETE/gi,
+            /['"].*\+.*['"].*SELECT|INSERT|UPDATE|DELETE/gi
+          ];
+          
+          sqlInjectionPatterns.forEach(pattern => {
+            const matches = content.match(pattern);
+            if (matches) {
+              matches.forEach(match => {
+                issues.push({
+                  type: 'error',
+                  description: 'Potencial vulnerabilidade de SQL injection',
+                  problemFound: match,
+                  correctionPrompt: `Corrija a vulnerabilidade de SQL injection no arquivo ${filePath}. Use queries parametrizadas com Drizzle ORM ou prepared statements ao invés de concatenação de strings em queries SQL.`
+                });
+              });
+            }
+          });
+        }
+
+        // Check for dependency rule violations in Clean Architecture
+        if (filePath.includes('/domain/')) {
+          const infrastructureImports = content.match(/import.*from.*['"].*infrastructure.*['"];?/g);
+          if (infrastructureImports) {
+            infrastructureImports.forEach(importStatement => {
+              issues.push({
+                type: 'error',
+                description: 'Violação da regra de dependência - Domain importando Infrastructure',
+                problemFound: importStatement,
+                correctionPrompt: `Corrija a violação de Clean Architecture no arquivo ${filePath}. A camada Domain não deve importar Infrastructure. Mova a lógica para a camada Application ou crie uma interface na camada Domain que seja implementada na Infrastructure.`
+              });
+            });
+          }
         }
       }
+
+      // Check for large files (over 500 lines)
+      const lineCount = content.split('\n').length;
+      if (lineCount > 500) {
+        issues.push({
+          type: 'warning',
+          description: 'Arquivo muito grande',
+          problemFound: `${lineCount} linhas de código`,
+          correctionPrompt: `Refatore o arquivo ${filePath} que tem ${lineCount} linhas. Divida em módulos menores, extraia funções auxiliares ou separe responsabilidades em arquivos diferentes seguindo o princípio da responsabilidade única.`
+        });
+      }
+
+      // Determine overall status
+      const hasErrors = issues.some(issue => issue.type === 'error');
+      const hasWarnings = issues.some(issue => issue.type === 'warning');
       
-      return 'healthy';
+      const status = hasErrors ? 'error' : (hasWarnings ? 'warning' : 'healthy');
+      
+      return { status, issues };
     } catch (error) {
-      return 'error';
+      return {
+        status: 'error',
+        issues: [{
+          type: 'error',
+          description: 'Erro ao analisar arquivo',
+          problemFound: error.message,
+          correctionPrompt: `Corrija o erro de sintaxe no arquivo ${filePath}: ${error.message}. Verifique a sintaxe do TypeScript e corrija problemas de formatação.`
+        }]
+      };
     }
+  }
+
+  private extractFunctionBlock(content: string, startIndex: number): string | null {
+    let braceCount = 0;
+    let inFunction = false;
+    let functionBlock = '';
+    
+    for (let i = startIndex; i < content.length; i++) {
+      const char = content[i];
+      
+      if (char === '{') {
+        inFunction = true;
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+      }
+      
+      if (inFunction) {
+        functionBlock += char;
+        
+        if (braceCount === 0) {
+          break;
+        }
+      }
+    }
+    
+    return functionBlock || null;
   }
 
   private async getModuleTests(moduleName: string): Promise<{ unit: number; integration: number; e2e: number }> {

@@ -373,22 +373,69 @@ export default function ModuleIntegrityControl() {
                         {/* Files List */}
                         <div className="space-y-2">
                           <h4 className="font-semibold">Arquivos do Módulo</h4>
-                          <ScrollArea className="h-40">
+                          <ScrollArea className="h-64">
                             {module.files.map((file, index) => (
-                              <div key={index} className="flex items-center justify-between p-2 border rounded">
-                                <div className="flex items-center space-x-2">
-                                  <FileCode className="h-4 w-4" />
-                                  <span className="text-sm font-mono">{file.path}</span>
-                                  <Badge variant="outline" className="text-xs">
-                                    {file.type}
-                                  </Badge>
+                              <div key={index} className="p-3 border rounded mb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <FileCode className="h-4 w-4" />
+                                    <span className="text-sm font-mono">{file.path}</span>
+                                    <Badge variant="outline" className="text-xs">
+                                      {file.type}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    {getStatusIcon(file.integrity)}
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(file.lastModified).toLocaleDateString()}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  {getStatusIcon(file.integrity)}
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(file.lastModified).toLocaleDateString()}
-                                  </span>
-                                </div>
+                                
+                                {file.issues && file.issues.length > 0 && (
+                                  <div className="mt-3 space-y-2">
+                                    {file.issues.map((issue, issueIndex) => (
+                                      <div key={issueIndex} className={cn(
+                                        "p-3 rounded-lg border-l-4",
+                                        issue.type === 'error' ? "bg-red-50 border-red-400 dark:bg-red-900/20" : "bg-yellow-50 border-yellow-400 dark:bg-yellow-900/20"
+                                      )}>
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-1">
+                                            <h5 className={cn(
+                                              "text-sm font-medium",
+                                              issue.type === 'error' ? "text-red-800 dark:text-red-200" : "text-yellow-800 dark:text-yellow-200"
+                                            )}>
+                                              {issue.description}
+                                              {issue.line && <span className="ml-1 text-xs">(linha {issue.line})</span>}
+                                            </h5>
+                                            <p className={cn(
+                                              "text-xs mt-1",
+                                              issue.type === 'error' ? "text-red-600 dark:text-red-300" : "text-yellow-600 dark:text-yellow-300"
+                                            )}>
+                                              <strong>Problema:</strong> {issue.problemFound}
+                                            </p>
+                                            <div className="mt-2">
+                                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                                <strong>Prompt para correção:</strong>
+                                              </p>
+                                              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap max-h-20 overflow-y-auto">
+                                                {issue.correctionPrompt}
+                                              </div>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="mt-2 text-xs"
+                                                onClick={() => navigator.clipboard.writeText(issue.correctionPrompt)}
+                                              >
+                                                📋 Copiar Prompt
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </ScrollArea>
