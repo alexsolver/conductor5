@@ -720,10 +720,10 @@ export default function CustomersTable() {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                          {(customer.first_name || customer.firstName || 'U').charAt(0)}{(customer.last_name || customer.lastName || 'U').charAt(0)}
+                          {(customer.firstName || customer.first_name || 'U').charAt(0)}{(customer.lastName || customer.last_name || 'U').charAt(0)}
                         </div>
                         <div>
-                          <div className="font-medium">{customer.fullName || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unnamed Customer'}</div>
+                          <div className="font-medium">{customer.fullName || `${customer.firstName || customer.first_name || ''} ${customer.lastName || customer.last_name || ''}`.trim() || 'Unnamed Customer'}</div>
                           <div className="text-sm text-gray-500">ID: {customer.id.slice(-8)}</div>
                         </div>
                       </div>
