@@ -111,7 +111,7 @@ export default function Locations() {
       if (typeFilter !== 'all') params.append('type', typeFilter);
       if (statusFilter !== 'all') params.append('status', statusFilter);
       
-      const response = await apiRequest(`/api/locations?${params.toString()}`);
+      const response = await apiRequest('GET', `/api/locations?${params.toString()}`);
       return response.json();
     }
   });
@@ -120,7 +120,7 @@ export default function Locations() {
   const { data: statsData } = useQuery({
     queryKey: ['/api/locations/stats'],
     queryFn: async () => {
-      const response = await apiRequest('/api/locations/stats');
+      const response = await apiRequest('GET', '/api/locations/stats');
       return response.json();
     }
   });
@@ -128,10 +128,7 @@ export default function Locations() {
   // Create location mutation
   const createLocationMutation = useMutation({
     mutationFn: async (data: LocationFormData) => {
-      const response = await apiRequest('/api/locations', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('POST', '/api/locations', data);
       return response.json();
     },
     onSuccess: () => {

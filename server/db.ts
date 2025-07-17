@@ -78,7 +78,7 @@ export class SchemaManager {
   }
 
   // Get database connection for a specific tenant
-  getTenantDb(tenantId: string): { db: ReturnType<typeof drizzle>; schema: any } {
+  async getTenantDb(tenantId: string): Promise<{ db: ReturnType<typeof drizzle>; schema: any }> {
     const schemaName = this.getSchemaName(tenantId);
 
     if (!this.tenantConnections.has(tenantId)) {
@@ -102,7 +102,11 @@ export class SchemaManager {
         client: tenantPool
       });
 
-      this.tenantConnections.set(tenantId, { db: tenantDb, schema: {} });
+      // Import tenant-specific schema generator
+      const { getTenantSpecificSchema } = await import('@shared/schema/tenant-specific');
+      const tenantSchema = getTenantSpecificSchema(schemaName);
+
+      this.tenantConnections.set(tenantId, { db: tenantDb, schema: tenantSchema });
     }
 
     return this.tenantConnections.get(tenantId)!;

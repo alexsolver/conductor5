@@ -193,8 +193,15 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
+      
+      // Check if table exists in schema
+      if (!tenantCustomers) {
+        const { logWarn } = await import('./utils/logger');
+        logWarn('Customers table not found in tenant schema', { tenantId });
+        return [];
+      }
       
       // Single optimized query with Drizzle ORM (much faster than raw SQL)
       const customersData = await tenantDb
@@ -247,7 +254,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCustomer(id: string, tenantId: string): Promise<Customer | undefined> {
     try {
-      const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       // Use parameterized query for security
@@ -280,7 +287,7 @@ export class DatabaseStorage implements IStorage {
       // Schema do tenant já existe ou falha na criação - comportamento esperado
     }
     
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(customer.tenantId);
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(customer.tenantId);
     const { customers: tenantCustomers } = tenantSchema;
     
     // Usando schema específico do tenant para criação do cliente
@@ -296,7 +303,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCustomer(id: string, tenantId: string, updates: Partial<InsertCustomer>): Promise<Customer | undefined> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
     const { customers: tenantCustomers } = tenantSchema;
     
     // Remove tenantId from updates since it's not part of tenant schema
@@ -311,7 +318,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCustomer(id: string, tenantId: string): Promise<boolean> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
     const { customers: tenantCustomers } = tenantSchema;
     
     const result = await tenantDb
@@ -328,7 +335,7 @@ export class DatabaseStorage implements IStorage {
         await this.initializeTenantSchema(tenantId);
       }
       
-      const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       // Get tickets using parameterized query
@@ -397,7 +404,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTicket(id: string, tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User; messages: (TicketMessage & { author?: User; customer?: Customer })[] }) | undefined> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
     const { customers: tenantCustomers } = tenantSchema;
     
     const [result] = await db
@@ -460,7 +467,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUrgentTickets(tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
     const { customers: tenantCustomers } = tenantSchema;
     
     const results = await db

@@ -9,7 +9,7 @@ export class CustomerRepository implements ICustomerRepository {
   
   async findById(id: string, tenantId: string): Promise<Customer | null> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       const [customerData] = await tenantDb
@@ -40,7 +40,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async findByEmail(email: string, tenantId: string): Promise<Customer | null> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       const [customerData] = await tenantDb
@@ -71,7 +71,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async findByTenant(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       const customerData = await tenantDb
@@ -102,7 +102,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async save(customer: Customer): Promise<Customer> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(customer.tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(customer.tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       const [savedData] = await tenantDb
@@ -142,7 +142,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async update(customer: Customer): Promise<Customer> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(customer.tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(customer.tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       const [updatedData] = await tenantDb
@@ -181,7 +181,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async delete(id: string, tenantId: string): Promise<boolean> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       await tenantDb
@@ -197,7 +197,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async countByTenant(tenantId: string): Promise<number> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       const [result] = await tenantDb
