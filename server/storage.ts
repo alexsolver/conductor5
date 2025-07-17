@@ -175,8 +175,10 @@ export class DatabaseStorage implements IStorage {
   // Customer operations using secure parameterized queries
   async getCustomers(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
     try {
-      // Ensure tenant schema exists before querying
-      await this.initializeTenantSchema(tenantId);
+      // Only initialize schema if not already cached - much faster
+      if (!schemaManager['initializedSchemas']?.has(tenantId)) {
+        await this.initializeTenantSchema(tenantId);
+      }
       
       const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -280,8 +282,10 @@ export class DatabaseStorage implements IStorage {
   // Ticket operations using secure parameterized queries
   async getTickets(tenantId: string, limit = 50, offset = 0): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
     try {
-      // Ensure tenant schema exists before querying
-      await this.initializeTenantSchema(tenantId);
+      // Only initialize schema if not already cached - much faster
+      if (!schemaManager['initializedSchemas']?.has(tenantId)) {
+        await this.initializeTenantSchema(tenantId);
+      }
       
       const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;

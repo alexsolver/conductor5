@@ -142,8 +142,29 @@ export class SchemaManager {
     return `tenant_${sanitizedTenantId.replace(/-/g, '_')}`;
   }
 
+  // Check if tables exist in schema
+  private async tablesExist(schemaName: string): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as table_count
+        FROM information_schema.tables 
+        WHERE table_schema = ${sql.placeholder('schemaName')}
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs')
+      `, { schemaName });
+      
+      return (result.rows[0]?.table_count as number) >= 4;
+    } catch {
+      return false;
+    }
+  }
+
   // Create tenant-specific tables using parameterized queries for security
   private async createTenantTables(schemaName: string): Promise<void> {
+    // Check if tables already exist to avoid recreation
+    if (await this.tablesExist(schemaName)) {
+      return; // Tables already exist, skip creation
+    }
+
     try {
       // Use sql.identifier for safe schema references - prevents SQL injection
       const schemaId = sql.identifier(schemaName);
