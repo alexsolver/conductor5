@@ -73,6 +73,7 @@ const adminNavigation = [
       { name: "Gestão da Equipe", href: "/tenant-admin/team", icon: UserCog },
       { name: "Workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "SLAs", href: "/tenant-admin/slas", icon: Target },
+      { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Gestão de Clientes", href: "/tenant-admin/customers", icon: Users },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
