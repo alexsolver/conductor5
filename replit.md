@@ -8,6 +8,16 @@ Conductor is a modern SaaS customer support platform designed to provide omnicha
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### July 17, 2025
+- ✓ Fixed critical startup issue with integrityRoutes module export mismatch
+- ✓ Enhanced customer repository with proper TypeScript types (CustomerDbRow, CustomerDbInsert)
+- ✓ Replaced console.log/console.error with structured logging using winston
+- ✓ Added comprehensive input validation to customer routes (GET, POST, PUT, DELETE)
+- ✓ Enhanced parameter validation and sanitization for all customer endpoints
+- ✓ Improved error handling with proper Zod validation for updates
+
 ## System Architecture
 
 ### Frontend Architecture

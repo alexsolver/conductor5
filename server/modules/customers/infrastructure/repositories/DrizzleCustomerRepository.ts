@@ -10,6 +10,9 @@ import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustome
 import { customers } from '@shared/schema';
 import { db } from '../../../../db';
 
+type CustomerDbRow = typeof customers.$inferSelect;
+type CustomerDbInsert = typeof customers.$inferInsert;
+
 export class DrizzleCustomerRepository implements ICustomerRepository {
   
   async findById(id: string, tenantId: string): Promise<Customer | null> {
@@ -153,7 +156,7 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     return result[0]?.count || 0;
   }
 
-  private toDomainEntity(data: any): Customer {
+  private toDomainEntity(data: CustomerDbRow): Customer {
     return Customer.fromPersistence({
       id: data.id,
       tenantId: data.tenantId,
@@ -179,7 +182,7 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     });
   }
 
-  private toPersistenceData(customer: Customer): any {
+  private toPersistenceData(customer: Customer): CustomerDbInsert {
     return {
       id: customer.getId(),
       tenantId: customer.getTenantId(),

@@ -1,0 +1,107 @@
+server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts
+backend
+16/07/2025
+Incomplete functionality detected(linha 26)
+Problema: return this.toDomainEntity(result[0]);
+
+Prompt para correção:
+
+Fix incomplete function in server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts line 26: "return this.toDomainEntity(result[0]);". Complete the implementation or remove the placeholder.
+📋 Copiar Prompt
+Mock data detected(linha 40)
+Problema: return this.toDomainEntity(result[0]);
+
+Prompt para correção:
+
+Fix mock data in server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts line 40: "return this.toDomainEntity(result[0]);". Replace with real data source or API integration.
+📋 Copiar Prompt
+Incomplete functionality detected(linha 81)
+Problema: return results.map(result => this.toDomainEntity(result));
+
+Prompt para correção:
+
+Fix incomplete function in server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts line 81: "return results.map(result => this.toDomainEntity(result));". Complete the implementation or remove the placeholder.
+📋 Copiar Prompt
+Mock data detected(linha 104)
+Problema: return this.toDomainEntity(updated);
+
+Prompt para correção:
+
+Fix mock data in server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts line 104: "return this.toDomainEntity(updated);". Replace with real data source or API integration.
+📋 Copiar Prompt
+Incomplete functionality detected(linha 112)
+Problema: return this.toDomainEntity(inserted);
+
+Prompt para correção:
+
+Fix incomplete function in server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts line 112: "return this.toDomainEntity(inserted);". Complete the implementation or remove the placeholder.
+📋 Copiar Prompt
+Mock data detected(linha 156)
+Problema: private toDomainEntity(data: any): Customer {
+
+Prompt para correção:
+
+Fix mock data in server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts line 156: "private toDomainEntity(data: any): Customer {". Replace with real data source or API integration.
+📋 Copiar Prompt
+server/modules/customers/infrastructure/setup/CustomerDependencySetup.ts
+backend
+16/07/2025
+server/modules/customers/routes.ts
+backend
+17/07/2025
+Input validation issue: Unvalidated user input
+Problema: Unvalidated user input
+
+Prompt para correção:
+
+Add input validation in server/modules/customers/routes.ts: Unvalidated user input. Use Zod schemas or similar validation library before processing user data.
+📋 Copiar Prompt
+Console statement in production code(linha 44)
+Problema: console.log
+
+Prompt para correção:
+
+Replace console.log with proper logging system in server/modules/customers/routes.ts linha 44. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 44)
+Problema: console.log
+
+Prompt para correção:
+
+Replace console.log with proper logging system in server/modules/customers/routes.ts linha 44. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 44)
+Problema: console.log
+
+Prompt para correção:
+
+Replace console.log with proper logging system in server/modules/customers/routes.ts linha 44. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 44)
+Problema: console.log
+
+Prompt para correção:
+
+Replace console.log with proper logging system in server/modules/customers/routes.ts linha 44. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 64)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/routes.ts linha 64. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 64)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/routes.ts linha 64. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 64)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/routes.ts linha 64. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
