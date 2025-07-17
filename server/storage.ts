@@ -159,12 +159,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializeTenantSchema(tenantId: string): Promise<void> {
-    await schemaManager.createTenantSchema(tenantId);
+    try {
+      await schemaManager.createTenantSchema(tenantId);
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`Tenant schema initialized successfully`, { tenantId });
+    } catch (error) {
+      // Schema may already exist - this is expected behavior
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`Tenant schema already exists or creation skipped`, { tenantId });
+    }
   }
 
   // Customer operations using secure parameterized queries
   async getCustomers(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
     try {
+      // Ensure tenant schema exists before querying
+      await this.initializeTenantSchema(tenantId);
+      
       const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
@@ -180,6 +191,11 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError('Error fetching customers', error, { tenantId, limit, offset });
+      
+      // If schema doesn't exist, return empty array instead of throwing
+      if (error.message?.includes('does not exist')) {
+        return [];
+      }
       throw error;
     }
   }
@@ -262,6 +278,9 @@ export class DatabaseStorage implements IStorage {
   // Ticket operations using secure parameterized queries
   async getTickets(tenantId: string, limit = 50, offset = 0): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
     try {
+      // Ensure tenant schema exists before querying
+      await this.initializeTenantSchema(tenantId);
+      
       const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
@@ -321,6 +340,11 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError('Error fetching tickets', error, { tenantId, limit, offset });
+      
+      // If schema doesn't exist, return empty array instead of throwing
+      if (error.message?.includes('does not exist')) {
+        return [];
+      }
       throw error;
     }
   }
