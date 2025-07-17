@@ -400,7 +400,7 @@ export class DatabaseStorage implements IStorage {
         customer: customers,
       })
       .from(ticketMessages)
-      .leftJoin(users, eq(ticketMessages.authorId, users.id))
+      .leftJoin(users, eq(ticketMessages.userId, users.id))
       .leftJoin(customers, eq(ticketMessages.customerId, customers.id))
       .where(eq(ticketMessages.ticketId, ticketId))
       .orderBy(ticketMessages.createdAt);
