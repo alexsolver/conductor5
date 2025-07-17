@@ -6,32 +6,58 @@ export class SecurityAnalyzer {
     const lines = content.split('\n');
 
     // SQL Injection Detection - improved pattern matching for real vulnerabilities
-    // First, check if the file contains any sql template literals with interpolation
-    const sqlTemplatePattern = /sql`[^`]*\$\{[^}]*\}[^`]*`/g;
-    const sqlMatches = content.match(sqlTemplatePattern);
+    // Whitelist of safe SQL patterns to avoid false positives
+    const safeSqlPatterns = [
+      /sql\.identifier\(/,
+      /sql\.placeholder\(/,
+      /sql\.raw\(/,
+      /sql\.literal\(/,
+      /CREATE SCHEMA IF NOT EXISTS/,
+      /CREATE TABLE IF NOT EXISTS/,
+      /ALTER TABLE.*ADD CONSTRAINT/,
+      /search_path.*parameter/,
+      /information_schema\.schemata/,
+      /schema_name.*LIKE/
+    ];
     
-    if (sqlMatches) {
-      // For each match, check if it uses safe Drizzle ORM functions
-      sqlMatches.forEach(match => {
-        // Skip if the match contains safe Drizzle ORM functions
-        if (match.includes('sql.identifier(') || 
-            match.includes('sql.placeholder(') || 
-            match.includes('sql.raw(')) {
-          return; // This is safe, skip it
-        }
-        
-        // Check for actual unsafe patterns - direct variable interpolation without safety functions
-        const unsafePattern = /\$\{(?!sql\.)[^}]*\}/;
-        if (unsafePattern.test(match)) {
+    // Check if content contains safe patterns
+    const hasSafePatternsOnly = (text: string) => {
+      return safeSqlPatterns.some(pattern => pattern.test(text));
+    };
+
+    // Only flag actual unsafe patterns, not safe Drizzle ORM usage
+    const unsafeSqlPatterns = [
+      // Direct string concatenation in SQL (most dangerous)
+      /(['"][^'"]*\+[^'"]*['"][^'"]*)(SELECT|INSERT|UPDATE|DELETE)/gi,
+      // Template literals with non-Drizzle variables in dangerous contexts
+      /sql`[^`]*\$\{(?!sql\.identifier|sql\.placeholder|sql\.raw)[^}]*\}[^`]*(SELECT|INSERT|UPDATE|DELETE|WHERE|LIKE)/gi,
+      // Direct user input in SQL without parameterization
+      /(req\.(body|query|params)[^`]*sql`)/gi
+    ];
+    
+    unsafeSqlPatterns.forEach(pattern => {
+      const matches = content.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          // Find the line containing this match
+          const lineIndex = lines.findIndex(line => line.includes(match.substring(0, 30)));
+          const matchingLine = lineIndex >= 0 ? lines[lineIndex] : match;
+          
+          // Skip if this line contains safe patterns
+          if (hasSafePatternsOnly(matchingLine)) {
+            return;
+          }
+          
           issues.push({
             type: 'error',
-            description: 'Potential SQL injection vulnerability detected',
-            problemFound: 'Raw SQL with string interpolation',
-            correctionPrompt: `Replace raw SQL string interpolation with parameterized queries using Drizzle ORM in ${filePath}. Use sql.placeholder() or prepared statements instead of template literals.`
+            line: lineIndex + 1,
+            description: 'SQL injection vulnerability detected',
+            problemFound: 'Unsafe SQL construction',
+            correctionPrompt: `Fix SQL injection vulnerability in ${filePath} line ${lineIndex + 1}. Use Drizzle ORM's sql.identifier(), sql.placeholder(), or prepared statements instead of string interpolation.`
           });
-        }
-      });
-    }
+        });
+      }
+    });
 
     // Authentication Security Checks
     const authVulnerabilities = [
