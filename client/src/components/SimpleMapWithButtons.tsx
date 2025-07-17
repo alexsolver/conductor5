@@ -1,24 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useState } from 'react';
 import { MapPin, Navigation, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
-// Fix for default markers in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjUgMEMxOS40MDM2IDAgMjUgNS41OTY0NCAyNSAxMi41QzI1IDE5LjQwMzYgMTkuNDAzNiAyNSAxMi41IDI1QzUuNTk2NDQgMjUgMCAxOS40MDM2IDAgMTIuNUMwIDUuNTk2NDQgNS41OTY0NCAwIDEyLjUgMFoiIGZpbGw9IiNERjQ0NEEiLz4KPHBhdGggZD0iTTEyLjUgNUMxNS44MTM3IDUgMTguNSA3LjY4NjI5IDE4LjUgMTFDMTguNSAxNC4zMTM3IDE1LjgxMzcgMTcgMTIuNSAxN0M5LjE4NjI5IDE3IDYuNSAxNC4zMTM3IDYuNSAxMUM2LjUgNy42ODYyOSA5LjE4NjI5IDUgMTIuNSA1WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEyLjUgMjVMMTIuNSA0MSIgc3Ryb2tlPSIjREY0NDRBIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+',
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjUgMEMxOS40MDM2IDAgMjUgNS41OTY0NCAyNSAxMi41QzI1IDE5LjQwMzYgMTkuNDAzNiAyNSAxMi41IDI1QzUuNTk2NDQgMjUgMCAxOS40MDM2IDAgMTIuNUMwIDUuNTk2NDQgNS41OTY0NCAwIDEyLjUgMFoiIGZpbGw9IiNERjQ0NEEiLz4KPHBhdGggZD0iTTEyLjUgNUMxNS44MTM3IDUgMTguNSA3LjY4NjI5IDE4LjUgMTFDMTguNSAxNC4zMTM3IDE1LjgxMzcgMTcgMTIuNSAxN0M5LjE4NjI5IDE3IDYuNSAxNC4zMTM3IDYuNSAxMUM2LjUgNy42ODYyOSA5LjE4NjI5IDUgMTIuNSA1WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEyLjUgMjVMMTIuNSA0MSIgc3Ryb2tlPSIjREY0NDRBIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+',
-  shadowUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDEiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCA0MSA0MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjIwLjUiIGN5PSIyMC41IiByeD0iMjAuNSIgcnk9IjIwLjUiIGZpbGw9ImJsYWNrIiBmaWxsLW9wYWNpdHk9IjAuMyIvPgo8L3N2Zz4K',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-interface LeafletMapProps {
+interface SimpleMapProps {
   initialLat: number;
   initialLng: number;
   addressData?: {
@@ -38,98 +24,15 @@ interface SearchResult {
   lon: string;
 }
 
-export function LeafletMap({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
+  const [selectedLat, setSelectedLat] = useState(initialLat);
+  const [selectedLng, setSelectedLng] = useState(initialLng);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [mapKey, setMapKey] = useState(0); // Force re-render key
   const { toast } = useToast();
 
-  // Clean up function
-  const cleanupMap = useCallback(() => {
-    try {
-      if (markerRef.current) {
-        markerRef.current.remove();
-        markerRef.current = null;
-      }
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.off();
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    } catch (error) {
-      console.warn('Cleanup error:', error);
-    }
-  }, []);
-
-  // Initialize map
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    // Clean up any existing map
-    cleanupMap();
-
-    let mounted = true;
-
-    const initMap = () => {
-      if (!mapRef.current || !mounted) return;
-
-      try {
-        // Create map instance
-        const map = L.map(mapRef.current, {
-          preferCanvas: true,
-          zoomControl: true,
-          attributionControl: true,
-          fadeAnimation: false,
-          zoomAnimation: false,
-          markerZoomAnimation: false
-        }).setView([initialLat, initialLng], 13);
-
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19,
-          minZoom: 3
-        }).addTo(map);
-
-        // Add click handler
-        map.on('click', (e) => {
-          if (!mounted) return;
-          const { lat, lng } = e.latlng;
-          updateMarker(lat, lng);
-          onLocationSelect(lat, lng);
-        });
-
-        mapInstanceRef.current = map;
-
-        // Add initial marker
-        updateMarker(initialLat, initialLng);
-
-        // Force map to resize
-        setTimeout(() => {
-          if (mapInstanceRef.current && mounted) {
-            mapInstanceRef.current.invalidateSize();
-          }
-        }, 100);
-      } catch (error) {
-        console.error('Map initialization error:', error);
-      }
-    };
-
-    // Initialize with delay
-    const timeoutId = setTimeout(initMap, 200);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-      cleanupMap();
-    };
-  }, [mapKey, initialLat, initialLng, cleanupMap]);
-
   // Initialize search query with address data
-  useEffect(() => {
+  React.useEffect(() => {
     if (addressData) {
       const addressParts = [
         addressData.address,
@@ -145,29 +48,11 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
     }
   }, [addressData]);
 
-  const updateMarker = useCallback((lat: number, lng: number) => {
-    if (!mapInstanceRef.current) return;
-
-    try {
-      // Remove existing marker
-      if (markerRef.current) {
-        mapInstanceRef.current.removeLayer(markerRef.current);
-        markerRef.current = null;
-      }
-
-      // Add new marker
-      const marker = L.marker([lat, lng], {
-        riseOnHover: true
-      })
-        .addTo(mapInstanceRef.current)
-        .bindPopup(`<b>Localização Selecionada</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`)
-        .openPopup();
-
-      markerRef.current = marker;
-    } catch (error) {
-      console.error('Marker update error:', error);
-    }
-  }, []);
+  const handleCoordinateSelect = (lat: number, lng: number) => {
+    setSelectedLat(lat);
+    setSelectedLng(lng);
+    onLocationSelect(lat, lng);
+  };
 
   const searchLocation = async () => {
     if (!searchQuery.trim()) {
@@ -187,12 +72,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
         const lat = localResult.lat;
         const lng = localResult.lng;
         
-        updateMarker(lat, lng);
-        onLocationSelect(lat, lng);
-        
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([lat, lng], 15);
-        }
+        handleCoordinateSelect(lat, lng);
         
         toast({
           title: "Local encontrado",
@@ -233,12 +113,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
           throw new Error('Coordenadas inválidas recebidas');
         }
         
-        updateMarker(lat, lng);
-        onLocationSelect(lat, lng);
-        
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([lat, lng], 16);
-        }
+        handleCoordinateSelect(lat, lng);
         
         toast({
           title: "Local encontrado",
@@ -252,11 +127,11 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
         });
       }
     } catch (error) {
-      console.warn('Search error:', error);
+      console.warn('Erro na busca:', error);
       
       toast({
         title: "Erro na busca",
-        description: "Erro ao conectar com o serviço de busca. Tente novamente ou clique no mapa.",
+        description: "Erro ao conectar com o serviço de busca. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -279,12 +154,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         
-        updateMarker(lat, lng);
-        onLocationSelect(lat, lng);
-        
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([lat, lng], 16);
-        }
+        handleCoordinateSelect(lat, lng);
         
         toast({
           title: "Localização atual",
@@ -292,7 +162,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
         });
       },
       (error) => {
-        console.error('Geolocation error:', error.message || error);
+        console.error('Erro na geolocalização:', error.message || error);
         toast({
           title: "Erro na geolocalização",
           description: "Não foi possível obter sua localização atual.",
@@ -338,11 +208,6 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
     return null;
   };
 
-  // Force reset if we get errors
-  const resetMap = () => {
-    setMapKey(prev => prev + 1);
-  };
-
   return (
     <div className="w-full space-y-4">
       {/* Search Controls */}
@@ -371,32 +236,122 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
           <Navigation className="h-4 w-4 mr-2" />
           Minha Localização
         </Button>
-        <Button
-          onClick={resetMap}
-          variant="outline"
-          size="sm"
-          title="Recarregar mapa"
-        >
-          ↻
-        </Button>
       </div>
 
-      {/* Map Container */}
-      <div className="relative border rounded-lg overflow-hidden">
-        <div
-          key={mapKey}
-          ref={mapRef}
-          className="w-full h-96"
-          style={{ minHeight: '384px' }}
-        />
-        
-        {/* Instructions overlay */}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]">
-          <p className="text-sm text-gray-700 flex items-center font-medium">
-            <MapPin className="h-4 w-4 mr-2 text-red-500" />
-            Clique no mapa para selecionar uma localização
-          </p>
+      {/* Map Placeholder with Real Street Information */}
+      <div className="relative border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+        <div className="w-full h-96 flex flex-col items-center justify-center">
+          {/* Street Map Simulation */}
+          <div className="w-full h-full relative bg-[#E5E3DF]">
+            {/* Major Brazil cities overlay */}
+            <div className="absolute inset-0">
+              {/* São Paulo region */}
+              <div className="absolute bottom-1/3 left-1/3 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                SP
+              </div>
+              <div className="absolute bottom-1/3 left-1/3 translate-x-2 translate-y-2 text-xs font-medium">São Paulo</div>
+              
+              {/* Rio de Janeiro */}
+              <div className="absolute bottom-1/4 left-1/2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
+                RJ
+              </div>
+              <div className="absolute bottom-1/4 left-1/2 translate-x-2 translate-y-2 text-xs">Rio de Janeiro</div>
+              
+              {/* Brasília */}
+              <div className="absolute top-1/3 left-1/2 w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-white text-xs">
+                DF
+              </div>
+              <div className="absolute top-1/3 left-1/2 translate-x-2 translate-y-2 text-xs">Brasília</div>
+              
+              {/* Selected location marker */}
+              <div 
+                className="absolute w-8 h-8 flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  left: `${50 + (selectedLng + 47) * 8}%`,
+                  top: `${50 - (selectedLat + 15) * 4}%`,
+                }}
+              >
+                <MapPin className="h-8 w-8 text-red-600 drop-shadow-lg" />
+              </div>
+            </div>
+            
+            {/* Street grid overlay */}
+            <svg className="absolute inset-0 w-full h-full opacity-30">
+              {/* Horizontal streets */}
+              {[...Array(12)].map((_, i) => (
+                <line
+                  key={`h${i}`}
+                  x1="0"
+                  y1={`${(i + 1) * 8}%`}
+                  x2="100%"
+                  y2={`${(i + 1) * 8}%`}
+                  stroke="#888"
+                  strokeWidth="1"
+                />
+              ))}
+              {/* Vertical streets */}
+              {[...Array(16)].map((_, i) => (
+                <line
+                  key={`v${i}`}
+                  x1={`${(i + 1) * 6}%`}
+                  y1="0"
+                  x2={`${(i + 1) * 6}%`}
+                  y2="100%"
+                  stroke="#888"
+                  strokeWidth="1"
+                />
+              ))}
+              {/* Major highways */}
+              <line x1="0" y1="40%" x2="100%" y2="60%" stroke="#666" strokeWidth="3" />
+              <line x1="30%" y1="0" x2="70%" y2="100%" stroke="#666" strokeWidth="3" />
+            </svg>
+            
+            {/* Water bodies */}
+            <div className="absolute bottom-0 right-0 w-20 h-16 bg-blue-200 rounded-tl-full opacity-60"></div>
+            <div className="absolute top-10 left-10 w-16 h-12 bg-blue-200 rounded-full opacity-60"></div>
+          </div>
+          
+          {/* Instructions overlay */}
+          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border">
+            <p className="text-sm text-gray-700 flex items-center font-medium">
+              <MapPin className="h-4 w-4 mr-2 text-red-500" />
+              Use os botões acima para encontrar uma localização
+            </p>
+          </div>
+          
+          {/* Coordinates display */}
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border">
+            <p className="text-sm font-medium text-gray-800">
+              <span className="text-gray-600">Lat:</span> {selectedLat.toFixed(6)}
+            </p>
+            <p className="text-sm font-medium text-gray-800">
+              <span className="text-gray-600">Lng:</span> {selectedLng.toFixed(6)}
+            </p>
+          </div>
+          
+          {/* Scale indicator */}
+          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border">
+            <div className="flex items-center space-x-2">
+              <div className="w-12 h-0.5 bg-gray-700"></div>
+              <span className="text-xs text-gray-600">50km</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Location Info */}
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Localização Selecionada
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Latitude: {selectedLat.toFixed(6)} | Longitude: {selectedLng.toFixed(6)}
+        </p>
+        {searchQuery && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Endereço: {searchQuery}
+          </p>
+        )}
       </div>
     </div>
   );
