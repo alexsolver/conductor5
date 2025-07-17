@@ -9,7 +9,7 @@ export class Customer {
     public readonly phone: string | null = null,
     public readonly company: string | null = null,
     public readonly tags: string[] = [],
-    public readonly metadata: Record<string, any> = {},
+    public readonly metadata: Record<string, string | number | boolean | null> = {},
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -42,7 +42,7 @@ export class Customer {
     phone?: string | null;
     company?: string | null;
     tags?: string[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, string | number | boolean | null>;
   }): Customer {
     // Business validation
     if (!props.email) {

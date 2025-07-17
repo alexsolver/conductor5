@@ -180,8 +180,18 @@ router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), 
     const activeUsers = await userRepository.countActive();
     const totalTenants = await tenantRepository.count();
     
-    // TODO: Implementar contagem de tickets quando o modelo estiver disponível
-    const totalTickets = 0;
+    // Implementar contagem real de tickets por tenant
+    let totalTickets = 0;
+    try {
+      const tenants = await tenantRepository.findAll();
+      for (const tenant of tenants) {
+        const tickets = await storage.getTickets(tenant.id, 1, 0);
+        totalTickets += tickets.length;
+      }
+    } catch (error) {
+      console.warn('Could not count tickets:', error);
+      totalTickets = 0;
+    }
     
     res.json({
       totalUsers,

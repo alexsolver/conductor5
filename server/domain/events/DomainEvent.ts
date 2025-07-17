@@ -41,7 +41,7 @@ export class CustomerUpdated extends DomainEvent {
   constructor(
     aggregateId: string,
     tenantId: string,
-    public readonly changes: Record<string, any>
+    public readonly changes: Record<string, string | number | boolean | Date | null>
   ) {
     super(aggregateId, tenantId);
   }

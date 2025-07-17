@@ -1,0 +1,169 @@
+import { FileIssue } from '../IntegrityControlService';
+
+export class SecurityAnalyzer {
+  static analyzeSecurityVulnerabilities(content: string, filePath: string): FileIssue[] {
+    const issues: FileIssue[] = [];
+    const lines = content.split('\n');
+
+    // SQL Injection Detection
+    const sqlInjectionPatterns = [
+      /sql`.*\$\{[^}]*\}/g,
+      /\.query\s*\(\s*[`'"][^`'"]*\$\{[^}]*\}[^`'"]*[`'"]/g,
+      /ILIKE\s+['"`]\$\{[^}]*\}['"`]/g
+    ];
+
+    sqlInjectionPatterns.forEach(pattern => {
+      const matches = content.match(pattern);
+      if (matches) {
+        issues.push({
+          type: 'error',
+          description: 'Potential SQL injection vulnerability detected',
+          problemFound: 'Raw SQL with string interpolation',
+          correctionPrompt: `Replace raw SQL string interpolation with parameterized queries using Drizzle ORM in ${filePath}. Use sql.placeholder() or prepared statements instead of template literals.`
+        });
+      }
+    });
+
+    // Authentication Security Checks
+    const authVulnerabilities = [
+      { pattern: /jwt\.sign\([^,]+,\s*[^,]+\s*\)/g, issue: 'JWT without expiration' },
+      { pattern: /bcrypt\.hash\([^,]+,\s*[1-9]\s*\)/g, issue: 'Weak bcrypt salt rounds' },
+      { pattern: /session\s*\.\s*cookie\s*\.\s*secure\s*=\s*false/g, issue: 'Insecure session cookie' }
+    ];
+
+    authVulnerabilities.forEach(({ pattern, issue }) => {
+      if (pattern.test(content)) {
+        issues.push({
+          type: 'error',
+          description: `Authentication security issue: ${issue}`,
+          problemFound: issue,
+          correctionPrompt: `Fix authentication security vulnerability in ${filePath}: ${issue}. Use secure defaults and proper configuration.`
+        });
+      }
+    });
+
+    // File Operation Security
+    const fileVulnerabilities = [
+      { pattern: /fs\.\w+\([^)]*req\.[^)]*\)/g, issue: 'Unsafe file operation with user input' },
+      { pattern: /path\.join\([^)]*req\.[^)]*\)/g, issue: 'Path traversal vulnerability' },
+      { pattern: /exec\([^)]*req\.[^)]*\)/g, issue: 'Command injection vulnerability' }
+    ];
+
+    fileVulnerabilities.forEach(({ pattern, issue }) => {
+      if (pattern.test(content)) {
+        issues.push({
+          type: 'error',
+          description: `File security issue: ${issue}`,
+          problemFound: issue,
+          correctionPrompt: `Fix file security vulnerability in ${filePath}: ${issue}. Validate and sanitize all user inputs before file operations.`
+        });
+      }
+    });
+
+    // Input Validation Security
+    const inputValidationIssues = [
+      { pattern: /req\.(body|query|params)\.[^;]+;.*(?!.*validate)/g, issue: 'Unvalidated user input' },
+      { pattern: /parseInt\(req\.[^)]*\)/g, issue: 'Unsafe parseInt with user input' },
+      { pattern: /JSON\.parse\(req\.[^)]*\)/g, issue: 'Unsafe JSON.parse with user input' }
+    ];
+
+    inputValidationIssues.forEach(({ pattern, issue }) => {
+      if (pattern.test(content)) {
+        issues.push({
+          type: 'warning',
+          description: `Input validation issue: ${issue}`,
+          problemFound: issue,
+          correctionPrompt: `Add input validation in ${filePath}: ${issue}. Use Zod schemas or similar validation library before processing user data.`
+        });
+      }
+    });
+
+    // Hardcoded Credentials Detection
+    const credentialPatterns = [
+      { pattern: /password\s*[=:]\s*['"`][^'"`]{1,20}['"`]/gi, issue: 'Hardcoded password' },
+      { pattern: /api[_-]?key\s*[=:]\s*['"`][^'"`]+['"`]/gi, issue: 'Hardcoded API key' },
+      { pattern: /secret\s*[=:]\s*['"`][^'"`]+['"`]/gi, issue: 'Hardcoded secret' },
+      { pattern: /token\s*[=:]\s*['"`][^'"`]+['"`]/gi, issue: 'Hardcoded token' }
+    ];
+
+    credentialPatterns.forEach(({ pattern, issue }) => {
+      const matches = content.matchAll(pattern);
+      for (const match of matches) {
+        const lineNumber = content.substring(0, match.index).split('\n').length;
+        issues.push({
+          type: 'error',
+          line: lineNumber,
+          description: `Security vulnerability: ${issue}`,
+          problemFound: match[0],
+          correctionPrompt: `Replace hardcoded credential in ${filePath} line ${lineNumber} with environment variable. Move "${match[0]}" to .env file and use process.env.VARIABLE_NAME.`
+        });
+      }
+    });
+
+    return issues;
+  }
+
+  static analyzeAsyncErrorHandling(content: string, filePath: string): FileIssue[] {
+    const issues: FileIssue[] = [];
+    const lines = content.split('\n');
+
+    // Find async functions without proper error handling
+    const asyncFunctionPattern = /async\s+(function\s+\w+|\w+\s*=>|\(\s*[^)]*\s*\)\s*=>)/g;
+    let match;
+
+    while ((match = asyncFunctionPattern.exec(content)) !== null) {
+      const functionStart = match.index;
+      const functionBlock = this.extractFunctionBlock(content, functionStart);
+      
+      if (functionBlock && !this.hasTryCatch(functionBlock)) {
+        const lineNumber = content.substring(0, functionStart).split('\n').length;
+        
+        // Check if it's a critical operation (database, auth, etc.)
+        const isCritical = /(?:await\s+(?:db\.|storage\.|auth\.|fetch\()|\.execute\(|\.query\()/g.test(functionBlock);
+        
+        if (isCritical) {
+          issues.push({
+            type: 'error',
+            line: lineNumber,
+            description: 'Critical async function without error handling',
+            problemFound: 'Missing try/catch for database/auth operations',
+            correctionPrompt: `Add try/catch block to async function in ${filePath} line ${lineNumber}. Wrap database/authentication operations in proper error handling.`
+          });
+        }
+      }
+    }
+
+    return issues;
+  }
+
+  private static extractFunctionBlock(content: string, startIndex: number): string | null {
+    let braceCount = 0;
+    let inFunction = false;
+    let functionBlock = '';
+    
+    for (let i = startIndex; i < content.length; i++) {
+      const char = content[i];
+      
+      if (char === '{') {
+        inFunction = true;
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+      }
+      
+      if (inFunction) {
+        functionBlock += char;
+        
+        if (braceCount === 0) {
+          break;
+        }
+      }
+    }
+    
+    return functionBlock || null;
+  }
+
+  private static hasTryCatch(functionBlock: string): boolean {
+    return /try\s*\{[\s\S]*catch\s*\(/g.test(functionBlock);
+  }
+}

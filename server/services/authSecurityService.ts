@@ -243,7 +243,10 @@ export class AuthSecurityService {
     // In production, integrate with email service (SendGrid, SES, etc.)
     const magicLink = `${process.env.FRONTEND_URL}/auth/magic-link?token=${token}`;
     
-    console.log(`[EMAIL] Magic link for ${email}: ${magicLink}`);
+    // Em produção, usar serviço de email real ao invés de logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[EMAIL] Magic link for ${email}: ${magicLink}`);
+    }
     
     // Placeholder - would send actual email
     await this.logSecurityEvent(email, 'magic_link_sent', { token });
@@ -253,7 +256,10 @@ export class AuthSecurityService {
     // In production, integrate with email service
     const resetLink = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
     
-    console.log(`[EMAIL] Password reset for ${email}: ${resetLink}`);
+    // Em produção, usar serviço de email real ao invés de logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[EMAIL] Password reset for ${email}: ${resetLink}`);
+    }
     
     // Placeholder - would send actual email
     await this.logSecurityEvent(email, 'password_reset_sent', { token });

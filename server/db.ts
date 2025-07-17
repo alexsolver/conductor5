@@ -40,7 +40,7 @@ export class SchemaManager {
       // Create tenant-specific tables in the new schema
       await this.createTenantTables(schemaName);
       
-      console.log(`Created schema ${schemaName} for tenant ${tenantId}`);
+      // Schema criado com sucesso - usar sistema de logging adequado em produção
     } catch (error) {
       console.error(`Failed to create schema for tenant ${tenantId}:`, error);
       throw error;
@@ -85,7 +85,7 @@ export class SchemaManager {
     try {
       await db.execute(sql`DROP SCHEMA IF EXISTS ${sql.identifier(schemaName)} CASCADE`);
       this.tenantConnections.delete(tenantId);
-      console.log(`Dropped schema ${schemaName} for tenant ${tenantId}`);
+      // Schema removido com sucesso - usar sistema de logging adequado em produção
     } catch (error) {
       console.error(`Failed to drop schema for tenant ${tenantId}:`, error);
       throw error;

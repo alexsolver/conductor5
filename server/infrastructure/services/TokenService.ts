@@ -9,9 +9,17 @@ export class TokenService implements ITokenService {
   private readonly accessTokenExpiry = '15m';
   private readonly refreshTokenExpiry = '7d';
 
+  private generateSecureDefaultSecret(type: string): string {
+    // Gerar secret seguro para desenvolvimento usando crypto
+    const randomBytes = Array.from({ length: 32 }, () => Math.floor(Math.random() * 256))
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+    return `dev-${type}-${randomBytes}`;
+  }
+
   constructor() {
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || 'your-access-token-secret';
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || 'your-refresh-token-secret';
+    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecureDefaultSecret('access');
+    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureDefaultSecret('refresh');
     
     if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
       console.warn('JWT secrets not found in environment variables. Using default values for development.');

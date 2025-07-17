@@ -112,13 +112,13 @@ router.post('/magic-link/verify', authRateLimit, recordLoginAttempt, async (req,
     // Generate JWT tokens
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'dev-secret',
+      process.env.JWT_SECRET || 'dev-secret-fallback-' + Date.now(),
       { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
       { userId: user.id, type: 'refresh' },
-      process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
+      process.env.JWT_REFRESH_SECRET || 'dev-refresh-fallback-' + Date.now(),
       { expiresIn: '7d' }
     );
 
