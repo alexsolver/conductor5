@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { 
   BarChart3, 
@@ -102,6 +103,17 @@ export function Sidebar() {
     staleTime: 30000, // Cache for 30 seconds
   });
 
+  // Fetch tenant data for current user
+  const { data: tenantData } = useQuery({
+    queryKey: ["/api/tenants/current"],
+    enabled: !!user?.tenantId,
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/tenants/${user?.tenantId}`);
+      return response.json();
+    },
+    staleTime: 300000, // Cache for 5 minutes
+  });
+
   const activeTicketsCount = ticketsData?.tickets?.length || 0;
 
   // Create navigation with dynamic badges
@@ -144,7 +156,9 @@ export function Sidebar() {
                 <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center mr-2">
                   <span className="text-xs font-semibold text-purple-600">AC</span>
                 </div>
-                <span className="text-sm font-medium text-white">Acme Corp</span>
+                <span className="text-sm font-medium text-white">
+                  {tenantData?.name || 'Carregando...'}
+                </span>
               </div>
               <ChevronDown className="w-4 h-4 text-white" />
             </div>

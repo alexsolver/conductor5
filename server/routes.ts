@@ -163,6 +163,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/tenant-admin', tenantAdminRoutes.default);
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);
 
+  // Tenant endpoint for fetching tenant details
+  app.get('/api/tenants/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { tenantId } = req.params;
+      
+      // Only allow users to fetch their own tenant data (or SaaS admins)
+      if (req.user?.role !== 'saas_admin' && req.user?.tenantId !== tenantId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const container = (await import('./application/services/DependencyContainer')).DependencyContainer.getInstance();
+      const tenantRepository = container.tenantRepository;
+      
+      const tenant = await tenantRepository.findById(tenantId);
+      if (!tenant) {
+        return res.status(404).json({ message: 'Tenant not found' });
+      }
+
+      res.json({
+        id: tenant.id,
+        name: tenant.name,
+        subdomain: tenant.subdomain,
+        isActive: tenant.isActive,
+        createdAt: tenant.createdAt
+      });
+    } catch (error) {
+      console.error('Error fetching tenant:', error);
+      res.status(500).json({ message: 'Failed to fetch tenant' });
+    }
+  });
+
   // Schema management (admin only)
   app.post("/api/admin/init-schema/:tenantId", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
