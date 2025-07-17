@@ -223,45 +223,75 @@ export class DatabaseStorage implements IStorage {
 
   // Ticket operations
   async getTickets(tenantId: string, limit = 50, offset = 0): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
     const results = await db
       .select({
         ticket: tickets,
-        customer: customers,
         assignedTo: users,
       })
       .from(tickets)
-      .innerJoin(customers, eq(tickets.customerId, customers.id))
       .leftJoin(users, eq(tickets.assignedToId, users.id))
       .where(eq(tickets.tenantId, tenantId))
       .limit(limit)
       .offset(offset)
       .orderBy(desc(tickets.createdAt));
 
-    return results.map(row => ({
-      ...row.ticket,
-      customer: row.customer,
-      assignedTo: row.assignedTo || undefined
-    }));
+    // Fetch customer data from tenant schema for each ticket
+    const ticketsWithCustomers = await Promise.all(
+      results.map(async (row) => {
+        const [customer] = await tenantDb
+          .select()
+          .from(tenantCustomers)
+          .where(eq(tenantCustomers.id, row.ticket.customerId));
+        
+        return {
+          ...row.ticket,
+          customer: customer ? { ...customer, tenantId } : {
+            id: row.ticket.customerId,
+            fullName: `ID: ${row.ticket.customerId.slice(-8)}`,
+            email: 'unknown@example.com',
+            tenantId
+          },
+          assignedTo: row.assignedTo || undefined
+        };
+      })
+    );
+
+    return ticketsWithCustomers;
   }
 
   async getTicket(id: string, tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User; messages: (TicketMessage & { author?: User; customer?: Customer })[] }) | undefined> {
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
     const [result] = await db
       .select({
         ticket: tickets,
-        customer: customers,
         assignedTo: users,
       })
       .from(tickets)
-      .innerJoin(customers, eq(tickets.customerId, customers.id))
       .leftJoin(users, eq(tickets.assignedToId, users.id))
       .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)));
 
     if (!result) return undefined;
 
+    // Fetch customer from tenant schema
+    const [customer] = await tenantDb
+      .select()
+      .from(tenantCustomers)
+      .where(eq(tenantCustomers.id, result.ticket.customerId));
+
     const messages = await this.getTicketMessages(id);
     return { 
       ...result.ticket, 
-      customer: result.customer,
+      customer: customer ? { ...customer, tenantId } : {
+        id: result.ticket.customerId,
+        fullName: `ID: ${result.ticket.customerId.slice(-8)}`,
+        email: 'unknown@example.com',
+        tenantId
+      },
       assignedTo: result.assignedTo || undefined,
       messages 
     };
@@ -296,14 +326,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUrgentTickets(tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
+    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
+    const { customers: tenantCustomers } = tenantSchema;
+    
     const results = await db
       .select({
         ticket: tickets,
-        customer: customers,
         assignedTo: users,
       })
       .from(tickets)
-      .innerJoin(customers, eq(tickets.customerId, customers.id))
       .leftJoin(users, eq(tickets.assignedToId, users.id))
       .where(and(
         eq(tickets.tenantId, tenantId),
@@ -313,11 +344,28 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(tickets.createdAt))
       .limit(10);
 
-    return results.map(row => ({
-      ...row.ticket,
-      customer: row.customer,
-      assignedTo: row.assignedTo || undefined
-    }));
+    // Fetch customer data from tenant schema for each ticket
+    const urgentTicketsWithCustomers = await Promise.all(
+      results.map(async (row) => {
+        const [customer] = await tenantDb
+          .select()
+          .from(tenantCustomers)
+          .where(eq(tenantCustomers.id, row.ticket.customerId));
+        
+        return {
+          ...row.ticket,
+          customer: customer ? { ...customer, tenantId } : {
+            id: row.ticket.customerId,
+            fullName: `ID: ${row.ticket.customerId.slice(-8)}`,
+            email: 'unknown@example.com',
+            tenantId
+          },
+          assignedTo: row.assignedTo || undefined
+        };
+      })
+    );
+
+    return urgentTicketsWithCustomers;
   }
 
   // Ticket message operations
