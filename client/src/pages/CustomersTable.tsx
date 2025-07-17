@@ -14,10 +14,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, User, Building, Shield, Globe, Settings } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, User, Building, Shield, Globe, Settings, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CustomerLocationManager } from "@/components/CustomerLocationManager";
+import { LocationModal } from "@/components/LocationModal";
 
 // Schema for customer creation/editing
 const customerSchema = z.object({
@@ -87,6 +89,11 @@ export default function CustomersTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  
+  // Location management states
+  const [isLocationManagerOpen, setIsLocationManagerOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedCustomerIdForLocations, setSelectedCustomerIdForLocations] = useState<string>('');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -593,6 +600,18 @@ export default function CustomersTable() {
                   type="button"
                   variant="outline"
                   className="flex items-center gap-2"
+                  onClick={() => {
+                    if (editingCustomer?.id) {
+                      setSelectedCustomerIdForLocations(editingCustomer.id);
+                      setIsLocationManagerOpen(true);
+                    } else {
+                      toast({
+                        title: "Save customer first",
+                        description: "Please save the customer before managing locations",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
                 >
                   <Settings className="h-4 w-4" />
                   Manage Locations
@@ -601,6 +620,18 @@ export default function CustomersTable() {
                   type="button"
                   variant="outline"
                   className="flex items-center gap-2"
+                  onClick={() => {
+                    if (editingCustomer?.id) {
+                      setSelectedCustomerIdForLocations(editingCustomer.id);
+                      setIsLocationModalOpen(true);
+                    } else {
+                      toast({
+                        title: "Save customer first",
+                        description: "Please save the customer before adding locations",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
                 >
                   <Plus className="h-4 w-4" />
                   New Location
@@ -840,6 +871,38 @@ export default function CustomersTable() {
           <CustomerForm />
         </DialogContent>
       </Dialog>
+
+      {/* Location Manager Dialog */}
+      <CustomerLocationManager
+        customerId={selectedCustomerIdForLocations}
+        isOpen={isLocationManagerOpen}
+        onClose={() => {
+          setIsLocationManagerOpen(false);
+          setSelectedCustomerIdForLocations('');
+        }}
+        onAddNewLocation={() => {
+          setIsLocationManagerOpen(false);
+          setIsLocationModalOpen(true);
+        }}
+      />
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          setSelectedCustomerIdForLocations('');
+        }}
+        onSuccess={() => {
+          setIsLocationModalOpen(false);
+          queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
+          if (selectedCustomerIdForLocations) {
+            queryClient.invalidateQueries({ 
+              queryKey: [`/api/customers/${selectedCustomerIdForLocations}/locations`] 
+            });
+          }
+        }}
+      />
     </div>
   );
 }

@@ -49,9 +49,10 @@ interface LocationModalProps {
   isOpen: boolean;
   onClose: () => void;
   location?: any;
+  onSuccess?: () => void;
 }
 
-export function LocationModal({ isOpen, onClose, location }: LocationModalProps) {
+export function LocationModal({ isOpen, onClose, location, onSuccess }: LocationModalProps) {
   const [showMap, setShowMap] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -98,6 +99,7 @@ export function LocationModal({ isOpen, onClose, location }: LocationModalProps)
         title: location?.id ? "Localização atualizada" : "Localização criada",
         description: location?.id ? "A localização foi atualizada com sucesso." : "A localização foi criada com sucesso."
       });
+      onSuccess?.();
       onClose();
     },
     onError: (error: any) => {
