@@ -278,43 +278,62 @@ function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: 
       </div>
 
       {/* Map Container */}
-      <div className="relative border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+      <div className="relative border rounded-lg overflow-hidden bg-slate-100">
         <div
           ref={mapRef}
           className="w-full h-96 cursor-crosshair relative"
           onClick={handleMapClick}
           style={{
             backgroundImage: `
-              linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(180deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(135deg, #dbeafe 25%, transparent 25%, transparent 75%, #dbeafe 75%, #dbeafe),
-              linear-gradient(45deg, #dcfce7 25%, transparent 25%, transparent 75%, #dcfce7 75%, #dcfce7)
+              radial-gradient(circle at 25% 25%, #e2e8f0 0%, transparent 50%),
+              radial-gradient(circle at 75% 75%, #cbd5e1 0%, transparent 50%),
+              linear-gradient(45deg, #f1f5f9 25%, transparent 25%),
+              linear-gradient(-45deg, #f8fafc 25%, transparent 25%),
+              linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+              linear-gradient(180deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px)
             `,
-            backgroundSize: '20px 20px, 20px 20px, 80px 80px, 80px 80px',
-            backgroundPosition: '0 0, 0 0, 0 0, 40px 40px'
+            backgroundSize: '100px 100px, 100px 100px, 50px 50px, 50px 50px, 25px 25px, 25px 25px',
+            backgroundColor: '#f8fafc'
           }}
         >
-          {/* Coordinate grid */}
-          <div className="absolute inset-0 opacity-30">
-            <svg className="w-full h-full">
-              <defs>
-                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#6b7280" strokeWidth="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-            </svg>
+          {/* Geographic features simulation */}
+          <div className="absolute inset-0">
+            {/* Simulate cities */}
+            <div className="absolute top-1/4 left-1/3 w-3 h-3 bg-gray-600 rounded-full opacity-40"></div>
+            <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-gray-600 rounded-full opacity-40"></div>
+            <div className="absolute bottom-1/3 left-1/4 w-2 h-2 bg-gray-600 rounded-full opacity-40"></div>
+            
+            {/* Simulate roads */}
+            <div className="absolute top-1/4 left-0 w-full h-0.5 bg-gray-400 opacity-20 transform rotate-12"></div>
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-400 opacity-20 transform -rotate-6"></div>
+            <div className="absolute bottom-1/3 left-0 w-full h-0.5 bg-gray-400 opacity-20 transform rotate-3"></div>
+            
+            {/* Simulate water bodies */}
+            <div className="absolute top-1/5 right-1/5 w-16 h-8 bg-blue-200 rounded-full opacity-30"></div>
+            <div className="absolute bottom-1/4 left-1/6 w-12 h-12 bg-blue-200 rounded-full opacity-30"></div>
           </div>
 
-          {/* Brasil outline simulation */}
-          <div className="absolute inset-4 opacity-20">
-            <svg viewBox="0 0 400 400" className="w-full h-full">
+          {/* Brasil outline with more detail */}
+          <div className="absolute inset-8 opacity-25">
+            <svg viewBox="0 0 400 300" className="w-full h-full">
+              {/* Brazil outline */}
               <path
-                d="M50 150 C50 120, 80 100, 120 110 L180 120 C220 125, 250 140, 280 160 L320 180 C340 190, 350 210, 340 240 L330 280 C325 320, 300 340, 270 350 L200 360 C160 365, 120 350, 100 320 L80 280 C70 250, 60 200, 50 150 Z"
-                fill="#10b981"
-                stroke="#059669"
+                d="M60 120 C55 110, 70 90, 90 95 L130 100 C150 102, 170 105, 190 110 L220 115 C240 118, 260 125, 280 135 L310 150 C330 160, 340 175, 335 195 L330 215 C325 235, 315 250, 300 260 L280 270 C260 275, 240 278, 220 275 L200 272 C180 270, 160 265, 140 255 L120 245 C100 235, 85 220, 75 200 L70 180 C65 160, 62 140, 60 120 Z"
+                fill="none"
+                stroke="#10b981"
                 strokeWidth="2"
+                strokeDasharray="5,5"
               />
+              
+              {/* Major cities dots */}
+              <circle cx="180" cy="180" r="3" fill="#ef4444" opacity="0.6" />
+              <text x="185" y="185" fontSize="10" fill="#374151" opacity="0.7">SP</text>
+              
+              <circle cx="200" cy="200" r="2" fill="#ef4444" opacity="0.6" />
+              <text x="205" y="205" fontSize="10" fill="#374151" opacity="0.7">RJ</text>
+              
+              <circle cx="150" cy="140" r="2" fill="#ef4444" opacity="0.6" />
+              <text x="155" y="145" fontSize="10" fill="#374151" opacity="0.7">BSB</text>
             </svg>
           </div>
 
@@ -327,8 +346,11 @@ function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: 
             }}
           >
             <div className="relative">
-              <MapPin className="h-8 w-8 text-red-500 drop-shadow-lg animate-bounce" />
+              <MapPin className="h-8 w-8 text-red-500 drop-shadow-lg" />
               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full opacity-30 animate-ping"></div>
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                {selectedLat.toFixed(4)}, {selectedLng.toFixed(4)}
+              </div>
             </div>
           </div>
 
@@ -340,14 +362,22 @@ function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: 
             </p>
           </div>
 
+          {/* Scale indicator */}
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border">
+            <div className="flex items-center space-x-2">
+              <div className="w-12 h-0.5 bg-gray-600"></div>
+              <span className="text-xs text-gray-600">50km</span>
+            </div>
+          </div>
+
           {/* Compass */}
           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border">
-            <div className="w-8 h-8 flex items-center justify-center">
+            <div className="w-8 h-8 flex items-center justify-center relative">
               <div className="w-6 h-6 border-2 border-gray-400 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="w-1 h-3 bg-red-500 rounded-full"></div>
               </div>
             </div>
-            <p className="text-xs text-center mt-1 text-gray-600">N</p>
+            <p className="text-xs text-center mt-1 text-gray-600 font-semibold">N</p>
           </div>
         </div>
       </div>
