@@ -147,12 +147,14 @@ export class DrizzleTicketRepository implements ITicketRepository {
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
     if (filter.search) {
+      // Sanitize search input to prevent SQL injection
+      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          ilike(tickets.subject, `%${filter.search}%`),
-          ilike(tickets.description, `%${filter.search}%`),
-          ilike(tickets.number, `%${filter.search}%`),
-          ilike(tickets.shortDescription, `%${filter.search}%`)
+          sql`${tickets.subject} ILIKE ${searchPattern}`,
+          sql`${tickets.description} ILIKE ${searchPattern}`,
+          sql`${tickets.number} ILIKE ${searchPattern}`,
+          sql`${tickets.shortDescription} ILIKE ${searchPattern}`
         )!
       );
     }

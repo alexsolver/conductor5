@@ -4,7 +4,7 @@
  * Implements ICustomerRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count } from 'drizzle-orm';
+import { eq, and, ilike, count, sql, or } from 'drizzle-orm';
 import { Customer } from '../../domain/entities/Customer';
 import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository';
 import { customers } from '@shared/schema';
@@ -47,12 +47,15 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     const conditions = [eq(customers.tenantId, filter.tenantId)];
 
     if (filter.search) {
+      // Sanitize search input to prevent SQL injection
+      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
-        // Search in multiple fields
-        ilike(customers.firstName, `%${filter.search}%`) ||
-        ilike(customers.lastName, `%${filter.search}%`) ||
-        ilike(customers.email, `%${filter.search}%`) ||
-        ilike(customers.company, `%${filter.search}%`)
+        or(
+          sql`${customers.firstName} ILIKE ${searchPattern}`,
+          sql`${customers.lastName} ILIKE ${searchPattern}`,
+          sql`${customers.email} ILIKE ${searchPattern}`,
+          sql`${customers.company} ILIKE ${searchPattern}`
+        )!
       );
     }
 
@@ -122,11 +125,15 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     const conditions = [eq(customers.tenantId, filter.tenantId)];
 
     if (filter.search) {
+      // Sanitize search input to prevent SQL injection
+      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
-        ilike(customers.firstName, `%${filter.search}%`) ||
-        ilike(customers.lastName, `%${filter.search}%`) ||
-        ilike(customers.email, `%${filter.search}%`) ||
-        ilike(customers.company, `%${filter.search}%`)
+        or(
+          sql`${customers.firstName} ILIKE ${searchPattern}`,
+          sql`${customers.lastName} ILIKE ${searchPattern}`,
+          sql`${customers.email} ILIKE ${searchPattern}`,
+          sql`${customers.company} ILIKE ${searchPattern}`
+        )!
       );
     }
 

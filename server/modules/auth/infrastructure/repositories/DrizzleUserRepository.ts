@@ -149,11 +149,13 @@ export class DrizzleUserRepository implements IUserRepository {
     }
 
     if (filter.search) {
+      // Sanitize search input to prevent SQL injection
+      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          ilike(users.email, `%${filter.search}%`),
-          ilike(users.firstName, `%${filter.search}%`),
-          ilike(users.lastName, `%${filter.search}%`)
+          sql`${users.email} ILIKE ${searchPattern}`,
+          sql`${users.firstName} ILIKE ${searchPattern}`,
+          sql`${users.lastName} ILIKE ${searchPattern}`
         )!
       );
     }
