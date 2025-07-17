@@ -183,8 +183,19 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Customer must have a tenantId');
     }
     
+    console.log('Creating customer for tenant:', customer.tenantId);
+    
+    // Ensure tenant schema exists
+    try {
+      await schemaManager.createTenantSchema(customer.tenantId);
+    } catch (error) {
+      console.log('Tenant schema already exists or creation failed:', error.message);
+    }
+    
     const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(customer.tenantId);
     const { customers: tenantCustomers } = tenantSchema;
+    
+    console.log('Using tenant schema for customer creation');
     
     // Remove tenantId from customer data since it's not part of tenant schema
     const { tenantId, ...customerData } = customer;
