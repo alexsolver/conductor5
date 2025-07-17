@@ -266,23 +266,25 @@ export default function CustomersTable() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="basic" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Basic
-            </TabsTrigger>
-            <TabsTrigger value="status" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Status
-            </TabsTrigger>
-            <TabsTrigger value="locale" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Locale
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Advanced
-            </TabsTrigger>
+          <TabsList className="w-full h-auto p-1">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full">
+              <TabsTrigger value="basic" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                <User className="h-3 w-3 lg:h-4 lg:w-4" />
+                Basic
+              </TabsTrigger>
+              <TabsTrigger value="status" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                <Shield className="h-3 w-3 lg:h-4 lg:w-4" />
+                Status
+              </TabsTrigger>
+              <TabsTrigger value="locale" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                <Globe className="h-3 w-3 lg:h-4 lg:w-4" />
+                Locale
+              </TabsTrigger>
+              <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                <Settings className="h-3 w-3 lg:h-4 lg:w-4" />
+                Locations
+              </TabsTrigger>
+            </div>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
@@ -575,6 +577,39 @@ export default function CustomersTable() {
                 </FormItem>
               )}
             />
+          </TabsContent>
+
+          <TabsContent value="locations" className="space-y-4 mt-4">
+            <div className="text-center py-8">
+              <Settings className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">
+                Manage Locations
+              </h3>
+              <p className="text-gray-500 mb-6">
+                Associate this customer with one or more locations in the system.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Manage Locations
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Location
+                </Button>
+              </div>
+              <p className="text-sm text-amber-600 mt-4">
+                💡 Save the customer first to manage locations
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
 
