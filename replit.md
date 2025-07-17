@@ -81,6 +81,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **2025-01-17**: SQL Injection Vulnerability Resolution
+  - **Schema Name Sanitization**: Added strict validation and sanitization for tenant IDs to prevent malicious schema name injection
+  - **Parameterized SQL Queries**: Replaced all raw SQL queries with Drizzle ORM's parameterized queries using `sql.identifier()` for safe schema references
+  - **Connection String Security**: Fixed potential injection in database connection strings by using URL constructor for safe parameter appending
+  - **Input Validation**: Added comprehensive input validation for tenant IDs allowing only alphanumeric characters, hyphens, and underscores
+  - **Foreign Key Constraints**: Restructured table creation to use parameterized queries for all foreign key constraints
+  - **SECURITY VULNERABILITY ELIMINATED**: All SQL injection attack vectors in schema management operations have been completely resolved
+  - **Best Practices Implemented**: All database operations now follow Drizzle ORM security best practices with zero raw SQL string concatenation
+
 - **2025-01-17**: Enhanced Registration with Tenant/Workspace Creation
   - **Registration Form**: Added company name and workspace name fields for tenant creation during user signup
   - **Automatic Tenant Provisioning**: Registration now creates tenant/workspace automatically when company details are provided

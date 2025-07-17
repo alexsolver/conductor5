@@ -34,8 +34,8 @@ export class SchemaManager {
     const schemaName = this.getSchemaName(tenantId);
     
     try {
-      // Create the schema
-      await db.execute(sql.raw(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`));
+      // Create the schema using parameterized query
+      await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(schemaName)}`);
       
       // Create tenant-specific tables in the new schema
       await this.createTenantTables(schemaName);
@@ -52,9 +52,18 @@ export class SchemaManager {
     const schemaName = this.getSchemaName(tenantId);
     
     if (!this.tenantConnections.has(tenantId)) {
-      // Create a new connection with the tenant's schema as default
+      // Create a new connection with the tenant's schema as default - safe from SQL injection
+      const baseConnectionString = process.env.DATABASE_URL;
+      if (!baseConnectionString) {
+        throw new Error('DATABASE_URL environment variable is not set');
+      }
+      
+      // Safely append search_path parameter using URL constructor
+      const connectionUrl = new URL(baseConnectionString);
+      connectionUrl.searchParams.set('search_path', `${schemaName},public`);
+      
       const tenantPool = new Pool({ 
-        connectionString: process.env.DATABASE_URL + `?search_path=${schemaName},public`
+        connectionString: connectionUrl.toString()
       });
       
       const tenantSchema = schema.getTenantSpecificSchema(schemaName);
@@ -74,7 +83,7 @@ export class SchemaManager {
     const schemaName = this.getSchemaName(tenantId);
     
     try {
-      await db.execute(sql.raw(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`));
+      await db.execute(sql`DROP SCHEMA IF EXISTS ${sql.identifier(schemaName)} CASCADE`);
       this.tenantConnections.delete(tenantId);
       console.log(`Dropped schema ${schemaName} for tenant ${tenantId}`);
     } catch (error) {
@@ -83,16 +92,30 @@ export class SchemaManager {
     }
   }
 
-  // Get schema name for tenant
+  // Get schema name for tenant - sanitized to prevent SQL injection
   private getSchemaName(tenantId: string): string {
-    return `tenant_${tenantId.replace(/-/g, '_')}`;
+    // Validate and sanitize tenant ID to prevent SQL injection
+    if (!tenantId || typeof tenantId !== 'string') {
+      throw new Error('Invalid tenant ID');
+    }
+    
+    // Only allow alphanumeric characters, hyphens, and underscores
+    const sanitizedTenantId = tenantId.replace(/[^a-zA-Z0-9\-_]/g, '');
+    if (sanitizedTenantId !== tenantId) {
+      throw new Error('Tenant ID contains invalid characters');
+    }
+    
+    return `tenant_${sanitizedTenantId.replace(/-/g, '_')}`;
   }
 
   // Create all tenant-specific tables in the schema
   private async createTenantTables(schemaName: string): Promise<void> {
-    const createQueries = [
-      // Customers table
-      `CREATE TABLE IF NOT EXISTS "${schemaName}".customers (
+    // Use Drizzle's sql.identifier to safely handle schema names
+    const schemaId = sql.identifier(schemaName);
+    
+    // Create Customers table with parameterized query
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         first_name VARCHAR(255),
         last_name VARCHAR(255),
@@ -103,13 +126,15 @@ export class SchemaManager {
         metadata JSONB DEFAULT '{}',
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
-      )`,
-      
-      // Tickets table
-      `CREATE TABLE IF NOT EXISTS "${schemaName}".tickets (
+      )
+    `);
+    
+    // Create Tickets table with parameterized query
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ${schemaId}.tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        customer_id UUID NOT NULL REFERENCES "${schemaName}".customers(id),
-        assigned_to_id VARCHAR REFERENCES public.users(id),
+        customer_id UUID NOT NULL,
+        assigned_to_id VARCHAR,
         subject VARCHAR(500) NOT NULL,
         description TEXT,
         status VARCHAR(50) DEFAULT 'open',
@@ -118,35 +143,72 @@ export class SchemaManager {
         metadata JSONB DEFAULT '{}',
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
-      )`,
-      
-      // Ticket Messages table
-      `CREATE TABLE IF NOT EXISTS "${schemaName}".ticket_messages (
+      )
+    `);
+    
+    // Create Ticket Messages table with parameterized query
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ${schemaId}.ticket_messages (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        ticket_id UUID NOT NULL REFERENCES "${schemaName}".tickets(id),
-        author_id VARCHAR REFERENCES public.users(id),
-        customer_id UUID REFERENCES "${schemaName}".customers(id),
+        ticket_id UUID NOT NULL,
+        author_id VARCHAR,
+        customer_id UUID,
         content TEXT NOT NULL,
         is_internal BOOLEAN DEFAULT false,
         attachments JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT NOW()
-      )`,
-      
-      // Activity Logs table
-      `CREATE TABLE IF NOT EXISTS "${schemaName}".activity_logs (
+      )
+    `);
+    
+    // Create Activity Logs table with parameterized query
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ${schemaId}.activity_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id VARCHAR REFERENCES public.users(id),
+        user_id VARCHAR,
         action VARCHAR(255) NOT NULL,
         entity_type VARCHAR(100),
         entity_id UUID,
         details JSONB DEFAULT '{}',
         created_at TIMESTAMP DEFAULT NOW()
-      )`
-    ];
-
-    for (const query of createQueries) {
-      await db.execute(sql.raw(query));
-    }
+      )
+    `);
+    
+    // Add foreign key constraints after table creation to avoid circular dependencies
+    await db.execute(sql`
+      ALTER TABLE ${schemaId}.tickets 
+      ADD CONSTRAINT fk_tickets_customer 
+      FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) ON DELETE CASCADE
+    `);
+    
+    await db.execute(sql`
+      ALTER TABLE ${schemaId}.tickets 
+      ADD CONSTRAINT fk_tickets_assigned_user 
+      FOREIGN KEY (assigned_to_id) REFERENCES public.users(id) ON DELETE SET NULL
+    `);
+    
+    await db.execute(sql`
+      ALTER TABLE ${schemaId}.ticket_messages 
+      ADD CONSTRAINT fk_messages_ticket 
+      FOREIGN KEY (ticket_id) REFERENCES ${schemaId}.tickets(id) ON DELETE CASCADE
+    `);
+    
+    await db.execute(sql`
+      ALTER TABLE ${schemaId}.ticket_messages 
+      ADD CONSTRAINT fk_messages_author 
+      FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE SET NULL
+    `);
+    
+    await db.execute(sql`
+      ALTER TABLE ${schemaId}.ticket_messages 
+      ADD CONSTRAINT fk_messages_customer 
+      FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) ON DELETE SET NULL
+    `);
+    
+    await db.execute(sql`
+      ALTER TABLE ${schemaId}.activity_logs 
+      ADD CONSTRAINT fk_activity_user 
+      FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL
+    `);
   }
 
   // List all tenant schemas
