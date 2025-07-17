@@ -29,6 +29,7 @@ import SaasAdminBilling from "./pages/SaasAdminBilling";
 import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
 import TenantAdminTeam from "./pages/TenantAdminTeam";
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
+import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import NotFound from "./pages/not-found";
 
 // Components
@@ -79,6 +80,7 @@ function AppRouter() {
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
+        <Route path="/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />
         <Route component={NotFound} />

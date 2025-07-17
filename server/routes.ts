@@ -110,6 +110,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
   
+  // Module Integrity Control System
+  const { integrityRouter } = await import('./routes/integrityRoutes');
+  
   // Initialize clean architecture (for future migration)
   // await setupCustomerDependencies();
 
@@ -119,6 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/tickets', ticketsRouter);
   app.use('/api/knowledge-base', knowledgeBaseRouter);
   app.use('/api/people', peopleRouter);
+  app.use('/api/integrity', integrityRouter);
 
   // Import and mount localization routes
   const localizationRoutes = await import('./routes/localization');
