@@ -81,6 +81,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **2025-01-17**: Separated Workflows and SLAs Functionality in Tenant Admin
+  - **Navigation Update**: Split "Workflows & SLAs" into separate menu items in Tenant Admin sidebar navigation
+  - **Dedicated SLA Page**: Created TenantAdminSLAs.tsx with comprehensive SLA management interface
+  - **SLA Management Features**: Form for creating new SLAs with priority, response time, resolution time, and category configuration
+  - **SLA Metrics Dashboard**: Real-time compliance metrics, critical breaches monitoring, and average response time tracking
+  - **Backend API Integration**: Added /api/tenant-admin/slas and /api/tenant-admin/sla-metrics endpoints
+  - **Professional SLA Interface**: Priority badges, compliance progress bars, and comprehensive SLA table display
+  - **Workflow Focus**: Updated TenantAdminWorkflows.tsx to focus specifically on workflow automation and business process management
+  - **SEPARATED ADMIN FUNCTIONALITY**: Workflows and SLAs now have dedicated pages with focused management capabilities
+
 - **2025-01-17**: Complete Security Vulnerability Remediation and Module Refactoring
   - **Security Vulnerability Elimination**: Fixed all hardcoded credentials in TokenService.ts and authSecurity.ts routes by implementing secure fallback secret generation
   - **Large File Modularization**: Refactored IntegrityControlService.ts from 989 lines to 329 lines by extracting SecurityAnalyzer and CodeQualityAnalyzer modules

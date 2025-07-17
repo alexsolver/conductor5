@@ -21,10 +21,10 @@ export default function TenantAdminWorkflows() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Workflows & SLAs
+                Gestão de Workflows
               </h1>
               <p className="text-gray-600 mt-2">
-                Configurar workflows automatizados e níveis de serviço
+                Configurar workflows automatizados e regras de negócio
               </p>
             </div>
             <Dialog>

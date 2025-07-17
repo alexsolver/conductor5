@@ -29,6 +29,7 @@ import SaasAdminBilling from "./pages/SaasAdminBilling";
 import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
 import TenantAdminTeam from "./pages/TenantAdminTeam";
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
+import TenantAdminSLAs from "./pages/TenantAdminSLAs";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import TicketConfiguration from "./pages/TicketConfiguration";
 import NotFound from "./pages/not-found";
@@ -80,6 +81,7 @@ function AppRouter() {
         <Route path="/tenant-admin" component={TenantAdmin} />
         <Route path="/tenant-admin/team" component={TenantAdminTeam} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
+        <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />

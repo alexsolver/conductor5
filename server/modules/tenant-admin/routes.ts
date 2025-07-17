@@ -230,4 +230,127 @@ router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), as
   }
 });
 
+/**
+ * GET /api/tenant-admin/slas
+ * Obter SLAs do tenant
+ */
+router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    // Simular dados de SLA por enquanto
+    const slas = [
+      {
+        id: '1',
+        name: 'Suporte Crítico',
+        priority: 'critica',
+        responseTime: 1,
+        resolutionTime: 4,
+        timeUnit: 'hours',
+        category: 'Hardware',
+        description: 'SLA para problemas críticos de hardware',
+        active: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: '2',
+        name: 'Suporte Padrão',
+        priority: 'media',
+        responseTime: 4,
+        resolutionTime: 24,
+        timeUnit: 'hours',
+        category: 'Software',
+        description: 'SLA padrão para solicitações de software',
+        active: true,
+        createdAt: new Date().toISOString()
+      }
+    ];
+    
+    res.json({ slas });
+  } catch (error) {
+    console.error('Error fetching SLAs:', error);
+    res.status(500).json({ message: 'Failed to fetch SLAs' });
+  }
+});
+
+/**
+ * POST /api/tenant-admin/slas
+ * Criar novo SLA
+ */
+router.post('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { name, priority, responseTime, resolutionTime, timeUnit, category, description, active } = req.body;
+    
+    if (!name || !priority || !responseTime || !resolutionTime || !timeUnit) {
+      return res.status(400).json({ message: 'Required fields missing' });
+    }
+
+    // Simular criação de SLA
+    const newSLA = {
+      id: Math.random().toString(36).substr(2, 9),
+      name,
+      priority,
+      responseTime,
+      resolutionTime,
+      timeUnit,
+      category: category || null,
+      description: description || null,
+      active: active !== undefined ? active : true,
+      tenantId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    res.status(201).json(newSLA);
+  } catch (error) {
+    console.error('Error creating SLA:', error);
+    res.status(500).json({ message: 'Failed to create SLA' });
+  }
+});
+
+/**
+ * GET /api/tenant-admin/sla-metrics
+ * Métricas de SLA do tenant
+ */
+router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    // Simular métricas de SLA
+    const metrics = {
+      totalSLAs: 5,
+      activeSLAs: 4,
+      averageCompliance: 87,
+      criticalBreaches: 2,
+      responseTimeAverage: '2.4h',
+      resolutionTimeAverage: '18.6h',
+      complianceByPriority: {
+        critica: 95,
+        alta: 89,
+        media: 85,
+        baixa: 92
+      }
+    };
+    
+    res.json(metrics);
+  } catch (error) {
+    console.error('Error fetching SLA metrics:', error);
+    res.status(500).json({ message: 'Failed to fetch SLA metrics' });
+  }
+});
+
 export default router;
