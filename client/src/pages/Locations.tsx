@@ -412,9 +412,8 @@ export default function Locations() {
                         )}
                       />
                     </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="advanced" className="space-y-4">
+                    
+                    {/* Coordenadas na aba de Endereço */}
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -438,6 +437,7 @@ export default function Locations() {
                                   size="sm"
                                   onClick={() => setIsMapDialogOpen(true)}
                                   className="px-3"
+                                  title="Buscar no mapa"
                                 >
                                   <Map className="h-4 w-4" />
                                 </Button>
@@ -469,6 +469,7 @@ export default function Locations() {
                                   size="sm"
                                   onClick={() => setIsMapDialogOpen(true)}
                                   className="px-3"
+                                  title="Buscar no mapa"
                                 >
                                   <Map className="h-4 w-4" />
                                 </Button>
@@ -479,6 +480,9 @@ export default function Locations() {
                         )}
                       />
                     </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="advanced" className="space-y-4">
                     <FormField
                       control={form.control}
                       name="accessInstructions"
@@ -552,6 +556,15 @@ export default function Locations() {
             <MapSelector 
               initialLat={form.getValues('latitude') || -23.5505}
               initialLng={form.getValues('longitude') || -46.6333}
+              addressData={{
+                address: form.getValues('address'),
+                number: form.getValues('number'),
+                neighborhood: form.getValues('neighborhood'),
+                city: form.getValues('city'),
+                state: form.getValues('state'),
+                zipCode: form.getValues('zipCode'),
+                country: form.getValues('country')
+              }}
               onLocationSelect={(lat, lng) => {
                 form.setValue('latitude', lat);
                 form.setValue('longitude', lng);

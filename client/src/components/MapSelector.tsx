@@ -7,6 +7,15 @@ import { useToast } from '@/hooks/use-toast';
 interface MapSelectorProps {
   initialLat: number;
   initialLng: number;
+  addressData?: {
+    address?: string;
+    number?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
   onLocationSelect: (lat: number, lng: number) => void;
 }
 
@@ -17,7 +26,7 @@ interface SearchResult {
   importance: number;
 }
 
-function MapSelector({ initialLat, initialLng, onLocationSelect }: MapSelectorProps) {
+function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: MapSelectorProps) {
   const [selectedLat, setSelectedLat] = useState(initialLat);
   const [selectedLng, setSelectedLng] = useState(initialLng);
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,14 +34,38 @@ function MapSelector({ initialLat, initialLng, onLocationSelect }: MapSelectorPr
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Initialize search query with address data if available
+  useEffect(() => {
+    if (addressData) {
+      const addressParts = [
+        addressData.address,
+        addressData.number,
+        addressData.neighborhood,
+        addressData.city,
+        addressData.state,
+        addressData.zipCode
+      ].filter(Boolean);
+      
+      if (addressParts.length > 0) {
+        const fullAddress = addressParts.join(', ');
+        setSearchQuery(fullAddress);
+        
+        // Automatically search for the location if address is provided
+        if (addressParts.length >= 2) { // At least 2 address components
+          searchLocationByQuery(fullAddress);
+        }
+      }
+    }
+  }, [addressData]);
+
   // Search for locations using Nominatim API
-  const searchLocation = async () => {
-    if (!searchQuery.trim()) return;
+  const searchLocationByQuery = async (query: string) => {
+    if (!query.trim()) return;
 
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=br&addressdetails=1`
       );
       
       if (!response.ok) {
@@ -71,6 +104,8 @@ function MapSelector({ initialLat, initialLng, onLocationSelect }: MapSelectorPr
       setIsSearching(false);
     }
   };
+
+  const searchLocation = () => searchLocationByQuery(searchQuery);
 
   // Get current location using browser geolocation
   const getCurrentLocation = () => {
