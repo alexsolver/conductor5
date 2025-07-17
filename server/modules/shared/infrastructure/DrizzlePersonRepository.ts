@@ -1,5 +1,5 @@
 // Drizzle implementation of person repository
-import { eq, or, ilike, and } from "drizzle-orm";
+import { eq, or, ilike, and, sql } from "drizzle-orm";
 import { db } from "../../../db";
 import { users, customers } from "@shared/schema";
 import { IPersonRepository, Person, PersonSearchOptions } from "../repositories/IPersonRepository";
@@ -10,6 +10,9 @@ export class DrizzlePersonRepository implements IPersonRepository {
     const people: Person[] = [];
 
     try {
+      // Sanitize and prepare search pattern
+      const searchPattern = `%${query.replace(/[%_]/g, '\\$&')}%`;
+      
       // Search users if included in types
       if (types.includes('user')) {
         const userResults = await db
@@ -24,9 +27,9 @@ export class DrizzlePersonRepository implements IPersonRepository {
             and(
               eq(users.tenantId, tenantId),
               or(
-                ilike(users.firstName, `%${query}%`),
-                ilike(users.lastName, `%${query}%`),
-                ilike(users.email, `%${query}%`)
+                sql`${users.firstName} ILIKE ${searchPattern}`,
+                sql`${users.lastName} ILIKE ${searchPattern}`,
+                sql`${users.email} ILIKE ${searchPattern}`
               )
             )
           )
@@ -58,9 +61,9 @@ export class DrizzlePersonRepository implements IPersonRepository {
             and(
               eq(customers.tenantId, tenantId),
               or(
-                ilike(customers.firstName, `%${query}%`),
-                ilike(customers.lastName, `%${query}%`),
-                ilike(customers.email, `%${query}%`)
+                sql`${customers.firstName} ILIKE ${searchPattern}`,
+                sql`${customers.lastName} ILIKE ${searchPattern}`,
+                sql`${customers.email} ILIKE ${searchPattern}`
               )
             )
           )

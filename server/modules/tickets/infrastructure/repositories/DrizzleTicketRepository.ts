@@ -4,7 +4,7 @@
  * Implements ITicketRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, or } from 'drizzle-orm';
+import { eq, and, ilike, count, or, sql } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
 import { tickets } from '@shared/schema';
@@ -44,14 +44,16 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async findMany(filter: TicketFilter): Promise<Ticket[]> {
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
-    // Apply filters
+    // Apply filters with sanitized search
     if (filter.search) {
+      // Sanitize search input to prevent SQL injection
+      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          ilike(tickets.subject, `%${filter.search}%`),
-          ilike(tickets.description, `%${filter.search}%`),
-          ilike(tickets.number, `%${filter.search}%`),
-          ilike(tickets.shortDescription, `%${filter.search}%`)
+          sql`${tickets.subject} ILIKE ${searchPattern}`,
+          sql`${tickets.description} ILIKE ${searchPattern}`,
+          sql`${tickets.number} ILIKE ${searchPattern}`,
+          sql`${tickets.shortDescription} ILIKE ${searchPattern}`
         )!
       );
     }
