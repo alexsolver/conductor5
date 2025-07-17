@@ -14,32 +14,34 @@ import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
 import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
+import integrityRoutes from './routes/integrityRoutes';
+import systemScanRoutes from './routes/systemScanRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
-  
+
   // Apply CSP middleware
   app.use(createCSPMiddleware({
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     nonce: true
   }));
-  
+
   // Apply rate limiting middleware
   app.use('/api/auth/login', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
   app.use('/api/auth/register', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
   app.use('/api/auth/password-reset', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
   app.use('/api', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL));
-  
+
   // Apply feature flag middleware
   app.use(createFeatureFlagMiddleware());
-  
+
   // CSP reporting endpoint
   app.post('/api/csp-report', createCSPReportingEndpoint());
-  
+
   // CSP management routes (admin only)
   app.use('/api/csp', requirePermission('platform', 'manage_security'), createCSPManagementRoutes());
-  
+
   // Feature flags routes
   app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -50,14 +52,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAttributes: req.user,
         tenantAttributes: req.tenant
       };
-      
+
       const flags = await featureFlagService.getAllFlags(context);
       res.json({ flags });
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch feature flags' });
     }
   });
-  
+
   app.get('/api/feature-flags/:flagId', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { featureFlagService } = await import('./services/featureFlagService');
@@ -67,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAttributes: req.user,
         tenantAttributes: req.tenant
       };
-      
+
       const isEnabled = await featureFlagService.isEnabled(req.params.flagId, context);
       res.json({ flagId: req.params.flagId, enabled: isEnabled });
     } catch (error) {
@@ -84,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch permissions' });
     }
   });
-  
+
   app.get('/api/rbac/roles', jwtAuth, requirePermission('platform', 'manage_security'), async (req: AuthenticatedRequest, res) => {
     try {
       const { ROLE_PERMISSIONS } = await import('./middleware/rbacMiddleware');
@@ -93,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch roles' });
     }
   });
-  
+
   app.get('/api/rbac/user-permissions/:userId', jwtAuth, requirePermission('platform', 'manage_users'), async (req: AuthenticatedRequest, res) => {
     try {
       const { rbacService } = await import('./middleware/rbacMiddleware');
@@ -114,10 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { ticketsRouter } = await import('./modules/tickets/routes');
   const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
-  
+
   // Module Integrity Control System
-  const { integrityRouter } = await import('./routes/integrityRoutes');
-  
+
   // Initialize clean architecture (for future migration)
   // await setupCustomerDependencies();
 
@@ -127,7 +128,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/tickets', ticketsRouter);
   app.use('/api/knowledge-base', knowledgeBaseRouter);
   app.use('/api/people', peopleRouter);
-  app.use('/api/integrity', integrityRouter);
+  app.use('/api/integrity', integrityRoutes);
+  app.use('/api/system', systemScanRoutes);
 
   // Import and mount locations routes
   const { default: locationsRouter } = await import('./modules/locations/routes');
@@ -171,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tenants/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { tenantId } = req.params;
-      
+
       // Only allow users to fetch their own tenant data (or SaaS admins)
       if (req.user?.role !== 'saas_admin' && req.user?.tenantId !== tenantId) {
         return res.status(403).json({ message: 'Access denied' });
@@ -179,7 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const container = (await import('./application/services/DependencyContainer')).DependencyContainer.getInstance();
       const tenantRepository = container.tenantRepository;
-      
+
       const tenant = await tenantRepository.findById(tenantId);
       if (!tenant) {
         return res.status(404).json({ message: 'Tenant not found' });
@@ -206,10 +208,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { tenantId } = req.params;
-      
+
       // Initialize tenant schema
       await storage.initializeTenantSchema(tenantId);
-      
+
       res.json({ message: `Schema initialized for tenant ${tenantId}` });
     } catch (error) {
       console.error("Error initializing schema:", error);
@@ -222,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User management routes
   app.use('/api/user-management', userManagementRoutes);
-  
+
   // Tenant admin team management routes
   app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
 
@@ -231,14 +233,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
       const tenantDb = await schemaManager.getTenantDatabase(tenantId);
       const { customerLocations, locations } = await import('@shared/schema');
-      
+
       const customerLocationsList = await tenantDb
         .select({
           locationId: customerLocations.locationId,
@@ -261,14 +263,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { customerId } = req.params;
       const { locationId, isPrimary } = req.body;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
       const tenantDb = await schemaManager.getTenantDatabase(tenantId);
       const { customerLocations } = await import('@shared/schema');
-      
+
       // Check if association already exists
       const existing = await tenantDb
         .select()
@@ -309,14 +311,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { customerId, locationId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
       const tenantDb = await schemaManager.getTenantDatabase(tenantId);
       const { customerLocations } = await import('@shared/schema');
-      
+
       await tenantDb
         .delete(customerLocations)
         .where(and(
