@@ -162,32 +162,47 @@ export class DatabaseStorage implements IStorage {
     await schemaManager.createTenantSchema(tenantId);
   }
 
-  // Customer operations (using tenant-specific schema)
+  // Customer operations using secure parameterized queries
   async getCustomers(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    const results = await tenantDb
-      .select()
-      .from(tenantCustomers)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(tenantCustomers.createdAt));
-    
-    // Add tenantId to each result since it's stored in the public.users table
-    return results.map(customer => ({ ...customer, tenantId }));
+    try {
+      const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Use parameterized query with sql.identifier for security
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.customers 
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+      
+      // Map results and add tenantId
+      return result.rows.map((row: any) => ({ ...row, tenantId }));
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError('Error fetching customers', error, { tenantId, limit, offset });
+      throw error;
+    }
   }
 
   async getCustomer(id: string, tenantId: string): Promise<Customer | undefined> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    const [customer] = await tenantDb
-      .select()
-      .from(tenantCustomers)
-      .where(eq(tenantCustomers.id, id));
-    
-    return customer ? { ...customer, tenantId } : undefined;
+    try {
+      const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Use parameterized query for security
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.customers 
+        WHERE id = ${id}
+        LIMIT 1
+      `);
+      
+      const customer = result.rows[0];
+      return customer ? { ...customer, tenantId } : undefined;
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError('Error fetching customer', error, { id, tenantId });
+      throw error;
+    }
   }
 
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
@@ -244,45 +259,70 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  // Ticket operations
+  // Ticket operations using secure parameterized queries
   async getTickets(tenantId: string, limit = 50, offset = 0): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
-    const { db: tenantDb, schema: tenantSchema } = schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    const results = await db
-      .select({
-        ticket: tickets,
-        assignedTo: users,
-      })
-      .from(tickets)
-      .leftJoin(users, eq(tickets.assignedToId, users.id))
-      .where(eq(tickets.tenantId, tenantId))
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(tickets.createdAt));
-
-    // Fetch customer data from tenant schema for each ticket
-    const ticketsWithCustomers = await Promise.all(
-      results.map(async (row) => {
-        const [customer] = await tenantDb
-          .select()
-          .from(tenantCustomers)
-          .where(eq(tenantCustomers.id, row.ticket.customerId));
-        
-        return {
-          ...row.ticket,
-          customer: customer ? { ...customer, tenantId } : {
-            id: row.ticket.customerId,
-            fullName: `ID: ${row.ticket.customerId.slice(-8)}`,
-            email: 'unknown@example.com',
-            tenantId
-          },
-          assignedTo: row.assignedTo || undefined
-        };
-      })
-    );
-
-    return ticketsWithCustomers;
+    try {
+      const { db: tenantDb } = schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get tickets using parameterized query
+      const ticketResult = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.tickets
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+      
+      // Get customers for each ticket
+      const ticketsWithCustomers = await Promise.all(
+        ticketResult.rows.map(async (ticket: any) => {
+          let customer = null;
+          if (ticket.customer_id) {
+            try {
+              const customerResult = await tenantDb.execute(sql`
+                SELECT * FROM ${sql.identifier(schemaName)}.customers 
+                WHERE id = ${ticket.customer_id}
+                LIMIT 1
+              `);
+              customer = customerResult.rows[0];
+            } catch (error) {
+              // Customer not found - use fallback
+            }
+          }
+          
+          // Get assigned user from public schema if exists
+          let assignedTo = null;
+          if (ticket.assigned_to_id) {
+            try {
+              const userResult = await db.execute(sql`
+                SELECT * FROM public.users 
+                WHERE id = ${ticket.assigned_to_id}
+                LIMIT 1
+              `);
+              assignedTo = userResult.rows[0];
+            } catch (error) {
+              // User not found - continue without
+            }
+          }
+          
+          return {
+            ...ticket,
+            customer: customer ? { ...customer, tenantId } : {
+              id: ticket.customer_id || 'unknown',
+              fullName: `ID: ${(ticket.customer_id || '').slice(-8)}`,
+              email: 'unknown@example.com',
+              tenantId
+            },
+            assignedTo: assignedTo || undefined
+          };
+        })
+      );
+      
+      return ticketsWithCustomers;
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError('Error fetching tickets', error, { tenantId, limit, offset });
+      throw error;
+    }
   }
 
   async getTicket(id: string, tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User; messages: (TicketMessage & { author?: User; customer?: Customer })[] }) | undefined> {
