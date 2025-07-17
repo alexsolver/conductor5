@@ -143,25 +143,34 @@ export default function TicketConfiguration() {
   // Data queries
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ['/api/ticket-config/categories'],
-    queryFn: () => apiRequest('/api/ticket-config/categories')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-config/categories');
+      return response.json();
+    }
   });
 
   const { data: statuses = [], isLoading: statusesLoading } = useQuery({
     queryKey: ['/api/ticket-config/statuses'],
-    queryFn: () => apiRequest('/api/ticket-config/statuses')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-config/statuses');
+      return response.json();
+    }
   });
 
   const { data: priorities = [], isLoading: prioritiesLoading } = useQuery({
     queryKey: ['/api/ticket-config/priorities'],
-    queryFn: () => apiRequest('/api/ticket-config/priorities')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-config/priorities');
+      return response.json();
+    }
   });
 
   // Mutations
   const createCategoryMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/ticket-config/categories', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/ticket-config/categories', data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/categories'] });
       setIsDialogOpen(false);
@@ -171,10 +180,10 @@ export default function TicketConfiguration() {
   });
 
   const updateCategoryMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => apiRequest(`/api/ticket-config/categories/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest('PUT', `/api/ticket-config/categories/${id}`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/categories'] });
       setIsDialogOpen(false);
@@ -184,10 +193,10 @@ export default function TicketConfiguration() {
   });
 
   const createStatusMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/ticket-config/statuses', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/ticket-config/statuses', data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/statuses'] });
       setIsDialogOpen(false);
