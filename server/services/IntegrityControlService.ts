@@ -371,13 +371,22 @@ export class IntegrityControlService {
           asyncFunctionMatches.forEach(match => {
             const functionStart = content.indexOf(match);
             const functionBlock = this.extractFunctionBlock(content, functionStart);
+            const lines = content.split('\n');
+            const lineIndex = lines.findIndex(line => line.includes(match));
             
             if (functionBlock && !functionBlock.includes('try') && !functionBlock.includes('catch')) {
+              // Check if it's a critical async function (database, auth, file operations)
+              const isCritical = functionBlock.includes('db.') || 
+                               functionBlock.includes('auth') || 
+                               functionBlock.includes('fs.') ||
+                               functionBlock.includes('await');
+              
               issues.push({
-                type: 'warning',
-                description: 'Função async sem tratamento de erro',
+                type: isCritical ? 'error' : 'warning',
+                line: lineIndex + 1,
+                description: `Função async ${isCritical ? 'crítica ' : ''}sem tratamento de erro`,
                 problemFound: `Função async "${match}" sem try/catch`,
-                correctionPrompt: `Adicione tratamento de erro adequado na função async no arquivo ${filePath}. Envolva o código em try/catch e implemente tratamento apropriado para erros potenciais.`
+                correctionPrompt: `${isCritical ? 'CRÍTICO: ' : ''}Adicione tratamento de erro adequado na função async no arquivo ${filePath} linha ${lineIndex + 1}. Envolva o código em try/catch e implemente tratamento apropriado para erros potenciais${isCritical ? ', especialmente para operações de banco de dados e autenticação' : ''}.`
               });
             }
           });
@@ -385,41 +394,79 @@ export class IntegrityControlService {
 
         // Check for hardcoded values that should be environment variables
         const hardcodedPatterns = [
-          { pattern: /(https?:\/\/localhost:\d+)/g, type: 'URL local hardcoded' },
-          { pattern: /(api_key|secret|password)\s*[:=]\s*['"][^'"]+['"]/gi, type: 'Credenciais hardcoded' },
-          { pattern: /port\s*[:=]\s*\d{4,5}/gi, type: 'Porta hardcoded' }
+          { pattern: /(https?:\/\/localhost:\d+)/g, type: 'URL local hardcoded', severity: 'warning' },
+          { pattern: /(api_key|secret|password)\s*[:=]\s*['"][^'"]+['"]/gi, type: 'Credenciais hardcoded', severity: 'error' },
+          { pattern: /port\s*[:=]\s*\d{4,5}/gi, type: 'Porta hardcoded', severity: 'warning' },
+          { pattern: /(jwt_secret|database_url|redis_url)\s*[:=]\s*['"][^'"]+['"]/gi, type: 'Configuração sensível hardcoded', severity: 'error' }
         ];
 
-        hardcodedPatterns.forEach(({ pattern, type }) => {
+        hardcodedPatterns.forEach(({ pattern, type, severity }) => {
           const matches = content.match(pattern);
           if (matches) {
             matches.forEach(match => {
+              const lines = content.split('\n');
+              const lineIndex = lines.findIndex(line => line.includes(match));
               issues.push({
-                type: 'warning',
+                type: severity as 'error' | 'warning',
+                line: lineIndex + 1,
                 description: `${type} encontrado`,
                 problemFound: match,
-                correctionPrompt: `Mova o valor hardcoded "${match}" no arquivo ${filePath} para uma variável de ambiente. Crie uma variável no .env e use process.env.VARIABLE_NAME para acessá-la.`
+                correctionPrompt: `${severity === 'error' ? 'CRÍTICO: ' : ''}Mova o valor hardcoded "${match}" no arquivo ${filePath} linha ${lineIndex + 1} para uma variável de ambiente. Crie uma variável no .env e use process.env.VARIABLE_NAME para acessá-la.`
               });
             });
           }
         });
 
-        // Check for SQL injection vulnerabilities
+        // Check for input validation vulnerabilities
+        const inputValidationIssues = [
+          { pattern: /req\.(body|query|params)\.[^;]*(?!.*validate|.*zod|.*joi)/g, desc: 'Input sem validação detectado' },
+          { pattern: /parseInt\(req\.(body|query|params)/g, desc: 'parseInt em input sem validação' },
+          { pattern: /JSON\.parse\(req\.(body|query|params)/g, desc: 'JSON.parse em input sem validação' },
+          { pattern: /req\.(body|query|params)\..*\.includes\(/g, desc: 'Uso direto de input em operações de string' }
+        ];
+
+        inputValidationIssues.forEach(({ pattern, desc }) => {
+          const matches = content.match(pattern);
+          if (matches) {
+            matches.forEach(match => {
+              const lines = content.split('\n');
+              const lineIndex = lines.findIndex(line => line.includes(match));
+              issues.push({
+                type: 'error',
+                line: lineIndex + 1,
+                description: desc,
+                problemFound: match,
+                correctionPrompt: `SEGURANÇA: Adicione validação de entrada no arquivo ${filePath} linha ${lineIndex + 1}. Use schemas Zod ou similar para validar todos os inputs antes de usar. Exemplo: const validatedData = schema.parse(req.body);`
+              });
+            });
+          }
+        });
+
+        // Check for SQL injection vulnerabilities with improved detection
         if (content.includes('SELECT') || content.includes('INSERT') || content.includes('UPDATE') || content.includes('DELETE')) {
           const sqlInjectionPatterns = [
-            /\$\{.*\}.*SELECT|INSERT|UPDATE|DELETE/gi,
-            /['"].*\+.*['"].*SELECT|INSERT|UPDATE|DELETE/gi
+            // Template literals with variables in SQL
+            { pattern: /sql`[^`]*\$\{[^}]+\}[^`]*(SELECT|INSERT|UPDATE|DELETE)/gi, severity: 'error' },
+            // String concatenation in SQL
+            { pattern: /(['"][^'"]*\+[^'"]*['"][^'"]*)(SELECT|INSERT|UPDATE|DELETE)/gi, severity: 'error' },
+            // Raw SQL with ILIKE vulnerabilities
+            { pattern: /sql`[^`]*ILIKE[^`]*\$\{[^}]+\}/gi, severity: 'error' },
+            // Unparameterized queries
+            { pattern: /(db\.execute\(sql`[^`]*\$\{[^}]+\})/gi, severity: 'error' }
           ];
           
-          sqlInjectionPatterns.forEach(pattern => {
+          sqlInjectionPatterns.forEach(({ pattern, severity }) => {
             const matches = content.match(pattern);
             if (matches) {
               matches.forEach(match => {
+                const lines = content.split('\n');
+                const lineIndex = lines.findIndex(line => line.includes(match.substring(0, 50)));
                 issues.push({
-                  type: 'error',
-                  description: 'Potencial vulnerabilidade de SQL injection',
-                  problemFound: match,
-                  correctionPrompt: `Corrija a vulnerabilidade de SQL injection no arquivo ${filePath}. Use queries parametrizadas com Drizzle ORM ou prepared statements ao invés de concatenação de strings em queries SQL.`
+                  type: severity as 'error' | 'warning',
+                  line: lineIndex + 1,
+                  description: 'Vulnerabilidade de SQL injection detectada',
+                  problemFound: match.substring(0, 100) + (match.length > 100 ? '...' : ''),
+                  correctionPrompt: `CRÍTICO: Corrija a vulnerabilidade de SQL injection no arquivo ${filePath} linha ${lineIndex + 1}. Substitua por: 1) Use ilike() para buscas ao invés de sql\`ILIKE\`, 2) Use eq(), ne(), inArray() para comparações, 3) Use count() ao invés de sql\`count(*)\`, 4) Use sql.identifier() para nomes de schema/tabela seguros.`
                 });
               });
             }
@@ -431,15 +478,67 @@ export class IntegrityControlService {
           const infrastructureImports = content.match(/import.*from.*['"].*infrastructure.*['"];?/g);
           if (infrastructureImports) {
             infrastructureImports.forEach(importStatement => {
+              const lines = content.split('\n');
+              const lineIndex = lines.findIndex(line => line.includes(importStatement));
               issues.push({
                 type: 'error',
+                line: lineIndex + 1,
                 description: 'Violação da regra de dependência - Domain importando Infrastructure',
                 problemFound: importStatement,
-                correctionPrompt: `Corrija a violação de Clean Architecture no arquivo ${filePath}. A camada Domain não deve importar Infrastructure. Mova a lógica para a camada Application ou crie uma interface na camada Domain que seja implementada na Infrastructure.`
+                correctionPrompt: `Corrija a violação de Clean Architecture no arquivo ${filePath} linha ${lineIndex + 1}. A camada Domain não deve importar Infrastructure. Mova a lógica para a camada Application ou crie uma interface na camada Domain que seja implementada na Infrastructure.`
               });
             });
           }
         }
+
+        // Check for security vulnerabilities - Unsafe file operations
+        const unsafeFileOperations = [
+          { pattern: /fs\.readFile\([^,)]*\$\{[^}]+\}/g, desc: 'Operação de arquivo insegura com input dinâmico' },
+          { pattern: /fs\.writeFile\([^,)]*\$\{[^}]+\}/g, desc: 'Escrita de arquivo insegura com input dinâmico' },
+          { pattern: /path\.join\([^)]*\$\{[^}]+\}/g, desc: 'Path traversal potencial com input dinâmico' },
+          { pattern: /exec\([^)]*\$\{[^}]+\}/g, desc: 'Execução de comando insegura com input dinâmico' }
+        ];
+
+        unsafeFileOperations.forEach(({ pattern, desc }) => {
+          const matches = content.match(pattern);
+          if (matches) {
+            matches.forEach(match => {
+              const lines = content.split('\n');
+              const lineIndex = lines.findIndex(line => line.includes(match));
+              issues.push({
+                type: 'error',
+                line: lineIndex + 1,
+                description: desc,
+                problemFound: match,
+                correctionPrompt: `SEGURANÇA: Corrija a vulnerabilidade no arquivo ${filePath} linha ${lineIndex + 1}. Valide e sanitize todos os inputs antes de usar em operações de arquivo/sistema. Use bibliotecas como path.resolve() para prevenir path traversal.`
+              });
+            });
+          }
+        });
+
+        // Check for authentication/authorization vulnerabilities
+        const authVulnerabilities = [
+          { pattern: /jwt\.sign\([^,)]*,\s*['"][^'"]*['"](?!\s*,\s*\{[^}]*expiresIn)/g, desc: 'JWT sem expiração configurada' },
+          { pattern: /bcrypt\.hash\([^,)]*,\s*[1-9](?![0-9])\)/g, desc: 'Bcrypt com salt rounds insuficientes (< 10)' },
+          { pattern: /req\.session\.[^=]*=.*req\.(body|query|params)/g, desc: 'Sessão definida diretamente com input do usuário' }
+        ];
+
+        authVulnerabilities.forEach(({ pattern, desc }) => {
+          const matches = content.match(pattern);
+          if (matches) {
+            matches.forEach(match => {
+              const lines = content.split('\n');
+              const lineIndex = lines.findIndex(line => line.includes(match));
+              issues.push({
+                type: 'error',
+                line: lineIndex + 1,
+                description: desc,
+                problemFound: match,
+                correctionPrompt: `SEGURANÇA: Corrija a vulnerabilidade de autenticação no arquivo ${filePath} linha ${lineIndex + 1}. Para JWT: adicione expiresIn. Para bcrypt: use salt >= 10. Para sessões: valide dados antes de armazenar.`
+              });
+            });
+          }
+        });
       }
 
       // Check for large files (over 500 lines)
