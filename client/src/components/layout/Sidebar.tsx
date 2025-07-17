@@ -42,7 +42,6 @@ const baseNavigation = [
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Locais", href: "/locations", icon: MapPin },
-  { name: "Gestão de Usuários", href: "/user-management", icon: UserCog },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
   { name: "Roadmap", href: "/roadmap", icon: Map },
@@ -64,6 +63,7 @@ const adminNavigation = [
       { name: "Disaster Recovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
       { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
       { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages },
+      { name: "Gestão de Usuários", href: "/user-management", icon: UserCog },
       { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },
       { name: "Controle de Integridade", href: "/module-integrity", icon: Shield },
     ]

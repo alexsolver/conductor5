@@ -66,7 +66,11 @@ interface EnhancedUser {
   sessions?: Array<{ id: string; isActive: boolean; lastActivity: string }>;
 }
 
-export function UserList() {
+interface UserListProps {
+  tenantAdmin?: boolean;
+}
+
+export function UserList({ tenantAdmin = false }: UserListProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -74,9 +78,11 @@ export function UserList() {
   const [selectedUser, setSelectedUser] = useState<EnhancedUser | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
 
-  // Fetch users from tenant admin API
-  const { data: usersData, isLoading } = useQuery<{ users: any[] }>({
-    queryKey: ["/api/tenant-admin/users"],
+  // Fetch users (different endpoint for tenant admin vs saas admin)
+  const apiEndpoint = tenantAdmin ? "/api/tenant-admin/team/users" : "/api/user-management/users";
+  const { data: usersData, isLoading } = useQuery<{ users: EnhancedUser[] }>({
+    queryKey: [apiEndpoint],
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Enhanced user details query

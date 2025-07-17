@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 interface CreateUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  tenantAdmin?: boolean;
 }
 
 interface UserGroup {
@@ -43,7 +44,7 @@ interface CustomRole {
   description?: string;
 }
 
-export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) {
+export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: CreateUserDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

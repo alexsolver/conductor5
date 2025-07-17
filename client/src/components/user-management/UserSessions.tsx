@@ -54,7 +54,11 @@ interface UserSession {
   };
 }
 
-export function UserSessions() {
+interface UserSessionsProps {
+  tenantAdmin?: boolean;
+}
+
+export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

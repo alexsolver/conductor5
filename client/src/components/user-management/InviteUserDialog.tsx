@@ -31,6 +31,7 @@ import { addDays, format } from "date-fns";
 interface InviteUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  tenantAdmin?: boolean;
 }
 
 interface UserGroup {
@@ -39,7 +40,7 @@ interface UserGroup {
   description?: string;
 }
 
-export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
+export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: InviteUserDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

@@ -29,7 +29,11 @@ interface UserGroup {
   memberships?: Array<{ id: string; userId: string; role: string }>;
 }
 
-export function UserGroups() {
+interface UserGroupsProps {
+  tenantAdmin?: boolean;
+}
+
+export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

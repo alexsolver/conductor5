@@ -637,6 +637,338 @@ export class UserManagementService {
       recentActivity
     };
   }
+
+  // ================ TENANT ADMIN TEAM MANAGEMENT METHODS ================
+  // These methods are specifically for tenant admins to manage their team
+  // They exclude SaaS admin users and operations
+
+  async getTenantTeamStats(tenantId: string): Promise<{
+    totalUsers: number;
+    activeUsers: number;
+    pendingInvitations: number;
+    activeSessions: number;
+    roleDistribution: Record<string, number>;
+  }> {
+    try {
+      // Get total users (excluding saas_admin)
+      const [totalUsersResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(and(
+          eq(users.tenantId, tenantId),
+          sql`${users.role} != 'saas_admin'`
+        ));
+
+      // Get active users (logged in last 30 days, excluding saas_admin)
+      const [activeUsersResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(and(
+          eq(users.tenantId, tenantId),
+          eq(users.isActive, true),
+          sql`${users.role} != 'saas_admin'`
+        ));
+
+      // Get pending invitations for this tenant
+      const [pendingInvitationsResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(userInvitations)
+        .where(and(
+          eq(userInvitations.tenantId, tenantId),
+          eq(userInvitations.status, 'pending'),
+          sql`${userInvitations.expiresAt} > NOW()`
+        ));
+
+      // Get active sessions for tenant users (excluding saas_admin)
+      const activeSessionsResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(activeSessions)
+        .innerJoin(users, eq(activeSessions.userId, users.id))
+        .where(and(
+          eq(users.tenantId, tenantId),
+          eq(activeSessions.isActive, true),
+          sql`${users.role} != 'saas_admin'`
+        ));
+
+      // Get role distribution for tenant users (excluding saas_admin)
+      const roleDistributionResult = await db
+        .select({
+          role: users.role,
+          count: sql<number>`count(*)`
+        })
+        .from(users)
+        .where(and(
+          eq(users.tenantId, tenantId),
+          sql`${users.role} != 'saas_admin'`
+        ))
+        .groupBy(users.role);
+
+      const roleDistribution: Record<string, number> = {};
+      roleDistributionResult.forEach(row => {
+        roleDistribution[row.role] = row.count;
+      });
+
+      return {
+        totalUsers: totalUsersResult?.count || 0,
+        activeUsers: activeUsersResult?.count || 0,
+        pendingInvitations: pendingInvitationsResult?.count || 0,
+        activeSessions: activeSessionsResult[0]?.count || 0,
+        roleDistribution
+      };
+    } catch (error) {
+      console.error('Error fetching tenant team stats:', error);
+      throw new Error('Failed to fetch tenant team statistics');
+    }
+  }
+
+  async getTenantTeamMembers(tenantId: string): Promise<any[]> {
+    try {
+      const members = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+          isActive: users.isActive,
+          lastLogin: users.lastLogin,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(and(
+          eq(users.tenantId, tenantId),
+          sql`${users.role} != 'saas_admin'`
+        ))
+        .orderBy(asc(users.email));
+
+      return members;
+    } catch (error) {
+      console.error('Error fetching tenant team members:', error);
+      throw new Error('Failed to fetch tenant team members');
+    }
+  }
+
+  async getTenantUsers(tenantId: string, options: UserManagementOptions = {}): Promise<EnhancedUser[]> {
+    try {
+      // Get base user data (excluding saas_admin)
+      const baseUsers = await db
+        .select()
+        .from(users)
+        .where(and(
+          eq(users.tenantId, tenantId),
+          sql`${users.role} != 'saas_admin'`
+        ))
+        .orderBy(asc(users.email));
+
+      const enhancedUsers: EnhancedUser[] = [];
+
+      for (const user of baseUsers) {
+        const enhancedUser: EnhancedUser = {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          role: user.role,
+          tenantId: user.tenantId,
+          isActive: user.isActive,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt
+        };
+
+        // Add groups if requested
+        if (options.includeGroups) {
+          enhancedUser.groups = await this.getUserGroups(user.id);
+        }
+
+        // Add roles if requested
+        if (options.includeRoles) {
+          enhancedUser.roles = await this.getUserRoles(user.id);
+        }
+
+        // Add permissions if requested
+        if (options.includePermissions) {
+          enhancedUser.permissions = await this.getUserPermissions(user.id);
+        }
+
+        // Add sessions if requested
+        if (options.includeSessions) {
+          enhancedUser.sessions = await this.getUserActiveSessions(user.id);
+        }
+
+        // Add recent activity if requested
+        if (options.includeActivity) {
+          enhancedUser.recentActivity = await this.getUserRecentActivity(user.id, 10);
+        }
+
+        enhancedUsers.push(enhancedUser);
+      }
+
+      return enhancedUsers;
+    } catch (error) {
+      console.error('Error fetching tenant users:', error);
+      throw new Error('Failed to fetch tenant users');
+    }
+  }
+
+  async createTenantUser(tenantId: string, userData: any, createdByUserId: string): Promise<any> {
+    try {
+      // Ensure the role is not saas_admin
+      if (userData.role === 'saas_admin') {
+        throw new Error('Tenant admins cannot create SaaS admin users');
+      }
+
+      return await this.createUser({
+        ...userData,
+        tenantId
+      });
+    } catch (error) {
+      console.error('Error creating tenant user:', error);
+      throw new Error('Failed to create tenant user');
+    }
+  }
+
+  async updateTenantUser(userId: string, updateData: any, updatedByUserId: string): Promise<any> {
+    try {
+      // Get the user to verify tenant and role
+      const user = await storage.getUser(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Prevent modifications to saas_admin users
+      if (user.role === 'saas_admin' || updateData.role === 'saas_admin') {
+        throw new Error('Tenant admins cannot modify SaaS admin users');
+      }
+
+      return await this.updateUser(userId, updateData);
+    } catch (error) {
+      console.error('Error updating tenant user:', error);
+      throw new Error('Failed to update tenant user');
+    }
+  }
+
+  async createTenantInvitation(tenantId: string, invitationData: any, invitedByUserId: string): Promise<any> {
+    try {
+      // Ensure the role is not saas_admin
+      if (invitationData.role === 'saas_admin') {
+        throw new Error('Tenant admins cannot invite SaaS admin users');
+      }
+
+      return await this.inviteUser({
+        ...invitationData,
+        tenantId,
+        invitedByUserId
+      });
+    } catch (error) {
+      console.error('Error creating tenant invitation:', error);
+      throw new Error('Failed to create tenant invitation');
+    }
+  }
+
+  async getTenantUserGroups(tenantId: string): Promise<UserGroup[]> {
+    try {
+      return await db
+        .select()
+        .from(userGroups)
+        .where(eq(userGroups.tenantId, tenantId))
+        .orderBy(asc(userGroups.name));
+    } catch (error) {
+      console.error('Error fetching tenant user groups:', error);
+      throw new Error('Failed to fetch tenant user groups');
+    }
+  }
+
+  async getTenantCustomRoles(tenantId: string): Promise<CustomRole[]> {
+    try {
+      return await db
+        .select()
+        .from(customRoles)
+        .where(and(
+          eq(customRoles.tenantId, tenantId),
+          eq(customRoles.isSystem, false) // Exclude system-level roles
+        ))
+        .orderBy(asc(customRoles.name));
+    } catch (error) {
+      console.error('Error fetching tenant custom roles:', error);
+      throw new Error('Failed to fetch tenant custom roles');
+    }
+  }
+
+  async getTenantInvitations(tenantId: string): Promise<UserInvitation[]> {
+    try {
+      return await db
+        .select()
+        .from(userInvitations)
+        .where(eq(userInvitations.tenantId, tenantId))
+        .orderBy(desc(userInvitations.createdAt));
+    } catch (error) {
+      console.error('Error fetching tenant invitations:', error);
+      throw new Error('Failed to fetch tenant invitations');
+    }
+  }
+
+  async getTenantUserSessions(tenantId: string): Promise<any[]> {
+    try {
+      const sessions = await db
+        .select({
+          id: activeSessions.id,
+          userId: activeSessions.userId,
+          userEmail: users.email,
+          userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+          isActive: activeSessions.isActive,
+          lastActivity: activeSessions.lastActivity,
+          ipAddress: activeSessions.ipAddress,
+          userAgent: activeSessions.userAgent,
+          createdAt: activeSessions.createdAt
+        })
+        .from(activeSessions)
+        .innerJoin(users, eq(activeSessions.userId, users.id))
+        .where(and(
+          eq(users.tenantId, tenantId),
+          sql`${users.role} != 'saas_admin'`
+        ))
+        .orderBy(desc(activeSessions.lastActivity));
+
+      return sessions;
+    } catch (error) {
+      console.error('Error fetching tenant user sessions:', error);
+      throw new Error('Failed to fetch tenant user sessions');
+    }
+  }
+
+  async getTenantUserActivity(tenantId: string, days: number = 7): Promise<any[]> {
+    try {
+      const activity = await db
+        .select({
+          id: userActivityLog.id,
+          userId: userActivityLog.userId,
+          userEmail: users.email,
+          userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+          action: userActivityLog.action,
+          resourceType: userActivityLog.resourceType,
+          resourceId: userActivityLog.resourceId,
+          details: userActivityLog.details,
+          ipAddress: userActivityLog.ipAddress,
+          userAgent: userActivityLog.userAgent,
+          timestamp: userActivityLog.performedAt
+        })
+        .from(userActivityLog)
+        .innerJoin(users, eq(userActivityLog.userId, users.id))
+        .where(and(
+          eq(users.tenantId, tenantId),
+          sql`${users.role} != 'saas_admin'`,
+          sql`${userActivityLog.performedAt} > NOW() - INTERVAL '${days} days'`
+        ))
+        .orderBy(desc(userActivityLog.performedAt))
+        .limit(100);
+
+      return activity;
+    } catch (error) {
+      console.error('Error fetching tenant user activity:', error);
+      throw new Error('Failed to fetch tenant user activity');
+    }
+  }
 }
 
 export const userManagementService = UserManagementService.getInstance();

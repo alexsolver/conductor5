@@ -41,7 +41,11 @@ interface CustomRole {
   createdAt: string;
 }
 
-export function CustomRoles() {
+interface CustomRolesProps {
+  tenantAdmin?: boolean;
+}
+
+export function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

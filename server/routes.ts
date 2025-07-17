@@ -13,6 +13,7 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
+import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -221,6 +222,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User management routes
   app.use('/api/user-management', userManagementRoutes);
+  
+  // Tenant admin team management routes
+  app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
 
   // Customer-Location relationship routes
   app.get('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {

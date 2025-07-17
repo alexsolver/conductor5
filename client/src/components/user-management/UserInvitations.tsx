@@ -38,7 +38,11 @@ interface UserInvitation {
   invitedByUser?: { firstName?: string; lastName?: string; email: string };
 }
 
-export function UserInvitations() {
+interface UserInvitationsProps {
+  tenantAdmin?: boolean;
+}
+
+export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

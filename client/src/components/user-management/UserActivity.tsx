@@ -61,7 +61,11 @@ interface UserActivityItem {
   };
 }
 
-export function UserActivity() {
+interface UserActivityProps {
+  tenantAdmin?: boolean;
+}
+
+export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
