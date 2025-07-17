@@ -47,7 +47,12 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     next();
   } catch (error) {
-    console.error('JWT Auth error:', error);
+    const { logError } = await import('../utils/logger');
+    logError('JWT authentication failed', error, { 
+      method: req.method, 
+      url: req.url,
+      userAgent: req.get('User-Agent')
+    });
     return res.status(401).json({ message: 'Authentication failed' });
   }
 };
@@ -83,7 +88,12 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     next();
   } catch (error) {
     // Log but don't fail the request
-    console.error('Optional JWT Auth error:', error);
+    const { logWarn } = await import('../utils/logger');
+    logWarn('Optional JWT authentication warning', { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      method: req.method, 
+      url: req.url 
+    });
     next();
   }
 };
