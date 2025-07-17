@@ -14,6 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
 import CustomersTable from "./pages/CustomersTable";
+import Locations from "./pages/Locations";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
@@ -72,6 +73,7 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/customers" component={CustomersTable} />
+        <Route path="/locations" component={Locations} />
         <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/roadmap" component={Roadmap} />

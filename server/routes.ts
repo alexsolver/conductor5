@@ -125,6 +125,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/people', peopleRouter);
   app.use('/api/integrity', integrityRouter);
 
+  // Import and mount locations routes
+  const { default: locationsRouter } = await import('./modules/locations/routes');
+  app.use('/api/locations', locationsRouter);
+
   // Import and mount localization routes
   const localizationRoutes = await import('./routes/localization');
   app.use('/api/localization', localizationRoutes.default);

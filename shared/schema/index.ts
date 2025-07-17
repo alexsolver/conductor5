@@ -5,6 +5,7 @@
 export * from "./base";
 export * from "./customer";
 export * from "./ticket";
+export * from "./location";
 export * from "./security";
 export * from "./tenant-specific";
 
@@ -41,6 +42,13 @@ import {
   type InsertTicket,
   type InsertTicketMessage
 } from "./ticket";
+
+import {
+  locations,
+  insertLocationSchema,
+  type Location,
+  type InsertLocation
+} from "./location";
 
 import {
   securityEvents,
@@ -81,6 +89,9 @@ export {
   tickets,
   ticketMessages,
   
+  // Location tables
+  locations,
+  
   // Security tables
   securityEvents,
   userTwoFactor,
@@ -98,6 +109,7 @@ export {
   insertCustomerSchema,
   insertTicketSchema,
   insertTicketMessageSchema,
+  insertLocationSchema,
   insertSecurityEventSchema,
   insertUserTwoFactorSchema,
   insertAccountLockoutSchema,
@@ -111,6 +123,7 @@ export {
   type Customer,
   type Ticket,
   type TicketMessage,
+  type Location,
   type SecurityEvent,
   type UserTwoFactor,
   type AccountLockout,
@@ -122,6 +135,7 @@ export {
   type InsertCustomer,
   type InsertTicket,
   type InsertTicketMessage,
+  type InsertLocation,
   type InsertSecurityEvent,
   type InsertUserTwoFactor,
   type InsertAccountLockout,
@@ -137,6 +151,7 @@ const schema = {
   customers,
   tickets,
   ticketMessages,
+  locations,
   securityEvents,
   userTwoFactor,
   accountLockouts,
