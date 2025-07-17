@@ -217,10 +217,16 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
             placeholder="Digite um endereço para buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && searchLocation()}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                searchLocation();
+              }
+            }}
           />
         </div>
         <Button
+          type="button"
           onClick={searchLocation}
           disabled={isSearching}
           size="default"
@@ -229,6 +235,7 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
           {isSearching ? 'Buscando...' : 'Encontrar'}
         </Button>
         <Button
+          type="button"
           onClick={getCurrentLocation}
           variant="outline"
           size="default"
