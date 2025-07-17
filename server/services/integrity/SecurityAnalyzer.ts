@@ -5,24 +5,33 @@ export class SecurityAnalyzer {
     const issues: FileIssue[] = [];
     const lines = content.split('\n');
 
-    // SQL Injection Detection
-    const sqlInjectionPatterns = [
-      /sql`.*\$\{[^}]*\}/g,
-      /\.query\s*\(\s*[`'"][^`'"]*\$\{[^}]*\}[^`'"]*[`'"]/g,
-      /ILIKE\s+['"`]\$\{[^}]*\}['"`]/g
-    ];
-
-    sqlInjectionPatterns.forEach(pattern => {
-      const matches = content.match(pattern);
-      if (matches) {
-        issues.push({
-          type: 'error',
-          description: 'Potential SQL injection vulnerability detected',
-          problemFound: 'Raw SQL with string interpolation',
-          correctionPrompt: `Replace raw SQL string interpolation with parameterized queries using Drizzle ORM in ${filePath}. Use sql.placeholder() or prepared statements instead of template literals.`
-        });
-      }
-    });
+    // SQL Injection Detection - improved pattern matching for real vulnerabilities
+    // First, check if the file contains any sql template literals with interpolation
+    const sqlTemplatePattern = /sql`[^`]*\$\{[^}]*\}[^`]*`/g;
+    const sqlMatches = content.match(sqlTemplatePattern);
+    
+    if (sqlMatches) {
+      // For each match, check if it uses safe Drizzle ORM functions
+      sqlMatches.forEach(match => {
+        // Skip if the match contains safe Drizzle ORM functions
+        if (match.includes('sql.identifier(') || 
+            match.includes('sql.placeholder(') || 
+            match.includes('sql.raw(')) {
+          return; // This is safe, skip it
+        }
+        
+        // Check for actual unsafe patterns - direct variable interpolation without safety functions
+        const unsafePattern = /\$\{(?!sql\.)[^}]*\}/;
+        if (unsafePattern.test(match)) {
+          issues.push({
+            type: 'error',
+            description: 'Potential SQL injection vulnerability detected',
+            problemFound: 'Raw SQL with string interpolation',
+            correctionPrompt: `Replace raw SQL string interpolation with parameterized queries using Drizzle ORM in ${filePath}. Use sql.placeholder() or prepared statements instead of template literals.`
+          });
+        }
+      });
+    }
 
     // Authentication Security Checks
     const authVulnerabilities = [

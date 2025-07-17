@@ -107,13 +107,17 @@ export class RateLimitService {
 
   private async logSecurityEvent(ip: string, email: string | undefined, attempts: number): Promise<void> {
     try {
+      // Ensure we have valid values for all placeholders
+      const safeIp = ip || 'unknown';
+      const safeEmail = email || null;
+      
       // Log to database for security monitoring using parameterized query
       await db.execute(sql`
         INSERT INTO security_events (ip, email, event_type, attempts, created_at)
         VALUES (${sql.placeholder('ip')}, ${sql.placeholder('email')}, ${sql.placeholder('eventType')}, ${sql.placeholder('attempts')}, NOW())
       `, {
-        ip,
-        email: email || null,
+        ip: safeIp,
+        email: safeEmail,
         eventType: 'failed_login',
         attempts
       });
