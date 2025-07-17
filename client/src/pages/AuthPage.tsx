@@ -38,6 +38,7 @@ export default function AuthPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             required
+            disabled={loginMutation.isPending}
           />
         </div>
         <div className="space-y-2">
@@ -49,6 +50,7 @@ export default function AuthPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             required
+            disabled={loginMutation.isPending}
           />
         </div>
         <Button 
@@ -101,6 +103,7 @@ export default function AuthPage() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="John"
+              disabled={registerMutation.isPending}
             />
           </div>
           <div className="space-y-2">
@@ -111,6 +114,7 @@ export default function AuthPage() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Doe"
+              disabled={registerMutation.isPending}
             />
           </div>
         </div>
@@ -123,6 +127,7 @@ export default function AuthPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="john@example.com"
             required
+            disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
@@ -134,6 +139,7 @@ export default function AuthPage() {
             onChange={(e) => setCompanyName(e.target.value)}
             placeholder="Acme Corporation"
             required
+            disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
@@ -145,6 +151,7 @@ export default function AuthPage() {
             onChange={(e) => setWorkspaceName(e.target.value)}
             placeholder="acme-support"
             required
+            disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
             Será usado como URL do seu workspace (ex: acme-support.conductor.com)
@@ -160,6 +167,7 @@ export default function AuthPage() {
             placeholder="At least 8 characters"
             required
             minLength={8}
+            disabled={registerMutation.isPending}
           />
         </div>
         <Button 
