@@ -30,6 +30,7 @@ import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
 import TenantAdminTeam from "./pages/TenantAdminTeam";
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
+import TicketConfiguration from "./pages/TicketConfiguration";
 import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 
@@ -82,6 +83,7 @@ function AppRouter() {
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
+        <Route path="/ticket-configuration" component={TicketConfiguration} />
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />
         <Route path="/templates" component={TemplateSelector} />
