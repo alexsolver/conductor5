@@ -16,7 +16,6 @@ import {
   Clock,
   Monitor
 } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
 import { UserList } from "@/components/user-management/UserList";
 import { UserGroups } from "@/components/user-management/UserGroups";
 import { CustomRoles } from "@/components/user-management/CustomRoles";
@@ -50,8 +49,7 @@ export function UserManagement() {
   const userStats = stats?.stats;
 
   return (
-    <AppShell>
-      <div className="flex-1 space-y-4 p-4 pt-6">
+    <div className="flex-1 space-y-4 p-4 pt-6">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">
             {t("userManagement.title", "Gestão de Usuários")}
@@ -226,6 +224,5 @@ export function UserManagement() {
           onOpenChange={setShowInviteUser}
         />
       </div>
-    </AppShell>
   );
 }

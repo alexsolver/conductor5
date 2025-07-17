@@ -191,6 +191,11 @@ export class RBACService {
   }
 
   async hasPermission(user: AuthorizedUser, permission: Permission, context?: any): Promise<boolean> {
+    // Check if user has permissions array
+    if (!user.permissions || !Array.isArray(user.permissions)) {
+      return false;
+    }
+    
     // Check if user has the permission
     const hasPermission = user.permissions.some(p => 
       p.resource === permission.resource && p.action === permission.action
