@@ -41,11 +41,19 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
+    console.log("Request body:", req.body);
+    console.log("User tenant ID:", req.user.tenantId);
+
     // Validate input using the schema
-    const validatedData = insertCustomerSchema.parse({
+    const dataToValidate = {
       ...req.body,
       tenantId: req.user.tenantId
-    });
+    };
+    
+    console.log("Data to validate:", dataToValidate);
+    
+    const validatedData = insertCustomerSchema.parse(dataToValidate);
+    console.log("Validated data:", validatedData);
 
     const customer = await storage.createCustomer(validatedData);
     res.status(201).json(customer);
