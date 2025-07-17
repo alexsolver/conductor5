@@ -183,8 +183,8 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers 
         ORDER BY created_at DESC
-        LIMIT ${sql.placeholder('limit')} OFFSET ${sql.placeholder('offset')}
-      `, { limit, offset });
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
       
       // Map results and add tenantId
       return result.rows.map((row: any) => ({ ...row, tenantId }));
@@ -208,9 +208,9 @@ export class DatabaseStorage implements IStorage {
       // Use parameterized query for security
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers 
-        WHERE id = ${sql.placeholder('id')}
+        WHERE id = $1
         LIMIT 1
-      `, { id });
+      `, [id]);
       
       const customer = result.rows[0];
       return customer ? { ...customer, tenantId } : undefined;
@@ -288,8 +288,8 @@ export class DatabaseStorage implements IStorage {
       const ticketResult = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.tickets
         ORDER BY created_at DESC
-        LIMIT ${sql.placeholder('limit')} OFFSET ${sql.placeholder('offset')}
-      `, { limit, offset });
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
       
       // Get customers for each ticket
       const ticketsWithCustomers = await Promise.all(
@@ -299,9 +299,9 @@ export class DatabaseStorage implements IStorage {
             try {
               const customerResult = await tenantDb.execute(sql`
                 SELECT * FROM ${sql.identifier(schemaName)}.customers 
-                WHERE id = ${sql.placeholder('customerId')}
+                WHERE id = $1
                 LIMIT 1
-              `, { customerId: ticket.customer_id });
+              `, [ticket.customer_id]);
               customer = customerResult.rows[0];
             } catch (error) {
               // Customer not found - use fallback
@@ -314,9 +314,9 @@ export class DatabaseStorage implements IStorage {
             try {
               const userResult = await db.execute(sql`
                 SELECT * FROM public.users 
-                WHERE id = ${sql.placeholder('userId')}
+                WHERE id = $1
                 LIMIT 1
-              `, { userId: ticket.assigned_to_id });
+              `, [ticket.assigned_to_id]);
               assignedTo = userResult.rows[0];
             } catch (error) {
               // User not found - continue without

@@ -82,7 +82,7 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 - **2025-01-17**: Complete SQL Injection Prevention with Parameterized Queries COMPLETED
-  - **Parameterized Query Implementation**: Replaced all raw SQL template literals with sql.placeholder() in server/storage.ts
+  - **Parameterized Query Implementation**: Replaced all raw SQL template literals with PostgreSQL positional parameters ($1, $2) in server/storage.ts
   - **Secure Parameter Binding**: All user input values (ID, limit, offset) now use parameterized queries instead of string interpolation
   - **Schema Safety**: Continued use of sql.identifier() for schema names in server/db.ts preventing schema injection
   - **Query Security Enhancement**: Fixed 5 critical SQL queries in customer and ticket operations with proper parameter binding
