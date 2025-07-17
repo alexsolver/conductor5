@@ -3,6 +3,7 @@ import { Customer } from "../../domain/entities/Customer";
 import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
 import { schemaManager } from "../../db";
 import { eq, desc, count } from "drizzle-orm";
+import { logError } from "../../utils/logger";
 
 export class CustomerRepository implements ICustomerRepository {
   
@@ -32,7 +33,7 @@ export class CustomerRepository implements ICustomerRepository {
         customerData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error finding customer by ID:', error);
+      logError('Error finding customer by ID', error, { customerId: id, tenantId });
       return null;
     }
   }
@@ -63,7 +64,7 @@ export class CustomerRepository implements ICustomerRepository {
         customerData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error finding customer by email:', error);
+      logError('Error finding customer by email', error, { email, tenantId });
       return null;
     }
   }
@@ -94,7 +95,7 @@ export class CustomerRepository implements ICustomerRepository {
         data.updatedAt || new Date()
       ));
     } catch (error) {
-      console.error('Error finding customers by tenant:', error);
+      logError('Error finding customers by tenant', error, { tenantId, limit, offset });
       return [];
     }
   }
@@ -134,7 +135,7 @@ export class CustomerRepository implements ICustomerRepository {
         savedData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error saving customer:', error);
+      logError('Error saving customer', error, { customerId: customer.id, tenantId: customer.tenantId });
       throw new Error('Failed to save customer');
     }
   }
@@ -173,7 +174,7 @@ export class CustomerRepository implements ICustomerRepository {
         updatedData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error updating customer:', error);
+      logError('Error updating customer', error, { customerId: customer.id, tenantId: customer.tenantId });
       throw new Error('Failed to update customer');
     }
   }
@@ -189,7 +190,7 @@ export class CustomerRepository implements ICustomerRepository {
 
       return true;
     } catch (error) {
-      console.error('Error deleting customer:', error);
+      logError('Error deleting customer', error, { customerId: id, tenantId });
       return false;
     }
   }
@@ -205,7 +206,7 @@ export class CustomerRepository implements ICustomerRepository {
 
       return result.count || 0;
     } catch (error) {
-      console.error('Error counting customers:', error);
+      logError('Error counting customers', error, { tenantId });
       return 0;
     }
   }

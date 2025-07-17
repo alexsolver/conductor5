@@ -4,6 +4,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { db } from "../../db";
 import { users } from "../../../shared/schema";
 import { eq, desc, count } from "drizzle-orm";
+import { logError } from "../../utils/logger";
 
 export class UserRepository implements IUserRepository {
   
@@ -31,7 +32,7 @@ export class UserRepository implements IUserRepository {
         userData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error finding user by ID:', error);
+      logError('Error finding user by ID', error, { userId: id });
       return null;
     }
   }
@@ -60,7 +61,7 @@ export class UserRepository implements IUserRepository {
         userData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error finding user by email:', error);
+      logError('Error finding user by email', error, { email: email.toLowerCase() });
       return null;
     }
   }
@@ -92,7 +93,7 @@ export class UserRepository implements IUserRepository {
         data.updatedAt || new Date()
       ));
     } catch (error) {
-      console.error('Error finding users by tenant:', error);
+      logError('Error finding users by tenant', error, { tenantId, limit, offset });
       return [];
     }
   }
@@ -132,7 +133,7 @@ export class UserRepository implements IUserRepository {
         savedData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error saving user:', error);
+      logError('Error saving user', error, { userId: user.id, email: user.email });
       throw new Error('Failed to save user');
     }
   }
@@ -171,7 +172,7 @@ export class UserRepository implements IUserRepository {
         updatedData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error updating user:', error);
+      logError('Error updating user', error, { userId: user.id });
       throw new Error('Failed to update user');
     }
   }
@@ -184,7 +185,7 @@ export class UserRepository implements IUserRepository {
 
       return true;
     } catch (error) {
-      console.error('Error deleting user:', error);
+      logError('Error deleting user', error, { userId: id });
       return false;
     }
   }
@@ -216,7 +217,7 @@ export class UserRepository implements IUserRepository {
         data.updatedAt || new Date()
       ));
     } catch (error) {
-      console.error('Error finding all users:', error);
+      logError('Error finding all users', error, { limit, offset });
       return [];
     }
   }
@@ -240,7 +241,7 @@ export class UserRepository implements IUserRepository {
 
       return await this.save(user);
     } catch (error) {
-      console.error('Error creating user:', error);
+      logError('Error creating user', error, { email: userData.email });
       throw new Error('Failed to create user');
     }
   }
@@ -254,7 +255,7 @@ export class UserRepository implements IUserRepository {
 
       return result.count || 0;
     } catch (error) {
-      console.error('Error counting users:', error);
+      logError('Error counting users by tenant', error, { tenantId });
       return 0;
     }
   }
@@ -285,7 +286,7 @@ export class UserRepository implements IUserRepository {
         data.updatedAt || new Date()
       ));
     } catch (error) {
-      console.error('Error finding users with pagination:', error);
+      logError('Error finding users with pagination', error, { limit, offset });
       return [];
     }
   }
@@ -298,7 +299,7 @@ export class UserRepository implements IUserRepository {
       
       return result[0]?.count || 0;
     } catch (error) {
-      console.error('Error counting users:', error);
+      logError('Error counting all users', error);
       return 0;
     }
   }
@@ -312,7 +313,7 @@ export class UserRepository implements IUserRepository {
       
       return result[0]?.count || 0;
     } catch (error) {
-      console.error('Error counting active users:', error);
+      logError('Error counting active users', error);
       return 0;
     }
   }

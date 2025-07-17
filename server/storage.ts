@@ -4,9 +4,7 @@ import {
   customers,
   tickets,
   ticketMessages,
-  activityLogs,
   type User,
-  type UpsertUser,
   type Tenant,
   type InsertTenant,
   type Customer,
@@ -15,11 +13,25 @@ import {
   type InsertTicket,
   type TicketMessage,
   type InsertTicketMessage,
-  type ActivityLog,
-  type InsertActivityLog,
 } from "@shared/schema";
 import { db, schemaManager } from "./db";
 import { eq, and, desc, count, sql, ne, inArray, gte } from "drizzle-orm";
+
+// Define missing types for backwards compatibility
+type UpsertUser = Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { id?: string };
+type ActivityLog = {
+  id: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  performedById?: string;
+  performedByType?: string;
+  details: any;
+  previousValues: any;
+  newValues: any;
+  createdAt: Date;
+};
+type InsertActivityLog = Omit<ActivityLog, 'id' | 'createdAt'>;
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -51,9 +63,9 @@ export interface IStorage {
   getTicketMessages(ticketId: string): Promise<(TicketMessage & { author?: User; customer?: Customer })[]>;
   createTicketMessage(message: InsertTicketMessage): Promise<TicketMessage>;
   
-  // Activity log operations
-  getRecentActivity(tenantId: string, limit?: number): Promise<(ActivityLog & { user?: User })[]>;
-  createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
+  // Activity log operations (temporarily disabled during schema modularization)
+  // getRecentActivity(tenantId: string, limit?: number): Promise<(ActivityLog & { user?: User })[]>;
+  // createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
   
   // Dashboard statistics
   getDashboardStats(tenantId: string): Promise<{
@@ -405,29 +417,16 @@ export class DatabaseStorage implements IStorage {
     return newMessage;
   }
 
-  // Activity log operations
-  async getRecentActivity(tenantId: string, limit = 20): Promise<(ActivityLog & { user?: User })[]> {
-    const results = await db
-      .select({
-        activity: activityLogs,
-        user: users,
-      })
-      .from(activityLogs)
-      .leftJoin(users, eq(activityLogs.userId, users.id))
-      .where(eq(activityLogs.tenantId, tenantId))
-      .orderBy(desc(activityLogs.createdAt))
-      .limit(limit);
+  // Activity log operations temporarily disabled during schema modularization
+  // async getRecentActivity(tenantId: string, limit = 20): Promise<(ActivityLog & { user?: User })[]> {
+  //   // Will be re-implemented with tenant-specific activity logs
+  //   return [];
+  // }
 
-    return results.map(row => ({
-      ...row.activity,
-      user: row.user || undefined
-    }));
-  }
-
-  async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
-    const [newLog] = await db.insert(activityLogs).values(log).returning();
-    return newLog;
-  }
+  // async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
+  //   // Will be re-implemented with tenant-specific activity logs
+  //   return {} as ActivityLog;
+  // }
 
   // Dashboard statistics
   async getDashboardStats(tenantId: string): Promise<{

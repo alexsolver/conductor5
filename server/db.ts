@@ -42,7 +42,8 @@ export class SchemaManager {
       
       // Schema criado com sucesso - usar sistema de logging adequado em produção
     } catch (error) {
-      console.error(`Failed to create schema for tenant ${tenantId}:`, error);
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to create schema for tenant ${tenantId}`, error, { tenantId, schemaName });
       throw error;
     }
   }

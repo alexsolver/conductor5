@@ -1,5 +1,6 @@
 // Tenant Repository Implementation - Infrastructure Layer
 import { eq, desc, sql } from "drizzle-orm";
+import { logError } from "../../utils/logger";
 import { db } from "../../db";
 import { tenants } from "@shared/schema";
 import { ITenantRepository } from "../../domain/repositories/ITenantRepository";
@@ -26,7 +27,7 @@ export class TenantRepository implements ITenantRepository {
         tenantData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error finding tenant by ID:', error);
+      logError('Error finding tenant by ID', error, { tenantId: id });
       return null;
     }
   }
@@ -50,7 +51,7 @@ export class TenantRepository implements ITenantRepository {
         tenantData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error finding tenant by subdomain:', error);
+      logError('Error finding tenant by subdomain', error, { subdomain });
       return null;
     }
   }
@@ -74,7 +75,7 @@ export class TenantRepository implements ITenantRepository {
         data.updatedAt || new Date()
       ));
     } catch (error) {
-      console.error('Error finding all tenants:', error);
+      logError('Error finding all tenants', error, { limit, offset });
       return [];
     }
   }
@@ -104,7 +105,7 @@ export class TenantRepository implements ITenantRepository {
         savedData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error saving tenant:', error);
+      logError('Error saving tenant', error, { tenantId: tenant.id, name: tenant.name });
       throw new Error('Failed to save tenant');
     }
   }
@@ -134,7 +135,7 @@ export class TenantRepository implements ITenantRepository {
         updatedData.updatedAt || new Date()
       );
     } catch (error) {
-      console.error('Error updating tenant:', error);
+      logError('Error updating tenant', error, { tenantId: tenant.id });
       return null;
     }
   }
@@ -152,21 +153,8 @@ export class TenantRepository implements ITenantRepository {
 
       return !!updatedData;
     } catch (error) {
-      console.error('Error deactivating tenant:', error);
+      logError('Error deactivating tenant', error, { tenantId: id });
       return false;
-    }
-  }
-
-  async count(): Promise<number> {
-    try {
-      const result = await db
-        .select({ count: tenants.id })
-        .from(tenants);
-      
-      return result.length;
-    } catch (error) {
-      console.error('Error counting tenants:', error);
-      return 0;
     }
   }
 
@@ -178,7 +166,7 @@ export class TenantRepository implements ITenantRepository {
       
       return result[0]?.count || 0;
     } catch (error) {
-      console.error('Error counting tenants:', error);
+      logError('Error counting tenants', error);
       return 0;
     }
   }
