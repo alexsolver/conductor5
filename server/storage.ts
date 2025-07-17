@@ -159,14 +159,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializeTenantSchema(tenantId: string): Promise<void> {
+    // Quick cache check to avoid unnecessary async operations
+    if (schemaManager['initializedSchemas']?.has(tenantId)) {
+      return; // Already initialized, skip
+    }
+
     try {
       await schemaManager.createTenantSchema(tenantId);
-      const { logInfo } = await import('./utils/logger');
-      logInfo(`Tenant schema initialized successfully`, { tenantId });
     } catch (error) {
-      // Schema may already exist - this is expected behavior
-      const { logInfo } = await import('./utils/logger');
-      logInfo(`Tenant schema already exists or creation skipped`, { tenantId });
+      // Schema may already exist - this is expected behavior, mark as initialized
+      schemaManager['initializedSchemas']?.add(tenantId);
     }
   }
 

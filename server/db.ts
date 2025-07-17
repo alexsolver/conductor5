@@ -21,6 +21,7 @@ export const db = drizzle({ client: pool, schema });
 export class SchemaManager {
   private static instance: SchemaManager;
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
+  private initializedSchemas = new Set<string>(); // Cache for initialized schemas
 
   static getInstance(): SchemaManager {
     if (!SchemaManager.instance) {
@@ -29,9 +30,33 @@ export class SchemaManager {
     return SchemaManager.instance;
   }
 
+  // Check if schema exists without creating it
+  private async schemaExists(schemaName: string): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 1 FROM information_schema.schemata 
+        WHERE schema_name = ${sql.placeholder('schemaName')}
+      `, { schemaName });
+      return result.rows.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
   // Create a new schema for a tenant
   async createTenantSchema(tenantId: string): Promise<void> {
     const schemaName = this.getSchemaName(tenantId);
+
+    // Check cache first to avoid unnecessary work
+    if (this.initializedSchemas.has(tenantId)) {
+      return; // Schema already initialized
+    }
+
+    // Check if schema actually exists in database
+    if (await this.schemaExists(schemaName)) {
+      this.initializedSchemas.add(tenantId);
+      return; // Schema exists, mark as initialized
+    }
 
     try {
       // Create the schema using parameterized query
@@ -40,7 +65,11 @@ export class SchemaManager {
       // Create tenant-specific tables in the new schema
       await this.createTenantTables(schemaName);
 
-      // Schema criado com sucesso - usar sistema de logging adequado em produção
+      // Mark as initialized in cache
+      this.initializedSchemas.add(tenantId);
+
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`New tenant schema created for ${tenantId}`, { schemaName });
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError(`Failed to create schema for tenant ${tenantId}`, error, { tenantId, schemaName });
