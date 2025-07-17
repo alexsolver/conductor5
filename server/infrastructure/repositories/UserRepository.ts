@@ -3,7 +3,7 @@ import { User } from "../../domain/entities/User";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { db } from "../../db";
 import { users } from "../../../shared/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 
 export class UserRepository implements IUserRepository {
   
@@ -248,11 +248,11 @@ export class UserRepository implements IUserRepository {
   async countByTenant(tenantId: string): Promise<number> {
     try {
       const [result] = await db
-        .select({ count: sql`count(*)` })
+        .select({ count: count() })
         .from(users)
         .where(eq(users.tenantId, tenantId));
 
-      return parseInt(result.count as string) || 0;
+      return result.count || 0;
     } catch (error) {
       console.error('Error counting users:', error);
       return 0;
@@ -293,7 +293,7 @@ export class UserRepository implements IUserRepository {
   async count(): Promise<number> {
     try {
       const result = await db
-        .select({ count: sql<number>`count(*)` })
+        .select({ count: count() })
         .from(users);
       
       return result[0]?.count || 0;
@@ -306,7 +306,7 @@ export class UserRepository implements IUserRepository {
   async countActive(): Promise<number> {
     try {
       const result = await db
-        .select({ count: sql<number>`count(*)` })
+        .select({ count: count() })
         .from(users)
         .where(eq(users.isActive, true));
       

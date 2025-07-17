@@ -19,7 +19,7 @@ import {
   type InsertActivityLog,
 } from "@shared/schema";
 import { db, schemaManager } from "./db";
-import { eq, and, desc, count, sql } from "drizzle-orm";
+import { eq, and, desc, count, sql, ne, inArray, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -349,8 +349,8 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(tickets.assignedToId, users.id))
       .where(and(
         eq(tickets.tenantId, tenantId),
-        sql`${tickets.priority} IN ('high', 'critical')`,
-        sql`${tickets.status} != 'resolved'`
+        inArray(tickets.priority, ['high', 'critical']),
+        ne(tickets.status, 'resolved')
       ))
       .orderBy(desc(tickets.createdAt))
       .limit(10);
@@ -446,7 +446,7 @@ export class DatabaseStorage implements IStorage {
       .from(tickets)
       .where(and(
         eq(tickets.tenantId, tenantId),
-        sql`${tickets.status} != 'resolved'`
+        ne(tickets.status, 'resolved')
       ));
 
     const [resolvedTodayResult] = await db
@@ -455,7 +455,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(tickets.tenantId, tenantId),
         eq(tickets.status, 'resolved'),
-        sql`${tickets.resolvedAt} >= ${today}`
+        gte(tickets.resolvedAt, today)
       ));
 
     const [totalAgentsResult] = await db

@@ -61,13 +61,13 @@ export class DrizzleUserRepository implements IUserRepository {
     }
 
     if (filter.search) {
-      // Sanitize search input to prevent SQL injection
+      // Use parameterized search to prevent SQL injection
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          sql`${users.email} ILIKE ${searchPattern}`,
-          sql`${users.firstName} ILIKE ${searchPattern}`,
-          sql`${users.lastName} ILIKE ${searchPattern}`
+          ilike(users.email, searchPattern),
+          ilike(users.firstName, searchPattern),
+          ilike(users.lastName, searchPattern)
         )!
       );
     }
@@ -149,13 +149,13 @@ export class DrizzleUserRepository implements IUserRepository {
     }
 
     if (filter.search) {
-      // Sanitize search input to prevent SQL injection
+      // Use parameterized search to prevent SQL injection
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          sql`${users.email} ILIKE ${searchPattern}`,
-          sql`${users.firstName} ILIKE ${searchPattern}`,
-          sql`${users.lastName} ILIKE ${searchPattern}`
+          ilike(users.email, searchPattern),
+          ilike(users.firstName, searchPattern),
+          ilike(users.lastName, searchPattern)
         )!
       );
     }

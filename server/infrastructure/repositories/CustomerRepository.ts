@@ -2,7 +2,7 @@
 import { Customer } from "../../domain/entities/Customer";
 import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
 import { schemaManager } from "../../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 
 export class CustomerRepository implements ICustomerRepository {
   
@@ -200,10 +200,10 @@ export class CustomerRepository implements ICustomerRepository {
       const { customers: tenantCustomers } = tenantSchema;
       
       const [result] = await tenantDb
-        .select({ count: sql`count(*)` })
+        .select({ count: count() })
         .from(tenantCustomers);
 
-      return parseInt(result.count as string) || 0;
+      return result.count || 0;
     } catch (error) {
       console.error('Error counting customers:', error);
       return 0;

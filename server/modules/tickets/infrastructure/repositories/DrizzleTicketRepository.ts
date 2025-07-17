@@ -44,16 +44,16 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async findMany(filter: TicketFilter): Promise<Ticket[]> {
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
-    // Apply filters with sanitized search
+    // Apply filters with parameterized search
     if (filter.search) {
-      // Sanitize search input to prevent SQL injection
+      // Use parameterized search to prevent SQL injection
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          sql`${tickets.subject} ILIKE ${searchPattern}`,
-          sql`${tickets.description} ILIKE ${searchPattern}`,
-          sql`${tickets.number} ILIKE ${searchPattern}`,
-          sql`${tickets.shortDescription} ILIKE ${searchPattern}`
+          ilike(tickets.subject, searchPattern),
+          ilike(tickets.description, searchPattern),
+          ilike(tickets.number, searchPattern),
+          ilike(tickets.shortDescription, searchPattern)
         )!
       );
     }
@@ -147,14 +147,14 @@ export class DrizzleTicketRepository implements ITicketRepository {
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
     if (filter.search) {
-      // Sanitize search input to prevent SQL injection
+      // Use parameterized search to prevent SQL injection
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          sql`${tickets.subject} ILIKE ${searchPattern}`,
-          sql`${tickets.description} ILIKE ${searchPattern}`,
-          sql`${tickets.number} ILIKE ${searchPattern}`,
-          sql`${tickets.shortDescription} ILIKE ${searchPattern}`
+          ilike(tickets.subject, searchPattern),
+          ilike(tickets.description, searchPattern),
+          ilike(tickets.number, searchPattern),
+          ilike(tickets.shortDescription, searchPattern)
         )!
       );
     }

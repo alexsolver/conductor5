@@ -27,9 +27,9 @@ export class DrizzlePersonRepository implements IPersonRepository {
             and(
               eq(users.tenantId, tenantId),
               or(
-                sql`${users.firstName} ILIKE ${searchPattern}`,
-                sql`${users.lastName} ILIKE ${searchPattern}`,
-                sql`${users.email} ILIKE ${searchPattern}`
+                ilike(users.firstName, searchPattern),
+                ilike(users.lastName, searchPattern),
+                ilike(users.email, searchPattern)
               )
             )
           )
@@ -61,9 +61,9 @@ export class DrizzlePersonRepository implements IPersonRepository {
             and(
               eq(customers.tenantId, tenantId),
               or(
-                sql`${customers.firstName} ILIKE ${searchPattern}`,
-                sql`${customers.lastName} ILIKE ${searchPattern}`,
-                sql`${customers.email} ILIKE ${searchPattern}`
+                ilike(customers.firstName, searchPattern),
+                ilike(customers.lastName, searchPattern),
+                ilike(customers.email, searchPattern)
               )
             )
           )

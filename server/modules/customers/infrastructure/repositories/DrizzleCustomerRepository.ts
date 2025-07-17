@@ -47,14 +47,14 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     const conditions = [eq(customers.tenantId, filter.tenantId)];
 
     if (filter.search) {
-      // Sanitize search input to prevent SQL injection
+      // Use parameterized search to prevent SQL injection
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          sql`${customers.firstName} ILIKE ${searchPattern}`,
-          sql`${customers.lastName} ILIKE ${searchPattern}`,
-          sql`${customers.email} ILIKE ${searchPattern}`,
-          sql`${customers.company} ILIKE ${searchPattern}`
+          ilike(customers.firstName, searchPattern),
+          ilike(customers.lastName, searchPattern),
+          ilike(customers.email, searchPattern),
+          ilike(customers.company, searchPattern)
         )!
       );
     }
@@ -125,14 +125,14 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     const conditions = [eq(customers.tenantId, filter.tenantId)];
 
     if (filter.search) {
-      // Sanitize search input to prevent SQL injection
+      // Use parameterized search to prevent SQL injection
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
       conditions.push(
         or(
-          sql`${customers.firstName} ILIKE ${searchPattern}`,
-          sql`${customers.lastName} ILIKE ${searchPattern}`,
-          sql`${customers.email} ILIKE ${searchPattern}`,
-          sql`${customers.company} ILIKE ${searchPattern}`
+          ilike(customers.firstName, searchPattern),
+          ilike(customers.lastName, searchPattern),
+          ilike(customers.email, searchPattern),
+          ilike(customers.company, searchPattern)
         )!
       );
     }
