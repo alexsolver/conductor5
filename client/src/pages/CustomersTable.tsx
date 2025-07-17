@@ -35,10 +35,7 @@ const customerSchema = z.object({
   active: z.boolean().default(true),
   suspended: z.boolean().default(false),
   
-  // Localization fields
-  timezone: z.string().default("UTC"),
-  locale: z.string().default("en-US"),
-  language: z.string().default("en"),
+
   
   // Additional fields
   externalId: z.string().optional(),
@@ -66,10 +63,7 @@ interface Customer {
   suspended: boolean;
   lastLogin?: string;
   
-  // Localization fields
-  timezone: string;
-  locale: string;
-  language: string;
+
   
   // Additional fields
   externalId?: string;
@@ -245,9 +239,6 @@ export default function CustomersTable() {
       verified: customer.verified || false,
       active: customer.active !== undefined ? customer.active : true,
       suspended: customer.suspended || false,
-      timezone: customer.timezone || "UTC",
-      locale: customer.locale || "en-US",
-      language: customer.language || "en",
       externalId: customer.externalId || "",
       role: customer.role || "customer",
       notes: customer.notes || "",
@@ -274,7 +265,7 @@ export default function CustomersTable() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="w-full h-auto p-1">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full">
+            <div className="grid grid-cols-3 gap-1 w-full">
               <TabsTrigger value="basic" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                 <User className="h-3 w-3 lg:h-4 lg:w-4" />
                 Basic
@@ -283,12 +274,8 @@ export default function CustomersTable() {
                 <Shield className="h-3 w-3 lg:h-4 lg:w-4" />
                 Status
               </TabsTrigger>
-              <TabsTrigger value="locale" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                <Globe className="h-3 w-3 lg:h-4 lg:w-4" />
-                Locale
-              </TabsTrigger>
               <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                <Settings className="h-3 w-3 lg:h-4 lg:w-4" />
+                <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
                 Locations
               </TabsTrigger>
             </div>
@@ -444,91 +431,7 @@ export default function CustomersTable() {
                 </FormItem>
               )}
             />
-          </TabsContent>
 
-          <TabsContent value="locale" className="space-y-4 mt-4">
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="timezone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Timezone</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select timezone" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                        <SelectItem value="America/Sao_Paulo">São Paulo (GMT-3)</SelectItem>
-                        <SelectItem value="America/New_York">New York (GMT-5)</SelectItem>
-                        <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
-                        <SelectItem value="Europe/Paris">Paris (GMT+1)</SelectItem>
-                        <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="locale"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Locale</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select locale" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="en-US">English (US)</SelectItem>
-                        <SelectItem value="pt-BR">Portuguese (Brazil)</SelectItem>
-                        <SelectItem value="es-ES">Spanish (Spain)</SelectItem>
-                        <SelectItem value="fr-FR">French (France)</SelectItem>
-                        <SelectItem value="de-DE">German (Germany)</SelectItem>
-                        <SelectItem value="ja-JP">Japanese (Japan)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="pt">Portuguese</SelectItem>
-                        <SelectItem value="es">Spanish</SelectItem>
-                        <SelectItem value="fr">French</SelectItem>
-                        <SelectItem value="de">German</SelectItem>
-                        <SelectItem value="ja">Japanese</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="advanced" className="space-y-4 mt-4">
             <FormField
               control={form.control}
               name="externalId"
@@ -545,40 +448,12 @@ export default function CustomersTable() {
 
             <FormField
               control={form.control}
-              name="avatar"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Avatar URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Profile picture URL" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="notes"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Internal notes about this customer" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="signature"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Signature</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Customer signature/bio" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
