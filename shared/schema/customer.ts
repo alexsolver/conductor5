@@ -52,6 +52,8 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  tenantId: z.string().uuid()
 });
 
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
