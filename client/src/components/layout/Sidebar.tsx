@@ -70,7 +70,7 @@ const adminNavigation = [
     ]
   },
   { 
-    name: "Tenant Admin", 
+    name: "Workspace Admin", 
     icon: Settings, 
     roles: ['saas_admin', 'tenant_admin'],
     children: [

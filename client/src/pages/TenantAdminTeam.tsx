@@ -72,7 +72,7 @@ export default function TenantAdminTeam() {
     <div className="flex-1 space-y-4 p-4 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-          {t("tenantAdmin.team.title", "Gestão da Equipe")}
+          {t("workspaceAdmin.team.title", "Gestão da Equipe")}
         </h2>
         <div className="flex items-center space-x-2">
           <Button 
@@ -80,20 +80,20 @@ export default function TenantAdminTeam() {
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.createUser", "Criar Usuário")}
+            {t("workspaceAdmin.team.createUser", "Criar Usuário")}
           </Button>
           <Button 
             variant="outline"
             onClick={() => setShowInviteUser(true)}
           >
             <Mail className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.inviteUser", "Convidar Usuário")}
+            {t("workspaceAdmin.team.inviteUser", "Convidar Usuário")}
           </Button>
         </div>
       </div>
 
       <p className="text-muted-foreground">
-        {t("tenantAdmin.team.description", "Gerencie membros da equipe, papéis e permissões do seu tenant")}
+        {t("workspaceAdmin.team.description", "Gerencie membros da equipe, papéis e permissões do seu workspace")}
       </p>
 
       {/* Team Statistics */}
@@ -102,14 +102,14 @@ export default function TenantAdminTeam() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("tenantAdmin.team.stats.totalUsers", "Total de Usuários")}
+                {t("workspaceAdmin.team.stats.totalUsers", "Total de Usuários")}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.totalUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t("tenantAdmin.team.stats.totalUsersDesc", "Usuários ativos no tenant")}
+                {t("workspaceAdmin.team.stats.totalUsersDesc", "Usuários ativos no workspace")}
               </p>
             </CardContent>
           </Card>
@@ -117,14 +117,14 @@ export default function TenantAdminTeam() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("tenantAdmin.team.stats.activeUsers", "Usuários Ativos")}
+                {t("workspaceAdmin.team.stats.activeUsers", "Usuários Ativos")}
               </CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.activeUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t("tenantAdmin.team.stats.activeUsersDesc", "Conectados recentemente")}
+                {t("workspaceAdmin.team.stats.activeUsersDesc", "Conectados recentemente")}
               </p>
             </CardContent>
           </Card>
@@ -132,14 +132,14 @@ export default function TenantAdminTeam() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("tenantAdmin.team.stats.pendingInvitations", "Convites Pendentes")}
+                {t("workspaceAdmin.team.stats.pendingInvitations", "Convites Pendentes")}
               </CardTitle>
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.pendingInvitations}</div>
               <p className="text-xs text-muted-foreground">
-                {t("tenantAdmin.team.stats.pendingInvitationsDesc", "Aguardando resposta")}
+                {t("workspaceAdmin.team.stats.pendingInvitationsDesc", "Aguardando resposta")}
               </p>
             </CardContent>
           </Card>
@@ -147,14 +147,14 @@ export default function TenantAdminTeam() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("tenantAdmin.team.stats.activeSessions", "Sessões Ativas")}
+                {t("workspaceAdmin.team.stats.activeSessions", "Sessões Ativas")}
               </CardTitle>
               <Monitor className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.activeSessions}</div>
               <p className="text-xs text-muted-foreground">
-                {t("tenantAdmin.team.stats.activeSessionsDesc", "Usuários conectados")}
+                {t("workspaceAdmin.team.stats.activeSessionsDesc", "Usuários conectados")}
               </p>
             </CardContent>
           </Card>
@@ -165,7 +165,7 @@ export default function TenantAdminTeam() {
       {!statsLoading && userStats?.roleDistribution && (
         <Card>
           <CardHeader>
-            <CardTitle>{t("tenantAdmin.team.roleDistribution", "Distribuição de Papéis")}</CardTitle>
+            <CardTitle>{t("workspaceAdmin.team.roleDistribution", "Distribuição de Papéis")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -184,27 +184,27 @@ export default function TenantAdminTeam() {
         <TabsList>
           <TabsTrigger value="members">
             <Users className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.tabs.members", "Membros")}
+            {t("workspaceAdmin.team.tabs.members", "Membros")}
           </TabsTrigger>
           <TabsTrigger value="groups">
             <Users className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.tabs.groups", "Grupos")}
+            {t("workspaceAdmin.team.tabs.groups", "Grupos")}
           </TabsTrigger>
           <TabsTrigger value="roles">
             <Shield className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.tabs.roles", "Papéis")}
+            {t("workspaceAdmin.team.tabs.roles", "Papéis")}
           </TabsTrigger>
           <TabsTrigger value="invitations">
             <UserPlus className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.tabs.invitations", "Convites")}
+            {t("workspaceAdmin.team.tabs.invitations", "Convites")}
           </TabsTrigger>
           <TabsTrigger value="sessions">
             <Monitor className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.tabs.sessions", "Sessões")}
+            {t("workspaceAdmin.team.tabs.sessions", "Sessões")}
           </TabsTrigger>
           <TabsTrigger value="activity">
             <Activity className="mr-2 h-4 w-4" />
-            {t("tenantAdmin.team.tabs.activity", "Atividade")}
+            {t("workspaceAdmin.team.tabs.activity", "Atividade")}
           </TabsTrigger>
         </TabsList>
 
@@ -236,7 +236,7 @@ export default function TenantAdminTeam() {
       {/* Performance Overview (Additional Team-Specific Features) */}
       <Card>
         <CardHeader>
-          <CardTitle>{t("tenantAdmin.team.performance", "Performance da Equipe")}</CardTitle>
+          <CardTitle>{t("workspaceAdmin.team.performance", "Performance da Equipe")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">

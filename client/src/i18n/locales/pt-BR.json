@@ -34,7 +34,7 @@
     "settings": "Configurações",
     "admin": "Administração",
     "saas_admin": "Admin SaaS",
-    "tenant_admin": "Admin Tenant"
+    "tenant_admin": "Admin Workspace"
   },
   "dashboard": {
     "title": "Painel de Controle",

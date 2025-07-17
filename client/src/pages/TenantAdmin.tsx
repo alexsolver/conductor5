@@ -47,7 +47,7 @@ export default function TenantAdmin() {
           Acesso Negado
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Esta página é restrita para administradores de tenant.
+          Esta página é restrita para administradores de workspace.
         </p>
       </div>
     );
@@ -126,7 +126,7 @@ export default function TenantAdmin() {
       setIsSettingsDialogOpen(false);
       toast({
         title: "Configurações atualizadas",
-        description: "Configurações do tenant atualizadas com sucesso!",
+        description: "Configurações do workspace atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
@@ -152,10 +152,10 @@ export default function TenantAdmin() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Administração do Tenant
+            Administração do Workspace
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Gerencie usuários e configurações do seu tenant
+            Gerencie usuários e configurações do seu workspace
           </p>
         </div>
         
@@ -169,7 +169,7 @@ export default function TenantAdmin() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Configurações do Tenant</DialogTitle>
+                <DialogTitle>Configurações do Workspace</DialogTitle>
               </DialogHeader>
               <Form {...settingsForm}>
                 <form onSubmit={settingsForm.handleSubmit(onSubmitSettings)} className="space-y-4">
@@ -178,7 +178,7 @@ export default function TenantAdmin() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome do Tenant</FormLabel>
+                        <FormLabel>Nome do Workspace</FormLabel>
                         <FormControl>
                           <Input placeholder="Nome da empresa" {...field} />
                         </FormControl>
