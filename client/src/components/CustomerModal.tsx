@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Plus, User, Globe, Settings, Star } from 'lucide-react';
+import { MapPin, Plus, User, Globe, Star } from 'lucide-react';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -18,23 +18,17 @@ import { CustomerLocationManager } from './CustomerLocationManager';
 import { LocationModal } from './LocationModal';
 
 const customerSchema = z.object({
-  firstName: z.string().min(1, "Nome é obrigatório"),
-  lastName: z.string().min(1, "Sobrenome é obrigatório"),
-  email: z.string().email("Email inválido"),
+  firstName: z.string().min(1, 'Nome é obrigatório'),
+  lastName: z.string().min(1, 'Sobrenome é obrigatório'),
+  email: z.string().email('Email inválido'),
   phone: z.string().optional(),
   company: z.string().optional(),
-  
-  // Status fields
   verified: z.boolean().default(false),
   active: z.boolean().default(true),
   suspended: z.boolean().default(false),
-  
-  // Localization fields
-  timezone: z.string().default("America/Sao_Paulo"),
-  locale: z.string().default("pt-BR"),
-  language: z.string().default("pt"),
-  
-  // Professional fields
+  timezone: z.string().default('America/Sao_Paulo'),
+  locale: z.string().default('pt-BR'),
+  language: z.string().default('pt'),
   externalId: z.string().optional(),
   role: z.string().optional(),
   notes: z.string().optional(),
@@ -83,28 +77,28 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
         return apiRequest(`/api/customers/${customer.id}`, {
-          method: 'PUT',
-          body: data
+          method: 'PATCH',
+          body: JSON.stringify(data)
         });
       } else {
         return apiRequest('/api/customers', {
           method: 'POST',
-          body: data
+          body: JSON.stringify(data)
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
       toast({
-        title: customer?.id ? "Cliente atualizado" : "Cliente criado",
-        description: customer?.id ? "O cliente foi atualizado com sucesso." : "O cliente foi criado com sucesso."
+        title: "Sucesso",
+        description: customer?.id ? "Cliente atualizado com sucesso!" : "Cliente criado com sucesso!",
       });
       onClose();
     },
     onError: (error: any) => {
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível salvar o cliente.",
+        description: error.message || "Erro ao salvar cliente",
         variant: "destructive"
       });
     }
@@ -195,20 +189,21 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="email@exemplo.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="email@exemplo.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <FormField
                       control={form.control}
                       name="phone"
@@ -222,9 +217,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         </FormItem>
                       )}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="company"
@@ -238,47 +230,20 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="role"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cargo/Função</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Cargo do cliente" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
-
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Observações sobre o cliente..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </TabsContent>
 
                 <TabsContent value="status" className="space-y-4">
                   <div className="grid grid-cols-3 gap-6">
                     <FormField
                       control={form.control}
-                      name="active"
+                      name="verified"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Ativo</FormLabel>
+                            <FormLabel className="text-base">Verificado</FormLabel>
                             <div className="text-sm text-muted-foreground">
-                              Cliente ativo no sistema
+                              Cliente tem email verificado
                             </div>
                           </div>
                           <FormControl>
@@ -293,13 +258,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
                     <FormField
                       control={form.control}
-                      name="verified"
+                      name="active"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Verificado</FormLabel>
+                            <FormLabel className="text-base">Ativo</FormLabel>
                             <div className="text-sm text-muted-foreground">
-                              Email verificado
+                              Cliente está ativo no sistema
                             </div>
                           </div>
                           <FormControl>
@@ -320,7 +285,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">Suspenso</FormLabel>
                             <div className="text-sm text-muted-foreground">
-                              Cliente suspenso
+                              Cliente temporariamente suspenso
                             </div>
                           </div>
                           <FormControl>
@@ -334,14 +299,48 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="externalId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Externo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="ID de sistema externo" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Função</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Função do cliente" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <FormField
                     control={form.control}
-                    name="externalId"
+                    name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>ID Externo</FormLabel>
+                        <FormLabel>Observações</FormLabel>
                         <FormControl>
-                          <Input placeholder="ID no sistema externo" {...field} />
+                          <Textarea 
+                            placeholder="Observações sobre o cliente..."
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -364,9 +363,9 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
-                              <SelectItem value="America/Manaus">Manaus (GMT-4)</SelectItem>
-                              <SelectItem value="America/Rio_Branco">Acre (GMT-5)</SelectItem>
+                              <SelectItem value="America/Sao_Paulo">São Paulo (GMT-3)</SelectItem>
+                              <SelectItem value="America/New_York">Nova York (GMT-5)</SelectItem>
+                              <SelectItem value="Europe/London">Londres (GMT+0)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
