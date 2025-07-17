@@ -31,6 +31,14 @@ import {
   GitBranch
 } from "lucide-react";
 
+interface FileIssue {
+  type: 'warning' | 'error';
+  line?: number;
+  description: string;
+  problemFound: string;
+  correctionPrompt: string;
+}
+
 interface ModuleFile {
   path: string;
   type: 'frontend' | 'backend' | 'shared' | 'config';
@@ -38,6 +46,8 @@ interface ModuleFile {
   lastModified: string;
   integrity: 'healthy' | 'warning' | 'error';
   dependencies: string[];
+  checksum: string;
+  issues?: FileIssue[];
 }
 
 interface ModuleInfo {
