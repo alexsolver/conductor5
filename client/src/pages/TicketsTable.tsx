@@ -112,7 +112,23 @@ export default function TicketsTable() {
 
   // Fetch tickets with pagination and filters
   const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
-    queryKey: ["/api/tickets", currentPage, itemsPerPage, searchTerm, statusFilter, priorityFilter],
+    queryKey: ["/api/tickets"],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+      });
+      
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter);
+      }
+      if (priorityFilter !== "all") {
+        params.append("priority", priorityFilter);
+      }
+      
+      const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
+      return response.json();
+    },
     retry: 3,
   });
 
@@ -135,11 +151,9 @@ export default function TicketsTable() {
 
   // Debug logging
   console.log('TicketsTable - Data:', {
-    ticketsData,
     ticketsError,
     isLoading,
     ticketsCount: tickets.length,
-    actualTicketsData: ticketsData?.tickets,
     customersCount: customers.length,
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
