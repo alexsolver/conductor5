@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MapPin, Building2, User, Wrench, Users, Search, Filter, MoreHorizontal } from 'lucide-react';
+import { Plus, MapPin, Building2, User, Wrench, Users, Search, Filter, MoreHorizontal, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import MapSelector from '@/components/MapSelector';
 
 // Form schema based on the Location entity
 const locationFormSchema = z.object({
@@ -75,6 +76,7 @@ const statusConfig = {
 
 export default function Locations() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isMapDialogOpen, setIsMapDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -421,14 +423,25 @@ export default function Locations() {
                           <FormItem>
                             <FormLabel>Latitude</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="-23.5505"
-                                type="number" 
-                                step="any"
-                                {...field}
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                              />
+                              <div className="flex gap-2">
+                                <Input 
+                                  placeholder="-23.5505"
+                                  type="number" 
+                                  step="any"
+                                  {...field}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setIsMapDialogOpen(true)}
+                                  className="px-3"
+                                >
+                                  <Map className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -441,14 +454,25 @@ export default function Locations() {
                           <FormItem>
                             <FormLabel>Longitude</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="-46.6333"
-                                type="number" 
-                                step="any"
-                                {...field}
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                              />
+                              <div className="flex gap-2">
+                                <Input 
+                                  placeholder="-46.6333"
+                                  type="number" 
+                                  step="any"
+                                  {...field}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setIsMapDialogOpen(true)}
+                                  className="px-3"
+                                >
+                                  <Map className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -513,6 +537,27 @@ export default function Locations() {
                 </div>
               </form>
             </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Map Selection Dialog */}
+        <Dialog open={isMapDialogOpen} onOpenChange={setIsMapDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Selecionar Localização no Mapa</DialogTitle>
+              <DialogDescription>
+                Clique no mapa para selecionar a localização exata ou use a barra de pesquisa
+              </DialogDescription>
+            </DialogHeader>
+            <MapSelector 
+              initialLat={form.getValues('latitude') || -23.5505}
+              initialLng={form.getValues('longitude') || -46.6333}
+              onLocationSelect={(lat, lng) => {
+                form.setValue('latitude', lat);
+                form.setValue('longitude', lng);
+                setIsMapDialogOpen(false);
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
