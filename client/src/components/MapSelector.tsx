@@ -1,5 +1,5 @@
 import React from 'react';
-import { SimpleMapWithButtons } from './SimpleMapWithButtons';
+import { LeafletMapSelector } from './LeafletMapSelector';
 
 interface MapSelectorProps {
   initialLat: number;
@@ -18,7 +18,7 @@ interface MapSelectorProps {
 
 function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: MapSelectorProps) {
   return (
-    <SimpleMapWithButtons
+    <LeafletMapSelector
       initialLat={initialLat}
       initialLng={initialLng}
       addressData={addressData}
