@@ -159,8 +159,7 @@ export function Sidebar() {
                 )} style={isActive ? {
                   backgroundColor: 'var(--accent)',
                   color: 'white'
-                } : {}}
-                )}>
+                } : {}}>
                   <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                   {item.name}
                   {item.badge && (
@@ -198,8 +197,7 @@ export function Sidebar() {
                         )} style={hasActiveChild ? {
                           backgroundColor: 'var(--accent)',
                           color: 'white'
-                        } : {}}
-                        )}>
+                        } : {}}>
                           <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                           {item.name}
                           {isOpen ? (
@@ -222,8 +220,7 @@ export function Sidebar() {
                               )} style={isActive ? {
                                 backgroundColor: 'var(--accent)',
                                 color: 'white'
-                              } : {}}
-                              )}>
+                              } : {}}>
                                 <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                                 {child.name}
                               </div>
@@ -248,8 +245,7 @@ export function Sidebar() {
                 )} style={location === "/templates" ? {
                   backgroundColor: 'var(--accent)',
                   color: 'white'
-                } : {}}
-                )}>
+                } : {}}>
                   <Palette className="mr-3 h-4 w-4 flex-shrink-0" />
                   Templates
                 </div>
@@ -267,8 +263,7 @@ export function Sidebar() {
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
-                  } : {}}
-                  )}>
+                  } : {}}>
                     <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                     {item.name}
                   </div>
