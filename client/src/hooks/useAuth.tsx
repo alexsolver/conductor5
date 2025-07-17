@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await response.json();
         return userData || null;
       } catch (error) {
-        console.error('Auth query error:', error);
+        // Auth query error handled by UI
         localStorage.removeItem('accessToken');
         return null;
       }
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await apiRequest('POST', '/api/auth/login', credentials);
         return await res.json();
       } catch (error) {
-        console.error('Login API error:', error);
+        // Login API error handled by UI
         throw error;
       }
     },

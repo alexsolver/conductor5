@@ -104,7 +104,7 @@ export function useLocalization() {
         description: 'Failed to save localization preferences',
         variant: 'destructive',
       });
-      console.error('Error saving preferences:', error);
+      // Error saving preferences handled by UI
     },
   });
 
