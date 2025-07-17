@@ -26,9 +26,9 @@ type ActivityLog = {
   action: string;
   performedById?: string;
   performedByType?: string;
-  details: Record<string, unknown>;
-  previousValues: Record<string, unknown>;
-  newValues: Record<string, unknown>;
+  details: any;
+  previousValues: any;
+  newValues: any;
   createdAt: Date;
 };
 type InsertActivityLog = Omit<ActivityLog, 'id' | 'createdAt'>;
@@ -183,11 +183,11 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers 
         ORDER BY created_at DESC
-        LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
-      `);
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
       
       // Map results and add tenantId
-      return result.rows.map((row: Record<string, unknown>) => ({ ...row, tenantId }));
+      return result.rows.map((row: any) => ({ ...row, tenantId }));
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError('Error fetching customers', error, { tenantId, limit, offset });
@@ -288,12 +288,12 @@ export class DatabaseStorage implements IStorage {
       const ticketResult = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.tickets
         ORDER BY created_at DESC
-        LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
-      `);
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
       
       // Get customers for each ticket
       const ticketsWithCustomers = await Promise.all(
-        ticketResult.rows.map(async (ticket: Record<string, unknown>) => {
+        ticketResult.rows.map(async (ticket: any) => {
           let customer = null;
           if (ticket.customer_id) {
             try {

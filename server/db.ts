@@ -32,14 +32,14 @@ export class SchemaManager {
   // Create a new schema for a tenant
   async createTenantSchema(tenantId: string): Promise<void> {
     const schemaName = this.getSchemaName(tenantId);
-    
+
     try {
       // Create the schema using parameterized query
       await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(schemaName)}`);
-      
+
       // Create tenant-specific tables in the new schema
       await this.createTenantTables(schemaName);
-      
+
       // Schema criado com sucesso - usar sistema de logging adequado em produção
     } catch (error) {
       const { logError } = await import('./utils/logger');
@@ -51,43 +51,43 @@ export class SchemaManager {
   // Get database connection for a specific tenant
   getTenantDb(tenantId: string): { db: ReturnType<typeof drizzle>; schema: any } {
     const schemaName = this.getSchemaName(tenantId);
-    
+
     if (!this.tenantConnections.has(tenantId)) {
       // Create a new connection with the tenant's schema as default - safe from SQL injection
       const baseConnectionString = process.env.DATABASE_URL;
       if (!baseConnectionString) {
         throw new Error('DATABASE_URL environment variable is not set');
       }
-      
+
       // Safely append search_path parameter using URL constructor - schema name is pre-sanitized
       const connectionUrl = new URL(baseConnectionString);
       // schemaName is already sanitized by getSchemaName() method - safe from SQL injection
       connectionUrl.searchParams.set('search_path', `${schemaName},public`);
-      
+
       const tenantPool = new Pool({ 
         connectionString: connectionUrl.toString()
       });
-      
+
       // Use simplified schema approach to avoid ExtraConfigBuilder error
       const tenantDb = drizzle({ 
         client: tenantPool
       });
-      
+
       this.tenantConnections.set(tenantId, { db: tenantDb, schema: {} });
     }
-    
+
     return this.tenantConnections.get(tenantId)!;
   }
 
   // Drop a tenant schema (for cleanup)
   async dropTenantSchema(tenantId: string): Promise<void> {
     const schemaName = this.getSchemaName(tenantId);
-    
+
     try {
       // Use parameterized query with sql.identifier for secure schema name handling
       await db.execute(sql`DROP SCHEMA IF EXISTS ${sql.identifier(schemaName)} CASCADE`);
       this.tenantConnections.delete(tenantId);
-      
+
       const { logInfo } = await import('./utils/logger');
       logInfo(`Schema dropped successfully for tenant ${tenantId}`, { tenantId, schemaName });
     } catch (error) {
@@ -103,13 +103,13 @@ export class SchemaManager {
     if (!tenantId || typeof tenantId !== 'string') {
       throw new Error('Invalid tenant ID');
     }
-    
+
     // Only allow alphanumeric characters, hyphens, and underscores
     const sanitizedTenantId = tenantId.replace(/[^a-zA-Z0-9\-_]/g, '');
     if (sanitizedTenantId !== tenantId) {
       throw new Error('Tenant ID contains invalid characters');
     }
-    
+
     return `tenant_${sanitizedTenantId.replace(/-/g, '_')}`;
   }
 
@@ -118,7 +118,7 @@ export class SchemaManager {
     try {
       // Use sql.identifier for safe schema references - prevents SQL injection
       const schemaId = sql.identifier(schemaName);
-      
+
       // Customer table with comprehensive fields using parameterized queries
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
@@ -257,7 +257,7 @@ export class SchemaManager {
         schemaName,
         security: 'All queries use sql.identifier() for safe schema references'
       });
-      
+
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError(`Failed to create tenant tables for schema ${schemaName}`, error, { schemaName });
@@ -274,7 +274,7 @@ export class SchemaManager {
         FROM information_schema.schemata 
         WHERE schema_name LIKE 'tenant_%'
       `);
-      
+
       return result.rows.map(row => row.schema_name as string);
     } catch (error) {
       const { logError } = await import('./utils/logger');
