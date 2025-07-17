@@ -214,7 +214,9 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     <SelectItem value="customer">{t("userManagement.roles.customer", "Cliente")}</SelectItem>
                     <SelectItem value="agent">{t("userManagement.roles.agent", "Agente")}</SelectItem>
                     <SelectItem value="tenant_admin">{t("userManagement.roles.tenantAdmin", "Admin do Tenant")}</SelectItem>
-                    <SelectItem value="saas_admin">{t("userManagement.roles.saasAdmin", "SaaS Admin")}</SelectItem>
+                    {!tenantAdmin && (
+                      <SelectItem value="saas_admin">{t("userManagement.roles.saasAdmin", "SaaS Admin")}</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

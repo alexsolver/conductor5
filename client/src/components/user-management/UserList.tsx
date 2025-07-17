@@ -99,13 +99,14 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
 
   const toggleUserStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      return apiRequest(`/api/tenant-admin/users/${userId}`, {
+      const endpoint = tenantAdmin ? `/api/tenant-admin/team/users/${userId}` : `/api/user-management/users/${userId}`;
+      return apiRequest(endpoint, {
         method: "PUT",
         body: { isActive: !isActive }
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/users"] });
+      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       toast({
         title: t("userManagement.success", "Sucesso"),
         description: t("userManagement.userStatusUpdated", "Status do usuário atualizado com sucesso"),
