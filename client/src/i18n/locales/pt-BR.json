@@ -148,5 +148,73 @@
     "created": "{{item}} criado com sucesso",
     "updated": "{{item}} atualizado com sucesso",
     "deleted": "{{item}} excluído com sucesso"
+  },
+  "userManagement": {
+    "createUser": "Criar Usuário",
+    "createUserDesc": "Adicione um novo usuário à sua organização",
+    "inviteUser": "Convidar Usuário",
+    "inviteUserDesc": "Envie um convite por email para um novo usuário",
+    "basicInfo": "Informações Básicas",
+    "firstName": "Nome",
+    "firstNamePlaceholder": "João",
+    "lastName": "Sobrenome",
+    "lastNamePlaceholder": "Silva",
+    "email": "Email",
+    "emailPlaceholder": "joao.silva@empresa.com",
+    "phone": "Telefone",
+    "phonePlaceholder": "+55 11 99999-9999",
+    "systemRole": "Papel do Sistema",
+    "role": "Papel",
+    "accountActive": "Conta ativa",
+    "sendInvitationEmail": "Enviar email de convite",
+    "expiration": "Expiração",
+    "expires1Day": "1 dia",
+    "expires3Days": "3 dias",
+    "expires7Days": "7 dias",
+    "expires14Days": "14 dias",
+    "expires30Days": "30 dias",
+    "expiresOn": "Expira em",
+    "notes": "Notas",
+    "invitationNotesPlaceholder": "Mensagem personalizada para incluir no convite...",
+    "sendInvitation": "Enviar Convite",
+    "customRoles": "Papéis Customizados",
+    "customRolesDesc": "Selecione papéis customizados adicionais para este usuário",
+    "createRole": "Criar Papel",
+    "createRoleDesc": "Defina um novo papel com permissões específicas",
+    "roleName": "Nome do Papel",
+    "roleNamePlaceholder": "Ex: Supervisor de Suporte",
+    "basedOnRole": "Baseado em",
+    "selectBaseRole": "Selecionar papel base",
+    "description": "Descrição",
+    "roleDescriptionPlaceholder": "Descrição do papel e suas responsabilidades",
+    "permissions": "Permissões",
+    "noCustomRoles": "Nenhum papel customizado disponível",
+    "userGroups": "Grupos de Usuários",
+    "userGroupsAssignDesc": "Adicione este usuário a grupos da organização",
+    "groups": "Grupos",
+    "noGroups": "Nenhum grupo disponível",
+    "roles": {
+      "customer": "Cliente",
+      "agent": "Agente",
+      "workspaceAdmin": "Admin do Workspace",
+      "saasAdmin": "SaaS Admin"
+    }
+  },
+  "workspaceAdmin": {
+    "team": {
+      "title": "Gestão da Equipe",
+      "description": "Gerencie membros da equipe, papéis e permissões do seu workspace",
+      "createUser": "Criar Usuário",
+      "inviteUser": "Convidar Usuário",
+      "performance": "Performance da Equipe",
+      "tabs": {
+        "members": "Membros",
+        "groups": "Grupos",
+        "roles": "Papéis",
+        "invitations": "Convites",
+        "sessions": "Sessões",
+        "activity": "Atividade"
+      }
+    }
   }
 }

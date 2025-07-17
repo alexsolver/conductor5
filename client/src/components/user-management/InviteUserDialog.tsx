@@ -152,6 +152,9 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                   <SelectItem value="customer">{t("userManagement.roles.customer", "Cliente")}</SelectItem>
                   <SelectItem value="agent">{t("userManagement.roles.agent", "Agente")}</SelectItem>
                   <SelectItem value="tenant_admin">{t("userManagement.roles.workspaceAdmin", "Admin do Workspace")}</SelectItem>
+                  {!tenantAdmin && (
+                    <SelectItem value="saas_admin">{t("userManagement.roles.saasAdmin", "SaaS Admin")}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
