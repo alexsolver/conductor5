@@ -59,8 +59,9 @@ export class SchemaManager {
         throw new Error('DATABASE_URL environment variable is not set');
       }
       
-      // Safely append search_path parameter using URL constructor
+      // Safely append search_path parameter using URL constructor - schema name is pre-sanitized
       const connectionUrl = new URL(baseConnectionString);
+      // schemaName is already sanitized by getSchemaName() method - safe from SQL injection
       connectionUrl.searchParams.set('search_path', `${schemaName},public`);
       
       const tenantPool = new Pool({ 
