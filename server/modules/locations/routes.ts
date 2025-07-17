@@ -7,6 +7,7 @@ import { UpdateLocationUseCase } from './application/use-cases/UpdateLocationUse
 import { FindNearbyLocationsUseCase } from './application/use-cases/FindNearbyLocationsUseCase';
 import { DrizzleLocationRepository } from './infrastructure/repositories/DrizzleLocationRepository';
 import { DomainEventPublisher } from '../shared/infrastructure/DomainEventPublisher';
+import { CepService } from './services/CepService';
 
 const router = Router();
 
@@ -30,6 +31,22 @@ const locationController = new LocationController(
 
 // Apply authentication middleware to all routes
 router.use(jwtAuth);
+
+// CEP search route (doesn't require specific location data, just CEP lookup)
+router.get('/cep/:cep', async (req, res) => {
+  try {
+    const { cep } = req.params;
+    const result = await CepService.searchCepWithCoordinates(cep);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Erro ao buscar CEP:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+});
 
 // Location CRUD routes
 router.post('/', (req, res) => locationController.createLocation(req, res));

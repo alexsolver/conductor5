@@ -278,6 +278,38 @@ export class SchemaManager {
         )
       `);
 
+      // Locations table using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.locations (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          type VARCHAR(50) DEFAULT 'office',
+          status VARCHAR(50) DEFAULT 'active',
+          address VARCHAR(500),
+          number VARCHAR(20),
+          complement VARCHAR(100),
+          neighborhood VARCHAR(100),
+          city VARCHAR(100),
+          state VARCHAR(50),
+          zip_code VARCHAR(20),
+          country VARCHAR(50) DEFAULT 'Brasil',
+          latitude VARCHAR(20),
+          longitude VARCHAR(20),
+          business_hours JSONB DEFAULT '{}',
+          special_hours JSONB DEFAULT '{}',
+          timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
+          sla_id UUID,
+          access_instructions TEXT,
+          requires_authorization BOOLEAN DEFAULT FALSE,
+          security_equipment JSONB DEFAULT '{}',
+          emergency_contacts JSONB DEFAULT '{}',
+          metadata JSONB DEFAULT '{}',
+          tags JSONB DEFAULT '[]',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
       // Locations table with comprehensive fields for location management
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.locations (

@@ -141,11 +141,55 @@ export function getTenantSpecificSchema(schemaName: string) {
     createdAt: timestamp("created_at").defaultNow(),
   }, { schema: schemaName });
 
+  // Tenant-specific locations table
+  const tenantLocations = pgTable("locations", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    type: varchar("type", { length: 50 }).default("office"),
+    status: varchar("status", { length: 50 }).default("active"),
+    
+    // Address fields
+    address: varchar("address", { length: 500 }),
+    number: varchar("number", { length: 20 }),
+    complement: varchar("complement", { length: 100 }),
+    neighborhood: varchar("neighborhood", { length: 100 }),
+    city: varchar("city", { length: 100 }),
+    state: varchar("state", { length: 50 }),
+    zipCode: varchar("zip_code", { length: 20 }),
+    country: varchar("country", { length: 50 }).default("Brasil"),
+    
+    // Geolocation
+    latitude: varchar("latitude", { length: 20 }),
+    longitude: varchar("longitude", { length: 20 }),
+    
+    // Business hours and timezone
+    businessHours: jsonb("business_hours").default({}),
+    specialHours: jsonb("special_hours").default({}),
+    timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo"),
+    
+    // SLA and access
+    slaId: uuid("sla_id"),
+    accessInstructions: text("access_instructions"),
+    requiresAuthorization: boolean("requires_authorization").default(false),
+    
+    // Security and emergency
+    securityEquipment: jsonb("security_equipment").default({}),
+    emergencyContacts: jsonb("emergency_contacts").default({}),
+    
+    // Metadata
+    metadata: jsonb("metadata").default({}),
+    tags: jsonb("tags").default([]),
+    
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }, { schema: schemaName });
+
   // Return schema object compatible with Drizzle (without relations to avoid ExtraConfigBuilder error)
   return {
     customers: tenantCustomers,
     tickets: tenantTickets,
     ticketMessages: tenantTicketMessages,
     activityLogs: tenantActivityLogs,
+    locations: tenantLocations,
   };
 }

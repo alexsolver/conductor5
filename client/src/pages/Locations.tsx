@@ -150,6 +150,50 @@ export default function Locations() {
     }
   });
 
+  // CEP search functionality
+  const handleCepSearch = async (event: any) => {
+    const cep = event.target?.value || '';
+    if (!cep || cep.length < 8) return;
+
+    try {
+      const response = await apiRequest('GET', `/api/locations/cep/${cep}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        // Auto-fill form with CEP data
+        form.setValue('address', result.data.address || '');
+        form.setValue('neighborhood', result.data.neighborhood || '');
+        form.setValue('city', result.data.city || '');
+        form.setValue('state', result.data.state || '');
+        form.setValue('zipCode', result.data.zipCode || '');
+        
+        // Set coordinates if available
+        if (result.data.latitude && result.data.longitude) {
+          form.setValue('latitude', result.data.latitude);
+          form.setValue('longitude', result.data.longitude);
+        }
+
+        toast({
+          title: "CEP encontrado",
+          description: "Endereço preenchido automaticamente."
+        });
+      } else {
+        toast({
+          title: "CEP não encontrado",
+          description: result.error || "Não foi possível encontrar o endereço.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar CEP. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const onSubmit = (data: LocationFormData) => {
     createLocationMutation.mutate(data);
   };
@@ -344,7 +388,22 @@ export default function Locations() {
                           <FormItem>
                             <FormLabel>CEP</FormLabel>
                             <FormControl>
-                              <Input placeholder="01234-567" {...field} />
+                              <div className="flex gap-2">
+                                <Input 
+                                  placeholder="01234-567" 
+                                  {...field}
+                                  onBlur={handleCepSearch}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCepSearch({ target: { value: field.value } })}
+                                  disabled={!field.value || field.value.length < 8}
+                                >
+                                  Buscar
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -354,6 +413,48 @@ export default function Locations() {
                   </TabsContent>
                   
                   <TabsContent value="advanced" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="latitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Latitude</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="-23.5505"
+                                type="number" 
+                                step="any"
+                                {...field}
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="longitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Longitude</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="-46.6333"
+                                type="number" 
+                                step="any"
+                                {...field}
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="accessInstructions"
