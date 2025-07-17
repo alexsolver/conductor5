@@ -14,7 +14,7 @@ import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
 import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
-import integrityRoutes from './routes/integrityRoutes';
+import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
