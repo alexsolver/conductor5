@@ -36,6 +36,7 @@ import TenantAdminIntegrations from "./pages/TenantAdminIntegrations";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import TicketConfiguration from "./pages/TicketConfiguration";
 import { UserManagement } from "./pages/UserManagement";
+import MultiTenantManagement from "./pages/MultiTenantManagement";
 import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 
@@ -94,6 +95,7 @@ function AppRouter() {
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/ticket-configuration" component={TicketConfiguration} />
         <Route path="/user-management" component={UserManagement} />
+        <Route path="/multi-tenant" component={MultiTenantManagement} />
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />
         <Route path="/templates" component={TemplateSelector} />

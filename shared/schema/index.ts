@@ -9,6 +9,7 @@ export * from "./location";
 export * from "./security";
 export * from "./tenant-specific";
 export * from "./user-management";
+export * from "./multi-tenant";
 
 // Main schema aggregation for backwards compatibility
 import { 
