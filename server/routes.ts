@@ -152,7 +152,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
   const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
+  const saasAdminIntegrationsRoutes = await import('./routes/saasAdminIntegrations');
   app.use('/api/saas-admin', saasAdminRoutes.default);
+  app.use('/api/saas-admin/integrations', saasAdminIntegrationsRoutes.default);
   app.use('/api/tenant-admin', tenantAdminRoutes.default);
 
   // Schema management (admin only)

@@ -60,6 +60,7 @@ const adminNavigation = [
       { name: "Disaster Recovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
       { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
       { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages },
+      { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },
       { name: "Controle de Integridade", href: "/module-integrity", icon: Shield },
     ]
   },

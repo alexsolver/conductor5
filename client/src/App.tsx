@@ -27,6 +27,7 @@ import TranslationManager from "./pages/TranslationManager";
 import SaasAdminPerformance from "./pages/SaasAdminPerformance";
 import SaasAdminBilling from "./pages/SaasAdminBilling";
 import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
+import SaasAdminIntegrations from "./pages/SaasAdminIntegrations";
 import TenantAdminTeam from "./pages/TenantAdminTeam";
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 import TenantAdminSLAs from "./pages/TenantAdminSLAs";
@@ -78,6 +79,7 @@ function AppRouter() {
         <Route path="/saas-admin/performance" component={SaasAdminPerformance} />
         <Route path="/saas-admin/billing" component={SaasAdminBilling} />
         <Route path="/saas-admin/disaster-recovery" component={SaasAdminDisasterRecovery} />
+        <Route path="/saas-admin/integrations" component={SaasAdminIntegrations} />
         <Route path="/tenant-admin" component={TenantAdmin} />
         <Route path="/tenant-admin/team" component={TenantAdminTeam} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
