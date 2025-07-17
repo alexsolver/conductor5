@@ -14,6 +14,8 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const { limit, offset } = req.query;
+    
+    // Performance optimization: Use cache-aware method
     const customers = await storage.getCustomers(
       req.user.tenantId,
       limit ? parseInt(limit as string) : 50,
@@ -22,7 +24,12 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json({ customers });
   } catch (error) {
-    console.error("Error fetching customers:", error);
+    const { logError } = await import('../../utils/logger');
+    logError("Error fetching customers", error, { 
+      tenantId: req.user?.tenantId,
+      limit,
+      offset 
+    });
     res.status(500).json({ message: "Failed to fetch customers" });
   }
 });
