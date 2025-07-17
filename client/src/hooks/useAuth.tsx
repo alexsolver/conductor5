@@ -26,7 +26,9 @@ interface RegisterData {
   password: string;
   firstName?: string;
   lastName?: string;
-  role?: 'admin' | 'agent' | 'customer';
+  companyName?: string;
+  workspaceName?: string;
+  role?: 'admin' | 'agent' | 'customer' | 'tenant_admin';
   tenantId?: string;
 }
 
@@ -37,7 +39,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loginMutation: UseMutationResult<{ user: User; accessToken: string }, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<{ user: User; accessToken: string }, Error, RegisterData>;
+  registerMutation: UseMutationResult<{ user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }, Error, RegisterData>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -126,13 +128,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: { user: User; accessToken: string }) => {
+    onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
       localStorage.setItem('accessToken', result.accessToken);
       queryClient.setQueryData(['/api/auth/user'], result.user);
-      toast({
-        title: 'Registration successful',
-        description: `Welcome to Conductor, ${result.user.firstName || result.user.email}!`,
-      });
+      
+      if (result.tenant) {
+        toast({
+          title: 'Workspace criado com sucesso!',
+          description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
+        });
+      } else {
+        toast({
+          title: 'Registro realizado com sucesso',
+          description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
+        });
+      }
     },
     onError: (error: Error) => {
       console.error('Registration error:', error);

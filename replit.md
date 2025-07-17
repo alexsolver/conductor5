@@ -81,6 +81,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **2025-01-17**: Enhanced Registration with Tenant/Workspace Creation
+  - **Registration Form**: Added company name and workspace name fields for tenant creation during user signup
+  - **Automatic Tenant Provisioning**: Registration now creates tenant/workspace automatically when company details are provided
+  - **Tenant Admin Role**: First user of a new workspace becomes tenant admin with full tenant management privileges
+  - **Workspace URL Generation**: Workspace names are converted to URL-safe subdomains (e.g., "Acme Support" → "acme-support")
+  - **Backend Integration**: Registration endpoint integrated with tenant auto-provisioning service
+  - **Multi-tenant Architecture**: Proper tenant isolation from the moment of registration
+  - **USER EXPERIENCE IMPROVEMENT**: Users can now create their own workspace during signup instead of being assigned to existing tenants
+
 - **2025-01-17**: Complete Template System Implementation for Dynamic UI Customization
   - **Template API Backend**: Created comprehensive `/api/templates/*` endpoints for applying, resetting, and managing UI templates
   - **CSS Variable Integration**: Templates dynamically update CSS custom properties and gradient variables in `index.css`

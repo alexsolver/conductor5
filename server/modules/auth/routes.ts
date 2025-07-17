@@ -56,11 +56,37 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
       password: z.string().min(8),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
-      role: z.enum(['admin', 'agent', 'customer']).optional(),
+      companyName: z.string().optional(),
+      workspaceName: z.string().optional(),
+      role: z.enum(['admin', 'agent', 'customer', 'tenant_admin']).optional(),
       tenantId: z.string().optional()
     });
 
     const userData = registerSchema.parse(req.body);
+    
+    // If company name and workspace are provided, create tenant first
+    if (userData.companyName && userData.workspaceName) {
+      const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
+      
+      // Create tenant
+      const tenantResult = await tenantAutoProvisioningService.provisionTenant({
+        name: userData.companyName,
+        subdomain: userData.workspaceName.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+        companyName: userData.companyName,
+        userEmail: userData.email,
+        trigger: 'registration'
+      });
+
+      if (!tenantResult.success) {
+        return res.status(400).json({ 
+          message: `Erro ao criar workspace: ${tenantResult.message}` 
+        });
+      }
+
+      // Set tenant ID and role for the user
+      userData.tenantId = tenantResult.tenant!.id;
+      userData.role = 'tenant_admin'; // First user becomes tenant admin
+    }
     
     const registerUseCase = container.registerUseCase;
     const result = await registerUseCase.execute(userData);
@@ -75,7 +101,12 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
 
     res.status(201).json({
       user: result.user,
-      accessToken: result.accessToken
+      accessToken: result.accessToken,
+      tenant: userData.companyName && userData.workspaceName ? {
+        id: userData.tenantId,
+        name: userData.companyName,
+        subdomain: userData.workspaceName
+      } : undefined
     });
   } catch (error) {
     console.error('Register error:', error);

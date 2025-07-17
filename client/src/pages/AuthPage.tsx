@@ -74,6 +74,8 @@ export default function AuthPage() {
     const [password, setPassword] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [companyName, setCompanyName] = useState("");
+    const [workspaceName, setWorkspaceName] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -82,7 +84,9 @@ export default function AuthPage() {
         password, 
         firstName: firstName || undefined, 
         lastName: lastName || undefined,
-        role: 'agent' 
+        companyName: companyName || undefined,
+        workspaceName: workspaceName || undefined,
+        role: 'tenant_admin' // First user becomes tenant admin
       });
     };
 
@@ -120,6 +124,31 @@ export default function AuthPage() {
             placeholder="john@example.com"
             required
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="register-company">Nome da Empresa</Label>
+          <Input
+            id="register-company"
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            placeholder="Acme Corporation"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="register-workspace">Nome do Workspace</Label>
+          <Input
+            id="register-workspace"
+            type="text"
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.target.value)}
+            placeholder="acme-support"
+            required
+          />
+          <p className="text-xs text-gray-500">
+            Será usado como URL do seu workspace (ex: acme-support.conductor.com)
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="register-password">Password</Label>
