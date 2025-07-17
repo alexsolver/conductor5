@@ -144,6 +144,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const authSecurityRoutes = await import('./routes/authSecurity');
   app.use('/api/auth-security', authSecurityRoutes.default);
 
+  // Import and mount template routes
+  const templateRoutes = await import('./routes/templateRoutes');
+  app.use('/api/templates', templateRoutes.default);
+
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
   const tenantAdminRoutes = await import('./modules/tenant-admin/routes');

@@ -1,9 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2 } from "lucide-react";
 
 interface Template {
   id: string;
@@ -117,23 +120,88 @@ const templates: Template[] = [
 export function TemplateSelector() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Query para obter template atual
+  const { data: currentTemplate } = useQuery({
+    queryKey: ['/api/templates/current'],
+    retry: false
+  });
+
+  // Mutation para aplicar template
+  const applyTemplateMutation = useMutation({
+    mutationFn: async (template: Template) => {
+      const res = await apiRequest('POST', '/api/templates/apply', template);
+      return res.json();
+    },
+    onSuccess: (data, template) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/templates/current'] });
+      setSelectedTemplate(template.id);
+      toast({
+        title: "Template aplicado!",
+        description: `O template "${template.name}" foi aplicado com sucesso.`,
+      });
+      
+      // Forçar reload da página para aplicar mudanças CSS
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao aplicar template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para resetar template
+  const resetTemplateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/templates/reset');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/templates/current'] });
+      setSelectedTemplate(null);
+      toast({
+        title: "Template resetado",
+        description: "O template foi resetado para o padrão.",
+      });
+      
+      // Forçar reload da página para aplicar mudanças CSS
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao resetar template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Inicializar template selecionado baseado no atual
+  useEffect(() => {
+    if (currentTemplate?.selectedTemplate) {
+      setSelectedTemplate(currentTemplate.selectedTemplate);
+    }
+  }, [currentTemplate]);
 
   const applyTemplate = (template: Template) => {
-    // Aqui você implementará a lógica para aplicar o template
-    console.log('Aplicando template:', template);
-    
-    // Simular aplicação do template
-    const root = document.documentElement;
-    root.style.setProperty('--primary', template.colors.primary);
-    root.style.setProperty('--secondary', template.colors.secondary);
-    root.style.setProperty('--accent', template.colors.accent);
-    root.style.setProperty('--background', template.colors.background);
-    
-    setSelectedTemplate(template.id);
+    applyTemplateMutation.mutate(template);
+  };
+
+  const resetTemplate = () => {
+    resetTemplateMutation.mutate();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -238,8 +306,18 @@ export function TemplateSelector() {
                     e.stopPropagation();
                     applyTemplate(template);
                   }}
+                  disabled={applyTemplateMutation.isPending}
                 >
-                  {selectedTemplate === template.id ? 'Template Aplicado' : 'Aplicar Template'}
+                  {applyTemplateMutation.isPending && applyTemplateMutation.variables?.id === template.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Aplicando...
+                    </>
+                  ) : selectedTemplate === template.id ? (
+                    'Template Aplicado'
+                  ) : (
+                    'Aplicar Template'
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -251,16 +329,24 @@ export function TemplateSelector() {
           <Button 
             size="lg" 
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            disabled={!selectedTemplate}
+            disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            Confirmar Seleção
+            {selectedTemplate ? 'Template Selecionado' : 'Selecione um Template'}
           </Button>
           <Button 
             size="lg" 
             variant="outline"
-            onClick={() => setSelectedTemplate(null)}
+            onClick={resetTemplate}
+            disabled={resetTemplateMutation.isPending}
           >
-            Resetar
+            {resetTemplateMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Resetando...
+              </>
+            ) : (
+              'Resetar para Padrão'
+            )}
           </Button>
         </div>
 
