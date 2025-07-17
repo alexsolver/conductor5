@@ -402,21 +402,23 @@ export default function TenantAdminIntegrations() {
                         {integration.description}
                       </p>
                       
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium mb-2">Recursos:</h4>
-                        <div className="flex flex-wrap gap-1">
-                          {integration.features.slice(0, 3).map((feature, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                          {integration.features.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{integration.features.length - 3} mais
-                            </Badge>
-                          )}
+                      {integration.features && integration.features.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium mb-2">Recursos:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {integration.features.slice(0, 3).map((feature, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {feature}
+                              </Badge>
+                            ))}
+                            {integration.features.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{integration.features.length - 3} mais
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="flex space-x-2">
                         <Button 
