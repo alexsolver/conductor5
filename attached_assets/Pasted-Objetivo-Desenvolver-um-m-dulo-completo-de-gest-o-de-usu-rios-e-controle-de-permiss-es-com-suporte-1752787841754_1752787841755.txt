@@ -1,0 +1,81 @@
+Objetivo:
+Desenvolver um módulo completo de gestão de usuários e controle de permissões, com suporte a ambiente multi-tenant, níveis hierárquicos de acesso, e regras operacionais claras tanto para a administração central do sistema (SaaS Admin) quanto para os administradores de cada cliente (Tenant Admin).
+
+⸻
+
+🔑 Escopos de Acesso
+	1.	SaaS Admin
+	•	Visualiza e gerencia todos os tenants e usuários da plataforma.
+	•	Cria novos tenants e define permissões globais e papéis padrão.
+	•	Audita acessos e alterações em qualquer tenant.
+	2.	Tenant Admin
+	•	Gerencia usuários da sua própria organização.
+	•	Define permissões e perfis personalizados dentro do tenant.
+	•	Não tem acesso a outros tenants.
+	3.	Usuários Operacionais (Agente, Supervisor, Técnico, etc.)
+	•	Acessam apenas os recursos autorizados pelo seu papel.
+	•	Podem ser limitados a módulos ou regiões específicas.
+
+⸻
+
+👥 Recursos do Módulo
+
+A. Cadastro e Gestão de Usuários
+	•	Criar, editar, desativar ou remover usuários.
+	•	Definir dados básicos: nome, email, telefone, função.
+	•	Atribuir o usuário a um ou mais grupos, unidades, ou localidades.
+	•	Enviar convite para ativação por e-mail.
+	•	Atribuir papéis e permissões no momento do cadastro.
+	•	Marcar como “usuário externo”, “temporário” ou “em treinamento”.
+
+B. Papéis (Roles)
+	•	Papéis globais predefinidos: SaaS Admin, Tenant Admin, Supervisor, Agente, Leitor.
+	•	Possibilidade de criação de papéis customizados por tenant.
+	•	Cada papel possui um conjunto de permissões predefinidas (ex: “acessar módulo de tickets”, “editar usuários”, “visualizar relatórios”).
+
+C. Permissões Granulares (Abilities)
+	•	Controle por módulo e por tipo de ação (visualizar, criar, editar, excluir).
+	•	Permissões aplicáveis a:
+	•	Módulos (tickets, workflows, SLAs, etc.)
+	•	Recursos específicos (ex: “editar apenas os próprios tickets”)
+	•	Locais ou regiões (acesso restrito por unidade operacional)
+	•	Níveis de sensibilidade (ex: dados confidenciais)
+
+D. Auditoria e Segurança
+	•	Registro de ações críticas (quem alterou permissões, quando e o quê).
+	•	Visualização de sessões ativas e possibilidade de encerramento forçado.
+	•	Logs de login, falhas de autenticação, troca de senha e desativação.
+	•	Permissões aplicadas também ao painel de administração.
+
+⸻
+
+🔒 Regras Operacionais
+	•	Um usuário pertence a um único tenant, mas pode atuar em múltiplos grupos dentro dele.
+	•	Um tenant não pode acessar dados de outro tenant.
+	•	O SaaS Admin pode visualizar todos os usuários e dados, mas não interfere na operação do tenant sem permissão explícita.
+	•	Papéis fixos não podem ser editados (ex: Tenant Admin), mas podem ser duplicados para criar variações customizadas.
+	•	Toda alteração de permissão exige justificativa registrada (opcional por política).
+
+⸻
+
+📈 Relacionamento com Outros Módulos
+	•	A permissão de acesso define se o usuário:
+	•	Pode ver ou operar tickets
+	•	Pode visualizar ou configurar workflows
+	•	Pode gerar relatórios ou dashboards
+	•	Pode atribuir tarefas ou reatribuir chamadas
+	•	O perfil de acesso do usuário afeta:
+	•	O que ele vê na agenda
+	•	O que ele pode fazer em workflows
+	•	A quais locais e clientes ele tem acesso
+
+⸻
+
+🧪 Casos de Uso Prioritários
+	1.	SaaS Admin cria novo tenant e define papéis iniciais.
+	2.	Tenant Admin convida usuários da equipe e configura acessos.
+	3.	Agente só pode visualizar e operar os próprios tickets.
+	4.	Supervisor tem acesso de leitura a todos os tickets de seu time.
+	5.	Auditor tem acesso somente leitura a todos os registros.
+	6.	Log é registrado quando um papel é alterado ou quando um usuário é suspenso.
+	7.	Um usuário que tenta acessar um módulo sem permissão recebe erro de acesso negado.
