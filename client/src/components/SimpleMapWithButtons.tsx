@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Navigation, Search } from 'lucide-react';
+import { MapPin, Navigation, Search, Plus, Minus, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,9 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
   const [selectedLng, setSelectedLng] = useState(initialLng);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [mapCenter, setMapCenter] = useState({ lat: initialLat, lng: initialLng });
+  const [searchResult, setSearchResult] = useState<string>('');
   const { toast } = useToast();
 
   // Initialize search query with address data
@@ -51,6 +54,8 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
   const handleCoordinateSelect = (lat: number, lng: number) => {
     setSelectedLat(lat);
     setSelectedLng(lng);
+    setMapCenter({ lat, lng });
+    setZoomLevel(2.5); // Zoom in when location is selected
     onLocationSelect(lat, lng);
   };
 
@@ -73,6 +78,7 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
         const lng = localResult.lng;
         
         handleCoordinateSelect(lat, lng);
+        setSearchResult(localResult.name);
         
         toast({
           title: "Local encontrado",
@@ -114,6 +120,7 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
         }
         
         handleCoordinateSelect(lat, lng);
+        setSearchResult(bestResult.display_name || 'Localização encontrada');
         
         toast({
           title: "Local encontrado",
@@ -248,8 +255,48 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
       {/* Map Placeholder with Real Street Information */}
       <div className="relative border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
         <div className="w-full h-96 flex flex-col items-center justify-center">
+          {/* Map Controls */}
+          <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setZoomLevel(prev => Math.min(prev + 0.5, 4))}
+              className="w-8 h-8 p-0 bg-white/95 hover:bg-white"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setZoomLevel(prev => Math.max(prev - 0.5, 0.5))}
+              className="w-8 h-8 p-0 bg-white/95 hover:bg-white"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMapCenter({ lat: selectedLat, lng: selectedLng });
+                setZoomLevel(2);
+              }}
+              className="w-8 h-8 p-0 bg-white/95 hover:bg-white"
+              title="Centralizar no marcador"
+            >
+              <Move className="h-4 w-4" />
+            </Button>
+          </div>
+          
           {/* Street Map Simulation */}
-          <div className="w-full h-full relative bg-[#E5E3DF]">
+          <div 
+            className="w-full h-full relative bg-[#E5E3DF] transition-transform duration-500 ease-in-out"
+            style={{
+              transform: `scale(${zoomLevel}) translate(${(mapCenter.lng + 47) * -2}px, ${(mapCenter.lat + 15) * 2}px)`
+            }}
+          >
             {/* Major Brazil cities overlay */}
             <div className="absolute inset-0">
               {/* São Paulo region */}
@@ -354,11 +401,21 @@ export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLo
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Latitude: {selectedLat.toFixed(6)} | Longitude: {selectedLng.toFixed(6)}
         </p>
-        {searchQuery && (
+        {searchResult && (
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Endereço: {searchQuery}
+            <span className="font-medium">Encontrado:</span> {searchResult}
           </p>
         )}
+        {searchQuery && !searchResult && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <span className="font-medium">Busca:</span> {searchQuery}
+          </p>
+        )}
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs text-gray-500">Zoom: {zoomLevel.toFixed(1)}x</span>
+          <span className="text-xs text-gray-500">|</span>
+          <span className="text-xs text-gray-500">Centro: {mapCenter.lat.toFixed(2)}, {mapCenter.lng.toFixed(2)}</span>
+        </div>
       </div>
     </div>
   );
