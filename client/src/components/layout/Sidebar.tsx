@@ -113,7 +113,10 @@ export function Sidebar() {
 
   return (
     <div className="hidden lg:flex lg:w-64 lg:flex-col">
-      <div className="gradient-sidebar flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
+      <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto" style={{
+        background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+        color: 'white'
+      }}>
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-4">
           <div className="flex items-center">
@@ -126,7 +129,10 @@ export function Sidebar() {
 
         {/* Tenant Selector */}
         <div className="mt-6 px-4">
-          <div className="bg-white bg-opacity-10 rounded-lg p-3 border border-white border-opacity-20">
+          <div className="rounded-lg p-3 border" style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.2)'
+          }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center mr-2">
@@ -148,8 +154,12 @@ export function Sidebar() {
                 <div className={cn(
                   "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                   isActive
-                    ? "bg-white bg-opacity-20 text-white"
+                    ? "text-white"
                     : "text-white hover:bg-white hover:bg-opacity-10"
+                )} style={isActive ? {
+                  backgroundColor: 'var(--accent)',
+                  color: 'white'
+                } : {}}
                 )}>
                   <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                   {item.name}
@@ -183,8 +193,12 @@ export function Sidebar() {
                         <div className={cn(
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                           hasActiveChild
-                            ? "bg-white bg-opacity-20 text-white"
+                            ? "text-white"
                             : "text-white hover:bg-white hover:bg-opacity-10"
+                        )} style={hasActiveChild ? {
+                          backgroundColor: 'var(--accent)',
+                          color: 'white'
+                        } : {}}
                         )}>
                           <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                           {item.name}
@@ -203,8 +217,12 @@ export function Sidebar() {
                               <div className={cn(
                                 "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                                 isActive
-                                  ? "bg-white bg-opacity-20 text-white"
+                                  ? "text-white"
                                   : "text-white hover:bg-white hover:bg-opacity-10"
+                              )} style={isActive ? {
+                                backgroundColor: 'var(--accent)',
+                                color: 'white'
+                              } : {}}
                               )}>
                                 <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                                 {child.name}
@@ -225,8 +243,12 @@ export function Sidebar() {
                 <div className={cn(
                   "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                   location === "/templates"
-                    ? "bg-white bg-opacity-20 text-white"
+                    ? "text-white"
                     : "text-white hover:bg-white hover:bg-opacity-10"
+                )} style={location === "/templates" ? {
+                  backgroundColor: 'var(--accent)',
+                  color: 'white'
+                } : {}}
                 )}>
                   <Palette className="mr-3 h-4 w-4 flex-shrink-0" />
                   Templates
@@ -240,8 +262,12 @@ export function Sidebar() {
                   <div className={cn(
                     "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                     isActive
-                      ? "bg-white bg-opacity-20 text-white"
+                      ? "text-white"
                       : "text-white hover:bg-white hover:bg-opacity-10"
+                  )} style={isActive ? {
+                    backgroundColor: 'var(--accent)',
+                    color: 'white'
+                  } : {}}
                   )}>
                     <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                     {item.name}
@@ -254,8 +280,12 @@ export function Sidebar() {
 
         {/* User Profile */}
         <div className="flex-shrink-0 px-4 pb-4">
-          <div className="flex items-center bg-white bg-opacity-10 rounded-lg p-3">
-            <div className="w-8 h-8 gradient-secondary rounded-full flex items-center justify-center mr-3">
+          <div className="flex items-center rounded-lg p-3" style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.1)'
+          }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{
+              background: 'linear-gradient(135deg, var(--secondary), var(--accent))'
+            }}>
               <span className="text-white text-sm font-semibold">
                 {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
               </span>

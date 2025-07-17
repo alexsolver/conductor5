@@ -29,11 +29,16 @@ export class TemplateService {
       root.style.setProperty(variable, value);
     });
 
-    // Apply basic colors
+    // Apply basic colors as hex values
     root.style.setProperty('--primary', template.colors.primary);
     root.style.setProperty('--secondary', template.colors.secondary);
     root.style.setProperty('--accent', template.colors.accent);
     root.style.setProperty('--background', template.colors.background);
+    
+    // Apply foreground colors
+    root.style.setProperty('--primary-foreground', this.getContrastColor(template.colors.primary));
+    root.style.setProperty('--secondary-foreground', this.getContrastColor(template.colors.secondary));
+    root.style.setProperty('--accent-foreground', this.getContrastColor(template.colors.accent));
 
     // Apply computed colors based on template style
     this.applyComputedColors(template);
