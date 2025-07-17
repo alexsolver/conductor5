@@ -27,9 +27,13 @@ import {
 
 import { 
   customers,
+  customerLocations,
   insertCustomerSchema,
+  insertCustomerLocationSchema,
   type Customer,
-  type InsertCustomer
+  type InsertCustomer,
+  type CustomerLocation,
+  type InsertCustomerLocation
 } from "./customer";
 
 import {
@@ -84,6 +88,7 @@ export {
   
   // Customer tables
   customers,
+  customerLocations,
   
   // Ticket tables
   tickets,
@@ -107,6 +112,7 @@ export {
   insertTenantSchema,
   insertUserSchema,
   insertCustomerSchema,
+  insertCustomerLocationSchema,
   insertTicketSchema,
   insertTicketMessageSchema,
   insertLocationSchema,
@@ -121,6 +127,7 @@ export {
   type Tenant,
   type User,
   type Customer,
+  type CustomerLocation,
   type Ticket,
   type TicketMessage,
   type Location,
@@ -133,6 +140,7 @@ export {
   type InsertTenant,
   type InsertUser,
   type InsertCustomer,
+  type InsertCustomerLocation,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertLocation,
@@ -149,6 +157,7 @@ const schema = {
   tenants,
   users,
   customers,
+  customerLocations,
   tickets,
   ticketMessages,
   locations,

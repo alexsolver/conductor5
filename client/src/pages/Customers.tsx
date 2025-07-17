@@ -1,17 +1,38 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Search, Mail, Phone } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, Edit } from "lucide-react";
+import { CustomerModal } from "@/components/CustomerModal";
+import { useLocation } from "wouter";
 
 export default function Customers() {
+  const [, setLocation] = useLocation();
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  
   const { data: customersData, isLoading } = useQuery({
     queryKey: ["/api/customers"],
     retry: false,
   });
 
   const customers = customersData?.customers || [];
+
+  const handleAddCustomer = () => {
+    setSelectedCustomer(null);
+    setIsCustomerModalOpen(true);
+  };
+
+  const handleEditCustomer = (customer: any) => {
+    setSelectedCustomer(customer);
+    setIsCustomerModalOpen(true);
+  };
+
+  const handleLocationModalOpen = () => {
+    setLocation('/locations');
+  };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
     if (firstName && lastName) {
@@ -56,7 +77,10 @@ export default function Customers() {
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
-          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+          <Button 
+            onClick={handleAddCustomer}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Customer
           </Button>
@@ -101,23 +125,44 @@ export default function Customers() {
                         <span className="font-medium">Company:</span> {customer.company}
                       </div>
                     )}
+                    
+                    {customer.role && (
+                      <div className="text-gray-600 dark:text-gray-400">
+                        <span className="font-medium">Cargo:</span> {customer.role}
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between text-xs text-gray-500">
-                      <span>Joined {new Date(customer.createdAt).toLocaleDateString()}</span>
-                      {customer.lastContactAt && (
-                        <span>Last contact {new Date(customer.lastContactAt).toLocaleDateString()}</span>
+                      <span>Criado em {new Date(customer.createdAt).toLocaleDateString()}</span>
+                      {customer.lastLogin && (
+                        <span>Último login {new Date(customer.lastLogin).toLocaleDateString()}</span>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-3 flex space-x-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      View Profile
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleEditCustomer(customer)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Editar
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1">
-                      Create Ticket
+                      <Plus className="h-3 w-3 mr-1" />
+                      Ticket
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="px-3"
+                      onClick={() => handleEditCustomer(customer)}
+                    >
+                      <MapPin className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -137,6 +182,14 @@ export default function Customers() {
           </div>
         )}
       </div>
+
+      {/* Customer Modal */}
+      <CustomerModal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        customer={selectedCustomer}
+        onLocationModalOpen={handleLocationModalOpen}
+      />
     </div>
   );
 }

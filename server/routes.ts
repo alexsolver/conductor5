@@ -8,6 +8,7 @@ import { createRedisRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/r
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 
@@ -215,6 +216,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ticket configuration management routes
   app.use('/api/ticket-config', ticketConfigRoutes);
+
+  // Customer-Location relationship routes
+  app.get('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+      const { customerLocations, locations } = await import('@shared/schema');
+      
+      const customerLocationsList = await tenantDb
+        .select({
+          locationId: customerLocations.locationId,
+          isPrimary: customerLocations.isPrimary,
+          location: locations
+        })
+        .from(customerLocations)
+        .innerJoin(locations, eq(customerLocations.locationId, locations.id))
+        .where(eq(customerLocations.customerId, customerId));
+
+      res.json({ locations: customerLocationsList });
+    } catch (error) {
+      console.error('Error fetching customer locations:', error);
+      res.status(500).json({ message: 'Failed to fetch customer locations' });
+    }
+  });
+
+  app.post('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId } = req.params;
+      const { locationId, isPrimary } = req.body;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+      const { customerLocations } = await import('@shared/schema');
+      
+      // Check if association already exists
+      const existing = await tenantDb
+        .select()
+        .from(customerLocations)
+        .where(and(
+          eq(customerLocations.customerId, customerId),
+          eq(customerLocations.locationId, locationId)
+        ))
+        .limit(1);
+
+      if (existing.length > 0) {
+        return res.status(400).json({ message: 'Customer already associated with this location' });
+      }
+
+      // If this is marked as primary, unset other primary locations for this customer
+      if (isPrimary) {
+        await tenantDb
+          .update(customerLocations)
+          .set({ isPrimary: false })
+          .where(eq(customerLocations.customerId, customerId));
+      }
+
+      // Create the association
+      await tenantDb.insert(customerLocations).values({
+        customerId,
+        locationId,
+        isPrimary: isPrimary || false
+      });
+
+      res.json({ message: 'Location associated with customer successfully' });
+    } catch (error) {
+      console.error('Error associating customer with location:', error);
+      res.status(500).json({ message: 'Failed to associate customer with location' });
+    }
+  });
+
+  app.delete('/api/customers/:customerId/locations/:locationId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId, locationId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+      const { customerLocations } = await import('@shared/schema');
+      
+      await tenantDb
+        .delete(customerLocations)
+        .where(and(
+          eq(customerLocations.customerId, customerId),
+          eq(customerLocations.locationId, locationId)
+        ));
+
+      res.json({ message: 'Location removed from customer successfully' });
+    } catch (error) {
+      console.error('Error removing customer location:', error);
+      res.status(500).json({ message: 'Failed to remove customer location' });
+    }
+  });
 
   // All routes now handled by dedicated microservices
 

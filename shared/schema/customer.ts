@@ -6,10 +6,12 @@ import {
   jsonb,
   uuid,
   boolean,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { tenants } from "./base";
+import { locations } from "./location";
 
 // Customers table
 export const customers = pgTable("customers", {
@@ -54,3 +56,23 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
 
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type Customer = typeof customers.$inferSelect;
+
+// Customer Locations relationship table (many-to-many)
+export const customerLocations = pgTable("customer_locations", {
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  locationId: uuid("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
+  isPrimary: boolean("is_primary").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.customerId, table.locationId] }),
+  };
+});
+
+// Customer Location relationship schemas
+export const insertCustomerLocationSchema = createInsertSchema(customerLocations).omit({
+  createdAt: true,
+});
+
+export type InsertCustomerLocation = z.infer<typeof insertCustomerLocationSchema>;
+export type CustomerLocation = typeof customerLocations.$inferSelect;
