@@ -1,0 +1,55 @@
+ precisamos de uma área de Configurações de Sistema que permita gerenciar todos os metadados e configurações dos tickets. Vou explicar como podemos estruturar isso:
+
+Configurações Necessárias no Sistema de Tickets
+1. Categorias e Subcategorias
+Categorias principais: Hardware, Software, Rede, Acesso, Solicitação, etc.
+Subcategorias por categoria: Ex: Hardware > Computador, Impressora, Monitor
+Hierarquia configurável: Permitir N níveis de subcategorias
+Ativo/Inativo: Poder desabilitar categorias sem deletar histórico
+2. Status e Estados do Ticket
+Estados padrão: Novo, Em Andamento, Aguardando, Resolvido, Fechado
+Fluxo configurável: Definir transições permitidas entre estados
+Estados personalizados: Cada tenant pode ter seus próprios estados
+Cores e ícones: Personalização visual por estado
+3. Prioridades e Impactos
+Níveis de Prioridade: Baixa, Média, Alta, Crítica, Urgente
+Níveis de Impacto: Baixo, Médio, Alto
+SLA por prioridade: Tempo de resposta e resolução
+Escalation automático: Regras de escalação baseadas em prioridade
+4. Outras Configurações Importantes
+Tipos de Contato:
+
+Email, Telefone, Chat, Presencial, Portal Self-Service
+Grupos de Atendimento:
+
+Help Desk, Suporte Técnico, Infraestrutura, Desenvolvimento
+Localizações:
+
+Unidades, Andares, Salas, Cidades
+Itens de Configuração (CMDB):
+
+Servidores, Aplicações, Bases de Dados
+Códigos de Resolução:
+
+Solucionado, Contornado, Não Reproduzível, Duplicado
+Estrutura Técnica Recomendada
+1. Tabelas de Configuração
+-- Categorias hierárquicas
+ticket_categories (id, name, parent_id, tenant_id, active, color, icon)
+-- Status configuráveis
+ticket_statuses (id, name, type, tenant_id, active, color, order)
+-- Prioridades
+ticket_priorities (id, name, level, sla_hours, tenant_id, active, color)
+-- Fluxos de estado
+status_transitions (from_status_id, to_status_id, tenant_id, required_role)
+2. Interface de Administração
+Página de Configurações: Menu "Configurações > Sistema de Tickets"
+Abas organizadas: Categorias, Status, Prioridades, SLAs, etc.
+Interface drag-and-drop: Para reorganizar ordem e hierarquias
+Validações: Evitar exclusão de itens em uso
+3. Localização e Multi-tenant
+Configurações por tenant: Cada organização pode ter suas próprias configurações
+Herança de configurações: Configurações globais + personalizações por tenant
+Traduções: Suporte a múltiplos idiomas nas configurações
+Implementação Sugerida
+Podemos criar um módulo dedicado ticket-configuration com:

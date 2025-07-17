@@ -9,6 +9,7 @@ import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema";
 import { z } from "zod";
+import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -172,6 +173,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to initialize schema" });
     }
   });
+
+  // Ticket configuration management routes
+  app.use('/api/ticket-config', ticketConfigRoutes);
 
   // All routes now handled by dedicated microservices
 

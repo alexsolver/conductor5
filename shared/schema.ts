@@ -213,6 +213,75 @@ export const passwordResets = pgTable("password_resets", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Ticket Configuration Tables
+export const ticketCategories = pgTable("ticket_categories", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  parentId: text("parent_id").references(() => ticketCategories.id),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  color: text("color").default("#3b82f6"),
+  icon: text("icon"),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const ticketStatuses = pgTable("ticket_statuses", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  type: text("type", { enum: ['open', 'in_progress', 'waiting', 'resolved', 'closed'] }).notNull(),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  color: text("color").default("#3b82f6"),
+  order: integer("order").default(0),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const ticketPriorities = pgTable("ticket_priorities", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  level: integer("level").notNull(), // 1-5
+  slaHours: integer("sla_hours").default(24),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  color: text("color").default("#3b82f6"),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const statusTransitions = pgTable("status_transitions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  fromStatusId: text("from_status_id").references(() => ticketStatuses.id).notNull(),
+  toStatusId: text("to_status_id").references(() => ticketStatuses.id).notNull(),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  requiredRole: text("required_role"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const assignmentGroups = pgTable("assignment_groups", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const ticketLocations = pgTable("ticket_locations", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  parentId: text("parent_id").references(() => ticketLocations.id),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const magicLinks = pgTable("magic_links", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email").notNull(),
@@ -296,6 +365,66 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
+export const ticketCategoriesRelations = relations(ticketCategories, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [ticketCategories.tenantId],
+    references: [tenants.id]
+  }),
+  parent: one(ticketCategories, {
+    fields: [ticketCategories.parentId],
+    references: [ticketCategories.id]
+  }),
+  children: many(ticketCategories)
+}));
+
+export const ticketStatusesRelations = relations(ticketStatuses, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [ticketStatuses.tenantId],
+    references: [tenants.id]
+  })
+}));
+
+export const ticketPrioritiesRelations = relations(ticketPriorities, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [ticketPriorities.tenantId],
+    references: [tenants.id]
+  })
+}));
+
+export const statusTransitionsRelations = relations(statusTransitions, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [statusTransitions.tenantId],
+    references: [tenants.id]
+  }),
+  fromStatus: one(ticketStatuses, {
+    fields: [statusTransitions.fromStatusId],
+    references: [ticketStatuses.id]
+  }),
+  toStatus: one(ticketStatuses, {
+    fields: [statusTransitions.toStatusId],
+    references: [ticketStatuses.id]
+  })
+}));
+
+export const assignmentGroupsRelations = relations(assignmentGroups, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [assignmentGroups.tenantId],
+    references: [tenants.id]
+  })
+}));
+
+export const ticketLocationsRelations = relations(ticketLocations, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [ticketLocations.tenantId],
+    references: [tenants.id]
+  }),
+  parent: one(ticketLocations, {
+    fields: [ticketLocations.parentId],
+    references: [ticketLocations.id]
+  }),
+  children: many(ticketLocations)
+}));
+
 // Insert schemas
 export const insertTenantSchema = createInsertSchema(tenants).omit({
   id: true,
@@ -351,6 +480,41 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
   createdAt: true,
 });
 
+export const insertTicketCategorySchema = createInsertSchema(ticketCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTicketStatusSchema = createInsertSchema(ticketStatuses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTicketPrioritySchema = createInsertSchema(ticketPriorities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStatusTransitionSchema = createInsertSchema(statusTransitions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAssignmentGroupSchema = createInsertSchema(assignmentGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTicketLocationSchema = createInsertSchema(ticketLocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -364,6 +528,18 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+export type TicketCategory = typeof ticketCategories.$inferSelect;
+export type InsertTicketCategory = z.infer<typeof insertTicketCategorySchema>;
+export type TicketStatus = typeof ticketStatuses.$inferSelect;
+export type InsertTicketStatus = z.infer<typeof insertTicketStatusSchema>;
+export type TicketPriority = typeof ticketPriorities.$inferSelect;
+export type InsertTicketPriority = z.infer<typeof insertTicketPrioritySchema>;
+export type StatusTransition = typeof statusTransitions.$inferSelect;
+export type InsertStatusTransition = z.infer<typeof insertStatusTransitionSchema>;
+export type AssignmentGroup = typeof assignmentGroups.$inferSelect;
+export type InsertAssignmentGroup = z.infer<typeof insertAssignmentGroupSchema>;
+export type TicketLocation = typeof ticketLocations.$inferSelect;
+export type InsertTicketLocation = z.infer<typeof insertTicketLocationSchema>;
 
 // Function to create tenant-specific schema with proper naming
 export function getTenantSpecificSchema(schemaName: string) {
