@@ -77,6 +77,7 @@ const statusConfig = {
 export default function Locations() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false);
+  const [tempCoordinates, setTempCoordinates] = useState<{lat: number, lng: number} | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -435,7 +436,15 @@ export default function Locations() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setIsMapDialogOpen(true)}
+                                  onClick={() => {
+                                    // Inicializa coordenadas temporárias com valores atuais
+                                    const currentLat = form.getValues('latitude');
+                                    const currentLng = form.getValues('longitude');
+                                    if (currentLat !== undefined && currentLng !== undefined) {
+                                      setTempCoordinates({ lat: currentLat, lng: currentLng });
+                                    }
+                                    setIsMapDialogOpen(true);
+                                  }}
                                   className="px-3"
                                   title="Buscar no mapa"
                                 >
@@ -467,7 +476,15 @@ export default function Locations() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setIsMapDialogOpen(true)}
+                                  onClick={() => {
+                                    // Inicializa coordenadas temporárias com valores atuais
+                                    const currentLat = form.getValues('latitude');
+                                    const currentLng = form.getValues('longitude');
+                                    if (currentLat !== undefined && currentLng !== undefined) {
+                                      setTempCoordinates({ lat: currentLat, lng: currentLng });
+                                    }
+                                    setIsMapDialogOpen(true);
+                                  }}
                                   className="px-3"
                                   title="Buscar no mapa"
                                 >
@@ -550,27 +567,50 @@ export default function Locations() {
             <DialogHeader>
               <DialogTitle>Selecionar Localização no Mapa</DialogTitle>
               <DialogDescription>
-                Clique no mapa para selecionar a localização exata ou use a barra de pesquisa
+                Use a barra de pesquisa para encontrar o endereço. Clique em "Confirmar Localização" para aplicar.
               </DialogDescription>
             </DialogHeader>
-            <MapSelector 
-              initialLat={form.getValues('latitude') || -23.5505}
-              initialLng={form.getValues('longitude') || -46.6333}
-              addressData={{
-                address: form.getValues('address'),
-                number: form.getValues('number'),
-                neighborhood: form.getValues('neighborhood'),
-                city: form.getValues('city'),
-                state: form.getValues('state'),
-                zipCode: form.getValues('zipCode'),
-                country: form.getValues('country')
-              }}
-              onLocationSelect={(lat, lng) => {
-                form.setValue('latitude', lat);
-                form.setValue('longitude', lng);
-                setIsMapDialogOpen(false);
-              }}
-            />
+            <div className="space-y-4">
+              <MapSelector 
+                initialLat={form.getValues('latitude') || -23.5505}
+                initialLng={form.getValues('longitude') || -46.6333}
+                addressData={{
+                  address: form.getValues('address'),
+                  number: form.getValues('number'),
+                  neighborhood: form.getValues('neighborhood'),
+                  city: form.getValues('city'),
+                  state: form.getValues('state'),
+                  zipCode: form.getValues('zipCode'),
+                  country: form.getValues('country')
+                }}
+                onLocationSelect={(lat, lng) => {
+                  // Apenas atualiza as coordenadas temporárias, não fecha o modal
+                  setTempCoordinates({ lat, lng });
+                }}
+              />
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsMapDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (tempCoordinates) {
+                      form.setValue('latitude', tempCoordinates.lat);
+                      form.setValue('longitude', tempCoordinates.lng);
+                    }
+                    setIsMapDialogOpen(false);
+                  }}
+                  disabled={!tempCoordinates}
+                >
+                  Confirmar Localização
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
