@@ -4,9 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2 } from "lucide-react";
+import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2, Settings, Moon, Sun, Sunset, Camera, Brush, Heart } from "lucide-react";
 
 interface Template {
   id: string;
@@ -21,7 +25,7 @@ interface Template {
     background: string;
   };
   features: string[];
-  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant';
+  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant' | 'sunset' | 'ocean' | 'forest';
 }
 
 const templates: Template[] = [
@@ -114,12 +118,290 @@ const templates: Template[] = [
     },
     features: ['Cores internacionais', 'Layout responsivo', 'Ícones globais', 'Acessibilidade aprimorada'],
     style: 'classic'
+  },
+  {
+    id: 'sunset-warm',
+    name: 'Sunset Warm',
+    description: 'Cores quentes inspiradas no pôr do sol com tons laranja e rosa',
+    icon: <Sunset className="w-6 h-6" />,
+    preview: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffcd3c 100%)',
+    colors: {
+      primary: '#ff6b35',
+      secondary: '#f7931e',
+      accent: '#ff4757',
+      background: '#fff8f1'
+    },
+    features: ['Cores vibrantes', 'Atmosfera acolhedora', 'Contrastes suaves', 'Design energético'],
+    style: 'sunset'
+  },
+  {
+    id: 'ocean-blue',
+    name: 'Ocean Depths',
+    description: 'Profundidade dos oceanos com azuis intensos e toques aquáticos',
+    icon: <Camera className="w-6 h-6" />,
+    preview: 'linear-gradient(135deg, #0c4a6e 0%, #0284c7 50%, #38bdf8 100%)',
+    colors: {
+      primary: '#0c4a6e',
+      secondary: '#0284c7',
+      accent: '#06d6a0',
+      background: '#f0f9ff'
+    },
+    features: ['Tons oceânicos', 'Sensação de calma', 'Elementos aquáticos', 'Design fluido'],
+    style: 'ocean'
+  },
+  {
+    id: 'forest-nature',
+    name: 'Forest Nature',
+    description: 'Inspirado na natureza com verdes orgânicos e tons terrosos',
+    icon: <Heart className="w-6 h-6" />,
+    preview: 'linear-gradient(135deg, #166534 0%, #16a34a 50%, #65a30d 100%)',
+    colors: {
+      primary: '#166534',
+      secondary: '#16a34a',
+      accent: '#eab308',
+      background: '#f7fee7'
+    },
+    features: ['Cores naturais', 'Sensação orgânica', 'Elementos sustentáveis', 'Design eco-friendly'],
+    style: 'forest'
   }
 ];
+
+// Color Picker Component
+function ColorPicker({ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      <div className="flex items-center gap-3">
+        <input
+          type="color"
+          value={color}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-12 h-8 rounded border border-gray-300 cursor-pointer"
+        />
+        <Input
+          type="text"
+          value={color}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-24 text-sm font-mono"
+          placeholder="#000000"
+        />
+        <div 
+          className="w-8 h-8 rounded border-2 border-white shadow-md"
+          style={{ backgroundColor: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Template Customization Dialog
+function TemplateCustomizer({ template, onSave }: { template: Template; onSave: (customTemplate: Template) => void }) {
+  const [customColors, setCustomColors] = useState(template.colors);
+  const [customName, setCustomName] = useState(`${template.name} (Personalizado)`);
+
+  const updateColor = (colorKey: keyof typeof customColors, value: string) => {
+    setCustomColors(prev => ({
+      ...prev,
+      [colorKey]: value
+    }));
+  };
+
+  const handleSave = () => {
+    const customTemplate: Template = {
+      ...template,
+      id: `${template.id}-custom-${Date.now()}`,
+      name: customName,
+      colors: customColors,
+      preview: `linear-gradient(135deg, ${customColors.primary} 0%, ${customColors.secondary} 50%, ${customColors.accent} 100%)`
+    };
+    onSave(customTemplate);
+  };
+
+  const presetPalettes = [
+    { name: 'Azul Corporativo', colors: { primary: '#1e40af', secondary: '#3b82f6', accent: '#0ea5e9', background: '#f8fafc' } },
+    { name: 'Verde Natureza', colors: { primary: '#166534', secondary: '#16a34a', accent: '#65a30d', background: '#f7fee7' } },
+    { name: 'Roxo Elegante', colors: { primary: '#581c87', secondary: '#7c3aed', accent: '#a855f7', background: '#fef7ff' } },
+    { name: 'Laranja Vibrante', colors: { primary: '#ea580c', secondary: '#fb923c', accent: '#fde047', background: '#fff7ed' } },
+    { name: 'Rosa Moderno', colors: { primary: '#be185d', secondary: '#ec4899', accent: '#f472b6', background: '#fdf2f8' } },
+    { name: 'Cinza Minimalista', colors: { primary: '#374151', secondary: '#6b7280', accent: '#10b981', background: '#ffffff' } }
+  ];
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="ml-2">
+          <Brush className="w-4 h-4 mr-2" />
+          Personalizar
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Palette className="w-5 h-5" />
+            Personalizar Template: {template.name}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <Tabs defaultValue="colors" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="colors">Cores Personalizadas</TabsTrigger>
+            <TabsTrigger value="presets">Paletas Prontas</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="colors" className="space-y-6">
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Nome do Template</Label>
+              <Input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="Nome do seu template personalizado"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium">Editar Cores</h4>
+                <ColorPicker
+                  color={customColors.primary}
+                  onChange={(color) => updateColor('primary', color)}
+                  label="Cor Primária"
+                />
+                <ColorPicker
+                  color={customColors.secondary}
+                  onChange={(color) => updateColor('secondary', color)}
+                  label="Cor Secundária"
+                />
+                <ColorPicker
+                  color={customColors.accent}
+                  onChange={(color) => updateColor('accent', color)}
+                  label="Cor de Destaque"
+                />
+                <ColorPicker
+                  color={customColors.background}
+                  onChange={(color) => updateColor('background', color)}
+                  label="Cor de Fundo"
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <h4 className="font-medium">Pré-visualização</h4>
+                <div 
+                  className="h-32 rounded-lg relative overflow-hidden"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${customColors.primary} 0%, ${customColors.secondary} 50%, ${customColors.accent} 100%)` 
+                  }}
+                >
+                  <div className="absolute inset-0 bg-black/20"></div>
+                  <div className="absolute top-4 left-4 text-white">
+                    {template.icon}
+                  </div>
+                  <div className="absolute bottom-4 left-4 text-white text-sm font-medium">
+                    {customName}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h5 className="text-sm font-medium">Paleta de Cores</h5>
+                  <div className="flex gap-2">
+                    <div 
+                      className="w-8 h-8 rounded border-2 border-white shadow-md"
+                      style={{ backgroundColor: customColors.primary }}
+                      title="Primária"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded border-2 border-white shadow-md"
+                      style={{ backgroundColor: customColors.secondary }}
+                      title="Secundária"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded border-2 border-white shadow-md"
+                      style={{ backgroundColor: customColors.accent }}
+                      title="Destaque"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded border-2 border-gray-300 shadow-md"
+                      style={{ backgroundColor: customColors.background }}
+                      title="Fundo"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setCustomColors(template.colors)}>
+                Resetar
+              </Button>
+              <Button onClick={handleSave}>
+                Aplicar Template Personalizado
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="presets" className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Escolha uma paleta de cores pré-definida para aplicar rapidamente ao seu template.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {presetPalettes.map((palette, index) => (
+                <Card 
+                  key={index}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => setCustomColors(palette.colors)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-medium">{palette.name}</h5>
+                    </div>
+                    <div className="flex gap-2 mb-3">
+                      <div 
+                        className="w-6 h-6 rounded border border-gray-300"
+                        style={{ backgroundColor: palette.colors.primary }}
+                      />
+                      <div 
+                        className="w-6 h-6 rounded border border-gray-300"
+                        style={{ backgroundColor: palette.colors.secondary }}
+                      />
+                      <div 
+                        className="w-6 h-6 rounded border border-gray-300"
+                        style={{ backgroundColor: palette.colors.accent }}
+                      />
+                      <div 
+                        className="w-6 h-6 rounded border border-gray-300"
+                        style={{ backgroundColor: palette.colors.background }}
+                      />
+                    </div>
+                    <div 
+                      className="h-12 rounded"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${palette.colors.primary} 0%, ${palette.colors.secondary} 50%, ${palette.colors.accent} 100%)` 
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setCustomColors(template.colors)}>
+                Resetar para Original
+              </Button>
+              <Button onClick={handleSave}>
+                Aplicar Template Personalizado
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function TemplateSelector() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
+  const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -200,6 +482,14 @@ export function TemplateSelector() {
     resetTemplateMutation.mutate();
   };
 
+  const handleCustomTemplate = (customTemplate: Template) => {
+    setCustomTemplates(prev => [...prev, customTemplate]);
+    applyTemplate(customTemplate);
+  };
+
+  // Combine original templates with custom ones
+  const allTemplates = [...templates, ...customTemplates];
+
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
@@ -216,7 +506,7 @@ export function TemplateSelector() {
 
         {/* Templates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {templates.map((template) => (
+          {allTemplates.map((template) => (
             <Card 
               key={template.id}
               className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer ${
@@ -299,26 +589,32 @@ export function TemplateSelector() {
                 </div>
 
                 {/* Apply Button */}
-                <Button 
-                  className="w-full mt-4" 
-                  variant={selectedTemplate === template.id ? "default" : "outline"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    applyTemplate(template);
-                  }}
-                  disabled={applyTemplateMutation.isPending}
-                >
-                  {applyTemplateMutation.isPending && applyTemplateMutation.variables?.id === template.id ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Aplicando...
-                    </>
-                  ) : selectedTemplate === template.id ? (
-                    'Template Aplicado'
-                  ) : (
-                    'Aplicar Template'
-                  )}
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <Button 
+                    className="flex-1" 
+                    variant={selectedTemplate === template.id ? "default" : "outline"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      applyTemplate(template);
+                    }}
+                    disabled={applyTemplateMutation.isPending}
+                  >
+                    {applyTemplateMutation.isPending && applyTemplateMutation.variables?.id === template.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Aplicando...
+                      </>
+                    ) : selectedTemplate === template.id ? (
+                      'Template Aplicado'
+                    ) : (
+                      'Aplicar Template'
+                    )}
+                  </Button>
+                  <TemplateCustomizer 
+                    template={template} 
+                    onSave={handleCustomTemplate}
+                  />
+                </div>
               </CardContent>
             </Card>
           ))}

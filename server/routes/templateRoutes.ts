@@ -102,6 +102,18 @@ async function applyTemplateToCSS(template: Template): Promise<void> {
         gradientPrimary = `linear-gradient(135deg, hsl(${primaryHsl}) 0%, hsl(${secondaryHsl}) 50%, hsl(${accentHsl}) 100%)`;
         gradientSecondary = `linear-gradient(135deg, hsl(${accentHsl}) 0%, hsl(${secondaryHsl}) 100%)`;
         break;
+      case 'sunset':
+        gradientPrimary = `linear-gradient(135deg, hsl(${primaryHsl}) 0%, hsl(${secondaryHsl}) 70%, hsl(${accentHsl}) 100%)`;
+        gradientSecondary = `radial-gradient(circle, hsl(${accentHsl}) 0%, hsl(${primaryHsl}) 100%)`;
+        break;
+      case 'ocean':
+        gradientPrimary = `linear-gradient(180deg, hsl(${primaryHsl}) 0%, hsl(${secondaryHsl}) 60%, hsl(${accentHsl}) 100%)`;
+        gradientSecondary = `linear-gradient(135deg, hsl(${secondaryHsl}) 0%, hsl(${accentHsl}) 100%)`;
+        break;
+      case 'forest':
+        gradientPrimary = `linear-gradient(135deg, hsl(${primaryHsl}) 0%, hsl(${secondaryHsl}) 80%, hsl(${accentHsl}) 100%)`;
+        gradientSecondary = `linear-gradient(45deg, hsl(${accentHsl}) 0%, hsl(${secondaryHsl}) 100%)`;
+        break;
       default:
         gradientPrimary = `linear-gradient(135deg, hsl(${primaryHsl}) 0%, hsl(${secondaryHsl}) 100%)`;
         gradientSecondary = `linear-gradient(135deg, hsl(${secondaryHsl}) 0%, hsl(${accentHsl}) 100%)`;

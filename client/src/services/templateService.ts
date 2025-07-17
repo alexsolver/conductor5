@@ -14,7 +14,7 @@ export interface Template {
   name: string;
   description: string;
   colors: TemplateColors;
-  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant';
+  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant' | 'sunset' | 'ocean' | 'forest';
   cssVariables: Record<string, string>;
 }
 
@@ -90,6 +90,24 @@ export class TemplateService {
         root.style.setProperty('--card', '#ffffff');
         root.style.setProperty('--border', '#d1fae5');
         root.style.setProperty('--shadow', '0 4px 12px rgba(15, 118, 110, 0.1)');
+        break;
+        
+      case 'sunset':
+        root.style.setProperty('--card', 'rgba(255, 248, 241, 0.9)');
+        root.style.setProperty('--border', 'rgba(255, 107, 53, 0.2)');
+        root.style.setProperty('--shadow', '0 8px 32px rgba(255, 107, 53, 0.15)');
+        break;
+        
+      case 'ocean':
+        root.style.setProperty('--card', 'rgba(240, 249, 255, 0.9)');
+        root.style.setProperty('--border', 'rgba(12, 74, 110, 0.2)');
+        root.style.setProperty('--shadow', '0 8px 32px rgba(2, 132, 199, 0.15)');
+        break;
+        
+      case 'forest':
+        root.style.setProperty('--card', 'rgba(247, 254, 231, 0.9)');
+        root.style.setProperty('--border', 'rgba(22, 101, 52, 0.2)');
+        root.style.setProperty('--shadow', '0 8px 32px rgba(22, 163, 74, 0.15)');
         break;
     }
   }
