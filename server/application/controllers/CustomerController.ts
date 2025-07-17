@@ -70,7 +70,8 @@ export class CustomerController {
       });
 
     } catch (error) {
-      console.error("Error in getCustomers controller:", error);
+      const { logError } = await import('../../utils/logger');
+      logError("Error in getCustomers controller", error);
       res.status(500).json({ message: "Failed to fetch customers" });
     }
   }
@@ -109,7 +110,8 @@ export class CustomerController {
       });
 
     } catch (error) {
-      console.error("Error in getCustomer controller:", error);
+      const { logError } = await import('../../utils/logger');
+      logError("Error in getCustomer controller", error);
       res.status(500).json({ message: "Failed to fetch customer" });
     }
   }
@@ -170,7 +172,8 @@ export class CustomerController {
       });
 
     } catch (error) {
-      console.error("Error in createCustomer controller:", error);
+      const { logError } = await import('../../utils/logger');
+      logError("Error in createCustomer controller", error);
       res.status(500).json({ message: "Failed to create customer" });
     }
   }

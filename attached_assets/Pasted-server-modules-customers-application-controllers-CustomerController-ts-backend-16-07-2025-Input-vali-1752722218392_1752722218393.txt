@@ -1,0 +1,97 @@
+server/modules/customers/application/controllers/CustomerController.ts
+backend
+16/07/2025
+Input validation issue: Unvalidated user input
+Problema: Unvalidated user input
+
+Prompt para correção:
+
+Add input validation in server/modules/customers/application/controllers/CustomerController.ts: Unvalidated user input. Use Zod schemas or similar validation library before processing user data.
+📋 Copiar Prompt
+Console statement in production code(linha 36)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomerController.ts linha 36. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 36)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomerController.ts linha 36. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 36)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomerController.ts linha 36. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 36)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomerController.ts linha 36. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+server/modules/customers/application/controllers/CustomersController.ts
+backend
+16/07/2025
+Input validation issue: Unvalidated user input
+Problema: Unvalidated user input
+
+Prompt para correção:
+
+Add input validation in server/modules/customers/application/controllers/CustomersController.ts: Unvalidated user input. Use Zod schemas or similar validation library before processing user data.
+📋 Copiar Prompt
+Input validation issue: Unsafe parseInt with user input
+Problema: Unsafe parseInt with user input
+
+Prompt para correção:
+
+Add input validation in server/modules/customers/application/controllers/CustomersController.ts: Unsafe parseInt with user input. Use Zod schemas or similar validation library before processing user data.
+📋 Copiar Prompt
+Excessive use of 'any' type (6 occurrences)
+Problema: Type safety compromised
+
+Prompt para correção:
+
+Replace 'any' types with specific TypeScript types in server/modules/customers/application/controllers/CustomersController.ts. Use proper interfaces, union types, or generic constraints instead of 'any'.
+📋 Copiar Prompt
+Console statement in production code(linha 49)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomersController.ts linha 49. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 49)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomersController.ts linha 49. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 49)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomersController.ts linha 49. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 49)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomersController.ts linha 49. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt
+Console statement in production code(linha 49)
+Problema: console.error
+
+Prompt para correção:
+
+Replace console.error with proper logging system in server/modules/customers/application/controllers/CustomersController.ts linha 49. Use winston, pino, or remove if not needed.
+📋 Copiar Prompt

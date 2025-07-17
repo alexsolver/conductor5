@@ -15,7 +15,8 @@ dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const stats = await storage.getDashboardStats(req.user.tenantId);
     res.json(stats);
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
+    const { logError } = await import('../../utils/logger');
+    logError("Error fetching dashboard stats", error);
     res.status(500).json({ message: "Failed to fetch dashboard stats" });
   }
 });
@@ -31,7 +32,8 @@ dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res)
     const activity = await storage.getRecentActivity(req.user.tenantId, limit);
     res.json(activity);
   } catch (error) {
-    console.error("Error fetching dashboard activity:", error);
+    const { logError } = await import('../../utils/logger');
+    logError("Error fetching dashboard activity", error);
     res.status(500).json({ message: "Failed to fetch activity" });
   }
 });
@@ -61,7 +63,8 @@ dashboardRouter.get('/metrics', jwtAuth, async (req: AuthenticatedRequest, res) 
 
     res.json(metrics);
   } catch (error) {
-    console.error("Error fetching dashboard metrics:", error);
+    const { logError } = await import('../../utils/logger');
+    logError("Error fetching dashboard metrics", error);
     res.status(500).json({ message: "Failed to fetch metrics" });
   }
 });

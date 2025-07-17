@@ -24,7 +24,8 @@ export class DomainEventPublisher implements IDomainEventPublisher {
       });
       
     } catch (error) {
-      console.error('Error publishing domain event:', error);
+      const { logError } = await import('../../utils/logger');
+      logError('Error publishing domain event', error);
       // In production, you might want to store failed events for retry
     }
   }
@@ -33,7 +34,8 @@ export class DomainEventPublisher implements IDomainEventPublisher {
     try {
       await Promise.all(events.map(event => this.publish(event)));
     } catch (error) {
-      console.error('Error publishing multiple domain events:', error);
+      const { logError } = await import('../../utils/logger');
+      logError('Error publishing multiple domain events', error);
     }
   }
 
@@ -46,7 +48,8 @@ export class DomainEventPublisher implements IDomainEventPublisher {
         await storage.createActivityLog(activityData);
       }
     } catch (error) {
-      console.error('Error logging event as activity:', error);
+      const { logError } = await import('../../utils/logger');
+      logError('Error logging event as activity', error);
     }
   }
 

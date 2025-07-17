@@ -63,9 +63,9 @@ export interface IStorage {
   getTicketMessages(ticketId: string): Promise<(TicketMessage & { author?: User; customer?: Customer })[]>;
   createTicketMessage(message: InsertTicketMessage): Promise<TicketMessage>;
   
-  // Activity log operations (temporarily disabled during schema modularization)
-  // getRecentActivity(tenantId: string, limit?: number): Promise<(ActivityLog & { user?: User })[]>;
-  // createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
+  // Activity log operations
+  getRecentActivity(tenantId: string, limit?: number): Promise<(ActivityLog & { user?: User })[]>;
+  createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
   
   // Dashboard statistics
   getDashboardStats(tenantId: string): Promise<{
@@ -417,16 +417,28 @@ export class DatabaseStorage implements IStorage {
     return newMessage;
   }
 
-  // Activity log operations temporarily disabled during schema modularization
-  // async getRecentActivity(tenantId: string, limit = 20): Promise<(ActivityLog & { user?: User })[]> {
-  //   // Will be re-implemented with tenant-specific activity logs
-  //   return [];
-  // }
+  // Activity log operations
+  async getRecentActivity(tenantId: string, limit = 20): Promise<(ActivityLog & { user?: User })[]> {
+    // Temporary implementation returning empty array until activity logs schema is fully migrated
+    // This prevents the "storage.getRecentActivity is not a function" error
+    return [];
+  }
 
-  // async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
-  //   // Will be re-implemented with tenant-specific activity logs
-  //   return {} as ActivityLog;
-  // }
+  async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
+    // Temporary implementation until activity logs schema is fully migrated
+    return {
+      id: 'temp-log-id',
+      entityType: log.entityType,
+      entityId: log.entityId,
+      action: log.action,
+      performedById: log.performedById,
+      performedByType: log.performedByType,
+      details: log.details,
+      previousValues: log.previousValues,
+      newValues: log.newValues,
+      createdAt: new Date()
+    };
+  }
 
   // Dashboard statistics
   async getDashboardStats(tenantId: string): Promise<{

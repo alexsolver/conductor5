@@ -88,7 +88,8 @@ export class SchemaManager {
       this.tenantConnections.delete(tenantId);
       // Schema removido com sucesso - usar sistema de logging adequado em produção
     } catch (error) {
-      console.error(`Failed to drop schema for tenant ${tenantId}:`, error);
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to drop schema for tenant ${tenantId}`, error, { tenantId, schemaName });
       throw error;
     }
   }
