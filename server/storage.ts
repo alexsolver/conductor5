@@ -183,11 +183,11 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers 
         ORDER BY created_at DESC
-        LIMIT $1 OFFSET $2
-      `, [limit, offset]);
+        LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
+      `);
       
       // Map results and add tenantId
-      return result.rows.map((row: any) => ({ ...row, tenantId }));
+      return result.rows.map((row: Record<string, unknown>) => ({ ...row, tenantId }));
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError('Error fetching customers', error, { tenantId, limit, offset });
@@ -288,12 +288,12 @@ export class DatabaseStorage implements IStorage {
       const ticketResult = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.tickets
         ORDER BY created_at DESC
-        LIMIT $1 OFFSET $2
-      `, [limit, offset]);
+        LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
+      `);
       
       // Get customers for each ticket
       const ticketsWithCustomers = await Promise.all(
-        ticketResult.rows.map(async (ticket: any) => {
+        ticketResult.rows.map(async (ticket: Record<string, unknown>) => {
           let customer = null;
           if (ticket.customer_id) {
             try {

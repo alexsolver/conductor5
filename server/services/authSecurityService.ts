@@ -129,12 +129,18 @@ export class AuthSecurityService {
     // Store in database using parameterized query
     await db.execute(sql`
       INSERT INTO user_two_factor (user_id, secret, enabled, created_at)
-      VALUES ($1, $2, $3, NOW())
+      VALUES (${sql.placeholder('userId')}, ${sql.placeholder('secret')}, ${sql.placeholder('enabled')}, NOW())
       ON CONFLICT (user_id) DO UPDATE SET
-        secret = $4,
-        enabled = $5,
+        secret = ${sql.placeholder('secretUpdate')},
+        enabled = ${sql.placeholder('enabledUpdate')},
         created_at = NOW()
-    `, [userId, secret, false, secret, false]);
+    `, {
+      userId,
+      secret,
+      enabled: false,
+      secretUpdate: secret,
+      enabledUpdate: false
+    });
 
     return secret;
   }
@@ -145,9 +151,12 @@ export class AuthSecurityService {
     try {
       await db.execute(sql`
         UPDATE user_two_factor 
-        SET enabled = $1, verified_at = NOW()
-        WHERE user_id = $2
-      `, [true, userId]);
+        SET enabled = ${sql.placeholder('enabled')}, verified_at = NOW()
+        WHERE user_id = ${sql.placeholder('userId')}
+      `, {
+        enabled: true,
+        userId
+      });
       return true;
     } catch (error) {
       return false;
@@ -158,9 +167,12 @@ export class AuthSecurityService {
     try {
       await db.execute(sql`
         UPDATE user_two_factor 
-        SET enabled = $1, verified_at = NULL
-        WHERE user_id = $2
-      `, [false, userId]);
+        SET enabled = ${sql.placeholder('enabled')}, verified_at = NULL
+        WHERE user_id = ${sql.placeholder('userId')}
+      `, {
+        enabled: false,
+        userId
+      });
       return true;
     } catch (error) {
       return false;
@@ -176,8 +188,10 @@ export class AuthSecurityService {
   async isTwoFactorEnabled(userId: string): Promise<boolean> {
     try {
       const result = await db.execute(sql`
-        SELECT enabled FROM user_two_factor WHERE user_id = $1
-      `, [userId]);
+        SELECT enabled FROM user_two_factor WHERE user_id = ${sql.placeholder('userId')}
+      `, {
+        userId
+      });
       return result.rows[0]?.enabled === true;
     } catch (error) {
       return false;
@@ -188,25 +202,36 @@ export class AuthSecurityService {
   async lockAccount(userId: string, reason: string = 'Security violation'): Promise<void> {
     await db.execute(sql`
       INSERT INTO account_lockouts (user_id, reason, locked_at, active)
-      VALUES ($1, $2, NOW(), $3)
-    `, [userId, reason, true]);
+      VALUES (${sql.placeholder('userId')}, ${sql.placeholder('reason')}, NOW(), ${sql.placeholder('active')})
+    `, {
+      userId,
+      reason,
+      active: true
+    });
   }
 
   async unlockAccount(userId: string): Promise<void> {
     await db.execute(sql`
       UPDATE account_lockouts 
-      SET active = $1, unlocked_at = NOW()
-      WHERE user_id = $2 AND active = $3
-    `, [false, userId, true]);
+      SET active = ${sql.placeholder('active')}, unlocked_at = NOW()
+      WHERE user_id = ${sql.placeholder('userId')} AND active = ${sql.placeholder('currentActive')}
+    `, {
+      active: false,
+      userId,
+      currentActive: true
+    });
   }
 
   async isAccountLocked(userId: string): Promise<boolean> {
     try {
       const result = await db.execute(sql`
         SELECT active FROM account_lockouts 
-        WHERE user_id = $1 AND active = $2
+        WHERE user_id = ${sql.placeholder('userId')} AND active = ${sql.placeholder('active')}
         ORDER BY locked_at DESC LIMIT 1
-      `, [userId, true]);
+      `, {
+        userId,
+        active: true
+      });
       return result.rows[0]?.active === true;
     } catch (error) {
       return false;
@@ -260,12 +285,16 @@ export class AuthSecurityService {
   }
 
   // Security logging
-  private async logSecurityEvent(identifier: string, eventType: string, metadata: any = {}): Promise<void> {
+  private async logSecurityEvent(identifier: string, eventType: string, metadata: Record<string, unknown> = {}): Promise<void> {
     try {
       await db.execute(sql`
         INSERT INTO security_events (identifier, event_type, metadata, created_at)
-        VALUES ($1, $2, $3, NOW())
-      `, [identifier, eventType, JSON.stringify(metadata)]);
+        VALUES (${sql.placeholder('identifier')}, ${sql.placeholder('eventType')}, ${sql.placeholder('metadata')}, NOW())
+      `, {
+        identifier,
+        eventType,
+        metadata: JSON.stringify(metadata)
+      });
     } catch (error) {
       console.error('Failed to log security event:', error);
     }

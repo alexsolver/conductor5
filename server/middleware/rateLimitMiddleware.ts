@@ -110,8 +110,13 @@ export class RateLimitService {
       // Log to database for security monitoring using parameterized query
       await db.execute(sql`
         INSERT INTO security_events (ip, email, event_type, attempts, created_at)
-        VALUES ($1, $2, $3, $4, NOW())
-      `, [ip, email || null, 'failed_login', attempts]);
+        VALUES (${sql.placeholder('ip')}, ${sql.placeholder('email')}, ${sql.placeholder('eventType')}, ${sql.placeholder('attempts')}, NOW())
+      `, {
+        ip,
+        email: email || null,
+        eventType: 'failed_login',
+        attempts
+      });
     } catch (error) {
       console.error('Failed to log security event:', error);
     }
