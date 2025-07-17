@@ -80,6 +80,135 @@ router.put('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
 });
 
 /**
+ * GET /api/tenant-admin/branding
+ * Obter configurações de branding do tenant
+ */
+router.get('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const container = DependencyContainer.getInstance();
+    const tenantRepository = container.tenantRepository;
+    
+    const tenant = await tenantRepository.findById(tenantId);
+    
+    if (!tenant) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+    
+    // Configurações de branding padrão
+    const defaultBrandingSettings = {
+      logo: {
+        url: "",
+        darkUrl: "",
+        favicon: ""
+      },
+      colors: {
+        primary: "#8B5CF6",
+        secondary: "#EC4899",
+        accent: "#F59E0B",
+        background: "#FFFFFF",
+        surface: "#F8FAFC",
+        text: "#1E293B",
+        muted: "#64748B"
+      },
+      typography: {
+        fontFamily: "Inter",
+        fontSize: "14px",
+        headingFont: "Inter"
+      },
+      layout: {
+        sidebarStyle: "modern",
+        headerStyle: "clean",
+        borderRadius: "8px",
+        spacing: "normal"
+      },
+      customization: {
+        companyName: tenant.name || "",
+        welcomeMessage: "Bem-vindo ao nosso sistema de suporte",
+        footerText: "",
+        supportEmail: "",
+        helpUrl: "",
+        showPoweredBy: true
+      },
+      themes: {
+        defaultTheme: "light",
+        allowUserThemeSwitch: true,
+        customCss: ""
+      }
+    };
+    
+    // Mesclar configurações salvas com configurações padrão
+    const brandingSettings = tenant.settings?.branding ? 
+      { ...defaultBrandingSettings, ...tenant.settings.branding } : 
+      defaultBrandingSettings;
+    
+    res.json({
+      settings: brandingSettings
+    });
+  } catch (error) {
+    console.error('Error fetching branding settings:', error);
+    res.status(500).json({ message: 'Failed to fetch branding settings' });
+  }
+});
+
+/**
+ * PUT /api/tenant-admin/branding
+ * Atualizar configurações de branding do tenant
+ */
+router.put('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { settings: brandingSettings } = req.body;
+    
+    if (!brandingSettings) {
+      return res.status(400).json({ message: 'Branding settings are required' });
+    }
+    
+    const container = DependencyContainer.getInstance();
+    const tenantRepository = container.tenantRepository;
+    
+    // Buscar tenant atual
+    const currentTenant = await tenantRepository.findById(tenantId);
+    
+    if (!currentTenant) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+    
+    // Atualizar configurações de branding mantendo outras configurações existentes
+    const updatedSettings = {
+      ...currentTenant.settings,
+      branding: brandingSettings
+    };
+    
+    const tenant = await tenantRepository.update(tenantId, { 
+      settings: updatedSettings 
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+    
+    res.json({
+      settings: brandingSettings,
+      message: 'Branding settings updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating branding settings:', error);
+    res.status(500).json({ message: 'Failed to update branding settings' });
+  }
+});
+
+/**
  * GET /api/tenant-admin/users
  * Listar usuários do tenant
  */

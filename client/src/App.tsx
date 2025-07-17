@@ -33,6 +33,7 @@ import TenantAdminTeam from "./pages/TenantAdminTeam";
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 import TenantAdminSLAs from "./pages/TenantAdminSLAs";
 import TenantAdminIntegrations from "./pages/TenantAdminIntegrations";
+import TenantAdminBranding from "./pages/TenantAdminBranding";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import TicketConfiguration from "./pages/TicketConfiguration";
 import { UserManagement } from "./pages/UserManagement";
@@ -90,6 +91,7 @@ function AppRouter() {
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
+        <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
