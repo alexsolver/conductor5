@@ -144,23 +144,25 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="basic" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Básico
-                  </TabsTrigger>
-                  <TabsTrigger value="status" className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    Status
-                  </TabsTrigger>
-                  <TabsTrigger value="localization" className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Localização
-                  </TabsTrigger>
-                  <TabsTrigger value="locations" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Locais
-                  </TabsTrigger>
+                <TabsList className="w-full h-auto p-1">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full">
+                    <TabsTrigger value="basic" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                      <User className="h-3 w-3 lg:h-4 lg:w-4" />
+                      Básico
+                    </TabsTrigger>
+                    <TabsTrigger value="status" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                      <Star className="h-3 w-3 lg:h-4 lg:w-4" />
+                      Status
+                    </TabsTrigger>
+                    <TabsTrigger value="localization" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                      <Globe className="h-3 w-3 lg:h-4 lg:w-4" />
+                      Localização
+                    </TabsTrigger>
+                    <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                      <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
+                      Locais
+                    </TabsTrigger>
+                  </div>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4">
