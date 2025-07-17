@@ -42,6 +42,7 @@ const baseNavigation = [
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Locais", href: "/locations", icon: MapPin },
+  { name: "Gestão de Usuários", href: "/user-management", icon: UserCog },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
   { name: "Roadmap", href: "/roadmap", icon: Map },

@@ -12,6 +12,7 @@ import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } f
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
+import userManagementRoutes from "./routes/userManagementRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -217,6 +218,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ticket configuration management routes
   app.use('/api/ticket-config', ticketConfigRoutes);
+
+  // User management routes
+  app.use('/api/user-management', userManagementRoutes);
 
   // Customer-Location relationship routes
   app.get('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {

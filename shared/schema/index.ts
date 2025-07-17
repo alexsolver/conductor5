@@ -8,6 +8,7 @@ export * from "./ticket";
 export * from "./location";
 export * from "./security";
 export * from "./tenant-specific";
+export * from "./user-management";
 
 // Main schema aggregation for backwards compatibility
 import { 

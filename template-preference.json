@@ -1,35 +1,35 @@
 {
-  "selectedTemplate": "ocean-blue",
-  "appliedAt": "2025-07-17T01:39:17.753Z",
+  "selectedTemplate": "elegant-purple",
+  "appliedAt": "2025-07-17T21:32:09.324Z",
   "template": {
-    "id": "ocean-blue",
-    "name": "Ocean Depths",
-    "description": "Profundidade dos oceanos com azuis intensos e toques aquáticos",
+    "id": "elegant-purple",
+    "name": "Elegant Purple",
+    "description": "Design elegante com paleta roxa sofisticada e dourada",
     "icon": {
       "type": {},
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:141:8",
-        "data-component-name": "Camera",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:96:8",
+        "data-component-name": "Palette",
         "className": "w-6 h-6"
       },
       "_owner": null,
       "_store": {}
     },
-    "preview": "linear-gradient(135deg, #0c4a6e 0%, #0284c7 50%, #38bdf8 100%)",
+    "preview": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #a855f7 100%)",
     "colors": {
-      "primary": "#0c4a6e",
-      "secondary": "#0284c7",
-      "accent": "#06d6a0",
-      "background": "#f0f9ff"
+      "primary": "#581c87",
+      "secondary": "#7c3aed",
+      "accent": "#fbbf24",
+      "background": "#fef7ff"
     },
     "features": [
-      "Tons oceânicos",
-      "Sensação de calma",
-      "Elementos aquáticos",
-      "Design fluido"
+      "Paleta sofisticada",
+      "Acentos dourados",
+      "Sombras elegantes",
+      "Transições suaves"
     ],
-    "style": "ocean"
+    "style": "elegant"
   }
 }
