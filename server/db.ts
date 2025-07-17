@@ -83,9 +83,12 @@ export class SchemaManager {
     const schemaName = this.getSchemaName(tenantId);
     
     try {
+      // Use parameterized query with sql.identifier for secure schema name handling
       await db.execute(sql`DROP SCHEMA IF EXISTS ${sql.identifier(schemaName)} CASCADE`);
       this.tenantConnections.delete(tenantId);
-      // Schema removido com sucesso - usar sistema de logging adequado em produção
+      
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`Schema dropped successfully for tenant ${tenantId}`, { tenantId, schemaName });
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError(`Failed to drop schema for tenant ${tenantId}`, error, { tenantId, schemaName });
@@ -109,118 +112,174 @@ export class SchemaManager {
     return `tenant_${sanitizedTenantId.replace(/-/g, '_')}`;
   }
 
-  // Create all tenant-specific tables in the schema
+  // Create tenant-specific tables using parameterized queries for security
   private async createTenantTables(schemaName: string): Promise<void> {
-    // Use Drizzle's sql.identifier to safely handle schema names
-    const schemaId = sql.identifier(schemaName);
-    
-    // Create Customers table with parameterized query
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        first_name VARCHAR(255),
-        last_name VARCHAR(255),
-        email VARCHAR(255) NOT NULL,
-        phone VARCHAR(50),
-        company VARCHAR(255),
-        tags JSONB DEFAULT '[]',
-        metadata JSONB DEFAULT '{}',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    
-    // Create Tickets table with parameterized query
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${schemaId}.tickets (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        customer_id UUID NOT NULL,
-        assigned_to_id VARCHAR,
-        subject VARCHAR(500) NOT NULL,
-        description TEXT,
-        status VARCHAR(50) DEFAULT 'open',
-        priority VARCHAR(50) DEFAULT 'medium',
-        tags JSONB DEFAULT '[]',
-        metadata JSONB DEFAULT '{}',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    
-    // Create Ticket Messages table with parameterized query
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${schemaId}.ticket_messages (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        ticket_id UUID NOT NULL,
-        author_id VARCHAR,
-        customer_id UUID,
-        content TEXT NOT NULL,
-        is_internal BOOLEAN DEFAULT false,
-        attachments JSONB DEFAULT '[]',
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    
-    // Create Activity Logs table with parameterized query
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${schemaId}.activity_logs (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id VARCHAR,
-        action VARCHAR(255) NOT NULL,
-        entity_type VARCHAR(100),
-        entity_id UUID,
-        details JSONB DEFAULT '{}',
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    
-    // Add foreign key constraints after table creation to avoid circular dependencies
-    await db.execute(sql`
-      ALTER TABLE ${schemaId}.tickets 
-      ADD CONSTRAINT fk_tickets_customer 
-      FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) ON DELETE CASCADE
-    `);
-    
-    await db.execute(sql`
-      ALTER TABLE ${schemaId}.tickets 
-      ADD CONSTRAINT fk_tickets_assigned_user 
-      FOREIGN KEY (assigned_to_id) REFERENCES public.users(id) ON DELETE SET NULL
-    `);
-    
-    await db.execute(sql`
-      ALTER TABLE ${schemaId}.ticket_messages 
-      ADD CONSTRAINT fk_messages_ticket 
-      FOREIGN KEY (ticket_id) REFERENCES ${schemaId}.tickets(id) ON DELETE CASCADE
-    `);
-    
-    await db.execute(sql`
-      ALTER TABLE ${schemaId}.ticket_messages 
-      ADD CONSTRAINT fk_messages_author 
-      FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE SET NULL
-    `);
-    
-    await db.execute(sql`
-      ALTER TABLE ${schemaId}.ticket_messages 
-      ADD CONSTRAINT fk_messages_customer 
-      FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) ON DELETE SET NULL
-    `);
-    
-    await db.execute(sql`
-      ALTER TABLE ${schemaId}.activity_logs 
-      ADD CONSTRAINT fk_activity_user 
-      FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL
-    `);
+    try {
+      // Use sql.identifier for safe schema references - prevents SQL injection
+      const schemaId = sql.identifier(schemaName);
+      
+      // Customer table with comprehensive fields using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          first_name VARCHAR(255),
+          last_name VARCHAR(255),
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          company VARCHAR(255),
+          tags JSONB DEFAULT '[]',
+          metadata JSONB DEFAULT '{}',
+          verified BOOLEAN DEFAULT FALSE,
+          active BOOLEAN DEFAULT TRUE,
+          suspended BOOLEAN DEFAULT FALSE,
+          last_login TIMESTAMP,
+          timezone VARCHAR(50) DEFAULT 'UTC',
+          locale VARCHAR(10) DEFAULT 'en-US',
+          language VARCHAR(5) DEFAULT 'en',
+          external_id VARCHAR(255),
+          role VARCHAR(100),
+          notes VARCHAR(1000),
+          avatar VARCHAR(500),
+          signature VARCHAR(500),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Tickets table with ServiceNow-style fields using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.tickets (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          subject VARCHAR(500) NOT NULL,
+          description TEXT,
+          status VARCHAR(50) DEFAULT 'open',
+          priority VARCHAR(20) DEFAULT 'medium',
+          number VARCHAR(40),
+          short_description VARCHAR(160),
+          category VARCHAR(50),
+          subcategory VARCHAR(50),
+          impact VARCHAR(20) DEFAULT 'medium',
+          urgency VARCHAR(20) DEFAULT 'medium',
+          state VARCHAR(20) DEFAULT 'new',
+          customer_id UUID,
+          assigned_to_id VARCHAR,
+          caller_id UUID,
+          opened_by_id UUID,
+          assignment_group VARCHAR(100),
+          location VARCHAR(100),
+          opened_at TIMESTAMP DEFAULT NOW(),
+          resolved_at TIMESTAMP,
+          closed_at TIMESTAMP,
+          resolution_code VARCHAR(50),
+          resolution_notes TEXT,
+          work_notes JSONB DEFAULT '[]',
+          configuration_item VARCHAR(100),
+          business_service VARCHAR(100),
+          contact_type VARCHAR(20) DEFAULT 'email',
+          notify VARCHAR(20) DEFAULT 'do_not_notify',
+          close_notes TEXT,
+          business_impact VARCHAR(50),
+          symptoms TEXT,
+          root_cause TEXT,
+          workaround TEXT,
+          beneficiary_id UUID,
+          beneficiary_type VARCHAR(20),
+          caller_type VARCHAR(20),
+          tags JSONB DEFAULT '[]',
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Ticket messages table using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.ticket_messages (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          ticket_id UUID NOT NULL,
+          customer_id UUID,
+          user_id VARCHAR,
+          content TEXT NOT NULL,
+          type VARCHAR(50) DEFAULT 'comment',
+          is_internal VARCHAR(10) DEFAULT 'false',
+          attachments JSONB DEFAULT '[]',
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Activity logs table using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.activity_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          entity_type VARCHAR(50) NOT NULL,
+          entity_id UUID NOT NULL,
+          action VARCHAR(50) NOT NULL,
+          performed_by_id VARCHAR,
+          performed_by_type VARCHAR(20),
+          details JSONB DEFAULT '{}',
+          previous_values JSONB DEFAULT '{}',
+          new_values JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Add foreign key constraints using parameterized queries - safer approach
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.tickets 
+        ADD CONSTRAINT IF NOT EXISTS fk_tickets_customer 
+        FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) 
+        ON DELETE SET NULL
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.ticket_messages 
+        ADD CONSTRAINT IF NOT EXISTS fk_ticket_messages_ticket 
+        FOREIGN KEY (ticket_id) REFERENCES ${schemaId}.tickets(id) 
+        ON DELETE CASCADE
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.ticket_messages 
+        ADD CONSTRAINT IF NOT EXISTS fk_ticket_messages_customer 
+        FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) 
+        ON DELETE SET NULL
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`Tenant tables created successfully using parameterized queries for schema ${schemaName}`, { 
+        schemaName,
+        security: 'All queries use sql.identifier() for safe schema references'
+      });
+      
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to create tenant tables for schema ${schemaName}`, error, { schemaName });
+      throw error;
+    }
   }
 
-  // List all tenant schemas
+  // List all tenant schemas using parameterized query
   async listTenantSchemas(): Promise<string[]> {
-    const result = await db.execute(sql`
-      SELECT schema_name 
-      FROM information_schema.schemata 
-      WHERE schema_name LIKE 'tenant_%'
-    `);
-    
-    return result.rows.map(row => row.schema_name as string);
+    try {
+      // Use direct LIKE pattern - safe as it's a literal string, not user input
+      const result = await db.execute(sql`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name LIKE 'tenant_%'
+      `);
+      
+      return result.rows.map(row => row.schema_name as string);
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError('Failed to list tenant schemas', error);
+      throw error;
+    }
   }
 }
 
