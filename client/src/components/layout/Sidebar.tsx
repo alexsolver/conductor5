@@ -123,7 +123,7 @@ export function Sidebar() {
             <h1 className="text-xl font-bold text-white">Conductor</h1>
           </div>
         </div>
-        
+
         {/* Tenant Selector */}
         <div className="mt-6 px-4">
           <div className="bg-white bg-opacity-10 rounded-lg p-3 border border-white border-opacity-20">
@@ -176,7 +176,7 @@ export function Sidebar() {
                 .map((item) => {
                   const isOpen = openMenus[item.name] || false;
                   const hasActiveChild = item.children?.some(child => location === child.href);
-                  
+
                   return (
                     <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
                       <CollapsibleTrigger className="w-full">
@@ -218,8 +218,21 @@ export function Sidebar() {
                 })}
             </div>
           )}
-          
+
           <div className="pt-4 mt-4 border-t border-white border-opacity-20">
+            
+              <Link key="Templates" href="/templates">
+                <div className={cn(
+                  "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                  location === "/templates"
+                    ? "bg-white bg-opacity-20 text-white"
+                    : "text-white hover:bg-white hover:bg-opacity-10"
+                )}>
+                  <Palette className="mr-3 h-4 w-4 flex-shrink-0" />
+                  Templates
+                </div>
+              </Link>
+            
             {secondaryNavigation.map((item) => {
               const isActive = location === item.href;
               return (

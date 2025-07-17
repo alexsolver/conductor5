@@ -31,6 +31,7 @@ import TenantAdminTeam from "./pages/TenantAdminTeam";
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import NotFound from "./pages/not-found";
+import { TemplateSelector } from "./pages/TemplateSelector";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -83,6 +84,7 @@ function AppRouter() {
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />
+        <Route path="/templates" component={TemplateSelector} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>
