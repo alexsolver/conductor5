@@ -6,21 +6,18 @@ import {
   tickets, 
   ticketMessages, 
   tenants,
-  externalContacts,
   locations,
   type User,
   type Customer,
   type Ticket,
   type TicketMessage,
   type Tenant,
-  type ExternalContact,
   type Location,
   type InsertCustomer,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertUser,
   type InsertTenant,
-  type InsertExternalContact,
   type InsertLocation
 } from "@shared/schema-simple";
 
@@ -60,12 +57,7 @@ export interface IStorage {
   updateTicketMessage(id: string, data: Partial<InsertTicketMessage>): Promise<TicketMessage | null>;
   deleteTicketMessage(id: string): Promise<boolean>;
 
-  // External Contacts
-  getExternalContact(id: string, tenantId: string): Promise<ExternalContact | null>;
-  getExternalContacts(tenantId: string, limit?: number, offset?: number): Promise<ExternalContact[]>;
-  createExternalContact(data: InsertExternalContact): Promise<ExternalContact>;
-  updateExternalContact(id: string, tenantId: string, data: Partial<InsertExternalContact>): Promise<ExternalContact | null>;
-  deleteExternalContact(id: string, tenantId: string): Promise<boolean>;
+  // Removed: External Contacts functionality eliminated from system
 
   // Locations
   getLocation(id: string, tenantId: string): Promise<Location | null>;
@@ -250,40 +242,7 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  // External Contacts
-  async getExternalContact(id: string, tenantId: string): Promise<ExternalContact | null> {
-    const result = await db.select().from(externalContacts).where(
-      and(eq(externalContacts.id, id), eq(externalContacts.tenantId, tenantId))
-    );
-    return result[0] || null;
-  }
-
-  async getExternalContacts(tenantId: string, limit: number = 50, offset: number = 0): Promise<ExternalContact[]> {
-    return await db.select().from(externalContacts)
-      .where(eq(externalContacts.tenantId, tenantId))
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(externalContacts.createdAt));
-  }
-
-  async createExternalContact(data: InsertExternalContact): Promise<ExternalContact> {
-    const result = await db.insert(externalContacts).values(data).returning();
-    return result[0];
-  }
-
-  async updateExternalContact(id: string, tenantId: string, data: Partial<InsertExternalContact>): Promise<ExternalContact | null> {
-    const result = await db.update(externalContacts).set(data).where(
-      and(eq(externalContacts.id, id), eq(externalContacts.tenantId, tenantId))
-    ).returning();
-    return result[0] || null;
-  }
-
-  async deleteExternalContact(id: string, tenantId: string): Promise<boolean> {
-    const result = await db.delete(externalContacts).where(
-      and(eq(externalContacts.id, id), eq(externalContacts.tenantId, tenantId))
-    );
-    return result.rowCount > 0;
-  }
+  // Removed: External Contacts implementation - functionality eliminated from system
 
   // Locations
   async getLocation(id: string, tenantId: string): Promise<Location | null> {

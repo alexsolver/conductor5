@@ -1,0 +1,43 @@
+Como DBA Master e DevOps, realizei uma análise técnica profunda do sistema multi-tenant. Baseado no código analisado, identifiquei os seguintes problemas críticos:
+
+🔥 PROBLEMAS CRÍTICOS IDENTIFICADOS
+1. ARQUITETURA DE SCHEMA FRAGMENTADA
+Problema: Múltiplos arquivos de schema conflitantes (schema.ts, schema-simple.ts, schema-unified.ts)
+Impacto: Inconsistências estruturais, dependências circulares, definições duplicadas
+Localização: shared/schema/ com 10+ arquivos modulares vs arquivos únicos
+2. CONNECTION POOL INSTABILITY
+Problema: Vite server perdendo conexão constantemente ([vite] server connection lost)
+Impacto: Reconexões frequentes degradando performance
+Evidência: Logs mostram cycle contínuo de connecting... → connected. → connection lost
+3. CUSTOMERS FETCH CRITICAL FAILURE
+Problema: API retornando 500/502 errors para /api/customers
+Impacto: Frontend não consegue carregar dados de customers
+Evidência: "Customers fetch failed: 500" {"message":"Failed to fetch customers"}
+4. TENANT SCHEMA VALIDATION GAPS
+Problema: Validação de schema insuficiente nas queries tenant-specific
+Impacto: Possível cross-tenant data leakage
+Localização: DatabaseManager.ts - validação básica apenas
+5. MISSING TABLE REFERENCES
+Problema: Frontend tentando acessar tabela external_contacts inexistente
+Impacto: Dashboard activity failing com "relation does not exist"
+Evidência: relation "external_contacts" does not exist no dashboard
+6. CONNECTION TIMEOUT PATTERN
+Problema: Múltiplos socket timeouts simultâneos
+Impacto: Degradação de performance, requests perdidos
+Evidência: [Connection Timeout] Socket timed out, closing gracefully (6x)
+7. SCHEMA ARCHITECTURE CONFUSION
+Problema: Coexistência de customers e conceito de solicitantes/favorecidos
+Impacto: Modelo de dados inconsistente, duplicação lógica
+Localização: Multiple schema files with different entity concepts
+8. PRODUCTION INITIALIZER WARNINGS
+Problema: Sistema passa health checks mas falha em runtime
+Impacto: False positive de system readiness
+Evidência: Initialization successful mas customers API failing
+9. I18N PERFORMANCE OVERHEAD
+Problema: Inicialização repetitiva do i18next em cada component load
+Impacto: Performance degradation no frontend
+Evidência: Multiple i18next: initialized calls com configuração completa
+10. WEBSOCKET STABILITY ISSUES
+Problema: WebSocket connections não mantendo stability
+Impacto: Real-time updates inconsistentes
+Evidence: Enhanced WebSocket configuration não resolvendo disconnects

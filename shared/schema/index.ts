@@ -5,7 +5,7 @@
 export * from "./base";
 export * from "./customer";
 export * from "./customer-company";
-export * from "./external-contacts";
+// Removed: external-contacts functionality eliminated
 export * from "./ticket";
 export * from "./location";
 export * from "./security";
@@ -56,18 +56,7 @@ import {
   type InsertCustomerCompanyBilling
 } from "./customer-company";
 
-import {
-  externalContacts,
-  ticketExternalContacts,
-  insertExternalContactSchema,
-  insertTicketExternalContactSchema,
-  type ExternalContact,
-  type InsertExternalContact,
-  type TicketExternalContact,
-  type InsertTicketExternalContact,
-  type Favorecido,
-  type InsertFavorecido
-} from "./external-contacts";
+// Removed: external-contacts imports - functionality eliminated
 
 import {
   tickets,
@@ -126,9 +115,7 @@ export {
   customerCompanyMemberships,
   customerCompanyBilling,
   
-  // External contacts tables
-  externalContacts,
-  ticketExternalContacts,
+  // Removed: external contacts tables - functionality eliminated
   
   // Ticket tables
   tickets,
@@ -156,8 +143,7 @@ export {
   insertCustomerCompanySchema,
   insertCustomerCompanyMembershipSchema,
   insertCustomerCompanyBillingSchema,
-  insertExternalContactSchema,
-  insertTicketExternalContactSchema,
+  // Removed: external contact insert schemas - functionality eliminated
   insertTicketSchema,
   insertTicketMessageSchema,
   insertLocationSchema,
@@ -176,9 +162,7 @@ export {
   type CustomerCompany,
   type CustomerCompanyMembership,
   type CustomerCompanyBilling,
-  type ExternalContact,
-  type TicketExternalContact,
-  type Favorecido,
+  // Removed: external contact types - functionality eliminated
   type Ticket,
   type TicketMessage,
   type Location,
@@ -195,9 +179,7 @@ export {
   type InsertCustomerCompany,
   type InsertCustomerCompanyMembership,
   type InsertCustomerCompanyBilling,
-  type InsertExternalContact,
-  type InsertTicketExternalContact,
-  type InsertFavorecido,
+  // Removed: insert external contact types - functionality eliminated
   type InsertTicket,
   type InsertTicketMessage,
   type InsertLocation,

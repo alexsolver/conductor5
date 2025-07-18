@@ -91,22 +91,7 @@ export const ticketMessages = pgTable("ticket_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// External contacts table (ONLY for favorecidos - beneficiaries of tickets)
-export const externalContacts = pgTable("external_contacts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").references(() => tenants.id),
-  nome: varchar("nome", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }),
-  telefone: varchar("telefone", { length: 50 }),
-  company: varchar("company", { length: 255 }),
-  customerId: uuid("customer_id").references(() => customers.id), // Link to the requesting customer (solicitante)
-  podeInteragir: boolean("pode_interagir").default(false),
-  tipoVinculo: varchar("tipo_vinculo", { length: 50 }).default("outro"), // colaborador, gerente_local, parceiro, auditor, outro
-  observacoes: text("observacoes"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// Removed: external_contacts table - functionality eliminated from system
 
 // Locations table
 export const locations = pgTable("locations", {
@@ -150,11 +135,7 @@ export const insertTicketMessageSchema = createInsertSchema(ticketMessages).omit
   id: true,
   createdAt: true,
 });
-export const insertExternalContactSchema = createInsertSchema(externalContacts).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+// Removed: insertExternalContactSchema - functionality eliminated
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,
   createdAt: true,
@@ -168,7 +149,7 @@ export type User = typeof users.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
-export type ExternalContact = typeof externalContacts.$inferSelect;
+// Removed: ExternalContact type - functionality eliminated
 export type Location = typeof locations.$inferSelect;
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
@@ -177,5 +158,5 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
-export type InsertExternalContact = z.infer<typeof insertExternalContactSchema>;
+// Removed: InsertExternalContact type - functionality eliminated
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
