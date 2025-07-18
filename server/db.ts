@@ -15,17 +15,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Enhanced connection pool configuration for stability
+// Simplified connection pool configuration for stability
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 10, // Reduced for stability
-  min: 2,
+  max: 3,
+  min: 1,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
-  acquireTimeoutMillis: 10000,
-  keepAlive: true,
-  keepAliveInitialDelayMillis: 0,
-  allowExitOnIdle: false
+  acquireTimeoutMillis: 10000
 });
 
 // Main database instance for tenant management and shared resources
