@@ -42,7 +42,8 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req, res) =>
       accessToken: result.accessToken
     });
   } catch (error) {
-    console.error('Login error:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Login error', error, { email: req.body?.email });
     const message = error instanceof Error ? error.message : 'Login failed';
     res.status(400).json({ message });
   }
@@ -109,7 +110,8 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
       } : undefined
     });
   } catch (error) {
-    console.error('Register error:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Register error', error, { email: req.body?.email });
     const message = error instanceof Error ? error.message : 'Registration failed';
     res.status(400).json({ message });
   }
@@ -166,7 +168,8 @@ authRouter.post('/refresh', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Refresh token error', error);
     res.status(401).json({ message: 'Token refresh failed' });
   }
 });
@@ -178,7 +181,8 @@ authRouter.post('/logout', async (req, res) => {
     res.clearCookie('refreshToken');
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error('Logout error:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Logout error', error);
     res.status(500).json({ message: 'Logout failed' });
   }
 });
@@ -211,7 +215,8 @@ authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
       createdAt: user.createdAt
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Get user error', error, { userId: req.user?.id });
     res.status(500).json({ message: 'Failed to get user' });
   }
 });
@@ -254,7 +259,8 @@ authRouter.put('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
       createdAt: updatedUser.createdAt
     });
   } catch (error) {
-    console.error('Update user error:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Update user error', error, { userId: req.user?.id });
     const message = error instanceof Error ? error.message : 'Failed to update user';
     res.status(400).json({ message });
   }

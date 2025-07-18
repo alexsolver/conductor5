@@ -70,14 +70,14 @@ export class CustomerCompany {
   getEmail(): string | null { return this.email; }
   getPhone(): string | null { return this.phone; }
   getWebsite(): string | null { return this.website; }
-  getAddress(): any { return this.address; }
+  getAddress(): Record<string, string> | undefined { return this.address; }
   getTaxId(): string | null { return this.taxId; }
   getRegistrationNumber(): string | null { return this.registrationNumber; }
   getSubscriptionTier(): string { return this.subscriptionTier; }
   getContractType(): string | null { return this.contractType; }
   getMaxUsers(): number | null { return this.maxUsers; }
   getMaxTickets(): number | null { return this.maxTickets; }
-  getSettings(): any { return this.settings; }
+  getSettings(): Record<string, unknown> | undefined { return this.settings; }
   getTags(): string[] { return this.tags; }
   getMetadata(): Record<string, any> { return this.metadata; }
   getStatus(): string { return this.status; }
@@ -216,7 +216,7 @@ export class CustomerCompany {
     email?: string | null;
     phone?: string | null;
     website?: string | null;
-    address?: any;
+    address?: Record<string, string>;
     updatedBy: string;
   }): CustomerCompany {
     return new CustomerCompany(
@@ -335,7 +335,7 @@ export class CustomerCompany {
     email?: string | null;
     phone?: string | null;
     website?: string | null;
-    address?: any;
+    address?: Record<string, string>;
     subscriptionTier?: 'basic' | 'premium' | 'enterprise';
     createdBy: string;
   }): CustomerCompany {
@@ -370,7 +370,7 @@ export class CustomerCompany {
     );
   }
 
-  static fromPersistence(data: any): CustomerCompany {
+  static fromPersistence(data: Record<string, unknown>): CustomerCompany {
     return new CustomerCompany(
       data.id,
       data.tenantId,

@@ -8,7 +8,8 @@ const integrityService = new IntegrityControlService();
 
 router.post('/scan/comprehensive', jwtAuth, async (req, res) => {
   try {
-    console.log('🔍 Iniciando varredura completa do sistema...');
+    const { logInfo } = await import('../utils/logger');
+    logInfo('Iniciando varredura completa do sistema');
     
     // Get all modules with detailed analysis
     const modules = await integrityService.getAllModules();

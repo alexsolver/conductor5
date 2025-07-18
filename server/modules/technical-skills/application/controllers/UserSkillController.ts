@@ -50,8 +50,9 @@ export class UserSkillController {
         data: userSkills,
         count: userSkills.length
       });
-    } catch (error: any) {
-      console.error('Error fetching user skills', {
+    } catch (error: unknown) {
+      const { logError } = await import('../../../../utils/logger');
+      logError('Error fetching user skills', error, {
         error: error.message,
         userId: req.user?.id,
         tenantId: req.user?.tenantId
@@ -82,8 +83,9 @@ export class UserSkillController {
         data: userSkills,
         count: userSkills.length
       });
-    } catch (error: any) {
-      console.error('Error fetching detailed user skills', {
+    } catch (error: unknown) {
+      const { logError } = await import('../../../../utils/logger');
+      logError('Error fetching detailed user skills', error, {
         error: error.message,
         targetUserId: req.params.userId,
         userId: req.user?.id
@@ -120,7 +122,8 @@ export class UserSkillController {
       
       const createdUserSkill = await this.userSkillRepository.create(userSkill);
       
-      console.info('Skill assigned to user', {
+      const { logInfo } = await import('../../../../utils/logger');
+      logInfo('Skill assigned to user', {
         userSkillId: createdUserSkill.id,
         userId: createdUserSkill.userId,
         skillId: createdUserSkill.skillId,

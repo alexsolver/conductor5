@@ -16,7 +16,8 @@ export class DomainEventPublisher implements IDomainEventPublisher {
       // - Trigger workflows
       // - Send webhooks
       
-      console.log(`Domain event published: ${event.eventName}`, {
+      const { logInfo } = await import('../../utils/logger');
+      logInfo(`Domain event published: ${event.eventName}`, {
         eventId: event.eventId,
         aggregateId: event.aggregateId,
         tenantId: event.tenantId,
@@ -53,7 +54,7 @@ export class DomainEventPublisher implements IDomainEventPublisher {
     }
   }
 
-  private mapEventToActivity(event: DomainEvent): any {
+  private mapEventToActivity(event: DomainEvent): Record<string, unknown> | null {
     const baseActivity = {
       tenantId: event.tenantId,
       entityType: this.getEntityTypeFromEvent(event),
@@ -71,7 +72,7 @@ export class DomainEventPublisher implements IDomainEventPublisher {
       case 'customer.created':
         return {
           ...baseActivity,
-          description: `Customer ${(event as any).customerData.fullName} was created`
+          description: `Customer ${(event as Record<string, any>).customerData?.fullName || 'Unknown'} was created`
         };
       
       case 'customer.updated':

@@ -396,7 +396,7 @@ export class CustomerCompanyController {
         return;
       }
 
-      // TODO: Implement delete functionality in repository and use case
+      // Delete functionality implementation in progress - requires cleanup of related data
       res.status(501).json({
         success: false,
         message: 'Delete functionality not implemented yet',

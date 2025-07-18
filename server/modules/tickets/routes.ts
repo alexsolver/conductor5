@@ -44,7 +44,8 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       filters: { status, priority, assignedTo }
     });
   } catch (error) {
-    console.error("Error fetching tickets:", error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
     res.status(500).json({ message: "Failed to fetch tickets" });
   }
 });
@@ -63,7 +64,8 @@ ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json(ticket);
   } catch (error) {
-    console.error("Error fetching ticket:", error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error fetching ticket', error, { ticketId: req.params.id, tenantId: req.user?.tenantId });
     res.status(500).json({ message: "Failed to fetch ticket" });
   }
 });
@@ -78,7 +80,8 @@ ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const urgentTickets = await storage.getUrgentTickets(req.user.tenantId);
     res.json(urgentTickets);
   } catch (error) {
-    console.error("Error fetching urgent tickets:", error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error fetching urgent tickets', error, { tenantId: req.user?.tenantId });
     res.status(500).json({ message: "Failed to fetch urgent tickets" });
   }
 });
@@ -109,7 +112,8 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     res.status(201).json(ticket);
   } catch (error) {
-    console.error("Error creating ticket:", error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error creating ticket', error, { tenantId: req.user?.tenantId });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: "Invalid ticket data", errors: error.errors });
     }
@@ -145,7 +149,8 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json(updatedTicket);
   } catch (error) {
-    console.error("Error updating ticket:", error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error updating ticket', error, { ticketId: req.params.id, tenantId: req.user?.tenantId });
     res.status(500).json({ message: "Failed to update ticket" });
   }
 });
