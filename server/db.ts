@@ -630,7 +630,6 @@ export class SchemaManager {
         CREATE TABLE IF NOT EXISTS ${schemaId}.skills (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
-          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           name VARCHAR(255) NOT NULL,
           category VARCHAR(100) NOT NULL,
           subcategory VARCHAR(100),
@@ -749,14 +748,8 @@ export class SchemaManager {
         // Constraint may already exist - ignore error
       });
 
-      await db.execute(sql`
-        ALTER TABLE ${schemaId}.user_skills 
-        ADD CONSTRAINT IF NOT EXISTS fk_user_skills_certification 
-        FOREIGN KEY (certification_id) REFERENCES ${schemaId}.certifications(id)
-        ON DELETE SET NULL
-      `).catch(() => {
-        // Constraint may already exist - ignore error
-      });
+      // REMOVED: Invalid foreign key constraint for non-existent certification_id column
+      // user_skills table doesn't have certification_id field - constraint removed
 
       const { logInfo } = await import('./utils/logger');
       logInfo(`Tenant tables created successfully using parameterized queries for schema ${schemaName}`, { 

@@ -14,11 +14,11 @@ export function enhancedWebsocketStability(req: Request, res: Response, next: Ne
   if (req.socket) {
     // CRITICAL: Prevent EventEmitter memory leaks
     req.socket.setMaxListeners(20); // Increase limit to prevent warnings
-    
+
     req.socket.setKeepAlive(true, 15000); // 15 second keep-alive (very frequent)
     req.socket.setTimeout(300000); // 5 minute timeout (longer for stability)
     req.socket.setNoDelay(true); // Disable Nagle's algorithm for immediate transmission
-    
+
     // CRITICAL: Check if listeners already exist to prevent duplicates
     if (req.socket.listenerCount('error') === 0) {
       req.socket.on('error', (error) => {
@@ -31,14 +31,14 @@ export function enhancedWebsocketStability(req: Request, res: Response, next: Ne
         }
       });
     }
-    
+
     // CRITICAL: Monitor socket state for proactive handling (prevent duplicates)
     if (req.socket.listenerCount('close') === 0) {
       req.socket.on('close', () => {
         // Silent cleanup - no logging for normal close
       });
     }
-    
+
     if (req.socket.listenerCount('timeout') === 0) {
       req.socket.on('timeout', () => {
         console.warn('[Socket Timeout] Connection timed out, cleaning up');
@@ -53,7 +53,7 @@ export function enhancedWebsocketStability(req: Request, res: Response, next: Ne
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  
+
   // CRITICAL: Add server stability headers
   res.setHeader('X-Server-Stability', 'enhanced');
   res.setHeader('X-WebSocket-Config', 'optimized');
@@ -85,7 +85,7 @@ export function configureServerForStability(server: Server): void {
   server.on('connection', (socket) => {
     // CRITICAL: Prevent EventEmitter memory leaks
     socket.setMaxListeners(20); // Increase limit to prevent warnings
-    
+
     socket.setKeepAlive(true, 15000); // 15 second keep-alive
     socket.setTimeout(300000); // 5 minute timeout
     socket.setNoDelay(true);
