@@ -477,6 +477,79 @@ export class SchemaManager {
         // Constraint may already exist - ignore error
       });
 
+      // Create technical skills tables using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.skills (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          category VARCHAR(100) NOT NULL,
+          min_level_required INTEGER DEFAULT 1,
+          suggested_certification VARCHAR(255),
+          certification_validity_months INTEGER,
+          description TEXT,
+          observations TEXT,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          created_by UUID,
+          updated_by UUID
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.certifications (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          issuing_organization VARCHAR(255),
+          description TEXT,
+          validity_months INTEGER,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.user_skills (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL,
+          skill_id UUID NOT NULL,
+          proficiency_level INTEGER NOT NULL,
+          certification_id UUID,
+          certification_number VARCHAR(100),
+          certification_issued_at TIMESTAMP,
+          certification_expires_at TIMESTAMP,
+          certification_file TEXT,
+          average_rating DECIMAL(3,2) DEFAULT 0,
+          total_evaluations INTEGER DEFAULT 0,
+          assigned_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          assigned_by UUID NOT NULL,
+          justification TEXT,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+        )
+      `);
+
+      // Add foreign key constraints for technical skills
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.user_skills 
+        ADD CONSTRAINT IF NOT EXISTS fk_user_skills_skill 
+        FOREIGN KEY (skill_id) REFERENCES ${schemaId}.skills(id)
+        ON DELETE CASCADE
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.user_skills 
+        ADD CONSTRAINT IF NOT EXISTS fk_user_skills_certification 
+        FOREIGN KEY (certification_id) REFERENCES ${schemaId}.certifications(id)
+        ON DELETE SET NULL
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
       const { logInfo } = await import('./utils/logger');
       logInfo(`Tenant tables created successfully using parameterized queries for schema ${schemaName}`, { 
         schemaName,

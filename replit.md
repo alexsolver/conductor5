@@ -10,6 +10,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 18, 2025
+- ✓ Fixed duplicate sidebar menu issue by removing AppShell wrapper from TechnicalSkills component
+- ✓ Successfully moved "Habilidades Técnicas" from main navigation to Workspace Admin area  
+- ✓ Added technical skills tables (skills, certifications, user_skills) to tenant schema creation system
+- ✓ Fixed database schema issues - tables now properly created in tenant-specific schemas
+- ✓ Added sample technical skills data with proper categorization system
+- ✓ Resolved JSX syntax errors by completely recreating TechnicalSkills.tsx component
+- ✓ Technical Skills module now fully integrated with Clean Architecture and tenant isolation
+
 ### July 17, 2025
 - ✓ Fixed critical startup issue with integrityRoutes module export mismatch
 - ✓ Enhanced customer repository with proper TypeScript types (CustomerDbRow, CustomerDbInsert)
