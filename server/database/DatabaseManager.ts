@@ -53,8 +53,7 @@ export class DatabaseManager {
       connectionTimeoutMillis: 10000,
       acquireTimeoutMillis: 15000,
       maxUses: 7500,
-      keepAlive: true,
-      application_name: 'main_conductor_app'
+      keepAlive: true
     });
 
     this.mainDb = drizzle({ client: this.mainPool, schema });
@@ -98,20 +97,21 @@ export class DatabaseManager {
       await this.evictOldestConnection();
     }
 
+    // Create connection string with search_path parameter
+    const baseUrl = new URL(process.env.DATABASE_URL!);
+    baseUrl.searchParams.set('search_path', `${schemaName},public`);
+    baseUrl.searchParams.set('application_name', `tenant_${tenantId}`);
+
     // Create tenant-specific pool
     const tenantPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: baseUrl.toString(),
       max: 5, // Smaller per-tenant pool
       min: 1,
       idleTimeoutMillis: 180000, // 3 minutes
       connectionTimeoutMillis: 8000,
       acquireTimeoutMillis: 12000,
       maxUses: 2000,
-      keepAlive: true,
-      application_name: `tenant_${tenantId}`,
-      options: {
-        search_path: `${schemaName},public`
-      }
+      keepAlive: true
     });
 
     this.tenantPools.set(tenantId, tenantPool);
