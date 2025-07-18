@@ -2,14 +2,14 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cookieParser from "cookie-parser";
-import { websocketStabilityMiddleware } from "./middleware/websocketStability";
+import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability";
 import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
 
 const app = express();
 
-// CRITICAL FIX: Apply WebSocket stability middleware first
-app.use(websocketStabilityMiddleware);
+// CRITICAL FIX: Apply enhanced WebSocket stability middleware first
+app.use(enhancedWebsocketStability);
 
 app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
@@ -70,8 +70,9 @@ app.use((req, res, next) => {
   
   const server = await registerRoutes(app);
   
-  // CRITICAL: Initialize connection stabilizer
+  // CRITICAL: Initialize connection stabilizer and server stability
   connectionStabilizer.initialize(server);
+  configureServerForStability(server);
   
   // CRITICAL FIX: Warm up tenant schemas to prevent first-request errors
   const { warmupTenantSchemas } = await import('./utils/schemaInitializer');

@@ -12,8 +12,8 @@ import { logInfo, logError } from './logger';
  */
 export async function ensureTenantSchemaExists(tenantId: string): Promise<boolean> {
   try {
-    // CRITICAL: Force schema creation if it doesn't exist
-    await schemaManager.initializeTenantSchema(tenantId);
+    // CRITICAL FIX: Use correct method name - createTenantSchema
+    await schemaManager.createTenantSchema(tenantId);
     
     logInfo(`Schema ensured for tenant: ${tenantId}`);
     return true;
