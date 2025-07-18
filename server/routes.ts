@@ -17,7 +17,7 @@ import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
 import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
-import externalContactsRoutes from './routes/external-contacts';
+// Removed: external-contacts routes - functionality eliminated
 import locationRoutes from './routes/locationRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -344,8 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
 
-  // External Contacts routes
-  app.use('/api/external-contacts', externalContactsRoutes);
+  // Removed: External Contacts routes - functionality eliminated
 
   // Location routes
   app.use('/api/locations', locationRoutes);
