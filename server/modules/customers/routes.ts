@@ -20,11 +20,10 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const parsedOffset = offset ? Math.max(0, parseInt(offset as string) || 0) : 0;
     
     // Performance optimization: Use cache-aware method
-    const customers = await storage.getCustomers(
-      req.user.tenantId,
-      parsedLimit,
-      parsedOffset
-    );
+    const customers = await storage.getCustomers(req.user.tenantId, {
+      limit: parsedLimit,
+      offset: parsedOffset
+    });
 
     res.json({ customers });
   } catch (error) {

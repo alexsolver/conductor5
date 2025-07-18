@@ -2,6 +2,8 @@ import { eq, and, desc, asc, ilike, count, sql } from "drizzle-orm";
 import { db, SchemaManager } from "./db";
 import { users, tenants, type User, type InsertUser } from "@shared/schema";
 import { logInfo, logError } from "./utils/logger";
+import { poolManager } from "./database/ConnectionPoolManager";
+import { TenantValidator } from "./database/TenantValidator";
 
 // ===========================
 // INTERFACES & TYPES
@@ -40,26 +42,12 @@ export interface IStorage {
 }
 
 // ===========================
-// TENANT ID VALIDATION
+// ENHANCED TENANT VALIDATION
+// Uses advanced validation with existence checks
 // ===========================
 
-export function validateTenantId(tenantId: string): string {
-  // Critical security: validate tenant ID format to prevent SQL injection
-  if (!tenantId || typeof tenantId !== 'string') {
-    throw new Error('Invalid tenant ID: must be a non-empty string');
-  }
-  
-  // Allow only alphanumeric characters, hyphens, and underscores
-  const validTenantIdRegex = /^[a-zA-Z0-9_-]+$/;
-  if (!validTenantIdRegex.test(tenantId)) {
-    throw new Error('Invalid tenant ID: contains invalid characters');
-  }
-  
-  if (tenantId.length > 50) {
-    throw new Error('Invalid tenant ID: too long');
-  }
-  
-  return tenantId;
+async function validateTenantAccess(tenantId: string): Promise<string> {
+  return await TenantValidator.validateTenantAccess(tenantId);
 }
 
 // ===========================
@@ -152,7 +140,7 @@ export class DatabaseStorage implements IStorage {
 
   async getTenantUsers(tenantId: string, options: { limit?: number; offset?: number } = {}): Promise<User[]> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0 } = options;
 
       const tenantUsers = await db
@@ -176,7 +164,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -209,7 +197,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCustomerById(tenantId: string, customerId: string): Promise<any | undefined> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -227,7 +215,7 @@ export class DatabaseStorage implements IStorage {
 
   async createCustomer(tenantId: string, customerData: any): Promise<any> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       if (!customerData.email) {
@@ -264,7 +252,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -289,7 +277,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomer(tenantId: string, customerId: string): Promise<boolean> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -310,7 +298,7 @@ export class DatabaseStorage implements IStorage {
 
   async getTickets(tenantId: string, options: { limit?: number; offset?: number; status?: string } = {}): Promise<any[]> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, status } = options;
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -345,7 +333,7 @@ export class DatabaseStorage implements IStorage {
 
   async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -369,7 +357,7 @@ export class DatabaseStorage implements IStorage {
 
   async createTicket(tenantId: string, ticketData: any): Promise<any> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       if (!ticketData.subject || !ticketData.customerId) {
@@ -410,7 +398,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -434,7 +422,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTicket(tenantId: string, ticketId: string): Promise<boolean> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -455,7 +443,7 @@ export class DatabaseStorage implements IStorage {
 
   async getDashboardStats(tenantId: string): Promise<any> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       // Get stats from database
@@ -485,7 +473,7 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentActivity(tenantId: string, options: { limit?: number } = {}): Promise<any[]> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 10 } = options;
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -518,7 +506,7 @@ export class DatabaseStorage implements IStorage {
 
   async createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any> {
     try {
-      const validatedTenantId = validateTenantId(tenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       if (!article.title || !article.content) {
