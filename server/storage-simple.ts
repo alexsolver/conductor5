@@ -6,16 +6,22 @@ import {
   tickets, 
   ticketMessages, 
   tenants,
+  externalContacts,
+  locations,
   type User,
   type Customer,
   type Ticket,
   type TicketMessage,
   type Tenant,
+  type ExternalContact,
+  type Location,
   type InsertCustomer,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertUser,
-  type InsertTenant
+  type InsertTenant,
+  type InsertExternalContact,
+  type InsertLocation
 } from "@shared/schema-simple";
 
 export interface IStorage {
@@ -53,6 +59,20 @@ export interface IStorage {
   createTicketMessage(data: InsertTicketMessage): Promise<TicketMessage>;
   updateTicketMessage(id: string, data: Partial<InsertTicketMessage>): Promise<TicketMessage | null>;
   deleteTicketMessage(id: string): Promise<boolean>;
+
+  // External Contacts
+  getExternalContact(id: string, tenantId: string): Promise<ExternalContact | null>;
+  getExternalContacts(tenantId: string, limit?: number, offset?: number): Promise<ExternalContact[]>;
+  createExternalContact(data: InsertExternalContact): Promise<ExternalContact>;
+  updateExternalContact(id: string, tenantId: string, data: Partial<InsertExternalContact>): Promise<ExternalContact | null>;
+  deleteExternalContact(id: string, tenantId: string): Promise<boolean>;
+
+  // Locations
+  getLocation(id: string, tenantId: string): Promise<Location | null>;
+  getLocations(tenantId: string, limit?: number, offset?: number): Promise<Location[]>;
+  createLocation(data: InsertLocation): Promise<Location>;
+  updateLocation(id: string, tenantId: string, data: Partial<InsertLocation>): Promise<Location | null>;
+  deleteLocation(id: string, tenantId: string): Promise<boolean>;
 
   // Dashboard stats
   getRecentActivity(tenantId: string): Promise<any[]>;
@@ -211,22 +231,115 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
+  // External Contacts
+  async getExternalContact(id: string, tenantId: string): Promise<ExternalContact | null> {
+    const result = await db.select().from(externalContacts).where(
+      and(eq(externalContacts.id, id), eq(externalContacts.tenantId, tenantId))
+    );
+    return result[0] || null;
+  }
+
+  async getExternalContacts(tenantId: string, limit: number = 50, offset: number = 0): Promise<ExternalContact[]> {
+    return await db.select().from(externalContacts)
+      .where(eq(externalContacts.tenantId, tenantId))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(externalContacts.createdAt));
+  }
+
+  async createExternalContact(data: InsertExternalContact): Promise<ExternalContact> {
+    const result = await db.insert(externalContacts).values(data).returning();
+    return result[0];
+  }
+
+  async updateExternalContact(id: string, tenantId: string, data: Partial<InsertExternalContact>): Promise<ExternalContact | null> {
+    const result = await db.update(externalContacts).set(data).where(
+      and(eq(externalContacts.id, id), eq(externalContacts.tenantId, tenantId))
+    ).returning();
+    return result[0] || null;
+  }
+
+  async deleteExternalContact(id: string, tenantId: string): Promise<boolean> {
+    const result = await db.delete(externalContacts).where(
+      and(eq(externalContacts.id, id), eq(externalContacts.tenantId, tenantId))
+    );
+    return result.rowCount > 0;
+  }
+
+  // Locations
+  async getLocation(id: string, tenantId: string): Promise<Location | null> {
+    const result = await db.select().from(locations).where(
+      and(eq(locations.id, id), eq(locations.tenantId, tenantId))
+    );
+    return result[0] || null;
+  }
+
+  async getLocations(tenantId: string, limit: number = 50, offset: number = 0): Promise<Location[]> {
+    return await db.select().from(locations)
+      .where(eq(locations.tenantId, tenantId))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(locations.createdAt));
+  }
+
+  async createLocation(data: InsertLocation): Promise<Location> {
+    const result = await db.insert(locations).values(data).returning();
+    return result[0];
+  }
+
+  async updateLocation(id: string, tenantId: string, data: Partial<InsertLocation>): Promise<Location | null> {
+    const result = await db.update(locations).set(data).where(
+      and(eq(locations.id, id), eq(locations.tenantId, tenantId))
+    ).returning();
+    return result[0] || null;
+  }
+
+  async deleteLocation(id: string, tenantId: string): Promise<boolean> {
+    const result = await db.delete(locations).where(
+      and(eq(locations.id, id), eq(locations.tenantId, tenantId))
+    );
+    return result.rowCount > 0;
+  }
+
   // Dashboard stats
   async getRecentActivity(tenantId: string): Promise<any[]> {
-    const recentTickets = await db.select().from(tickets)
-      .where(eq(tickets.tenantId, tenantId))
-      .orderBy(desc(tickets.createdAt))
-      .limit(5);
+    try {
+      const recentTickets = await db.select().from(tickets)
+        .where(eq(tickets.tenantId, tenantId))
+        .orderBy(desc(tickets.createdAt))
+        .limit(5);
 
-    const recentCustomers = await db.select().from(customers)
-      .where(eq(customers.tenantId, tenantId))
-      .orderBy(desc(customers.createdAt))
-      .limit(5);
+      const recentCustomers = await db.select().from(customers)
+        .where(eq(customers.tenantId, tenantId))
+        .orderBy(desc(customers.createdAt))
+        .limit(5);
 
-    return [
-      ...recentTickets.map(t => ({ type: 'ticket', ...t })),
-      ...recentCustomers.map(c => ({ type: 'customer', ...c }))
-    ];
+      // Combine activities
+      const activities = [
+        ...recentTickets.map(ticket => ({
+          type: 'ticket',
+          id: ticket.id,
+          title: ticket.subject,
+          createdAt: ticket.createdAt,
+          data: ticket
+        })),
+        ...recentCustomers.map(customer => ({
+          type: 'customer',
+          id: customer.id,
+          title: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
+          createdAt: customer.createdAt,
+          data: customer
+        }))
+      ];
+
+      // Sort by creation date and return
+      return activities
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 10);
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+      return [];
+    }
   }
 
   async getDashboardStats(tenantId: string): Promise<any> {
