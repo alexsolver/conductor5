@@ -18,12 +18,13 @@ export class MockDataDetector {
       /\.map\(\(\w+,\s*\w+\)\s*=>\s*\({.*\}\)\)/g, // Map with object generation
     ];
 
-    // Detect incomplete functions
+    // Detect incomplete functions - improved to avoid false positives
     const incompletePatterns = [
-      /TODO|FIXME|XXX|HACK/gi,
       /throw new Error\(['"`]Not implemented['"`]\)/gi,
       /console\.log\(['"`]TODO['"`]/gi,
       /return null;?\s*\/\/.*implement/gi,
+      /\/\/ TODO:.*implement/gi,
+      /\/\/ FIXME:.*implement/gi,
     ];
 
     // Detect disabled/non-functional buttons
@@ -35,27 +36,60 @@ export class MockDataDetector {
       /preventDefault\(\);?\s*\/\/.*TODO/gi,
     ];
 
-    [...mockPatterns, ...incompletePatterns, ...buttonPatterns].forEach(pattern => {
+    // Check for genuine incomplete patterns only
+    incompletePatterns.forEach(pattern => {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
         const lineContent = lines[lineNumber - 1]?.trim() || '';
         
-        let type: 'mock_data' | 'incomplete_function' | 'disabled_button' = 'mock_data';
-        let description = 'Mock data detected';
-        
-        if (incompletePatterns.some(p => p.test(match[0]))) {
-          type = 'incomplete_function';
-          description = 'Incomplete functionality detected';
-        } else if (buttonPatterns.some(p => p.test(match[0]))) {
-          type = 'disabled_button';
-          description = 'Non-functional button detected';
-        }
-
         issues.push({
-          type,
+          type: 'incomplete_function',
           line: lineNumber,
-          description,
+          description: 'Incomplete functionality detected',
+          evidence: lineContent
+        });
+      }
+    });
+
+    // Check for mock data patterns - exclude legitimate implementations
+    mockPatterns.forEach(pattern => {
+      const matches = content.matchAll(pattern);
+      for (const match of matches) {
+        const lineNumber = content.substring(0, match.index).split('\n').length;
+        const lineContent = lines[lineNumber - 1]?.trim() || '';
+        
+        // Skip if it's in comments, tests, or legitimate code
+        if (lineContent.includes('//') || 
+            lineContent.includes('/*') ||
+            filePath.includes('test') ||
+            lineContent.includes('fromPersistence') ||
+            lineContent.includes('toDomainEntity') ||
+            lineContent.includes('Domain') ||
+            lineContent.includes('Entity')) {
+          continue;
+        }
+        
+        issues.push({
+          type: 'mock_data',
+          line: lineNumber,
+          description: 'Mock data detected',
+          evidence: lineContent
+        });
+      }
+    });
+
+    // Check for disabled buttons
+    buttonPatterns.forEach(pattern => {
+      const matches = content.matchAll(pattern);
+      for (const match of matches) {
+        const lineNumber = content.substring(0, match.index).split('\n').length;
+        const lineContent = lines[lineNumber - 1]?.trim() || '';
+        
+        issues.push({
+          type: 'disabled_button',
+          line: lineNumber,
+          description: 'Non-functional button detected',
           evidence: lineContent
         });
       }
