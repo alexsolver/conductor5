@@ -87,10 +87,11 @@ router.post('/solicitantes', async (req: AuthenticatedRequest, res) => {
     
     const validatedData = createSolicitanteSchema.parse(req.body);
     
-    // Create new solicitante in database
-    const newSolicitante = await storage.createSolicitante({
+    // Create new solicitante as customer with type 'solicitante'
+    const newSolicitante = await storage.createCustomer({
       ...validatedData,
-      tenantId
+      tenantId,
+      customerType: 'solicitante'
     });
 
     console.log('Solicitante created successfully in database', {
