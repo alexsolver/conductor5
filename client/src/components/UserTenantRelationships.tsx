@@ -117,7 +117,7 @@ export default function UserTenantRelationships() {
   const { data: relationships = [], isLoading: isLoadingRelationships } = useQuery<UserTenantRelationship[]>({
     queryKey: ['/api/multi-tenant/relationships'],
     queryFn: async () => {
-      const response = await apiRequest('/api/multi-tenant/relationships');
+      const response = await apiRequest('GET', '/api/multi-tenant/relationships');
       return response.json();
     },
   });
@@ -126,7 +126,7 @@ export default function UserTenantRelationships() {
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/multi-tenant/users'],
     queryFn: async () => {
-      const response = await apiRequest('/api/multi-tenant/users');
+      const response = await apiRequest('GET', '/api/multi-tenant/users');
       return response.json();
     },
   });
@@ -135,7 +135,7 @@ export default function UserTenantRelationships() {
   const { data: tenants = [] } = useQuery<Tenant[]>({
     queryKey: ['/api/multi-tenant/tenants'],
     queryFn: async () => {
-      const response = await apiRequest('/api/multi-tenant/tenants');
+      const response = await apiRequest('GET', '/api/multi-tenant/tenants');
       return response.json();
     },
   });
@@ -155,11 +155,7 @@ export default function UserTenantRelationships() {
   // Create relationship mutation
   const createRelationshipMutation = useMutation({
     mutationFn: async (data: RelationshipFormData) => {
-      const response = await apiRequest('/api/multi-tenant/relationships', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('POST', '/api/multi-tenant/relationships', data);
       return response.json();
     },
     onSuccess: () => {
@@ -183,11 +179,7 @@ export default function UserTenantRelationships() {
   // Update relationship mutation
   const updateRelationshipMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<RelationshipFormData> }) => {
-      const response = await apiRequest(`/api/multi-tenant/relationships/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('PUT', `/api/multi-tenant/relationships/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -211,9 +203,7 @@ export default function UserTenantRelationships() {
   // Delete relationship mutation
   const deleteRelationshipMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest(`/api/multi-tenant/relationships/${id}`, {
-        method: 'DELETE',
-      });
+      const response = await apiRequest('DELETE', `/api/multi-tenant/relationships/${id}`);
       return response.json();
     },
     onSuccess: () => {

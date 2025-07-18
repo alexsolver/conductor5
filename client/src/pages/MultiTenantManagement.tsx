@@ -40,7 +40,7 @@ export default function MultiTenantManagement() {
   const { data: stats, isLoading: isLoadingStats } = useQuery<MultiTenantStats>({
     queryKey: ['/api/multi-tenant/stats'],
     queryFn: async () => {
-      const response = await apiRequest('/api/multi-tenant/stats');
+      const response = await apiRequest('GET', '/api/multi-tenant/stats');
       return response.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds

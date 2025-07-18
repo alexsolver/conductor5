@@ -175,25 +175,21 @@ export class DatabaseStorage implements IStorage {
   // Customer operations using secure parameterized queries
   async getCustomers(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
     try {
-      // Performance cache: Skip schema initialization if already cached
-      const cacheKey = `schema_${tenantId}`;
-      if (!schemaManager['initializedSchemas']?.has(tenantId)) {
-        // Use lazy initialization with timeout
-        const initPromise = Promise.race([
-          this.initializeTenantSchema(tenantId),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Schema init timeout')), 2000))
-        ]);
-        
-        try {
-          await initPromise;
-          schemaManager['initializedSchemas']?.add(tenantId);
-        } catch (error) {
-          // Continue with existing schema if initialization times out
-          schemaManager['initializedSchemas']?.add(tenantId);
-        }
+      // Fast path: Try to get tenant DB directly without initialization
+      let tenantDb, tenantSchema;
+      
+      try {
+        const result = await schemaManager.getTenantDb(tenantId);
+        tenantDb = result.db;
+        tenantSchema = result.schema;
+      } catch (error) {
+        // Fallback: Initialize schema only if absolutely necessary
+        await this.initializeTenantSchema(tenantId);
+        const result = await schemaManager.getTenantDb(tenantId);
+        tenantDb = result.db;
+        tenantSchema = result.schema;
       }
       
-      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
       const { customers: tenantCustomers } = tenantSchema;
       
       // Check if table exists in schema
@@ -203,15 +199,36 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Single optimized query with Drizzle ORM (much faster than raw SQL)
+      // Optimized query with only essential fields to reduce data transfer
       const customersData = await tenantDb
-        .select()
+        .select({
+          id: tenantCustomers.id,
+          firstName: tenantCustomers.firstName,
+          lastName: tenantCustomers.lastName,
+          email: tenantCustomers.email,
+          phone: tenantCustomers.phone,
+          company: tenantCustomers.company,
+          verified: tenantCustomers.verified,
+          active: tenantCustomers.active,
+          suspended: tenantCustomers.suspended,
+          timezone: tenantCustomers.timezone,
+          locale: tenantCustomers.locale,
+          language: tenantCustomers.language,
+          externalId: tenantCustomers.externalId,
+          role: tenantCustomers.role,
+          notes: tenantCustomers.notes,
+          lastLogin: tenantCustomers.lastLogin,
+          createdAt: tenantCustomers.createdAt,
+          updatedAt: tenantCustomers.updatedAt,
+          tags: tenantCustomers.tags,
+          metadata: tenantCustomers.metadata
+        })
         .from(tenantCustomers)
         .limit(limit)
         .offset(offset)
         .orderBy(desc(tenantCustomers.createdAt));
 
-      // Transform to expected format
+      // Direct return without unnecessary transformation (already in correct format)
       const customers: Customer[] = customersData.map(customer => ({
         id: customer.id,
         firstName: customer.firstName,
@@ -228,8 +245,8 @@ export class DatabaseStorage implements IStorage {
         externalId: customer.externalId,
         role: customer.role,
         notes: customer.notes,
-        avatar: customer.avatar,
-        signature: customer.signature,
+        avatar: customer.avatar || null,
+        signature: customer.signature || null,
         lastLogin: customer.lastLogin,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,

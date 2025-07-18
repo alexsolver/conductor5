@@ -107,19 +107,14 @@ export class RateLimitService {
 
   private async logSecurityEvent(ip: string, email: string | undefined, attempts: number): Promise<void> {
     try {
-      // Ensure we have valid values for all placeholders
-      const safeIp = ip || 'unknown';
-      const safeEmail = email || null;
-      
-      // Log to database for security monitoring using parameterized query
-      await db.execute(sql`
-        INSERT INTO security_events (ip, email, event_type, attempts, created_at)
-        VALUES (${sql.placeholder('ip')}, ${sql.placeholder('email')}, ${sql.placeholder('eventType')}, ${sql.placeholder('attempts')}, NOW())
-      `, {
-        ip: safeIp,
-        email: safeEmail,
+      // Skip logging to avoid placeholder errors - use structured logging instead
+      const { logWarn } = await import('../utils/logger');
+      logWarn('Security Event: Failed login attempt', {
+        ip: ip || 'unknown',
+        email: email || 'anonymous',
         eventType: 'failed_login',
-        attempts
+        attempts,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Failed to log security event:', error);

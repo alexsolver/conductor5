@@ -285,14 +285,14 @@ export class AuthSecurityService {
   }
 
   // Security logging
-  private async logSecurityEvent(identifier: string, eventType: string, metadata: Record<string, unknown> = {}): Promise<void> {
+  private async logSecurityEvent(identifier: string, eventType: string, metadata: Record<string, unknown> = {}, ip: string = '127.0.0.1'): Promise<void> {
     try {
       const { securityEvents } = await import('../shared/schema');
       await db.insert(securityEvents).values({
         identifier,
         eventType,
         metadata: JSON.stringify(metadata),
-        ip: '127.0.0.1',
+        ip: ip || '127.0.0.1',
         createdAt: new Date()
       });
     } catch (error) {

@@ -98,7 +98,7 @@ export default function MultiTenantInvitations() {
   const { data: invitations = [], isLoading: isLoadingInvitations } = useQuery<Invitation[]>({
     queryKey: ['/api/multi-tenant/invitations'],
     queryFn: async () => {
-      const response = await apiRequest('/api/multi-tenant/invitations');
+      const response = await apiRequest('GET', '/api/multi-tenant/invitations');
       return response.json();
     },
   });
@@ -107,7 +107,7 @@ export default function MultiTenantInvitations() {
   const { data: tenants = [] } = useQuery<Tenant[]>({
     queryKey: ['/api/multi-tenant/tenants'],
     queryFn: async () => {
-      const response = await apiRequest('/api/multi-tenant/tenants');
+      const response = await apiRequest('GET', '/api/multi-tenant/tenants');
       return response.json();
     },
   });
@@ -125,11 +125,7 @@ export default function MultiTenantInvitations() {
   // Create invitation mutation
   const createInvitationMutation = useMutation({
     mutationFn: async (data: InviteFormData) => {
-      const response = await apiRequest('/api/multi-tenant/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('POST', '/api/multi-tenant/invite', data);
       return response.json();
     },
     onSuccess: () => {
