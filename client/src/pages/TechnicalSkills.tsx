@@ -111,7 +111,7 @@ export default function TechnicalSkills() {
   // Mutations
   const createSkillMutation = useMutation({
     mutationFn: (data: SkillFormData) => 
-      apiRequest("/api/technical-skills/skills", { method: "POST", body: data }),
+      apiRequest("POST", "/api/technical-skills/skills", data),
     onSuccess: () => {
       toast({ title: "Habilidade criada com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["/api/technical-skills"] });
@@ -125,7 +125,7 @@ export default function TechnicalSkills() {
 
   const updateSkillMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: SkillFormData }) =>
-      apiRequest(`/api/technical-skills/skills/${id}`, { method: "PUT", body: data }),
+      apiRequest("PUT", `/api/technical-skills/skills/${id}`, data),
     onSuccess: () => {
       toast({ title: "Habilidade atualizada com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["/api/technical-skills"] });
@@ -139,7 +139,7 @@ export default function TechnicalSkills() {
 
   const deleteSkillMutation = useMutation({
     mutationFn: (id: string) => 
-      apiRequest(`/api/technical-skills/skills/${id}`, { method: "DELETE" }),
+      apiRequest("DELETE", `/api/technical-skills/skills/${id}`),
     onSuccess: () => {
       toast({ title: "Habilidade desativada com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["/api/technical-skills"] });
@@ -207,7 +207,7 @@ export default function TechnicalSkills() {
               Nova Habilidade
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Nova Habilidade</DialogTitle>
             </DialogHeader>
@@ -251,6 +251,31 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={createForm.control}
+                  name="minLevelRequired"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nível Mínimo Requerido</FormLabel>
+                      <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o nível" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map((level) => (
+                            <SelectItem key={level} value={level.toString()}>
+                              Nível {level} {level === 1 ? "(Básico)" : level === 5 ? "(Expert)" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
                 <FormField
                   control={createForm.control}
@@ -260,6 +285,53 @@ export default function TechnicalSkills() {
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
                         <Textarea placeholder="Descreva a habilidade..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={createForm.control}
+                  name="suggestedCertification"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Certificação Sugerida (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: CCNA, ITIL Foundation..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={createForm.control}
+                  name="certificationValidityMonths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Validade da Certificação (meses)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Ex: 24, 36..." 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={createForm.control}
+                  name="observations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observações (Opcional)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Observações adicionais sobre a habilidade..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -415,7 +487,7 @@ export default function TechnicalSkills() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Habilidade</DialogTitle>
           </DialogHeader>
@@ -459,6 +531,31 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={editForm.control}
+                name="minLevelRequired"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nível Mínimo Requerido</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5].map((level) => (
+                          <SelectItem key={level} value={level.toString()}>
+                            Nível {level} {level === 1 ? "(Básico)" : level === 5 ? "(Expert)" : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={editForm.control}
@@ -468,6 +565,53 @@ export default function TechnicalSkills() {
                     <FormLabel>Descrição</FormLabel>
                     <FormControl>
                       <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="suggestedCertification"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Certificação Sugerida (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: CCNA, ITIL Foundation..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="certificationValidityMonths"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Validade da Certificação (meses)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="Ex: 24, 36..." 
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações (Opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Observações adicionais sobre a habilidade..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
