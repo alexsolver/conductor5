@@ -8,6 +8,9 @@ import {
   uuid,
   boolean,
   integer,
+  unique,
+  index,
+  check,
 } from "drizzle-orm/pg-core";
 // Removed relations import to fix ExtraConfigBuilder error
 
@@ -48,7 +51,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Tenant isolation constraints and indexes
+    tenantEmailUnique: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
+    tenantIdCheck: check("customers_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantEmailIndex: index("customers_tenant_email_idx").on(table.tenantId, table.email),
+    tenantActiveIndex: index("customers_tenant_active_idx").on(table.tenantId, table.active),
+  }));
 
   // Tenant-specific customer companies table - ENHANCED ISOLATION
   const tenantCustomerCompanies = pgTable("customer_companies", {
@@ -79,7 +88,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedAt: timestamp("updated_at").defaultNow(),
     createdBy: text("created_by").notNull(),
     updatedBy: text("updated_by"),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Company tenant isolation constraints
+    tenantNameUnique: unique("companies_tenant_name_unique").on(table.tenantId, table.name),
+    tenantIdCheck: check("companies_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantNameIndex: index("companies_tenant_name_idx").on(table.tenantId, table.name),
+    tenantStatusIndex: index("companies_tenant_status_idx").on(table.tenantId, table.status),
+  }));
 
   // Tenant-specific customer company memberships table - ENHANCED ISOLATION
   const tenantCustomerCompanyMemberships = pgTable("customer_company_memberships", {
@@ -96,7 +111,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     joinedAt: timestamp("joined_at").defaultNow(),
     leftAt: timestamp("left_at"),
     addedBy: text("added_by").notNull(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Membership tenant isolation constraints
+    tenantMembershipUnique: unique("memberships_tenant_customer_company_unique").on(table.tenantId, table.customerId, table.companyId),
+    tenantIdCheck: check("memberships_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantCustomerIndex: index("memberships_tenant_customer_idx").on(table.tenantId, table.customerId),
+    tenantCompanyIndex: index("memberships_tenant_company_idx").on(table.tenantId, table.companyId),
+  }));
 
   // Tenant-specific tickets table - ENHANCED ISOLATION  
   const tenantTickets = pgTable("tickets", {
@@ -162,7 +183,14 @@ export function getTenantSpecificSchema(schemaName: string) {
     
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Tickets tenant isolation constraints
+    tenantNumberUnique: unique("tickets_tenant_number_unique").on(table.tenantId, table.number),
+    tenantIdCheck: check("tickets_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantStatusIndex: index("tickets_tenant_status_idx").on(table.tenantId, table.status),
+    tenantCustomerIndex: index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
+    tenantAssigneeIndex: index("tickets_tenant_assignee_idx").on(table.tenantId, table.assignedToId),
+  }));
 
   // Tenant-specific ticket messages - ENHANCED ISOLATION
   const tenantTicketMessages = pgTable("ticket_messages", {
@@ -176,7 +204,12 @@ export function getTenantSpecificSchema(schemaName: string) {
     isInternal: varchar("is_internal", { length: 10 }).default("false"),
     attachments: text("attachments"), // Optimized: TEXT for attachments list
     createdAt: timestamp("created_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Ticket messages tenant isolation constraints
+    tenantIdCheck: check("ticket_messages_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantTicketIndex: index("ticket_messages_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+    tenantCustomerIndex: index("ticket_messages_tenant_customer_idx").on(table.tenantId, table.customerId),
+  }));
 
   // Tenant-specific activity logs - ENHANCED ISOLATION
   const tenantActivityLogs = pgTable("activity_logs", {
@@ -191,7 +224,12 @@ export function getTenantSpecificSchema(schemaName: string) {
     previousValues: text("previous_values"), // Optimized: TEXT for previous values
     newValues: text("new_values"), // Optimized: TEXT for new values
     createdAt: timestamp("created_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Activity logs tenant isolation constraints
+    tenantIdCheck: check("activity_logs_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantEntityIndex: index("activity_logs_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
+    tenantPerformerIndex: index("activity_logs_tenant_performer_idx").on(table.tenantId, table.performedById),
+  }));
 
   // Tenant-specific locations table - ENHANCED ISOLATION
   const tenantLocations = pgTable("locations", {
@@ -275,7 +313,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     observations: text("observations"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Skills tenant isolation constraints
+    tenantSkillUnique: unique("skills_tenant_name_category_unique").on(table.tenantId, table.name, table.category),
+    tenantIdCheck: check("skills_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantCategoryIndex: index("skills_tenant_category_idx").on(table.tenantId, table.category),
+    tenantNameIndex: index("skills_tenant_name_idx").on(table.tenantId, table.name),
+  }));
 
   const tenantUserSkills = pgTable("user_skills", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -289,7 +333,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: User skills tenant isolation constraints
+    tenantUserSkillUnique: unique("user_skills_tenant_user_skill_unique").on(table.tenantId, table.userId, table.skillId),
+    tenantIdCheck: check("user_skills_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantUserIndex: index("user_skills_tenant_user_idx").on(table.tenantId, table.userId),
+    tenantSkillIndex: index("user_skills_tenant_skill_idx").on(table.tenantId, table.skillId),
+  }));
 
   const tenantCertifications = pgTable("certifications", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -302,7 +352,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     skillRequirements: text("skill_requirements"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: Certifications tenant isolation constraints
+    tenantCertificationUnique: unique("certifications_tenant_name_issuer_unique").on(table.tenantId, table.name, table.issuer),
+    tenantIdCheck: check("certifications_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantCategoryIndex: index("certifications_tenant_category_idx").on(table.tenantId, table.category),
+    tenantIssuerIndex: index("certifications_tenant_issuer_idx").on(table.tenantId, table.issuer),
+  }));
 
   // External Contacts tables - ENHANCED ISOLATION
   const tenantExternalContacts = pgTable("external_contacts", {
@@ -318,7 +374,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     active: boolean("active").default(true),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-  }, { schema: schemaName });
+  }, { schema: schemaName }, (table) => ({
+    // CRITICAL: External contacts tenant isolation constraints
+    tenantContactUnique: unique("external_contacts_tenant_type_email_unique").on(table.tenantId, table.type, table.email),
+    tenantIdCheck: check("external_contacts_tenant_id_format", "LENGTH(tenant_id) = 36"),
+    tenantTypeIndex: index("external_contacts_tenant_type_idx").on(table.tenantId, table.type),
+    tenantEmailIndex: index("external_contacts_tenant_email_idx").on(table.tenantId, table.email),
+  }));
 
   // Return schema object compatible with Drizzle (without relations to avoid ExtraConfigBuilder error)
   return {
