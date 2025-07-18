@@ -22,7 +22,7 @@ interface TenantConnection {
 export class ConnectionPoolManager {
   private static instance: ConnectionPoolManager;
   private tenantPools = new Map<string, TenantConnection>();
-  private readonly MAX_POOLS = 25; // CRITICAL FIX: Increased for production load
+  private readonly MAX_POOLS = 2; // CRITICAL STABILITY: Minimal pools to prevent crashes
   private readonly POOL_TTL = 15 * 60 * 1000; // 15 minutes - balanced for stability
   private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes - reduced cleanup frequency
   private cleanupTimer?: NodeJS.Timeout;
@@ -98,15 +98,15 @@ export class ConnectionPoolManager {
       
       const pool = new Pool({ 
         connectionString: baseUrl.toString(),
-        max: 8, // CRITICAL FIX: Increased for better concurrency
-        min: 2, // CRITICAL FIX: Minimum 2 connections for stability
-        idleTimeoutMillis: 300000, // CRITICAL FIX: 5 minutes for stability
-        connectionTimeoutMillis: 10000, // CRITICAL FIX: 10 seconds timeout
-        acquireTimeoutMillis: 15000, // CRITICAL FIX: 15 seconds acquire timeout
-        maxUses: 5000, // CRITICAL FIX: Higher reuse for efficiency
+        max: 1, // ULTRA-STABLE: Single connection to prevent crashes
+        min: 1,
+        idleTimeoutMillis: 60000, // 1 minute
+        connectionTimeoutMillis: 15000,
+        acquireTimeoutMillis: 20000,
+        maxUses: 20, // Very low to prevent connection issues
         keepAlive: true,
-        allowExitOnIdle: false, // Prevent unexpected pool closure
-        application_name: `tenant_${tenantId}` // CRITICAL FIX: Identify tenant connections
+        allowExitOnIdle: false,
+        maxLifetimeSeconds: 120 // 2 minutes - frequent refresh
       });
 
       const db = drizzle({ client: pool, schema });

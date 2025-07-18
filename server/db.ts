@@ -4,10 +4,12 @@ import { sql } from 'drizzle-orm';
 import ws from "ws";
 import * as schema from "@shared/schema-simple";
 
-// Configure WebSocket for better connection stability
+// CRITICAL STABILITY FIX: Enhanced WebSocket configuration
 neonConfig.webSocketConstructor = ws;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineConnect = false;
+neonConfig.pipelineTLS = false;
+neonConfig.subtls = undefined;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -15,14 +17,17 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Simplified connection pool configuration for stability
+// CRITICAL STABILITY FIX: Ultra-conservative pool settings to prevent crashes
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 3,
+  max: 2, // Reduced to minimum for stability
   min: 1,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  acquireTimeoutMillis: 10000
+  idleTimeoutMillis: 60000, // Increased to 1 minute
+  connectionTimeoutMillis: 15000, // Increased timeout
+  acquireTimeoutMillis: 20000, // Increased acquire timeout
+  keepAlive: true,
+  maxUses: 100, // Limit connection reuse
+  allowExitOnIdle: false
 });
 
 // Main database instance for tenant management and shared resources

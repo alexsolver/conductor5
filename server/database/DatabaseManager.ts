@@ -21,7 +21,7 @@ export class DatabaseManager {
   private tenantPools = new Map<string, Pool>();
   private tenantDbs = new Map<string, ReturnType<typeof drizzle>>();
   private schemaCache = new Map<string, boolean>();
-  private readonly MAX_TENANT_POOLS = 20;
+  private readonly MAX_TENANT_POOLS = 3; // CRITICAL STABILITY: Minimal tenant pools
   private readonly CACHE_TTL = 10 * 60 * 1000; // 10 minutes
   private cleanupInterval?: NodeJS.Timeout;
 
@@ -47,13 +47,15 @@ export class DatabaseManager {
 
     this.mainPool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: 15, // Production-ready pool size
-      min: 5,
-      idleTimeoutMillis: 300000, // 5 minutes
-      connectionTimeoutMillis: 10000,
-      acquireTimeoutMillis: 15000,
-      maxUses: 7500,
-      keepAlive: true
+      max: 2, // ULTRA-STABLE: Minimal connections to prevent crashes
+      min: 1,
+      idleTimeoutMillis: 60000, // 1 minute - shorter to prevent stale connections
+      connectionTimeoutMillis: 20000, // Increased timeout
+      acquireTimeoutMillis: 25000, // Increased acquire timeout
+      maxUses: 50, // Very low to force fresh connections
+      keepAlive: true,
+      allowExitOnIdle: false,
+      maxLifetimeSeconds: 180 // 3 minutes - force connection refresh
     });
 
     this.mainDb = drizzle({ client: this.mainPool, schema });
@@ -102,16 +104,18 @@ export class DatabaseManager {
     baseUrl.searchParams.set('search_path', `${schemaName},public`);
     baseUrl.searchParams.set('application_name', `tenant_${tenantId}`);
 
-    // Create tenant-specific pool
+    // Create tenant-specific pool with ultra-stable settings
     const tenantPool = new Pool({
       connectionString: baseUrl.toString(),
-      max: 5, // Smaller per-tenant pool
+      max: 1, // CRITICAL STABILITY: Single connection per tenant
       min: 1,
-      idleTimeoutMillis: 180000, // 3 minutes
-      connectionTimeoutMillis: 8000,
-      acquireTimeoutMillis: 12000,
-      maxUses: 2000,
-      keepAlive: true
+      idleTimeoutMillis: 60000, // 1 minute
+      connectionTimeoutMillis: 15000,
+      acquireTimeoutMillis: 20000,
+      maxUses: 20, // Very low to prevent connection issues
+      keepAlive: true,
+      allowExitOnIdle: false,
+      maxLifetimeSeconds: 120 // 2 minutes - frequent refresh
     });
 
     this.tenantPools.set(tenantId, tenantPool);
