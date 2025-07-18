@@ -196,19 +196,44 @@ export class ConnectionPoolManager {
   // Fixes: Lack of tenant-specific monitoring
   // ===========================
   getPoolMetrics() {
+    const now = Date.now();
     const metrics = {
       totalPools: this.tenantPools.size,
       maxPools: this.MAX_POOLS,
-      poolUtilization: (this.tenantPools.size / this.MAX_POOLS) * 100,
+      poolUtilization: Math.round((this.tenantPools.size / this.MAX_POOLS) * 100),
       tenants: Array.from(this.tenantPools.entries()).map(([tenantId, conn]) => ({
         tenantId,
         lastUsed: new Date(conn.lastUsed),
         activeConnections: conn.activeConnections,
-        ageMinutes: (Date.now() - conn.lastUsed) / (1000 * 60)
-      }))
+        ageMinutes: Math.round((now - conn.lastUsed) / (1000 * 60)),
+        status: conn.activeConnections > 0 ? 'active' : 'idle'
+      })),
+      healthStatus: this.tenantPools.size < this.MAX_POOLS ? 'healthy' : 'at_capacity'
     };
 
     return metrics;
+  }
+
+  // ===========================
+  // HEALTH CHECK ENDPOINT
+  // ===========================
+  async getHealthStatus() {
+    const metrics = this.getPoolMetrics();
+    const healthCheck = {
+      timestamp: new Date().toISOString(),
+      status: metrics.healthStatus,
+      pools: {
+        total: metrics.totalPools,
+        max: metrics.maxPools,
+        utilization: metrics.poolUtilization
+      },
+      tenants: {
+        active: metrics.tenants.filter(t => t.status === 'active').length,
+        idle: metrics.tenants.filter(t => t.status === 'idle').length
+      }
+    };
+
+    return healthCheck;
   }
 }
 

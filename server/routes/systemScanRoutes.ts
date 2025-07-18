@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { IntegrityControlService } from '../services/IntegrityControlService';
 import { jwtAuth } from '../middleware/jwtAuth';
@@ -10,10 +9,10 @@ router.post('/scan/comprehensive', jwtAuth, async (req, res) => {
   try {
     const { logInfo } = await import('../utils/logger');
     logInfo('Iniciando varredura completa do sistema');
-    
+
     // Get all modules with detailed analysis
     const modules = await integrityService.getAllModules();
-    
+
     // Categorize issues
     const summary = {
       totalModules: modules.length,
@@ -58,23 +57,23 @@ router.post('/scan/comprehensive', jwtAuth, async (req, res) => {
               summary.securityVulnerabilities++;
               if (issue.type === 'error') summary.criticalIssues.push(issueDetail);
             }
-            
+
             if (issue.description.includes('Mock data')) {
               summary.mockDataFound++;
             }
-            
+
             if (issue.description.includes('Incomplete functionality')) {
               summary.incompleteFunctions++;
             }
-            
+
             if (issue.description.includes('Non-functional button')) {
               summary.nonFunctionalButtons++;
             }
-            
+
             if (issue.description.includes('Clean Architecture')) {
               summary.architectureViolations++;
             }
-            
+
             if (issue.description.includes('TODO') || 
                 issue.description.includes('Console') ||
                 issue.description.includes('any type')) {
@@ -126,6 +125,26 @@ router.post('/scan/comprehensive', jwtAuth, async (req, res) => {
       success: false, 
       error: 'Erro interno na varredura do sistema',
       details: error.message 
+    });
+  }
+});
+
+// Health check endpoint
+router.get('/health', async (req, res) => {
+  try {
+    const { poolManager } = await import('../database/ConnectionPoolManager');
+    const healthStatus = await poolManager.getHealthStatus();
+
+    res.json({
+      success: true,
+      message: 'System is healthy',
+      timestamp: new Date().toISOString(),
+      database: healthStatus
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'System health check failed'
     });
   }
 });
