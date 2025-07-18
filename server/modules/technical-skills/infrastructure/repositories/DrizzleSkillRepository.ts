@@ -14,9 +14,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
     return schemaManager.getTenantConnection(this.tenantId);
   }
   async create(skill: Skill): Promise<Skill> {
-    const db = await this.getDb();
+    const schemaName = this.getSchemaName();
     const result = await db.execute(sql`
-      INSERT INTO skills (
+      INSERT INTO ${sql.identifier(schemaName)}.skills (
         id, name, category, min_level_required, suggested_certification,
         certification_validity_months, description, observations, is_active,
         created_at, updated_at, created_by, updated_by
@@ -32,9 +32,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const db = await this.getDb();
+    const schemaName = this.getSchemaName();
     const result = await db.execute(sql`
-      SELECT * FROM skills WHERE id = ${id} AND is_active = true
+      SELECT * FROM ${sql.identifier(schemaName)}.skills WHERE id = ${id} AND is_active = true
     `);
     
     return result.rows.length > 0 ? this.mapToEntity(result.rows[0] as any) : null;
@@ -45,34 +45,33 @@ export class DrizzleSkillRepository implements ISkillRepository {
     isActive?: boolean;
     search?: string;
   }): Promise<Skill[]> {
-    const db = await this.getDb();
-    
-    let whereClauses = ['is_active = true'];
-    const params: any[] = [];
-    let paramIndex = 1;
+    const schemaName = this.getSchemaName();
     
     if (filters?.category) {
-      whereClauses.push(`category = $${paramIndex++}`);
-      params.push(filters.category);
-    }
-    
-    if (filters?.isActive !== undefined) {
-      whereClauses[0] = `is_active = $${paramIndex++}`;
-      params.unshift(filters.isActive);
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.skills 
+        WHERE category = ${filters.category} AND is_active = true
+        ORDER BY name
+      `);
+      return result.rows.map(row => this.mapToEntity(row as any));
     }
     
     if (filters?.search) {
-      whereClauses.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
-      params.push(`%${filters.search}%`);
+      const searchPattern = `%${filters.search}%`;
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.skills 
+        WHERE (name ILIKE ${searchPattern} OR description ILIKE ${searchPattern}) AND is_active = true
+        ORDER BY name
+      `);
+      return result.rows.map(row => this.mapToEntity(row as any));
     }
     
-    const whereClause = whereClauses.join(' AND ');
-    
-    const result = await db.execute(sql.raw(`
-      SELECT * FROM skills 
-      WHERE ${whereClause}
+    const isActive = filters?.isActive !== undefined ? filters.isActive : true;
+    const result = await db.execute(sql`
+      SELECT * FROM ${sql.identifier(schemaName)}.skills 
+      WHERE is_active = ${isActive}
       ORDER BY name
-    `, params));
+    `);
     
     return result.rows.map(row => this.mapToEntity(row as any));
   }
@@ -126,9 +125,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async getCategories(): Promise<string[]> {
-    const db = await this.getDb();
+    const schemaName = this.getSchemaName();
     const result = await db.execute(sql`
-      SELECT DISTINCT category FROM skills 
+      SELECT DISTINCT category FROM ${sql.identifier(schemaName)}.skills 
       WHERE is_active = true
       ORDER BY category
     `);
