@@ -42,6 +42,7 @@ import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 import CustomerCompanies from "./pages/CustomerCompanies";
 import TechnicalSkills from "./pages/TechnicalSkills";
+import ExternalContactsManagement from "./pages/ExternalContactsManagement";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -80,6 +81,7 @@ function AppRouter() {
         <Route path="/customers" component={CustomersTable} />
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/technical-skills" component={TechnicalSkills} />
+        <Route path="/external-contacts" component={ExternalContactsManagement} />
         <Route path="/locations" component={Locations} />
         <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/analytics" component={Analytics} />

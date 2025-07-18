@@ -5,6 +5,7 @@
 export * from "./base";
 export * from "./customer";
 export * from "./customer-company";
+export * from "./external-contacts";
 export * from "./ticket";
 export * from "./location";
 export * from "./security";
@@ -54,6 +55,25 @@ import {
   type CustomerCompanyBilling,
   type InsertCustomerCompanyBilling
 } from "./customer-company";
+
+import {
+  externalContacts,
+  extendedCustomers,
+  ticketExternalContacts,
+  insertExternalContactSchema,
+  insertExtendedCustomerSchema,
+  insertTicketExternalContactSchema,
+  type ExternalContact,
+  type InsertExternalContact,
+  type ExtendedCustomer,
+  type InsertExtendedCustomer,
+  type TicketExternalContact,
+  type InsertTicketExternalContact,
+  type Solicitante,
+  type InsertSolicitante,
+  type Favorecido,
+  type InsertFavorecido
+} from "./external-contacts";
 
 import {
   tickets,
@@ -112,6 +132,11 @@ export {
   customerCompanyMemberships,
   customerCompanyBilling,
   
+  // External contacts tables
+  externalContacts,
+  extendedCustomers,
+  ticketExternalContacts,
+  
   // Ticket tables
   tickets,
   ticketMessages,
@@ -138,6 +163,9 @@ export {
   insertCustomerCompanySchema,
   insertCustomerCompanyMembershipSchema,
   insertCustomerCompanyBillingSchema,
+  insertExternalContactSchema,
+  insertExtendedCustomerSchema,
+  insertTicketExternalContactSchema,
   insertTicketSchema,
   insertTicketMessageSchema,
   insertLocationSchema,
@@ -156,6 +184,11 @@ export {
   type CustomerCompany,
   type CustomerCompanyMembership,
   type CustomerCompanyBilling,
+  type ExternalContact,
+  type ExtendedCustomer,
+  type TicketExternalContact,
+  type Solicitante,
+  type Favorecido,
   type Ticket,
   type TicketMessage,
   type Location,
@@ -172,6 +205,11 @@ export {
   type InsertCustomerCompany,
   type InsertCustomerCompanyMembership,
   type InsertCustomerCompanyBilling,
+  type InsertExternalContact,
+  type InsertExtendedCustomer,
+  type InsertTicketExternalContact,
+  type InsertSolicitante,
+  type InsertFavorecido,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertLocation,

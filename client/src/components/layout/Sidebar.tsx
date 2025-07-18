@@ -35,7 +35,8 @@ import {
   Palette,
   PieChart,
   Building2,
-  Award
+  Award,
+  UserCheck
 } from "lucide-react";
 
 // Base navigation without dynamic badges
@@ -84,6 +85,7 @@ const adminNavigation = [
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Gestão de Clientes", href: "/tenant-admin/customers", icon: Users },
+      { name: "Solicitantes & Favorecidos", href: "/external-contacts", icon: UserCheck },
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
