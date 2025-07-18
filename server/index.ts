@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability";
 import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
+import { productionInitializer } from './utils/productionInitializer';
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  
+
   // CRITICAL: Skip logging for health checks and static assets to reduce I/O
   const skipLogging = path.includes('/health') || 
                      path.includes('/favicon') || 
@@ -28,7 +29,7 @@ app.use((req, res, next) => {
                      path.includes('.png') || 
                      path.includes('.svg') ||
                      path.includes('/assets/');
-  
+
   if (skipLogging) {
     return next();
   }
@@ -43,11 +44,11 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    
+
     // CRITICAL: Only log API requests and reduce verbose logging
     if (path.startsWith("/api") && !path.includes('/csp-report')) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      
+
       // CRITICAL: Skip JSON response logging for performance-sensitive operations
       if (capturedJsonResponse && duration < 1000) { // Only log responses for slow requests
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
@@ -67,18 +68,15 @@ app.use((req, res, next) => {
 (async () => {
   // CRITICAL FIX: Initialize cleanup and stability systems before starting server
   await initializeCleanup();
-  
+
   const server = await registerRoutes(app);
-  
+
   // CRITICAL: Initialize connection stabilizer and server stability
   connectionStabilizer.initialize(server);
   configureServerForStability(server);
-  
-  // CRITICAL FIX: Warm up tenant schemas to prevent first-request errors
-  const { warmupTenantSchemas } = await import('./utils/schemaInitializer');
-  setTimeout(() => {
-    warmupTenantSchemas().catch(console.warn);
-  }, 5000); // Warm up after 5 seconds
+
+  // Initialize production systems
+  await productionInitializer.initialize();
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -102,22 +100,22 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  
+
   // CRITICAL FIX: Enhanced server stability for WebSocket connections
   server.keepAliveTimeout = 120000; // 2 minutes
   server.headersTimeout = 120000; // 2 minutes  
   server.timeout = 120000; // 2 minutes
   server.maxConnections = 1000;
-  
+
   // CRITICAL: WebSocket connection stability optimizations
   server.on('connection', (socket) => {
     // Enable TCP keep-alive for all connections
     socket.setKeepAlive(true, 60000); // 1 minute intervals
     socket.setTimeout(120000); // 2 minute socket timeout
-    
+
     // Prevent connection drops during idle periods
     socket.setNoDelay(true);
-    
+
     // Handle socket errors gracefully
     socket.on('error', (err) => {
       if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
@@ -125,7 +123,7 @@ app.use((req, res, next) => {
       }
     });
   });
-  
+
   // CRITICAL: Enhanced error handling for server stability
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
@@ -135,7 +133,7 @@ app.use((req, res, next) => {
       console.error('[Server Error]', err);
     }
   });
-  
+
   // CRITICAL: Enhanced graceful shutdown handling
   process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
@@ -144,7 +142,7 @@ app.use((req, res, next) => {
       process.exit(0);
     });
   });
-  
+
   process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully');
     connectionStabilizer.cleanup();
@@ -152,7 +150,7 @@ app.use((req, res, next) => {
       process.exit(0);
     });
   });
-  
+
   // CRITICAL: Handle uncaught exceptions to prevent crashes
   process.on('uncaughtException', (error) => {
     if (error.message && !error.message.includes('WebSocket') && !error.message.includes('ECONNRESET')) {
@@ -161,12 +159,12 @@ app.use((req, res, next) => {
       process.exit(1);
     }
   });
-  
+
   process.on('unhandledRejection', (reason, promise) => {
     console.warn('[Unhandled Rejection]', reason);
     // Don't exit on unhandled rejections, just log them
   });
-  
+
   server.listen({
     port,
     host: "0.0.0.0",
