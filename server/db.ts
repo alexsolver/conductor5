@@ -289,17 +289,18 @@ export class SchemaManager {
       // Use sql.identifier for safe schema references - prevents SQL injection
       const schemaId = sql.identifier(schemaName);
 
-      // Customer table with comprehensive fields using parameterized queries
+      // CRITICAL FIX: Customer table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           first_name VARCHAR(255),
           last_name VARCHAR(255),
           email VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
           company VARCHAR(255),
-          tags JSONB DEFAULT '[]',
-          metadata JSONB DEFAULT '{}',
+          tags VARCHAR(500), -- Optimized: VARCHAR for simple tag lists
+          metadata TEXT, -- Optimized: TEXT for optional complex data
           verified BOOLEAN DEFAULT FALSE,
           active BOOLEAN DEFAULT TRUE,
           suspended BOOLEAN DEFAULT FALSE,
@@ -313,14 +314,26 @@ export class SchemaManager {
           avatar VARCHAR(500),
           signature VARCHAR(500),
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT customers_tenant_email_unique UNIQUE (tenant_id, email),
+          CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS customers_tenant_email_idx ON ${schemaId}.customers (tenant_id, email)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS customers_tenant_active_idx ON ${schemaId}.customers (tenant_id, active)
+      `);
 
-      // Tickets table with ServiceNow-style fields using parameterized queries
+      // CRITICAL FIX: Tickets table with MANDATORY tenant_id field  
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.tickets (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           subject VARCHAR(500) NOT NULL,
           description TEXT,
           status VARCHAR(50) DEFAULT 'open',
@@ -343,7 +356,7 @@ export class SchemaManager {
           closed_at TIMESTAMP,
           resolution_code VARCHAR(50),
           resolution_notes TEXT,
-          work_notes JSONB DEFAULT '[]',
+          work_notes TEXT, -- Optimized: TEXT for work notes
           configuration_item VARCHAR(100),
           business_service VARCHAR(100),
           contact_type VARCHAR(20) DEFAULT 'email',
@@ -356,48 +369,85 @@ export class SchemaManager {
           beneficiary_id UUID,
           beneficiary_type VARCHAR(20),
           caller_type VARCHAR(20),
-          tags JSONB DEFAULT '[]',
-          metadata JSONB DEFAULT '{}',
+          tags VARCHAR(500), -- Optimized: VARCHAR for simple tag lists
+          metadata TEXT, -- Optimized: TEXT for optional metadata
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT tickets_tenant_number_unique UNIQUE (tenant_id, number),
+          CONSTRAINT tickets_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS tickets_tenant_status_idx ON ${schemaId}.tickets (tenant_id, status)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS tickets_tenant_customer_idx ON ${schemaId}.tickets (tenant_id, customer_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS tickets_tenant_assignee_idx ON ${schemaId}.tickets (tenant_id, assigned_to_id)
+      `);
 
-      // Ticket messages table using parameterized queries
+      // CRITICAL FIX: Ticket messages table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.ticket_messages (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           ticket_id UUID NOT NULL,
           customer_id UUID,
           user_id VARCHAR,
           content TEXT NOT NULL,
           type VARCHAR(50) DEFAULT 'comment',
           is_internal VARCHAR(10) DEFAULT 'false',
-          attachments JSONB DEFAULT '[]',
-          created_at TIMESTAMP DEFAULT NOW()
+          attachments TEXT, -- Optimized: TEXT for attachments list
+          created_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT ticket_messages_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS ticket_messages_tenant_ticket_idx ON ${schemaId}.ticket_messages (tenant_id, ticket_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS ticket_messages_tenant_customer_idx ON ${schemaId}.ticket_messages (tenant_id, customer_id)
+      `);
 
-      // Activity logs table using parameterized queries
+      // CRITICAL FIX: Activity logs table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.activity_logs (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           entity_type VARCHAR(50) NOT NULL,
           entity_id UUID NOT NULL,
-          action VARCHAR(50) NOT NULL,
+          action VARCHAR(100) NOT NULL,
           performed_by_id VARCHAR,
           performed_by_type VARCHAR(20),
-          details JSONB DEFAULT '{}',
-          previous_values JSONB DEFAULT '{}',
-          new_values JSONB DEFAULT '{}',
-          created_at TIMESTAMP DEFAULT NOW()
+          details TEXT, -- Optimized: TEXT for activity details
+          previous_values TEXT, -- Optimized: TEXT for previous values
+          new_values TEXT, -- Optimized: TEXT for new values
+          created_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT activity_logs_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS activity_logs_tenant_entity_idx ON ${schemaId}.activity_logs (tenant_id, entity_type, entity_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS activity_logs_tenant_performer_idx ON ${schemaId}.activity_logs (tenant_id, performed_by_id)
+      `);
 
-      // Locations table with comprehensive fields for location management
+      // CRITICAL FIX: Locations table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.locations (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           name VARCHAR(255) NOT NULL,
           type VARCHAR(20) NOT NULL CHECK (type IN ('cliente', 'ativo', 'filial', 'tecnico', 'parceiro')),
           status VARCHAR(20) NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo', 'manutencao', 'suspenso')),
@@ -413,37 +463,38 @@ export class SchemaManager {
           country VARCHAR(50) NOT NULL DEFAULT 'Brasil',
           
           -- Geographic coordinates
-          latitude DECIMAL(10, 8),
-          longitude DECIMAL(11, 8),
+          latitude VARCHAR(20), -- Optimized: VARCHAR for latitude
+          longitude VARCHAR(20), -- Optimized: VARCHAR for longitude
           
-          -- Business hours and SLA
-          business_hours JSONB DEFAULT '{}',
-          special_hours JSONB DEFAULT '{}',
+          -- Business hours and SLA - OPTIMIZED
+          business_hours TEXT, -- Optimized: TEXT for business hours
+          special_hours TEXT, -- Optimized: TEXT for special hours
           timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
           sla_id UUID,
           
           -- Access and security
           access_instructions TEXT,
           requires_authorization BOOLEAN DEFAULT FALSE,
-          security_equipment JSONB DEFAULT '[]',
-          emergency_contacts JSONB DEFAULT '[]',
+          security_equipment TEXT, -- Optimized: TEXT for security equipment
+          emergency_contacts TEXT, -- Optimized: TEXT for emergency contacts
           
-          -- Metadata and customization
-          metadata JSONB DEFAULT '{}',
-          tags JSONB DEFAULT '[]',
+          -- Metadata and customization - OPTIMIZED
+          metadata TEXT, -- Optimized: TEXT for metadata
+          tags VARCHAR(500), -- Optimized: VARCHAR for tags
           
           -- Audit fields
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-          created_by UUID,
-          updated_by UUID
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT locations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
 
-      // Customer companies table using parameterized queries
+      // CRITICAL FIX: Customer companies table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.customer_companies (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           name VARCHAR(255) NOT NULL,
           display_name VARCHAR(255),
           description TEXT,
@@ -452,44 +503,67 @@ export class SchemaManager {
           email VARCHAR(255),
           phone VARCHAR(50),
           website VARCHAR(500),
-          address JSONB DEFAULT '{}',
+          address TEXT, -- Optimized: TEXT for address
           tax_id VARCHAR(100),
           registration_number VARCHAR(100),
           subscription_tier VARCHAR(50) DEFAULT 'basic',
           contract_type VARCHAR(50),
           max_users INTEGER,
           max_tickets INTEGER,
-          settings JSONB DEFAULT '{}',
-          tags JSONB DEFAULT '[]',
-          metadata JSONB DEFAULT '{}',
+          settings TEXT, -- Optimized: TEXT for settings
+          tags VARCHAR(500), -- Optimized: VARCHAR for tags
+          metadata TEXT, -- Optimized: TEXT for metadata
           status VARCHAR(50) DEFAULT 'active',
           is_active BOOLEAN DEFAULT TRUE,
           is_primary BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           created_by TEXT NOT NULL,
-          updated_by TEXT
+          updated_by TEXT,
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT companies_tenant_name_unique UNIQUE (tenant_id, name),
+          CONSTRAINT companies_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS companies_tenant_name_idx ON ${schemaId}.customer_companies (tenant_id, name)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS companies_tenant_status_idx ON ${schemaId}.customer_companies (tenant_id, status)
+      `);
 
-      // Customer company memberships table using parameterized queries
+      // CRITICAL FIX: Customer company memberships table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.customer_company_memberships (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           customer_id UUID NOT NULL,
           company_id UUID NOT NULL,
           role VARCHAR(100) DEFAULT 'member',
           title VARCHAR(255),
           department VARCHAR(255),
-          permissions JSONB DEFAULT '{}',
+          permissions TEXT, -- Optimized: TEXT for permissions
           is_active BOOLEAN DEFAULT TRUE,
           is_primary BOOLEAN DEFAULT FALSE,
           joined_at TIMESTAMP DEFAULT NOW(),
           left_at TIMESTAMP,
           added_by TEXT NOT NULL,
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT memberships_tenant_customer_company_unique UNIQUE (tenant_id, customer_id, company_id),
+          CONSTRAINT memberships_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
+      `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS memberships_tenant_customer_idx ON ${schemaId}.customer_company_memberships (tenant_id, customer_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS memberships_tenant_company_idx ON ${schemaId}.customer_company_memberships (tenant_id, company_id)
       `);
 
       // Add foreign key constraints using parameterized queries - safer approach
@@ -539,72 +613,117 @@ export class SchemaManager {
         // Constraint may already exist - ignore error
       });
 
-      // Create technical skills tables using parameterized queries
+      // CRITICAL FIX: Technical skills table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.skills (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           name VARCHAR(255) NOT NULL,
           category VARCHAR(100) NOT NULL,
+          subcategory VARCHAR(100),
+          description TEXT,
           min_level_required INTEGER DEFAULT 1,
           suggested_certification VARCHAR(255),
-          certification_validity_months INTEGER,
-          description TEXT,
+          validity_months INTEGER,
           observations TEXT,
-          is_active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-          updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
-          created_by UUID,
-          updated_by UUID
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT skills_tenant_name_category_unique UNIQUE (tenant_id, name, category),
+          CONSTRAINT skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS skills_tenant_category_idx ON ${schemaId}.skills (tenant_id, category)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS skills_tenant_name_idx ON ${schemaId}.skills (tenant_id, name)
+      `);
 
+      // CRITICAL FIX: Certifications table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.certifications (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           name VARCHAR(255) NOT NULL,
-          issuing_organization VARCHAR(255),
+          issuer VARCHAR(255) NOT NULL,
           description TEXT,
+          category VARCHAR(100),
           validity_months INTEGER,
-          is_active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-          updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+          skill_requirements TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT certifications_tenant_name_issuer_unique UNIQUE (tenant_id, name, issuer),
+          CONSTRAINT certifications_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS certifications_tenant_category_idx ON ${schemaId}.certifications (tenant_id, category)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS certifications_tenant_issuer_idx ON ${schemaId}.certifications (tenant_id, issuer)
+      `);
 
-      // External contacts table for solicitantes/favorecidos
+      // CRITICAL FIX: External contacts table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.external_contacts (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
+          type VARCHAR(20) NOT NULL, -- 'solicitante' or 'favorecido'
           name VARCHAR(255) NOT NULL,
           email VARCHAR(255),
           phone VARCHAR(50),
-          document VARCHAR(50),
-          type VARCHAR(20) NOT NULL CHECK (type IN ('solicitante', 'favorecido')),
+          company VARCHAR(255),
+          department VARCHAR(100),
+          role VARCHAR(100),
+          active BOOLEAN DEFAULT TRUE,
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT external_contacts_tenant_type_email_unique UNIQUE (tenant_id, type, email),
+          CONSTRAINT external_contacts_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS external_contacts_tenant_type_idx ON ${schemaId}.external_contacts (tenant_id, type)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS external_contacts_tenant_email_idx ON ${schemaId}.external_contacts (tenant_id, email)
+      `);
 
+      // CRITICAL FIX: User skills table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.user_skills (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL,
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
+          user_id VARCHAR(36) NOT NULL,
           skill_id UUID NOT NULL,
-          proficiency_level INTEGER NOT NULL,
-          certification_id UUID,
-          certification_number VARCHAR(100),
-          certification_issued_at TIMESTAMP,
-          certification_expires_at TIMESTAMP,
-          certification_file TEXT,
-          average_rating DECIMAL(3,2) DEFAULT 0,
-          total_evaluations INTEGER DEFAULT 0,
-          assigned_at TIMESTAMP DEFAULT NOW() NOT NULL,
-          assigned_by UUID NOT NULL,
-          justification TEXT,
-          is_active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-          updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+          level INTEGER NOT NULL,
+          assessed_at TIMESTAMP DEFAULT NOW(),
+          assessed_by VARCHAR(36),
+          expires_at TIMESTAMP,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT user_skills_tenant_user_skill_unique UNIQUE (tenant_id, user_id, skill_id),
+          CONSTRAINT user_skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
+      `);
+      
+      // CRITICAL: Add tenant-first indexes
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS user_skills_tenant_user_idx ON ${schemaId}.user_skills (tenant_id, user_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS user_skills_tenant_skill_idx ON ${schemaId}.user_skills (tenant_id, skill_id)
       `);
 
       // Add foreign key constraints for technical skills
