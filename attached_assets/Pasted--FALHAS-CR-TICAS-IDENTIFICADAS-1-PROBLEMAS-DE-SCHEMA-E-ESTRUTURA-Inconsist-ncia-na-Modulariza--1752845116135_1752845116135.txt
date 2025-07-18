@@ -1,0 +1,102 @@
+🔴 FALHAS CRÍTICAS IDENTIFICADAS
+1. PROBLEMAS DE SCHEMA E ESTRUTURA
+❌ Inconsistência na Modularização de Schema
+
+Schema dividido em múltiplos arquivos mas com dependências circulares
+shared/schema.ts apenas re-exporta, perdendo controle centralizado
+Falta de versionamento de schema adequado
+❌ Campos Duplicados Entre Entidades
+
+customers e potencial entidade solicitantes com mesma finalidade
+Redundância de dados que pode causar inconsistências
+❌ Falta de Constraints e Validações
+
+Ausência de foreign keys adequadas entre schemas de tenant
+Sem validação de integridade referencial cross-schema
+2. PROBLEMAS DE MULTI-TENANCY
+❌ Isolamento de Schema Frágil
+
+// PROBLEMA: Schema naming vulnerável
+const schemaName = `tenant_${tenantId}`;
+// Pode ser explorado com SQL injection se tenantId não for validado
+❌ Gestão de Conexões Ineficiente
+
+Cache de conexões sem limite de memória
+Não há cleanup de conexões ociosas
+Risco de memory leak com muitos tenants
+❌ Migração de Schema Sem Rollback
+
+Estrutura de migração existe mas sem estratégia de rollback
+Sem controle de versão por tenant individual
+3. VULNERABILIDADES DE SEGURANÇA SQL
+❌ SQL Injection Residual
+
+// AINDA PRESENTE em alguns locais:
+await db.execute(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`);
+// Deveria usar sql.identifier()
+❌ Controle de Acesso Cross-Tenant
+
+Falta de middleware para validar acesso a schema específico
+Possibilidade de cross-tenant data access
+4. PROBLEMAS DE PERFORMANCE
+❌ N+1 Query Problems
+
+// PROBLEMA: Queries sequenciais em loops
+for (const user of tenantUsers) {
+  const grantedBy = await db.select()...
+}
+❌ Ausência de Índices Otimizados
+
+Falta índices compostos para queries multi-tenant
+Sem análise de execution plan
+❌ Cache Ineficiente
+
+Cache de schema simples demais
+Não considera TTL ou invalidação inteligente
+5. PROBLEMAS DE DADOS MOCKADOS
+❌ Dados de Teste em Produção
+
+// DETECTADO: Mock data generators sem ambiente separation
+const solicitantes = [];
+for (let i = 1; i <= 100; i++) {
+  // Dados fake sendo inseridos sem controle de ambiente
+}
+6. ARQUITETURA DE BANCO PROBLEMÁTICA
+❌ Conexões Não Pooled Adequadamente
+
+// PROBLEMA: Nova conexão por tenant sem pool management
+const tenantDb = drizzle(new Pool({
+  connectionString: fullConnectionString,
+}));
+❌ Transações Cross-Schema
+
+Não há suporte adequado para transações que envolvem múltiplos schemas
+Risco de inconsistência em operações complexas
+❌ Backup e Recovery
+
+Estratégia de backup não considera isolamento de tenant
+Sem point-in-time recovery por tenant individual
+7. PROBLEMAS DE MONITORING
+❌ Falta de Métricas por Tenant
+
+Não há tracking de performance por schema
+Ausência de alertas específicos por tenant
+❌ Logging Inadequado
+
+Logs não incluem tenant context consistentemente
+Dificuldade para troubleshooting multi-tenant
+🛠️ RECOMENDAÇÕES CRÍTICAS
+PRIORIDADE ALTA - Implementar Imediatamente:
+Validação Rigorosa de Tenant ID
+Pool de Conexões Inteligente
+Auditoria Cross-Tenant
+Índices Otimizados
+Cleanup de Dados Mock
+PRIORIDADE MÉDIA:
+Refatoração de Schema Modular
+Estratégia de Migration Versionada
+Monitoring por Tenant
+PRIORIDADE BAIXA:
+Otimização de Cache Avançado
+Backup Granular por Tenant
+Este sistema precisa de uma refatoração urgente na camada de dados antes de ir para produção. As vulnerabilidades de segurança e problemas de performance identificados podem comprometer toda a aplicação.

@@ -336,8 +336,8 @@ export class DatabaseStorage implements IStorage {
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email
-        FROM ${sql`${sql.identifier(schemaName)}.tickets`}
-        LEFT JOIN ${sql`${sql.identifier(schemaName)}.customers`} ON tickets.customer_id = customers.id
+        FROM ${sql.identifier(schemaName), "tickets"}
+        LEFT JOIN ${sql.identifier(schemaName), "customers"} c ON tickets.customer_id = customers.id
         WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
@@ -371,8 +371,8 @@ export class DatabaseStorage implements IStorage {
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email
-        FROM ${sql`${sql.identifier(schemaName)}.tickets`}
-        LEFT JOIN ${sql`${sql.identifier(schemaName)}.customers`} ON tickets.customer_id = customers.id
+        FROM ${sql.identifier(schemaName), "tickets"}
+        LEFT JOIN ${sql.identifier(schemaName), "customers"} c ON tickets.customer_id = customers.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
@@ -398,7 +398,7 @@ export class DatabaseStorage implements IStorage {
       const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql`${sql.identifier(schemaName)}.tickets`} 
+        INSERT INTO ${sql.identifier(schemaName), "tickets"} 
         (number, subject, description, status, priority, customer_id, tenant_id, created_at, updated_at)
         VALUES (
           ${ticketNumber},
@@ -433,7 +433,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql`${sql.identifier(schemaName)}.tickets`} 
+        UPDATE ${sql.identifier(schemaName), "tickets"} 
         SET 
           subject = ${ticketData.subject},
           description = ${ticketData.description || null},
@@ -458,7 +458,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql`${sql.identifier(schemaName)}.tickets`}
+        DELETE FROM ${sql.identifier(schemaName), "tickets"}
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -524,8 +524,8 @@ export class DatabaseStorage implements IStorage {
           tickets.status,
           tickets.created_at,
           customers.first_name || ' ' || customers.last_name as customer_name
-        FROM ${sql`${sql.identifier(schemaName)}.tickets`}
-        LEFT JOIN ${sql`${sql.identifier(schemaName)}.customers`} ON tickets.customer_id = customers.id
+        FROM ${sql.identifier(schemaName), "tickets"}
+        LEFT JOIN ${sql.identifier(schemaName), "customers"} c ON tickets.customer_id = customers.id
         WHERE tickets.tenant_id = ${validatedTenantId}
         ORDER BY tickets.created_at DESC
         LIMIT ${limit}
