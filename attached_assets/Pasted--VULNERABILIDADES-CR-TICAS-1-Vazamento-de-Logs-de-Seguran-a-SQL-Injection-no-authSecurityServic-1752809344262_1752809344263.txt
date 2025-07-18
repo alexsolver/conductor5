@@ -1,0 +1,74 @@
+🔴 VULNERABILIDADES CRÍTICAS
+1. Vazamento de Logs de Segurança - SQL Injection no authSecurityService
+Local: server/services/authSecurityService.ts:291-293
+
+await db.execute(sql`
+  INSERT INTO security_events (identifier, event_type, metadata, ip, created_at)
+  VALUES (${identifier}, ${eventType}, ${JSON.stringify(metadata)}, ${'127.0.0.1'}, NOW())
+`);
+Problema: Ainda usa interpolação direta em vez de placeholders seguros
+Impacto: Permite SQL injection nos logs de segurança
+
+2. Console.log em Produção - Vazamento de Dados
+Local: server/modules/customers/infrastructure/repositories/DrizzleCustomerCompanyRepository.ts
+
+console.log('DEBUG UPDATE: companyData structure:', JSON.stringify(companyData, null, 2));
+console.log('DEBUG UPDATE: Generated SQL Query:', sqlQuery);
+Problema: Logs de debug expostos em produção
+Impacto: Vazamento de dados sensíveis nos logs
+
+3. JWT Secrets Hardcoded
+Log observado: JWT secrets not found in environment variables. Using default values for development.
+Problema: Sistema usa valores padrão para JWT em produção
+Impacto: Tokens previsíveis e vulneráveis a ataques
+
+🟡 VULNERABILIDADES MÉDIAS
+4. Tipos 'any' - Perda de Type Safety
+Locais identificados:
+
+server/domain/entities/Ticket.ts - metadata: Record<string, any>
+server/domain/entities/Tenant.ts - settings: Record<string, any>
+Problema: Permite valores não tipados
+Impacto: Possível bypass de validação
+5. Redis Connection Fallback
+Log observado: Redis connection error, falling back to memory: connect ECONNREFUSED 127.0.0.1:6379
+Problema: Rate limiting usando memória local em vez de distribuído
+Impacto: Rate limiting ineficaz em ambiente distribuído
+
+6. TODOs em Código Crítico
+Locais:
+
+server/modules/technical-skills/application/controllers/UserSkillController.ts - "TODO: Salvar detalhes da avaliação"
+server/modules/customers/infrastructure/repositories/DrizzleCustomerCompanyRepository.ts - "TODO: Add ticket stats"
+Problema: Funcionalidades incompletas em produção
+Impacto: Comportamento inesperado do sistema
+🟢 VULNERABILIDADES MENORES
+7. Console.error em Catch Blocks
+Local: Múltiplos arquivos ainda usam console.error em vez do sistema de logging estruturado
+Problema: Logs não estruturados
+Impacto: Dificulta monitoramento e auditoria
+
+8. SQL Raw Queries
+Locais: Alguns arquivos ainda têm construções SQL complexas como:
+
+sql`${locations.latitude} IS NOT NULL`
+sql`${distanceQuery} <= ${search.radiusKm}`
+Problema: Potencial para injection se variáveis não forem sanitizadas
+Impacto: Risco de SQL injection
+
+📊 RESUMO DE PRIORIDADES
+🔴 URGENTE (corrigir imediatamente):
+
+SQL injection no authSecurityService
+JWT secrets hardcoded
+Console.log de dados sensíveis
+🟡 MÉDIO (corrigir esta semana):
+4. Tipos 'any' em entidades críticas
+
+Redis connection fallback
+TODOs em código de produção
+🟢 BAIXO (corrigir no próximo sprint):
+7. Padronização de logging
+
+Revisão de queries SQL raw
+Gostaria que eu comece a corrigir essas vulnerabilidades? Recomendo começar pelas críticas (🔴) primeiro.

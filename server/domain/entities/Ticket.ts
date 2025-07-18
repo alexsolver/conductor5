@@ -60,7 +60,7 @@ export class Ticket {
     priority?: TicketPriority;
     assignedToId?: string;
     tags?: string[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }): Ticket {
     // Business validation
     if (!props.subject || props.subject.trim().length === 0) {

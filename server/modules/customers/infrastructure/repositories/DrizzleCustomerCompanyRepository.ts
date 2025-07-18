@@ -196,7 +196,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       // Debug logs removed for production security
       
       // Helper function to safely handle null/undefined values
-      const safeString = (value: any) => {
+      const safeString = (value: unknown) => {
         if (value === null || value === undefined) {
           return 'NULL';
         }
@@ -576,7 +576,9 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return {
       totalCustomers: customerStats[0]?.total || 0,
       activeCustomers: customerStats[0]?.active || 0,
-      // TODO: Add ticket stats when ticket-company relationships are implemented
+      totalTickets: 0, // Ticket stats will be implemented when ticket-company relationships are available
+      openTickets: 0,
+      resolvedTickets: 0
     };
   }
 

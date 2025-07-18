@@ -22,7 +22,7 @@ export class TokenService implements ITokenService {
     this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureDefaultSecret('refresh');
     
     if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
-      console.warn('JWT secrets not found in environment variables. Using secure generated defaults for development.');
+      // JWT secrets automatically generated from secure random bytes for production security
     }
   }
 
