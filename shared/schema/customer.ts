@@ -25,8 +25,7 @@ export const customers = pgTable("customers", {
   tags: jsonb("tags").default([]),
   metadata: jsonb("metadata").default({}),
   
-  // Customer type and classification
-  customerType: varchar("customer_type", { length: 50 }).default("customer"), // customer, solicitante, favorecido
+  // Customer classification (simplified after removing favorecidos/solicitantes)
   tipoPessoa: varchar("tipo_pessoa", { length: 20 }).default("fisica"), // fisica, juridica
   documento: varchar("documento", { length: 50 }),
   preferenciaContato: varchar("preferencia_contato", { length: 20 }).default("email"), // email, telefone, ambos

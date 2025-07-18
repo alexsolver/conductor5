@@ -9,15 +9,15 @@ export const customersRouter = Router();
 
 // Get all customers
 customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  // Validate query parameters first (outside try block to be accessible in catch)
+  const { limit, offset } = req.query;
+  const parsedLimit = limit ? Math.max(1, Math.min(100, parseInt(limit as string) || 50)) : 50;
+  const parsedOffset = offset ? Math.max(0, parseInt(offset as string) || 0) : 0;
+
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
-
-    // Validate query parameters
-    const { limit, offset } = req.query;
-    const parsedLimit = limit ? Math.max(1, Math.min(100, parseInt(limit as string) || 50)) : 50;
-    const parsedOffset = offset ? Math.max(0, parseInt(offset as string) || 0) : 0;
     
     // Performance optimization: Use cache-aware method
     const customers = await storage.getCustomers(req.user.tenantId, {
@@ -30,7 +30,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { logError } = await import('../../utils/logger');
     logError("Error fetching customers", error, { 
       tenantId: req.user?.tenantId,
-      options: { limit: parsedLimit || 50, offset: parsedOffset || 0 }
+      options: { limit: parsedLimit, offset: parsedOffset }
     });
     res.status(500).json({ message: "Failed to fetch customers" });
   }

@@ -167,8 +167,8 @@ export class DrizzleStorage implements IStorage {
     return await query;
   }
 
-  async createCustomer(data: InsertCustomer): Promise<Customer> {
-    const result = await db.insert(customers).values(data).returning();
+  async createCustomer(tenantId: string, data: InsertCustomer): Promise<Customer> {
+    const result = await db.insert(customers).values({ ...data, tenantId }).returning();
     return result[0];
   }
 
