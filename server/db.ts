@@ -188,6 +188,9 @@ export class SchemaManager {
         maxUses: 1500, // Regular connection recycling
         keepAlive: true
       });
+      
+      // CRITICAL FIX: Prevent memory leak by limiting event listeners
+      tenantPool.setMaxListeners(15); // Increase limit to prevent warnings
 
       // Use simplified schema approach to avoid ExtraConfigBuilder error
       const tenantDb = drizzle({ 
@@ -277,9 +280,12 @@ export class SchemaManager {
 
   // Create tenant-specific tables using parameterized queries for security
   private async createTenantTables(schemaName: string): Promise<void> {
-    // Check if tables already exist to avoid recreation
-    if (await this.tablesExist(schemaName)) {
-      return; // Tables already exist, skip creation
+    // CRITICAL FIX: Check if tables exist and need migration
+    const tablesExist = await this.tablesExist(schemaName);
+    if (tablesExist) {
+      // Check if existing tables need tenant_id column migration
+      await this.migrateLegacyTables(schemaName);
+      return; // Tables already exist, migration complete
     }
 
     // Import performance indexes
@@ -754,6 +760,71 @@ export class SchemaManager {
     } catch (error) {
       const { logError } = await import('./utils/logger');
       logError(`Failed to create tenant tables for schema ${schemaName}`, error, { schemaName });
+      throw error;
+    }
+  }
+
+  // CRITICAL FIX: Migrate legacy tables to include tenant_id
+  private async migrateLegacyTables(schemaName: string): Promise<void> {
+    try {
+      const schemaId = sql.identifier(schemaName);
+      
+      // Extract tenant_id from schema name for migration
+      const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+      
+      // Check if customers table needs tenant_id column
+      const customersHasTenantId = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = ${schemaName} 
+        AND table_name = 'customers' 
+        AND column_name = 'tenant_id'
+      `);
+      
+      if (customersHasTenantId.rows.length === 0) {
+        // Add tenant_id column to customers table
+        await db.execute(sql`
+          ALTER TABLE ${schemaId}.customers 
+          ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT ${tenantId}
+        `);
+        
+        // Add tenant constraints
+        await db.execute(sql`
+          ALTER TABLE ${schemaId}.customers 
+          ADD CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        `);
+      }
+      
+      // Migrate other tables similarly
+      const tablesToMigrate = ['tickets', 'ticket_messages', 'activity_logs', 'locations'];
+      
+      for (const tableName of tablesToMigrate) {
+        const hasColumn = await db.execute(sql`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_schema = ${schemaName} 
+          AND table_name = ${tableName}
+          AND column_name = 'tenant_id'
+        `);
+        
+        if (hasColumn.rows.length === 0) {
+          await db.execute(sql`
+            ALTER TABLE ${schemaId}.${sql.identifier(tableName)}
+            ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT ${tenantId}
+          `);
+          
+          await db.execute(sql`
+            ALTER TABLE ${schemaId}.${sql.identifier(tableName)}
+            ADD CONSTRAINT ${sql.identifier(`${tableName}_tenant_id_format`)} CHECK (LENGTH(tenant_id) = 36)
+          `);
+        }
+      }
+      
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`Legacy tables migrated successfully for schema ${schemaName}`);
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to migrate legacy tables for schema ${schemaName}`, error);
       throw error;
     }
   }

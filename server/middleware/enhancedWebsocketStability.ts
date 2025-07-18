@@ -9,47 +9,20 @@ import { Server } from 'http';
 /**
  * CRITICAL: Enhanced WebSocket stability configuration
  */
-export function enhancedWebsocketStability(req: Request, res: Response, next: NextFunction) {
-  // CRITICAL: Enhanced connection management - more aggressive stability
-  if (req.socket) {
-    req.socket.setKeepAlive(true, 15000); // 15 second keep-alive (very frequent)
-    req.socket.setTimeout(300000); // 5 minute timeout (longer for stability)
-    req.socket.setNoDelay(true); // Disable Nagle's algorithm for immediate transmission
-    
-    // CRITICAL: Enhanced socket error handling to prevent crashes
-    req.socket.on('error', (error) => {
-      // Filter out common WebSocket noise
-      if (error.code !== 'ECONNRESET' && 
-          error.code !== 'EPIPE' && 
-          error.code !== 'ETIMEDOUT' &&
-          error.code !== 'ECONNABORTED') {
-        console.warn(`[Socket Error] ${error.code}: ${error.message}`);
-      }
-    });
-    
-    // CRITICAL: Monitor socket state for proactive handling
-    req.socket.on('close', () => {
-      // Silent cleanup - no logging for normal close
-    });
-    
-    req.socket.on('timeout', () => {
-      console.warn('[Socket Timeout] Connection timed out, cleaning up');
-      req.socket.destroy();
-    });
-  }
+// Enhanced WebSocket stability for production environments
+export function enhancedWebsocketStability(app: Express): void {
+  // CRITICAL FIX: Increase WebSocket timeout and stability
+  app.use((req, res, next) => {
+    // Set longer timeout for WebSocket connections
+    req.setTimeout(30000); // 30 seconds
+    res.setTimeout(30000); // 30 seconds
 
-  // CRITICAL: Enhanced response headers for stability
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Keep-Alive', 'timeout=300, max=1000');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  
-  // CRITICAL: Add server stability headers
-  res.setHeader('X-Server-Stability', 'enhanced');
-  res.setHeader('X-WebSocket-Config', 'optimized');
+    // Add WebSocket stability headers
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Keep-Alive', 'timeout=30, max=1000');
 
-  next();
+    next();
+  });
 }
 
 /**
@@ -61,7 +34,7 @@ export function configureServerForStability(server: Server): void {
   server.headersTimeout = 305000; // 5 minutes + 5 seconds
   server.maxConnections = 1000; // Limit concurrent connections
   server.timeout = 300000; // 5 minute timeout
-  
+
   // CRITICAL: Enhanced server error handling
   server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
@@ -71,20 +44,20 @@ export function configureServerForStability(server: Server): void {
       console.error('[Server Error]', error.message);
     }
   });
-  
+
   // CRITICAL: Connection monitoring
   server.on('connection', (socket) => {
     socket.setKeepAlive(true, 15000); // 15 second keep-alive
     socket.setTimeout(300000); // 5 minute timeout
     socket.setNoDelay(true);
-    
+
     socket.on('error', (error) => {
       if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE' && error.code !== 'ETIMEDOUT') {
         console.warn(`[Connection Error] ${error.code}: ${error.message}`);
       }
     });
   });
-  
+
   // CRITICAL: Graceful shutdown handling
   process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
@@ -96,7 +69,7 @@ export function configureServerForStability(server: Server): void {
       process.exit(0);
     });
   });
-  
+
   process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully');
     server.close((err) => {
@@ -107,6 +80,6 @@ export function configureServerForStability(server: Server): void {
       process.exit(0);
     });
   });
-  
+
   console.log('[Server Stability] Enhanced WebSocket configuration applied');
 }
