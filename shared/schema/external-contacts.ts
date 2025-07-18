@@ -91,5 +91,7 @@ export type InsertTicketExternalContact = z.infer<typeof insertTicketExternalCon
 export type Favorecido = ExternalContact;
 export type InsertFavorecido = InsertExternalContact;
 
-// NOTA: Solicitantes usam a tabela customers existente
-// Tipos para solicitantes estão em customer.ts
+// NOTA ARQUITETURAL: 
+// - Solicitantes utilizam a tabela customers existente (sem duplicação)
+// - Favorecidos utilizam external_contacts (apenas contatos externos)
+// - Tipos para solicitantes estão definidos em customer.ts

@@ -58,19 +58,13 @@ import {
 
 import {
   externalContacts,
-  extendedCustomers,
   ticketExternalContacts,
   insertExternalContactSchema,
-  insertExtendedCustomerSchema,
   insertTicketExternalContactSchema,
   type ExternalContact,
   type InsertExternalContact,
-  type ExtendedCustomer,
-  type InsertExtendedCustomer,
   type TicketExternalContact,
   type InsertTicketExternalContact,
-  type Solicitante,
-  type InsertSolicitante,
   type Favorecido,
   type InsertFavorecido
 } from "./external-contacts";
@@ -134,7 +128,6 @@ export {
   
   // External contacts tables
   externalContacts,
-  extendedCustomers,
   ticketExternalContacts,
   
   // Ticket tables
@@ -164,7 +157,6 @@ export {
   insertCustomerCompanyMembershipSchema,
   insertCustomerCompanyBillingSchema,
   insertExternalContactSchema,
-  insertExtendedCustomerSchema,
   insertTicketExternalContactSchema,
   insertTicketSchema,
   insertTicketMessageSchema,
@@ -185,9 +177,7 @@ export {
   type CustomerCompanyMembership,
   type CustomerCompanyBilling,
   type ExternalContact,
-  type ExtendedCustomer,
   type TicketExternalContact,
-  type Solicitante,
   type Favorecido,
   type Ticket,
   type TicketMessage,
@@ -206,9 +196,7 @@ export {
   type InsertCustomerCompanyMembership,
   type InsertCustomerCompanyBilling,
   type InsertExternalContact,
-  type InsertExtendedCustomer,
   type InsertTicketExternalContact,
-  type InsertSolicitante,
   type InsertFavorecido,
   type InsertTicket,
   type InsertTicketMessage,

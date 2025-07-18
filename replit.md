@@ -11,6 +11,11 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### July 18, 2025
+- ✓ **ARQUITETURA CORRIGIDA**: Eliminada duplicação desnecessária em sistema de contatos externos
+- ✓ Removida tabela `extendedCustomers` que duplicava funcionalidade da tabela `customers` existente  
+- ✓ Simplificada arquitetura: `customers` (solicitantes) + `external_contacts` (favorecidos apenas)
+- ✓ Corrigidos imports e exportações para refletir nova arquitetura simplificada
+- ✓ Sistema mantém isolamento de tenant e funcionalidade completa com arquitetura mais limpa
 - ✓ Fixed duplicate sidebar menu issue by removing AppShell wrapper from TechnicalSkills component
 - ✓ Successfully moved "Habilidades Técnicas" from main navigation to Workspace Admin area  
 - ✓ Added technical skills tables (skills, certifications, user_skills) to tenant schema creation system
