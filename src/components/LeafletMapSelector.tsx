@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { Search, Navigation, Plus, Minus, RotateCcw } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { useToast } from './use-toast';
 import L from 'leaflet';
 

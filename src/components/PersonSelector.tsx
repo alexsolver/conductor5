@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, User, Users } from "lucide-react";
-import { Button } from "./components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover";
-import { Badge } from "./components/ui/badge";
+import { Button } from "./ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Badge } from "./ui/badge";
 import { cn } from "../../lib/utils";
 
 interface Person {

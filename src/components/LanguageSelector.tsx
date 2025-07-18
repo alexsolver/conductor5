@@ -11,13 +11,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './components/ui/select';
+} from './ui/select';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from './components/ui/tooltip';
+} from './ui/tooltip';
 import { supportedLanguages } from './i18n';
 
 interface LanguageSelectorProps {

@@ -7,7 +7,7 @@ import {
   CardDescription, 
   CardHeader, 
   CardTitle 
-} from './components/ui/card';
+} from './ui/card';
 import { 
   Dialog, 
   DialogContent, 
@@ -15,7 +15,7 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
-} from './components/ui/dialog';
+} from './ui/dialog';
 import { 
   Table, 
   TableBody, 
@@ -23,7 +23,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from './components/ui/table';
+} from './ui/table';
 import { 
   Form, 
   FormControl, 
@@ -32,18 +32,18 @@ import {
   FormItem, 
   FormLabel, 
   FormMessage 
-} from './components/ui/form';
-import { Input } from './components/ui/input';
-import { Button } from './components/ui/button';
+} from './ui/form';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { 
   Select, 
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from './components/ui/select';
-import { Textarea } from './components/ui/textarea';
-import { Badge } from './components/ui/badge';
+} from './ui/select';
+import { Textarea } from './ui/textarea';
+import { Badge } from './ui/badge';
 import { useToast } from './use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

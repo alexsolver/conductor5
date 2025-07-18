@@ -5,13 +5,13 @@
 
 import { useTranslation } from 'react-i18next';
 import { Globe, Clock, DollarSign, MapPin } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
-import { Label } from './components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
-import { Separator } from './components/ui/separator';
-import { useLocalization } from './hooks/useLocalization';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import { useLocalization } from '../hooks/useLocalization';
 
 interface LocalizationSettingsProps {
   variant?: 'full' | 'compact';

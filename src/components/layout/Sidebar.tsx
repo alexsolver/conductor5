@@ -1,8 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "../../lib/utils";
-import { Button } from "./components/ui/button";
-import { Badge } from "./components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./components/ui/collapsible";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { useAuth } from "../../hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "../../lib/queryClient";

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Search, Plus, Minus, Move } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { useToast } from './use-toast';
 
 interface SimpleMapProps {

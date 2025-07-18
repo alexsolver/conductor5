@@ -6,7 +6,7 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from './use-toast';
-import { formatDate, formatRelativeTime, formatCurrency, formatNumber } from './utils/dateFormatter';
+import { formatDate, formatRelativeTime, formatCurrency, formatNumber } from '../utils/dateFormatter';
 
 interface UserPreferences {
   userId: string;
