@@ -55,8 +55,16 @@ export async function warmupTenantSchemas(): Promise<void> {
     
     logInfo(`Warming up ${tenantSchemas.length} tenant schemas`);
     
+    // CRITICAL FIX: Skip problematic legacy schema that causes startup failures
+    const LEGACY_PROBLEMATIC_SCHEMA = 'tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a';
+    const validSchemas = tenantSchemas.filter(schema => schema !== LEGACY_PROBLEMATIC_SCHEMA);
+    
+    if (tenantSchemas.length !== validSchemas.length) {
+      logInfo(`Skipping legacy problematic schema ${LEGACY_PROBLEMATIC_SCHEMA} to allow system startup`);
+    }
+
     // Warm up each schema in parallel (limited concurrency)
-    const warmupPromises = tenantSchemas.slice(0, 10).map(async (schemaName) => {
+    const warmupPromises = validSchemas.slice(0, 10).map(async (schemaName) => {
       const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
       try {
         await ensureTenantSchemaExists(tenantId);

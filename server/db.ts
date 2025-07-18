@@ -803,60 +803,115 @@ export class SchemaManager {
     }
   }
 
-  // CRITICAL FIX: Migrate legacy tables to include tenant_id
+  // CRITICAL FIX: Migrate legacy tables to include tenant_id - FIXED PARAMETER BINDING
   private async migrateLegacyTables(schemaName: string): Promise<void> {
     try {
-      const schemaId = sql.identifier(schemaName);
-      
       // Extract tenant_id from schema name for migration
       const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
       
-      // Check if customers table needs tenant_id column
-      const customersHasTenantId = await db.execute(sql`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = ${schemaName} 
-        AND table_name = 'customers' 
-        AND column_name = 'tenant_id'
-      `);
-      
-      if (customersHasTenantId.rows.length === 0) {
-        // Add tenant_id column to customers table
-        await db.execute(sql`
-          ALTER TABLE ${schemaId}.customers 
-          ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT ${tenantId}
-        `);
+      // CRITICAL FIX: Use raw SQL for complex migration queries to avoid parameter binding issues
+      const migrationQueries = [
+        // Skills table migration
+        `DO $$ 
+         BEGIN 
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'skills')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'skills' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.skills ADD CONSTRAINT skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
+           END IF;
+         END $$;`,
         
-        // Add tenant constraints
-        await db.execute(sql`
-          ALTER TABLE ${schemaId}.customers 
-          ADD CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
-        `);
-      }
-      
-      // Migrate other tables similarly
-      const tablesToMigrate = ['tickets', 'ticket_messages', 'activity_logs', 'locations'];
-      
-      for (const tableName of tablesToMigrate) {
-        const hasColumn = await db.execute(sql`
-          SELECT column_name 
-          FROM information_schema.columns 
-          WHERE table_schema = ${schemaName} 
-          AND table_name = ${tableName}
-          AND column_name = 'tenant_id'
-        `);
+        // Certifications table migration
+        `DO $$ 
+         BEGIN 
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'certifications')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'certifications' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.certifications ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.certifications ADD CONSTRAINT certifications_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
+           END IF;
+         END $$;`,
         
-        if (hasColumn.rows.length === 0) {
-          await db.execute(sql`
-            ALTER TABLE ${schemaId}.${sql.identifier(tableName)}
-            ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT ${tenantId}
-          `);
-          
-          await db.execute(sql`
-            ALTER TABLE ${schemaId}.${sql.identifier(tableName)}
-            ADD CONSTRAINT ${sql.identifier(`${tableName}_tenant_id_format`)} CHECK (LENGTH(tenant_id) = 36)
-          `);
-        }
+        // User_skills table migration
+        `DO $$ 
+         BEGIN 
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'user_skills')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'user_skills' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.user_skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.user_skills ADD CONSTRAINT user_skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
+           END IF;
+         END $$;`,
+        
+        // Customers table migration
+        `DO $$ 
+         BEGIN 
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.customers ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.customers ADD CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
+           END IF;
+         END $$;`,
+        
+        // Tickets table migration
+        `DO $$ 
+         BEGIN 
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'tickets')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'tickets' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.tickets ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.tickets ADD CONSTRAINT tickets_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
+           END IF;
+         END $$;`,
+        
+        // Additional tables migration + MISSING COLUMNS FIX
+        `DO $$ 
+         BEGIN 
+           -- Ticket messages
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'ticket_messages')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'ticket_messages' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.ticket_messages ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+           END IF;
+           
+           -- Activity logs
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'activity_logs')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'activity_logs' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.activity_logs ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+           END IF;
+           
+           -- Locations
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'locations')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'locations' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.locations ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+           END IF;
+           
+           -- External contacts
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'external_contacts')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'external_contacts' AND column_name = 'tenant_id') THEN
+             ALTER TABLE ${schemaName}.external_contacts ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+           END IF;
+           
+           -- CRITICAL FIX: Add missing 'active' column to customers table if missing
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'active') THEN
+             ALTER TABLE ${schemaName}.customers ADD COLUMN active BOOLEAN NOT NULL DEFAULT true;
+           END IF;
+           
+           -- Add missing 'verified' column to customers table if missing
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'verified') THEN
+             ALTER TABLE ${schemaName}.customers ADD COLUMN verified BOOLEAN NOT NULL DEFAULT false;
+           END IF;
+           
+           -- Add missing 'suspended' column to customers table if missing
+           IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
+              AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'suspended') THEN
+             ALTER TABLE ${schemaName}.customers ADD COLUMN suspended BOOLEAN NOT NULL DEFAULT false;
+           END IF;
+           
+         END $$;`
+      ];
+      
+      // Execute each migration query
+      for (const query of migrationQueries) {
+        await db.execute(sql.raw(query));
       }
       
       const { logInfo } = await import('./utils/logger');
