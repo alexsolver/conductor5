@@ -97,7 +97,7 @@ const logger = winston.createLogger({
 // Função auxiliar para logging de erros com contexto
 export const logError = (message: string, error?: Error | unknown, context?: Record<string, any>) => {
   const logData: any = { message };
-
+  
   if (error) {
     if (error instanceof Error) {
       logData.error = {
@@ -109,11 +109,11 @@ export const logError = (message: string, error?: Error | unknown, context?: Rec
       logData.error = error;
     }
   }
-
+  
   if (context) {
     logData.context = context;
   }
-
+  
   logger.error(logData);
 };
 
@@ -135,47 +135,6 @@ export const logDebug = (message: string, context?: Record<string, any>) => {
 // Função auxiliar para logging de HTTP requests
 export const logHttp = (message: string, context?: Record<string, any>) => {
   logger.http({ message, ...(context && { context }) });
-};
-
-// Export structured logging functions with performance metrics
-export const logInfoEnhanced = (message: string, context?: any) => {
-  const timestamp = new Date().toISOString();
-  logger.info(message, { ...context, timestamp });
-};
-
-export const logErrorEnhanced = (message: string, error?: any, context?: any) => {
-  const timestamp = new Date().toISOString();
-  const errorMessage = error?.message || error;
-  const stack = error?.stack;
-  logger.error(message, { 
-    error: errorMessage, 
-    stack,
-    context,
-    timestamp,
-    level: 'error'
-  });
-};
-
-export const logWarnEnhanced = (message: string, context?: any) => {
-  const timestamp = new Date().toISOString();
-  logger.warn(message, { ...context, timestamp, level: 'warning' });
-};
-
-export const logDebugEnhanced = (message: string, context?: any) => {
-  const timestamp = new Date().toISOString();
-  logger.debug(message, { ...context, timestamp, level: 'debug' });
-};
-
-// Performance logging
-export const logPerformance = (operation: string, duration: number, context?: any) => {
-  const timestamp = new Date().toISOString();
-  logger.info(`Performance: ${operation}`, {
-    operation,
-    duration: `${duration}ms`,
-    context,
-    timestamp,
-    level: 'performance'
-  });
 };
 
 export default logger;

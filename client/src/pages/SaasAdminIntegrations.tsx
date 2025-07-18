@@ -287,7 +287,7 @@ export default function SaasAdminIntegrations() {
                 <p className="text-sm text-gray-600 mb-4">
                   {integration.description}
                 </p>
-
+                
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium">API Key:</span>
                   <Badge variant={integration.apiKeyConfigured ? "default" : "secondary"}>
@@ -304,7 +304,7 @@ export default function SaasAdminIntegrations() {
                     <Settings className="h-4 w-4 mr-1" />
                     Configurar
                   </Button>
-
+                  
                   <Button 
                     size="sm" 
                     variant="outline"
@@ -335,7 +335,7 @@ export default function SaasAdminIntegrations() {
               Configurar {selectedIntegration?.name}
             </DialogTitle>
           </DialogHeader>
-
+          
           <Form {...configForm}>
             <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
               <FormField

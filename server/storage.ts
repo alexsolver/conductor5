@@ -205,7 +205,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.raw(`${schemaName}.customers`)}
+        SELECT * FROM ${sql.identifier(schemaName)}.customers
         WHERE id = ${customerId}
         LIMIT 1
       `);
@@ -228,7 +228,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.raw(`${schemaName}.customers`)} 
+        INSERT INTO ${sql.identifier(schemaName)}.customers 
         (first_name, last_name, email, phone, company,  created_at, updated_at)
         VALUES (
           ${customerData.firstName || null},
@@ -262,7 +262,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.raw(`${schemaName}.customers`)} 
+        UPDATE ${sql.identifier(schemaName)}.customers 
         SET 
           first_name = ${customerData.firstName || null},
           last_name = ${customerData.lastName || null},
@@ -288,7 +288,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.raw(`${schemaName}.customers`)}
+        DELETE FROM ${sql.identifier(schemaName)}.customers
         WHERE id = ${customerId} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -465,10 +465,10 @@ export class DatabaseStorage implements IStorage {
       // OPTIMIZED: Single query with multiple aggregations
       const result = await tenantDb.execute(sql`
         SELECT 
-          (SELECT COUNT(*) FROM ${sql.raw(`${schemaName}.customers`)}) as total_customers,
-          (SELECT COUNT(*) FROM ${sql.raw(`${schemaName}.tickets`)}) as total_tickets,
-          (SELECT COUNT(*) FROM ${sql.raw(`${schemaName}.tickets`)} WHERE status = 'open') as open_tickets,
-          (SELECT COUNT(*) FROM ${sql.raw(`${schemaName}.tickets`)} WHERE status = 'resolved') as resolved_tickets
+          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.customers) as total_customers,
+          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets) as total_tickets,
+          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets WHERE status = 'open') as open_tickets,
+          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets WHERE status = 'resolved') as resolved_tickets
       `);
 
       const stats = result.rows?.[0] || {};
@@ -535,7 +535,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.raw(`${schemaName}.knowledge_base_articles`)} 
+        INSERT INTO ${sql.identifier(schemaName).knowledge_base_articles} 
         (title, excerpt, content, category, tags, author, status,  created_at, updated_at)
         VALUES (
           ${article.title},
@@ -571,7 +571,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       let baseQuery = sql`
-        SELECT * FROM ${sql.raw(`${schemaName}.external_contacts`)}
+        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
         WHERE type = 'solicitante'
       `;
 
@@ -604,7 +604,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       let baseQuery = sql`
-        SELECT * FROM ${sql.raw(`${schemaName}.external_contacts`)}
+        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
         WHERE type = 'favorecido'
       `;
 

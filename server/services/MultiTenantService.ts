@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { eq, and, or, sql, desc, asc, count } from 'drizzle-orm';
+import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
 import { 
   userTenantRelationships, 
   userTenantInvitations, 

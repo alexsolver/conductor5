@@ -23,8 +23,8 @@ export class ConnectionPoolManager {
   private static instance: ConnectionPoolManager;
   private tenantPools = new Map<string, TenantConnection>();
   private readonly MAX_POOLS = 50; // Prevent memory leaks
-  private readonly POOL_TTL = 15 * 60 * 1000; // 15 minutes - reduced for better memory management
-  private readonly CLEANUP_INTERVAL = 3 * 60 * 1000; // 3 minutes - more frequent cleanup
+  private readonly POOL_TTL = 30 * 60 * 1000; // 30 minutes
+  private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
   private cleanupTimer?: NodeJS.Timeout;
 
   private constructor() {
@@ -196,44 +196,19 @@ export class ConnectionPoolManager {
   // Fixes: Lack of tenant-specific monitoring
   // ===========================
   getPoolMetrics() {
-    const now = Date.now();
     const metrics = {
       totalPools: this.tenantPools.size,
       maxPools: this.MAX_POOLS,
-      poolUtilization: Math.round((this.tenantPools.size / this.MAX_POOLS) * 100),
+      poolUtilization: (this.tenantPools.size / this.MAX_POOLS) * 100,
       tenants: Array.from(this.tenantPools.entries()).map(([tenantId, conn]) => ({
         tenantId,
         lastUsed: new Date(conn.lastUsed),
         activeConnections: conn.activeConnections,
-        ageMinutes: Math.round((now - conn.lastUsed) / (1000 * 60)),
-        status: conn.activeConnections > 0 ? 'active' : 'idle'
-      })),
-      healthStatus: this.tenantPools.size < this.MAX_POOLS ? 'healthy' : 'at_capacity'
+        ageMinutes: (Date.now() - conn.lastUsed) / (1000 * 60)
+      }))
     };
 
     return metrics;
-  }
-
-  // ===========================
-  // HEALTH CHECK ENDPOINT
-  // ===========================
-  async getHealthStatus() {
-    const metrics = this.getPoolMetrics();
-    const healthCheck = {
-      timestamp: new Date().toISOString(),
-      status: metrics.healthStatus,
-      pools: {
-        total: metrics.totalPools,
-        max: metrics.maxPools,
-        utilization: metrics.poolUtilization
-      },
-      tenants: {
-        active: metrics.tenants.filter(t => t.status === 'active').length,
-        idle: metrics.tenants.filter(t => t.status === 'idle').length
-      }
-    };
-
-    return healthCheck;
   }
 }
 
