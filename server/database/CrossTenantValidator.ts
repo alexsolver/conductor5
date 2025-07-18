@@ -10,16 +10,23 @@ import { logWarn, logError } from '../utils/logger';
 export class CrossTenantValidator {
 
   // ===========================
-  // VALIDATE TENANT ACCESS PERMISSIONS
+  // VALIDATE TENANT ACCESS PERMISSIONS - CRITICAL FIX
   // ===========================
   static async validateUserTenantAccess(userId: string, tenantId: string): Promise<boolean> {
     try {
-      // Check if user belongs to the tenant
+      // CRITICAL: Validate tenant_id format first to prevent injection
+      if (!tenantId || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(tenantId)) {
+        logWarn('Invalid tenant ID format in validateUserTenantAccess', { userId, tenantId });
+        return false;
+      }
+
+      // CRITICAL: Explicit tenant_id validation in WHERE clause
       const result = await db.execute(sql`
         SELECT 1 FROM users 
         WHERE id = ${userId} 
         AND tenant_id = ${tenantId}
         AND is_active = true
+        AND LENGTH(tenant_id) = 36
         LIMIT 1
       `);
 
@@ -31,10 +38,20 @@ export class CrossTenantValidator {
   }
 
   // ===========================
-  // AUDIT CROSS-TENANT ATTEMPTS
+  // AUDIT CROSS-TENANT ATTEMPTS - CRITICAL FIX
   // ===========================
   static async logCrossTenantAttempt(userId: string, requestedTenantId: string, userTenantId: string, resource: string): Promise<void> {
     try {
+      // CRITICAL: Validate all tenant IDs before inserting
+      const tenantIdRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      if (!tenantIdRegex.test(requestedTenantId) || !tenantIdRegex.test(userTenantId)) {
+        logError('Invalid tenant ID format in logCrossTenantAttempt', {
+          userId, requestedTenantId, userTenantId, resource
+        });
+        return;
+      }
+
+      // CRITICAL: Use parameterized queries and validate tenant context
       await db.execute(sql`
         INSERT INTO security_events (
           user_id, 
@@ -54,8 +71,9 @@ export class CrossTenantValidator {
             requestedTenantId,
             userTenantId,
             resource,
-            blocked: true
-          })}::jsonb,
+            blocked: true,
+            tenantValidated: true
+          })},
           ${null}, -- IP would come from request context
           ${null}, -- User agent would come from request context
           NOW()
@@ -173,11 +191,18 @@ export class CrossTenantValidator {
   }
 
   // ===========================
-  // TENANT ISOLATION METRICS
+  // TENANT ISOLATION METRICS - CRITICAL FIX
   // ===========================
-  static async getTenantIsolationMetrics(): Promise<any> {
+  static async getTenantIsolationMetrics(requestingTenantId: string): Promise<any> {
     try {
-      // Count cross-tenant attempts in last 24 hours
+      // CRITICAL: Validate requesting tenant ID format
+      const tenantIdRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      if (!tenantIdRegex.test(requestingTenantId)) {
+        logError('Invalid tenant ID format in getTenantIsolationMetrics', { requestingTenantId });
+        throw new Error('Invalid tenant ID format');
+      }
+
+      // CRITICAL: Add tenant context to all queries
       const attempts = await db.execute(sql`
         SELECT 
           COUNT(*) as total_attempts,
@@ -186,9 +211,13 @@ export class CrossTenantValidator {
         FROM security_events 
         WHERE event_type = 'cross_tenant_access_attempt'
         AND created_at > NOW() - INTERVAL '24 hours'
+        AND (
+          metadata->>'userTenantId' = ${requestingTenantId} 
+          OR metadata->>'requestedTenantId' = ${requestingTenantId}
+        )
       `);
 
-      // Get most targeted tenants
+      // CRITICAL: Scope targeted tenants query to requesting tenant
       const targetedTenants = await db.execute(sql`
         SELECT 
           metadata->>'requestedTenantId' as tenant_id,
@@ -196,19 +225,22 @@ export class CrossTenantValidator {
         FROM security_events 
         WHERE event_type = 'cross_tenant_access_attempt'
         AND created_at > NOW() - INTERVAL '7 days'
+        AND metadata->>'userTenantId' = ${requestingTenantId}
         GROUP BY metadata->>'requestedTenantId'
         ORDER BY attempt_count DESC
         LIMIT 10
       `);
 
       return {
+        tenantId: requestingTenantId,
         last24Hours: attempts.rows[0] || { total_attempts: 0, unique_users: 0, target_tenants: 0 },
         mostTargeted: targetedTenants.rows || [],
         isolationStatus: 'active'
       };
     } catch (error) {
-      logError('Error getting tenant isolation metrics', error);
+      logError('Error getting tenant isolation metrics', error, { requestingTenantId });
       return {
+        tenantId: requestingTenantId,
         last24Hours: { total_attempts: 0, unique_users: 0, target_tenants: 0 },
         mostTargeted: [],
         isolationStatus: 'error'

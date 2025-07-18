@@ -12,7 +12,7 @@ export class TenantValidator {
   private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   // ===========================
-  // SECURE TENANT ID VALIDATION
+  // SECURE TENANT ID VALIDATION - CRITICAL FIX
   // Prevents SQL injection in schema names
   // ===========================
   static validateTenantId(tenantId: string): string {
@@ -20,18 +20,19 @@ export class TenantValidator {
       throw new Error('Tenant ID is required and must be a string');
     }
 
-    // Remove any potential SQL injection characters
+    // CRITICAL: Enforce strict UUID format only (36 characters)
     const sanitized = tenantId.trim();
     
-    // Only allow UUID format, alphanumeric, hyphens, underscores
-    const validPattern = /^[a-zA-Z0-9_-]+$/;
-    if (!validPattern.test(sanitized)) {
-      logWarn('Invalid tenant ID attempted', { tenantId, sanitized });
-      throw new Error(`Invalid tenant ID format: ${tenantId}`);
+    // CRITICAL: Only allow exact UUID format (no legacy support)
+    const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+    if (!uuidPattern.test(sanitized)) {
+      logWarn('Invalid tenant UUID format attempted', { tenantId, sanitized });
+      throw new Error(`Tenant ID must be valid UUID format: ${tenantId}`);
     }
 
-    if (sanitized.length < 3 || sanitized.length > 50) {
-      throw new Error('Tenant ID must be between 3 and 50 characters');
+    // CRITICAL: Enforce exact UUID length
+    if (sanitized.length !== 36) {
+      throw new Error('Tenant ID must be exactly 36 characters (UUID format)');
     }
 
     return sanitized;
@@ -86,9 +87,19 @@ export class TenantValidator {
     const schemaName = `tenant_${validatedId.replace(/-/g, '_')}`;
 
     try {
+      // CRITICAL: Validate schema name format to prevent injection
+      const schemaNamePattern = /^tenant_[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      if (!schemaNamePattern.test(schemaName)) {
+        logError('Invalid schema name format', { tenantId: validatedId, schemaName });
+        return false;
+      }
+
+      // CRITICAL: Use parameterized query with explicit tenant validation
       const result = await db.execute(sql`
         SELECT 1 FROM information_schema.schemata 
         WHERE schema_name = ${schemaName}
+        AND schema_name LIKE 'tenant_%'
+        AND LENGTH(schema_name) = 43
       `);
 
       return result.rows.length > 0;
