@@ -1,0 +1,49 @@
+🔴 FALHAS CRÍTICAS DE BANCO DE DADOS
+1. PROBLEMAS DE CONECTIVIDADE E INSTABILIDADE
+❌ Vite Server Instability (CRÍTICO)
+- Múltiplos "[vite] server connection lost. Polling for restart..."
+- Sistema com restarts constantes afetando estabilidade da aplicação
+- Conexões sendo perdidas repetidamente durante desenvolvimento
+❌ User Data Corruption
+- "Cannot read properties of undefined (reading 'fullName')"
+- Dados de usuário corrompidos ou não carregados adequadamente
+- Inconsistência entre frontend e backend na validação de dados
+2. PROBLEMAS DE SCHEMA E ESTRUTURA
+❌ Inconsistência na Modularização
+- Schema principal em shared/schema.ts vs schemas modulares
+- Duplicação de definições entre base.ts e outros módulos
+- Potencial conflito entre schema/index.ts e schema.ts
+❌ Tenant Schema Management Issues
+- Tabelas sendo criadas duplicadamente em createTenantTables()
+- Cache de schema (initializedSchemas) pode estar corrompido
+- Schema validation inconsistente entre diferentes módulos
+3. PROBLEMAS DE PERFORMANCE
+❌ Query Performance Degradation
+- Loading times de 5-6 segundos para customers e dashboard
+- N+1 query problems em relacionamentos
+- Falta de índices otimizados para queries frequentes
+❌ Connection Pool Issues
+- MAX_POOLS=50 pode ser insuficiente para alta concorrência
+- POOL_TTL de 30min pode causar timeout em operações longas
+- Cleanup routine de 5min pode ser muito agressivo
+4. PROBLEMAS DE MULTI-TENANCY
+❌ Cross-Tenant Data Isolation
+- Validação de tenant inconsistente entre diferentes módulos
+- Cache TTL de 5min muito baixo para tenant validation
+- Schema name sanitization pode ter gaps de segurança
+❌ Tenant Connection Management
+- Force recreation em getTenantDb() pode causar overhead
+- Schema-specific connections não sendo reusadas adequadamente
+- Tenant schema creation failures under concurrent load
+5. PROBLEMAS DE BACKUP E RECOVERY
+❌ Disaster Recovery Gaps
+- BackupRecoveryManager.ts implementado mas não integrado
+- Falta estratégia de backup incremental por tenant
+- Point-in-time recovery inexistente
+- Rollback procedures não testados
+6. PROBLEMAS DE MONITORAMENTO
+❌ Monitoring Blind Spots
+- Falta métricas específicas por tenant
+- Absence de alertas para degradação de performance
+- Log analysis inadequado para troubleshooting
+- Connection pool metrics não expostos adequadamente

@@ -18,6 +18,9 @@ Preferred communication style: Simple, everyday language.
 - ✓ **PERFORMANCE OTIMIZADA**: Queries SQL simplificadas com seleção mínima de campos
 - ✓ **TOKEN VALIDATION CORRIGIDO**: Token expiry aumentado para 24h, autenticação estabilizada
 - ✓ **ZERO REDIS DEPENDENCIES**: Sistema 100% independente de infraestrutura externa
+- ✓ **AUTENTICAÇÃO COMPLETAMENTE FUNCIONAL**: Login/logout operacional com tokens de 24h
+- ✓ **CREDENCIAIS DE ACESSO**: admin@conductor.com / admin123 ou alex@lansolver.com / 12345678
+- ✓ **APIS FUNCIONAIS**: Todos os endpoints protegidos agora respondem corretamente
 - ✓ **CONSULTAS SQL SEGURAS**: Todas as consultas agora usam sql.identifier() corretamente
 - ✓ **CORREÇÃO DOS 18 ERROS SQL**: Todos os erros "Expected 1 arguments, but got 2" resolvidos
 - ✓ Sistema agora 100% baseado em PostgreSQL sem dados simulados com arquitetura enterprise
