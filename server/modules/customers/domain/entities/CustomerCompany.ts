@@ -47,7 +47,7 @@ export class CustomerCompany {
       };
     } = {},
     private tags: string[] = [],
-    private metadata: Record<string, any> = {},
+    private metadata: Record<string, unknown> = {},
     private status: 'active' | 'inactive' | 'suspended' | 'trial' = 'active',
     private isActive: boolean = true,
     private isPrimary: boolean = false,

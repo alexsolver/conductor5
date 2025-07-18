@@ -9,7 +9,7 @@ export class Customer {
     public readonly phone: string | null = null,
     public readonly company: string | null = null,
     public readonly tags: string[] = [],
-    public readonly metadata: Record<string, any> = {},
+    public readonly metadata: Record<string, unknown> = {},
     // Professional fields
     public readonly verified: boolean = false,
     public readonly active: boolean = true,

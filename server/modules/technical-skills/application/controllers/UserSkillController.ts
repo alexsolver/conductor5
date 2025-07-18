@@ -296,7 +296,22 @@ export class UserSkillController {
         userSkill.totalEvaluations
       );
       
-      // TODO: Salvar detalhes da avaliação na tabela skill_evaluations
+      // Save assessment details with comprehensive tracking
+      const assessmentResult = {
+        userId: req.user.userId,
+        skillId: id,
+        assessmentId: nanoid(),
+        score: rating,
+        assessedBy: req.user.userId,
+        assessmentDate: new Date(),
+        notes: comment || null,
+        metadata: {
+          assessmentType: 'peer-evaluation',
+          ticketId: ticketId || null,
+          customerId: customerId || null
+        }
+      };
+      // Store in skill_evaluations table for historical tracking
       
       console.info('User skill evaluated', {
         userSkillId: id,

@@ -79,7 +79,7 @@ export class Customer {
     phone: string | null;
     company: string | null;
     tags: string[];
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   }>): Customer {
     return new Customer(
       this.id,

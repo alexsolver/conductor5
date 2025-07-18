@@ -15,7 +15,7 @@ export interface LocationUpdated extends DomainEvent {
   type: 'LocationUpdated';
   data: {
     locationId: string;
-    changes: Record<string, any>;
+    changes: Record<string, unknown>;
     tenantId: string;
   };
 }
