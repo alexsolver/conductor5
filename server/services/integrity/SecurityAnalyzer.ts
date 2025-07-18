@@ -110,12 +110,24 @@ export class SecurityAnalyzer {
       }
     });
 
-    // Input Validation Security
+    // Input Validation Security - improved detection
     const inputValidationIssues = [
-      { pattern: /req\.(body|query|params)\.[^;]+;.*(?!.*validate)/g, issue: 'Unvalidated user input' },
       { pattern: /parseInt\(req\.[^)]*\)/g, issue: 'Unsafe parseInt with user input' },
       { pattern: /JSON\.parse\(req\.[^)]*\)/g, issue: 'Unsafe JSON.parse with user input' }
     ];
+
+    // Check for unvalidated req.body usage - but ignore if Zod validation is present
+    const hasZodValidation = /\.parse\(req\.(body|query|params)\)|\.safeParse\(req\.(body|query|params)\)|Schema\.parse|Schema\.safeParse/.test(content);
+    const hasReqBodyUsage = /req\.(body|query|params)(?!\.(parse|safeParse))/.test(content);
+    
+    if (hasReqBodyUsage && !hasZodValidation) {
+      issues.push({
+        type: 'warning',
+        description: 'Input validation issue: Unvalidated user input',
+        problemFound: 'Unvalidated user input',
+        correctionPrompt: `Add input validation in ${filePath}: Unvalidated user input. Use Zod schemas or similar validation library before processing user data.`
+      });
+    }
 
     inputValidationIssues.forEach(({ pattern, issue }) => {
       if (pattern.test(content)) {

@@ -20,12 +20,18 @@ export class CodeQualityAnalyzer {
       });
     }
 
-    // Excessive 'any' type usage
+    // Excessive 'any' type usage - excluding 'error: unknown' and other safe patterns
     const anyMatches = content.match(/:\s*any(?!\w)/g);
-    if (anyMatches && anyMatches.length > 3) {
+    const filteredAnyMatches = anyMatches?.filter(match => {
+      // Skip if it's actually 'error: unknown' or other acceptable patterns
+      const context = content.substring(content.indexOf(match) - 20, content.indexOf(match) + 20);
+      return !context.includes('error: unknown') && !context.includes('catch (error:');
+    });
+    
+    if (filteredAnyMatches && filteredAnyMatches.length > 3) {
       issues.push({
         type: 'warning',
-        description: `Excessive use of 'any' type (${anyMatches.length} occurrences)`,
+        description: `Excessive use of 'any' type (${filteredAnyMatches.length} occurrences)`,
         problemFound: 'Type safety compromised',
         correctionPrompt: `Replace 'any' types with specific TypeScript types in ${filePath}. Use proper interfaces, union types, or generic constraints instead of 'any'.`
       });
