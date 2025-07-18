@@ -23,8 +23,8 @@ export class ConnectionPoolManager {
   private static instance: ConnectionPoolManager;
   private tenantPools = new Map<string, TenantConnection>();
   private readonly MAX_POOLS = 50; // Prevent memory leaks
-  private readonly POOL_TTL = 30 * 60 * 1000; // 30 minutes
-  private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  private readonly POOL_TTL = 15 * 60 * 1000; // 15 minutes - reduced for better memory management
+  private readonly CLEANUP_INTERVAL = 3 * 60 * 1000; // 3 minutes - more frequent cleanup
   private cleanupTimer?: NodeJS.Timeout;
 
   private constructor() {

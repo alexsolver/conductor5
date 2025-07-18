@@ -9,7 +9,7 @@ import { logError, logWarn } from '../utils/logger';
 
 export class TenantValidator {
   private static tenantCache = new Map<string, { exists: boolean, lastChecked: number }>();
-  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private static readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutes - reduced for better consistency
 
   // ===========================
   // SECURE TENANT ID VALIDATION

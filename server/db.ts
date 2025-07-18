@@ -90,6 +90,20 @@ export class SchemaManager {
       this.tenantConnections.delete(tenantId);
     }
 
+    // Skip if schema already cached and verified
+    if (this.initializedSchemas.has(tenantId) && this.tenantConnections.has(tenantId)) {
+      const connection = this.tenantConnections.get(tenantId)!;
+      // Verify tables still exist
+      const tablesValid = await this.tablesExist(schemaName);
+      if (tablesValid) {
+        return connection;
+      } else {
+        // Clear invalid cache entry
+        this.initializedSchemas.delete(tenantId);
+        this.tenantConnections.delete(tenantId);
+      }
+    }
+
     if (!this.tenantConnections.has(tenantId)) {
       // Create a new connection with the tenant's schema as default - safe from SQL injection
       const baseConnectionString = process.env.DATABASE_URL;
@@ -181,7 +195,7 @@ export class SchemaManager {
         WHERE table_schema = ${schemaName}
         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts')
       `);
-      
+
       return (result.rows[0]?.table_count as number) >= 7;
     } catch {
       return false;
@@ -202,9 +216,34 @@ export class SchemaManager {
       // Use sql.identifier for safe schema references - prevents SQL injection
       const schemaId = sql.identifier(schemaName);
 
-      // Customer table with comprehensive fields using parameterized queries
+      // Create locations table first
       await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'locations')} (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          address TEXT,
+          city VARCHAR(100),
+          state VARCHAR(100),
+          country VARCHAR(100),
+          postal_code VARCHAR(20),
+          latitude VARCHAR(50),
+          longitude VARCHAR(50),
+          phone VARCHAR(50),
+          email VARCHAR(255),
+          website VARCHAR(500),
+          description TEXT,
+          tags JSONB DEFAULT '[]'::jsonb,
+          metadata JSONB DEFAULT '{}'::jsonb,
+          is_active BOOLEAN DEFAULT TRUE,
+          timezone VARCHAR(50) DEFAULT 'UTC',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Create all tenant-specific tables with proper schema referencing
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'customers')} (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           first_name VARCHAR(255),
           last_name VARCHAR(255),
@@ -314,7 +353,7 @@ export class SchemaManager {
           name VARCHAR(255) NOT NULL,
           type VARCHAR(20) NOT NULL CHECK (type IN ('cliente', 'ativo', 'filial', 'tecnico', 'parceiro')),
           status VARCHAR(20) NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo', 'manutencao', 'suspenso')),
-          
+
           -- Address fields
           address TEXT NOT NULL,
           number VARCHAR(20),
@@ -324,27 +363,27 @@ export class SchemaManager {
           state VARCHAR(50) NOT NULL,
           zip_code VARCHAR(20) NOT NULL,
           country VARCHAR(50) NOT NULL DEFAULT 'Brasil',
-          
+
           -- Geographic coordinates
           latitude DECIMAL(10, 8),
           longitude DECIMAL(11, 8),
-          
+
           -- Business hours and SLA
           business_hours JSONB DEFAULT '{}',
           special_hours JSONB DEFAULT '{}',
           timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
           sla_id UUID,
-          
+
           -- Access and security
           access_instructions TEXT,
           requires_authorization BOOLEAN DEFAULT FALSE,
           security_equipment JSONB DEFAULT '[]',
           emergency_contacts JSONB DEFAULT '[]',
-          
+
           -- Metadata and customization
           metadata JSONB DEFAULT '{}',
           tags JSONB DEFAULT '[]',
-          
+
           -- Audit fields
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
