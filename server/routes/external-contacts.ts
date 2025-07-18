@@ -12,7 +12,7 @@ router.use(jwtAuth);
 const createSolicitanteSchema = z.object({
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
-  email: z.string().email("Email inválido"),
+  email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
   phone: z.string().optional(),
   documento: z.string().optional(),
   tipoPessoa: z.enum(["fisica", "juridica"]).default("fisica"),
@@ -25,7 +25,7 @@ const createSolicitanteSchema = z.object({
 
 const createFavorecidoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
+  email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
   telefone: z.string().optional(),
   companyId: z.string().optional(),
   locationId: z.string().optional(),

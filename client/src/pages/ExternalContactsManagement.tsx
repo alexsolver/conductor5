@@ -36,7 +36,7 @@ import {
 const solicitanteSchema = z.object({
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
-  email: z.string().email("Email inválido"),
+  email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
   phone: z.string().optional(),
   documento: z.string().optional(),
   tipoPessoa: z.enum(["fisica", "juridica"]).default("fisica"),
@@ -49,7 +49,7 @@ const solicitanteSchema = z.object({
 
 const favorecidoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
+  email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
   telefone: z.string().optional(),
   companyId: z.string().optional(),
   locationId: z.string().optional(),
@@ -135,6 +135,10 @@ export default function ExternalContactsManagement() {
   const createSolicitanteMutation = useMutation({
     mutationFn: async (data: SolicitanteForm) => {
       const response = await apiRequest('POST', '/api/external-contacts/solicitantes', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao criar solicitante');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -158,6 +162,10 @@ export default function ExternalContactsManagement() {
   const createFavorecidoMutation = useMutation({
     mutationFn: async (data: FavorecidoForm) => {
       const response = await apiRequest('POST', '/api/external-contacts/favorecidos', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao criar favorecido');
+      }
       return response.json();
     },
     onSuccess: () => {
