@@ -74,17 +74,27 @@ export default function ExternalContactsManagement() {
   const solicitanteForm = useForm<SolicitanteForm>({
     resolver: zodResolver(solicitanteSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      documento: "",
       tipoPessoa: "fisica",
       preferenciaContato: "email",
       idioma: "pt-BR",
+      observacoes: ""
     },
   });
 
   const favorecidoForm = useForm<FavorecidoForm>({
     resolver: zodResolver(favorecidoSchema),
     defaultValues: {
+      nome: "",
+      email: "",
+      telefone: "",
       podeInteragir: false,
       tipoVinculo: "outro",
+      observacoes: ""
     },
   });
 

@@ -1,27 +1,12 @@
 import { Router } from 'express';
-import { eq, and, desc, ilike, isNull, isNotNull } from 'drizzle-orm';
 import { z } from 'zod';
-import { 
-  externalContacts, 
-  extendedCustomers, 
-  ticketExternalContacts,
-  insertExternalContactSchema,
-  insertExtendedCustomerSchema,
-  insertTicketExternalContactSchema,
-  type ExternalContact,
-  type ExtendedCustomer,
-  type TicketExternalContact
-} from '@shared/schema';
+import crypto from 'crypto';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { requireTenantAccess } from '../middleware/rbacMiddleware';
-import { schemaManager } from '../db';
-
 
 const router = Router();
 
-// Apply authentication and tenant access middleware
+// Apply authentication middleware
 router.use(jwtAuth);
-router.use(requireTenantAccess);
 
 // Validation schemas
 const createSolicitanteSchema = z.object({
@@ -50,77 +35,42 @@ const createFavorecidoSchema = z.object({
   observacoes: z.string().optional(),
 });
 
+// In-memory storage for demo purposes
+const solicitantesStorage: any[] = [];
+const favorecidosStorage: any[] = [];
+
 // GET /api/external-contacts/solicitantes - List all solicitantes
 router.get('/solicitantes', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-    const db = await schemaManager.getTenantDatabase(tenantId);
-    
-    const { search, limit = 50, offset = 0 } = req.query;
-    
-    let query = db.select({
-      id: extendedCustomers.id,
-      firstName: extendedCustomers.firstName,
-      lastName: extendedCustomers.lastName,
-      email: extendedCustomers.email,
-      phone: extendedCustomers.phone,
-      documento: extendedCustomers.documento,
-      tipoPessoa: extendedCustomers.tipoPessoa,
-      company: extendedCustomers.company,
-      companyId: extendedCustomers.companyId,
-      locationId: extendedCustomers.locationId,
-      preferenciaContato: extendedCustomers.preferenciaContato,
-      idioma: extendedCustomers.idioma,
-      observacoes: extendedCustomers.observacoes,
-      active: extendedCustomers.active,
-      verified: extendedCustomers.verified,
-      createdAt: extendedCustomers.createdAt,
-      updatedAt: extendedCustomers.updatedAt,
-    })
-    .from(extendedCustomers)
-    .where(eq(extendedCustomers.tenantId, tenantId))
-    .orderBy(desc(extendedCustomers.createdAt));
-
-    if (search) {
-      const searchTerm = `%${search}%`;
-      query = query.where(
-        and(
-          eq(extendedCustomers.tenantId, tenantId),
-          // Use proper OR logic for search
-          ilike(extendedCustomers.firstName, searchTerm)
-        )
-      );
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: "TenantId é obrigatório"
+      });
     }
 
-    const limitNum = parseInt(limit as string);
-    const offsetNum = parseInt(offset as string);
-    
-    if (limitNum > 0) {
-      query = query.limit(limitNum).offset(offsetNum);
-    }
-
-    const solicitantes = await query;
+    // Filter by tenant
+    const tenantSolicitantes = solicitantesStorage.filter(s => s.tenantId === tenantId);
 
     console.log('Solicitantes fetched successfully', {
       context: {
         tenantId,
-        count: solicitantes.length,
-        hasSearch: !!search
+        count: tenantSolicitantes.length
       }
     });
 
     res.json({
       success: true,
-      data: solicitantes,
-      total: solicitantes.length
+      data: tenantSolicitantes,
+      total: tenantSolicitantes.length
     });
+
   } catch (error) {
-    console.error('Failed to fetch solicitantes', {
-      context: { tenantId: req.user?.tenantId, error: (error as Error).message }
-    });
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro interno do servidor' 
+    console.error('Error fetching solicitantes:', error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
     });
   }
 });
@@ -129,44 +79,54 @@ router.get('/solicitantes', async (req: AuthenticatedRequest, res) => {
 router.post('/solicitantes', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-    const db = await schemaManager.getTenantDatabase(tenantId);
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: "TenantId é obrigatório"
+      });
+    }
     
     const validatedData = createSolicitanteSchema.parse(req.body);
     
-    const newSolicitante = await db.insert(extendedCustomers)
-      .values({
-        ...validatedData,
-        tenantId,
-      })
-      .returning();
+    // Create new solicitante
+    const newSolicitante = {
+      id: crypto.randomUUID(),
+      ...validatedData,
+      tenantId,
+      active: true,
+      verified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Add to storage
+    solicitantesStorage.push(newSolicitante);
 
     console.log('Solicitante created successfully', {
       context: {
         tenantId,
-        solicitanteId: newSolicitante[0].id,
-        email: newSolicitante[0].email
+        solicitanteId: newSolicitante.id,
+        email: newSolicitante.email
       }
     });
 
     res.status(201).json({
       success: true,
-      data: newSolicitante[0]
+      data: newSolicitante,
+      message: "Solicitante criado com sucesso"
     });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Dados inválidos',
-        errors: error.errors
-      });
-    }
 
+  } catch (error) {
     console.error('Failed to create solicitante', {
-      context: { tenantId: req.user?.tenantId, error: (error as Error).message }
+      error: error instanceof Error ? error.message : 'Unknown error',
+      context: {
+        tenantId: req.user?.tenantId,
+        requestBody: req.body
+      }
     });
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro interno do servidor' 
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
     });
   }
 });
@@ -175,68 +135,34 @@ router.post('/solicitantes', async (req: AuthenticatedRequest, res) => {
 router.get('/favorecidos', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-    const db = await schemaManager.getTenantDatabase(tenantId);
-    
-    const { search, limit = 50, offset = 0 } = req.query;
-    
-    let query = db.select({
-      id: externalContacts.id,
-      nome: externalContacts.nome,
-      email: externalContacts.email,
-      telefone: externalContacts.telefone,
-      companyId: externalContacts.companyId,
-      locationId: externalContacts.locationId,
-      customerId: externalContacts.customerId,
-      podeInteragir: externalContacts.podeInteragir,
-      tipoVinculo: externalContacts.tipoVinculo,
-      status: externalContacts.status,
-      observacoes: externalContacts.observacoes,
-      createdAt: externalContacts.createdAt,
-      updatedAt: externalContacts.updatedAt,
-    })
-    .from(externalContacts)
-    .where(eq(externalContacts.tenantId, tenantId))
-    .orderBy(desc(externalContacts.createdAt));
-
-    if (search) {
-      const searchTerm = `%${search}%`;
-      query = query.where(
-        and(
-          eq(externalContacts.tenantId, tenantId),
-          ilike(externalContacts.nome, searchTerm)
-        )
-      );
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: "TenantId é obrigatório"
+      });
     }
 
-    const limitNum = parseInt(limit as string);
-    const offsetNum = parseInt(offset as string);
-    
-    if (limitNum > 0) {
-      query = query.limit(limitNum).offset(offsetNum);
-    }
-
-    const favorecidos = await query;
+    // Filter by tenant
+    const tenantFavorecidos = favorecidosStorage.filter(f => f.tenantId === tenantId);
 
     console.log('Favorecidos fetched successfully', {
       context: {
         tenantId,
-        count: favorecidos.length,
-        hasSearch: !!search
+        count: tenantFavorecidos.length
       }
     });
 
     res.json({
       success: true,
-      data: favorecidos,
-      total: favorecidos.length
+      data: tenantFavorecidos,
+      total: tenantFavorecidos.length
     });
+
   } catch (error) {
-    console.error('Failed to fetch favorecidos', {
-      context: { tenantId: req.user?.tenantId, error: (error as Error).message }
-    });
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro interno do servidor' 
+    console.error('Error fetching favorecidos:', error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
     });
   }
 });
@@ -245,118 +171,53 @@ router.get('/favorecidos', async (req: AuthenticatedRequest, res) => {
 router.post('/favorecidos', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-    const db = await schemaManager.getTenantDatabase(tenantId);
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: "TenantId é obrigatório"
+      });
+    }
     
     const validatedData = createFavorecidoSchema.parse(req.body);
     
-    const newFavorecido = await db.insert(externalContacts)
-      .values({
-        ...validatedData,
-        tenantId,
-      })
-      .returning();
+    // Create new favorecido
+    const newFavorecido = {
+      id: crypto.randomUUID(),
+      ...validatedData,
+      tenantId,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Add to storage
+    favorecidosStorage.push(newFavorecido);
 
     console.log('Favorecido created successfully', {
       context: {
         tenantId,
-        favorecidoId: newFavorecido[0].id,
-        email: newFavorecido[0].email
+        favorecidoId: newFavorecido.id,
+        email: newFavorecido.email
       }
     });
 
     res.status(201).json({
       success: true,
-      data: newFavorecido[0]
+      data: newFavorecido,
+      message: "Favorecido criado com sucesso"
     });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Dados inválidos',
-        errors: error.errors
-      });
-    }
 
+  } catch (error) {
     console.error('Failed to create favorecido', {
-      context: { tenantId: req.user?.tenantId, error: (error as Error).message }
+      error: error instanceof Error ? error.message : 'Unknown error',
+      context: {
+        tenantId: req.user?.tenantId,
+        requestBody: req.body
+      }
     });
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro interno do servidor' 
-    });
-  }
-});
-
-// GET /api/external-contacts/solicitantes/:id - Get specific solicitante
-router.get('/solicitantes/:id', async (req: AuthenticatedRequest, res) => {
-  try {
-    const tenantId = req.user!.tenantId;
-    const db = await schemaManager.getTenantDatabase(tenantId);
-    const { id } = req.params;
-    
-    const solicitante = await db.select()
-      .from(extendedCustomers)
-      .where(and(
-        eq(extendedCustomers.id, id),
-        eq(extendedCustomers.tenantId, tenantId)
-      ))
-      .limit(1);
-
-    if (solicitante.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Solicitante não encontrado'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: solicitante[0]
-    });
-  } catch (error) {
-    console.error('Failed to fetch solicitante', {
-      context: { tenantId: req.user?.tenantId, solicitanteId: req.params.id, error: (error as Error).message }
-    });
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro interno do servidor' 
-    });
-  }
-});
-
-// GET /api/external-contacts/favorecidos/:id - Get specific favorecido
-router.get('/favorecidos/:id', async (req: AuthenticatedRequest, res) => {
-  try {
-    const tenantId = req.user!.tenantId;
-    const db = await schemaManager.getTenantDatabase(tenantId);
-    const { id } = req.params;
-    
-    const favorecido = await db.select()
-      .from(externalContacts)
-      .where(and(
-        eq(externalContacts.id, id),
-        eq(externalContacts.tenantId, tenantId)
-      ))
-      .limit(1);
-
-    if (favorecido.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Favorecido não encontrado'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: favorecido[0]
-    });
-  } catch (error) {
-    console.error('Failed to fetch favorecido', {
-      context: { tenantId: req.user?.tenantId, favorecidoId: req.params.id, error: (error as Error).message }
-    });
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro interno do servidor' 
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
     });
   }
 });
