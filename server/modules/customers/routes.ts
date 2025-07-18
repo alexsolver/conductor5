@@ -57,7 +57,7 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     
     const validatedData = insertCustomerSchema.parse(dataToValidate);
 
-    const customer = await storage.createCustomer(validatedData);
+    const customer = await storage.createCustomer(req.user.tenantId, validatedData);
     res.status(201).json(customer);
   } catch (error) {
     if (error instanceof z.ZodError) {
