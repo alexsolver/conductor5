@@ -139,25 +139,6 @@ export const activeSessions = pgTable("active_sessions", {
   expiresAt: timestamp("expires_at").notNull(),
 });
 
-// User-Location Relationships (many-to-many)
-export const userLocationAssignments = pgTable("user_location_assignments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").notNull(),
-  locationId: uuid("location_id").notNull(),
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-  role: text("role").default("assigned"), // assigned, primary_contact, backup_contact, manager
-  isActive: boolean("is_active").default(true),
-  isPrimary: boolean("is_primary").default(false), // User's primary location
-  accessLevel: text("access_level").default("basic"), // basic, advanced, admin
-  specialPermissions: json("special_permissions").$type<Array<string>>().default([]),
-  assignedAt: timestamp("assigned_at").defaultNow(),
-  assignedBy: text("assigned_by").notNull(),
-  validFrom: timestamp("valid_from").defaultNow(),
-  validUntil: timestamp("valid_until"),
-  notes: text("notes"),
-  metadata: json("metadata").$type<Record<string, any>>().default({}),
-});
-
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ one, many }) => ({
   tenant: one(tenants, {
@@ -221,14 +202,6 @@ export const activeSessionsRelations = relations(activeSessions, ({ one }) => ({
   // user relation removed due to different ID types
 }));
 
-export const userLocationAssignmentsRelations = relations(userLocationAssignments, ({ one }) => ({
-  tenant: one(tenants, {
-    fields: [userLocationAssignments.tenantId],
-    references: [tenants.id],
-  }),
-  // user and location relations removed due to different ID types/schemas
-}));
-
 // Zod Schemas
 export const insertUserGroupSchema = createInsertSchema(userGroups);
 export const selectUserGroupSchema = createSelectSchema(userGroups);
@@ -248,8 +221,6 @@ export const insertUserActivityLogSchema = createInsertSchema(userActivityLog);
 export const selectUserActivityLogSchema = createSelectSchema(userActivityLog);
 export const insertActiveSessionSchema = createInsertSchema(activeSessions);
 export const selectActiveSessionSchema = createSelectSchema(activeSessions);
-export const insertUserLocationAssignmentSchema = createInsertSchema(userLocationAssignments);
-export const selectUserLocationAssignmentSchema = createSelectSchema(userLocationAssignments);
 
 // Types
 export type UserGroup = typeof userGroups.$inferSelect;

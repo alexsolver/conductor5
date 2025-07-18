@@ -37,14 +37,12 @@ import {
   Shield,
   Users,
   Clock,
-  Monitor,
-  MapPin
+  Monitor
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { UserLocationAssignments } from "./UserLocationAssignments";
 
 interface EnhancedUser {
   id: string;
@@ -79,8 +77,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<EnhancedUser | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const [managingLocationsUser, setManagingLocationsUser] = useState<EnhancedUser | null>(null);
-  const [showLocationManagement, setShowLocationManagement] = useState(false);
 
   // Fetch users (different endpoint for tenant admin vs saas admin)
   const apiEndpoint = tenantAdmin ? "/api/tenant-admin/team/users" : "/api/user-management/users";
@@ -133,11 +129,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
   const handleViewUser = (user: any) => {
     setSelectedUser(user);
     setShowUserDetails(true);
-  };
-
-  const handleManageLocations = (user: any) => {
-    setManagingLocationsUser(user);
-    setShowLocationManagement(true);
   };
 
   const getRoleBadgeVariant = (role: string) => {
@@ -253,10 +244,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                           <DropdownMenuItem>
                             <Edit className="mr-2 h-4 w-4" />
                             {t("common.edit", "Editar")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleManageLocations(user)}>
-                            <MapPin className="mr-2 h-4 w-4" />
-                            Gerenciar Locais
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
@@ -384,24 +371,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                 </div>
               )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Location Management Dialog */}
-      <Dialog open={showLocationManagement} onOpenChange={setShowLocationManagement}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Locais - {managingLocationsUser?.firstName || managingLocationsUser?.email}</DialogTitle>
-            <DialogDescription>
-              Gerencie os locais onde o usuário tem acesso e suas permissões específicas.
-            </DialogDescription>
-          </DialogHeader>
-          {managingLocationsUser && (
-            <UserLocationAssignments 
-              userId={managingLocationsUser.id} 
-              userName={managingLocationsUser.firstName || managingLocationsUser.email}
-            />
           )}
         </DialogContent>
       </Dialog>
