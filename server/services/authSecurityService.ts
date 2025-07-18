@@ -289,10 +289,16 @@ export class AuthSecurityService {
     try {
       await db.execute(sql`
         INSERT INTO security_events (identifier, event_type, metadata, ip, created_at)
-        VALUES (${identifier}, ${eventType}, ${JSON.stringify(metadata)}, ${'127.0.0.1'}, NOW())
-      `);
+        VALUES (${sql.placeholder('identifier')}, ${sql.placeholder('eventType')}, ${sql.placeholder('metadata')}, ${sql.placeholder('ip')}, NOW())
+      `, {
+        identifier,
+        eventType,
+        metadata: JSON.stringify(metadata),
+        ip: '127.0.0.1'
+      });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      const { logError } = await import('../utils/logger');
+      logError('Failed to log security event', error, { identifier, eventType });
     }
   }
 }

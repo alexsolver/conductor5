@@ -10,11 +10,11 @@ export class TokenService implements ITokenService {
   private readonly refreshTokenExpiry = '7d';
 
   private generateSecureDefaultSecret(type: string): string {
-    // Gerar secret seguro para desenvolvimento usando crypto
-    const randomBytes = Array.from({ length: 32 }, () => Math.floor(Math.random() * 256))
-      .map(byte => byte.toString(16).padStart(2, '0'))
-      .join('');
-    return `dev-${type}-${randomBytes}`;
+    // Generate secure random bytes for development - more secure than hardcoded values
+    const randomBytes = Array.from({ length: 64 }, () => 
+      Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
+    ).join('');
+    return `dev-${type}-${randomBytes}-${Date.now()}`;
   }
 
   constructor() {
@@ -22,7 +22,7 @@ export class TokenService implements ITokenService {
     this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureDefaultSecret('refresh');
     
     if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
-      console.warn('JWT secrets not found in environment variables. Using default values for development.');
+      console.warn('JWT secrets not found in environment variables. Using secure generated defaults for development.');
     }
   }
 

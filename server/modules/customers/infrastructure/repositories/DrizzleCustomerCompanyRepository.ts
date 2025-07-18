@@ -39,7 +39,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       }
       return this.toCompanyDomainEntity(result.rows[0], tenantId);
     } catch (error) {
-      console.error('Direct SQL findById query failed', error, { tenantId, schemaName, sqlQuery });
+      const { logError } = await import('../../../../utils/logger');
+      logError('Direct SQL findById query failed', error, { tenantId, schemaName });
       throw error;
     }
   }
@@ -64,7 +65,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       }
       return this.toCompanyDomainEntity(result.rows[0], tenantId);
     } catch (error) {
-      console.error('Direct SQL findByName query failed', error, { tenantId, schemaName, sqlQuery });
+      const { logError } = await import('../../../../utils/logger');
+      logError('Direct SQL findByName query failed', error, { tenantId, schemaName });
       throw error;
     }
   }
@@ -133,7 +135,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       const result = await tenantDb.execute(sql.raw(sqlQuery, ...params));
       return result.rows.map(row => this.toCompanyDomainEntity(row, filter.tenantId));
     } catch (error) {
-      console.error('Direct SQL findMany query failed', error, { tenantId: filter.tenantId, schemaName, sqlQuery });
+      const { logError } = await import('../../../../utils/logger');
+      logError('Direct SQL findMany query failed', error, { tenantId: filter.tenantId, schemaName });
       throw error;
     }
   }
@@ -152,8 +155,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       const escapedId = company.getId().replace(/'/g, "''");
       const now = new Date().toISOString();
       
-      // Debug: Log the company data for UPDATE
-      console.log('DEBUG UPDATE: companyData structure:', JSON.stringify(companyData, null, 2));
+      // Debug logs removed for production security
       
       // Helper function to safely handle null/undefined values
       const safeString = (value: any) => {
@@ -183,7 +185,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         RETURNING *
       `;
 
-      console.log('DEBUG UPDATE: Generated SQL Query:', sqlQuery);
+      // SQL query logging removed for security
 
       const result = await tenantDb.execute(sql.raw(sqlQuery));
       return this.toCompanyDomainEntity(result.rows[0], company.getTenantId());
@@ -191,8 +193,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       // Insert new company - using direct SQL
       const now = new Date().toISOString();
       
-      // Debug: Log the company data to see what's undefined
-      console.log('DEBUG: companyData structure:', JSON.stringify(companyData, null, 2));
+      // Debug logs removed for production security
       
       // Helper function to safely handle null/undefined values
       const safeString = (value: any) => {
@@ -227,7 +228,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         ) RETURNING *
       `;
 
-      console.log('DEBUG: Generated SQL Query:', sqlQuery);
+      // SQL query logging removed for security
 
       const result = await tenantDb.execute(sql.raw(sqlQuery));
       return this.toCompanyDomainEntity(result.rows[0], company.getTenantId());
@@ -301,7 +302,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       const result = await tenantDb.execute(sql.raw(sqlQuery, ...params));
       return parseInt(result.rows?.[0]?.count || '0');
     } catch (error) {
-      console.error('Direct SQL count query failed', error, { tenantId: filter.tenantId, schemaName, sqlQuery });
+      const { logError } = await import('../../../../utils/logger');
+      logError('Direct SQL count query failed', error, { tenantId: filter.tenantId, schemaName });
       throw error;
     }
   }

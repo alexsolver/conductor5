@@ -183,7 +183,8 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
 
     res.status(201).json(message);
   } catch (error) {
-    console.error("Error adding ticket message:", error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error adding ticket message', error, { ticketId: req.params.id });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: "Invalid message data", errors: error.errors });
     }

@@ -4,7 +4,7 @@ export class Tenant {
     public readonly id: string,
     public name: string,
     public subdomain: string,
-    public settings: Record<string, any> = {},
+    public settings: Record<string, unknown> = {},
     public isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
@@ -40,7 +40,7 @@ export class Tenant {
     this.updatedAt = new Date();
   }
 
-  public updateSettings(settings: Record<string, any>): void {
+  public updateSettings(settings: Record<string, unknown>): void {
     this.settings = { ...this.settings, ...settings };
     this.updatedAt = new Date();
   }

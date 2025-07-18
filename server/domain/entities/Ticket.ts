@@ -13,7 +13,7 @@ export class Ticket {
     public readonly priority: TicketPriority = 'medium',
     public readonly assignedToId: string | null = null,
     public readonly tags: string[] = [],
-    public readonly metadata: Record<string, any> = {},
+    public readonly metadata: Record<string, unknown> = {},
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
