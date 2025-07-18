@@ -141,6 +141,12 @@ export class SchemaManager {
       // Create the schema using parameterized query
       await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(schemaName)}`);
 
+      // CRITICAL FIX: Check if this is a legacy schema that needs migration
+      const needsMigration = await this.checkLegacySchema(schemaName);
+      if (needsMigration) {
+        await this.migrateLegacyTables(schemaName);
+      }
+      
       // Create tenant-specific tables in the new schema
       await this.createTenantTables(schemaName);
 
@@ -624,6 +630,7 @@ export class SchemaManager {
         CREATE TABLE IF NOT EXISTS ${schemaId}.skills (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           name VARCHAR(255) NOT NULL,
           category VARCHAR(100) NOT NULL,
           subcategory VARCHAR(100),
@@ -761,6 +768,38 @@ export class SchemaManager {
       const { logError } = await import('./utils/logger');
       logError(`Failed to create tenant tables for schema ${schemaName}`, error, { schemaName });
       throw error;
+    }
+  }
+
+  // CRITICAL FIX: Check if schema has legacy tables needing migration
+  private async checkLegacySchema(schemaName: string): Promise<boolean> {
+    try {
+      // Check if any critical tables exist without tenant_id
+      const result = await db.execute(sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = ${schemaName} 
+        AND table_name IN ('skills', 'certifications', 'user_skills', 'customers', 'tickets')
+        LIMIT 1
+      `);
+      
+      if (result.rows.length === 0) {
+        return false; // No tables exist, no migration needed
+      }
+      
+      // Check if any existing table lacks tenant_id
+      const tenantIdCheck = await db.execute(sql`
+        SELECT table_name 
+        FROM information_schema.columns 
+        WHERE table_schema = ${schemaName} 
+        AND table_name IN ('skills', 'certifications', 'user_skills', 'customers', 'tickets')
+        AND column_name = 'tenant_id'
+      `);
+      
+      // If we have tables but no tenant_id columns, we need migration
+      return result.rows.length > 0 && tenantIdCheck.rows.length === 0;
+    } catch (error) {
+      return false; // If error checking, assume no migration needed
     }
   }
 
