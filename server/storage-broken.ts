@@ -51,8 +51,7 @@ async function validateTenantAccess(tenantId: string): Promise<string> {
 }
 
 // ===========================
-// ENTERPRISE DATABASE STORAGE
-// COMPLETE REWRITE WITH PERFORMANCE & SECURITY
+// DATABASE STORAGE CLASS
 // ===========================
 
 export class DatabaseStorage implements IStorage {
@@ -160,49 +159,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ===========================
-  // CUSTOMER MANAGEMENT - OPTIMIZED
-  // Fixes: N+1 queries, performance issues
+  // CUSTOMER MANAGEMENT
   // ===========================
 
   async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
-      
-      // Use connection pool for better performance
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single query with proper indexing
-      const baseQuery = sql`
-        SELECT 
-          id, first_name, last_name, email, phone, company,
-          verified, active, suspended, timezone, locale, language,
-          external_id, role, notes, avatar, signature, 
-          created_at, updated_at
-        FROM ${sql.identifier(schemaName)}.customers
+      let query = sql`
+        SELECT * FROM ${sql.identifier(schemaName, 'customers')}
         WHERE 1=1
       `;
 
-      let finalQuery = baseQuery;
-
-      // SECURE: Parameterized search
       if (search) {
-        finalQuery = sql`${baseQuery} AND (
-          first_name ILIKE ${'%' + search + '%'} OR 
-          last_name ILIKE ${'%' + search + '%'} OR 
-          email ILIKE ${'%' + search + '%'}
+        query = sql`${query} AND (
+          first_name ILIKE ${`%${search}%`} OR 
+          last_name ILIKE ${`%${search}%`} OR 
+          email ILIKE ${`%${search}%`}
         )`;
       }
 
-      // Add ordering and pagination
-      finalQuery = sql`${finalQuery} 
+      query = sql`${query} 
         ORDER BY created_at DESC 
         LIMIT ${limit} 
         OFFSET ${offset}
       `;
 
-      const result = await tenantDb.execute(finalQuery);
+      const result = await db.execute(query);
       return result.rows || [];
     } catch (error) {
       logError('Error fetching customers', error, { tenantId, options });
@@ -213,11 +198,10 @@ export class DatabaseStorage implements IStorage {
   async getCustomerById(tenantId: string, customerId: string): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.customers
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName, 'customers')}
         WHERE id = ${customerId}
         LIMIT 1
       `);
@@ -232,15 +216,14 @@ export class DatabaseStorage implements IStorage {
   async createCustomer(tenantId: string, customerData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       if (!customerData.email) {
         throw new Error('Customer email is required');
       }
 
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.customers 
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'customers')} 
         (first_name, last_name, email, phone, company, tenant_id, created_at, updated_at)
         VALUES (
           ${customerData.firstName || null},
@@ -270,11 +253,10 @@ export class DatabaseStorage implements IStorage {
   async updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.customers 
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName, 'customers')} 
         SET 
           first_name = ${customerData.firstName || null},
           last_name = ${customerData.lastName || null},
@@ -296,11 +278,10 @@ export class DatabaseStorage implements IStorage {
   async deleteCustomer(tenantId: string, customerId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.customers
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName, 'customers')}
         WHERE id = ${customerId} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -312,40 +293,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ===========================
-  // TICKET MANAGEMENT - OPTIMIZED
-  // Fixes: N+1 queries, complex joins
+  // TICKET MANAGEMENT
   // ===========================
 
   async getTickets(tenantId: string, options: { limit?: number; offset?: number; status?: string } = {}): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, status } = options;
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single JOIN query instead of N+1
-      let baseQuery = sql`
+      let query = sql`
         SELECT 
           t.*,
           c.first_name as customer_first_name,
           c.last_name as customer_last_name,
           c.email as customer_email
-        FROM ${sql.identifier(schemaName).tickets} t
-        LEFT JOIN ${sql.identifier(schemaName).customers} c ON t.customer_id = c.id
+        FROM ${sql.identifier(schemaName, 'tickets')} t
+        LEFT JOIN ${sql.identifier(schemaName, 'customers')} c ON t.customer_id = c.id
         WHERE t.tenant_id = ${validatedTenantId}
       `;
 
       if (status) {
-        baseQuery = sql`${baseQuery} AND t.status = ${status}`;
+        query = sql`${query} AND t.status = ${status}`;
       }
 
-      const finalQuery = sql`${baseQuery} 
+      query = sql`${query} 
         ORDER BY t.created_at DESC 
         LIMIT ${limit} 
         OFFSET ${offset}
       `;
 
-      const result = await tenantDb.execute(finalQuery);
+      const result = await db.execute(query);
       return result.rows || [];
     } catch (error) {
       logError('Error fetching tickets', error, { tenantId, options });
@@ -356,17 +334,16 @@ export class DatabaseStorage implements IStorage {
   async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
+      const result = await db.execute(sql`
         SELECT 
           t.*,
           c.first_name as customer_first_name,
           c.last_name as customer_last_name,
           c.email as customer_email
-        FROM ${sql.identifier(schemaName).tickets} t
-        LEFT JOIN ${sql.identifier(schemaName).customers} c ON t.customer_id = c.id
+        FROM ${sql.identifier(schemaName, 'tickets')} t
+        LEFT JOIN ${sql.identifier(schemaName, 'customers')} c ON t.customer_id = c.id
         WHERE t.id = ${ticketId} AND t.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
@@ -381,7 +358,6 @@ export class DatabaseStorage implements IStorage {
   async createTicket(tenantId: string, ticketData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       if (!ticketData.subject || !ticketData.customerId) {
@@ -391,8 +367,8 @@ export class DatabaseStorage implements IStorage {
       // Generate ticket number
       const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName).tickets} 
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'tickets')} 
         (number, subject, description, status, priority, customer_id, tenant_id, created_at, updated_at)
         VALUES (
           ${ticketNumber},
@@ -423,11 +399,10 @@ export class DatabaseStorage implements IStorage {
   async updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName).tickets} 
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName, 'tickets')} 
         SET 
           subject = ${ticketData.subject},
           description = ${ticketData.description || null},
@@ -448,11 +423,10 @@ export class DatabaseStorage implements IStorage {
   async deleteTicket(tenantId: string, ticketId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName).tickets}
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName, 'tickets')}
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -464,31 +438,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ===========================
-  // DASHBOARD & ANALYTICS - OPTIMIZED
-  // Fixes: Multiple separate queries, performance
+  // DASHBOARD & ANALYTICS
   // ===========================
 
   async getDashboardStats(tenantId: string): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single query with multiple aggregations
-      const result = await tenantDb.execute(sql`
-        SELECT 
-          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.customers) as total_customers,
-          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets) as total_tickets,
-          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets WHERE status = 'open') as open_tickets,
-          (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets WHERE status = 'resolved') as resolved_tickets
-      `);
+      // Get stats from database
+      const [customersResult, ticketsResult, openTicketsResult] = await Promise.all([
+        db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'customers')}`),
+        db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'tickets')}`),
+        db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'tickets')} WHERE status = 'open'`)
+      ]);
 
-      const stats = result.rows?.[0] || {};
       return {
-        totalCustomers: Number(stats.total_customers || 0),
-        totalTickets: Number(stats.total_tickets || 0),
-        openTickets: Number(stats.open_tickets || 0),
-        resolvedTickets: Number(stats.resolved_tickets || 0)
+        totalCustomers: customersResult.rows?.[0]?.count || 0,
+        totalTickets: ticketsResult.rows?.[0]?.count || 0,
+        openTickets: openTicketsResult.rows?.[0]?.count || 0,
+        resolvedTickets: Number(ticketsResult.rows?.[0]?.count || 0) - Number(openTicketsResult.rows?.[0]?.count || 0)
       };
     } catch (error) {
       logError('Error fetching dashboard stats', error, { tenantId });
@@ -506,11 +475,10 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 10 } = options;
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single query with JOIN for activity
-      const result = await tenantDb.execute(sql`
+      // Get recent tickets as activity
+      const result = await db.execute(sql`
         SELECT 
           'ticket' as type,
           t.id,
@@ -518,8 +486,8 @@ export class DatabaseStorage implements IStorage {
           t.status,
           t.created_at,
           c.first_name || ' ' || c.last_name as customer_name
-        FROM ${sql.identifier(schemaName).tickets} t
-        LEFT JOIN ${sql.identifier(schemaName).customers} c ON t.customer_id = c.id
+        FROM ${sql.identifier(schemaName, 'tickets')} t
+        LEFT JOIN ${sql.identifier(schemaName, 'customers')} c ON t.customer_id = c.id
         WHERE t.tenant_id = ${validatedTenantId}
         ORDER BY t.created_at DESC
         LIMIT ${limit}
@@ -539,15 +507,14 @@ export class DatabaseStorage implements IStorage {
   async createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       if (!article.title || !article.content) {
         throw new Error('Article title and content are required');
       }
 
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName).knowledge_base_articles} 
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'knowledge_base_articles')} 
         (title, excerpt, content, category, tags, author, status, tenant_id, created_at, updated_at)
         VALUES (
           ${article.title},

@@ -191,6 +191,9 @@ export class SchemaManager {
       return; // Tables already exist, skip creation
     }
 
+    // Import performance indexes
+    const { OptimizedIndexes } = await import('./database/OptimizedIndexes');
+
     try {
       // Use sql.identifier for safe schema references - prevents SQL injection
       const schemaId = sql.identifier(schemaName);
