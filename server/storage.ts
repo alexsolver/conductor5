@@ -39,6 +39,12 @@ export interface IStorage {
   
   // Knowledge Base
   createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any>;
+  
+  // External Contacts
+  getSolicitantes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
+  getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
+  createSolicitante(tenantId: string, data: any): Promise<any>;
+  createFavorecido(tenantId: string, data: any): Promise<any>;
 }
 
 // ===========================
@@ -326,21 +332,21 @@ export class DatabaseStorage implements IStorage {
       // OPTIMIZED: Single JOIN query instead of N+1
       let baseQuery = sql`
         SELECT 
-          t.*,
-          c.first_name as customer_first_name,
-          c.last_name as customer_last_name,
-          c.email as customer_email
+          tickets.*,
+          customers.first_name as customer_first_name,
+          customers.last_name as customer_last_name,
+          customers.email as customer_email
         FROM ${sql.identifier(schemaName).tickets} t
-        LEFT JOIN ${sql.identifier(schemaName).customers} c ON t.customer_id = c.id
-        WHERE t.tenant_id = ${validatedTenantId}
+        LEFT JOIN ${sql.identifier(schemaName).customers} c ON tickets.customer_id = customers.id
+        WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
       if (status) {
-        baseQuery = sql`${baseQuery} AND t.status = ${status}`;
+        baseQuery = sql`${baseQuery} AND tickets.status = ${status}`;
       }
 
       const finalQuery = sql`${baseQuery} 
-        ORDER BY t.created_at DESC 
+        ORDER BY tickets.created_at DESC 
         LIMIT ${limit} 
         OFFSET ${offset}
       `;
@@ -361,13 +367,13 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         SELECT 
-          t.*,
-          c.first_name as customer_first_name,
-          c.last_name as customer_last_name,
-          c.email as customer_email
+          tickets.*,
+          customers.first_name as customer_first_name,
+          customers.last_name as customer_last_name,
+          customers.email as customer_email
         FROM ${sql.identifier(schemaName).tickets} t
-        LEFT JOIN ${sql.identifier(schemaName).customers} c ON t.customer_id = c.id
-        WHERE t.id = ${ticketId} AND t.tenant_id = ${validatedTenantId}
+        LEFT JOIN ${sql.identifier(schemaName).customers} c ON tickets.customer_id = customers.id
+        WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
 
@@ -513,15 +519,15 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         SELECT 
           'ticket' as type,
-          t.id,
-          t.subject as title,
-          t.status,
-          t.created_at,
-          c.first_name || ' ' || c.last_name as customer_name
+          tickets.id,
+          tickets.subject as title,
+          tickets.status,
+          tickets.created_at,
+          customers.first_name || ' ' || customers.last_name as customer_name
         FROM ${sql.identifier(schemaName).tickets} t
-        LEFT JOIN ${sql.identifier(schemaName).customers} c ON t.customer_id = c.id
-        WHERE t.tenant_id = ${validatedTenantId}
-        ORDER BY t.created_at DESC
+        LEFT JOIN ${sql.identifier(schemaName).customers} c ON tickets.customer_id = customers.id
+        WHERE tickets.tenant_id = ${validatedTenantId}
+        ORDER BY tickets.created_at DESC
         LIMIT ${limit}
       `);
 
@@ -567,6 +573,134 @@ export class DatabaseStorage implements IStorage {
       return result.rows?.[0];
     } catch (error) {
       logError('Error creating knowledge base article', error, { tenantId, article });
+      throw error;
+    }
+  }
+
+  // ===========================
+  // EXTERNAL CONTACTS (SOLICITANTES/FAVORECIDOS)
+  // ===========================
+
+  async getSolicitantes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { limit = 50, offset = 0, search } = options;
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      let baseQuery = sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
+        WHERE tenant_id = ${validatedTenantId} AND type = 'solicitante'
+      `;
+
+      if (search) {
+        baseQuery = sql`${baseQuery} AND (
+          name ILIKE ${'%' + search + '%'} OR 
+          email ILIKE ${'%' + search + '%'}
+        )`;
+      }
+
+      const finalQuery = sql`${baseQuery} 
+        ORDER BY created_at DESC 
+        LIMIT ${limit} 
+        OFFSET ${offset}
+      `;
+
+      const result = await tenantDb.execute(finalQuery);
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching solicitantes', error, { tenantId, options });
+      return [];
+    }
+  }
+
+  async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { limit = 50, offset = 0, search } = options;
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      let baseQuery = sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
+        WHERE tenant_id = ${validatedTenantId} AND type = 'favorecido'
+      `;
+
+      if (search) {
+        baseQuery = sql`${baseQuery} AND (
+          name ILIKE ${'%' + search + '%'} OR 
+          email ILIKE ${'%' + search + '%'}
+        )`;
+      }
+
+      const finalQuery = sql`${baseQuery} 
+        ORDER BY created_at DESC 
+        LIMIT ${limit} 
+        OFFSET ${offset}
+      `;
+
+      const result = await tenantDb.execute(finalQuery);
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching favorecidos', error, { tenantId, options });
+      return [];
+    }
+  }
+
+  async createSolicitante(tenantId: string, data: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.external_contacts
+        (name, email, phone, document, type, tenant_id, created_at, updated_at)
+        VALUES (
+          ${data.name},
+          ${data.email || null},
+          ${data.phone || null},
+          ${data.document || null},
+          'solicitante',
+          ${validatedTenantId},
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error creating solicitante', error, { tenantId, data });
+      throw error;
+    }
+  }
+
+  async createFavorecido(tenantId: string, data: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.external_contacts
+        (name, email, phone, document, type, tenant_id, created_at, updated_at)
+        VALUES (
+          ${data.name},
+          ${data.email || null},
+          ${data.phone || null},
+          ${data.document || null},
+          'favorecido',
+          ${validatedTenantId},
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error creating favorecido', error, { tenantId, data });
       throw error;
     }
   }
