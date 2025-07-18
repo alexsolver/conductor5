@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+// REMOVED: Redis dependency
 import { Request, Response, NextFunction } from 'express';
 
 export interface RateLimitConfig {
@@ -18,32 +18,21 @@ export interface RateLimitInfo {
 }
 
 export class RedisRateLimitService {
-  private redis: Redis;
   private static instance: RedisRateLimitService;
 
+  private memoryStore = new Map<string, { count: number; resetTime: number }>();
+
   constructor() {
-    // Initialize Redis connection
-    this.redis = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      retryDelayOnFailover: 100,
-      enableReadyCheck: false,
-      maxRetriesPerRequest: null,
-      // Fallback to in-memory if Redis is not available
-      lazyConnect: true,
-      connectTimeout: 5000,
-      commandTimeout: 5000
-    });
-
-    // Handle Redis connection errors
-    this.redis.on('error', (err) => {
-      console.warn('Redis connection error, falling back to memory:', err.message);
-    });
-
-    this.redis.on('connect', () => {
-      console.log('Redis connected for rate limiting');
-    });
+    // REMOVED: Redis dependency - using memory-only approach
+    // Clean up expired entries every 5 minutes
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, value] of this.memoryStore.entries()) {
+        if (value.resetTime <= now) {
+          this.memoryStore.delete(key);
+        }
+      }
+    }, 5 * 60 * 1000);
   }
 
   static getInstance(): RedisRateLimitService {
@@ -60,36 +49,29 @@ export class RedisRateLimitService {
   async checkRateLimit(identifier: string, config: RateLimitConfig): Promise<RateLimitInfo> {
     const windowStart = Math.floor(Date.now() / config.windowMs) * config.windowMs;
     const key = this.getKey(identifier, windowStart);
+    const now = Date.now();
     
-    try {
-      // Use Redis pipeline for atomic operations
-      const pipeline = this.redis.pipeline();
-      pipeline.incr(key);
-      pipeline.expire(key, Math.ceil(config.windowMs / 1000));
-      
-      const results = await pipeline.exec();
-      const totalHits = results?.[0]?.[1] as number || 0;
-      
-      const remainingRequests = Math.max(0, config.maxRequests - totalHits);
-      const resetTime = new Date(windowStart + config.windowMs);
-      const isLimited = totalHits > config.maxRequests;
-
-      return {
-        totalHits,
-        remainingRequests,
-        resetTime,
-        isLimited
-      };
-    } catch (error) {
-      console.error('Redis rate limit check failed:', error);
-      // Fallback to allowing request if Redis fails
-      return {
-        totalHits: 0,
-        remainingRequests: config.maxRequests,
-        resetTime: new Date(Date.now() + config.windowMs),
-        isLimited: false
-      };
+    // Memory-based rate limiting
+    const existing = this.memoryStore.get(key);
+    let totalHits = 1;
+    
+    if (existing && existing.resetTime > now) {
+      totalHits = existing.count + 1;
+      this.memoryStore.set(key, { count: totalHits, resetTime: existing.resetTime });
+    } else {
+      this.memoryStore.set(key, { count: 1, resetTime: windowStart + config.windowMs });
     }
+    
+    const remainingRequests = Math.max(0, config.maxRequests - totalHits);
+    const resetTime = new Date(windowStart + config.windowMs);
+    const isLimited = totalHits > config.maxRequests;
+
+    return {
+      totalHits,
+      remainingRequests,
+      resetTime,
+      isLimited
+    };
   }
 
   async resetRateLimit(identifier: string): Promise<void> {
@@ -162,71 +144,22 @@ export class RedisRateLimitService {
     }
   }
 
-  // Distributed rate limiting for multiple instances
+  // Memory-based distributed rate limiting simulation  
   async checkDistributedRateLimit(identifier: string, config: RateLimitConfig): Promise<RateLimitInfo> {
-    const script = `
-      local key = KEYS[1]
-      local window = tonumber(ARGV[1])
-      local max_requests = tonumber(ARGV[2])
-      local current_time = tonumber(ARGV[3])
-      
-      local window_start = math.floor(current_time / window) * window
-      local window_key = key .. ':' .. window_start
-      
-      local current_count = redis.call('GET', window_key)
-      if current_count == false then
-        current_count = 0
-      else
-        current_count = tonumber(current_count)
-      end
-      
-      local new_count = current_count + 1
-      redis.call('SET', window_key, new_count)
-      redis.call('EXPIRE', window_key, math.ceil(window / 1000))
-      
-      local remaining = math.max(0, max_requests - new_count)
-      local reset_time = window_start + window
-      local is_limited = new_count > max_requests
-      
-      return {new_count, remaining, reset_time, is_limited and 1 or 0}
-    `;
-
-    try {
-      const result = await this.redis.eval(
-        script,
-        1,
-        `distributed_rate_limit:${identifier}`,
-        config.windowMs.toString(),
-        config.maxRequests.toString(),
-        Date.now().toString()
-      ) as number[];
-
-      return {
-        totalHits: result[0],
-        remainingRequests: result[1],
-        resetTime: new Date(result[2]),
-        isLimited: result[3] === 1
-      };
-    } catch (error) {
-      console.error('Redis distributed rate limit check failed:', error);
-      return {
-        totalHits: 0,
-        remainingRequests: config.maxRequests,
-        resetTime: new Date(Date.now() + config.windowMs),
-        isLimited: false
-      };
-    }
+    // Simplified to use same memory-based approach
+    return this.checkRateLimit(identifier, config);
   }
 
   async close(): Promise<void> {
-    await this.redis.quit();
+    // REMOVED: Redis cleanup - using memory only
+    this.memoryStore.clear();
   }
 }
 
 export const redisRateLimitService = RedisRateLimitService.getInstance();
 
-// Rate limiting middleware factory
-export function createRedisRateLimitMiddleware(config: RateLimitConfig) {
+// Memory-based rate limiting middleware factory
+export function createMemoryRateLimitMiddleware(config: RateLimitConfig) {
   const service = redisRateLimitService;
   
   return async (req: Request, res: Response, next: NextFunction) => {

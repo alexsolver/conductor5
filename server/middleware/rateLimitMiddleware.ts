@@ -16,7 +16,7 @@ interface LoginAttempt {
   blockedUntil?: Date;
 }
 
-// In-memory store for rate limiting (in production, use Redis)
+// Memory-based rate limiting - Redis removed for stability
 const attemptStore = new Map<string, LoginAttempt>();
 
 export class RateLimitService {

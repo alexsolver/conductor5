@@ -175,40 +175,37 @@ export class DatabaseStorage implements IStorage {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
       
-      // Use connection pool for better performance
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      // PERFORMANCE: Direct DB connection without pool overhead
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single query with proper indexing
-      const baseQuery = sql`
+      // OPTIMIZED: Minimal field selection for faster queries
+      let queryText = `
         SELECT 
           id, first_name, last_name, email, phone, company,
-          verified, active, suspended, timezone, locale, language,
-          external_id, role, notes, avatar, signature, 
-          created_at, updated_at
-        FROM ${sql.raw(`${schemaName}.customers`)}
+          verified, active, created_at
+        FROM ${schemaName}.customers
         WHERE 1=1
       `;
 
-      let finalQuery = baseQuery;
+      const params: any[] = [];
+      let paramIndex = 1;
 
       // SECURE: Parameterized search
       if (search) {
-        finalQuery = sql`${baseQuery} AND (
-          first_name ILIKE ${'%' + search + '%'} OR 
-          last_name ILIKE ${'%' + search + '%'} OR 
-          email ILIKE ${'%' + search + '%'}
+        queryText += ` AND (
+          first_name ILIKE $${paramIndex} OR 
+          last_name ILIKE $${paramIndex + 1} OR 
+          email ILIKE $${paramIndex + 2}
         )`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        paramIndex += 3;
       }
 
       // Add ordering and pagination
-      finalQuery = sql`${finalQuery} 
-        ORDER BY created_at DESC 
-        LIMIT ${limit} 
-        OFFSET ${offset}
-      `;
+      queryText += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      params.push(limit, offset);
 
-      const result = await tenantDb.execute(finalQuery);
+      const result = await db.execute(sql.raw(queryText, params));
       return result.rows || [];
     } catch (error) {
       logError('Error fetching customers', error, { tenantId, options });

@@ -17,7 +17,7 @@ interface PasswordResetToken {
   used: boolean;
 }
 
-// In-memory token store (in production, use Redis)
+// Memory-based token store - Redis removed for stability
 const magicLinkTokens = new Map<string, MagicLinkToken>();
 const passwordResetTokens = new Map<string, PasswordResetToken>();
 

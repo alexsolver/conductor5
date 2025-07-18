@@ -5,7 +5,7 @@ import { schemaManager } from "./db";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
 import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
-import { createRedisRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
+import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema";
@@ -29,11 +29,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     nonce: true
   }));
 
-  // Apply rate limiting middleware
-  app.use('/api/auth/login', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
-  app.use('/api/auth/register', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
-  app.use('/api/auth/password-reset', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
-  app.use('/api', createRedisRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL));
+  // Apply memory-based rate limiting middleware  
+  app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
+  app.use('/api/auth/register', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
+  app.use('/api/auth/password-reset', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
+  app.use('/api', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL));
 
   // Apply feature flag middleware
   app.use(createFeatureFlagMiddleware());
