@@ -141,7 +141,7 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
   const service = config ? new RateLimitService({ ...defaultConfig, ...config }) : rateLimitService;
   
   return async (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip || (req.connection as any)?.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
     const email = req.body?.email || req.body?.username;
     
     try {
@@ -176,7 +176,7 @@ export function recordLoginAttempt(req: Request, res: Response, next: NextFuncti
   const originalSend = res.send;
   
   res.send = function(data: any) {
-    const ip = req.ip || (req.connection as any)?.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
     const email = req.body?.email || req.body?.username;
     
     // Check if login was successful based on status code

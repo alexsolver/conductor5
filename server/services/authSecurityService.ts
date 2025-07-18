@@ -288,13 +288,9 @@ export class AuthSecurityService {
   private async logSecurityEvent(identifier: string, eventType: string, metadata: Record<string, unknown> = {}): Promise<void> {
     try {
       await db.execute(sql`
-        INSERT INTO security_events (identifier, event_type, metadata, created_at)
-        VALUES (${sql.placeholder('identifier')}, ${sql.placeholder('eventType')}, ${sql.placeholder('metadata')}, NOW())
-      `, {
-        identifier,
-        eventType,
-        metadata: JSON.stringify(metadata)
-      });
+        INSERT INTO security_events (identifier, event_type, metadata, ip, created_at)
+        VALUES (${identifier}, ${eventType}, ${JSON.stringify(metadata)}, ${'127.0.0.1'}, NOW())
+      `);
     } catch (error) {
       console.error('Failed to log security event:', error);
     }

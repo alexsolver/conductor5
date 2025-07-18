@@ -34,6 +34,7 @@ export class DependencyContainer {
   // Repositories
   get userRepository(): UserRepository {
     if (!this._userRepository) {
+      // Use the working infrastructure repository
       this._userRepository = new UserRepository();
     }
     return this._userRepository;
