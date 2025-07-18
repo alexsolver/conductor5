@@ -69,27 +69,34 @@ export class SchemaManager {
   // ENHANCED: Comprehensive schema validation with proper table verification
   private async schemaExists(schemaName: string): Promise<boolean> {
     try {
-      // Comprehensive validation - verify schema + essential tables + structure
+      // CRITICAL FIX: Enhanced validation with tenant_id verification
       const result = await db.execute(sql`
         SELECT EXISTS(
           SELECT 1 FROM information_schema.schemata WHERE schema_name = ${schemaName}
         ) as schema_exists,
         (SELECT COUNT(*) FROM information_schema.tables 
          WHERE table_schema = ${schemaName} 
-         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations')) as essential_tables,
+         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'skills', 'user_skills')) as essential_tables,
         (SELECT COUNT(*) FROM information_schema.columns 
          WHERE table_schema = ${schemaName} 
          AND table_name = 'customers' 
-         AND column_name IN ('id', 'email', 'created_at')) as customer_structure
+         AND column_name IN ('id', 'email', 'tenant_id', 'created_at')) as customer_structure,
+        (SELECT COUNT(*) FROM information_schema.columns 
+         WHERE table_schema = ${schemaName} 
+         AND column_name = 'tenant_id') as tenant_isolation_count
       `);
       
       const row = result.rows[0];
       const schemaExists = Boolean(row?.schema_exists);
       const essentialTablesCount = Number(row?.essential_tables || 0);
       const customerStructure = Number(row?.customer_structure || 0);
+      const tenantIsolationCount = Number(row?.tenant_isolation_count || 0);
       
-      // Require 5 essential tables + proper customer structure for complete validation
-      return schemaExists && essentialTablesCount >= 5 && customerStructure >= 3;
+      // CRITICAL FIX: Require 7 essential tables + proper tenant isolation
+      return schemaExists && 
+             essentialTablesCount >= 7 && 
+             customerStructure >= 4 && 
+             tenantIsolationCount >= 7; // All tenant tables must have tenant_id
     } catch {
       return false;
     }

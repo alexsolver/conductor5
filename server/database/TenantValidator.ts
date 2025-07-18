@@ -52,24 +52,33 @@ export class TenantValidator {
     }
 
     try {
-      // Secure query using parameterized query
+      // CRITICAL FIX: Enhanced validation with subscription status
       const result = await db.execute(sql`
-        SELECT 1 FROM tenants 
-        WHERE id = ${validatedId} AND is_active = true
+        SELECT t.id, t.is_active, t.subscription_status, t.expires_at
+        FROM tenants t
+        WHERE t.id = ${validatedId} 
+        AND t.is_active = true
+        AND (t.subscription_status = 'active' OR t.subscription_status = 'trial')
+        AND (t.expires_at IS NULL OR t.expires_at > NOW())
         LIMIT 1
       `);
 
       const exists = result.rows.length > 0;
+      
+      // CRITICAL FIX: Log tenant access attempts for security
+      if (!exists) {
+        logWarn('Access attempted to inactive/expired tenant', { 
+          tenantId: validatedId,
+          timestamp: new Date().toISOString(),
+          reason: 'tenant_inactive_or_expired'
+        });
+      }
       
       // Update cache
       this.tenantCache.set(validatedId, {
         exists,
         lastChecked: Date.now()
       });
-
-      if (!exists) {
-        logWarn('Access attempted to non-existent tenant', { tenantId: validatedId });
-      }
 
       return exists;
     } catch (error) {

@@ -98,14 +98,15 @@ export class ConnectionPoolManager {
       
       const pool = new Pool({ 
         connectionString: baseUrl.toString(),
-        max: 3, // Reduced from 10 - intelligent sizing per tenant
-        min: 1, // Keep minimum connection alive
-        idleTimeoutMillis: 15000, // Reduced from 30s for faster recycling
-        connectionTimeoutMillis: 8000, // Balanced timeout
-        acquireTimeoutMillis: 12000, // Reasonable acquire timeout
-        maxUses: 2000, // Connection recycling for memory management
+        max: 8, // CRITICAL FIX: Increased for better concurrency
+        min: 2, // CRITICAL FIX: Minimum 2 connections for stability
+        idleTimeoutMillis: 300000, // CRITICAL FIX: 5 minutes for stability
+        connectionTimeoutMillis: 10000, // CRITICAL FIX: 10 seconds timeout
+        acquireTimeoutMillis: 15000, // CRITICAL FIX: 15 seconds acquire timeout
+        maxUses: 5000, // CRITICAL FIX: Higher reuse for efficiency
         keepAlive: true,
-        allowExitOnIdle: false // Prevent unexpected pool closure
+        allowExitOnIdle: false, // Prevent unexpected pool closure
+        application_name: `tenant_${tenantId}` // CRITICAL FIX: Identify tenant connections
       });
 
       const db = drizzle({ client: pool, schema });
