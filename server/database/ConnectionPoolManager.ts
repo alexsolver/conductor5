@@ -22,9 +22,9 @@ interface TenantConnection {
 export class ConnectionPoolManager {
   private static instance: ConnectionPoolManager;
   private tenantPools = new Map<string, TenantConnection>();
-  private readonly MAX_POOLS = 50; // Prevent memory leaks
-  private readonly POOL_TTL = 30 * 60 * 1000; // 30 minutes
-  private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_POOLS = 15; // Reduced to prevent memory leaks - was 50
+  private readonly POOL_TTL = 10 * 60 * 1000; // 10 minutes - reduced from 30min
+  private readonly CLEANUP_INTERVAL = 2 * 60 * 1000; // 2 minutes - more frequent cleanup
   private cleanupTimer?: NodeJS.Timeout;
 
   private constructor() {
@@ -98,9 +98,14 @@ export class ConnectionPoolManager {
       
       const pool = new Pool({ 
         connectionString: baseUrl.toString(),
-        max: 10, // Limit connections per tenant
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000
+        max: 3, // Reduced from 10 - intelligent sizing per tenant
+        min: 1, // Keep minimum connection alive
+        idleTimeoutMillis: 15000, // Reduced from 30s for faster recycling
+        connectionTimeoutMillis: 8000, // Balanced timeout
+        acquireTimeoutMillis: 12000, // Reasonable acquire timeout
+        maxUses: 2000, // Connection recycling for memory management
+        keepAlive: true,
+        allowExitOnIdle: false // Prevent unexpected pool closure
       });
 
       const db = drizzle({ client: pool, schema });

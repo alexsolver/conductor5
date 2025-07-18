@@ -16,7 +16,7 @@ import {
  * Each tenant gets their own schema with these isolated tables
  */
 export function getTenantSpecificSchema(schemaName: string) {
-  // Tenant-specific customers table
+  // Tenant-specific customers table - OPTIMIZED STRUCTURE
   const tenantCustomers = pgTable("customers", {
     id: uuid("id").primaryKey().defaultRandom(),
     firstName: varchar("first_name", { length: 255 }),
@@ -24,8 +24,8 @@ export function getTenantSpecificSchema(schemaName: string) {
     email: varchar("email", { length: 255 }).notNull(),
     phone: varchar("phone", { length: 50 }),
     company: varchar("company", { length: 255 }),
-    tags: jsonb("tags").default([]),
-    metadata: jsonb("metadata").default({}),
+    tags: varchar("tags", { length: 500 }), // Optimized: VARCHAR for simple tag lists
+    metadata: text("metadata"), // Optimized: TEXT for optional complex data
     
     // Status fields
     verified: boolean("verified").default(false),
@@ -60,16 +60,16 @@ export function getTenantSpecificSchema(schemaName: string) {
     email: varchar("email", { length: 255 }),
     phone: varchar("phone", { length: 50 }),
     website: varchar("website", { length: 500 }),
-    address: jsonb("address").default({}),
+    address: text("address"), // Optimized: TEXT instead of JSONB for address
     taxId: varchar("tax_id", { length: 100 }),
     registrationNumber: varchar("registration_number", { length: 100 }),
     subscriptionTier: varchar("subscription_tier", { length: 50 }).default("basic"),
     contractType: varchar("contract_type", { length: 50 }),
     maxUsers: integer("max_users"),
     maxTickets: integer("max_tickets"),
-    settings: jsonb("settings").default({}),
-    tags: jsonb("tags").default([]),
-    metadata: jsonb("metadata").default({}),
+    settings: text("settings"), // Optimized: TEXT for settings
+    tags: varchar("tags", { length: 500 }), // Optimized: VARCHAR for tags
+    metadata: text("metadata"), // Optimized: TEXT for metadata
     status: varchar("status", { length: 50 }).default("active"),
     isActive: boolean("is_active").default(true),
     isPrimary: boolean("is_primary").default(false),
@@ -87,7 +87,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     role: varchar("role", { length: 100 }).default("member"),
     title: varchar("title", { length: 255 }),
     department: varchar("department", { length: 255 }),
-    permissions: jsonb("permissions").default({}),
+    permissions: text("permissions"), // Optimized: TEXT for permissions
     isActive: boolean("is_active").default(true),
     isPrimary: boolean("is_primary").default(false),
     joinedAt: timestamp("joined_at").defaultNow(),
@@ -130,7 +130,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     // Resolution fields
     resolutionCode: varchar("resolution_code", { length: 50 }),
     resolutionNotes: text("resolution_notes"),
-    workNotes: jsonb("work_notes").default([]),
+    workNotes: text("work_notes"), // Optimized: TEXT for work notes
     
     // CI/CMDB fields
     configurationItem: varchar("configuration_item", { length: 100 }),
@@ -152,9 +152,9 @@ export function getTenantSpecificSchema(schemaName: string) {
     beneficiaryType: varchar("beneficiary_type", { length: 20 }),
     callerType: varchar("caller_type", { length: 20 }),
     
-    // Metadata
-    tags: jsonb("tags").default([]),
-    metadata: jsonb("metadata").default({}),
+    // Metadata - OPTIMIZED
+    tags: varchar("tags", { length: 500 }), // VARCHAR for simple tag lists
+    metadata: text("metadata"), // TEXT for optional metadata
     
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
@@ -169,7 +169,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     content: text("content").notNull(),
     type: varchar("type", { length: 50 }).default("comment"),
     isInternal: varchar("is_internal", { length: 10 }).default("false"),
-    attachments: jsonb("attachments").default([]),
+    attachments: text("attachments"), // Optimized: TEXT for attachments list
     createdAt: timestamp("created_at").defaultNow(),
   }, { schema: schemaName });
 
@@ -181,9 +181,9 @@ export function getTenantSpecificSchema(schemaName: string) {
     action: varchar("action", { length: 50 }).notNull(), // created, updated, deleted, assigned
     performedById: varchar("performed_by_id"), // References public.users
     performedByType: varchar("performed_by_type", { length: 20 }), // user, customer, system
-    details: jsonb("details").default({}),
-    previousValues: jsonb("previous_values").default({}),
-    newValues: jsonb("new_values").default({}),
+    details: text("details"), // Optimized: TEXT for activity details
+    previousValues: text("previous_values"), // Optimized: TEXT for previous values
+    newValues: text("new_values"), // Optimized: TEXT for new values
     createdAt: timestamp("created_at").defaultNow(),
   }, { schema: schemaName });
 
@@ -208,9 +208,9 @@ export function getTenantSpecificSchema(schemaName: string) {
     latitude: varchar("latitude", { length: 20 }),
     longitude: varchar("longitude", { length: 20 }),
     
-    // Business hours and timezone
-    businessHours: jsonb("business_hours").default({}),
-    specialHours: jsonb("special_hours").default({}),
+    // Business hours and timezone - OPTIMIZED
+    businessHours: text("business_hours"), // TEXT for business hours
+    specialHours: text("special_hours"), // TEXT for special hours
     timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo"),
     
     // SLA and access
@@ -218,13 +218,13 @@ export function getTenantSpecificSchema(schemaName: string) {
     accessInstructions: text("access_instructions"),
     requiresAuthorization: boolean("requires_authorization").default(false),
     
-    // Security and emergency
-    securityEquipment: jsonb("security_equipment").default({}),
-    emergencyContacts: jsonb("emergency_contacts").default({}),
+    // Security and emergency - OPTIMIZED
+    securityEquipment: text("security_equipment"), // TEXT for security equipment
+    emergencyContacts: text("emergency_contacts"), // TEXT for emergency contacts
     
-    // Metadata
-    metadata: jsonb("metadata").default({}),
-    tags: jsonb("tags").default([]),
+    // Metadata - FINAL OPTIMIZATION
+    metadata: text("metadata"), // TEXT for metadata
+    tags: varchar("tags", { length: 500 }), // VARCHAR for tags
     
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),

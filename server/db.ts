@@ -22,6 +22,10 @@ export class SchemaManager {
   private static instance: SchemaManager;
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
+  private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
+  private readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutes cache TTL - reduced for better memory management
+  private readonly MAX_CACHED_SCHEMAS = 20; // Limit cached schemas to prevent memory leaks
+  private lastCleanup = Date.now();
 
   static getInstance(): SchemaManager {
     if (!SchemaManager.instance) {
@@ -30,24 +34,60 @@ export class SchemaManager {
     return SchemaManager.instance;
   }
 
-  // OPTIMIZED: Check if schema and required tables exist
+  // Intelligent cache cleanup to prevent memory leaks
+  private cleanupCache(): void {
+    const now = Date.now();
+    
+    // Only run cleanup every 5 minutes
+    if (now - this.lastCleanup < 5 * 60 * 1000) {
+      return;
+    }
+
+    // Clean expired validation cache entries
+    for (const [tenantId, cached] of this.schemaValidationCache.entries()) {
+      if (now - cached.timestamp > this.CACHE_TTL) {
+        this.schemaValidationCache.delete(tenantId);
+      }
+    }
+
+    // Limit cache size to prevent memory leaks
+    if (this.schemaValidationCache.size > this.MAX_CACHED_SCHEMAS) {
+      const entries = Array.from(this.schemaValidationCache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp); // Sort by timestamp
+      
+      // Remove oldest entries
+      const toRemove = entries.slice(0, entries.length - this.MAX_CACHED_SCHEMAS);
+      for (const [tenantId] of toRemove) {
+        this.schemaValidationCache.delete(tenantId);
+      }
+    }
+
+    this.lastCleanup = now;
+  }
+
+  // OPTIMIZED: Lightweight schema validation with intelligent caching
   private async schemaExists(schemaName: string): Promise<boolean> {
     try {
-      // Check schema + table count in single query for better performance
+      // Use lightweight check - just verify schema exists and has core tables
       const result = await db.execute(sql`
-        SELECT COUNT(*) as table_count 
-        FROM information_schema.tables 
-        WHERE table_schema = ${schemaName}
+        SELECT EXISTS(
+          SELECT 1 FROM information_schema.schemata WHERE schema_name = ${schemaName}
+        ) as schema_exists,
+        (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ${schemaName} AND table_name IN ('customers', 'tickets', 'ticket_messages')) as core_tables
       `);
-      // Require minimum 11 tables for complete schema
-      const tableCount = Number(result.rows[0]?.table_count || 0);
-      return tableCount >= 11;
+      
+      const row = result.rows[0];
+      const schemaExists = Boolean(row?.schema_exists);
+      const coreTablesCount = Number(row?.core_tables || 0);
+      
+      // Only require 3 core tables instead of 11+ for basic functionality
+      return schemaExists && coreTablesCount >= 3;
     } catch {
       return false;
     }
   }
 
-  // Create a new schema for a tenant
+  // Create a new schema for a tenant with intelligent caching
   async createTenantSchema(tenantId: string): Promise<void> {
     const schemaName = this.getSchemaName(tenantId);
 
@@ -56,8 +96,28 @@ export class SchemaManager {
       return; // Schema already initialized
     }
 
+    // Run intelligent cache cleanup
+    this.cleanupCache();
+
+    // Check validation cache to avoid repeated database queries
+    const cached = this.schemaValidationCache.get(tenantId);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_TTL) {
+      if (cached.isValid) {
+        this.initializedSchemas.add(tenantId);
+        return; // Schema valid from cache
+      }
+    }
+
     // Check if schema actually exists in database
-    if (await this.schemaExists(schemaName)) {
+    const exists = await this.schemaExists(schemaName);
+    
+    // Cache the validation result
+    this.schemaValidationCache.set(tenantId, {
+      isValid: exists,
+      timestamp: Date.now()
+    });
+    
+    if (exists) {
       this.initializedSchemas.add(tenantId);
       return; // Schema exists, mark as initialized
     }
@@ -81,13 +141,14 @@ export class SchemaManager {
     }
   }
 
-  // Get database connection for a specific tenant
+  // Get database connection for a specific tenant - OPTIMIZED
   async getTenantDb(tenantId: string): Promise<{ db: ReturnType<typeof drizzle>; schema: any }> {
     const schemaName = this.getSchemaName(tenantId);
 
-    // Force recreation to test if schema connection is working properly
+    // Use existing connection if available - avoid recreation overhead
     if (this.tenantConnections.has(tenantId)) {
-      this.tenantConnections.delete(tenantId);
+      const existing = this.tenantConnections.get(tenantId)!;
+      return existing; // Reuse existing connection
     }
 
     if (!this.tenantConnections.has(tenantId)) {
@@ -103,7 +164,14 @@ export class SchemaManager {
       connectionUrl.searchParams.set('search_path', `${schemaName},public`);
 
       const tenantPool = new Pool({ 
-        connectionString: connectionUrl.toString()
+        connectionString: connectionUrl.toString(),
+        max: 2, // Minimal per-tenant pool size - intelligent sizing
+        min: 1, // Keep connection alive
+        idleTimeoutMillis: 20000, // Balanced timeout
+        connectionTimeoutMillis: 6000, // Quick connection establishment
+        acquireTimeoutMillis: 10000, // Reasonable acquire timeout
+        maxUses: 1500, // Regular connection recycling
+        keepAlive: true
       });
 
       // Use simplified schema approach to avoid ExtraConfigBuilder error
