@@ -1,0 +1,551 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { AppShell } from "@/components/layout/AppShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Search, 
+  Plus, 
+  Filter, 
+  Star,
+  Award,
+  Users,
+  TrendingUp,
+  AlertTriangle,
+  BookOpen,
+  Settings,
+  Eye,
+  Edit,
+  Trash2
+} from "lucide-react";
+
+// Schema para criação de habilidades
+const skillFormSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório").max(255),
+  category: z.string().min(1, "Categoria é obrigatória"),
+  minLevelRequired: z.number().min(1).max(5).default(1),
+  suggestedCertification: z.string().optional(),
+  certificationValidityMonths: z.number().positive().optional(),
+  description: z.string().optional(),
+  observations: z.string().optional(),
+});
+
+type SkillFormData = z.infer<typeof skillFormSchema>;
+
+interface Skill {
+  id: string;
+  name: string;
+  category: string;
+  minLevelRequired: number;
+  suggestedCertification?: string;
+  certificationValidityMonths?: number;
+  description?: string;
+  observations?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UserSkill {
+  id: string;
+  userId: string;
+  skillId: string;
+  proficiencyLevel: number;
+  averageRating: number;
+  totalEvaluations: number;
+  certificationId?: string;
+  certificationNumber?: string;
+  certificationIssuedAt?: string;
+  certificationExpiresAt?: string;
+  isActive: boolean;
+  skillName?: string;
+  skillCategory?: string;
+  userName?: string;
+}
+
+const PROFICIENCY_LEVELS = {
+  1: { name: 'Básico', description: 'Conhecimento introdutório, precisa de supervisão', stars: 1 },
+  2: { name: 'Intermediário', description: 'Executa tarefas com alguma autonomia', stars: 2 },
+  3: { name: 'Avançado', description: 'Executa com autonomia, lida com situações variadas', stars: 3 },
+  4: { name: 'Especialista', description: 'Referência técnica interna, resolve problemas críticos', stars: 4 },
+  5: { name: 'Excelência', description: 'Comprovada por resultados e avaliações de clientes', stars: 5 },
+};
+
+const SKILL_CATEGORIES = [
+  'elétrica', 'redes', 'atendimento', 'hardware', 'software', 
+  'segurança', 'instalação', 'manutenção', 'suporte', 'certificação'
+];
+
+export default function TechnicalSkills() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Queries
+  const { data: skills, isLoading: skillsLoading } = useQuery<{ data: Skill[] }>({
+    queryKey: ["/api/technical-skills/skills", { search: searchTerm, category: selectedCategory !== "all" ? selectedCategory : undefined }],
+  });
+
+  const { data: categories } = useQuery<{ data: string[] }>({
+    queryKey: ["/api/technical-skills/skills/categories"],
+  });
+
+  const { data: statistics } = useQuery<{ data: { categoryStats: any[], mostDemanded: any[] } }>({
+    queryKey: ["/api/technical-skills/skills/statistics"],
+  });
+
+  const { data: expiredCerts } = useQuery<{ data: UserSkill[] }>({
+    queryKey: ["/api/technical-skills/certifications/expired"],
+  });
+
+  const { data: expiringCerts } = useQuery<{ data: UserSkill[] }>({
+    queryKey: ["/api/technical-skills/certifications/expiring"],
+  });
+
+  // Mutations
+  const createSkillMutation = useMutation({
+    mutationFn: (data: SkillFormData) => 
+      apiRequest("/api/technical-skills/skills", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/statistics"] });
+      setIsCreateDialogOpen(false);
+      toast({ title: "Habilidade criada com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar habilidade", variant: "destructive" });
+    },
+  });
+
+  const updateSkillMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<SkillFormData> }) =>
+      apiRequest(`/api/technical-skills/skills/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      setIsEditDialogOpen(false);
+      setSelectedSkill(null);
+      toast({ title: "Habilidade atualizada com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao atualizar habilidade", variant: "destructive" });
+    },
+  });
+
+  const deleteSkillMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/api/technical-skills/skills/${id}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      toast({ title: "Habilidade desativada com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao desativar habilidade", variant: "destructive" });
+    },
+  });
+
+  // Forms
+  const createForm = useForm<SkillFormData>({
+    resolver: zodResolver(skillFormSchema),
+    defaultValues: {
+      name: "",
+      category: "",
+      minLevelRequired: 1,
+      description: "",
+      observations: "",
+    },
+  });
+
+  const editForm = useForm<SkillFormData>({
+    resolver: zodResolver(skillFormSchema),
+  });
+
+  // Handlers
+  const onCreateSubmit = (data: SkillFormData) => {
+    createSkillMutation.mutate(data);
+  };
+
+  const onEditSubmit = (data: SkillFormData) => {
+    if (selectedSkill) {
+      updateSkillMutation.mutate({ id: selectedSkill.id, data });
+    }
+  };
+
+  const openEditDialog = (skill: Skill) => {
+    setSelectedSkill(skill);
+    editForm.reset({
+      name: skill.name,
+      category: skill.category,
+      minLevelRequired: skill.minLevelRequired,
+      suggestedCertification: skill.suggestedCertification || "",
+      certificationValidityMonths: skill.certificationValidityMonths || undefined,
+      description: skill.description || "",
+      observations: skill.observations || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const renderStars = (level: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${i < level ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+      />
+    ));
+  };
+
+  const filteredSkills = skills?.data?.filter(skill => {
+    const matchesSearch = !searchTerm || 
+      skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      skill.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || skill.category === selectedCategory;
+    return matchesSearch && matchesCategory && skill.isActive;
+  }) || [];
+
+  return (
+    <AppShell>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Habilidades Técnicas</h1>
+            <p className="text-gray-600">Gerencie habilidades técnicas e certificações dos usuários</p>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Habilidade
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Habilidade</DialogTitle>
+              </DialogHeader>
+              <Form {...createForm}>
+                <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+                  <FormField
+                    control={createForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Instalação de fibra óptica" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={createForm.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {SKILL_CATEGORIES.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category.charAt(0).toUpperCase() + category.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={createForm.control}
+                    name="minLevelRequired"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nível Mínimo Exigido</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.entries(PROFICIENCY_LEVELS).map(([level, info]) => (
+                              <SelectItem key={level} value={level}>
+                                {info.name} ({renderStars(parseInt(level))})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={createForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Descrição da habilidade..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={createSkillMutation.isPending}>
+                      {createSkillMutation.isPending ? "Criando..." : "Criar"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Habilidades</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{filteredSkills.length}</div>
+              <p className="text-xs text-muted-foreground">Habilidades ativas</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Certificações Vencidas</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{expiredCerts?.data?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Requerem atenção</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
+              <Award className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{expiringCerts?.data?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Certificações</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Categorias</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{categories?.data?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Diferentes áreas</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center space-x-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Buscar habilidades..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {categories?.data?.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Skills Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {skillsLoading ? (
+            <div className="col-span-full text-center py-8">Carregando habilidades...</div>
+          ) : filteredSkills.length === 0 ? (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              Nenhuma habilidade encontrada
+            </div>
+          ) : (
+            filteredSkills.map((skill) => (
+              <Card key={skill.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{skill.name}</CardTitle>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="secondary">{skill.category}</Badge>
+                        <div className="flex items-center">
+                          {renderStars(skill.minLevelRequired)}
+                          <span className="ml-1 text-xs text-gray-500">mín.</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(skill)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteSkillMutation.mutate(skill.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {skill.description && (
+                    <p className="text-sm text-gray-600 mb-3">{skill.description}</p>
+                  )}
+                  {skill.suggestedCertification && (
+                    <div className="text-xs text-blue-600">
+                      <Award className="h-3 w-3 inline mr-1" />
+                      {skill.suggestedCertification}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Habilidade</DialogTitle>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={editForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {SKILL_CATEGORIES.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={editForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateSkillMutation.isPending}>
+                    {updateSkillMutation.isPending ? "Salvando..." : "Salvar"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AppShell>
+  );
+}

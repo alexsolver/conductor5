@@ -34,7 +34,8 @@ import {
   Target,
   Palette,
   PieChart,
-  Building2
+  Building2,
+  Award
 } from "lucide-react";
 
 // Base navigation without dynamic badges
@@ -42,6 +43,8 @@ const baseNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Customers", href: "/customers", icon: Users },
+  { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
+  { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },

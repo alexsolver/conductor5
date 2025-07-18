@@ -1,35 +1,35 @@
 {
-  "selectedTemplate": "elegant-purple",
-  "appliedAt": "2025-07-17T21:32:09.324Z",
+  "selectedTemplate": "corporate-blue",
+  "appliedAt": "2025-07-18T02:20:02.338Z",
   "template": {
-    "id": "elegant-purple",
-    "name": "Elegant Purple",
-    "description": "Design elegante com paleta roxa sofisticada e dourada",
+    "id": "corporate-blue",
+    "name": "Corporate Professional",
+    "description": "Layout clássico e profissional com tons de azul corporativo",
     "icon": {
       "type": {},
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:96:8",
-        "data-component-name": "Palette",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:36:8",
+        "data-component-name": "Building2",
         "className": "w-6 h-6"
       },
       "_owner": null,
       "_store": {}
     },
-    "preview": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #a855f7 100%)",
+    "preview": "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
     "colors": {
-      "primary": "#581c87",
-      "secondary": "#7c3aed",
-      "accent": "#fbbf24",
-      "background": "#fef7ff"
+      "primary": "#1e40af",
+      "secondary": "#64748b",
+      "accent": "#0ea5e9",
+      "background": "#f8fafc"
     },
     "features": [
-      "Paleta sofisticada",
-      "Acentos dourados",
-      "Sombras elegantes",
-      "Transições suaves"
+      "Sidebar expandível",
+      "Cards com sombras suaves",
+      "Tipografia clara",
+      "Navegação hierárquica"
     ],
-    "style": "elegant"
+    "style": "corporate"
   }
 }

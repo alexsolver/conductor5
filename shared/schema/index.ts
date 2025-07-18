@@ -11,6 +11,7 @@ export * from "./security";
 export * from "./tenant-specific";
 export * from "./user-management";
 export * from "./multi-tenant";
+export * from "./technical-skills";
 
 // Main schema aggregation for backwards compatibility
 import { 
