@@ -40,6 +40,7 @@ import { UserManagement } from "./pages/UserManagement";
 import MultiTenantManagement from "./pages/MultiTenantManagement";
 import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
+import CustomerCompanies from "./pages/CustomerCompanies";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -76,6 +77,7 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/customers" component={CustomersTable} />
+        <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/locations" component={Locations} />
         <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/analytics" component={Analytics} />
