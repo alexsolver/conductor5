@@ -11,6 +11,14 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### July 18, 2025
+- ✓ **UNIFIED SOLICITORS/CUSTOMERS ARCHITECTURE**: Completely unified contact management system
+- ✓ **SOLICITANTES = CUSTOMERS TABLE**: All solicitors now use customers table with customerType = 'solicitante'
+- ✓ **FAVORECIDOS = EXTERNAL_CONTACTS TABLE**: All beneficiaries use dedicated external_contacts table
+- ✓ **ELIMINATED ARCHITECTURAL DUPLICATION**: Removed confusion between external_contacts and customers for solicitors
+- ✓ **FIXED TENANT VALIDATION ERROR**: Removed non-existent subscription_status column from tenant validation
+- ✓ **FIXED UNDEFINED VARIABLE ERROR**: Corrected parsedLimit variable scope issue in customers route
+- ✓ **CLEAN SEPARATION OF CONCERNS**: Clear distinction between internal customers and external contacts
+- ✓ **DATABASE SCHEMA ALIGNMENT**: Storage methods now consistently use correct tables for each entity type
 - ✓ **MIGRAÇÃO COMPLETA 28 TABELAS**: Todos os 4 schemas tenant completamente migrados com tenant_id obrigatório
 - ✓ **BIND PARAMETERS ERROR RESOLVIDO**: migrateLegacyTables() corrigido usando sql.raw() para evitar parameter binding issues
 - ✓ **100% TENANT ISOLATION ACHIEVED**: Todas as tabelas em tenant_3f99462f, tenant_715c510a, tenant_78a4c88e, tenant_cb9056df migradas

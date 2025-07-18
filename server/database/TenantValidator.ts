@@ -52,14 +52,12 @@ export class TenantValidator {
     }
 
     try {
-      // CRITICAL FIX: Enhanced validation with subscription status
+      // CRITICAL FIX: Enhanced validation without subscription status (column doesn't exist)
       const result = await db.execute(sql`
-        SELECT t.id, t.is_active, t.subscription_status, t.expires_at
+        SELECT t.id, t.is_active, t.created_at
         FROM tenants t
         WHERE t.id = ${validatedId} 
         AND t.is_active = true
-        AND (t.subscription_status = 'active' OR t.subscription_status = 'trial')
-        AND (t.expires_at IS NULL OR t.expires_at > NOW())
         LIMIT 1
       `);
 

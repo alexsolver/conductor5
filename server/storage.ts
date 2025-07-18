@@ -581,14 +581,16 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      // UNIFIED ARCHITECTURE: Solicitantes are customers with customerType = 'solicitante'
       let baseQuery = sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
-        WHERE type = 'solicitante'
+        SELECT * FROM ${sql.identifier(schemaName)}.customers
+        WHERE customer_type = 'solicitante'
       `;
 
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          name ILIKE ${'%' + search + '%'} OR 
+          first_name ILIKE ${'%' + search + '%'} OR 
+          last_name ILIKE ${'%' + search + '%'} OR
           email ILIKE ${'%' + search + '%'}
         )`;
       }
@@ -614,14 +616,15 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      // UNIFIED ARCHITECTURE: Favorecidos are external_contacts (not customers)
       let baseQuery = sql`
         SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
-        WHERE type = 'favorecido'
+        WHERE 1=1
       `;
 
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          name ILIKE ${'%' + search + '%'} OR 
+          nome ILIKE ${'%' + search + '%'} OR 
           email ILIKE ${'%' + search + '%'}
         )`;
       }
@@ -646,15 +649,25 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      // UNIFIED ARCHITECTURE: Create solicitante as customer with customerType = 'solicitante'
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.raw(`${schemaName}.external_contacts`)}
-        (name, email, phone, document, type, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.customers
+        (tenant_id, first_name, last_name, email, phone, documento, tipo_pessoa, 
+         preferencia_contato, idioma, observacoes, customer_type, active, verified, created_at, updated_at)
         VALUES (
-          ${data.name},
-          ${data.email || null},
+          ${validatedTenantId},
+          ${data.firstName || ''},
+          ${data.lastName || ''},
+          ${data.email},
           ${data.phone || null},
-          ${data.document || null},
+          ${data.documento || null},
+          ${data.tipoPessoa || 'fisica'},
+          ${data.preferenciaContato || 'email'},
+          ${data.idioma || 'pt-BR'},
+          ${data.observacoes || null},
           'solicitante',
+          true,
+          false,
           NOW(),
           NOW()
         )
@@ -674,15 +687,23 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      // UNIFIED ARCHITECTURE: Create favorecido in external_contacts table
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.raw(`${schemaName}.external_contacts`)}
-        (name, email, phone, document, type, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.external_contacts
+        (tenant_id, nome, email, telefone, company_id, location_id, customer_id, 
+         pode_interagir, tipo_vinculo, observacoes, status, created_at, updated_at)
         VALUES (
-          ${data.name},
-          ${data.email || null},
-          ${data.phone || null},
-          ${data.document || null},
-          'favorecido',
+          ${validatedTenantId},
+          ${data.nome},
+          ${data.email},
+          ${data.telefone || null},
+          ${data.companyId || null},
+          ${data.locationId || null},
+          ${data.customerId || null},
+          ${data.podeInteragir || false},
+          ${data.tipoVinculo || 'outro'},
+          ${data.observacoes || null},
+          'ativo',
           NOW(),
           NOW()
         )

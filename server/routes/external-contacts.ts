@@ -49,7 +49,7 @@ router.get('/solicitantes', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Fetch solicitantes from database
+    // Fetch solicitantes from database (unified: customers with customerType = 'solicitante')
     const solicitantes = await storage.getSolicitantes(tenantId);
 
     console.log('Solicitantes fetched successfully from database', {
@@ -87,12 +87,8 @@ router.post('/solicitantes', async (req: AuthenticatedRequest, res) => {
     
     const validatedData = createSolicitanteSchema.parse(req.body);
     
-    // Create new solicitante as customer with type 'solicitante'
-    const newSolicitante = await storage.createCustomer({
-      ...validatedData,
-      tenantId,
-      customerType: 'solicitante'
-    });
+    // Create new solicitante using unified architecture (customers table with customerType = 'solicitante')
+    const newSolicitante = await storage.createSolicitante(tenantId, validatedData);
 
     console.log('Solicitante created successfully in database', {
       context: {
@@ -172,11 +168,8 @@ router.post('/favorecidos', async (req: AuthenticatedRequest, res) => {
     
     const validatedData = createFavorecidoSchema.parse(req.body);
     
-    // Create new favorecido in database
-    const newFavorecido = await storage.createFavorecido({
-      ...validatedData,
-      tenantId
-    });
+    // Create new favorecido in database using unified architecture (external_contacts table)
+    const newFavorecido = await storage.createFavorecido(tenantId, validatedData);
 
     console.log('Favorecido created successfully in database', {
       context: {
