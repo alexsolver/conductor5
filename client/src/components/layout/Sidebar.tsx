@@ -42,7 +42,6 @@ const baseNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Customers", href: "/customers", icon: Users },
-  { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
@@ -83,6 +82,7 @@ const adminNavigation = [
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Gestão de Clientes", href: "/tenant-admin/customers", icon: Users },
+      { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
     ]
