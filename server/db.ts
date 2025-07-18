@@ -35,8 +35,8 @@ export class SchemaManager {
     try {
       const result = await db.execute(sql`
         SELECT 1 FROM information_schema.schemata 
-        WHERE schema_name = ${sql.placeholder('schemaName')}
-      `, { schemaName });
+        WHERE schema_name = ${schemaName}
+      `);
       return result.rows.length > 0;
     } catch {
       return false;
@@ -174,9 +174,9 @@ export class SchemaManager {
       const result = await db.execute(sql`
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
-        WHERE table_schema = ${sql.placeholder('schemaName')}
+        WHERE table_schema = ${schemaName}
         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships')
-      `, { schemaName });
+      `);
       
       return (result.rows[0]?.table_count as number) >= 7;
     } catch {

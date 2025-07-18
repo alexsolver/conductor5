@@ -1,1119 +1,555 @@
-import {
-  users,
-  tenants,
-  customers,
-  tickets,
-  ticketMessages,
-  type User,
-  type Tenant,
-  type InsertTenant,
-  type Customer,
-  type InsertCustomer,
-  type Ticket,
-  type InsertTicket,
-  type TicketMessage,
-  type InsertTicketMessage,
-} from "@shared/schema";
-import { db, schemaManager } from "./db";
-import { eq, and, desc, count, sql, ne, inArray, gte } from "drizzle-orm";
-import crypto from "crypto";
+import { eq, and, desc, asc, ilike, count, sql } from "drizzle-orm";
+import { db, SchemaManager } from "./db";
+import { users, tenants, type User, type InsertUser } from "@shared/schema";
+import { logInfo, logError } from "./utils/logger";
 
-// Define missing types for backwards compatibility
-type UpsertUser = Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { id?: string };
-type ActivityLog = {
-  id: string;
-  entityType: string;
-  entityId: string;
-  action: string;
-  performedById?: string;
-  performedByType?: string;
-  details: any;
-  previousValues: any;
-  newValues: any;
-  createdAt: Date;
-};
-type InsertActivityLog = Omit<ActivityLog, 'id' | 'createdAt'>;
+// ===========================
+// INTERFACES & TYPES
+// ===========================
 
 export interface IStorage {
-  // User operations (mandatory for Replit Auth)
-  getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  // User Management
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(insertUser: InsertUser): Promise<User>;
   
-  // Tenant operations
-  getTenant(id: string): Promise<Tenant | undefined>;
-  getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined>;
-  createTenant(tenant: InsertTenant): Promise<Tenant>;
-  initializeTenantSchema(tenantId: string): Promise<void>;
+  // Tenant Management  
+  createTenant(tenantData: any): Promise<any>;
+  getTenantUsers(tenantId: string, options?: { limit?: number; offset?: number }): Promise<User[]>;
   
-  // Customer operations
-  getCustomers(tenantId: string, limit?: number, offset?: number): Promise<Customer[]>;
-  getCustomer(id: string, tenantId: string): Promise<Customer | undefined>;
-  createCustomer(customer: InsertCustomer): Promise<Customer>;
-  updateCustomer(id: string, tenantId: string, updates: Partial<InsertCustomer>): Promise<Customer | undefined>;
-  deleteCustomer(id: string, tenantId: string): Promise<boolean>;
+  // Customer Management
+  getCustomers(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
+  getCustomerById(tenantId: string, customerId: string): Promise<any | undefined>;
+  createCustomer(tenantId: string, customerData: any): Promise<any>;
+  updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any>;
+  deleteCustomer(tenantId: string, customerId: string): Promise<boolean>;
   
-  // Ticket operations
-  getTickets(tenantId: string, limit?: number, offset?: number): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]>;
-  getTicket(id: string, tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User; messages: (TicketMessage & { author?: User; customer?: Customer })[] }) | undefined>;
-  createTicket(ticket: InsertTicket): Promise<Ticket>;
-  updateTicket(id: string, tenantId: string, updates: Partial<InsertTicket>): Promise<Ticket | undefined>;
-  getUrgentTickets(tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]>;
+  // Ticket Management
+  getTickets(tenantId: string, options?: { limit?: number; offset?: number; status?: string }): Promise<any[]>;
+  getTicketById(tenantId: string, ticketId: string): Promise<any | undefined>;
+  createTicket(tenantId: string, ticketData: any): Promise<any>;
+  updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any>;
+  deleteTicket(tenantId: string, ticketId: string): Promise<boolean>;
   
-  // Ticket message operations
-  getTicketMessages(ticketId: string): Promise<(TicketMessage & { author?: User; customer?: Customer })[]>;
-  createTicketMessage(message: InsertTicketMessage): Promise<TicketMessage>;
+  // Dashboard & Analytics
+  getDashboardStats(tenantId: string): Promise<any>;
+  getRecentActivity(tenantId: string, options?: { limit?: number }): Promise<any[]>;
   
-  // Activity log operations
-  getRecentActivity(tenantId: string, limit?: number): Promise<(ActivityLog & { user?: User })[]>;
-  createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
-  
-  // Dashboard statistics
-  getDashboardStats(tenantId: string): Promise<{
-    activeTickets: number;
-    resolvedToday: number;
-    avgResolutionTime: number;
-    satisfactionScore: number;
-    onlineAgents: number;
-    totalAgents: number;
-  }>;
-
-  // External contacts operations (Solicitantes e Favorecidos)
-  getSolicitantes(tenantId: string): Promise<any[]>;
-  createSolicitante(solicitante: any): Promise<any>;
-  getFavorecidos(tenantId: string): Promise<any[]>;
-  createFavorecido(favorecido: any): Promise<any>;
-
-  // Knowledge Base operations - NO MORE MOCK DATA!
-  getKnowledgeBaseArticles(tenantId: string, filters: { category?: string; search?: string; limit?: number; offset?: number }): Promise<any[]>;
-  getKnowledgeBaseCategories(tenantId: string): Promise<any[]>;
-  getKnowledgeBaseArticle(tenantId: string, articleId: string): Promise<any>;
+  // Knowledge Base
   createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any>;
 }
 
+// ===========================
+// TENANT ID VALIDATION
+// ===========================
+
+export function validateTenantId(tenantId: string): string {
+  // Critical security: validate tenant ID format to prevent SQL injection
+  if (!tenantId || typeof tenantId !== 'string') {
+    throw new Error('Invalid tenant ID: must be a non-empty string');
+  }
+  
+  // Allow only alphanumeric characters, hyphens, and underscores
+  const validTenantIdRegex = /^[a-zA-Z0-9_-]+$/;
+  if (!validTenantIdRegex.test(tenantId)) {
+    throw new Error('Invalid tenant ID: contains invalid characters');
+  }
+  
+  if (tenantId.length > 50) {
+    throw new Error('Invalid tenant ID: too long');
+  }
+  
+  return tenantId;
+}
+
+// ===========================
+// DATABASE STORAGE CLASS
+// ===========================
+
 export class DatabaseStorage implements IStorage {
-  // User operations (mandatory for Replit Auth)
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+  private schemaManager: SchemaManager;
+
+  constructor() {
+    this.schemaManager = SchemaManager.getInstance();
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    // First, try to find an existing user
-    const existingUser = await this.getUser(userData.id);
-    
-    if (existingUser) {
-      // Update existing user
+  // ===========================
+  // USER MANAGEMENT  
+  // ===========================
+
+  async getUser(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, String(id)));
+      return user || undefined;
+    } catch (error) {
+      logError('Error fetching user', error, { userId: id });
+      throw error;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      if (!username) {
+        throw new Error('Username is required');
+      }
+      
+      const [user] = await db.select().from(users).where(eq(users.email, username));
+      return user || undefined;
+    } catch (error) {
+      logError('Error fetching user by username', error, { username });
+      throw error;
+    }
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    try {
+      if (!insertUser.email || !insertUser.passwordHash) {
+        throw new Error('Email and password hash are required');
+      }
+
       const [user] = await db
-        .update(users)
-        .set({
-          ...userData,
-          updatedAt: new Date(),
+        .insert(users)
+        .values({
+          id: crypto.randomUUID(),
+          ...insertUser
         })
-        .where(eq(users.id, userData.id))
         .returning();
+        
+      logInfo('User created successfully', { userId: user.id, email: user.email });
       return user;
-    }
-
-    // For new users, create a default tenant first
-    let defaultTenant;
-    try {
-      defaultTenant = await this.createTenant({
-        name: `${userData.firstName || userData.email || 'User'}'s Organization`,
-        subdomain: `tenant-${userData.id}`,
-        settings: {}
-      });
     } catch (error) {
-      // If tenant creation fails, try to get default tenant
-      const existingTenants = await db.select().from(tenants).limit(1);
-      if (existingTenants.length > 0) {
-        defaultTenant = existingTenants[0];
-      } else {
-        throw new Error('Failed to create or find default tenant');
-      }
+      logError('Error creating user', error, { email: insertUser.email });
+      throw error;
     }
-
-    // Create new user with tenant association
-    const [user] = await db
-      .insert(users)
-      .values({
-        ...userData,
-        tenantId: defaultTenant.id,
-        role: 'admin', // First user is admin
-        isActive: true
-      })
-      .returning();
-    return user;
   }
 
-  // Tenant operations
-  async getTenant(id: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
-    return tenant;
-  }
+  // ===========================
+  // TENANT MANAGEMENT
+  // ===========================
 
-  async getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain));
-    return tenant;
-  }
-
-  async createTenant(tenant: InsertTenant): Promise<Tenant> {
-    const [newTenant] = await db.insert(tenants).values(tenant).returning();
-    
-    // Initialize the tenant's dedicated schema
-    await this.initializeTenantSchema(newTenant.id);
-    
-    return newTenant;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
-
-  async initializeTenantSchema(tenantId: string): Promise<void> {
-    // Quick cache check to avoid unnecessary async operations
-    if (schemaManager['initializedSchemas']?.has(tenantId)) {
-      return; // Already initialized, skip
-    }
-
+  async createTenant(tenantData: any): Promise<any> {
     try {
-      await schemaManager.createTenantSchema(tenantId);
+      if (!tenantData.name || !tenantData.subdomain) {
+        throw new Error('Tenant name and subdomain are required');
+      }
+
+      // Create tenant record
+      const [tenant] = await db
+        .insert(tenants)
+        .values(tenantData)
+        .returning();
+
+      // Create tenant-specific schema
+      await this.schemaManager.createTenantSchema(tenant.id);
+
+      logInfo('Tenant created successfully', { tenantId: tenant.id, name: tenant.name });
+      return tenant;
     } catch (error) {
-      // Schema may already exist - this is expected behavior, mark as initialized
-      schemaManager['initializedSchemas']?.add(tenantId);
+      logError('Error creating tenant', error, { tenantData });
+      throw error;
     }
   }
 
-  // Customer operations using secure parameterized queries
-  async getCustomers(tenantId: string, limit = 50, offset = 0): Promise<Customer[]> {
+  async getTenantUsers(tenantId: string, options: { limit?: number; offset?: number } = {}): Promise<User[]> {
     try {
-      // Fast path: Try to get tenant DB directly without initialization
-      let tenantDb, tenantSchema;
-      
-      try {
-        const result = await schemaManager.getTenantDb(tenantId);
-        tenantDb = result.db;
-        tenantSchema = result.schema;
-      } catch (error) {
-        // Fallback: Initialize schema only if absolutely necessary
-        await this.initializeTenantSchema(tenantId);
-        const result = await schemaManager.getTenantDb(tenantId);
-        tenantDb = result.db;
-        tenantSchema = result.schema;
-      }
-      
-      const { customers: tenantCustomers } = tenantSchema;
-      
-      // Check if table exists in schema
-      if (!tenantCustomers) {
-        const { logWarn } = await import('./utils/logger');
-        logWarn('Customers table not found in tenant schema', { tenantId });
-        return [];
-      }
-      
-      // Optimized query with only essential fields to reduce data transfer
-      const customersData = await tenantDb
-        .select({
-          id: tenantCustomers.id,
-          firstName: tenantCustomers.firstName,
-          lastName: tenantCustomers.lastName,
-          email: tenantCustomers.email,
-          phone: tenantCustomers.phone,
-          company: tenantCustomers.company,
-          verified: tenantCustomers.verified,
-          active: tenantCustomers.active,
-          suspended: tenantCustomers.suspended,
-          timezone: tenantCustomers.timezone,
-          locale: tenantCustomers.locale,
-          language: tenantCustomers.language,
-          externalId: tenantCustomers.externalId,
-          role: tenantCustomers.role,
-          notes: tenantCustomers.notes,
-          lastLogin: tenantCustomers.lastLogin,
-          createdAt: tenantCustomers.createdAt,
-          updatedAt: tenantCustomers.updatedAt,
-          tags: tenantCustomers.tags,
-          metadata: tenantCustomers.metadata
-        })
-        .from(tenantCustomers)
+      const validatedTenantId = validateTenantId(tenantId);
+      const { limit = 50, offset = 0 } = options;
+
+      const tenantUsers = await db
+        .select()
+        .from(users)
+        .where(eq(users.tenantId, validatedTenantId))
         .limit(limit)
         .offset(offset)
-        .orderBy(desc(tenantCustomers.createdAt));
+        .orderBy(asc(users.email));
 
-      // Direct return without unnecessary transformation (already in correct format)
-      const customers: Customer[] = customersData.map(customer => ({
-        id: customer.id,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone,
-        company: customer.company,
-        verified: customer.verified,
-        active: customer.active,
-        suspended: customer.suspended,
-        timezone: customer.timezone,
-        locale: customer.locale,
-        language: customer.language,
-        externalId: customer.externalId,
-        role: customer.role,
-        notes: customer.notes,
-        avatar: customer.avatar || null,
-        signature: customer.signature || null,
-        lastLogin: customer.lastLogin,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt,
-        tags: (customer.tags as string[]) || [],
-        metadata: (customer.metadata as Record<string, unknown>) || {}
-      }));
-
-      return customers;
+      return tenantUsers;
     } catch (error) {
-      const { logError } = await import('./utils/logger');
-      logError('Error fetching customers', error, { tenantId, limit, offset });
-      
-      // If schema doesn't exist, return empty array instead of throwing
-      if (error?.message?.includes('does not exist')) {
-        return [];
-      }
-      
-      // Return empty array on any error to prevent UI breaking
-      return [];
+      logError('Error fetching tenant users', error, { tenantId, options });
+      throw error;
     }
   }
 
-  async getCustomer(id: string, tenantId: string): Promise<Customer | undefined> {
+  // ===========================
+  // CUSTOMER MANAGEMENT
+  // ===========================
+
+  async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
     try {
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // Use parameterized query for security
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.customers 
-        WHERE id = ${sql.placeholder('id')}
+      const validatedTenantId = validateTenantId(tenantId);
+      const { limit = 50, offset = 0, search } = options;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      let query = sql`
+        SELECT * FROM ${sql.identifier(schemaName, 'customers')}
+        WHERE 1=1
+      `;
+
+      if (search) {
+        query = sql`${query} AND (
+          first_name ILIKE ${`%${search}%`} OR 
+          last_name ILIKE ${`%${search}%`} OR 
+          email ILIKE ${`%${search}%`}
+        )`;
+      }
+
+      query = sql`${query} 
+        ORDER BY created_at DESC 
+        LIMIT ${limit} 
+        OFFSET ${offset}
+      `;
+
+      const result = await db.execute(query);
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching customers', error, { tenantId, options });
+      throw error;
+    }
+  }
+
+  async getCustomerById(tenantId: string, customerId: string): Promise<any | undefined> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName, 'customers')}
+        WHERE id = ${customerId}
         LIMIT 1
-      `, { id });
-      
-      const customer = result.rows[0];
-      return customer ? { ...customer, tenantId } : undefined;
+      `);
+
+      return result.rows?.[0] || undefined;
     } catch (error) {
-      const { logError } = await import('./utils/logger');
-      logError('Error fetching customer', error, { id, tenantId });
+      logError('Error fetching customer', error, { tenantId, customerId });
       throw error;
     }
   }
 
-  async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    if (!customer.tenantId) {
-      throw new Error('Customer must have a tenantId');
-    }
-    
-    // Criando cliente para o tenant especificado
-    
-    // Ensure tenant schema exists
+  async createCustomer(tenantId: string, customerData: any): Promise<any> {
     try {
-      await schemaManager.createTenantSchema(customer.tenantId);
-    } catch (error) {
-      // Schema do tenant já existe ou falha na criação - comportamento esperado
-    }
-    
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(customer.tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    console.log("Tenant schema customers table:", tenantCustomers);
-    console.log("Tenant DB config:", tenantDb.config);
-    
-    // Usando schema específico do tenant para criação do cliente
-    
-    // Remove tenantId from customer data since it's not part of tenant schema
-    const { tenantId, ...customerData } = customer;
-    
-    console.log("Customer data without tenantId:", customerData);
-    
-    const [newCustomer] = await tenantDb
-      .insert(tenantCustomers)
-      .values(customerData)
-      .returning();
-    return { ...newCustomer, tenantId };
-  }
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-  async updateCustomer(id: string, tenantId: string, updates: Partial<InsertCustomer>): Promise<Customer | undefined> {
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    // Remove tenantId from updates since it's not part of tenant schema
-    const { tenantId: _, ...updateData } = updates;
-    
-    const [updatedCustomer] = await tenantDb
-      .update(tenantCustomers)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(tenantCustomers.id, id))
-      .returning();
-    return updatedCustomer ? { ...updatedCustomer, tenantId } : undefined;
-  }
-
-  async deleteCustomer(id: string, tenantId: string): Promise<boolean> {
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    const result = await tenantDb
-      .delete(tenantCustomers)
-      .where(eq(tenantCustomers.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Ticket operations using secure parameterized queries
-  async getTickets(tenantId: string, limit = 50, offset = 0): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
-    try {
-      // Only initialize schema if not already cached - much faster
-      if (!schemaManager['initializedSchemas']?.has(tenantId)) {
-        await this.initializeTenantSchema(tenantId);
+      if (!customerData.email) {
+        throw new Error('Customer email is required');
       }
-      
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // Get tickets using parameterized query
-      const ticketResult = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.tickets
-        ORDER BY created_at DESC
-        LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
-      `);
-      
-      // Get customers for each ticket
-      const ticketsWithCustomers = await Promise.all(
-        ticketResult.rows.map(async (ticket: Record<string, unknown>) => {
-          let customer = null;
-          if (ticket.customer_id) {
-            try {
-              const customerResult = await tenantDb.execute(sql`
-                SELECT * FROM ${sql.identifier(schemaName)}.customers 
-                WHERE id = ${sql.placeholder('customerId')}
-                LIMIT 1
-              `, { customerId: ticket.customer_id });
-              customer = customerResult.rows[0];
-            } catch (error) {
-              // Customer not found - use fallback
-            }
-          }
-          
-          // Get assigned user from public schema if exists
-          let assignedTo = null;
-          if (ticket.assigned_to_id) {
-            try {
-              const userResult = await db.execute(sql`
-                SELECT * FROM public.users 
-                WHERE id = ${sql.placeholder('userId')}
-                LIMIT 1
-              `, { userId: ticket.assigned_to_id });
-              assignedTo = userResult.rows[0];
-            } catch (error) {
-              // User not found - continue without
-            }
-          }
-          
-          return {
-            ...ticket,
-            customer: customer ? { ...customer, tenantId } : {
-              id: ticket.customer_id || 'unknown',
-              fullName: `ID: ${(ticket.customer_id || '').slice(-8)}`,
-              email: 'unknown@example.com',
-              tenantId
-            },
-            assignedTo: assignedTo || undefined
-          };
-        })
-      );
-      
-      return ticketsWithCustomers;
-    } catch (error) {
-      const { logError } = await import('./utils/logger');
-      logError('Error fetching tickets', error, { tenantId, limit, offset });
-      
-      // If schema doesn't exist, return empty array instead of throwing
-      if (error.message?.includes('does not exist')) {
-        return [];
-      }
-      throw error;
-    }
-  }
 
-  async getTicket(id: string, tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User; messages: (TicketMessage & { author?: User; customer?: Customer })[] }) | undefined> {
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    const [result] = await db
-      .select({
-        ticket: tickets,
-        assignedTo: users,
-      })
-      .from(tickets)
-      .leftJoin(users, eq(tickets.assignedToId, users.id))
-      .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)));
-
-    if (!result) return undefined;
-
-    // Fetch customer from tenant schema
-    const [customer] = await tenantDb
-      .select()
-      .from(tenantCustomers)
-      .where(eq(tenantCustomers.id, result.ticket.customerId));
-
-    const messages = await this.getTicketMessages(id);
-    return { 
-      ...result.ticket, 
-      customer: customer ? { ...customer, tenantId } : {
-        id: result.ticket.customerId,
-        fullName: `ID: ${result.ticket.customerId.slice(-8)}`,
-        email: 'unknown@example.com',
-        tenantId
-      },
-      assignedTo: result.assignedTo || undefined,
-      messages 
-    };
-  }
-
-  async createTicket(ticket: InsertTicket): Promise<Ticket> {
-    // Generate ticket number if not provided
-    const ticketNumber = `INC${Date.now().toString().slice(-8)}`;
-    
-    // Map legacy fields to new fields for compatibility
-    const ticketData = {
-      ...ticket,
-      number: ticket.number || ticketNumber,
-      shortDescription: ticket.shortDescription || ticket.subject,
-      state: ticket.state || "new",
-      callerId: ticket.callerId || ticket.customerId,
-      openedById: ticket.openedById,
-      contactType: ticket.contactType || ticket.channel || "email",
-    };
-    
-    const [newTicket] = await db.insert(tickets).values(ticketData).returning();
-    return newTicket;
-  }
-
-  async updateTicket(id: string, tenantId: string, updates: Partial<InsertTicket>): Promise<Ticket | undefined> {
-    const [updatedTicket] = await db
-      .update(tickets)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)))
-      .returning();
-    return updatedTicket;
-  }
-
-  async getUrgentTickets(tenantId: string): Promise<(Ticket & { customer: Customer; assignedTo?: User })[]> {
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
-    const { customers: tenantCustomers } = tenantSchema;
-    
-    const results = await db
-      .select({
-        ticket: tickets,
-        assignedTo: users,
-      })
-      .from(tickets)
-      .leftJoin(users, eq(tickets.assignedToId, users.id))
-      .where(and(
-        eq(tickets.tenantId, tenantId),
-        inArray(tickets.priority, ['high', 'critical']),
-        ne(tickets.status, 'resolved')
-      ))
-      .orderBy(desc(tickets.createdAt))
-      .limit(10);
-
-    // Fetch customer data from tenant schema for each ticket
-    const urgentTicketsWithCustomers = await Promise.all(
-      results.map(async (row) => {
-        const [customer] = await tenantDb
-          .select()
-          .from(tenantCustomers)
-          .where(eq(tenantCustomers.id, row.ticket.customerId));
-        
-        return {
-          ...row.ticket,
-          customer: customer ? { ...customer, tenantId } : {
-            id: row.ticket.customerId,
-            fullName: `ID: ${row.ticket.customerId.slice(-8)}`,
-            email: 'unknown@example.com',
-            tenantId
-          },
-          assignedTo: row.assignedTo || undefined
-        };
-      })
-    );
-
-    return urgentTicketsWithCustomers;
-  }
-
-  // Ticket message operations
-  async getTicketMessages(ticketId: string): Promise<(TicketMessage & { author?: User; customer?: Customer })[]> {
-    const results = await db
-      .select({
-        message: ticketMessages,
-        author: users,
-        customer: customers,
-      })
-      .from(ticketMessages)
-      .leftJoin(users, eq(ticketMessages.userId, users.id))
-      .leftJoin(customers, eq(ticketMessages.customerId, customers.id))
-      .where(eq(ticketMessages.ticketId, ticketId))
-      .orderBy(ticketMessages.createdAt);
-
-    return results.map(row => ({
-      ...row.message,
-      author: row.author || undefined,
-      customer: row.customer || undefined
-    }));
-  }
-
-  async createTicketMessage(message: InsertTicketMessage): Promise<TicketMessage> {
-    const [newMessage] = await db.insert(ticketMessages).values(message).returning();
-    return newMessage;
-  }
-
-  // Activity log operations
-  async getRecentActivity(tenantId: string, limit = 20): Promise<(ActivityLog & { user?: User })[]> {
-    // Temporary implementation returning empty array until activity logs schema is fully migrated
-    // This prevents the "storage.getRecentActivity is not a function" error
-    return [];
-  }
-
-  async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
-    // Temporary implementation until activity logs schema is fully migrated
-    return {
-      id: 'temp-log-id',
-      entityType: log.entityType,
-      entityId: log.entityId,
-      action: log.action,
-      performedById: log.performedById,
-      performedByType: log.performedByType,
-      details: log.details,
-      previousValues: log.previousValues,
-      newValues: log.newValues,
-      createdAt: new Date()
-    };
-  }
-
-  // Dashboard statistics
-  async getDashboardStats(tenantId: string): Promise<{
-    activeTickets: number;
-    resolvedToday: number;
-    avgResolutionTime: number;
-    satisfactionScore: number;
-    onlineAgents: number;
-    totalAgents: number;
-  }> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const [activeTicketsResult] = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(
-        eq(tickets.tenantId, tenantId),
-        ne(tickets.status, 'resolved')
-      ));
-
-    const [resolvedTodayResult] = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(
-        eq(tickets.tenantId, tenantId),
-        eq(tickets.status, 'resolved'),
-        gte(tickets.resolvedAt, today)
-      ));
-
-    const [totalAgentsResult] = await db
-      .select({ count: count() })
-      .from(users)
-      .where(and(
-        eq(users.tenantId, tenantId),
-        eq(users.role, 'agent')
-      ));
-
-    return {
-      activeTickets: activeTicketsResult?.count || 0,
-      resolvedToday: resolvedTodayResult?.count || 0,
-      avgResolutionTime: 4.2, // Would calculate from actual data
-      satisfactionScore: 94, // Would calculate from survey data
-      onlineAgents: Math.floor((totalAgentsResult?.count || 0) * 0.75),
-      totalAgents: totalAgentsResult?.count || 0,
-    };
-  }
-
-  // External contacts operations (Solicitantes e Favorecidos)
-  async getSolicitantes(tenantId: string): Promise<any[]> {
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
-    const { customers: solicitantes } = tenantSchema;
-    
-    try {
-      const results = await tenantDb
-        .select()
-        .from(solicitantes)
-        .orderBy(desc(solicitantes.createdAt));
-      
-      return results.map(solicitante => ({
-        ...solicitante,
-        tenantId
-      }));
-    } catch (error) {
-      console.error('Error fetching solicitantes:', error);
-      return [];
-    }
-  }
-
-  async createSolicitante(solicitanteData: any): Promise<any> {
-    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(solicitanteData.tenantId);
-    const { customers: solicitantes } = tenantSchema;
-    
-    const [newSolicitante] = await tenantDb
-      .insert(solicitantes)
-      .values({
-        id: crypto.randomUUID(),
-        firstName: solicitanteData.firstName,
-        lastName: solicitanteData.lastName,
-        email: solicitanteData.email,
-        phone: solicitanteData.phone,
-        documento: solicitanteData.documento,
-        tipoPessoa: solicitanteData.tipoPessoa || 'fisica',
-        companyId: solicitanteData.companyId,
-        locationId: solicitanteData.locationId,
-        preferenciaContato: solicitanteData.preferenciaContato || 'email',
-        idioma: solicitanteData.idioma || 'pt-BR',
-        observacoes: solicitanteData.observacoes,
-        active: true,
-        verified: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      .returning();
-    
-    return {
-      ...newSolicitante,
-      tenantId: solicitanteData.tenantId
-    };
-  }
-
-  async getFavorecidos(tenantId: string): Promise<any[]> {
-    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
-    // Check if external_contacts table exists in tenant schema
-    try {
-      const results = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName, 'external_contacts')}
-        ORDER BY created_at DESC
-      `);
-      
-      return (results as any[]).map(favorecido => ({
-        ...favorecido,
-        tenantId
-      }));
-    } catch (error) {
-      // If table doesn't exist, return empty array
-      console.log('External contacts table not found in tenant schema, returning empty array');
-      return [];
-    }
-  }
-
-  async createFavorecido(favorecidoData: any): Promise<any> {
-    const { db: tenantDb } = await schemaManager.getTenantDb(favorecidoData.tenantId);
-    const schemaName = `tenant_${favorecidoData.tenantId.replace(/-/g, '_')}`;
-    
-    // Create external_contacts table if it doesn't exist
-    try {
-      await tenantDb.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'external_contacts')} (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          nome VARCHAR(255) NOT NULL,
-          email VARCHAR(255) NOT NULL,
-          telefone VARCHAR(50),
-          company_id UUID,
-          location_id UUID,
-          customer_id UUID,
-          pode_interagir BOOLEAN DEFAULT FALSE,
-          tipo_vinculo VARCHAR(50) DEFAULT 'outro',
-          observacoes TEXT,
-          active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'customers')} 
+        (first_name, last_name, email, phone, company, tenant_id, created_at, updated_at)
+        VALUES (
+          ${customerData.firstName || null},
+          ${customerData.lastName || null}, 
+          ${customerData.email},
+          ${customerData.phone || null},
+          ${customerData.company || null},
+          ${validatedTenantId},
+          NOW(),
+          NOW()
         )
-      `);
-      
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName, 'external_contacts')} 
-        (nome, email, telefone, company_id, location_id, customer_id, pode_interagir, tipo_vinculo, observacoes, active, created_at, updated_at)
-        VALUES (${favorecidoData.nome}, ${favorecidoData.email}, ${favorecidoData.telefone}, 
-                ${favorecidoData.companyId}, ${favorecidoData.locationId}, ${favorecidoData.customerId},
-                ${favorecidoData.podeInteragir || false}, ${favorecidoData.tipoVinculo || 'outro'}, 
-                ${favorecidoData.observacoes}, TRUE, NOW(), NOW())
         RETURNING *
       `);
+
+      const customer = result.rows?.[0];
+      if (customer) {
+        logInfo('Customer created successfully', { tenantId, customerId: customer.id });
+      }
       
-      const newFavorecido = result[0];
+      return customer;
+    } catch (error) {
+      logError('Error creating customer', error, { tenantId, customerData });
+      throw error;
+    }
+  }
+
+  async updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName, 'customers')} 
+        SET 
+          first_name = ${customerData.firstName || null},
+          last_name = ${customerData.lastName || null},
+          email = ${customerData.email},
+          phone = ${customerData.phone || null},
+          company = ${customerData.company || null},
+          updated_at = NOW()
+        WHERE id = ${customerId} AND tenant_id = ${validatedTenantId}
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error updating customer', error, { tenantId, customerId, customerData });
+      throw error;
+    }
+  }
+
+  async deleteCustomer(tenantId: string, customerId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName, 'customers')}
+        WHERE id = ${customerId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      return Number(result.rowCount || 0) > 0;
+    } catch (error) {
+      logError('Error deleting customer', error, { tenantId, customerId });
+      throw error;
+    }
+  }
+
+  // ===========================
+  // TICKET MANAGEMENT
+  // ===========================
+
+  async getTickets(tenantId: string, options: { limit?: number; offset?: number; status?: string } = {}): Promise<any[]> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const { limit = 50, offset = 0, status } = options;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      let query = sql`
+        SELECT 
+          t.*,
+          c.first_name as customer_first_name,
+          c.last_name as customer_last_name,
+          c.email as customer_email
+        FROM ${sql.identifier(schemaName, 'tickets')} t
+        LEFT JOIN ${sql.identifier(schemaName, 'customers')} c ON t.customer_id = c.id
+        WHERE t.tenant_id = ${validatedTenantId}
+      `;
+
+      if (status) {
+        query = sql`${query} AND t.status = ${status}`;
+      }
+
+      query = sql`${query} 
+        ORDER BY t.created_at DESC 
+        LIMIT ${limit} 
+        OFFSET ${offset}
+      `;
+
+      const result = await db.execute(query);
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching tickets', error, { tenantId, options });
+      throw error;
+    }
+  }
+
+  async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        SELECT 
+          t.*,
+          c.first_name as customer_first_name,
+          c.last_name as customer_last_name,
+          c.email as customer_email
+        FROM ${sql.identifier(schemaName, 'tickets')} t
+        LEFT JOIN ${sql.identifier(schemaName, 'customers')} c ON t.customer_id = c.id
+        WHERE t.id = ${ticketId} AND t.tenant_id = ${validatedTenantId}
+        LIMIT 1
+      `);
+
+      return result.rows?.[0] || undefined;
+    } catch (error) {
+      logError('Error fetching ticket', error, { tenantId, ticketId });
+      throw error;
+    }
+  }
+
+  async createTicket(tenantId: string, ticketData: any): Promise<any> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      if (!ticketData.subject || !ticketData.customerId) {
+        throw new Error('Ticket subject and customer ID are required');
+      }
+
+      // Generate ticket number
+      const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'tickets')} 
+        (number, subject, description, status, priority, customer_id, tenant_id, created_at, updated_at)
+        VALUES (
+          ${ticketNumber},
+          ${ticketData.subject},
+          ${ticketData.description || null},
+          ${ticketData.status || 'open'},
+          ${ticketData.priority || 'medium'},
+          ${ticketData.customerId},
+          ${validatedTenantId},
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+      `);
+
+      const ticket = result.rows?.[0];
+      if (ticket) {
+        logInfo('Ticket created successfully', { tenantId, ticketId: ticket.id, ticketNumber });
+      }
+      
+      return ticket;
+    } catch (error) {
+      logError('Error creating ticket', error, { tenantId, ticketData });
+      throw error;
+    }
+  }
+
+  async updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName, 'tickets')} 
+        SET 
+          subject = ${ticketData.subject},
+          description = ${ticketData.description || null},
+          status = ${ticketData.status || 'open'},
+          priority = ${ticketData.priority || 'medium'},
+          updated_at = NOW()
+        WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error updating ticket', error, { tenantId, ticketId, ticketData });
+      throw error;
+    }
+  }
+
+  async deleteTicket(tenantId: string, ticketId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName, 'tickets')}
+        WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      return Number(result.rowCount || 0) > 0;
+    } catch (error) {
+      logError('Error deleting ticket', error, { tenantId, ticketId });
+      throw error;
+    }
+  }
+
+  // ===========================
+  // DASHBOARD & ANALYTICS
+  // ===========================
+
+  async getDashboardStats(tenantId: string): Promise<any> {
+    try {
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Get stats from database
+      const [customersResult, ticketsResult, openTicketsResult] = await Promise.all([
+        db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'customers')}`),
+        db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'tickets')}`),
+        db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'tickets')} WHERE status = 'open'`)
+      ]);
+
       return {
-        ...newFavorecido,
-        tenantId: favorecidoData.tenantId
+        totalCustomers: customersResult.rows?.[0]?.count || 0,
+        totalTickets: ticketsResult.rows?.[0]?.count || 0,
+        openTickets: openTicketsResult.rows?.[0]?.count || 0,
+        resolvedTickets: Number(ticketsResult.rows?.[0]?.count || 0) - Number(openTicketsResult.rows?.[0]?.count || 0)
       };
     } catch (error) {
-      console.error('Error creating favorecido:', error);
-      throw error;
+      logError('Error fetching dashboard stats', error, { tenantId });
+      // Return empty stats on error instead of failing
+      return {
+        totalCustomers: 0,
+        totalTickets: 0,
+        openTickets: 0,
+        resolvedTickets: 0
+      };
     }
   }
 
-  // Knowledge Base operations - 100% DATABASE INTEGRATION
-  async getKnowledgeBaseArticles(tenantId: string, filters: { category?: string; search?: string; limit?: number; offset?: number }): Promise<any[]> {
+  async getRecentActivity(tenantId: string, options: { limit?: number } = {}): Promise<any[]> {
     try {
-      const tenantDb = db;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const validatedTenantId = validateTenantId(tenantId);
+      const { limit = 10 } = options;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Ensure table exists
-      await tenantDb.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'knowledge_base_articles')} (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          title VARCHAR(500) NOT NULL,
-          excerpt TEXT,
-          content TEXT,
-          category VARCHAR(100),
-          tags JSONB DEFAULT '[]',
-          author VARCHAR(255),
-          views INTEGER DEFAULT 0,
-          helpful INTEGER DEFAULT 0,
-          not_helpful INTEGER DEFAULT 0,
-          status VARCHAR(50) DEFAULT 'published',
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-        )
+      // Get recent tickets as activity
+      const result = await db.execute(sql`
+        SELECT 
+          'ticket' as type,
+          t.id,
+          t.subject as title,
+          t.status,
+          t.created_at,
+          c.first_name || ' ' || c.last_name as customer_name
+        FROM ${sql.identifier(schemaName, 'tickets')} t
+        LEFT JOIN ${sql.identifier(schemaName, 'customers')} c ON t.customer_id = c.id
+        WHERE t.tenant_id = ${validatedTenantId}
+        ORDER BY t.created_at DESC
+        LIMIT ${limit}
       `);
 
-      // Add sample data if table is empty
-      const countResult = await tenantDb.execute(sql`
-        SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'knowledge_base_articles')}
-      `);
-      
-      if (countResult[0]?.count === 0) {
-        await tenantDb.execute(sql`
-          INSERT INTO ${sql.identifier(schemaName, 'knowledge_base_articles')} 
-          (title, excerpt, content, category, tags, author, views, helpful, not_helpful)
-          VALUES 
-          ('Getting Started with Conductor', 'Learn the basics of using Conductor for customer support.', 
-           'Complete guide to get started with Conductor platform...', 'Getting Started', 
-           '["basics", "introduction"]'::jsonb, 'Support Team', 1250, 42, 3),
-          ('Managing Customer Tickets', 'Complete guide to creating, updating, and resolving tickets.',
-           'Detailed instructions for ticket management...', 'Ticket Management',
-           '["tickets", "workflow"]'::jsonb, 'Product Team', 890, 35, 2),
-          ('Customer Communication Best Practices', 'Tips for effective communication with customers.',
-           'Communication guidelines and best practices...', 'Communication',
-           '["communication", "best-practices"]'::jsonb, 'Training Team', 675, 28, 1),
-          ('Troubleshooting Common Issues', 'Solutions to frequently encountered problems.',
-           'Common problems and their solutions...', 'Troubleshooting',
-           '["troubleshooting", "FAQ"]'::jsonb, 'Technical Team', 1100, 55, 4)
-        `);
-      }
-
-      // Build query with filters
-      let query = `SELECT * FROM ${sql.identifier(schemaName, 'knowledge_base_articles')} WHERE status = 'published'`;
-      const params = [];
-      
-      if (filters.category) {
-        query += ` AND category = $${params.length + 1}`;
-        params.push(filters.category);
-      }
-      
-      if (filters.search) {
-        query += ` AND (title ILIKE $${params.length + 1} OR excerpt ILIKE $${params.length + 2} OR content ILIKE $${params.length + 3})`;
-        params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
-      }
-      
-      query += ` ORDER BY created_at DESC`;
-      
-      if (filters.limit) {
-        query += ` LIMIT $${params.length + 1}`;
-        params.push(filters.limit);
-      }
-      
-      if (filters.offset) {
-        query += ` OFFSET $${params.length + 1}`;
-        params.push(filters.offset);
-      }
-
-      const result = await tenantDb.execute(sql.raw(query, params));
-      return Array.isArray(result) ? result : [];
+      return result.rows || [];
     } catch (error) {
-      console.error('Error fetching knowledge base articles:', error);
+      logError('Error fetching recent activity', error, { tenantId, options });
       return [];
     }
   }
 
-  async getKnowledgeBaseCategories(tenantId: string): Promise<any[]> {
-    try {
-      const tenantDb = db;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      const result = await tenantDb.execute(sql`
-        SELECT category, COUNT(*) as count 
-        FROM ${sql.identifier(schemaName, 'knowledge_base_articles')} 
-        WHERE status = 'published' AND category IS NOT NULL
-        GROUP BY category 
-        ORDER BY category
-      `);
-
-      return Array.isArray(result) ? result.map(row => ({ name: row.category, count: row.count })) : [];
-    } catch (error) {
-      console.error('Error fetching knowledge base categories:', error);
-      return [];
-    }
-  }
-
-  async getKnowledgeBaseArticle(tenantId: string, articleId: string): Promise<any> {
-    try {
-      const tenantDb = db;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName, 'knowledge_base_articles')} 
-        WHERE id = ${articleId} AND status = 'published'
-      `);
-
-      // Increment views
-      await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName, 'knowledge_base_articles')} 
-        SET views = views + 1 
-        WHERE id = ${articleId}
-      `);
-
-      return Array.isArray(result) && result.length > 0 ? result[0] : null;
-    } catch (error) {
-      console.error('Error fetching knowledge base article:', error);
-      return null;
-    }
-  }
-
-  // Tenant Integrations operations - 100% DATABASE INTEGRATION  
-  async getTenantIntegrations(tenantId: string): Promise<any[]> {
-    try {
-      const tenantDb = db;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // Query integrations from tenant-specific schema
-      const integrations = await tenantDb.execute(
-        sql`SELECT * FROM ${sql.identifier(schemaName, 'integrations')} ORDER BY created_at DESC`
-      );
-
-      // If no integrations exist, create default ones
-      if (integrations.length === 0) {
-        await this.createDefaultIntegrations(tenantId);
-        // Re-fetch after creating defaults
-        const newIntegrations = await tenantDb.execute(
-          sql`SELECT * FROM ${sql.identifier(schemaName, 'integrations')} ORDER BY created_at DESC`
-        );
-        return Array.isArray(newIntegrations) ? newIntegrations : [];
-      }
-
-      return Array.isArray(integrations) ? integrations : [];
-    } catch (error) {
-      console.error('Error fetching tenant integrations:', error);
-      return [];
-    }
-  }
-
-  private async createDefaultIntegrations(tenantId: string): Promise<void> {
-    try {
-      const tenantDb = db;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      const defaultIntegrations = [
-        {
-          id: 'email-smtp',
-          name: 'Email SMTP',
-          category: 'Comunicação',
-          provider: 'SMTP',
-          description: 'Configuração de servidor SMTP para envio de emails',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['send_emails', 'email_templates', 'delivery_tracking'],
-          sync_frequency: 'manual',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'whatsapp-business',
-          name: 'WhatsApp Business',
-          category: 'Comunicação',
-          provider: 'Meta',
-          description: 'Integração com WhatsApp Business API para mensageria',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['send_messages', 'receive_messages', 'media_support', 'templates'],
-          sync_frequency: 'real_time',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'slack',
-          name: 'Slack',
-          category: 'Comunicação',
-          provider: 'Slack Technologies',
-          description: 'Integração com Slack para notificações e colaboração',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['send_notifications', 'create_channels', 'bot_commands'],
-          sync_frequency: 'real_time',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'twilio-sms',
-          name: 'Twilio SMS',
-          category: 'Comunicação',
-          provider: 'Twilio',
-          description: 'Envio de SMS através da API do Twilio',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['send_sms', 'receive_sms', 'delivery_status', 'international'],
-          sync_frequency: 'real_time',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'zapier',
-          name: 'Zapier',
-          category: 'Automação',
-          provider: 'Zapier',
-          description: 'Automação de workflows através do Zapier',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['workflow_automation', 'triggers', 'actions', 'multi_app'],
-          sync_frequency: 'real_time',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'webhooks',
-          name: 'Webhooks',
-          category: 'Automação',
-          provider: 'Generic',
-          description: 'Configuração de webhooks para integração com sistemas externos',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['custom_endpoints', 'event_triggers', 'payload_customization'],
-          sync_frequency: 'real_time',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'crm-integration',
-          name: 'CRM Integration',
-          category: 'Dados',
-          provider: 'Generic',
-          description: 'Integração com sistemas CRM para sincronização de dados',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['contact_sync', 'lead_management', 'sales_pipeline', 'reporting'],
-          sync_frequency: 'hourly',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'sso-saml',
-          name: 'SSO/SAML',
-          category: 'Segurança',
-          provider: 'Generic',
-          description: 'Single Sign-On via SAML para autenticação unificada',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['saml_auth', 'user_provisioning', 'role_mapping', 'logout'],
-          sync_frequency: 'manual',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'google-workspace',
-          name: 'Google Workspace',
-          category: 'Produtividade',
-          provider: 'Google',
-          description: 'Integração com Google Workspace para email e produtividade',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['gmail_sync', 'calendar_integration', 'drive_access', 'contacts'],
-          sync_frequency: 'hourly',
-          is_active: true,
-          metadata: {}
-        },
-        {
-          id: 'chatbot',
-          name: 'Chatbot IA',
-          category: 'Automação',
-          provider: 'OpenAI',
-          description: 'Chatbot inteligente powered by IA para atendimento automatizado',
-          status: 'disconnected',
-          configured: false,
-          api_key_configured: false,
-          config: {},
-          features: ['natural_language', 'context_aware', 'escalation', 'learning'],
-          sync_frequency: 'real_time',
-          is_active: true,
-          metadata: {}
-        }
-      ];
-
-      // Insert all default integrations
-      for (const integration of defaultIntegrations) {
-        await tenantDb.execute(
-          sql`INSERT INTO ${sql.identifier(schemaName, 'integrations')} 
-              (id, name, category, provider, description, status, configured, api_key_configured, 
-               config, features, sync_frequency, is_active, metadata, created_at, updated_at)
-              VALUES (${integration.id}, ${integration.name}, ${integration.category}, 
-                      ${integration.provider}, ${integration.description}, ${integration.status},
-                      ${integration.configured}, ${integration.api_key_configured}, 
-                      ${JSON.stringify(integration.config)}, ${JSON.stringify(integration.features)},
-                      ${integration.sync_frequency}, ${integration.is_active}, 
-                      ${JSON.stringify(integration.metadata)}, NOW(), NOW())`
-        );
-      }
-    } catch (error) {
-      console.error('Error creating default integrations:', error);
-      throw error;
-    }
-  }
+  // ===========================
+  // KNOWLEDGE BASE
+  // ===========================
 
   async createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any> {
     try {
-      const tenantDb = db;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const validatedTenantId = validateTenantId(tenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
+      if (!article.title || !article.content) {
+        throw new Error('Article title and content are required');
+      }
+
+      const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(schemaName, 'knowledge_base_articles')} 
-        (title, excerpt, content, category, tags, author, status)
-        VALUES (${article.title}, ${article.excerpt}, ${article.content}, 
-                ${article.category}, ${JSON.stringify(article.tags || [])}::jsonb, 
-                ${article.author}, ${article.status || 'published'})
+        (title, excerpt, content, category, tags, author, status, tenant_id, created_at, updated_at)
+        VALUES (
+          ${article.title},
+          ${article.excerpt || null},
+          ${article.content},
+          ${article.category || 'general'},
+          ${JSON.stringify(article.tags || [])}::jsonb,
+          ${article.author || 'system'},
+          ${article.status || 'published'},
+          ${validatedTenantId},
+          NOW(),
+          NOW()
+        )
         RETURNING *
       `);
 
-      return Array.isArray(result) && result.length > 0 ? result[0] : null;
+      return result.rows?.[0];
     } catch (error) {
-      console.error('Error creating knowledge base article:', error);
+      logError('Error creating knowledge base article', error, { tenantId, article });
       throw error;
     }
   }
 }
 
+// Export singleton instance
 export const storage = new DatabaseStorage();
