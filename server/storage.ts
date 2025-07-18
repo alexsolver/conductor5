@@ -16,6 +16,7 @@ import {
 } from "@shared/schema";
 import { db, schemaManager } from "./db";
 import { eq, and, desc, count, sql, ne, inArray, gte } from "drizzle-orm";
+import crypto from "crypto";
 
 // Define missing types for backwards compatibility
 type UpsertUser = Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { id?: string };
@@ -76,6 +77,12 @@ export interface IStorage {
     onlineAgents: number;
     totalAgents: number;
   }>;
+
+  // External contacts operations (Solicitantes e Favorecidos)
+  getSolicitantes(tenantId: string): Promise<any[]>;
+  createSolicitante(solicitante: any): Promise<any>;
+  getFavorecidos(tenantId: string): Promise<any[]>;
+  createFavorecido(favorecido: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -625,6 +632,126 @@ export class DatabaseStorage implements IStorage {
       onlineAgents: Math.floor((totalAgentsResult?.count || 0) * 0.75),
       totalAgents: totalAgentsResult?.count || 0,
     };
+  }
+
+  // External contacts operations (Solicitantes e Favorecidos)
+  async getSolicitantes(tenantId: string): Promise<any[]> {
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
+    const { customers: solicitantes } = tenantSchema;
+    
+    try {
+      const results = await tenantDb
+        .select()
+        .from(solicitantes)
+        .orderBy(desc(solicitantes.createdAt));
+      
+      return results.map(solicitante => ({
+        ...solicitante,
+        tenantId
+      }));
+    } catch (error) {
+      console.error('Error fetching solicitantes:', error);
+      return [];
+    }
+  }
+
+  async createSolicitante(solicitanteData: any): Promise<any> {
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(solicitanteData.tenantId);
+    const { customers: solicitantes } = tenantSchema;
+    
+    const [newSolicitante] = await tenantDb
+      .insert(solicitantes)
+      .values({
+        id: crypto.randomUUID(),
+        firstName: solicitanteData.firstName,
+        lastName: solicitanteData.lastName,
+        email: solicitanteData.email,
+        phone: solicitanteData.phone,
+        documento: solicitanteData.documento,
+        tipoPessoa: solicitanteData.tipoPessoa || 'fisica',
+        companyId: solicitanteData.companyId,
+        locationId: solicitanteData.locationId,
+        preferenciaContato: solicitanteData.preferenciaContato || 'email',
+        idioma: solicitanteData.idioma || 'pt-BR',
+        observacoes: solicitanteData.observacoes,
+        active: true,
+        verified: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return {
+      ...newSolicitante,
+      tenantId: solicitanteData.tenantId
+    };
+  }
+
+  async getFavorecidos(tenantId: string): Promise<any[]> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Check if external_contacts table exists in tenant schema
+    try {
+      const results = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName, 'external_contacts')}
+        ORDER BY created_at DESC
+      `);
+      
+      return (results as any[]).map(favorecido => ({
+        ...favorecido,
+        tenantId
+      }));
+    } catch (error) {
+      // If table doesn't exist, return empty array
+      console.log('External contacts table not found in tenant schema, returning empty array');
+      return [];
+    }
+  }
+
+  async createFavorecido(favorecidoData: any): Promise<any> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(favorecidoData.tenantId);
+    const schemaName = `tenant_${favorecidoData.tenantId.replace(/-/g, '_')}`;
+    
+    // Create external_contacts table if it doesn't exist
+    try {
+      await tenantDb.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'external_contacts')} (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          nome VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          telefone VARCHAR(50),
+          company_id UUID,
+          location_id UUID,
+          customer_id UUID,
+          pode_interagir BOOLEAN DEFAULT FALSE,
+          tipo_vinculo VARCHAR(50) DEFAULT 'outro',
+          observacoes TEXT,
+          active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'external_contacts')} 
+        (nome, email, telefone, company_id, location_id, customer_id, pode_interagir, tipo_vinculo, observacoes, active, created_at, updated_at)
+        VALUES (${favorecidoData.nome}, ${favorecidoData.email}, ${favorecidoData.telefone}, 
+                ${favorecidoData.companyId}, ${favorecidoData.locationId}, ${favorecidoData.customerId},
+                ${favorecidoData.podeInteragir || false}, ${favorecidoData.tipoVinculo || 'outro'}, 
+                ${favorecidoData.observacoes}, TRUE, NOW(), NOW())
+        RETURNING *
+      `);
+      
+      const newFavorecido = result[0];
+      return {
+        ...newFavorecido,
+        tenantId: favorecidoData.tenantId
+      };
+    } catch (error) {
+      console.error('Error creating favorecido:', error);
+      throw error;
+    }
   }
 }
 

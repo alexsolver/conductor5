@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
+import { storage } from '../storage';
 
 const router = Router();
 
@@ -35,9 +36,7 @@ const createFavorecidoSchema = z.object({
   observacoes: z.string().optional(),
 });
 
-// In-memory storage for demo purposes
-const solicitantesStorage: any[] = [];
-const favorecidosStorage: any[] = [];
+// Database storage integration - NO MORE IN-MEMORY DATA!
 
 // GET /api/external-contacts/solicitantes - List all solicitantes
 router.get('/solicitantes', async (req: AuthenticatedRequest, res) => {
@@ -50,20 +49,20 @@ router.get('/solicitantes', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Filter by tenant
-    const tenantSolicitantes = solicitantesStorage.filter(s => s.tenantId === tenantId);
+    // Fetch solicitantes from database
+    const solicitantes = await storage.getSolicitantes(tenantId);
 
-    console.log('Solicitantes fetched successfully', {
+    console.log('Solicitantes fetched successfully from database', {
       context: {
         tenantId,
-        count: tenantSolicitantes.length
+        count: solicitantes.length
       }
     });
 
     res.json({
       success: true,
-      data: tenantSolicitantes,
-      total: tenantSolicitantes.length
+      data: solicitantes,
+      total: solicitantes.length
     });
 
   } catch (error) {
@@ -88,21 +87,13 @@ router.post('/solicitantes', async (req: AuthenticatedRequest, res) => {
     
     const validatedData = createSolicitanteSchema.parse(req.body);
     
-    // Create new solicitante
-    const newSolicitante = {
-      id: crypto.randomUUID(),
+    // Create new solicitante in database
+    const newSolicitante = await storage.createSolicitante({
       ...validatedData,
-      tenantId,
-      active: true,
-      verified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      tenantId
+    });
 
-    // Add to storage
-    solicitantesStorage.push(newSolicitante);
-
-    console.log('Solicitante created successfully', {
+    console.log('Solicitante created successfully in database', {
       context: {
         tenantId,
         solicitanteId: newSolicitante.id,
@@ -142,20 +133,20 @@ router.get('/favorecidos', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Filter by tenant
-    const tenantFavorecidos = favorecidosStorage.filter(f => f.tenantId === tenantId);
+    // Fetch favorecidos from database
+    const favorecidos = await storage.getFavorecidos(tenantId);
 
-    console.log('Favorecidos fetched successfully', {
+    console.log('Favorecidos fetched successfully from database', {
       context: {
         tenantId,
-        count: tenantFavorecidos.length
+        count: favorecidos.length
       }
     });
 
     res.json({
       success: true,
-      data: tenantFavorecidos,
-      total: tenantFavorecidos.length
+      data: favorecidos,
+      total: favorecidos.length
     });
 
   } catch (error) {
@@ -180,20 +171,13 @@ router.post('/favorecidos', async (req: AuthenticatedRequest, res) => {
     
     const validatedData = createFavorecidoSchema.parse(req.body);
     
-    // Create new favorecido
-    const newFavorecido = {
-      id: crypto.randomUUID(),
+    // Create new favorecido in database
+    const newFavorecido = await storage.createFavorecido({
       ...validatedData,
-      tenantId,
-      active: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      tenantId
+    });
 
-    // Add to storage
-    favorecidosStorage.push(newFavorecido);
-
-    console.log('Favorecido created successfully', {
+    console.log('Favorecido created successfully in database', {
       context: {
         tenantId,
         favorecidoId: newFavorecido.id,
