@@ -113,16 +113,20 @@ export class SchemaManager {
 
       // Test connection and verify schema access
       try {
-        // Test if we can access the schema directly
+        // Test if we can access the schema directly - but only log occasionally to reduce I/O
         const testResult = await tenantDb.execute(
           sql`SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = ${schemaName}`
         );
         const { logInfo } = await import('./utils/logger');
-        logInfo(`Tenant schema verification for ${tenantId}`, { 
-          schemaName, 
-          tableCount: testResult.rows?.[0]?.table_count || 0,
-          connectionType: 'pool-based'
-        });
+        
+        // Only log schema verification 10% of the time to reduce I/O overhead
+        if (Math.random() < 0.1) {
+          logInfo(`Tenant schema verification for ${tenantId}`, { 
+            schemaName, 
+            tableCount: testResult.rows?.[0]?.table_count || 0,
+            connectionType: 'optimized-pool'
+          });
+        }
       } catch (error) {
         const { logError } = await import('./utils/logger');
         logError(`Failed to verify tenant schema ${tenantId}`, error, { tenantId, schemaName });

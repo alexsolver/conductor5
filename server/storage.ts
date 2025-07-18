@@ -709,7 +709,7 @@ export class DatabaseStorage implements IStorage {
       `));
 
       const locations = result.rows || [];
-      logInfo('Locations fetched successfully', { tenantId, count: locations.length });
+      // Reduce verbose logging to prevent I/O overhead affecting Vite stability
       return locations;
     } catch (error) {
       logError('Error fetching locations', error, { tenantId, options });
@@ -780,7 +780,10 @@ export class DatabaseStorage implements IStorage {
           ('Filial Rio de Janeiro', 'Av. Copacabana, 200', 'Rio de Janeiro', 'RJ', 'Brasil', 'office', true)
         `));
         
-        logInfo('Sample locations data inserted', { tenantId, schemaName });
+        // Reduce logging frequency to minimize I/O that could affect Vite stability
+        if (Math.random() < 0.1) { // Only log 10% of the time
+          logInfo('Sample locations data inserted', { tenantId, schemaName });
+        }
       }
     } catch (error) {
       logError('Error ensuring locations table', error, { tenantId });

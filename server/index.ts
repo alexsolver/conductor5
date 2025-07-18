@@ -63,10 +63,19 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+  
+  // Optimize server settings for stability
+  server.keepAliveTimeout = 120000; // 2 minutes
+  server.headersTimeout = 120000; // 2 minutes
+  server.timeout = 120000; // 2 minutes
+  server.maxConnections = 1000;
+  
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
+    keepAlive: true,
+    keepAliveInitialDelay: 0
   }, () => {
     log(`serving on port ${port}`);
   });
