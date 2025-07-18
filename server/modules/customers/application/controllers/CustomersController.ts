@@ -86,7 +86,7 @@ export class CustomersController {
           hasMore: result.hasMore,
         },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError("Error fetching customers", error);
       res.status(500).json({ message: "Failed to fetch customers" });
@@ -140,7 +140,7 @@ export class CustomersController {
       }
 
       res.json(customer);
-    } catch (error) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError("Error fetching customer", error);
       res.status(500).json({ message: "Failed to fetch customer" });

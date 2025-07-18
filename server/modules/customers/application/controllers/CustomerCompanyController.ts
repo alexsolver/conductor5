@@ -142,7 +142,7 @@ export class CustomerCompanyController {
           updatedAt: result.company.getUpdatedAt(),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to create customer company', error, {
         tenantId: req.user?.tenantId,
@@ -206,7 +206,7 @@ export class CustomerCompanyController {
           totalPages: result.totalPages,
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to get customer companies', error, {
         tenantId: req.user?.tenantId,
@@ -286,7 +286,7 @@ export class CustomerCompanyController {
           updatedAt: company.getUpdatedAt(),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to get customer company by ID', error, {
         companyId: req.params.id,
@@ -348,7 +348,7 @@ export class CustomerCompanyController {
           updatedAt: result.company.getUpdatedAt(),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to update customer company', error, {
         companyId: req.params.id,
@@ -401,7 +401,7 @@ export class CustomerCompanyController {
         success: false,
         message: 'Delete functionality not implemented yet',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to delete customer company', error, {
         companyId: req.params.id,
@@ -456,7 +456,7 @@ export class CustomerCompanyController {
           joinedAt: result.membership.getJoinedAt(),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to add customer company membership', error, {
         tenantId: req.user?.tenantId,
@@ -517,7 +517,7 @@ export class CustomerCompanyController {
           leftAt: result.membership.getLeftAt(),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to update customer company membership', error, {
         membershipId: req.params.membershipId,
@@ -573,7 +573,7 @@ export class CustomerCompanyController {
         success: true,
         data: membershipData,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to get customer memberships', error, {
         customerId: req.params.customerId,
@@ -620,7 +620,7 @@ export class CustomerCompanyController {
         success: true,
         data: membershipData,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError('Failed to get company memberships', error, {
         companyId: req.params.companyId,

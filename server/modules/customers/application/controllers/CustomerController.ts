@@ -66,7 +66,7 @@ export class CustomerController {
       } else {
         res.status(400).json({ message: result.error });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../utils/logger');
       logError("Error creating customer", error);
       res.status(500).json({ message: "Failed to create customer" });
@@ -111,7 +111,7 @@ export class CustomerController {
       } else {
         res.status(500).json({ message: result.error });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../utils/logger');
       logError("Error fetching customers", error);
       res.status(500).json({ message: "Failed to fetch customers" });
@@ -125,10 +125,21 @@ export class CustomerController {
         return;
       }
 
+      // Validate input with Zod schema
+      const updateCustomerSchema = createCustomerSchema.partial();
+      const validationResult = updateCustomerSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        res.status(400).json({ 
+          message: "Invalid input data", 
+          errors: validationResult.error.format() 
+        });
+        return;
+      }
+
       const input = {
         id: req.params.id,
         tenantId: req.user.tenantId,
-        ...req.body
+        ...validationResult.data
       };
 
       const result = await this.customerApplicationService.updateCustomer(input);
@@ -138,7 +149,7 @@ export class CustomerController {
       } else {
         res.status(400).json({ message: result.error });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       const { logError } = await import('../../../utils/logger');
       logError("Error updating customer", error);
       res.status(500).json({ message: "Failed to update customer" });
