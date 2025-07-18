@@ -178,34 +178,32 @@ export class DatabaseStorage implements IStorage {
       // PERFORMANCE: Direct DB connection without pool overhead
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Minimal field selection for faster queries
-      let queryText = `
+      // FIXED: Simple SQL query without complex parameterization
+      let baseQuery = sql`
         SELECT 
           id, first_name, last_name, email, phone, company,
           verified, active, created_at
-        FROM ${schemaName}.customers
+        FROM ${sql.raw(`${schemaName}.customers`)}
         WHERE 1=1
       `;
 
-      const params: any[] = [];
-      let paramIndex = 1;
-
-      // SECURE: Parameterized search
+      // SECURE: Parameterized search using Drizzle's built-in methods
       if (search) {
-        queryText += ` AND (
-          first_name ILIKE $${paramIndex} OR 
-          last_name ILIKE $${paramIndex + 1} OR 
-          email ILIKE $${paramIndex + 2}
+        baseQuery = sql`${baseQuery} AND (
+          first_name ILIKE ${'%' + search + '%'} OR 
+          last_name ILIKE ${'%' + search + '%'} OR 
+          email ILIKE ${'%' + search + '%'}
         )`;
-        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-        paramIndex += 3;
       }
 
       // Add ordering and pagination
-      queryText += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-      params.push(limit, offset);
+      const finalQuery = sql`${baseQuery} 
+        ORDER BY created_at DESC 
+        LIMIT ${limit} 
+        OFFSET ${offset}
+      `;
 
-      const result = await db.execute(sql.raw(queryText, params));
+      const result = await db.execute(finalQuery);
       return result.rows || [];
     } catch (error) {
       logError('Error fetching customers', error, { tenantId, options });
