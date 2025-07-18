@@ -1,12 +1,12 @@
 import { sql, eq, ilike, and, count, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { skills, userSkills, users } from '../../../../../shared/schema';
+import { skills as technicalSkills, userSkills, users } from '../../../../../shared/schema';
 import { Skill } from '../../domain/entities/Skill';
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 
 export class DrizzleSkillRepository implements ISkillRepository {
   async create(skill: Skill): Promise<Skill> {
-    const [created] = await db.insert(skills).values({
+    const [created] = await db.insert(technicalSkills).values({
       id: skill.id,
       name: skill.name,
       category: skill.category,
@@ -26,7 +26,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const [found] = await db.select().from(skills).where(eq(skills.id, id));
+    const [found] = await db.select().from(technicalSkills).where(eq(technicalSkills.id, id));
     return found ? this.mapToEntity(found) : null;
   }
 
@@ -35,21 +35,21 @@ export class DrizzleSkillRepository implements ISkillRepository {
     isActive?: boolean;
     search?: string;
   }): Promise<Skill[]> {
-    let query = db.select().from(skills);
+    let query = db.select().from(technicalSkills);
     
     const conditions = [];
     
     if (filters?.category) {
-      conditions.push(eq(skills.category, filters.category));
+      conditions.push(eq(technicalSkills.category, filters.category));
     }
     
     if (filters?.isActive !== undefined) {
-      conditions.push(eq(skills.isActive, filters.isActive));
+      conditions.push(eq(technicalSkills.isActive, filters.isActive));
     }
     
     if (filters?.search) {
       conditions.push(
-        sql`(${ilike(skills.name, `%${filters.search}%`)} OR ${ilike(skills.description, `%${filters.search}%`)})`
+        sql`(${ilike(technicalSkills.name, `%${filters.search}%`)} OR ${ilike(technicalSkills.description, `%${filters.search}%`)})`
       );
     }
     
@@ -57,12 +57,12 @@ export class DrizzleSkillRepository implements ISkillRepository {
       query = query.where(and(...conditions));
     }
     
-    const results = await query.orderBy(skills.name);
+    const results = await query.orderBy(technicalSkills.name);
     return results.map(this.mapToEntity);
   }
 
   async update(skill: Skill): Promise<Skill> {
-    const [updated] = await db.update(skills)
+    const [updated] = await db.update(technicalSkills)
       .set({
         name: skill.name,
         category: skill.category,
@@ -75,58 +75,58 @@ export class DrizzleSkillRepository implements ISkillRepository {
         updatedAt: skill.updatedAt,
         updatedBy: skill.updatedBy,
       })
-      .where(eq(skills.id, skill.id))
+      .where(eq(technicalSkills.id, skill.id))
       .returning();
     
     return this.mapToEntity(updated);
   }
 
   async delete(id: string): Promise<void> {
-    await db.delete(skills).where(eq(skills.id, id));
+    await db.delete(technicalSkills).where(eq(technicalSkills.id, id));
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
     const results = await db.select()
-      .from(skills)
+      .from(technicalSkills)
       .where(and(
-        eq(skills.category, category),
-        eq(skills.isActive, true)
+        eq(technicalSkills.category, category),
+        eq(technicalSkills.isActive, true)
       ))
-      .orderBy(skills.name);
+      .orderBy(technicalSkills.name);
     
     return results.map(this.mapToEntity);
   }
 
   async findByNamePattern(pattern: string): Promise<Skill[]> {
     const results = await db.select()
-      .from(skills)
+      .from(technicalSkills)
       .where(and(
-        ilike(skills.name, `%${pattern}%`),
-        eq(skills.isActive, true)
+        ilike(technicalSkills.name, `%${pattern}%`),
+        eq(technicalSkills.isActive, true)
       ))
-      .orderBy(skills.name);
+      .orderBy(technicalSkills.name);
     
     return results.map(this.mapToEntity);
   }
 
   async getCategories(): Promise<string[]> {
-    const results = await db.selectDistinct({ category: skills.category })
-      .from(skills)
-      .where(eq(skills.isActive, true))
-      .orderBy(skills.category);
+    const results = await db.selectDistinct({ category: technicalSkills.category })
+      .from(technicalSkills)
+      .where(eq(technicalSkills.isActive, true))
+      .orderBy(technicalSkills.category);
     
     return results.map(r => r.category);
   }
 
   async countByCategory(): Promise<{ category: string; count: number }[]> {
     const results = await db.select({
-      category: skills.category,
+      category: technicalSkills.category,
       count: count(),
     })
-    .from(skills)
-    .where(eq(skills.isActive, true))
-    .groupBy(skills.category)
-    .orderBy(skills.category);
+    .from(technicalSkills)
+    .where(eq(technicalSkills.isActive, true))
+    .groupBy(technicalSkills.category)
+    .orderBy(technicalSkills.category);
     
     return results.map(r => ({
       category: r.category,
@@ -136,13 +136,13 @@ export class DrizzleSkillRepository implements ISkillRepository {
 
   async getMostDemandedSkills(limit: number = 10): Promise<{ skill: Skill; demandCount: number }[]> {
     const results = await db.select({
-      skill: skills,
+      skill: technicalSkills,
       demandCount: count(userSkills.id),
     })
-    .from(skills)
-    .leftJoin(userSkills, eq(skills.id, userSkills.skillId))
-    .where(eq(skills.isActive, true))
-    .groupBy(skills.id)
+    .from(technicalSkills)
+    .leftJoin(userSkills, eq(technicalSkills.id, userSkills.skillId))
+    .where(eq(technicalSkills.isActive, true))
+    .groupBy(technicalSkills.id)
     .orderBy(desc(count(userSkills.id)))
     .limit(limit);
     

@@ -1,6 +1,6 @@
 import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { userSkills, skills, users, certifications } from '../../../../../shared/schema';
+import { userSkills, skills as technicalSkills, users, certifications } from '../../../../../shared/schema';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 
@@ -163,18 +163,18 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }>> {
     const results = await db.select({
       userSkill: userSkills,
-      skillName: skills.name,
-      skillCategory: skills.category,
+      skillName: technicalSkills.name,
+      skillCategory: technicalSkills.category,
       certificationName: certifications.name,
     })
     .from(userSkills)
-    .innerJoin(skills, eq(userSkills.skillId, skills.id))
+    .innerJoin(technicalSkills, eq(userSkills.skillId, technicalSkills.id))
     .leftJoin(certifications, eq(userSkills.certificationId, certifications.id))
     .where(and(
       eq(userSkills.userId, userId),
       eq(userSkills.isActive, true)
     ))
-    .orderBy(asc(skills.category), asc(skills.name));
+    .orderBy(asc(technicalSkills.category), asc(technicalSkills.name));
     
     return results.map(r => ({
       ...this.mapToEntity(r.userSkill),
@@ -219,11 +219,11 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     let query = db.select({
       userSkill: userSkills,
       userName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
-      skillName: skills.name,
+      skillName: technicalSkills.name,
     })
     .from(userSkills)
     .innerJoin(users, eq(userSkills.userId, users.id))
-    .innerJoin(skills, eq(userSkills.skillId, skills.id));
+    .innerJoin(technicalSkills, eq(userSkills.skillId, technicalSkills.id));
     
     const conditions = [
       eq(userSkills.isActive, true),
@@ -258,19 +258,19 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     // Esta é uma implementação simplificada - em um cenário real,
     // a demanda viria de tickets, tarefas agendadas, etc.
     const results = await db.select({
-      skillId: skills.id,
-      skillName: skills.name,
-      category: skills.category,
+      skillId: technicalSkills.id,
+      skillName: technicalSkills.name,
+      category: technicalSkills.category,
       availableTechnicians: count(userSkills.id),
     })
-    .from(skills)
+    .from(technicalSkills)
     .leftJoin(userSkills, and(
-      eq(skills.id, userSkills.skillId),
+      eq(technicalSkills.id, userSkills.skillId),
       eq(userSkills.isActive, true),
       gte(userSkills.proficiencyLevel, 3) // Mínimo nível avançado
     ))
-    .where(eq(skills.isActive, true))
-    .groupBy(skills.id, skills.name, skills.category)
+    .where(eq(technicalSkills.isActive, true))
+    .groupBy(technicalSkills.id, technicalSkills.name, technicalSkills.category)
     .orderBy(asc(count(userSkills.id)));
     
     return results.map(r => ({

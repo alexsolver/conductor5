@@ -44,7 +44,6 @@ const baseNavigation = [
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
-  { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
@@ -80,6 +79,7 @@ const adminNavigation = [
     children: [
       { name: "Dashboard", href: "/tenant-admin", icon: BarChart3 },
       { name: "Gestão da Equipe", href: "/tenant-admin/team", icon: UserCog },
+      { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
       { name: "Workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "SLAs", href: "/tenant-admin/slas", icon: Target },
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
