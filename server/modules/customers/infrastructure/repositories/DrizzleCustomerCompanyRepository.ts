@@ -22,123 +22,215 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   // Customer Company Operations
   async findById(id: string, tenantId: string): Promise<CustomerCompany | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
-    const { db: tenantDb, schema: tenantSchema } = tenantConnection;
+    const { db: tenantDb } = tenantConnection;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
-    const result = await tenantDb
-      .select()
-      .from(tenantSchema.customerCompanies)
-      .where(eq(tenantSchema.customerCompanies.id, id))
-      .limit(1);
+    const escapedId = id.replace(/'/g, "''");
+    const sqlQuery = `
+      SELECT * FROM ${schemaName}.customer_companies 
+      WHERE id = '${escapedId}'
+      LIMIT 1
+    `;
 
-    if (result.length === 0) {
-      return null;
+    try {
+      const result = await tenantDb.execute(sql.raw(sqlQuery));
+      if (result.rows.length === 0) {
+        return null;
+      }
+      return this.toCompanyDomainEntity(result.rows[0], tenantId);
+    } catch (error) {
+      console.error('Direct SQL findById query failed', error, { tenantId, schemaName, sqlQuery });
+      throw error;
     }
-
-    return this.toCompanyDomainEntity(result[0], tenantId);
   }
 
   async findByName(name: string, tenantId: string): Promise<CustomerCompany | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
-    const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
-    const result = await tenantDb
-      .select()
-      .from(tenantSchema.customerCompanies)
-      .where(eq(tenantSchema.customerCompanies.name, name))
-      .limit(1);
+    const { db: tenantDb } = tenantConnection;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    if (result.length === 0) {
-      return null;
+    // Escape the name parameter to prevent SQL injection
+    const escapedName = name.replace(/'/g, "''");
+    const sqlQuery = `
+      SELECT * FROM ${schemaName}.customer_companies 
+      WHERE name = '${escapedName}'
+      LIMIT 1
+    `;
+
+    try {
+      const result = await tenantDb.execute(sql.raw(sqlQuery));
+      if (result.rows.length === 0) {
+        return null;
+      }
+      return this.toCompanyDomainEntity(result.rows[0], tenantId);
+    } catch (error) {
+      console.error('Direct SQL findByName query failed', error, { tenantId, schemaName, sqlQuery });
+      throw error;
     }
-
-    return this.toCompanyDomainEntity(result[0], tenantId);
   }
 
   async findMany(filter: CustomerCompanyFilter): Promise<CustomerCompany[]> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
-    const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
-    let query = tenantDb.select().from(tenantSchema.customerCompanies);
+    const { db: tenantDb } = tenantConnection;
+    const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
 
-    // Apply filters
-    const conditions = [];
+    // Use direct SQL with schema-qualified table name to bypass Drizzle schema issues
+    let whereClause = '';
+    const params: any[] = [];
+    let paramIndex = 1;
 
     if (filter.search) {
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
-      conditions.push(
-        or(
-          ilike(tenantSchema.customerCompanies.name, searchPattern),
-          ilike(tenantSchema.customerCompanies.displayName, searchPattern),
-          ilike(tenantSchema.customerCompanies.description, searchPattern),
-          ilike(tenantSchema.customerCompanies.email, searchPattern)
-        )!
-      );
+      whereClause += `(name ILIKE $${paramIndex++} OR display_name ILIKE $${paramIndex++} OR description ILIKE $${paramIndex++} OR email ILIKE $${paramIndex++})`;
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
     if (filter.industry) {
-      conditions.push(eq(tenantSchema.customerCompanies.industry, filter.industry));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `industry = $${paramIndex++}`;
+      params.push(filter.industry);
     }
 
     if (filter.size) {
-      conditions.push(eq(tenantSchema.customerCompanies.size, filter.size));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `size = $${paramIndex++}`;
+      params.push(filter.size);
     }
 
     if (filter.status) {
-      conditions.push(eq(tenantSchema.customerCompanies.status, filter.status));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `status = $${paramIndex++}`;
+      params.push(filter.status);
     }
 
     if (filter.subscriptionTier) {
-      conditions.push(eq(tenantSchema.customerCompanies.subscriptionTier, filter.subscriptionTier));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `subscription_tier = $${paramIndex++}`;
+      params.push(filter.subscriptionTier);
     }
 
     if (filter.isActive !== undefined) {
-      conditions.push(eq(tenantSchema.customerCompanies.isActive, filter.isActive));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `is_active = $${paramIndex++}`;
+      params.push(filter.isActive);
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    let sqlQuery = `
+      SELECT * FROM ${schemaName}.customer_companies 
+      ${whereClause ? `WHERE ${whereClause}` : ''}
+      ORDER BY created_at DESC
+    `;
 
     if (filter.limit) {
-      query = query.limit(filter.limit);
+      sqlQuery += ` LIMIT ${filter.limit}`;
     }
 
     if (filter.offset) {
-      query = query.offset(filter.offset);
+      sqlQuery += ` OFFSET ${filter.offset}`;
     }
 
-    const results = await query;
-    return results.map(result => this.toCompanyDomainEntity(result, filter.tenantId));
+    try {
+      const result = await tenantDb.execute(sql.raw(sqlQuery, ...params));
+      return result.rows.map(row => this.toCompanyDomainEntity(row, filter.tenantId));
+    } catch (error) {
+      console.error('Direct SQL findMany query failed', error, { tenantId: filter.tenantId, schemaName, sqlQuery });
+      throw error;
+    }
   }
 
   async save(company: CustomerCompany): Promise<CustomerCompany> {
     const tenantConnection = await schemaManager.getTenantDb(company.getTenantId());
-    const { db: tenantDb, schema: tenantSchema } = tenantConnection;
+    const { db: tenantDb } = tenantConnection;
+    const schemaName = `tenant_${company.getTenantId().replace(/-/g, '_')}`;
     const companyData = this.toCompanyPersistenceData(company);
 
     // Check if company exists
     const existingCompany = await this.findById(company.getId(), company.getTenantId());
 
     if (existingCompany) {
-      // Update existing company
-      const [updated] = await tenantDb
-        .update(tenantSchema.customerCompanies)
-        .set({
-          ...companyData,
-          updatedAt: new Date()
-        })
-        .where(eq(tenantSchema.customerCompanies.id, company.getId()))
-        .returning();
+      // Update existing company - using direct SQL
+      const escapedId = company.getId().replace(/'/g, "''");
+      const now = new Date().toISOString();
+      
+      // Debug: Log the company data for UPDATE
+      console.log('DEBUG UPDATE: companyData structure:', JSON.stringify(companyData, null, 2));
+      
+      // Helper function to safely handle null/undefined values
+      const safeString = (value: any) => {
+        if (value === null || value === undefined) {
+          return 'NULL';
+        }
+        return `'${String(value).replace(/'/g, "''")}'`;
+      };
+      
+      const sqlQuery = `
+        UPDATE ${schemaName}.customer_companies 
+        SET 
+          name = ${safeString(companyData.name)},
+          display_name = ${safeString(companyData.display_name)},
+          description = ${safeString(companyData.description)},
+          industry = ${safeString(companyData.industry)},
+          size = ${safeString(companyData.size)},
+          status = ${safeString(companyData.status)},
+          email = ${safeString(companyData.email)},
+          phone = ${safeString(companyData.phone)},
+          website = ${safeString(companyData.website)},
+          subscription_tier = ${safeString(companyData.subscription_tier)},
+          is_active = ${companyData.is_active},
+          updated_at = ${safeString(now)},
+          updated_by = ${safeString(companyData.updated_by)}
+        WHERE id = '${escapedId}'
+        RETURNING *
+      `;
 
-      return this.toCompanyDomainEntity(updated, company.getTenantId());
+      console.log('DEBUG UPDATE: Generated SQL Query:', sqlQuery);
+
+      const result = await tenantDb.execute(sql.raw(sqlQuery));
+      return this.toCompanyDomainEntity(result.rows[0], company.getTenantId());
     } else {
-      // Insert new company
-      const [inserted] = await tenantDb
-        .insert(tenantSchema.customerCompanies)
-        .values(companyData)
-        .returning();
+      // Insert new company - using direct SQL
+      const now = new Date().toISOString();
+      
+      // Debug: Log the company data to see what's undefined
+      console.log('DEBUG: companyData structure:', JSON.stringify(companyData, null, 2));
+      
+      // Helper function to safely handle null/undefined values
+      const safeString = (value: any) => {
+        if (value === null || value === undefined) {
+          return 'NULL';
+        }
+        return `'${String(value).replace(/'/g, "''")}'`;
+      };
+      
+      const sqlQuery = `
+        INSERT INTO ${schemaName}.customer_companies (
+          id, name, display_name, description, industry, size, status,
+          email, phone, website, subscription_tier, is_active, 
+          created_at, updated_at, created_by, updated_by
+        ) VALUES (
+          ${safeString(companyData.id)},
+          ${safeString(companyData.name)},
+          ${safeString(companyData.display_name)},
+          ${safeString(companyData.description)},
+          ${safeString(companyData.industry)},
+          ${safeString(companyData.size)},
+          ${safeString(companyData.status)},
+          ${safeString(companyData.email)},
+          ${safeString(companyData.phone)},
+          ${safeString(companyData.website)},
+          ${safeString(companyData.subscription_tier)},
+          ${companyData.is_active},
+          ${safeString(now)},
+          ${safeString(now)},
+          ${safeString(companyData.created_by)},
+          ${safeString(companyData.updated_by)}
+        ) RETURNING *
+      `;
 
-      return this.toCompanyDomainEntity(inserted, company.getTenantId());
+      console.log('DEBUG: Generated SQL Query:', sqlQuery);
+
+      const result = await tenantDb.execute(sql.raw(sqlQuery));
+      return this.toCompanyDomainEntity(result.rows[0], company.getTenantId());
     }
   }
 
@@ -155,60 +247,63 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
   async count(filter: Omit<CustomerCompanyFilter, 'limit' | 'offset'>): Promise<number> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
-    const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
-    const conditions = [];
+    const { db: tenantDb } = tenantConnection;
+    const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
+
+    // Use direct SQL with schema-qualified table name to bypass Drizzle schema issues
+    let whereClause = '';
+    const params: any[] = [];
+    let paramIndex = 1;
 
     if (filter.search) {
       const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
-      conditions.push(
-        or(
-          ilike(tenantSchema.customerCompanies.name, searchPattern),
-          ilike(tenantSchema.customerCompanies.displayName, searchPattern),
-          ilike(tenantSchema.customerCompanies.description, searchPattern),
-          ilike(tenantSchema.customerCompanies.email, searchPattern)
-        )!
-      );
+      whereClause += `(name ILIKE $${paramIndex++} OR display_name ILIKE $${paramIndex++} OR description ILIKE $${paramIndex++} OR email ILIKE $${paramIndex++})`;
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
     if (filter.industry) {
-      conditions.push(eq(tenantSchema.customerCompanies.industry, filter.industry));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `industry = $${paramIndex++}`;
+      params.push(filter.industry);
     }
 
     if (filter.size) {
-      conditions.push(eq(tenantSchema.customerCompanies.size, filter.size));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `size = $${paramIndex++}`;
+      params.push(filter.size);
     }
 
     if (filter.status) {
-      conditions.push(eq(tenantSchema.customerCompanies.status, filter.status));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `status = $${paramIndex++}`;
+      params.push(filter.status);
     }
 
     if (filter.subscriptionTier) {
-      conditions.push(eq(tenantSchema.customerCompanies.subscriptionTier, filter.subscriptionTier));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `subscription_tier = $${paramIndex++}`;
+      params.push(filter.subscriptionTier);
     }
 
     if (filter.isActive !== undefined) {
-      conditions.push(eq(tenantSchema.customerCompanies.isActive, filter.isActive));
+      if (whereClause) whereClause += ' AND ';
+      whereClause += `is_active = $${paramIndex++}`;
+      params.push(filter.isActive);
     }
 
-    let query = tenantDb
-      .select({ count: count() })
-      .from(tenantSchema.customerCompanies);
-      
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+    const sqlQuery = `
+      SELECT COUNT(*) as count 
+      FROM ${schemaName}.customer_companies 
+      ${whereClause ? `WHERE ${whereClause}` : ''}
+    `;
+
+    try {
+      const result = await tenantDb.execute(sql.raw(sqlQuery, ...params));
+      return parseInt(result.rows?.[0]?.count || '0');
+    } catch (error) {
+      console.error('Direct SQL count query failed', error, { tenantId: filter.tenantId, schemaName, sqlQuery });
+      throw error;
     }
-    
-    // Debug logging to see what SQL is generated
-    const { logInfo } = await import('../../../utils/logger');
-    logInfo('Executing count query for customer companies', { 
-      tenantId: this.tenantId,
-      tableName: 'customer_companies',
-      conditionsCount: conditions.length
-    });
-    
-    const result = await query;
-    return result[0]?.count || 0;
   }
 
   // Customer Company Membership Operations

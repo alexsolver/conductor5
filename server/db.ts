@@ -107,14 +107,21 @@ export class SchemaManager {
         client: tenantPool
       });
 
-      // Explicitly set search_path to include tenant schema first
+      // Test connection and verify schema access
       try {
-        await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+        // Test if we can access the schema directly
+        const testResult = await tenantDb.execute(
+          sql`SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = ${schemaName}`
+        );
         const { logInfo } = await import('./utils/logger');
-        logInfo(`Search path set for tenant ${tenantId}`, { schemaName, searchPath: `${schemaName},public` });
+        logInfo(`Tenant schema verification for ${tenantId}`, { 
+          schemaName, 
+          tableCount: testResult.rows?.[0]?.table_count || 0,
+          connectionType: 'pool-based'
+        });
       } catch (error) {
         const { logError } = await import('./utils/logger');
-        logError(`Failed to set search_path for tenant ${tenantId}`, error, { tenantId, schemaName });
+        logError(`Failed to verify tenant schema ${tenantId}`, error, { tenantId, schemaName });
       }
 
       // Import tenant-specific schema generator
