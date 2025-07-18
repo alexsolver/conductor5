@@ -16,9 +16,10 @@ import {
  * Each tenant gets their own schema with these isolated tables
  */
 export function getTenantSpecificSchema(schemaName: string) {
-  // Tenant-specific customers table - OPTIMIZED STRUCTURE
+  // Tenant-specific customers table - ENHANCED ISOLATION
   const tenantCustomers = pgTable("customers", {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     firstName: varchar("first_name", { length: 255 }),
     lastName: varchar("last_name", { length: 255 }),
     email: varchar("email", { length: 255 }).notNull(),
@@ -49,9 +50,10 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
 
-  // Tenant-specific customer companies table
+  // Tenant-specific customer companies table - ENHANCED ISOLATION
   const tenantCustomerCompanies = pgTable("customer_companies", {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     name: varchar("name", { length: 255 }).notNull(),
     displayName: varchar("display_name", { length: 255 }),
     description: text("description"),
@@ -79,9 +81,10 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedBy: text("updated_by"),
   }, { schema: schemaName });
 
-  // Tenant-specific customer company memberships table
+  // Tenant-specific customer company memberships table - ENHANCED ISOLATION
   const tenantCustomerCompanyMemberships = pgTable("customer_company_memberships", {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     customerId: uuid("customer_id").notNull().references(() => tenantCustomers.id, { onDelete: "cascade" }),
     companyId: uuid("company_id").notNull().references(() => tenantCustomerCompanies.id, { onDelete: "cascade" }),
     role: varchar("role", { length: 100 }).default("member"),
@@ -95,9 +98,10 @@ export function getTenantSpecificSchema(schemaName: string) {
     addedBy: text("added_by").notNull(),
   }, { schema: schemaName });
 
-  // Tenant-specific tickets table
+  // Tenant-specific tickets table - ENHANCED ISOLATION  
   const tenantTickets = pgTable("tickets", {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     
     // Legacy fields
     subject: varchar("subject", { length: 500 }).notNull(),
@@ -160,10 +164,11 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
 
-  // Tenant-specific ticket messages
+  // Tenant-specific ticket messages - ENHANCED ISOLATION
   const tenantTicketMessages = pgTable("ticket_messages", {
     id: uuid("id").primaryKey().defaultRandom(),
-    ticketId: uuid("ticket_id").notNull().references(() => tenantTickets.id),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
+    ticketId: uuid("ticket_id").notNull().references(() => tenantTickets.id, { onDelete: "cascade" }),
     customerId: uuid("customer_id").references(() => tenantCustomers.id),
     userId: varchar("user_id"), // References public.users
     content: text("content").notNull(),
@@ -173,9 +178,10 @@ export function getTenantSpecificSchema(schemaName: string) {
     createdAt: timestamp("created_at").defaultNow(),
   }, { schema: schemaName });
 
-  // Tenant-specific activity logs
+  // Tenant-specific activity logs - ENHANCED ISOLATION
   const tenantActivityLogs = pgTable("activity_logs", {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     entityType: varchar("entity_type", { length: 50 }).notNull(), // ticket, customer, user
     entityId: uuid("entity_id").notNull(),
     action: varchar("action", { length: 50 }).notNull(), // created, updated, deleted, assigned
@@ -187,9 +193,10 @@ export function getTenantSpecificSchema(schemaName: string) {
     createdAt: timestamp("created_at").defaultNow(),
   }, { schema: schemaName });
 
-  // Tenant-specific locations table
+  // Tenant-specific locations table - ENHANCED ISOLATION
   const tenantLocations = pgTable("locations", {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     name: varchar("name", { length: 255 }).notNull(),
     type: varchar("type", { length: 50 }).default("office"),
     status: varchar("status", { length: 50 }).default("active"),
@@ -230,9 +237,10 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
 
-  // Tenant-specific integrations - 100% DATABASE STORAGE
+  // Tenant-specific integrations - ENHANCED ISOLATION with OPTIMIZED JSONB
   const tenantIntegrations = pgTable("integrations", {
     id: varchar("id", { length: 100 }).primaryKey(), // email-smtp, whatsapp-business, etc.
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
     name: varchar("name", { length: 255 }).notNull(),
     category: varchar("category", { length: 50 }).notNull(), // Comunicação, Automação, Dados, etc.
     provider: varchar("provider", { length: 100 }),
@@ -240,15 +248,74 @@ export function getTenantSpecificSchema(schemaName: string) {
     status: varchar("status", { length: 20 }).default("disconnected"), // connected, error, disconnected
     configured: boolean("configured").default(false),
     apiKeyConfigured: boolean("api_key_configured").default(false),
-    config: jsonb("config").default({}), // Store API keys, settings, etc.
-    features: jsonb("features").default([]), // Available features
+    config: text("config"), // Optimized: TEXT for API configuration (only keep JSONB for complex nested data)
+    features: text("features"), // Optimized: TEXT for features list
     lastSync: timestamp("last_sync"),
     lastTested: timestamp("last_tested"),
     errorMessage: text("error_message"),
     syncFrequency: varchar("sync_frequency", { length: 50 }).default("manual"),
     webhookUrl: varchar("webhook_url", { length: 500 }),
     isActive: boolean("is_active").default(true),
-    metadata: jsonb("metadata").default({}),
+    metadata: text("metadata"), // Optimized: TEXT for metadata
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }, { schema: schemaName });
+
+  // Technical Skills tables - ENHANCED ISOLATION
+  const tenantSkills = pgTable("skills", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
+    name: varchar("name", { length: 255 }).notNull(),
+    category: varchar("category", { length: 100 }).notNull(),
+    subcategory: varchar("subcategory", { length: 100 }),
+    description: text("description"),
+    minLevelRequired: integer("min_level_required").default(1),
+    suggestedCertification: varchar("suggested_certification", { length: 255 }),
+    validityMonths: integer("validity_months"),
+    observations: text("observations"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }, { schema: schemaName });
+
+  const tenantUserSkills = pgTable("user_skills", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    skillId: uuid("skill_id").notNull().references(() => tenantSkills.id, { onDelete: "cascade" }),
+    level: integer("level").notNull(),
+    assessedAt: timestamp("assessed_at").defaultNow(),
+    assessedBy: varchar("assessed_by", { length: 36 }),
+    expiresAt: timestamp("expires_at"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }, { schema: schemaName });
+
+  const tenantCertifications = pgTable("certifications", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
+    name: varchar("name", { length: 255 }).notNull(),
+    issuer: varchar("issuer", { length: 255 }).notNull(),
+    description: text("description"),
+    category: varchar("category", { length: 100 }),
+    validityMonths: integer("validity_months"),
+    skillRequirements: text("skill_requirements"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }, { schema: schemaName });
+
+  // External Contacts tables - ENHANCED ISOLATION
+  const tenantExternalContacts = pgTable("external_contacts", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
+    type: varchar("type", { length: 20 }).notNull(), // 'solicitante' or 'favorecido'
+    name: varchar("name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }),
+    phone: varchar("phone", { length: 50 }),
+    company: varchar("company", { length: 255 }),
+    department: varchar("department", { length: 100 }),
+    role: varchar("role", { length: 100 }),
+    active: boolean("active").default(true),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
@@ -263,5 +330,9 @@ export function getTenantSpecificSchema(schemaName: string) {
     activityLogs: tenantActivityLogs,
     locations: tenantLocations,
     integrations: tenantIntegrations,
+    skills: tenantSkills,
+    userSkills: tenantUserSkills,
+    certifications: tenantCertifications,
+    externalContacts: tenantExternalContacts,
   };
 }

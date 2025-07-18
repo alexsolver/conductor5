@@ -23,9 +23,10 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutes cache TTL - reduced for better memory management
-  private readonly MAX_CACHED_SCHEMAS = 20; // Limit cached schemas to prevent memory leaks
+  private readonly CACHE_TTL = 1 * 60 * 1000; // 1 minute cache TTL - aggressive refresh for consistency
+  private readonly MAX_CACHED_SCHEMAS = 10; // Reduced limit for better memory management
   private lastCleanup = Date.now();
+  private lastValidation = new Map<string, number>(); // Track validation frequency
 
   static getInstance(): SchemaManager {
     if (!SchemaManager.instance) {
@@ -65,23 +66,30 @@ export class SchemaManager {
     this.lastCleanup = now;
   }
 
-  // OPTIMIZED: Lightweight schema validation with intelligent caching
+  // ENHANCED: Comprehensive schema validation with proper table verification
   private async schemaExists(schemaName: string): Promise<boolean> {
     try {
-      // Use lightweight check - just verify schema exists and has core tables
+      // Comprehensive validation - verify schema + essential tables + structure
       const result = await db.execute(sql`
         SELECT EXISTS(
           SELECT 1 FROM information_schema.schemata WHERE schema_name = ${schemaName}
         ) as schema_exists,
-        (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ${schemaName} AND table_name IN ('customers', 'tickets', 'ticket_messages')) as core_tables
+        (SELECT COUNT(*) FROM information_schema.tables 
+         WHERE table_schema = ${schemaName} 
+         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations')) as essential_tables,
+        (SELECT COUNT(*) FROM information_schema.columns 
+         WHERE table_schema = ${schemaName} 
+         AND table_name = 'customers' 
+         AND column_name IN ('id', 'email', 'created_at')) as customer_structure
       `);
       
       const row = result.rows[0];
       const schemaExists = Boolean(row?.schema_exists);
-      const coreTablesCount = Number(row?.core_tables || 0);
+      const essentialTablesCount = Number(row?.essential_tables || 0);
+      const customerStructure = Number(row?.customer_structure || 0);
       
-      // Only require 3 core tables instead of 11+ for basic functionality
-      return schemaExists && coreTablesCount >= 3;
+      // Require 5 essential tables + proper customer structure for complete validation
+      return schemaExists && essentialTablesCount >= 5 && customerStructure >= 3;
     } catch {
       return false;
     }
@@ -99,13 +107,20 @@ export class SchemaManager {
     // Run intelligent cache cleanup
     this.cleanupCache();
 
-    // Check validation cache to avoid repeated database queries
+    // Enhanced cache validation with staleness detection
     const cached = this.schemaValidationCache.get(tenantId);
-    if (cached && (Date.now() - cached.timestamp) < this.CACHE_TTL) {
-      if (cached.isValid) {
-        this.initializedSchemas.add(tenantId);
-        return; // Schema valid from cache
-      }
+    const lastValidated = this.lastValidation.get(tenantId) || 0;
+    const now = Date.now();
+    
+    // Force re-validation if cached for too long or if frequent access pattern detected
+    const shouldRevalidate = !cached || 
+                           (now - cached.timestamp) > this.CACHE_TTL ||
+                           (now - lastValidated) < 30000; // Re-validate if accessed within 30s
+    
+    if (!shouldRevalidate && cached.isValid) {
+      this.initializedSchemas.add(tenantId);
+      this.lastValidation.set(tenantId, now);
+      return; // Schema valid from cache
     }
 
     // Check if schema actually exists in database

@@ -1,126 +1,154 @@
+// Enhanced Multi-Tenant Validation Middleware
 import { Request, Response, NextFunction } from 'express';
-import { CrossTenantValidator } from '../database/CrossTenantValidator';
-import { logWarn } from '../utils/logger';
+import { logger } from '../services/LoggingService';
 
-// ===========================
-// TENANT VALIDATION MIDDLEWARE
-// Fixes: Missing cross-tenant security validation
-// ===========================
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-    role: string;
-    email: string;
-  };
+export interface TenantValidatedRequest extends Request {
+  tenantId?: string;
+  tenantValidated?: boolean;
 }
 
-// ===========================
-// STRICT TENANT ISOLATION MIDDLEWARE
-// ===========================
-export const validateTenantAccess = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const validation = await CrossTenantValidator.validateTenantRequest(req);
-
-    if (!validation.valid) {
-      logWarn('Tenant access denied', {
-        userId: req.user?.id,
-        userTenantId: req.user?.tenantId,
-        requestedPath: req.originalUrl,
-        error: validation.error
-      });
-
-      res.status(403).json({
-        success: false,
-        message: 'Acesso negado: Isolamento de tenant',
-        error: validation.error
-      });
-      return;
-    }
-
-    next();
-  } catch (error) {
-    logWarn('Error in tenant validation middleware', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro interno de validação'
-    });
-  }
-};
-
-// ===========================
-// RESOURCE OWNERSHIP VALIDATION
-// ===========================
-export const validateResourceOwnership = (resourceType: string) => {
-  return async (
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+/**
+ * CRITICAL: Enhanced tenant validation middleware with cross-tenant protection
+ * Prevents data leaks between tenants and validates tenant boundaries
+ */
+export function enhancedTenantValidator() {
+  return async (req: TenantValidatedRequest, res: Response, next: NextFunction) => {
     try {
-      const resourceId = req.params.id || req.params.resourceId;
-      const tenantId = req.user?.tenantId;
-
-      if (!resourceId || !tenantId) {
-        res.status(400).json({
-          success: false,
-          message: 'ID do recurso e tenant são obrigatórios'
+      const user = (req as any).user;
+      
+      if (!user || !user.tenantId) {
+        logger.warn('Request without valid tenant context', {
+          path: req.path,
+          method: req.method,
+          userAgent: req.get('User-Agent'),
+          ip: req.ip
         });
-        return;
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant context required'
+        });
       }
 
-      const isOwner = await CrossTenantValidator.validateResourceOwnership(
-        tenantId,
-        resourceType,
-        resourceId
-      );
-
-      if (!isOwner) {
-        logWarn('Resource ownership validation failed', {
-          userId: req.user?.id,
-          tenantId,
-          resourceType,
-          resourceId,
-          path: req.originalUrl
+      // CRITICAL: Validate tenant ID format to prevent injection
+      const tenantIdRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      if (!tenantIdRegex.test(user.tenantId)) {
+        logger.error('Invalid tenant ID format detected', {
+          tenantId: user.tenantId,
+          userId: user.id,
+          path: req.path,
+          method: req.method
         });
-
-        res.status(404).json({
+        return res.status(400).json({
           success: false,
-          message: 'Recurso não encontrado ou acesso negado'
+          message: 'Invalid tenant identifier'
         });
-        return;
       }
+
+      // CRITICAL: Check for cross-tenant access attempts in request parameters
+      const requestParams = { ...req.params, ...req.query, ...req.body };
+      for (const [key, value] of Object.entries(requestParams)) {
+        if (key.toLowerCase().includes('tenant') && value !== user.tenantId) {
+          logger.error('Cross-tenant access attempt detected', {
+            requestedTenant: value,
+            userTenant: user.tenantId,
+            userId: user.id,
+            path: req.path,
+            method: req.method,
+            parameter: key
+          });
+          return res.status(403).json({
+            success: false,
+            message: 'Cross-tenant access denied'
+          });
+        }
+      }
+
+      // CRITICAL: Validate tenant access for database operations
+      if (req.body && typeof req.body === 'object') {
+        // Ensure any tenantId in request body matches user's tenant
+        if (req.body.tenantId && req.body.tenantId !== user.tenantId) {
+          logger.error('Tenant ID mismatch in request body', {
+            bodyTenantId: req.body.tenantId,
+            userTenantId: user.tenantId,
+            userId: user.id,
+            path: req.path
+          });
+          return res.status(403).json({
+            success: false,
+            message: 'Tenant context mismatch'
+          });
+        }
+
+        // Auto-inject tenant ID for create operations
+        if (req.method === 'POST' && !req.body.tenantId) {
+          req.body.tenantId = user.tenantId;
+        }
+      }
+
+      // Set validated tenant context
+      req.tenantId = user.tenantId;
+      req.tenantValidated = true;
+
+      logger.debug('Tenant validation successful', {
+        tenantId: user.tenantId,
+        userId: user.id,
+        path: req.path,
+        method: req.method
+      });
 
       next();
     } catch (error) {
-      logWarn('Error in resource ownership validation', error);
-      res.status(500).json({
+      logger.error('Tenant validation error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        path: req.path,
+        method: req.method,
+        userAgent: req.get('User-Agent')
+      });
+      
+      return res.status(500).json({
         success: false,
-        message: 'Erro interno de validação'
+        message: 'Tenant validation failed'
       });
     }
   };
-};
+}
 
-// ===========================
-// SAAS ADMIN BYPASS
-// ===========================
-export const allowSaasAdminBypass = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void => {
-  // SaaS admins can bypass tenant restrictions
-  if (req.user?.role === 'saas_admin') {
-    next();
-    return;
-  }
+/**
+ * Cross-tenant validation for admin operations
+ * Only allows SaaS admins to access cross-tenant data
+ */
+export function crossTenantValidator() {
+  return async (req: TenantValidatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      
+      // Only SaaS admins can perform cross-tenant operations
+      if (!user || user.role !== 'saas_admin') {
+        logger.warn('Non-admin attempted cross-tenant operation', {
+          userId: user?.id,
+          userRole: user?.role,
+          path: req.path,
+          method: req.method
+        });
+        
+        return res.status(403).json({
+          success: false,
+          message: 'Cross-tenant operations require SaaS admin privileges'
+        });
+      }
 
-  // Continue with normal validation
-  validateTenantAccess(req, res, next);
-};
+      req.tenantValidated = true;
+      next();
+    } catch (error) {
+      logger.error('Cross-tenant validation error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        path: req.path
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Cross-tenant validation failed'
+      });
+    }
+  };
+}
