@@ -574,7 +574,9 @@ export default function TicketsTable() {
                     <SelectContent>
                       {customers.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.fullName} ({customer.email})
+                          {customer.firstName && customer.lastName 
+                            ? `${customer.firstName} ${customer.lastName}`
+                            : customer.fullName || customer.email || 'Unknown'} ({customer.email})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -947,8 +949,14 @@ export default function TicketsTable() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{ticket.customer.fullName}</div>
-                        <div className="text-sm text-gray-500">{ticket.customer.email}</div>
+                        <div className="font-medium">
+                          {ticket.customer_first_name && ticket.customer_last_name 
+                            ? `${ticket.customer_first_name} ${ticket.customer_last_name}`
+                            : ticket.customer?.fullName || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {ticket.customer_email || ticket.customer?.email || 'N/A'}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
