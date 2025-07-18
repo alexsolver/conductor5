@@ -175,12 +175,27 @@ export default function TechnicalSkills() {
   };
 
   const renderStars = (level: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${i < level ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-      />
-    ));
+    const levelLabels = {
+      1: "Básico",
+      2: "Intermediário", 
+      3: "Avançado",
+      4: "Especialista",
+      5: "Excelência"
+    };
+
+    return (
+      <div className="flex items-center space-x-1">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${i < level ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+          />
+        ))}
+        <span className="ml-1 text-xs text-gray-500">
+          {levelLabels[level as keyof typeof levelLabels]} mín.
+        </span>
+      </div>
+    );
   };
 
   const filteredSkills = skills?.data?.filter(skill => {
@@ -265,11 +280,11 @@ export default function TechnicalSkills() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {[1, 2, 3, 4, 5].map((level) => (
-                            <SelectItem key={level} value={level.toString()}>
-                              Nível {level} {level === 1 ? "(Básico)" : level === 5 ? "(Expert)" : ""}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="1">Básico - Conhecimento introdutório, precisa de supervisão</SelectItem>
+                          <SelectItem value="2">Intermediário - Executa tarefas com alguma autonomia</SelectItem>
+                          <SelectItem value="3">Avançado - Executa com autonomia, lida com situações variadas</SelectItem>
+                          <SelectItem value="4">Especialista - Referência técnica interna, resolve problemas críticos</SelectItem>
+                          <SelectItem value="5">Excelência - Comprovada por resultados e avaliações de clientes</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -445,10 +460,7 @@ export default function TechnicalSkills() {
                     <CardTitle className="text-lg">{skill.name}</CardTitle>
                     <div className="flex items-center space-x-2 mt-1">
                       <Badge variant="secondary">{skill.category}</Badge>
-                      <div className="flex items-center">
-                        {renderStars(skill.minLevelRequired)}
-                        <span className="ml-1 text-xs text-gray-500">mín.</span>
-                      </div>
+                      {renderStars(skill.minLevelRequired)}
                     </div>
                   </div>
                   <div className="flex space-x-1">
@@ -545,11 +557,11 @@ export default function TechnicalSkills() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5].map((level) => (
-                          <SelectItem key={level} value={level.toString()}>
-                            Nível {level} {level === 1 ? "(Básico)" : level === 5 ? "(Expert)" : ""}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="1">Básico - Conhecimento introdutório, precisa de supervisão</SelectItem>
+                        <SelectItem value="2">Intermediário - Executa tarefas com alguma autonomia</SelectItem>
+                        <SelectItem value="3">Avançado - Executa com autonomia, lida com situações variadas</SelectItem>
+                        <SelectItem value="4">Especialista - Referência técnica interna, resolve problemas críticos</SelectItem>
+                        <SelectItem value="5">Excelência - Comprovada por resultados e avaliações de clientes</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
