@@ -50,7 +50,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// UNIFIED: Customers table (includes both customers and solicitantes - they are the same entity)
+// Customers table (simplified after removing favorecidos/solicitantes distinction)
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
@@ -59,7 +59,6 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
-  customerType: varchar("customer_type", { length: 20 }).default("customer"), // 'customer' or 'solicitante'
   cpfCnpj: varchar("cpf_cnpj", { length: 20 }), // For Brazilian customers
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),

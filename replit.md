@@ -10,6 +10,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 18, 2025 - CUSTOMER PAGE PROBLEM COMPLETELY RESOLVED
+- ✅ **CUSTOMER_TYPE COLUMN ELIMINATED**: Removed customer_type column from all schemas (both schema.ts and schema-simple.ts)
+- ✅ **PARSEQLIMIT ERROR FIXED**: Fixed variable scoping issue in customers routes by moving variables outside try block
+- ✅ **CREATECUSTOMER METHOD CORRECTED**: Updated method signature to include tenantId parameter in storage interface
+- ✅ **EXTERNAL-CONTACTS CLEANUP**: Removed all remaining references to external-contacts routes and components
+- ✅ **API FULLY FUNCTIONAL**: Customer API now returns 200 status with proper customer data (3 customers found)
+- ✅ **FAVORECIDOS/SOLICITANTES ELIMINATION**: Complete removal of favorecidos and solicitantes concepts from entire system
+- ✅ **CUSTOMERS PAGE OPERATIONAL**: Page now loads successfully without errors showing João Silva, Maria Santos, Pedro Oliveira
+
 ### July 18, 2025 - ARQUITETURA UNIFICADA COMPLETA
 - ✅ **COMPLETE SCHEMA RECREATION**: All tables recreated from scratch to eliminate schema errors
 - ✅ **SOLICITANTES TABLE**: New dedicated table replaces customers with all original fields preserved

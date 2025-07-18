@@ -41,8 +41,8 @@ export interface IStorage {
 
   // Customers
   getCustomer(id: string, tenantId: string): Promise<Customer | null>;
-  getCustomers(tenantId: string, limit?: number, offset?: number): Promise<Customer[]>;
-  createCustomer(data: InsertCustomer): Promise<Customer>;
+  getCustomers(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<Customer[]>;
+  createCustomer(tenantId: string, data: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, tenantId: string, data: Partial<InsertCustomer>): Promise<Customer | null>;
   deleteCustomer(id: string, tenantId: string): Promise<boolean>;
 
