@@ -358,6 +358,62 @@ export class DatabaseStorage {
     }
   }
 
+  async getRecentActivity(tenantId: string, limit: number = 20): Promise<any[]> {
+    try {
+      const validatedTenantId = TenantValidator.validateTenantId(tenantId);
+      const tenantDb = await databaseManager.getTenantConnection(validatedTenantId);
+
+      // Get recent activities from tickets, customers, and external contacts
+      const result = await tenantDb.execute(sql`
+        (
+          SELECT 
+            'ticket' as type,
+            'Ticket criado' as action,
+            subject as description,
+            created_at as timestamp,
+            id as entity_id
+          FROM tickets 
+          WHERE tenant_id = ${validatedTenantId}
+          ORDER BY created_at DESC
+          LIMIT ${Math.ceil(limit / 3)}
+        )
+        UNION ALL
+        (
+          SELECT 
+            'customer' as type,
+            'Cliente cadastrado' as action,
+            COALESCE(first_name || ' ' || last_name, email) as description,
+            created_at as timestamp,
+            id as entity_id
+          FROM customers 
+          WHERE tenant_id = ${validatedTenantId}
+          ORDER BY created_at DESC
+          LIMIT ${Math.ceil(limit / 3)}
+        )
+        UNION ALL
+        (
+          SELECT 
+            'external_contact' as type,
+            'Contato externo cadastrado' as action,
+            name as description,
+            created_at as timestamp,
+            id as entity_id
+          FROM external_contacts 
+          WHERE tenant_id = ${validatedTenantId}
+          ORDER BY created_at DESC
+          LIMIT ${Math.ceil(limit / 3)}
+        )
+        ORDER BY timestamp DESC
+        LIMIT ${limit}
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching recent activity', error, { tenantId, limit });
+      throw error;
+    }
+  }
+
   // ===========================
   // HEALTH CHECK
   // ===========================
