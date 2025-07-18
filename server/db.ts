@@ -38,7 +38,7 @@ export class SchemaManager {
   // Intelligent cache cleanup to prevent memory leaks
   private cleanupCache(): void {
     const now = Date.now();
-    
+
     // CRITICAL FIX: Optimized cleanup frequency for stability
     if (now - this.lastCleanup < 5 * 60 * 1000) { // 5 minutes - balanced for performance
       return;
@@ -55,7 +55,7 @@ export class SchemaManager {
     if (this.schemaValidationCache.size > this.MAX_CACHED_SCHEMAS) {
       const entries = Array.from(this.schemaValidationCache.entries());
       entries.sort((a, b) => a[1].timestamp - b[1].timestamp); // Sort by timestamp
-      
+
       // Remove oldest entries
       const toRemove = entries.slice(0, entries.length - this.MAX_CACHED_SCHEMAS);
       for (const [tenantId] of toRemove) {
@@ -85,13 +85,13 @@ export class SchemaManager {
          WHERE table_schema = ${schemaName} 
          AND column_name = 'tenant_id') as tenant_isolation_count
       `);
-      
+
       const row = result.rows[0];
       const schemaExists = Boolean(row?.schema_exists);
       const essentialTablesCount = Number(row?.essential_tables || 0);
       const customerStructure = Number(row?.customer_structure || 0);
       const tenantIsolationCount = Number(row?.tenant_isolation_count || 0);
-      
+
       // CRITICAL FIX: Require 7 essential tables + proper tenant isolation
       return schemaExists && 
              essentialTablesCount >= 7 && 
@@ -118,12 +118,12 @@ export class SchemaManager {
     const cached = this.schemaValidationCache.get(tenantId);
     const lastValidated = this.lastValidation.get(tenantId) || 0;
     const now = Date.now();
-    
+
     // Force re-validation if cached for too long or if frequent access pattern detected
     const shouldRevalidate = !cached || 
                            (now - cached.timestamp) > this.CACHE_TTL ||
                            (now - lastValidated) < 30000; // Re-validate if accessed within 30s
-    
+
     if (!shouldRevalidate && cached.isValid) {
       this.initializedSchemas.add(tenantId);
       this.lastValidation.set(tenantId, now);
@@ -132,13 +132,13 @@ export class SchemaManager {
 
     // Check if schema actually exists in database
     const exists = await this.schemaExists(schemaName);
-    
+
     // Cache the validation result
     this.schemaValidationCache.set(tenantId, {
       isValid: exists,
       timestamp: Date.now()
     });
-    
+
     if (exists) {
       this.initializedSchemas.add(tenantId);
       return; // Schema exists, mark as initialized
@@ -149,11 +149,18 @@ export class SchemaManager {
       await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(schemaName)}`);
 
       // CRITICAL FIX: Check if this is a legacy schema that needs migration
-      const needsMigration = await this.checkLegacySchema(schemaName);
-      if (needsMigration) {
-        await this.migrateLegacyTables(schemaName);
+      try {
+        const needsMigration = await this.checkLegacySchema(schemaName);
+        if (needsMigration) {
+          await this.migrateLegacyTables(schemaName);
+        }
+      } catch (migrationError) {
+        // Log migration error but don't fail schema creation
+        const { logWarn } = await import('./utils/logger');
+        logWarn(`Schema migration failed for ${schemaName}, creating fresh schema`, migrationError);
+        // Continue with fresh schema creation
       }
-      
+
       // Create tenant-specific tables in the new schema
       await this.createTenantTables(schemaName);
 
@@ -201,7 +208,7 @@ export class SchemaManager {
         maxUses: 1500, // Regular connection recycling
         keepAlive: true
       });
-      
+
       // CRITICAL FIX: Prevent memory leak by limiting event listeners
       tenantPool.setMaxListeners(15); // Increase limit to prevent warnings
 
@@ -217,7 +224,7 @@ export class SchemaManager {
           sql`SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = ${schemaName}`
         );
         const { logInfo } = await import('./utils/logger');
-        
+
         // Only log schema verification 10% of the time to reduce I/O overhead
         if (Math.random() < 0.1) {
           logInfo(`Tenant schema verification for ${tenantId}`, { 
@@ -284,7 +291,7 @@ export class SchemaManager {
         WHERE table_schema = ${schemaName}
         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts')
       `);
-      
+
       return (result.rows[0]?.table_count as number) >= 7;
     } catch {
       return false;
@@ -339,7 +346,7 @@ export class SchemaManager {
           CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS customers_tenant_email_idx ON ${schemaId}.customers (tenant_id, email)
@@ -397,7 +404,7 @@ export class SchemaManager {
           CONSTRAINT tickets_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS tickets_tenant_status_idx ON ${schemaId}.tickets (tenant_id, status)
@@ -426,7 +433,7 @@ export class SchemaManager {
           CONSTRAINT ticket_messages_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS ticket_messages_tenant_ticket_idx ON ${schemaId}.ticket_messages (tenant_id, ticket_id)
@@ -453,7 +460,7 @@ export class SchemaManager {
           CONSTRAINT activity_logs_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS activity_logs_tenant_entity_idx ON ${schemaId}.activity_logs (tenant_id, entity_type, entity_id)
@@ -470,7 +477,7 @@ export class SchemaManager {
           name VARCHAR(255) NOT NULL,
           type VARCHAR(20) NOT NULL CHECK (type IN ('cliente', 'ativo', 'filial', 'tecnico', 'parceiro')),
           status VARCHAR(20) NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo', 'manutencao', 'suspenso')),
-          
+
           -- Address fields
           address TEXT NOT NULL,
           number VARCHAR(20),
@@ -480,27 +487,27 @@ export class SchemaManager {
           state VARCHAR(50) NOT NULL,
           zip_code VARCHAR(20) NOT NULL,
           country VARCHAR(50) NOT NULL DEFAULT 'Brasil',
-          
+
           -- Geographic coordinates
           latitude VARCHAR(20), -- Optimized: VARCHAR for latitude
           longitude VARCHAR(20), -- Optimized: VARCHAR for longitude
-          
+
           -- Business hours and SLA - OPTIMIZED
           business_hours TEXT, -- Optimized: TEXT for business hours
           special_hours TEXT, -- Optimized: TEXT for special hours
           timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
           sla_id UUID,
-          
+
           -- Access and security
           access_instructions TEXT,
           requires_authorization BOOLEAN DEFAULT FALSE,
           security_equipment TEXT, -- Optimized: TEXT for security equipment
           emergency_contacts TEXT, -- Optimized: TEXT for emergency contacts
-          
+
           -- Metadata and customization - OPTIMIZED
           metadata TEXT, -- Optimized: TEXT for metadata
           tags VARCHAR(500), -- Optimized: VARCHAR for tags
-          
+
           -- Audit fields
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
@@ -544,7 +551,7 @@ export class SchemaManager {
           CONSTRAINT companies_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS companies_tenant_name_idx ON ${schemaId}.customer_companies (tenant_id, name)
@@ -576,7 +583,7 @@ export class SchemaManager {
           CONSTRAINT memberships_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS memberships_tenant_customer_idx ON ${schemaId}.customer_company_memberships (tenant_id, customer_id)
@@ -652,7 +659,7 @@ export class SchemaManager {
           CONSTRAINT skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS skills_tenant_category_idx ON ${schemaId}.skills (tenant_id, category)
@@ -679,7 +686,7 @@ export class SchemaManager {
           CONSTRAINT certifications_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS certifications_tenant_category_idx ON ${schemaId}.certifications (tenant_id, category)
@@ -708,7 +715,7 @@ export class SchemaManager {
           CONSTRAINT external_contacts_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS external_contacts_tenant_type_idx ON ${schemaId}.external_contacts (tenant_id, type)
@@ -736,7 +743,7 @@ export class SchemaManager {
           CONSTRAINT user_skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
-      
+
       // CRITICAL: Add tenant-first indexes
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS user_skills_tenant_user_idx ON ${schemaId}.user_skills (tenant_id, user_id)
@@ -774,6 +781,7 @@ export class SchemaManager {
   // CRITICAL FIX: Check if schema has legacy tables needing migration
   private async checkLegacySchema(schemaName: string): Promise<boolean> {
     try {
+```python
       // Check if any critical tables exist without tenant_id
       const result = await db.execute(sql`
         SELECT table_name 
@@ -782,11 +790,11 @@ export class SchemaManager {
         AND table_name IN ('skills', 'certifications', 'user_skills', 'customers', 'tickets')
         LIMIT 1
       `);
-      
+
       if (result.rows.length === 0) {
         return false; // No tables exist, no migration needed
       }
-      
+
       // Check if any existing table lacks tenant_id
       const tenantIdCheck = await db.execute(sql`
         SELECT table_name 
@@ -795,7 +803,7 @@ export class SchemaManager {
         AND table_name IN ('skills', 'certifications', 'user_skills', 'customers', 'tickets')
         AND column_name = 'tenant_id'
       `);
-      
+
       // If we have tables but no tenant_id columns, we need migration
       return result.rows.length > 0 && tenantIdCheck.rows.length === 0;
     } catch (error) {
@@ -808,7 +816,7 @@ export class SchemaManager {
     try {
       // Extract tenant_id from schema name for migration
       const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
-      
+
       // CRITICAL FIX: Use raw SQL for complex migration queries to avoid parameter binding issues
       const migrationQueries = [
         // Skills table migration
@@ -820,7 +828,7 @@ export class SchemaManager {
              ALTER TABLE ${schemaName}.skills ADD CONSTRAINT skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
-        
+
         // Certifications table migration
         `DO $$ 
          BEGIN 
@@ -830,7 +838,7 @@ export class SchemaManager {
              ALTER TABLE ${schemaName}.certifications ADD CONSTRAINT certifications_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
-        
+
         // User_skills table migration
         `DO $$ 
          BEGIN 
@@ -840,7 +848,7 @@ export class SchemaManager {
              ALTER TABLE ${schemaName}.user_skills ADD CONSTRAINT user_skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
-        
+
         // Customers table migration
         `DO $$ 
          BEGIN 
@@ -850,7 +858,7 @@ export class SchemaManager {
              ALTER TABLE ${schemaName}.customers ADD CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
-        
+
         // Tickets table migration
         `DO $$ 
          BEGIN 
@@ -860,7 +868,7 @@ export class SchemaManager {
              ALTER TABLE ${schemaName}.tickets ADD CONSTRAINT tickets_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
-        
+
         // Additional tables migration + MISSING COLUMNS FIX
         `DO $$ 
          BEGIN 
@@ -869,51 +877,51 @@ export class SchemaManager {
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'ticket_messages' AND column_name = 'tenant_id') THEN
              ALTER TABLE ${schemaName}.ticket_messages ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
            END IF;
-           
+
            -- Activity logs
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'activity_logs')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'activity_logs' AND column_name = 'tenant_id') THEN
              ALTER TABLE ${schemaName}.activity_logs ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
            END IF;
-           
+
            -- Locations
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'locations')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'locations' AND column_name = 'tenant_id') THEN
              ALTER TABLE ${schemaName}.locations ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
            END IF;
-           
+
            -- External contacts
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'external_contacts')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'external_contacts' AND column_name = 'tenant_id') THEN
              ALTER TABLE ${schemaName}.external_contacts ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
            END IF;
-           
+
            -- CRITICAL FIX: Add missing 'active' column to customers table if missing
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'active') THEN
              ALTER TABLE ${schemaName}.customers ADD COLUMN active BOOLEAN NOT NULL DEFAULT true;
            END IF;
-           
+
            -- Add missing 'verified' column to customers table if missing
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'verified') THEN
              ALTER TABLE ${schemaName}.customers ADD COLUMN verified BOOLEAN NOT NULL DEFAULT false;
            END IF;
-           
+
            -- Add missing 'suspended' column to customers table if missing
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'suspended') THEN
              ALTER TABLE ${schemaName}.customers ADD COLUMN suspended BOOLEAN NOT NULL DEFAULT false;
            END IF;
-           
+
          END $$;`
       ];
-      
+
       // Execute each migration query
       for (const query of migrationQueries) {
         await db.execute(sql.raw(query));
       }
-      
+
       const { logInfo } = await import('./utils/logger');
       logInfo(`Legacy tables migrated successfully for schema ${schemaName}`);
     } catch (error) {

@@ -22,9 +22,9 @@ interface TenantConnection {
 export class ConnectionPoolManager {
   private static instance: ConnectionPoolManager;
   private tenantPools = new Map<string, TenantConnection>();
-  private readonly MAX_POOLS = 15; // Reduced to prevent memory leaks - was 50
-  private readonly POOL_TTL = 10 * 60 * 1000; // 10 minutes - reduced from 30min
-  private readonly CLEANUP_INTERVAL = 2 * 60 * 1000; // 2 minutes - more frequent cleanup
+  private readonly MAX_POOLS = 25; // CRITICAL FIX: Increased for production load
+  private readonly POOL_TTL = 15 * 60 * 1000; // 15 minutes - balanced for stability
+  private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes - reduced cleanup frequency
   private cleanupTimer?: NodeJS.Timeout;
 
   private constructor() {
