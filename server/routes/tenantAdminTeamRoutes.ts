@@ -253,4 +253,170 @@ router.get('/activity',
   }
 );
 
+// ============= USER-LOCATION ASSIGNMENT ROUTES =============
+
+// Get user location assignments
+router.get('/users/:userId/locations', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { userId } = req.params;
+      const tenantId = req.user!.tenantId;
+      
+      const assignments = await userManagementService.getUserLocationAssignments(userId, tenantId);
+      res.json({ assignments });
+    } catch (error) {
+      const { logError } = await import('../utils/logger');
+      logError('Error fetching user location assignments', error, { 
+        userId: req.params.userId,
+        tenantId: req.user?.tenantId 
+      });
+      res.status(500).json({ message: 'Failed to fetch user location assignments' });
+    }
+  }
+);
+
+// Assign user to location
+router.post('/users/:userId/locations', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { userId } = req.params;
+      const tenantId = req.user!.tenantId;
+      const assignmentData = req.body;
+
+      // Validate assignment data
+      const assignmentSchema = z.object({
+        locationId: z.string().uuid(),
+        role: z.enum(['assigned', 'primary_contact', 'backup_contact', 'manager']).default('assigned'),
+        isPrimary: z.boolean().default(false),
+        accessLevel: z.enum(['basic', 'advanced', 'admin']).default('basic'),
+        specialPermissions: z.array(z.string()).default([]),
+        validFrom: z.string().datetime().optional(),
+        validUntil: z.string().datetime().optional(),
+        notes: z.string().optional()
+      });
+
+      const validatedData = assignmentSchema.parse(assignmentData);
+      
+      const assignment = await userManagementService.assignUserToLocation(
+        userId, 
+        tenantId, 
+        validatedData,
+        req.user!.id
+      );
+      
+      res.status(201).json({ assignment });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
+      }
+      const { logError } = await import('../utils/logger');
+      logError('Error assigning user to location', error, { 
+        userId: req.params.userId,
+        tenantId: req.user?.tenantId 
+      });
+      res.status(500).json({ message: 'Failed to assign user to location' });
+    }
+  }
+);
+
+// Update user location assignment
+router.put('/users/:userId/locations/:assignmentId', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { userId, assignmentId } = req.params;
+      const tenantId = req.user!.tenantId;
+      const updateData = req.body;
+
+      // Validate update data
+      const updateSchema = z.object({
+        role: z.enum(['assigned', 'primary_contact', 'backup_contact', 'manager']).optional(),
+        isPrimary: z.boolean().optional(),
+        accessLevel: z.enum(['basic', 'advanced', 'admin']).optional(),
+        specialPermissions: z.array(z.string()).optional(),
+        isActive: z.boolean().optional(),
+        validFrom: z.string().datetime().optional(),
+        validUntil: z.string().datetime().optional(),
+        notes: z.string().optional()
+      });
+
+      const validatedData = updateSchema.parse(updateData);
+      
+      const assignment = await userManagementService.updateUserLocationAssignment(
+        assignmentId, 
+        userId,
+        tenantId, 
+        validatedData,
+        req.user!.id
+      );
+      
+      res.json({ assignment });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
+      }
+      const { logError } = await import('../utils/logger');
+      logError('Error updating user location assignment', error, { 
+        userId: req.params.userId,
+        assignmentId: req.params.assignmentId,
+        tenantId: req.user?.tenantId 
+      });
+      res.status(500).json({ message: 'Failed to update user location assignment' });
+    }
+  }
+);
+
+// Remove user from location
+router.delete('/users/:userId/locations/:assignmentId', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { userId, assignmentId } = req.params;
+      const tenantId = req.user!.tenantId;
+      
+      await userManagementService.removeUserFromLocation(
+        assignmentId, 
+        userId,
+        tenantId,
+        req.user!.id
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      const { logError } = await import('../utils/logger');
+      logError('Error removing user from location', error, { 
+        userId: req.params.userId,
+        assignmentId: req.params.assignmentId,
+        tenantId: req.user?.tenantId 
+      });
+      res.status(500).json({ message: 'Failed to remove user from location' });
+    }
+  }
+);
+
+// Get locations available for assignment
+router.get('/locations', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const locations = await userManagementService.getAvailableLocations(tenantId);
+      res.json({ locations });
+    } catch (error) {
+      const { logError } = await import('../utils/logger');
+      logError('Error fetching available locations', error, { 
+        tenantId: req.user?.tenantId 
+      });
+      res.status(500).json({ message: 'Failed to fetch available locations' });
+    }
+  }
+);
+
 export default router;
