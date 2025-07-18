@@ -2,7 +2,7 @@
 import { UserRepository } from "../../infrastructure/repositories/UserRepository";
 import { TenantRepository } from "../../infrastructure/repositories/TenantRepository";
 import { PasswordHasher } from "../../infrastructure/services/PasswordHasher";
-import { TokenService } from "../../infrastructure/services/TokenService";
+import { SimpleTokenService } from "../../infrastructure/services/SimpleTokenService";
 import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
 import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
 import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
@@ -17,7 +17,7 @@ export class DependencyContainer {
   
   // Services
   private _passwordHasher?: PasswordHasher;
-  private _tokenService?: TokenService;
+  private _tokenService?: SimpleTokenService;
   
   // Use Cases
   private _loginUseCase?: LoginUseCase;
@@ -59,9 +59,9 @@ export class DependencyContainer {
     return this._passwordHasher;
   }
 
-  get tokenService(): TokenService {
+  get tokenService(): SimpleTokenService {
     if (!this._tokenService) {
-      this._tokenService = new TokenService();
+      this._tokenService = new SimpleTokenService();
     }
     return this._tokenService;
   }

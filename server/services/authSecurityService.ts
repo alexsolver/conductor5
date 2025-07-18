@@ -287,14 +287,13 @@ export class AuthSecurityService {
   // Security logging
   private async logSecurityEvent(identifier: string, eventType: string, metadata: Record<string, unknown> = {}): Promise<void> {
     try {
-      await db.execute(sql`
-        INSERT INTO security_events (identifier, event_type, metadata, ip, created_at)
-        VALUES (${sql.placeholder('identifier')}, ${sql.placeholder('eventType')}, ${sql.placeholder('metadata')}, ${sql.placeholder('ip')}, NOW())
-      `, {
+      const { securityEvents } = await import('../shared/schema');
+      await db.insert(securityEvents).values({
         identifier,
         eventType,
         metadata: JSON.stringify(metadata),
-        ip: '127.0.0.1'
+        ip: '127.0.0.1',
+        createdAt: new Date()
       });
     } catch (error) {
       const { logError } = await import('../utils/logger');

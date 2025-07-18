@@ -234,7 +234,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         tags: (customer.tags as string[]) || [],
-        metadata: (customer.metadata as Record<string, any>) || {}
+        metadata: (customer.metadata as Record<string, unknown>) || {}
       }));
 
       return customers;
