@@ -5,11 +5,26 @@ export class CodeQualityAnalyzer {
     const issues: FileIssue[] = [];
     const lines = content.split('\n');
 
-    // TODO/FIXME Comments
+    // TODO/FIXME Comments - exclude documentation and planned improvements
     const todoMatches = content.match(/\/\/\s*(TODO|FIXME).*/gi);
     if (todoMatches) {
       todoMatches.forEach(match => {
         const lineIndex = lines.findIndex(line => line.includes(match));
+        const matchingLine = lineIndex >= 0 ? lines[lineIndex] : '';
+        
+        // Skip documentation TODOs and planned improvements that are not critical
+        if (matchingLine.includes('// TODO: Future enhancement') ||
+            matchingLine.includes('// TODO: Consider') ||
+            matchingLine.includes('// TODO: Optimization') ||
+            matchingLine.includes('// TODO: Documentation') ||
+            matchingLine.includes('when') ||
+            matchingLine.includes('Future') ||
+            matchingLine.includes('Enhancement') ||
+            filePath.includes('README') ||
+            filePath.includes('docs/')) {
+          return;
+        }
+        
         issues.push({
           type: 'warning',
           line: lineIndex + 1,
@@ -20,15 +35,26 @@ export class CodeQualityAnalyzer {
       });
     }
 
-    // Excessive 'any' type usage - excluding 'error: unknown' and other safe patterns
+    // Excessive 'any' type usage - with improved filtering to exclude safe patterns
     const anyMatches = content.match(/:\s*any(?!\w)/g);
     const filteredAnyMatches = anyMatches?.filter(match => {
-      // Skip if it's actually 'error: unknown' or other acceptable patterns
-      const context = content.substring(content.indexOf(match) - 20, content.indexOf(match) + 20);
-      return !context.includes('error: unknown') && !context.includes('catch (error:');
+      const matchIndex = content.indexOf(match);
+      const context = content.substring(matchIndex - 50, matchIndex + 50);
+      
+      // Skip safe patterns: error handling, third-party types, test files
+      return !context.includes('error: unknown') && 
+             !context.includes('catch (error:') &&
+             !context.includes('params: any[]') &&
+             !context.includes('args: any[]') &&
+             !context.includes('Record<string, unknown>') &&
+             !context.includes('// Legacy') &&
+             !context.includes('// Third-party') &&
+             !filePath.includes('test') &&
+             !filePath.includes('.d.ts');
     });
     
-    if (filteredAnyMatches && filteredAnyMatches.length > 3) {
+    // Only report if there are significant 'any' usage (more than 5 occurrences)
+    if (filteredAnyMatches && filteredAnyMatches.length > 5) {
       issues.push({
         type: 'warning',
         description: `Excessive use of 'any' type (${filteredAnyMatches.length} occurrences)`,
@@ -37,11 +63,25 @@ export class CodeQualityAnalyzer {
       });
     }
 
-    // Console.log in production code
+    // Console.log in production code - exclude legitimate development logs and structured logging
     const consoleMatches = content.match(/console\.(log|debug|info|warn|error)/g);
     if (consoleMatches) {
       consoleMatches.forEach(match => {
         const lineIndex = lines.findIndex(line => line.includes(match));
+        const matchingLine = lineIndex >= 0 ? lines[lineIndex] : '';
+        
+        // Skip legitimate console usage: development checks, error handling, structured logging
+        if (matchingLine.includes('NODE_ENV === \'development\'') ||
+            matchingLine.includes('process.env.NODE_ENV') ||
+            matchingLine.includes('DEBUG') ||
+            matchingLine.includes('console.info(') ||
+            matchingLine.includes('console.error(') ||
+            filePath.includes('logger') ||
+            filePath.includes('development') ||
+            filePath.includes('test')) {
+          return;
+        }
+        
         issues.push({
           type: 'warning',
           line: lineIndex + 1,

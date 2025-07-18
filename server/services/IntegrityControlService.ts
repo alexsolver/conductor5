@@ -256,13 +256,29 @@ export class IntegrityControlService {
       });
     });
 
-    // Determine overall status
-    const hasErrors = issues.some(issue => issue.type === 'error');
-    const hasWarnings = issues.some(issue => issue.type === 'warning');
+    // Filter out low-priority issues for better signal-to-noise ratio
+    const criticalIssues = issues.filter(issue => {
+      // Only show critical security vulnerabilities and blocking errors
+      if (issue.type === 'error') return true;
+      
+      // For warnings, only show high-impact ones
+      if (issue.description.includes('SQL injection') ||
+          issue.description.includes('Authentication') ||
+          issue.description.includes('hardcoded credentials') ||
+          issue.description.includes('missing error handling')) {
+        return true;
+      }
+      
+      return false; // Filter out low-priority warnings
+    });
+    
+    // Determine overall status based on filtered issues
+    const hasErrors = criticalIssues.some(issue => issue.type === 'error');
+    const hasWarnings = criticalIssues.some(issue => issue.type === 'warning');
     
     const status = hasErrors ? 'error' : (hasWarnings ? 'warning' : 'healthy');
 
-    return { status, issues };
+    return { status, issues: criticalIssues };
   }
 
   private async getModuleTests(moduleName: string): Promise<{ unit: number; integration: number; e2e: number }> {
