@@ -1,0 +1,143 @@
+🎯 Objetivo:
+Desenvolver o módulo HabilidadesTecnicas do sistema Conductor. Esse módulo deve permitir cadastrar, associar, validar e evoluir habilidades técnicas dos usuários (técnicos e agentes), com base em níveis de proficiência e avaliações operacionais, integrando certificações, regras de alocação, agenda, roteirizador, tickets e SLAs.
+
+⸻
+
+⚙️ ESTRUTURA FUNCIONAL
+
+1. Definição de Habilidades
+
+Cada habilidade representa uma competência técnica ou certificação obrigatória para a execução de tarefas ou tickets.
+
+Exemplos:
+	•	Instalação de fibra óptica
+	•	Reparo de hardware
+	•	NR-10 (Segurança Elétrica)
+	•	Suporte a sistema Linux
+	•	Atendimento Nível 1
+
+Campos da Habilidade:
+	•	nome
+	•	categoria (ex: elétrica, redes, atendimento)
+	•	nível mínimo exigido para tarefa
+	•	certificação sugerida (nome + validade)
+	•	observações
+
+⸻
+
+2. Associação ao Técnico
+
+Cada técnico pode ter N habilidades vinculadas com os atributos:
+	•	Nível de proficiência (escala abaixo)
+	•	Certificação (opcional, com validade)
+	•	Data de atribuição
+	•	Responsável pela atribuição
+	•	Justificativa (opcional)
+	•	Avaliação média por clientes (1–5 estrelas)
+
+Básico
+Conhecimento introdutório, precisa de supervisão, recém-treinado
+★☆☆☆☆
+
+Intermediário
+Executa tarefas com alguma autonomia, mas ainda limitado em casos complexos
+★★☆☆☆
+
+Avançado
+Executa com autonomia, lida com situações variadas, boa compreensão operacional
+★★★☆☆
+
+Especialista
+Referência técnica interna, resolve problemas críticos, mentor para outros
+★★★★☆
+
+Excelência (5★)
+Comprovada por resultados, avaliado com 5 estrelas por clientes, recorrente em SLAs cumpridos e feedbacks positivos
+★★★★★
+
+🧩 ALOCAÇÃO BASEADA EM HABILIDADES
+
+Na atribuição de uma tarefa, o sistema deve validar:
+	1.	Técnico com a habilidade exigida
+	2.	Com nível ≥ exigido pela tarefa
+	3.	Com certificações válidas (se aplicável)
+	4.	Disponível no momento
+	5.	Dentro da área geográfica/escopo definido
+
+Critérios adicionais de priorização (em caso de múltiplos aptos):
+	•	Menor carga de trabalho atual
+	•	Maior nota de performance
+	•	Mais próximo geograficamente
+
+⸻
+
+🔒 REGRAS DE NEGÓCIO
+	•	Técnicos só podem ser alocados se cumprirem 100% das habilidades exigidas pela tarefa
+	•	Certificações vencidas bloqueiam a alocação automática
+	•	Técnicos podem visualizar suas habilidades, mas não editar
+	•	Toda alteração em habilidade deve gerar log completo com autor, data, ação
+	•	A evolução para nível 5 (Validado) é concedida automaticamente se:
+	•	Média de avaliações ≥ 4.8
+	•	Mínimo de X execuções positivas
+	•	Nenhum SLA estourado relacionado àquela habilidade
+
+⸻
+
+🧪 AVALIAÇÕES POR CLIENTES
+
+Após execução de tarefas, clientes podem avaliar o desempenho técnico (1 a 5 estrelas).
+Essas avaliações são agregadas por habilidade e técnico.
+	•	Exibição de histórico e média por habilidade
+	•	Painel de evolução técnica
+	•	Técnica gamificada (desempenho visível e recompensável)
+
+⸻
+
+🛠️ INTERFACE & GESTÃO
+
+Para Admin / RH Técnico:
+	•	CRUD completo de habilidades
+	•	Importação em massa
+	•	Validação de certificados (upload e controle de validade)
+	•	Painel de técnicos por skill e região
+	•	Alertas de certificações vencidas
+
+Para Técnicos:
+	•	Visualização de perfil de habilidades
+	•	Upload de certificados
+	•	Solicitação de inclusão de nova habilidade
+
+⸻
+
+📊 RELATÓRIOS E INTEGRAÇÕES
+	•	Técnicos com certificações vencidas
+	•	Habilidades mais demandadas x menos atendidas
+	•	Gaps de skill por local, SLA ou equipe
+	•	Técnicos mais bem avaliados por habilidade
+	•	Integração direta com:
+	•	Tickets
+	•	Agenda
+	•	Workflows
+	•	Roteirizador
+	•	Catálogo de Serviços
+	•	Dashboards e Relatórios
+
+⸻
+
+📎 ENTIDADES ESPERADAS
+	•	Habilidade
+	•	Tecnico
+	•	TecnicoHabilidade (pivot: nível, certificação, validade, avaliação média, data de atribuição, histórico)
+	•	Certificacao
+	•	AvaliacaoHabilidade
+
+⸻
+
+✅ CASOS DE TESTE
+	•	Cadastro de habilidade + atribuição a técnico
+	•	Evolução de nível manual e automática
+	•	Avaliação via cliente → impacto na média
+	•	Bloqueio de técnico por certificação vencida
+	•	Filtro de técnicos com skill X nível ≥ Y
+	•	Log de alteração de nível ou certificação
+	•	Visualização de painel técnico com estrelas
