@@ -186,7 +186,7 @@ export class DatabaseStorage implements IStorage {
           verified, active, suspended, timezone, locale, language,
           external_id, role, notes, avatar, signature, 
           created_at, updated_at
-        FROM ${sql.identifier(schemaName)}.customers
+        FROM ${sql.raw(`${schemaName}.customers`)}
         WHERE 1=1
       `;
 

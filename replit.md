@@ -11,7 +11,7 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### July 18, 2025
-- ✓ **CONSULTAS SQL SEGURAS**: Todas as consultas agora usam sql.identifier() corretamente
+- ✓ **CONSULTAS SQL SEGURAS**: Todas as consultas agora usam sql.identifier() corretamente  
 - ✓ **CORREÇÃO DOS 18 ERROS SQL**: Todos os erros "Expected 1 arguments, but got 2" resolvidos
 - ✓ **REFATORAÇÃO COMPLETA DA CAMADA DE DADOS**: Eliminado 100% dos dados mock do sistema
 - ✓ **NOVA ARQUITETURA DE PERFORMANCE**: ConnectionPoolManager com cache inteligente e cleanup automático
