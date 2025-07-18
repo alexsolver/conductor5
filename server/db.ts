@@ -781,7 +781,6 @@ export class SchemaManager {
   // CRITICAL FIX: Check if schema has legacy tables needing migration
   private async checkLegacySchema(schemaName: string): Promise<boolean> {
     try {
-```python
       // Check if any critical tables exist without tenant_id
       const result = await db.execute(sql`
         SELECT table_name 

@@ -182,13 +182,9 @@ export class DatabaseStorage implements IStorage {
   // ===========================
 
   async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
-    const maxRetries = 3;
-    const queryTimeout = 10000; // 10 seconds timeout
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const validatedTenantId = await validateTenantAccess(tenantId);
-        const { limit = 50, offset = 0, search } = options;
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { limit = 50, offset = 0, search } = options;
       
       // PERFORMANCE: Direct DB connection without pool overhead
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
