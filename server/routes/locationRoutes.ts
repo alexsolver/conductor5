@@ -19,11 +19,21 @@ locationRoutes.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const { limit = 50, offset = 0 } = req.query;
     
-    // Get locations from database
-    const locations = await storage.getLocations(req.user.tenantId, {
-      limit: Number(limit),
-      offset: Number(offset)
-    });
+    // Direct database query to bypass any ORM cache issues
+    const { poolManager } = await import('../db');
+    const tenantDb = await poolManager.getTenantConnection(req.user.tenantId);
+    const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+    
+    const { sql } = await import('drizzle-orm');
+    const result = await tenantDb.execute(sql.raw(`
+      SELECT id, name, address, city, state, country, type, is_active, created_at
+      FROM ${schemaName}.locations
+      WHERE is_active = true
+      ORDER BY created_at DESC 
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+    `));
+    
+    const locations = result.rows || [];
 
     res.json({
       success: true,
@@ -39,7 +49,7 @@ locationRoutes.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     console.error('Error fetching locations:', error);
     res.json({
       success: false,
-      message: "Failed to fetch locations",
+      message: error.message || "relation \"locations\" does not exist",
       locations: [],
       pagination: { total: 0, limit: 50, offset: 0, pages: 0 }
     });
@@ -56,8 +66,31 @@ locationRoutes.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) => 
       });
     }
 
-    const stats = await storage.getLocationStats(req.user.tenantId);
-    res.json(stats);
+    // Direct database query for stats
+    const { poolManager } = await import('../db');
+    const tenantDb = await poolManager.getTenantConnection(req.user.tenantId);
+    const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+    
+    const { sql } = await import('drizzle-orm');
+    const result = await tenantDb.execute(sql.raw(`
+      SELECT 
+        COUNT(*) as total_locations,
+        COUNT(CASE WHEN is_active = true THEN 1 END) as active_locations,
+        COUNT(CASE WHEN type = 'office' THEN 1 END) as office_count,
+        COUNT(CASE WHEN type = 'warehouse' THEN 1 END) as warehouse_count
+      FROM ${schemaName}.locations
+    `));
+
+    const stats = result.rows[0] || {};
+    res.json({
+      success: true,
+      totalLocations: Number(stats.total_locations || 0),
+      activeLocations: Number(stats.active_locations || 0),
+      locationTypes: {
+        office: Number(stats.office_count || 0),
+        warehouse: Number(stats.warehouse_count || 0)
+      }
+    });
   } catch (error) {
     console.error('Error fetching location stats:', error);
     res.status(200).json({
