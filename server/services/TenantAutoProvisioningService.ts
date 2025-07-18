@@ -3,7 +3,7 @@
  * Handles automatic tenant creation based on different triggers
  */
 
-import { storage } from "../storage";
+import { storage } from "../storage-simple";
 import { DependencyContainer } from "../application/services/DependencyContainer";
 import crypto from "crypto";
 

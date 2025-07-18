@@ -6,7 +6,7 @@ import { SimpleTokenService } from "../../infrastructure/services/SimpleTokenSer
 import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
 import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
 import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
-import { storage } from "../../storage";
+import { storage } from "../../storage-simple";
 
 export class DependencyContainer {
   private static instance: DependencyContainer;

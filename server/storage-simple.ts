@@ -313,7 +313,7 @@ export class DrizzleStorage implements IStorage {
   async getSolicitantes(tenantId: string, limit: number = 50, offset: number = 0, search?: string): Promise<any[]> {
     try {
       //const validatedTenantId = await validateTenantAccess(tenantId); // Assuming validateTenantAccess is defined elsewhere and works correctly
-	  const validatedTenantId = tenantId;
+          const validatedTenantId = tenantId;
       let query = db
         .select()
         .from(customers)
@@ -351,7 +351,7 @@ export class DrizzleStorage implements IStorage {
   async createSolicitante(tenantId: string, data: any): Promise<any> {
     try {
       //const validatedTenantId = await validateTenantAccess(tenantId); // Assuming validateTenantAccess is defined elsewhere and works correctly
-	  const validatedTenantId = tenantId;
+          const validatedTenantId = tenantId;
 
       const [newSolicitante] = await db
         .insert(customers)
@@ -385,7 +385,7 @@ export class DrizzleStorage implements IStorage {
   async getFavorecidos(tenantId: string, limit: number = 50, offset: number = 0, search?: string): Promise<any[]> {
     try {
       //const validatedTenantId = await validateTenantAccess(tenantId); // Assuming validateTenantAccess is defined elsewhere and works correctly
-	  const validatedTenantId = tenantId;
+          const validatedTenantId = tenantId;
 
       // For now, return empty array until external_contacts table is created
       console.log('Favorecidos table not yet implemented - returning empty array');
@@ -399,7 +399,7 @@ export class DrizzleStorage implements IStorage {
   async createFavorecido(tenantId: string, data: any): Promise<any> {
     try {
       //const validatedTenantId = await validateTenantAccess(tenantId); // Assuming validateTenantAccess is defined elsewhere and works correctly
-	  const validatedTenantId = tenantId;
+          const validatedTenantId = tenantId;
       // For now, return mock data until external_contacts table is created
       console.log('Favorecidos table not yet implemented - returning mock data');
       return {
@@ -421,7 +421,7 @@ export class DrizzleStorage implements IStorage {
   }
 
   // Dashboard stats
-  async getRecentActivity(tenantId: string): Promise<any[]> {
+  async getRecentActivity(tenantId: string, limit: number = 20): Promise<any[]> {
     try {
       const recentTickets = await db.select().from(tickets)
         .where(eq(tickets.tenantId, tenantId))

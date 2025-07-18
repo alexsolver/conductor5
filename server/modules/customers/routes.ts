@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { storage } from "../../storage";
+import { storage } from "../../storage-simple";
 import { insertCustomerSchema } from "@shared/schema";
 import { z } from "zod";
 import { getCustomerCompanyController } from "./infrastructure/setup/CustomerDependencySetup";

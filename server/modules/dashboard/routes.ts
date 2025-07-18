@@ -1,7 +1,7 @@
 // Dashboard Microservice Routes - JWT Authentication
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { storage } from "../../storage";
+import { storage } from "../../storage-simple";
 
 const dashboardRouter = Router();
 
