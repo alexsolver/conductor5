@@ -1,4 +1,5 @@
 
+import { sql } from 'drizzle-orm';
 import { databaseManager } from '../database/DatabaseManager';
 import { TenantValidator } from '../database/TenantValidator';
 import { logInfo, logError, logWarn } from './logger';
@@ -57,7 +58,7 @@ export class ProductionInitializer {
     }
 
     // Validate DATABASE_URL format
-    if (!process.env.DATABASE_URL.startsWith('postgres://')) {
+    if (!process.env.DATABASE_URL.startsWith('postgres://') && !process.env.DATABASE_URL.startsWith('postgresql://')) {
       throw new Error('DATABASE_URL must be a valid PostgreSQL connection string');
     }
 
