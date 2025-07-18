@@ -12,62 +12,11 @@ knowledgeBaseRouter.get('/articles', jwtAuth, async (req: AuthenticatedRequest, 
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // Mock knowledge base articles for now
-    // In a real implementation, these would come from a dedicated knowledge base table
-    const articles = [
-      {
-        id: "1",
-        title: "Getting Started with Conductor",
-        excerpt: "Learn the basics of using Conductor for customer support.",
-        category: "Getting Started",
-        tags: ["basics", "introduction"],
-        author: "Support Team",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        views: 1250,
-        helpful: 42,
-        notHelpful: 3
-      },
-      {
-        id: "2",
-        title: "Managing Customer Tickets",
-        excerpt: "Complete guide to creating, updating, and resolving tickets.",
-        category: "Ticket Management",
-        tags: ["tickets", "workflow"],
-        author: "Product Team",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        views: 890,
-        helpful: 35,
-        notHelpful: 2
-      },
-      {
-        id: "3",
-        title: "Customer Communication Best Practices",
-        excerpt: "Tips for effective communication with customers.",
-        category: "Communication",
-        tags: ["communication", "best-practices"],
-        author: "Training Team",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        views: 675,
-        helpful: 28,
-        notHelpful: 1
-      },
-      {
-        id: "4",
-        title: "Troubleshooting Common Issues",
-        excerpt: "Solutions to frequently encountered problems.",
-        category: "Troubleshooting",
-        tags: ["troubleshooting", "FAQ"],
-        author: "Technical Team",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        views: 1100,
-        helpful: 55,
-        notHelpful: 4
-      }
-    ];
+    // Fetch articles from database - NO MORE MOCK DATA!
+    const articles = await storage.getKnowledgeBaseArticles(
+      req.user.tenantId,
+      { category, search, limit, offset }
+    );
 
     // Apply filters if provided
     const category = req.query.category as string;
@@ -75,39 +24,18 @@ knowledgeBaseRouter.get('/articles', jwtAuth, async (req: AuthenticatedRequest, 
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    let filteredArticles = articles;
-
-    if (category) {
-      filteredArticles = filteredArticles.filter(article => 
-        article.category.toLowerCase() === category.toLowerCase()
-      );
-    }
-
-    if (search) {
-      filteredArticles = filteredArticles.filter(article =>
-        article.title.toLowerCase().includes(search.toLowerCase()) ||
-        article.excerpt.toLowerCase().includes(search.toLowerCase()) ||
-        article.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
-      );
-    }
-
-    // Apply pagination
-    const paginatedArticles = filteredArticles.slice(offset, offset + limit);
+    // Get categories from database
+    const categories = await storage.getKnowledgeBaseCategories(req.user.tenantId);
 
     res.json({
-      articles: paginatedArticles,
+      articles: articles,
       pagination: {
-        total: filteredArticles.length,
+        total: articles.length,
         limit,
         offset,
-        hasMore: offset + limit < filteredArticles.length
+        hasMore: articles.length >= limit
       },
-      categories: [
-        { name: "Getting Started", count: 1 },
-        { name: "Ticket Management", count: 1 },
-        { name: "Communication", count: 1 },
-        { name: "Troubleshooting", count: 1 }
-      ]
+      categories: categories
     });
   } catch (error) {
     console.error("Error fetching knowledge base articles:", error);

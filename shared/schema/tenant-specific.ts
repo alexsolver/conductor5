@@ -230,6 +230,29 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
 
+  // Tenant-specific integrations - 100% DATABASE STORAGE
+  const tenantIntegrations = pgTable("integrations", {
+    id: varchar("id", { length: 100 }).primaryKey(), // email-smtp, whatsapp-business, etc.
+    name: varchar("name", { length: 255 }).notNull(),
+    category: varchar("category", { length: 50 }).notNull(), // Comunicação, Automação, Dados, etc.
+    provider: varchar("provider", { length: 100 }),
+    description: text("description"),
+    status: varchar("status", { length: 20 }).default("disconnected"), // connected, error, disconnected
+    configured: boolean("configured").default(false),
+    apiKeyConfigured: boolean("api_key_configured").default(false),
+    config: jsonb("config").default({}), // Store API keys, settings, etc.
+    features: jsonb("features").default([]), // Available features
+    lastSync: timestamp("last_sync"),
+    lastTested: timestamp("last_tested"),
+    errorMessage: text("error_message"),
+    syncFrequency: varchar("sync_frequency", { length: 50 }).default("manual"),
+    webhookUrl: varchar("webhook_url", { length: 500 }),
+    isActive: boolean("is_active").default(true),
+    metadata: jsonb("metadata").default({}),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }, { schema: schemaName });
+
   // Return schema object compatible with Drizzle (without relations to avoid ExtraConfigBuilder error)
   return {
     customers: tenantCustomers,
@@ -239,5 +262,6 @@ export function getTenantSpecificSchema(schemaName: string) {
     ticketMessages: tenantTicketMessages,
     activityLogs: tenantActivityLogs,
     locations: tenantLocations,
+    integrations: tenantIntegrations,
   };
 }

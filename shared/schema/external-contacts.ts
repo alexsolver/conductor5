@@ -1,4 +1,7 @@
-// External Contacts schema definitions (Solicitantes e Favorecidos)
+// External Contacts schema definitions - ARQUITETURA CORRIGIDA
+// SOLUÇÃO: customers (tabela existente) → SOLICITANTES
+//          external_contacts → FAVORECIDOS apenas
+
 import {
   pgTable,
   varchar,
@@ -15,55 +18,10 @@ import { tenants } from "./base";
 import { customerCompanies } from "./customer-company";
 import { locations } from "./location";
 
-// Extended Customers table (Solicitantes)
-// Evolução da tabela customers existente para incluir campos de solicitante
-export const extendedCustomers = pgTable("customers", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
-  
-  // Campos básicos
-  firstName: varchar("first_name", { length: 255 }),
-  lastName: varchar("last_name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
-  phone: varchar("phone", { length: 50 }),
-  
-  // Novos campos para solicitantes
-  documento: varchar("documento", { length: 50 }), // CPF/CNPJ
-  tipoPessoa: varchar("tipo_pessoa", { length: 20 }).default("fisica"), // fisica, juridica
-  companyId: uuid("company_id").references(() => customerCompanies.id),
-  locationId: uuid("location_id").references(() => locations.id),
-  preferenciaContato: varchar("preferencia_contato", { length: 20 }).default("email"), // email, telefone, ambos
-  idioma: varchar("idioma", { length: 5 }).default("pt-BR"),
-  observacoes: text("observacoes"),
-  
-  // Campos existentes mantidos
-  company: varchar("company", { length: 255 }),
-  tags: jsonb("tags").default([]),
-  metadata: jsonb("metadata").default({}),
-  
-  // Status fields
-  verified: boolean("verified").default(false),
-  active: boolean("active").default(true),
-  suspended: boolean("suspended").default(false),
-  lastLogin: timestamp("last_login"),
-  
-  // Localization fields
-  timezone: varchar("timezone", { length: 50 }).default("UTC"),
-  locale: varchar("locale", { length: 10 }).default("pt-BR"),
-  language: varchar("language", { length: 5 }).default("pt"),
-  
-  // Professional fields
-  externalId: varchar("external_id", { length: 255 }),
-  role: varchar("role", { length: 100 }),
-  notes: varchar("notes", { length: 1000 }),
-  avatar: varchar("avatar", { length: 500 }),
-  signature: varchar("signature", { length: 500 }),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// REMOVIDA: extendedCustomers (duplicação desnecessária)
+// A tabela customers existente será usada para solicitantes
 
-// External Contacts table (Favorecidos)
+// External Contacts table (Favorecidos APENAS)
 export const externalContacts = pgTable("external_contacts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
@@ -76,7 +34,8 @@ export const externalContacts = pgTable("external_contacts", {
   // Relacionamentos opcionais
   companyId: uuid("company_id").references(() => customerCompanies.id),
   locationId: uuid("location_id").references(() => locations.id),
-  customerId: uuid("customer_id").references(() => extendedCustomers.id), // Vinculação a um solicitante
+  // CORRIGIDO: customerId agora aponta para a tabela customers existente
+  customerId: uuid("customer_id"), // Vinculação a um solicitante (customers table)
   
   // Configurações específicas
   podeInteragir: boolean("pode_interagir").default(false),
@@ -98,7 +57,7 @@ export const externalContacts = pgTable("external_contacts", {
 export const ticketExternalContacts = pgTable("ticket_external_contacts", {
   ticketId: uuid("ticket_id").notNull(),
   contactId: uuid("contact_id").notNull().references(() => externalContacts.id, { onDelete: "cascade" }),
-  role: varchar("role", { length: 20 }).default("favorecido"), // solicitante, favorecido
+  role: varchar("role", { length: 20 }).default("favorecido"), // favorecido apenas (solicitantes usam customers)
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => {
   return {
@@ -122,27 +81,15 @@ export const insertTicketExternalContactSchema = createInsertSchema(ticketExtern
   createdAt: true,
 });
 
-// Enhanced Customer schema (extending existing)
-export const insertExtendedCustomerSchema = createInsertSchema(extendedCustomers).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  tenantId: z.string().uuid(),
-  companyId: z.string().uuid().optional(),
-  locationId: z.string().uuid().optional(),
-});
-
 // Types
 export type ExternalContact = typeof externalContacts.$inferSelect;
 export type InsertExternalContact = z.infer<typeof insertExternalContactSchema>;
 export type TicketExternalContact = typeof ticketExternalContacts.$inferSelect;
 export type InsertTicketExternalContact = z.infer<typeof insertTicketExternalContactSchema>;
-export type ExtendedCustomer = typeof extendedCustomers.$inferSelect;
-export type InsertExtendedCustomer = z.infer<typeof insertExtendedCustomerSchema>;
 
-// Helper types for better organization
-export type Solicitante = ExtendedCustomer;
-export type InsertSolicitante = InsertExtendedCustomer;
+// Helper types para melhor organização
 export type Favorecido = ExternalContact;
 export type InsertFavorecido = InsertExternalContact;
+
+// NOTA: Solicitantes usam a tabela customers existente
+// Tipos para solicitantes estão em customer.ts

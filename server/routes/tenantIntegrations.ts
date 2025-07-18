@@ -11,7 +11,7 @@ router.use(requireTenantAdmin);
 
 /**
  * GET /api/tenant-admin/integrations
- * Obter integrações do tenant
+ * Obter integrações do tenant - 100% PostgreSQL Database
  */
 router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
@@ -21,89 +21,9 @@ router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    // Simular dados de integrações do tenant
-    const integrations = [
-      {
-        id: 'email-smtp',
-        name: 'Email SMTP',
-        category: 'Comunicação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'whatsapp-business',
-        name: 'WhatsApp Business',
-        category: 'Comunicação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'slack',
-        name: 'Slack',
-        category: 'Comunicação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'twilio-sms',
-        name: 'Twilio SMS',
-        category: 'Comunicação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'zapier',
-        name: 'Zapier',
-        category: 'Automação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'webhooks',
-        name: 'Webhooks',
-        category: 'Automação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'crm-integration',
-        name: 'CRM Integration',
-        category: 'Dados',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'sso-saml',
-        name: 'SSO/SAML',
-        category: 'Segurança',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'google-workspace',
-        name: 'Google Workspace',
-        category: 'Produtividade',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      },
-      {
-        id: 'chatbot',
-        name: 'Chatbot IA',
-        category: 'Automação',
-        status: 'disconnected',
-        configured: false,
-        lastSync: null
-      }
-    ];
+    // Get integrations from PostgreSQL database with tenant isolation
+    const { storage } = await import('../storage');
+    const integrations = await storage.getTenantIntegrations(tenantId);
     
     res.json({ integrations });
   } catch (error) {
