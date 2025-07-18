@@ -23,7 +23,7 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 2 * 60 * 1000; // 2 minute cache TTL - optimized for stability
+  private readonly CACHE_TTL = 3 * 60 * 1000; // 3 minute cache TTL - standardized across components
   private readonly MAX_CACHED_SCHEMAS = 15; // Increased for better connection stability
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
@@ -39,8 +39,8 @@ export class SchemaManager {
   private cleanupCache(): void {
     const now = Date.now();
     
-    // CRITICAL FIX: Reduced cleanup frequency to prevent I/O spikes
-    if (now - this.lastCleanup < 10 * 60 * 1000) { // Increased to 10 minutes
+    // CRITICAL FIX: Optimized cleanup frequency for stability
+    if (now - this.lastCleanup < 5 * 60 * 1000) { // 5 minutes - balanced for performance
       return;
     }
 

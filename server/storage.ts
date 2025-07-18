@@ -52,8 +52,19 @@ export interface IStorage {
 // Uses advanced validation with existence checks
 // ===========================
 
+// CRITICAL FIX: Helper function for tenant validation with schema creation fallback
 async function validateTenantAccess(tenantId: string): Promise<string> {
-  return await TenantValidator.validateTenantAccess(tenantId);
+  try {
+    // CRITICAL: Try standard validation first
+    return await TenantValidator.validateTenantAccess(tenantId);
+  } catch (error) {
+    // CRITICAL: If schema not found, try to create it
+    if (error.message && error.message.includes('Tenant schema not found')) {
+      const { validateOrCreateTenantSchema } = await import('./utils/schemaInitializer');
+      return await validateOrCreateTenantSchema(tenantId);
+    }
+    throw error;
+  }
 }
 
 // ===========================

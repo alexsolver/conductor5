@@ -72,6 +72,12 @@ app.use((req, res, next) => {
   
   // CRITICAL: Initialize connection stabilizer
   connectionStabilizer.initialize(server);
+  
+  // CRITICAL FIX: Warm up tenant schemas to prevent first-request errors
+  const { warmupTenantSchemas } = await import('./utils/schemaInitializer');
+  setTimeout(() => {
+    warmupTenantSchemas().catch(console.warn);
+  }, 5000); // Warm up after 5 seconds
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

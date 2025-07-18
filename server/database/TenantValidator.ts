@@ -9,7 +9,7 @@ import { logError, logWarn } from '../utils/logger';
 
 export class TenantValidator {
   private static tenantCache = new Map<string, { exists: boolean, lastChecked: number }>();
-  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private static readonly CACHE_TTL = 3 * 60 * 1000; // 3 minutes - balanced for stability
 
   // ===========================
   // SECURE TENANT ID VALIDATION - CRITICAL FIX
@@ -87,8 +87,8 @@ export class TenantValidator {
     const schemaName = `tenant_${validatedId.replace(/-/g, '_')}`;
 
     try {
-      // CRITICAL: Validate schema name format to prevent injection
-      const schemaNamePattern = /^tenant_[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      // CRITICAL FIX: Validate schema name format - allow both hyphens and underscores
+      const schemaNamePattern = /^tenant_[a-f0-9]{8}[_-][a-f0-9]{4}[_-][a-f0-9]{4}[_-][a-f0-9]{4}[_-][a-f0-9]{12}$/;
       if (!schemaNamePattern.test(schemaName)) {
         logError('Invalid schema name format', { tenantId: validatedId, schemaName });
         return false;
@@ -99,7 +99,7 @@ export class TenantValidator {
         SELECT 1 FROM information_schema.schemata 
         WHERE schema_name = ${schemaName}
         AND schema_name LIKE 'tenant_%'
-        AND LENGTH(schema_name) = 43
+        AND LENGTH(schema_name) >= 43 AND LENGTH(schema_name) <= 45
       `);
 
       return result.rows.length > 0;
