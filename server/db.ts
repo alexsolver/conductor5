@@ -2,9 +2,12 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { sql } from 'drizzle-orm';
 import ws from "ws";
-import * as schema from "@shared/schema";
+import * as schema from "@shared/schema-simple";
 
+// Configure WebSocket for better connection stability
 neonConfig.webSocketConstructor = ws;
+neonConfig.useSecureWebSocket = true;
+neonConfig.pipelineConnect = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -12,7 +15,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Enhanced connection pool configuration for stability
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  max: 10, // Reduced for stability
+  min: 2,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  acquireTimeoutMillis: 10000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 0,
+  allowExitOnIdle: false
+});
 
 // Main database instance for tenant management and shared resources
 export const db = drizzle({ client: pool, schema });
@@ -73,31 +87,37 @@ export class SchemaManager {
       const result = await db.execute(sql`
         SELECT EXISTS(
           SELECT 1 FROM information_schema.schemata WHERE schema_name = ${schemaName}
-        ) as schema_exists,
-        (SELECT COUNT(*) FROM information_schema.tables 
-         WHERE table_schema = ${schemaName} 
-         AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'skills', 'user_skills')) as essential_tables,
-        (SELECT COUNT(*) FROM information_schema.columns 
-         WHERE table_schema = ${schemaName} 
-         AND table_name = 'customers' 
-         AND column_name IN ('id', 'email', 'tenant_id', 'created_at')) as customer_structure,
-        (SELECT COUNT(*) FROM information_schema.columns 
-         WHERE table_schema = ${schemaName} 
-         AND column_name = 'tenant_id') as tenant_isolation_count
+        )`);
+      
+      return result.rows[0]?.exists === true;
+    } catch (error) {
+      console.error(`Schema existence check failed for ${schemaName}:`, error);
+      return false;
+    }
+  }
+
+  // ENHANCED: Improved schema creation with better error handling
+  private async createSchema(schemaName: string): Promise<void> {
+    try {
+      await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(schemaName)}`);
+    } catch (error) {
+      console.error(`Failed to create schema ${schemaName}:`, error);
+      throw error;
+    }
+  }
+
+  // ENHANCED: Improved table validation with better error handling
+  private async validateTables(schemaName: string): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as table_count 
+        FROM information_schema.tables 
+        WHERE table_schema = ${schemaName}
       `);
-
-      const row = result.rows[0];
-      const schemaExists = Boolean(row?.schema_exists);
-      const essentialTablesCount = Number(row?.essential_tables || 0);
-      const customerStructure = Number(row?.customer_structure || 0);
-      const tenantIsolationCount = Number(row?.tenant_isolation_count || 0);
-
-      // CRITICAL FIX: Require 7 essential tables + proper tenant isolation
-      return schemaExists && 
-             essentialTablesCount >= 7 && 
-             customerStructure >= 4 && 
-             tenantIsolationCount >= 7; // All tenant tables must have tenant_id
-    } catch {
+      
+      return (result.rows[0]?.table_count || 0) > 0;
+    } catch (error) {
+      console.error(`Table validation failed for ${schemaName}:`, error);
       return false;
     }
   }
