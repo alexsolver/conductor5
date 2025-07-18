@@ -3,6 +3,7 @@ import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { storage } from "../../storage";
 import { insertCustomerSchema } from "@shared/schema";
 import { z } from "zod";
+import { getCustomerCompanyController } from "./infrastructure/setup/CustomerDependencySetup";
 
 export const customersRouter = Router();
 
@@ -133,4 +134,54 @@ customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
     });
     res.status(500).json({ message: "Failed to delete customer" });
   }
+});
+
+// Get customer company controller instance
+const customerCompanyController = getCustomerCompanyController();
+
+// Customer Company Routes
+// GET /api/customers/companies - Get all customer companies
+customersRouter.get('/companies', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.getCompanies(req, res);
+});
+
+// POST /api/customers/companies - Create new customer company
+customersRouter.post('/companies', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.createCompany(req, res);
+});
+
+// GET /api/customers/companies/:id - Get customer company by ID
+customersRouter.get('/companies/:id', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.getCompanyById(req, res);
+});
+
+// PUT /api/customers/companies/:id - Update customer company
+customersRouter.put('/companies/:id', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.updateCompany(req, res);
+});
+
+// DELETE /api/customers/companies/:id - Delete customer company
+customersRouter.delete('/companies/:id', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.deleteCompany(req, res);
+});
+
+// Customer Company Membership Routes
+// POST /api/customers/companies/memberships - Add customer to company
+customersRouter.post('/companies/memberships', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.addMembership(req, res);
+});
+
+// PUT /api/customers/companies/memberships/:membershipId - Update membership
+customersRouter.put('/companies/memberships/:membershipId', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.updateMembership(req, res);
+});
+
+// GET /api/customers/:customerId/companies - Get companies for a customer
+customersRouter.get('/:customerId/companies', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.getCustomerMemberships(req, res);
+});
+
+// GET /api/customers/companies/:companyId/members - Get members of a company
+customersRouter.get('/companies/:companyId/members', jwtAuth, (req: AuthenticatedRequest, res) => {
+  customerCompanyController.getCompanyMemberships(req, res);
 });

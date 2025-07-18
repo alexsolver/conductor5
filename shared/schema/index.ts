@@ -4,6 +4,7 @@
 // Base schema exports
 export * from "./base";
 export * from "./customer";
+export * from "./customer-company";
 export * from "./ticket";
 export * from "./location";
 export * from "./security";
@@ -37,6 +38,21 @@ import {
   type CustomerLocation,
   type InsertCustomerLocation
 } from "./customer";
+
+import {
+  customerCompanies,
+  customerCompanyMemberships,
+  customerCompanyBilling,
+  insertCustomerCompanySchema,
+  insertCustomerCompanyMembershipSchema,
+  insertCustomerCompanyBillingSchema,
+  type CustomerCompany,
+  type InsertCustomerCompany,
+  type CustomerCompanyMembership,
+  type InsertCustomerCompanyMembership,
+  type CustomerCompanyBilling,
+  type InsertCustomerCompanyBilling
+} from "./customer-company";
 
 import {
   tickets,
@@ -91,6 +107,9 @@ export {
   // Customer tables
   customers,
   customerLocations,
+  customerCompanies,
+  customerCompanyMemberships,
+  customerCompanyBilling,
   
   // Ticket tables
   tickets,
@@ -115,6 +134,9 @@ export {
   insertUserSchema,
   insertCustomerSchema,
   insertCustomerLocationSchema,
+  insertCustomerCompanySchema,
+  insertCustomerCompanyMembershipSchema,
+  insertCustomerCompanyBillingSchema,
   insertTicketSchema,
   insertTicketMessageSchema,
   insertLocationSchema,
@@ -130,6 +152,9 @@ export {
   type User,
   type Customer,
   type CustomerLocation,
+  type CustomerCompany,
+  type CustomerCompanyMembership,
+  type CustomerCompanyBilling,
   type Ticket,
   type TicketMessage,
   type Location,
@@ -143,6 +168,9 @@ export {
   type InsertUser,
   type InsertCustomer,
   type InsertCustomerLocation,
+  type InsertCustomerCompany,
+  type InsertCustomerCompanyMembership,
+  type InsertCustomerCompanyBilling,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertLocation,
@@ -160,6 +188,9 @@ const schema = {
   users,
   customers,
   customerLocations,
+  customerCompanies,
+  customerCompanyMemberships,
+  customerCompanyBilling,
   tickets,
   ticketMessages,
   locations,

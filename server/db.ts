@@ -81,6 +81,11 @@ export class SchemaManager {
   async getTenantDb(tenantId: string): Promise<{ db: ReturnType<typeof drizzle>; schema: any }> {
     const schemaName = this.getSchemaName(tenantId);
 
+    // Force recreation to test if schema connection is working properly
+    if (this.tenantConnections.has(tenantId)) {
+      this.tenantConnections.delete(tenantId);
+    }
+
     if (!this.tenantConnections.has(tenantId)) {
       // Create a new connection with the tenant's schema as default - safe from SQL injection
       const baseConnectionString = process.env.DATABASE_URL;
@@ -101,6 +106,16 @@ export class SchemaManager {
       const tenantDb = drizzle({ 
         client: tenantPool
       });
+
+      // Explicitly set search_path to include tenant schema first
+      try {
+        await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+        const { logInfo } = await import('./utils/logger');
+        logInfo(`Search path set for tenant ${tenantId}`, { schemaName, searchPath: `${schemaName},public` });
+      } catch (error) {
+        const { logError } = await import('./utils/logger');
+        logError(`Failed to set search_path for tenant ${tenantId}`, error, { tenantId, schemaName });
+      }
 
       // Import tenant-specific schema generator
       const { getTenantSpecificSchema } = await import('@shared/schema/tenant-specific');
@@ -153,10 +168,10 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${sql.placeholder('schemaName')}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships')
       `, { schemaName });
       
-      return (result.rows[0]?.table_count as number) >= 4;
+      return (result.rows[0]?.table_count as number) >= 7;
     } catch {
       return false;
     }
@@ -356,6 +371,58 @@ export class SchemaManager {
         )
       `);
 
+      // Customer companies table using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.customer_companies (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          display_name VARCHAR(255),
+          description TEXT,
+          industry VARCHAR(100),
+          size VARCHAR(50),
+          email VARCHAR(255),
+          phone VARCHAR(50),
+          website VARCHAR(500),
+          address JSONB DEFAULT '{}',
+          tax_id VARCHAR(100),
+          registration_number VARCHAR(100),
+          subscription_tier VARCHAR(50) DEFAULT 'basic',
+          contract_type VARCHAR(50),
+          max_users INTEGER,
+          max_tickets INTEGER,
+          settings JSONB DEFAULT '{}',
+          tags JSONB DEFAULT '[]',
+          metadata JSONB DEFAULT '{}',
+          status VARCHAR(50) DEFAULT 'active',
+          is_active BOOLEAN DEFAULT TRUE,
+          is_primary BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          created_by TEXT NOT NULL,
+          updated_by TEXT
+        )
+      `);
+
+      // Customer company memberships table using parameterized queries
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.customer_company_memberships (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL,
+          company_id UUID NOT NULL,
+          role VARCHAR(100) DEFAULT 'member',
+          title VARCHAR(255),
+          department VARCHAR(255),
+          permissions JSONB DEFAULT '{}',
+          is_active BOOLEAN DEFAULT TRUE,
+          is_primary BOOLEAN DEFAULT FALSE,
+          joined_at TIMESTAMP DEFAULT NOW(),
+          left_at TIMESTAMP,
+          added_by TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
       // Add foreign key constraints using parameterized queries - safer approach
       await db.execute(sql`
         ALTER TABLE ${schemaId}.tickets 
@@ -380,6 +447,25 @@ export class SchemaManager {
         ADD CONSTRAINT IF NOT EXISTS fk_ticket_messages_customer 
         FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) 
         ON DELETE SET NULL
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
+      // Add foreign key constraints for customer company memberships
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.customer_company_memberships 
+        ADD CONSTRAINT IF NOT EXISTS fk_customer_memberships_customer 
+        FOREIGN KEY (customer_id) REFERENCES ${schemaId}.customers(id) 
+        ON DELETE CASCADE
+      `).catch(() => {
+        // Constraint may already exist - ignore error
+      });
+
+      await db.execute(sql`
+        ALTER TABLE ${schemaId}.customer_company_memberships 
+        ADD CONSTRAINT IF NOT EXISTS fk_customer_memberships_company 
+        FOREIGN KEY (company_id) REFERENCES ${schemaId}.customer_companies(id) 
+        ON DELETE CASCADE
       `).catch(() => {
         // Constraint may already exist - ignore error
       });

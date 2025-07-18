@@ -6,17 +6,24 @@
 
 import { container, TOKENS } from '../../../shared/infrastructure/DependencyContainer';
 import { DrizzleCustomerRepository } from '../repositories/DrizzleCustomerRepository';
+import { DrizzleCustomerCompanyRepository } from '../repositories/DrizzleCustomerCompanyRepository';
 import { CreateCustomerUseCase } from '../../application/usecases/CreateCustomerUseCase';
 import { GetCustomersUseCase } from '../../application/usecases/GetCustomersUseCase';
 import { UpdateCustomerUseCase } from '../../application/usecases/UpdateCustomerUseCase';
 import { DeleteCustomerUseCase } from '../../application/usecases/DeleteCustomerUseCase';
+import { CreateCustomerCompanyUseCase } from '../../application/use-cases/CreateCustomerCompanyUseCase';
+import { GetCustomerCompaniesUseCase } from '../../application/use-cases/GetCustomerCompaniesUseCase';
+import { UpdateCustomerCompanyUseCase } from '../../application/use-cases/UpdateCustomerCompanyUseCase';
+import { ManageCustomerCompanyMembershipUseCase } from '../../application/use-cases/ManageCustomerCompanyMembershipUseCase';
 import { CustomerApplicationService } from '../../application/services/CustomerApplicationService';
 import { CustomerController } from '../../application/controllers/CustomerController';
+import { CustomerCompanyController } from '../../application/controllers/CustomerCompanyController';
 import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher';
 
 export function setupCustomerDependencies(): void {
-  // Register repository
+  // Register repositories
   container.registerSingleton(TOKENS.CUSTOMER_REPOSITORY, () => new DrizzleCustomerRepository());
+  container.registerSingleton(TOKENS.CUSTOMER_COMPANY_REPOSITORY, () => new DrizzleCustomerCompanyRepository());
 
   // Register domain event publisher
   container.registerSingleton(TOKENS.DOMAIN_EVENT_PUBLISHER, () => new DomainEventPublisher());
@@ -41,6 +48,23 @@ export function setupCustomerDependencies(): void {
     container.resolve(TOKENS.DOMAIN_EVENT_PUBLISHER)
   ));
 
+  // Register customer company use cases
+  container.register(TOKENS.CREATE_CUSTOMER_COMPANY_USE_CASE, () => new CreateCustomerCompanyUseCase(
+    container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
+  ));
+
+  container.register(TOKENS.GET_CUSTOMER_COMPANIES_USE_CASE, () => new GetCustomerCompaniesUseCase(
+    container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
+  ));
+
+  container.register(TOKENS.UPDATE_CUSTOMER_COMPANY_USE_CASE, () => new UpdateCustomerCompanyUseCase(
+    container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
+  ));
+
+  container.register(TOKENS.MANAGE_CUSTOMER_COMPANY_MEMBERSHIP_USE_CASE, () => new ManageCustomerCompanyMembershipUseCase(
+    container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
+  ));
+
   // Register application service
   container.register(TOKENS.CUSTOMER_APPLICATION_SERVICE, () => new CustomerApplicationService(
     container.resolve(TOKENS.CREATE_CUSTOMER_USE_CASE),
@@ -49,12 +73,21 @@ export function setupCustomerDependencies(): void {
     container.resolve(TOKENS.DELETE_CUSTOMER_USE_CASE)
   ));
 
-  // Register controller - not in container as it's created per request
-  // But can be accessed via factory function
+  // Register customer company controller
+  container.register(TOKENS.CUSTOMER_COMPANY_CONTROLLER, () => new CustomerCompanyController(
+    container.resolve(TOKENS.CREATE_CUSTOMER_COMPANY_USE_CASE),
+    container.resolve(TOKENS.GET_CUSTOMER_COMPANIES_USE_CASE),
+    container.resolve(TOKENS.UPDATE_CUSTOMER_COMPANY_USE_CASE),
+    container.resolve(TOKENS.MANAGE_CUSTOMER_COMPANY_MEMBERSHIP_USE_CASE)
+  ));
 }
 
 export function getCustomerController(): CustomerController {
   return new CustomerController(
     container.resolve(TOKENS.CUSTOMER_APPLICATION_SERVICE)
   );
+}
+
+export function getCustomerCompanyController(): CustomerCompanyController {
+  return container.resolve(TOKENS.CUSTOMER_COMPANY_CONTROLLER);
 }

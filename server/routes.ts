@@ -106,6 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialize clean architecture dependencies before importing routes
+  const { setupCustomerDependencies } = await import('./modules/customers/infrastructure/setup/CustomerDependencySetup');
+  setupCustomerDependencies();
+
   // Import and mount authentication routes
   const { authRouter } = await import('./modules/auth/routes');
   app.use('/api/auth', authRouter);
@@ -118,9 +122,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { peopleRouter } = await import('./modules/people/routes');
 
   // Module Integrity Control System
-
-  // Initialize clean architecture (for future migration)
-  // await setupCustomerDependencies();
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);

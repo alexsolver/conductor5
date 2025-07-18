@@ -49,6 +49,52 @@ export function getTenantSpecificSchema(schemaName: string) {
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
 
+  // Tenant-specific customer companies table
+  const tenantCustomerCompanies = pgTable("customer_companies", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    displayName: varchar("display_name", { length: 255 }),
+    description: text("description"),
+    industry: varchar("industry", { length: 100 }),
+    size: varchar("size", { length: 50 }),
+    email: varchar("email", { length: 255 }),
+    phone: varchar("phone", { length: 50 }),
+    website: varchar("website", { length: 500 }),
+    address: jsonb("address").default({}),
+    taxId: varchar("tax_id", { length: 100 }),
+    registrationNumber: varchar("registration_number", { length: 100 }),
+    subscriptionTier: varchar("subscription_tier", { length: 50 }).default("basic"),
+    contractType: varchar("contract_type", { length: 50 }),
+    maxUsers: integer("max_users"),
+    maxTickets: integer("max_tickets"),
+    settings: jsonb("settings").default({}),
+    tags: jsonb("tags").default([]),
+    metadata: jsonb("metadata").default({}),
+    status: varchar("status", { length: 50 }).default("active"),
+    isActive: boolean("is_active").default(true),
+    isPrimary: boolean("is_primary").default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by"),
+  }, { schema: schemaName });
+
+  // Tenant-specific customer company memberships table
+  const tenantCustomerCompanyMemberships = pgTable("customer_company_memberships", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    customerId: uuid("customer_id").notNull().references(() => tenantCustomers.id, { onDelete: "cascade" }),
+    companyId: uuid("company_id").notNull().references(() => tenantCustomerCompanies.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 100 }).default("member"),
+    title: varchar("title", { length: 255 }),
+    department: varchar("department", { length: 255 }),
+    permissions: jsonb("permissions").default({}),
+    isActive: boolean("is_active").default(true),
+    isPrimary: boolean("is_primary").default(false),
+    joinedAt: timestamp("joined_at").defaultNow(),
+    leftAt: timestamp("left_at"),
+    addedBy: text("added_by").notNull(),
+  }, { schema: schemaName });
+
   // Tenant-specific tickets table
   const tenantTickets = pgTable("tickets", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -187,6 +233,8 @@ export function getTenantSpecificSchema(schemaName: string) {
   // Return schema object compatible with Drizzle (without relations to avoid ExtraConfigBuilder error)
   return {
     customers: tenantCustomers,
+    customerCompanies: tenantCustomerCompanies,
+    customerCompanyMemberships: tenantCustomerCompanyMemberships,
     tickets: tenantTickets,
     ticketMessages: tenantTicketMessages,
     activityLogs: tenantActivityLogs,
