@@ -1,33 +1,43 @@
 import { sql, eq, ilike, and, count, desc } from 'drizzle-orm';
-import { db } from '../../../../db';
-import { skills as technicalSkills, userSkills, users } from '../../../../../shared/schema';
+import { schemaManager } from '../../../../db';
 import { Skill } from '../../domain/entities/Skill';
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 
 export class DrizzleSkillRepository implements ISkillRepository {
+  private tenantId: string;
+
+  constructor(tenantId: string) {
+    this.tenantId = tenantId;
+  }
+
+  private async getDb() {
+    return schemaManager.getTenantConnection(this.tenantId);
+  }
   async create(skill: Skill): Promise<Skill> {
-    const [created] = await db.insert(technicalSkills).values({
-      id: skill.id,
-      name: skill.name,
-      category: skill.category,
-      minLevelRequired: skill.minLevelRequired,
-      suggestedCertification: skill.suggestedCertification,
-      certificationValidityMonths: skill.certificationValidityMonths,
-      description: skill.description,
-      observations: skill.observations,
-      isActive: skill.isActive,
-      createdAt: skill.createdAt,
-      updatedAt: skill.updatedAt,
-      createdBy: skill.createdBy,
-      updatedBy: skill.updatedBy,
-    }).returning();
+    const db = await this.getDb();
+    const result = await db.execute(sql`
+      INSERT INTO skills (
+        id, name, category, min_level_required, suggested_certification,
+        certification_validity_months, description, observations, is_active,
+        created_at, updated_at, created_by, updated_by
+      ) VALUES (
+        ${skill.id}, ${skill.name}, ${skill.category}, ${skill.minLevelRequired},
+        ${skill.suggestedCertification}, ${skill.certificationValidityMonths},
+        ${skill.description}, ${skill.observations}, ${skill.isActive},
+        ${skill.createdAt}, ${skill.updatedAt}, ${skill.createdBy}, ${skill.updatedBy}
+      ) RETURNING *
+    `);
     
-    return this.mapToEntity(created);
+    return this.mapToEntity(result.rows[0] as any);
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const [found] = await db.select().from(technicalSkills).where(eq(technicalSkills.id, id));
-    return found ? this.mapToEntity(found) : null;
+    const db = await this.getDb();
+    const result = await db.execute(sql`
+      SELECT * FROM skills WHERE id = ${id} AND is_active = true
+    `);
+    
+    return result.rows.length > 0 ? this.mapToEntity(result.rows[0] as any) : null;
   }
 
   async findAll(filters?: {
@@ -35,87 +45,95 @@ export class DrizzleSkillRepository implements ISkillRepository {
     isActive?: boolean;
     search?: string;
   }): Promise<Skill[]> {
-    let query = db.select().from(technicalSkills);
+    const db = await this.getDb();
     
-    const conditions = [];
+    let whereClauses = ['is_active = true'];
+    const params: any[] = [];
+    let paramIndex = 1;
     
     if (filters?.category) {
-      conditions.push(eq(technicalSkills.category, filters.category));
+      whereClauses.push(`category = $${paramIndex++}`);
+      params.push(filters.category);
     }
     
     if (filters?.isActive !== undefined) {
-      conditions.push(eq(technicalSkills.isActive, filters.isActive));
+      whereClauses[0] = `is_active = $${paramIndex++}`;
+      params.unshift(filters.isActive);
     }
     
     if (filters?.search) {
-      conditions.push(
-        sql`(${ilike(technicalSkills.name, `%${filters.search}%`)} OR ${ilike(technicalSkills.description, `%${filters.search}%`)})`
-      );
+      whereClauses.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
+      params.push(`%${filters.search}%`);
     }
     
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const whereClause = whereClauses.join(' AND ');
     
-    const results = await query.orderBy(technicalSkills.name);
-    return results.map(this.mapToEntity);
+    const result = await db.execute(sql.raw(`
+      SELECT * FROM skills 
+      WHERE ${whereClause}
+      ORDER BY name
+    `, params));
+    
+    return result.rows.map(row => this.mapToEntity(row as any));
   }
 
   async update(skill: Skill): Promise<Skill> {
-    const [updated] = await db.update(technicalSkills)
-      .set({
-        name: skill.name,
-        category: skill.category,
-        minLevelRequired: skill.minLevelRequired,
-        suggestedCertification: skill.suggestedCertification,
-        certificationValidityMonths: skill.certificationValidityMonths,
-        description: skill.description,
-        observations: skill.observations,
-        isActive: skill.isActive,
-        updatedAt: skill.updatedAt,
-        updatedBy: skill.updatedBy,
-      })
-      .where(eq(technicalSkills.id, skill.id))
-      .returning();
+    const db = await this.getDb();
+    const result = await db.execute(sql`
+      UPDATE skills SET 
+        name = ${skill.name},
+        category = ${skill.category},
+        min_level_required = ${skill.minLevelRequired},
+        suggested_certification = ${skill.suggestedCertification},
+        certification_validity_months = ${skill.certificationValidityMonths},
+        description = ${skill.description},
+        observations = ${skill.observations},
+        is_active = ${skill.isActive},
+        updated_at = ${skill.updatedAt},
+        updated_by = ${skill.updatedBy}
+      WHERE id = ${skill.id}
+      RETURNING *
+    `);
     
-    return this.mapToEntity(updated);
+    return this.mapToEntity(result.rows[0] as any);
   }
 
   async delete(id: string): Promise<void> {
-    await db.delete(technicalSkills).where(eq(technicalSkills.id, id));
+    const db = await this.getDb();
+    await db.execute(sql`DELETE FROM skills WHERE id = ${id}`);
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
-    const results = await db.select()
-      .from(technicalSkills)
-      .where(and(
-        eq(technicalSkills.category, category),
-        eq(technicalSkills.isActive, true)
-      ))
-      .orderBy(technicalSkills.name);
+    const db = await this.getDb();
+    const result = await db.execute(sql`
+      SELECT * FROM skills 
+      WHERE category = ${category} AND is_active = true
+      ORDER BY name
+    `);
     
-    return results.map(this.mapToEntity);
+    return result.rows.map(row => this.mapToEntity(row as any));
   }
 
   async findByNamePattern(pattern: string): Promise<Skill[]> {
-    const results = await db.select()
-      .from(technicalSkills)
-      .where(and(
-        ilike(technicalSkills.name, `%${pattern}%`),
-        eq(technicalSkills.isActive, true)
-      ))
-      .orderBy(technicalSkills.name);
+    const db = await this.getDb();
+    const result = await db.execute(sql`
+      SELECT * FROM skills 
+      WHERE name ILIKE ${`%${pattern}%`} AND is_active = true
+      ORDER BY name
+    `);
     
-    return results.map(this.mapToEntity);
+    return result.rows.map(row => this.mapToEntity(row as any));
   }
 
   async getCategories(): Promise<string[]> {
-    const results = await db.selectDistinct({ category: technicalSkills.category })
-      .from(technicalSkills)
-      .where(eq(technicalSkills.isActive, true))
-      .orderBy(technicalSkills.category);
+    const db = await this.getDb();
+    const result = await db.execute(sql`
+      SELECT DISTINCT category FROM skills 
+      WHERE is_active = true
+      ORDER BY category
+    `);
     
-    return results.map(r => r.category);
+    return result.rows.map(row => (row as any).category);
   }
 
   async countByCategory(): Promise<{ category: string; count: number }[]> {

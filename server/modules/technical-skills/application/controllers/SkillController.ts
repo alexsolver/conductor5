@@ -14,10 +14,16 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class SkillController {
-  private skillRepository = new DrizzleSkillRepository();
-
   async getSkills(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
+        });
+      }
+
+      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       const { category, search, isActive } = req.query;
       
       const filters: any = {};
@@ -25,7 +31,7 @@ export class SkillController {
       if (search) filters.search = search as string;
       if (isActive !== undefined) filters.isActive = isActive === 'true';
       
-      const skills = await this.skillRepository.findAll(filters);
+      const skills = await skillRepository.findAll(filters);
       
       res.json({
         success: true,
@@ -48,6 +54,14 @@ export class SkillController {
 
   async getSkillById(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
+        });
+      }
+
+      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       const { id } = req.params;
       
       if (!id) {
@@ -57,7 +71,7 @@ export class SkillController {
         });
       }
       
-      const skill = await this.skillRepository.findById(id);
+      const skill = await skillRepository.findById(id);
       
       if (!skill) {
         return res.status(404).json({
@@ -86,6 +100,14 @@ export class SkillController {
 
   async createSkill(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
+        });
+      }
+
+      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       const validatedData = insertSkillSchema.parse(req.body);
       
       const skill = Skill.create({
@@ -93,7 +115,7 @@ export class SkillController {
         createdBy: req.user?.id
       });
       
-      const createdSkill = await this.skillRepository.create(skill);
+      const createdSkill = await skillRepository.create(skill);
       
       console.info('Skill created', {
         skillId: createdSkill.id,
@@ -131,10 +153,18 @@ export class SkillController {
 
   async updateSkill(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
+        });
+      }
+
+      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       const { id } = req.params;
       const validatedData = insertSkillSchema.partial().parse(req.body);
       
-      const existingSkill = await this.skillRepository.findById(id);
+      const existingSkill = await skillRepository.findById(id);
       if (!existingSkill) {
         return res.status(404).json({
           success: false,
@@ -153,7 +183,7 @@ export class SkillController {
       
       existingSkill.updatedBy = req.user?.id;
       
-      const updatedSkill = await this.skillRepository.update(existingSkill);
+      const updatedSkill = await skillRepository.update(existingSkill);
       
       console.info('Skill updated', {
         skillId: updatedSkill.id,
@@ -191,9 +221,17 @@ export class SkillController {
 
   async deleteSkill(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
+        });
+      }
+
+      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       const { id } = req.params;
       
-      const existingSkill = await this.skillRepository.findById(id);
+      const existingSkill = await skillRepository.findById(id);
       if (!existingSkill) {
         return res.status(404).json({
           success: false,
@@ -204,7 +242,7 @@ export class SkillController {
       // Soft delete
       existingSkill.deactivate();
       existingSkill.updatedBy = req.user?.id;
-      await this.skillRepository.update(existingSkill);
+      await skillRepository.update(existingSkill);
       
       console.info('Skill deactivated', {
         skillId: id,
@@ -233,7 +271,15 @@ export class SkillController {
 
   async getCategories(req: AuthenticatedRequest, res: Response) {
     try {
-      const categories = await this.skillRepository.getCategories();
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
+        });
+      }
+
+      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
+      const categories = await skillRepository.getCategories();
       
       res.json({
         success: true,
