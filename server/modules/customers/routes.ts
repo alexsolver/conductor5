@@ -30,7 +30,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { logError } = await import('../../utils/logger');
     logError("Error fetching customers", error, { 
       tenantId: req.user?.tenantId,
-      options: { limit: parsedLimit, offset: parsedOffset }
+      options: { limit: parsedLimit || 50, offset: parsedOffset || 0 }
     });
     res.status(500).json({ message: "Failed to fetch customers" });
   }

@@ -148,12 +148,29 @@ export class DrizzleStorage implements IStorage {
     return result[0] || null;
   }
 
-  async getCustomers(tenantId: string, limit: number = 50, offset: number = 0): Promise<Customer[]> {
-    return await db.select().from(customers)
+  async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Customer[]> {
+    const { limit = 50, offset = 0, search } = options;
+    
+    let query = db.select().from(customers)
       .where(eq(customers.tenantId, tenantId))
       .limit(limit)
       .offset(offset)
       .orderBy(desc(customers.createdAt));
+    
+    if (search) {
+      query = query.where(
+        and(
+          eq(customers.tenantId, tenantId),
+          or(
+            ilike(customers.firstName, `%${search}%`),
+            ilike(customers.lastName, `%${search}%`),
+            ilike(customers.email, `%${search}%`)
+          )
+        )
+      );
+    }
+    
+    return await query;
   }
 
   async createCustomer(data: InsertCustomer): Promise<Customer> {
