@@ -322,8 +322,8 @@ export class IntegrityControlService {
 
   private async getModuleTests(moduleName: string): Promise<{ unit: number; integration: number; e2e: number }> {
     // Count actual test files instead of using Math.random
-    const fs = require('fs').promises;
-    const path = require('path');
+    const fs = await import('fs');
+    const path = await import('path');
     
     let unit = 0;
     let integration = 0;

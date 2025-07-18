@@ -30,14 +30,18 @@ export class SchemaManager {
     return SchemaManager.instance;
   }
 
-  // Check if schema exists without creating it
+  // OPTIMIZED: Check if schema and required tables exist
   private async schemaExists(schemaName: string): Promise<boolean> {
     try {
+      // Check schema + table count in single query for better performance
       const result = await db.execute(sql`
-        SELECT 1 FROM information_schema.schemata 
-        WHERE schema_name = ${schemaName}
+        SELECT COUNT(*) as table_count 
+        FROM information_schema.tables 
+        WHERE table_schema = ${schemaName}
       `);
-      return result.rows.length > 0;
+      // Require minimum 11 tables for complete schema
+      const tableCount = Number(result.rows[0]?.table_count || 0);
+      return tableCount >= 11;
     } catch {
       return false;
     }

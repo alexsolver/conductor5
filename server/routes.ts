@@ -18,6 +18,7 @@ import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
 import externalContactsRoutes from './routes/external-contacts';
+import locationRoutes from './routes/locationRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -345,6 +346,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // External Contacts routes
   app.use('/api/external-contacts', externalContactsRoutes);
+
+  // Location routes
+  app.use('/api/locations', locationRoutes);
 
   // All routes now handled by dedicated microservices
 
