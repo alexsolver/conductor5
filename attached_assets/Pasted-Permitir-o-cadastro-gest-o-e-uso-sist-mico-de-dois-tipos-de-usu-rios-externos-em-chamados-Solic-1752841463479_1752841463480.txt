@@ -1,0 +1,119 @@
+Permitir o cadastro, gestão e uso sistêmico de dois tipos de usuários externos em chamados:
+	•	Solicitantes (quem abre ou é impactado diretamente)
+	•	Favorecidos (quem precisa acompanhar ou ser notificado)
+Com suporte a controle de permissão, relacionamento com local, logs, visibilidade e integrações nativas com o ecossistema Conductor.
+
+⸻
+
+👤 ENTIDADE: SOLICITANTE
+	•	Representa a pessoa ou empresa responsável por originar um ticket.
+	•	Obrigatório em todo chamado.
+
+Campos:
+	•	id
+	•	nome completo
+	•	email
+	•	telefone
+	•	documento (CPF/CNPJ ou outro)
+	•	tipo de pessoa (Física / Jurídica)
+	•	empresa_id (relacionamento com entidade cliente)
+	•	local_id (local ao qual está vinculado, se aplicável)
+	•	preferência de contato (email / telefone / ambos)
+	•	idioma
+	•	status (ativo, inativo, pendente)
+	•	data de criação
+	•	observações
+
+⸻
+
+👥 ENTIDADE: FAVORECIDO
+	•	Usuário adicional, copiado em um chamado (CC), que deve ser notificado ou acompanhar o andamento.
+	•	Pode ser interno, cliente, terceiro, auditor etc.
+	•	Pode ser vinculado a um local específico, caso represente um ponto de contato ou gerente da unidade.
+
+Campos:
+	•	id
+	•	nome
+	•	email
+	•	telefone (opcional)
+	•	empresa_id (opcional)
+	•	local_id (opcional, define contexto geográfico da notificação)
+	•	pode_interagir (boolean – exibe ou não respostas e interações)
+	•	tipo_de_vinculo (colaborador, gerente local, parceiro, outro)
+	•	status
+	•	observações
+
+⸻
+
+⚙️ FUNCIONALIDADES
+
+1. Cadastro e Identificação
+	•	Cadastro manual ou automático dos dois perfis
+	•	Evita duplicidades (via email ou documento)
+	•	Permite importação em massa via CSV/API
+	•	Vinculação inteligente ao local e cliente
+
+2. Associação aos Tickets
+	•	Todo ticket precisa de 1 solicitante
+	•	Pode conter N favorecidos com campos específicos
+	•	Durante a criação:
+	•	Verificação do status dos usuários
+	•	Sugerir favorecidos automáticos com base no local ou serviço
+
+3. Permissões e Visibilidade
+	•	Solicitante:
+	•	Visualiza e interage nos tickets abertos
+	•	Recebe notificações padrão
+	•	Favorecido:
+	•	Pode ser apenas notificado, ou também autorizado a interagir (definido por permissão)
+	•	Pode ter acesso limitado com base no tipo de vínculo ou local
+
+4. Notificações e Interação
+	•	Templates personalizados por tipo de usuário (solicitante x favorecido)
+	•	Notificações por email e plataforma (se aplicável)
+	•	Placeholders suportados:
+	•	{{ticket.solicitante.nome}}
+	•	{{ticket.favorecidos.lista_emails}}
+	•	{{ticket.local.nome}}
+
+5. Regras de Negócio
+	•	Um ticket só é criado com solicitante ativo
+	•	Favorecidos são opcionais, mas se configurados, devem estar ativos
+	•	Favorecido vinculado a local só recebe notificação se o chamado for desse local
+	•	Histórico de todos os vínculos e interações deve ser registrado
+
+⸻
+
+🔁 INTEGRAÇÕES CRÍTICAS
+	•	Módulo de Tickets: associação direta com solicitante e favorecidos
+	•	Módulo de Locais: para controle de abrangência e roteamento
+	•	SLA: permite regras de atendimento distintas por tipo de solicitante e local favorecido
+	•	Notificações: disparo automático segmentado
+	•	Workflow:
+	•	Exemplo: se favorecido for do tipo “auditor” e local = X, enviar alerta para supervisão
+	•	Relatórios/Dashboards:
+	•	Volume de tickets por solicitante
+	•	Favorecidos por tipo de local
+	•	Taxa de reabertura por perfil de solicitante
+
+⸻
+
+📂 ESTRUTURA DE DADOS
+
+Tabela: solicitantes
+	•	id, nome, email, telefone, documento, tipo_pessoa, empresa_id, local_id, status, idioma, observacoes
+
+Tabela: favorecidos
+	•	id, nome, email, telefone, empresa_id, local_id, tipo_de_vinculo, pode_interagir, status, observacoes
+
+Tabela Pivot: ticket_favorecidos
+	•	ticket_id, favorecido_id, criado_em
+
+⸻
+
+✅ CASOS DE USO COBERTOS
+	•	Cadastro de solicitante e favorecido
+	•	Abertura de chamado com vínculo automático por localização
+	•	Inclusão de favorecido com papel limitado (visualização apenas)
+	•	Exclusão ou substituição de solicitante antes do atendimento
+	•	Geração de relatório de chamados com favorecido por local
