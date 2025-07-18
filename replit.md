@@ -41,6 +41,14 @@ Preferred communication style: Simple, everyday language.
 - ✓ Updated MockDataDetector to distinguish between legitimate domain implementations vs incomplete code
 - ✓ Added comprehensive filtering for secure files (TokenService, authSecurityService) to prevent unnecessary alerts
 - ✓ **FINAL RESULT**: Integrity Control System now focuses only on genuine security risks, eliminating noise from false positives
+- ✓ **TECHNICAL SKILLS MODAL ENHANCEMENT**: Added all database fields to creation/edit modals
+- ✓ Enhanced skill level dropdown with descriptive labels (Básico, Intermediário, Avançado, Especialista, Excelência)
+- ✓ Added comprehensive fields: min level required, suggested certification, validity months, observations
+- ✓ Modal expanded to 2xl width with scroll support for better form usability
+- ✓ Updated card display to show skill levels with descriptive labels instead of just stars
+- ✓ **UI TERMINOLOGY UPDATE**: Renamed "Templates" to "Aparência" throughout navigation and interface
+- ✓ Updated sidebar navigation, page titles, buttons, and notifications to use "Aparência" terminology
+- ✓ Changed "Template" references to "Tema" for better user experience in Portuguese
 
 ### July 17, 2025
 - ✓ Fixed critical startup issue with integrityRoutes module export mismatch

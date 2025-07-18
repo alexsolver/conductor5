@@ -238,7 +238,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Palette className="w-5 h-5" />
-            Personalizar Template: {template.name}
+            Personalizar Tema: {template.name}
           </DialogTitle>
         </DialogHeader>
         
@@ -250,11 +250,11 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
           
           <TabsContent value="colors" className="space-y-6">
             <div>
-              <Label className="text-sm font-medium mb-3 block">Nome do Template</Label>
+              <Label className="text-sm font-medium mb-3 block">Nome do Tema</Label>
               <Input
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                placeholder="Nome do seu template personalizado"
+                placeholder="Nome do seu tema personalizado"
               />
             </div>
             
@@ -421,8 +421,8 @@ export function TemplateSelector() {
       queryClient.invalidateQueries({ queryKey: ['/api/templates/current'] });
       setSelectedTemplate(template.id);
       toast({
-        title: "Template aplicado!",
-        description: `O template "${template.name}" foi aplicado com sucesso.`,
+        title: "Tema aplicado!",
+        description: `O tema "${template.name}" foi aplicado com sucesso.`,
       });
       
       // Forçar reload da página para aplicar mudanças CSS
@@ -432,7 +432,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao aplicar template",
+        title: "Erro ao aplicar tema",
         description: error.message,
         variant: "destructive",
       });
@@ -449,8 +449,8 @@ export function TemplateSelector() {
       queryClient.invalidateQueries({ queryKey: ['/api/templates/current'] });
       setSelectedTemplate(null);
       toast({
-        title: "Template resetado",
-        description: "O template foi resetado para o padrão.",
+        title: "Tema resetado",
+        description: "O tema foi resetado para o padrão.",
       });
       
       // Forçar reload da página para aplicar mudanças CSS
@@ -460,7 +460,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao resetar template",
+        title: "Erro ao resetar tema",
         description: error.message,
         variant: "destructive",
       });
@@ -496,11 +496,11 @@ export function TemplateSelector() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Selecione seu Template
+            Personalizar Aparência
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Escolha um dos templates profissionais abaixo para personalizar a aparência do seu sistema. 
-            Cada template inclui esquema de cores, layout e componentes otimizados.
+            Escolha um dos temas profissionais abaixo para personalizar a aparência do seu sistema. 
+            Cada tema inclui esquema de cores, layout e componentes otimizados.
           </p>
         </div>
 
@@ -627,7 +627,7 @@ export function TemplateSelector() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            {selectedTemplate ? 'Template Selecionado' : 'Selecione um Template'}
+            {selectedTemplate ? 'Tema Selecionado' : 'Selecione um Tema'}
           </Button>
           <Button 
             size="lg" 
@@ -646,10 +646,10 @@ export function TemplateSelector() {
           </Button>
         </div>
 
-        {/* Template Info */}
+        {/* Theme Info */}
         {selectedTemplate && (
           <div className="mt-12 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg">
-            <h3 className="text-xl font-semibold mb-4">Template Selecionado</h3>
+            <h3 className="text-xl font-semibold mb-4">Tema Selecionado</h3>
             {(() => {
               const template = templates.find(t => t.id === selectedTemplate);
               if (!template) return null;
@@ -657,7 +657,7 @@ export function TemplateSelector() {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium mb-2">Informações do Template</h4>
+                    <h4 className="font-medium mb-2">Informações do Tema</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                       {template.description}
                     </p>
