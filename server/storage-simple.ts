@@ -74,6 +74,13 @@ export interface IStorage {
   updateLocation(id: string, tenantId: string, data: Partial<InsertLocation>): Promise<Location | null>;
   deleteLocation(id: string, tenantId: string): Promise<boolean>;
 
+  // Unified methods for customers/solicitantes (same entity)
+  getSolicitantes(tenantId: string, limit?: number, offset?: number): Promise<Customer[]>;
+  createSolicitante(data: Omit<InsertCustomer, 'customerType'>): Promise<Customer>;
+  
+  // Methods for favorecidos (external contacts)
+  getFavorecidos(tenantId: string, limit?: number, offset?: number): Promise<ExternalContact[]>;
+  
   // Dashboard stats
   getRecentActivity(tenantId: string): Promise<any[]>;
   getDashboardStats(tenantId: string): Promise<any>;
@@ -299,6 +306,33 @@ export class DrizzleStorage implements IStorage {
       and(eq(locations.id, id), eq(locations.tenantId, tenantId))
     );
     return result.rowCount > 0;
+  }
+
+  // Unified methods for customers/solicitantes
+  async getSolicitantes(tenantId: string, limit: number = 50, offset: number = 0): Promise<Customer[]> {
+    return await db.select().from(customers)
+      .where(and(
+        eq(customers.tenantId, tenantId),
+        eq(customers.customerType, 'solicitante')
+      ))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(customers.createdAt));
+  }
+
+  async createSolicitante(data: Omit<InsertCustomer, 'customerType'>): Promise<Customer> {
+    const solicitanteData = { ...data, customerType: 'solicitante' as const };
+    const result = await db.insert(customers).values(solicitanteData).returning();
+    return result[0];
+  }
+
+  // Methods for favorecidos (external contacts)
+  async getFavorecidos(tenantId: string, limit: number = 50, offset: number = 0): Promise<ExternalContact[]> {
+    return await db.select().from(externalContacts)
+      .where(eq(externalContacts.tenantId, tenantId))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(externalContacts.createdAt));
   }
 
   // Dashboard stats

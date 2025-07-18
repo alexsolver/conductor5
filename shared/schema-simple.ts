@@ -50,7 +50,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Simplified customers table
+// UNIFIED: Customers table (includes both customers and solicitantes - they are the same entity)
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
@@ -59,6 +59,8 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
+  customerType: varchar("customer_type", { length: 20 }).default("customer"), // 'customer' or 'solicitante'
+  cpfCnpj: varchar("cpf_cnpj", { length: 20 }), // For Brazilian customers
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -90,16 +92,19 @@ export const ticketMessages = pgTable("ticket_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// External contacts table
+// External contacts table (ONLY for favorecidos - beneficiaries of tickets)
 export const externalContacts = pgTable("external_contacts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
-  name: varchar("name", { length: 255 }).notNull(),
+  nome: varchar("nome", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 50 }),
+  telefone: varchar("telefone", { length: 50 }),
   company: varchar("company", { length: 255 }),
-  type: varchar("type", { length: 20 }).default("favorecido"),
-  active: boolean("active").default(true),
+  customerId: uuid("customer_id").references(() => customers.id), // Link to the requesting customer (solicitante)
+  podeInteragir: boolean("pode_interagir").default(false),
+  tipoVinculo: varchar("tipo_vinculo", { length: 50 }).default("outro"), // colaborador, gerente_local, parceiro, auditor, outro
+  observacoes: text("observacoes"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

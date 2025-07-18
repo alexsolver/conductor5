@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { storage } from '../storage';
+import { storage } from '../storage-simple';
 
 const router = Router();
 
