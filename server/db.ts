@@ -218,7 +218,7 @@ export class SchemaManager {
 
       // Create locations table first
       await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'locations')} (
+        CREATE TABLE IF NOT EXISTS ${schemaId}.locations (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name VARCHAR(255) NOT NULL,
           address TEXT,
@@ -243,7 +243,7 @@ export class SchemaManager {
 
       // Create all tenant-specific tables with proper schema referencing
       await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'customers')} (
+        CREATE TABLE IF NOT EXISTS ${schemaId}.customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           first_name VARCHAR(255),
           last_name VARCHAR(255),
@@ -346,51 +346,7 @@ export class SchemaManager {
         )
       `);
 
-      // Locations table with comprehensive fields for location management
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${schemaId}.locations (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          name VARCHAR(255) NOT NULL,
-          type VARCHAR(20) NOT NULL CHECK (type IN ('cliente', 'ativo', 'filial', 'tecnico', 'parceiro')),
-          status VARCHAR(20) NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo', 'manutencao', 'suspenso')),
-
-          -- Address fields
-          address TEXT NOT NULL,
-          number VARCHAR(20),
-          complement VARCHAR(100),
-          neighborhood VARCHAR(100),
-          city VARCHAR(100) NOT NULL,
-          state VARCHAR(50) NOT NULL,
-          zip_code VARCHAR(20) NOT NULL,
-          country VARCHAR(50) NOT NULL DEFAULT 'Brasil',
-
-          -- Geographic coordinates
-          latitude DECIMAL(10, 8),
-          longitude DECIMAL(11, 8),
-
-          -- Business hours and SLA
-          business_hours JSONB DEFAULT '{}',
-          special_hours JSONB DEFAULT '{}',
-          timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
-          sla_id UUID,
-
-          -- Access and security
-          access_instructions TEXT,
-          requires_authorization BOOLEAN DEFAULT FALSE,
-          security_equipment JSONB DEFAULT '[]',
-          emergency_contacts JSONB DEFAULT '[]',
-
-          -- Metadata and customization
-          metadata JSONB DEFAULT '{}',
-          tags JSONB DEFAULT '[]',
-
-          -- Audit fields
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-          created_by UUID,
-          updated_by UUID
-        )
-      `);
+      // Remove duplicate locations table creation - already created above
 
       // Customer companies table using parameterized queries
       await db.execute(sql`

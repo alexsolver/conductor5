@@ -138,12 +138,12 @@ export const logHttp = (message: string, context?: Record<string, any>) => {
 };
 
 // Export structured logging functions with performance metrics
-export const logInfo = (message: string, context?: any) => {
+export const logInfoEnhanced = (message: string, context?: any) => {
   const timestamp = new Date().toISOString();
   logger.info(message, { ...context, timestamp });
 };
 
-export const logError = (message: string, error?: any, context?: any) => {
+export const logErrorEnhanced = (message: string, error?: any, context?: any) => {
   const timestamp = new Date().toISOString();
   const errorMessage = error?.message || error;
   const stack = error?.stack;
@@ -156,12 +156,12 @@ export const logError = (message: string, error?: any, context?: any) => {
   });
 };
 
-export const logWarn = (message: string, context?: any) => {
+export const logWarnEnhanced = (message: string, context?: any) => {
   const timestamp = new Date().toISOString();
   logger.warn(message, { ...context, timestamp, level: 'warning' });
 };
 
-export const logDebug = (message: string, context?: any) => {
+export const logDebugEnhanced = (message: string, context?: any) => {
   const timestamp = new Date().toISOString();
   logger.debug(message, { ...context, timestamp, level: 'debug' });
 };
