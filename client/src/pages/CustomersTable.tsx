@@ -561,19 +561,19 @@ export default function CustomersTable() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage customer information and profiles</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Solicitantes</h1>
+          <p className="text-gray-600 dark:text-gray-400">Gerencie informações e perfis de solicitantes</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
               <Plus className="h-4 w-4 mr-2" />
-              New Customer
+              Novo Solicitante
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Customer</DialogTitle>
+              <DialogTitle>Criar Novo Solicitante</DialogTitle>
             </DialogHeader>
             <CustomerForm />
           </DialogContent>
@@ -586,7 +586,7 @@ export default function CustomersTable() {
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search customers..."
+              placeholder="Pesquisar solicitantes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -599,7 +599,7 @@ export default function CustomersTable() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Customers ({pagination.total})</span>
+            <span>Solicitantes ({pagination.total})</span>
             <span className="text-sm font-normal text-gray-500">
               Page {currentPage} of {pagination.totalPages}
             </span>

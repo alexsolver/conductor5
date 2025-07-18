@@ -50,7 +50,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Customers table (simplified after removing favorecidos/solicitantes distinction)
+// Customers table (Solicitantes - internal system requesters)
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
@@ -60,6 +60,25 @@ export const customers = pgTable("customers", {
   phone: varchar("phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
   cpfCnpj: varchar("cpf_cnpj", { length: 20 }), // For Brazilian customers
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Favorecidos table (External contacts who can be beneficiaries of tickets)
+export const favorecidos = pgTable("favorecidos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").references(() => tenants.id),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  company: varchar("company", { length: 255 }),
+  cpfCnpj: varchar("cpf_cnpj", { length: 20 }), // For Brazilian contacts
+  contactType: varchar("contact_type", { length: 50 }).default("external"), // external, partner, vendor
+  relationship: varchar("relationship", { length: 100 }), // business relationship description
+  preferredContactMethod: varchar("preferred_contact_method", { length: 50 }).default("email"), // email, phone, whatsapp
+  notes: text("notes"), // Internal notes about this contact
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -126,6 +145,11 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   createdAt: true,
   updatedAt: true,
 });
+export const insertFavorecidoSchema = createInsertSchema(favorecidos).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 export const insertTicketSchema = createInsertSchema(tickets).omit({
   id: true,
   createdAt: true,
@@ -147,6 +171,7 @@ export type Session = typeof sessions.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
+export type Favorecido = typeof favorecidos.$inferSelect;
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
 // Removed: ExternalContact type - functionality eliminated
@@ -156,6 +181,7 @@ export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type InsertFavorecido = z.infer<typeof insertFavorecidoSchema>;
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
 // Removed: InsertExternalContact type - functionality eliminated

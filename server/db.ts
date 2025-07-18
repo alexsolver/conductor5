@@ -311,10 +311,10 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts')
+        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts')
       `);
 
-      return (result.rows[0]?.table_count as number) >= 7;
+      return (result.rows[0]?.table_count as number) >= 8;
     } catch {
       return false;
     }
@@ -375,6 +375,38 @@ export class SchemaManager {
       `);
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS customers_tenant_active_idx ON ${schemaId}.customers (tenant_id, active)
+      `);
+
+      // CRITICAL FIX: Favorecidos table with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.favorecidos (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
+          first_name VARCHAR(255),
+          last_name VARCHAR(255),
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          company VARCHAR(255),
+          cpf_cnpj VARCHAR(20),
+          contact_type VARCHAR(50) DEFAULT 'external',
+          relationship VARCHAR(100),
+          preferred_contact_method VARCHAR(50) DEFAULT 'email',
+          notes TEXT,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT favorecidos_tenant_email_unique UNIQUE (tenant_id, email),
+          CONSTRAINT favorecidos_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for favorecidos
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS favorecidos_tenant_email_idx ON ${schemaId}.favorecidos (tenant_id, email)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS favorecidos_tenant_active_idx ON ${schemaId}.favorecidos (tenant_id, is_active)
       `);
 
       // CRITICAL FIX: Tickets table with MANDATORY tenant_id field  

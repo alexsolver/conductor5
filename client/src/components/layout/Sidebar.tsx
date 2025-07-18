@@ -43,7 +43,7 @@ import {
 const baseNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
-  { name: "Customers", href: "/customers", icon: Users },
+  { name: "Solicitantes", href: "/solicitantes", icon: Users },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
@@ -84,7 +84,8 @@ const adminNavigation = [
       { name: "SLAs", href: "/tenant-admin/slas", icon: Target },
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
-      { name: "Gestão de Clientes", href: "/tenant-admin/customers", icon: Users },
+      { name: "Gestão de Solicitantes", href: "/tenant-admin/solicitantes", icon: Users },
+      { name: "Gestão de Favorecidos", href: "/tenant-admin/favorecidos", icon: UserCheck },
 
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },

@@ -3,17 +3,20 @@ import { eq, and, desc, asc, count, or, ilike } from "drizzle-orm";
 import { 
   users, 
   customers, 
+  favorecidos,
   tickets, 
   ticketMessages, 
   tenants,
   locations,
   type User,
   type Customer,
+  type Favorecido,
   type Ticket,
   type TicketMessage,
   type Tenant,
   type Location,
   type InsertCustomer,
+  type InsertFavorecido,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertUser,
@@ -36,12 +39,19 @@ export interface IStorage {
   updateTenant(id: string, data: Partial<InsertTenant>): Promise<Tenant | null>;
   deleteTenant(id: string): Promise<boolean>;
 
-  // Customers
+  // Customers (Solicitantes)
   getCustomer(id: string, tenantId: string): Promise<Customer | null>;
   getCustomers(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<Customer[]>;
   createCustomer(tenantId: string, data: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, tenantId: string, data: Partial<InsertCustomer>): Promise<Customer | null>;
   deleteCustomer(id: string, tenantId: string): Promise<boolean>;
+
+  // Favorecidos (External Contacts)
+  getFavorecido(id: string, tenantId: string): Promise<Favorecido | null>;
+  getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<Favorecido[]>;
+  createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido>;
+  updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null>;
+  deleteFavorecido(id: string, tenantId: string): Promise<boolean>;
 
   // Tickets
   getTicket(id: string, tenantId: string): Promise<Ticket | null>;
@@ -178,6 +188,58 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
+  // Favorecidos (External Contacts)
+  async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
+    const result = await db.select().from(favorecidos).where(
+      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
+    );
+    return result[0] || null;
+  }
+
+  async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
+    const { limit = 50, offset = 0, search } = options;
+    
+    let query = db.select().from(favorecidos)
+      .where(eq(favorecidos.tenantId, tenantId))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(favorecidos.createdAt));
+    
+    if (search) {
+      query = query.where(
+        and(
+          eq(favorecidos.tenantId, tenantId),
+          or(
+            ilike(favorecidos.firstName, `%${search}%`),
+            ilike(favorecidos.lastName, `%${search}%`),
+            ilike(favorecidos.email, `%${search}%`)
+          )
+        )
+      );
+    }
+    
+    return await query;
+  }
+
+  async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
+    const result = await db.insert(favorecidos).values({ ...data, tenantId }).returning();
+    return result[0];
+  }
+
+  async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
+    const result = await db.update(favorecidos).set(data).where(
+      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
+    ).returning();
+    return result[0] || null;
+  }
+
+  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
+    const result = await db.delete(favorecidos).where(
+      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
+    );
+    return result.rowCount > 0;
+  }
+
   // Tickets
   async getTicket(id: string, tenantId: string): Promise<Ticket | null> {
     const result = await db.select().from(tickets).where(
@@ -279,7 +341,55 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  // Removed: favorecidos and solicitantes methods - functionality completely eliminated
+  // Favorecidos (External Contacts) Methods
+  async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
+    const result = await db.select().from(favorecidos)
+      .where(and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId)))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
+    const { limit = 50, offset = 0, search } = options;
+    
+    let query = db.select().from(favorecidos)
+      .where(eq(favorecidos.tenantId, tenantId));
+      
+    if (search) {
+      query = query.where(
+        or(
+          ilike(favorecidos.firstName, `%${search}%`),
+          ilike(favorecidos.lastName, `%${search}%`),
+          ilike(favorecidos.email, `%${search}%`),
+          ilike(favorecidos.company, `%${search}%`)
+        )
+      );
+    }
+    
+    return query.limit(limit).offset(offset).orderBy(desc(favorecidos.createdAt));
+  }
+
+  async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
+    const result = await db.insert(favorecidos).values({
+      ...data,
+      tenantId
+    }).returning();
+    return result[0];
+  }
+
+  async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
+    const result = await db.update(favorecidos).set(data).where(
+      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
+    ).returning();
+    return result[0] || null;
+  }
+
+  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
+    const result = await db.delete(favorecidos).where(
+      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
+    );
+    return result.rowCount > 0;
+  }
 
   // Dashboard stats
   async getRecentActivity(tenantId: string, limit: number = 20): Promise<any[]> {

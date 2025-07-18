@@ -14,6 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
 import CustomersTable from "./pages/CustomersTable";
+import FavorecidosTable from "./pages/FavorecidosTable";
 import Locations from "./pages/Locations";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Analytics from "./pages/Analytics";
@@ -78,7 +79,9 @@ function AppRouter() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
-        <Route path="/customers" component={CustomersTable} />
+        <Route path="/solicitantes" component={CustomersTable} />
+        <Route path="/tenant-admin/solicitantes" component={CustomersTable} />
+        <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/technical-skills" component={TechnicalSkills} />
         {/* Removed: external-contacts route - functionality eliminated */}
