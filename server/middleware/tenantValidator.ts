@@ -30,7 +30,7 @@ export function enhancedTenantValidator() {
       }
 
       // CRITICAL: Validate tenant ID format to prevent injection
-      const tenantIdRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      const tenantIdRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
       if (!tenantIdRegex.test(user.tenantId)) {
         logger.error('Invalid tenant ID format detected', {
           tenantId: user.tenantId,

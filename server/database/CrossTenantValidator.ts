@@ -15,7 +15,7 @@ export class CrossTenantValidator {
   static async validateUserTenantAccess(userId: string, tenantId: string): Promise<boolean> {
     try {
       // CRITICAL: Validate tenant_id format first to prevent injection
-      if (!tenantId || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(tenantId)) {
+      if (!tenantId || !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(tenantId)) {
         logWarn('Invalid tenant ID format in validateUserTenantAccess', { userId, tenantId });
         return false;
       }
@@ -43,7 +43,7 @@ export class CrossTenantValidator {
   static async logCrossTenantAttempt(userId: string, requestedTenantId: string, userTenantId: string, resource: string): Promise<void> {
     try {
       // CRITICAL: Validate all tenant IDs before inserting
-      const tenantIdRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      const tenantIdRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
       if (!tenantIdRegex.test(requestedTenantId) || !tenantIdRegex.test(userTenantId)) {
         logError('Invalid tenant ID format in logCrossTenantAttempt', {
           userId, requestedTenantId, userTenantId, resource
@@ -196,7 +196,7 @@ export class CrossTenantValidator {
   static async getTenantIsolationMetrics(requestingTenantId: string): Promise<any> {
     try {
       // CRITICAL: Validate requesting tenant ID format
-      const tenantIdRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+      const tenantIdRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
       if (!tenantIdRegex.test(requestingTenantId)) {
         logError('Invalid tenant ID format in getTenantIsolationMetrics', { requestingTenantId });
         throw new Error('Invalid tenant ID format');

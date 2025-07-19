@@ -96,7 +96,7 @@ export class TenantValidator {
 
     try {
       // CRITICAL FIX: Validate schema name format - allow both hyphens and underscores
-      const schemaNamePattern = /^tenant_[a-f0-9]{8}[_-][a-f0-9]{4}[_-][a-f0-9]{4}[_-][a-f0-9]{4}[_-][a-f0-9]{12}$/;
+      const schemaNamePattern = /^tenant_[0-9a-fA-F]{8}[_-][0-9a-fA-F]{4}[_-]4[0-9a-fA-F]{3}[_-][89abAB][0-9a-fA-F]{3}[_-][0-9a-fA-F]{12}$/;
       if (!schemaNamePattern.test(schemaName)) {
         logError('Invalid schema name format', { tenantId: validatedId, schemaName });
         return false;

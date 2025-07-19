@@ -11,7 +11,7 @@ export class EnterpriseUUIDValidator {
   private static readonly STRICT_UUID_V4_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
   
   // PADRÃO UUID RELAXADO - Para compatibilidade legada apenas
-  private static readonly RELAXED_UUID_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+  private static readonly RELAXED_UUID_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
   static getInstance(): EnterpriseUUIDValidator {
     if (!EnterpriseUUIDValidator.instance) {
