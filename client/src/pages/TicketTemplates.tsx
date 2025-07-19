@@ -202,7 +202,7 @@ export default function TicketTemplates() {
   const filteredTemplates = templates.filter((template: TicketTemplate) => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || template.category === categoryFilter;
+    const matchesCategory = !categoryFilter || categoryFilter === 'all' || template.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -291,7 +291,7 @@ export default function TicketTemplates() {
                 <SelectValue placeholder="Filtrar por categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {CATEGORIES.map(category => (
                   <SelectItem key={category} value={category}>
                     {category}

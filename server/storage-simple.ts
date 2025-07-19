@@ -53,6 +53,11 @@ export interface IStorage {
   updateTicketTemplate(tenantId: string, templateId: string, templateData: any): Promise<any>;
   deleteTicketTemplate(tenantId: string, templateId: string): Promise<boolean>;
   duplicateTicketTemplate(tenantId: string, templateId: string): Promise<any>;
+
+  // Tenant Integrations Management
+  getTenantIntegrations(tenantId: string): Promise<any[]>;
+  getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined>;
+  saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any>;
   bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
 }
 
@@ -916,6 +921,172 @@ export class DatabaseStorage implements IStorage {
       return deleted;
     } catch (error) {
       logError('Error bulk deleting ticket templates', error, { tenantId, templateIds });
+      throw error;
+    }
+  }
+
+  // ===========================  
+  // TENANT INTEGRATIONS
+  // ===========================
+
+  async getTenantIntegrations(tenantId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Check if integrations table exists, if not create it with default integrations
+      const tableExists = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} 
+          AND table_name = 'integrations'
+        );
+      `);
+
+      if (!tableExists.rows?.[0]?.exists) {
+        await this.createDefaultIntegrations(validatedTenantId);
+      }
+
+      // Query integrations from tenant-specific schema
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations 
+        ORDER BY created_at DESC
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching tenant integrations', error, { tenantId });
+      return [];
+    }
+  }
+
+  async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations 
+        WHERE id = ${integrationId}
+        LIMIT 1
+      `);
+
+      return result.rows?.[0] || undefined;
+    } catch (error) {
+      logError('Error fetching integration config', error, { tenantId, integrationId });
+      return undefined;
+    }
+  }
+
+  async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Update existing integration config
+      const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
+        SET config = ${JSON.stringify(config)}, updated_at = NOW()
+        WHERE id = ${integrationId}
+        RETURNING *
+      `);
+
+      return result.rows?.[0] || undefined;
+    } catch (error) {
+      logError('Error saving integration config', error, { tenantId, integrationId });
+      throw error;
+    }
+  }
+
+  private async createDefaultIntegrations(tenantId: string): Promise<void> {
+    try {
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Create integrations table if it doesn't exist
+      await tenantDb.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.integrations (
+          id VARCHAR(255) PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          category VARCHAR(100),
+          icon VARCHAR(100),
+          status VARCHAR(50) DEFAULT 'disconnected',
+          config JSONB DEFAULT '{}',
+          features TEXT[],
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Insert default integrations
+      const defaultIntegrations = [
+        {
+          id: 'imap-email',
+          name: 'IMAP Email',
+          description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
+          category: 'Comunicação',
+          icon: 'Mail',
+          features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
+        },
+        {
+          id: 'dropbox-personal',
+          name: 'Dropbox Pessoal',
+          description: 'Backup automático de dados e arquivos importantes',
+          category: 'Dados',
+          icon: 'Cloud',
+          features: ['Backup automático', 'Sincronização de arquivos', 'Versionamento']
+        },
+        {
+          id: 'whatsapp-business',
+          name: 'WhatsApp Business',
+          description: 'Integração com WhatsApp Business API',
+          category: 'Comunicação',
+          icon: 'MessageCircle',
+          features: ['Mensagens automáticas', 'Chatbot', 'Histórico completo']
+        },
+        {
+          id: 'slack',
+          name: 'Slack',
+          description: 'Notificações e colaboração em equipe',
+          category: 'Comunicação',
+          icon: 'Hash',
+          features: ['Notificações em tempo real', 'Canais dedicados', 'Bot integrado']
+        },
+        {
+          id: 'google-workspace',
+          name: 'Google Workspace',
+          description: 'Integração completa com Gmail, Drive e Calendar',
+          category: 'Produtividade',
+          icon: 'Chrome',
+          features: ['Gmail sync', 'Drive backup', 'Calendar integration']
+        }
+      ];
+
+      for (const integration of defaultIntegrations) {
+        await tenantDb.execute(sql`
+          INSERT INTO ${sql.identifier(schemaName)}.integrations 
+          (id, name, description, category, icon, status, config, features)
+          VALUES (
+            ${integration.id}, 
+            ${integration.name}, 
+            ${integration.description}, 
+            ${integration.category}, 
+            ${integration.icon}, 
+            'disconnected', 
+            '{}', 
+            ${sql`ARRAY[${integration.features.map(f => sql`${f}`)}]`}
+          )
+          ON CONFLICT (id) DO NOTHING
+        `);
+      }
+
+      logInfo('Default integrations created', { tenantId, count: defaultIntegrations.length });
+    } catch (error) {
+      logError('Error creating default integrations', error, { tenantId });
       throw error;
     }
   }

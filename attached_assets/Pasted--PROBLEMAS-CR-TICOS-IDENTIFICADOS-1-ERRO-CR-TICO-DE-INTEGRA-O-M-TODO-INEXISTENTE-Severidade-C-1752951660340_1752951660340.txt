@@ -1,0 +1,65 @@
+🚨 PROBLEMAS CRÍTICOS IDENTIFICADOS
+1. ERRO CRÍTICO DE INTEGRAÇÃO - MÉTODO INEXISTENTE
+Severidade: CRÍTICA
+
+Problema: storage.getTenantIntegrations is not a function
+Localização: server/routes/tenantIntegrations.ts:92
+Impacto: Falha completa na funcionalidade de integrações tenant
+Causa: Método não implementado no storage service
+2. FALHAS DE VALIDAÇÃO DE SCHEMA
+Severidade: ALTA
+
+Problema: Validação incompleta de tabelas obrigatórias
+Localização: server/db.ts - método validateTenantSchema
+Detalhes: Sistema valida apenas 12 tabelas quando deveria validar 13+ tabelas críticas
+Tabela em risco: ticket_templates pode não estar sendo validada corretamente
+3. PROBLEMAS DE PERFORMANCE E CONEXÃO
+Severidade: MÉDIA
+
+Problema: Timeouts de socket frequentes
+Evidência: Múltiplos [Connection Timeout] Socket timed out, closing gracefully
+Impacto: Instabilidade na conexão com banco de dados
+4. INCONSISTÊNCIAS DE MULTI-TENANCY
+Severidade: ALTA
+
+Problema: Possível vazamento de dados cross-tenant
+Localização: Múltiplas queries sem validação rigorosa de tenant_id
+Risco: Dados de um tenant podem ser acessados por outro
+5. GESTÃO DE POOL DE CONEXÕES SUBÓTIMA
+Severidade: MÉDIA
+
+Problema: Pool settings não otimizados para alta concorrência
+Detalhes:
+Max connections: 25 (pode ser insuficiente)
+Timeout settings inadequados para Neon hibernation
+Lack of proper connection recycling
+6. FALHAS DE ÍNDICES DE PERFORMANCE
+Severidade: MÉDIA
+
+Problema: Índices tenant-first possivelmente incompletos
+Impacto: Queries lentas em schemas com muitos dados
+Evidência: Tempo de resposta variável nas operações
+7. VALIDAÇÃO DE TENANT_ID INCONSISTENTE
+Severidade: ALTA
+
+Problema: Regex patterns diferentes em TenantValidator vs CrossTenantValidator
+Risco: Bypass de validação de segurança
+Detalhes:
+TenantValidator: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+CrossTenantValidator: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
+8. MISSING TABLE CREATION LOGIC
+Severidade: CRÍTICA
+
+Problema: Método getTenantIntegrations não existe no storage
+Causa: Tabela integrations pode não estar sendo criada nos schemas tenant
+Solução necessária: Implementar criação da tabela e método correspondente
+9. LOGS DE HIBERNAÇÃO NEON EXCESSIVOS
+Severidade: BAIXA
+
+Problema: Logs repetitivos de "terminating connection due to administrator command"
+Impacto: Poluição de logs, mascarando problemas reais
+10. VITE WEBSOCKET INSTABILITY
+Severidade: BAIXA
+
+Problema: Reconexões frequentes do Vite
+Impacto: Degradação da experiência de desenvolvimento
