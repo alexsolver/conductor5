@@ -438,6 +438,9 @@ export class SchemaManager {
 
   // Create tenant-specific tables using parameterized queries for security
   private async createTenantTables(schemaName: string): Promise<void> {
+    // CRITICAL FIX: Extract tenantId from schemaName for proper variable scope
+    const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+    
     // CRITICAL FIX: Check if tables exist and need migration
     const tablesExist = await this.tablesExist(schemaName);
     if (tablesExist) {

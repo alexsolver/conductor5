@@ -57,6 +57,13 @@ Preferred communication style: Simple, everyday language.
 - **Funcionalidades**: Auto-healing para favorecidos, integrations, favorecido_locations e demais tabelas
 - **Resultado**: Sistema agora detecta E corrige automaticamente problemas de schema automaticamente
 
+✅ **PROBLEMA DE REFERÊNCIA DE VARIÁVEL NÃO DEFINIDA RESOLVIDO:**
+- **Problema**: Variável tenantId usada sem estar definida no método insertSampleFavorecidos
+- **Localização**: server/db.ts:451 - método createTenantTables()
+- **Causa**: Função insertSampleFavorecidos() chamada com tenantId fora do escopo
+- **Solução**: Extraído tenantId do schemaName com `schemaName.replace('tenant_', '').replace(/_/g, '-')`
+- **Resultado**: Variável tenantId agora definida corretamente no escopo da função
+
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS
 - ✅ **Automação (2)**: Zapier, Webhooks  
