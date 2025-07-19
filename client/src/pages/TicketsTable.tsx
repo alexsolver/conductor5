@@ -798,7 +798,7 @@ export default function TicketsTable() {
               New Ticket
             </Button>
           </DialogTrigger>
-          <DialogContent className="fixed inset-0 w-screen h-screen max-w-none max-h-none p-0 m-0 bg-white dark:bg-gray-900 overflow-y-auto">
+          <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !bg-white dark:!bg-gray-900 !overflow-y-auto !translate-x-0 !translate-y-0 !left-0 !top-0 !z-[100]" style={{ transform: 'none', left: '0', top: '0', width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }}>
             <div className="h-full flex flex-col">
               <DialogHeader className="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
                 <DialogTitle className="text-2xl font-semibold">Create New Ticket</DialogTitle>
@@ -1039,7 +1039,7 @@ export default function TicketsTable() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="fixed inset-0 w-screen h-screen max-w-none max-h-none p-0 m-0 bg-white dark:bg-gray-900 overflow-y-auto">
+        <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !bg-white dark:!bg-gray-900 !overflow-y-auto !translate-x-0 !translate-y-0 !left-0 !top-0 !z-[100]" style={{ transform: 'none', left: '0', top: '0', width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }}>
           <div className="h-full flex flex-col">
             <DialogHeader className="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
               <DialogTitle className="text-2xl font-semibold">Edit Ticket</DialogTitle>
