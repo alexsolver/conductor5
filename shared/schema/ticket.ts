@@ -72,31 +72,6 @@ export const tickets = pgTable("tickets", {
   beneficiaryType: varchar("beneficiary_type", { length: 20 }), // 'customer' or 'user'
   callerType: varchar("caller_type", { length: 20 }), // 'customer' or 'user'
   
-  // TEMPLATE DO CHAMADO - Campos contextuais específicos
-  // Informações Técnicas
-  prUrl: varchar("pr_url", { length: 500 }), // URL do Pull Request
-  environment: varchar("environment", { length: 100 }), // Ambiente (Dev, Staging, Prod)
-  publishedVersion: varchar("published_version", { length: 100 }), // Versão publicada
-  
-  // Informações do Solicitante (complementares)
-  callerDocument: varchar("caller_document", { length: 50 }), // CPF/CNPJ
-  callerPhone: varchar("caller_phone", { length: 20 }), // Telefone
-  callerAddress: text("caller_address"), // Endereço completo
-  
-  // Informações do Favorecido
-  beneficiaryName: varchar("beneficiary_name", { length: 255 }), // Nome do favorecido
-  beneficiaryDocument: varchar("beneficiary_document", { length: 50 }), // CPF/CNPJ favorecido
-  beneficiaryDetails: jsonb("beneficiary_details").default({}), // Detalhes adicionais
-  
-  // Controle de Vencimentos
-  originalDueDate: timestamp("original_due_date"), // Vencimento original
-  currentDueDate: timestamp("current_due_date"), // Vencimento atual
-  dueDateChangedReason: text("due_date_changed_reason"), // Motivo da mudança
-  
-  // Contexto da Categoria
-  categoryContext: jsonb("category_context").default({}), // Campos específicos por categoria
-  subcategoryDetails: jsonb("subcategory_details").default({}), // Detalhes da subcategoria
-  
   // Metadata
   tags: jsonb("tags").default([]),
   metadata: jsonb("metadata").default({}),
@@ -119,19 +94,7 @@ export const ticketMessages = pgTable("ticket_messages", {
 });
 
 // Schema types
-export const insertTicketSchema = createInsertSchema(tickets, {
-  prUrl: z.string().url("URL do PR inválida").optional(),
-  environment: z.enum(["development", "staging", "production"]).optional(),
-  publishedVersion: z.string().max(100, "Versão muito longa").optional(),
-  callerDocument: z.string().max(50, "Documento muito longo").optional(),
-  callerPhone: z.string().max(20, "Telefone muito longo").optional(),
-  callerAddress: z.string().optional(),
-  beneficiaryName: z.string().max(255, "Nome muito longo").optional(),
-  beneficiaryDocument: z.string().max(50, "Documento muito longo").optional(),
-  originalDueDate: z.coerce.date().optional(),
-  currentDueDate: z.coerce.date().optional(),
-  dueDateChangedReason: z.string().optional()
-}).omit({
+export const insertTicketSchema = createInsertSchema(tickets).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

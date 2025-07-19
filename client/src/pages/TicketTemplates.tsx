@@ -78,7 +78,7 @@ export default function TicketTemplates() {
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['/api/templates'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/templates');
+      const response = await apiRequest('/api/templates');
       const data = await response.json();
       return data.data || [];
     }
@@ -102,7 +102,11 @@ export default function TicketTemplates() {
   // Mutations
   const createTemplateMutation = useMutation({
     mutationFn: async (data: TemplateFormData) => {
-      const response = await apiRequest('POST', '/api/templates', data);
+      const response = await apiRequest('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {

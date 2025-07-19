@@ -17,7 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { PersonSelector } from "@/components/PersonSelector";
-import { TicketTemplate } from "@/components/TicketTemplate";
 
 // Schema for ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -53,19 +52,6 @@ const ticketSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
   tags: z.array(z.string()).default([]),
-  
-  // Template do Chamado - Campos contextuais
-  prUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  environment: z.enum(["development", "staging", "production"]).optional(),
-  publishedVersion: z.string().optional(),
-  callerDocument: z.string().optional(),
-  callerPhone: z.string().optional(),
-  callerAddress: z.string().optional(),
-  beneficiaryName: z.string().optional(),
-  beneficiaryDocument: z.string().optional(),
-  originalDueDate: z.coerce.date().optional(),
-  currentDueDate: z.coerce.date().optional(),
-  dueDateChangedReason: z.string().optional(),
 });
 
 type TicketFormData = z.infer<typeof ticketSchema>;

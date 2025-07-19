@@ -45,7 +45,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
 });
 
 // GET /api/templates/categories - List available categories
-router.get('/categories', async (req: AuthenticatedRequest, res) => {
+router.get('/categories', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
   try {
     res.json({
       success: true,
@@ -104,7 +104,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse)
 });
 
 // POST /api/templates - Create new template
-router.post('/', async (req: AuthenticatedRequest, res) => {
+router.post('/', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
   try {
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
@@ -130,7 +130,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
       createdBy: userId
     };
 
-    const newTemplate = await storage.createTicketTemplate(tenantId, templateData);
+    const newTemplate = await storage.createTicketTemplate(templateData);
 
     logger.info('Template criado com sucesso:', { 
       templateId: newTemplate.id, 
@@ -154,7 +154,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
 });
 
 // PUT /api/templates/:id - Update template
-router.put('/:id', async (req: AuthenticatedRequest, res) => {
+router.put('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
@@ -218,7 +218,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
 });
 
 // DELETE /api/templates/:id - Delete template
-router.delete('/:id', async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
@@ -271,7 +271,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res) => {
 });
 
 // POST /api/templates/:id/apply - Apply template to create new ticket
-router.post('/:id/apply', async (req: AuthenticatedRequest, res) => {
+router.post('/:id/apply', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;

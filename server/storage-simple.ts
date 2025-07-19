@@ -732,8 +732,8 @@ export class DatabaseStorage implements IStorage {
       const offset = options?.offset || 0;
 
       let baseQuery = sql`
-        SELECT id, name, description, category, priority, estimated_hours, default_assignee_role, 
-               is_active, tenant_id, created_at, updated_at
+        SELECT id, name, description, category, priority, estimated_time, assignee_id, 
+               custom_fields, is_active, tenant_id, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.ticket_templates
         WHERE tenant_id = ${validatedTenantId}
       `;
@@ -765,8 +765,8 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT id, name, description, category, priority, estimated_hours, default_assignee_role,
-               is_active, tenant_id, created_at, updated_at
+        SELECT id, name, description, category, priority, estimated_time, assignee_id,
+               custom_fields, is_active, tenant_id, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.ticket_templates
         WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
         LIMIT 1
@@ -788,22 +788,18 @@ export class DatabaseStorage implements IStorage {
       const id = crypto.randomUUID();
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.ticket_templates
-        (id, name, description, category, priority, urgency, impact, default_title, default_description, 
-         estimated_hours, is_active, tenant_id, created_by, created_at, updated_at)
+        (id, name, description, category, priority, estimated_time, assignee_id, custom_fields, is_active, tenant_id, created_at, updated_at)
         VALUES (
           ${id},
           ${templateData.name},
           ${templateData.description || null},
           ${templateData.category || 'Geral'},
           ${templateData.priority || 'medium'},
-          ${templateData.urgency || 'medium'},
-          ${templateData.impact || 'medium'},
-          ${templateData.defaultTitle || null},
-          ${templateData.defaultDescription || null},
-          ${templateData.estimatedHours || 0},
-          ${templateData.isActive !== false},
+          ${templateData.estimated_time || null},
+          ${templateData.assignee_id || null},
+          ${JSON.stringify(templateData.custom_fields || {})},
+          ${templateData.is_active !== false},
           ${validatedTenantId},
-          ${templateData.createdBy},
           NOW(),
           NOW()
         )
