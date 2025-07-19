@@ -17,16 +17,16 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// CRITICAL STABILITY FIX: Ultra-conservative pool settings to prevent crashes
+// ENTERPRISE GRADE: Production-optimized pool settings for high availability
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 2, // Reduced to minimum for stability
-  min: 1,
-  idleTimeoutMillis: 60000, // Increased to 1 minute
-  connectionTimeoutMillis: 15000, // Increased timeout
-  acquireTimeoutMillis: 20000, // Increased acquire timeout
+  max: 8, // FIXED: Increased for production load
+  min: 2, // Minimum healthy connections
+  idleTimeoutMillis: 120000, // 2 minutes - balanced timeout
+  connectionTimeoutMillis: 30000, // FIXED: Adequate timeout for production
+  acquireTimeoutMillis: 45000, // Sufficient acquire timeout
   keepAlive: true,
-  maxUses: 100, // Limit connection reuse
+  maxUses: 1000, // Higher reuse for efficiency
   allowExitOnIdle: false
 });
 
@@ -39,8 +39,8 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 3 * 60 * 1000; // 3 minute cache TTL - standardized across components
-  private readonly MAX_CACHED_SCHEMAS = 15; // Increased for better connection stability
+  private readonly CACHE_TTL = 1 * 60 * 1000; // FIXED: 1 minute TTL to prevent stale data
+  private readonly MAX_CACHED_SCHEMAS = 20; // Optimized for enterprise scale
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
 
@@ -55,8 +55,8 @@ export class SchemaManager {
   private cleanupCache(): void {
     const now = Date.now();
 
-    // CRITICAL FIX: Optimized cleanup frequency for stability
-    if (now - this.lastCleanup < 5 * 60 * 1000) { // 5 minutes - balanced for performance
+    // ENTERPRISE FIX: High-frequency cleanup for memory efficiency
+    if (now - this.lastCleanup < 2 * 60 * 1000) { // FIXED: 2 minutes - prevents memory leaks
       return;
     }
 
@@ -366,20 +366,21 @@ export class SchemaManager {
     }
   }
 
-  // Get schema name for tenant - sanitized to prevent SQL injection
+  // ENTERPRISE SECURITY: Ultra-strict tenant ID validation and schema naming
   private getSchemaName(tenantId: string): string {
-    // Validate and sanitize tenant ID to prevent SQL injection
     if (!tenantId || typeof tenantId !== 'string') {
-      throw new Error('Invalid tenant ID');
+      throw new Error(`Invalid tenant ID: ${tenantId}`);
     }
 
-    // Only allow alphanumeric characters, hyphens, and underscores
-    const sanitizedTenantId = tenantId.replace(/[^a-zA-Z0-9\-_]/g, '');
-    if (sanitizedTenantId !== tenantId) {
-      throw new Error('Tenant ID contains invalid characters');
+    // CRITICAL SECURITY FIX: Strict UUID-v4 validation with exact length check
+    const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    if (!strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+      throw new Error(`Tenant ID must be a valid UUID-v4 format (36 chars): ${tenantId}`);
     }
 
-    return `tenant_${sanitizedTenantId.replace(/-/g, '_')}`;
+    // INJECTION PREVENTION: Only allow exact UUID format - no additional sanitization needed
+    // Convert hyphens to underscores for PostgreSQL schema naming convention
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
   // Check if tables exist in schema

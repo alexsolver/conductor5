@@ -103,16 +103,28 @@ export default function TenantAdminIntegrations() {
   // Query para buscar integrações
   const { data: integrationsData, isLoading } = useQuery({
     queryKey: ['/api/tenant-admin/integrations'],
-    queryFn: () => apiRequest('/api/tenant-admin/integrations'),
+    queryFn: async () => {
+      const response = await fetch('/api/tenant-admin/integrations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
+    }
   });
 
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
     mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) =>
-      apiRequest(`/api/tenant-admin/integrations/${integrationId}/config`, {
-        method: 'POST',
-        body: JSON.stringify(config),
-      }),
+      apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/config`, config),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       setIsConfigDialogOpen(false);
@@ -132,10 +144,8 @@ export default function TenantAdminIntegrations() {
 
   // Mutation para testar integração
   const testIntegrationMutation = useMutation({
-    mutationFn: (integrationId: string) => 
-      apiRequest(`/api/tenant-admin/integrations/${integrationId}/test`, { 
-        method: 'POST'
-      }),
+    mutationFn: (integrationId: string) =>
+      apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       toast({
@@ -369,12 +379,9 @@ export default function TenantAdminIntegrations() {
   // Função para iniciar fluxo OAuth2
   const startOAuthFlow = async (integration: TenantIntegration) => {
     try {
-      const response = await apiRequest(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
-        method: 'POST',
-        body: JSON.stringify({
-          clientId: 'your-client-id', // This would come from form data
-          redirectUri: window.location.origin + `/auth/${integration.id}/callback`
-        })
+      const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
+        clientId: 'your-client-id', // This would come from form data
+        redirectUri: window.location.origin + `/auth/${integration.id}/callback`
       });
       
       if (response.authUrl) {

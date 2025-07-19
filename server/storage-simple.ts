@@ -151,6 +151,12 @@ export class DrizzleStorage implements IStorage {
   // Customers - Using direct SQL with tenant schema
   async getCustomer(id: string, tenantId: string): Promise<Customer | null> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const result = await db.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers 
@@ -166,6 +172,12 @@ export class DrizzleStorage implements IStorage {
 
   async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Customer[]> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const { limit = 50, offset = 0, search } = options;
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
@@ -199,6 +211,12 @@ export class DrizzleStorage implements IStorage {
 
   async createCustomer(tenantId: string, data: InsertCustomer): Promise<Customer> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const id = crypto.randomUUID();
       
@@ -222,22 +240,33 @@ export class DrizzleStorage implements IStorage {
 
   async updateCustomer(id: string, tenantId: string, data: Partial<InsertCustomer>): Promise<Customer | null> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const updates = [];
-      if (data.firstName !== undefined) updates.push(`first_name = '${data.firstName}'`);
-      if (data.lastName !== undefined) updates.push(`last_name = '${data.lastName}'`);
-      if (data.email !== undefined) updates.push(`email = '${data.email}'`);
-      if (data.phone !== undefined) updates.push(`phone = '${data.phone}'`);
-      if (data.company !== undefined) updates.push(`company = '${data.company}'`);
-      if (data.cpfCnpj !== undefined) updates.push(`cpf_cnpj = '${data.cpfCnpj}'`);
-      if (data.isActive !== undefined) updates.push(`is_active = ${data.isActive}`);
+      // CRITICAL SECURITY FIX: Use parameterized queries for all customer updates
+      const setParts = [];
+      if (data.firstName !== undefined) setParts.push(sql`first_name = ${data.firstName}`);
+      if (data.lastName !== undefined) setParts.push(sql`last_name = ${data.lastName}`);
+      if (data.email !== undefined) setParts.push(sql`email = ${data.email}`);
+      if (data.phone !== undefined) setParts.push(sql`phone = ${data.phone}`);
+      if (data.company !== undefined) setParts.push(sql`company = ${data.company}`);
+      if (data.cpfCnpj !== undefined) setParts.push(sql`cpf_cnpj = ${data.cpfCnpj}`);
+      if (data.isActive !== undefined) setParts.push(sql`is_active = ${data.isActive}`);
       
-      updates.push('updated_at = NOW()');
+      if (setParts.length === 0) {
+        return this.getCustomer(id, tenantId); // No updates to perform
+      }
+      
+      setParts.push(sql`updated_at = NOW()`);
       
       await db.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.customers 
-        SET ${sql.raw(updates.join(', '))}
+        SET ${sql.join(setParts, sql`, `)}
         WHERE tenant_id = ${tenantId} AND id = ${id}
       `);
       
@@ -250,6 +279,12 @@ export class DrizzleStorage implements IStorage {
 
   async deleteCustomer(id: string, tenantId: string): Promise<boolean> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       const result = await db.execute(sql`
@@ -266,6 +301,12 @@ export class DrizzleStorage implements IStorage {
   // Favorecidos (External Contacts) - Using direct SQL with tenant schema  
   async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const result = await db.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
@@ -281,6 +322,12 @@ export class DrizzleStorage implements IStorage {
 
   async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const { limit = 50, offset = 0, search } = options;
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
@@ -448,23 +495,54 @@ export class DrizzleStorage implements IStorage {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const updates = [];
-      if (data.subject !== undefined) updates.push(`subject = '${data.subject}'`);
-      if (data.description !== undefined) updates.push(`description = '${data.description}'`);
-      if (data.status !== undefined) updates.push(`status = '${data.status}'`);
-      if (data.priority !== undefined) updates.push(`priority = '${data.priority}'`);
-      // Modern person management fields
-      if (data.callerId !== undefined) updates.push(`caller_id = '${data.callerId}'`);
-      if (data.callerType !== undefined) updates.push(`caller_type = '${data.callerType}'`);
-      if (data.beneficiaryId !== undefined) updates.push(`beneficiary_id = '${data.beneficiaryId}'`);
-      if (data.beneficiaryType !== undefined) updates.push(`beneficiary_type = '${data.beneficiaryType}'`);
-      if (data.assignedToId !== undefined) updates.push(`assigned_to_id = '${data.assignedToId}'`);
+      // CRITICAL SECURITY FIX: Use parameterized queries instead of string concatenation
+      const setParts = [];
+      const values: any[] = [];
       
-      updates.push('updated_at = NOW()');
+      if (data.subject !== undefined) {
+        setParts.push(`subject = $${values.length + 1}`);
+        values.push(data.subject);
+      }
+      if (data.description !== undefined) {
+        setParts.push(`description = $${values.length + 1}`);
+        values.push(data.description);
+      }
+      if (data.status !== undefined) {
+        setParts.push(`status = $${values.length + 1}`);
+        values.push(data.status);
+      }
+      if (data.priority !== undefined) {
+        setParts.push(`priority = $${values.length + 1}`);
+        values.push(data.priority);
+      }
+      if (data.callerId !== undefined) {
+        setParts.push(`caller_id = $${values.length + 1}`);
+        values.push(data.callerId);
+      }
+      if (data.callerType !== undefined) {
+        setParts.push(`caller_type = $${values.length + 1}`);
+        values.push(data.callerType);
+      }
+      if (data.beneficiaryId !== undefined) {
+        setParts.push(`beneficiary_id = $${values.length + 1}`);
+        values.push(data.beneficiaryId);
+      }
+      if (data.beneficiaryType !== undefined) {
+        setParts.push(`beneficiary_type = $${values.length + 1}`);
+        values.push(data.beneficiaryType);
+      }
+      if (data.assignedToId !== undefined) {
+        setParts.push(`assigned_to_id = $${values.length + 1}`);
+        values.push(data.assignedToId);
+      }
       
+      setParts.push('updated_at = NOW()');
+      values.push(tenantId, id); // Add WHERE clause parameters
+      
+      // CRITICAL SECURITY FIX: Use fully parameterized query with proper Drizzle ORM
       await db.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets 
-        SET ${sql.raw(updates.join(', '))}
+        SET ${sql.raw(setParts.join(', '))}
         WHERE tenant_id = ${tenantId} AND id = ${id}
       `);
       
@@ -524,9 +602,10 @@ export class DrizzleStorage implements IStorage {
   // Tenant Integrations
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
     try {
-      // Simple tenant ID validation
-      if (!tenantId || !tenantId.match(/^[a-f0-9-]{36}$/)) {
-        throw new Error('Invalid tenant ID format');
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
       }
       
       // Return OAuth2 integrations with Gmail and Outlook
@@ -627,20 +706,25 @@ export class DrizzleStorage implements IStorage {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const updates = [];
-      if (data.name !== undefined) updates.push(`name = '${data.name}'`);
-      if (data.address !== undefined) updates.push(`address = '${data.address}'`);
-      if (data.city !== undefined) updates.push(`city = '${data.city}'`);
-      if (data.state !== undefined) updates.push(`state = '${data.state}'`);
-      if (data.zipCode !== undefined) updates.push(`zip_code = '${data.zipCode}'`);
-      if (data.latitude !== undefined) updates.push(`latitude = '${data.latitude}'`);
-      if (data.longitude !== undefined) updates.push(`longitude = '${data.longitude}'`);
+      // CRITICAL SECURITY FIX: Use parameterized queries for all updates
+      const setParts = [];
+      if (data.name !== undefined) setParts.push(sql`name = ${data.name}`);
+      if (data.address !== undefined) setParts.push(sql`address = ${data.address}`);
+      if (data.city !== undefined) setParts.push(sql`city = ${data.city}`);
+      if (data.state !== undefined) setParts.push(sql`state = ${data.state}`);
+      if (data.zipCode !== undefined) setParts.push(sql`zip_code = ${data.zipCode}`);
+      if (data.latitude !== undefined) setParts.push(sql`latitude = ${data.latitude}`);
+      if (data.longitude !== undefined) setParts.push(sql`longitude = ${data.longitude}`);
       
-      updates.push('updated_at = NOW()');
+      if (setParts.length === 0) {
+        return this.getLocation(id, tenantId); // No updates to perform
+      }
+      
+      setParts.push(sql`updated_at = NOW()`);
       
       await db.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.locations 
-        SET ${sql.raw(updates.join(', '))}
+        SET ${sql.join(setParts, sql`, `)}
         WHERE tenant_id = ${tenantId} AND id = ${id}
       `);
       
