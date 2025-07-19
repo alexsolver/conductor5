@@ -45,13 +45,19 @@ router.put('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    const { apiKey, apiSecret, clientId, clientSecret, redirectUri, webhookUrl, accessToken, refreshToken, enabled, settings } = req.body;
+    const { 
+      apiKey, apiSecret, clientId, clientSecret, redirectUri, webhookUrl, accessToken, refreshToken, enabled, settings,
+      // IMAP specific fields
+      imapServer, imapPort, emailAddress, password, useSSL,
+      // Dropbox specific fields  
+      dropboxAppKey, dropboxAppSecret, dropboxAccessToken, backupFolder
+    } = req.body;
 
     // Validar integrationId
     const validIntegrations = [
-      'gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'whatsapp-business', 
+      'gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'whatsapp-business', 
       'slack', 'twilio-sms', 'zapier', 'webhooks', 'crm-integration', 
-      'sso-saml', 'google-workspace', 'chatbot'
+      'sso-saml', 'google-workspace', 'chatbot-ai', 'dropbox-personal'
     ];
     
     if (!validIntegrations.includes(integrationId)) {
@@ -72,6 +78,17 @@ router.put('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
       webhookUrl,
       accessToken: accessToken ? '***' + accessToken.slice(-4) : undefined,
       refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : undefined,
+      // IMAP specific fields
+      imapServer,
+      imapPort,
+      emailAddress,
+      password: password ? '***' + password.slice(-4) : undefined,
+      useSSL,
+      // Dropbox specific fields
+      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : undefined,
+      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : undefined,
+      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : undefined,
+      backupFolder,
       enabled: enabled !== false,
       settings: settings || {},
       updatedAt: new Date().toISOString()
@@ -136,6 +153,34 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
             workspace: 'empresa-workspace',
             channels: ['#suporte', '#alertas'],
             botStatus: 'online'
+          }
+        };
+        break;
+
+      case 'imap-email':
+        testResult = { 
+          success: true, 
+          error: '', 
+          details: { 
+            server: 'imap.gmail.com',
+            port: '993',
+            connection: 'SSL/TLS successful',
+            folderCount: 5,
+            unreadEmails: 12
+          }
+        };
+        break;
+
+      case 'dropbox-personal':
+        testResult = { 
+          success: true, 
+          error: '', 
+          details: { 
+            accountInfo: 'Personal Account',
+            usedSpace: '2.5 GB',
+            totalSpace: '16 GB',
+            backupFolder: '/Backups/Conductor',
+            lastSync: new Date().toISOString()
           }
         };
         break;

@@ -54,7 +54,10 @@ import {
   BarChart3,
   Shield,
   Calendar,
-  Bot
+  Bot,
+  Inbox,
+  Cloud,
+  HardDrive
 } from "lucide-react";
 
 interface TenantIntegration {
@@ -84,6 +87,17 @@ const integrationConfigSchema = z.object({
   username: z.string().optional(),
   password: z.string().optional(),
   useSSL: z.boolean().default(false),
+  // IMAP specific fields
+  imapServer: z.string().optional(),
+  imapPort: z.string().optional(),
+  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', 'None']).optional(),
+  emailAddress: z.string().email().optional(),
+  // Dropbox specific fields
+  dropboxAppKey: z.string().optional(),
+  dropboxAppSecret: z.string().optional(),
+  dropboxAccessToken: z.string().optional(),
+  dropboxRefreshToken: z.string().optional(),
+  backupFolder: z.string().optional(),
 });
 
 export default function TenantAdminIntegrations() {
@@ -193,6 +207,16 @@ export default function TenantAdminIntegrations() {
       features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
     },
     {
+      id: 'imap-email',
+      name: 'IMAP Email',
+      category: 'Comunicação',
+      description: 'Conexão IMAP para recebimento automático de emails e criação de tickets',
+      icon: Inbox,
+      status: 'disconnected',
+      configured: false,
+      features: ['Auto-criação de tickets', 'Monitoramento de caixa de entrada', 'Sincronização bidirecional', 'Suporte SSL/TLS']
+    },
+    {
       id: 'whatsapp-business',
       name: 'WhatsApp Business',
       category: 'Comunicação',
@@ -295,6 +319,16 @@ export default function TenantAdminIntegrations() {
       status: 'disconnected',
       configured: false,
       features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
+    },
+    {
+      id: 'dropbox-personal',
+      name: 'Dropbox Pessoal',
+      category: 'Dados',
+      description: 'Integração com conta pessoal do Dropbox para backup e armazenamento de documentos',
+      icon: Cloud,
+      status: 'disconnected',
+      configured: false,
+      features: ['Backup automático', 'Sincronização de anexos', 'Armazenamento seguro', 'API v2 Dropbox']
     }
   ];
 
@@ -304,6 +338,8 @@ export default function TenantAdminIntegrations() {
       case 'outlook-oauth2':
       case 'email-smtp':
         return Mail;
+      case 'imap-email':
+        return Inbox;
       case 'whatsapp-business':
         return MessageSquare;
       case 'slack':
@@ -318,6 +354,8 @@ export default function TenantAdminIntegrations() {
         return BarChart3;
       case 'crm-integration':
         return Database;
+      case 'dropbox-personal':
+        return Cloud;
       case 'sso-saml':
         return Shield;
       case 'google-workspace':
@@ -776,8 +814,153 @@ export default function TenantAdminIntegrations() {
                   </>
                 )}
 
+                {/* Campos para IMAP Email */}
+                {selectedIntegration.id === 'imap-email' && (
+                  <>
+                    <FormField
+                      control={configForm.control}
+                      name="imapServer"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Servidor IMAP</FormLabel>
+                          <FormControl>
+                            <Input placeholder="imap.gmail.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="imapPort"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Porta IMAP</FormLabel>
+                          <FormControl>
+                            <Input placeholder="993" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="emailAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Endereço de Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="suporte@empresa.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Senha do Email</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Senha ou App Password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="useSSL"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Usar SSL/TLS
+                            </FormLabel>
+                            <div className="text-sm text-gray-500">
+                              Habilitar conexão segura IMAP
+                            </div>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {/* Campos para Dropbox Pessoal */}
+                {selectedIntegration.id === 'dropbox-personal' && (
+                  <>
+                    <FormField
+                      control={configForm.control}
+                      name="dropboxAppKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>App Key</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Chave da aplicação Dropbox" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="dropboxAppSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>App Secret</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Segredo da aplicação Dropbox" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="dropboxAccessToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Access Token</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Token de acesso da conta pessoal" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="backupFolder"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pasta de Backup</FormLabel>
+                          <FormControl>
+                            <Input placeholder="/Backups/Conductor" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
                 {/* Campos genéricos para outras integrações */}
-                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp'].includes(selectedIntegration.id) && (
+                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal'].includes(selectedIntegration.id) && (
                   <>
                     <FormField
                       control={configForm.control}
