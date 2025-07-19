@@ -423,11 +423,14 @@ export class DrizzleStorage implements IStorage {
       await db.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets (
           id, tenant_id, subject, description, status, priority, 
-          customer_id, assigned_to_id, created_at, updated_at
+          caller_id, caller_type, beneficiary_id, beneficiary_type, 
+          assigned_to_id, created_at, updated_at
         ) VALUES (
           ${id}, ${data.tenantId}, ${data.subject}, ${data.description || ''}, 
           ${data.status || 'open'}, ${data.priority || 'medium'}, 
-          ${data.customerId || null}, ${data.assignedToId || null}, NOW(), NOW()
+          ${data.callerId}, ${data.callerType || 'customer'}, 
+          ${data.beneficiaryId || data.callerId}, ${data.beneficiaryType || 'customer'},
+          ${data.assignedToId || null}, NOW(), NOW()
         )
       `);
 
@@ -447,7 +450,11 @@ export class DrizzleStorage implements IStorage {
       if (data.description !== undefined) updates.push(`description = '${data.description}'`);
       if (data.status !== undefined) updates.push(`status = '${data.status}'`);
       if (data.priority !== undefined) updates.push(`priority = '${data.priority}'`);
-      if (data.customerId !== undefined) updates.push(`customer_id = '${data.customerId}'`);
+      // Modern person management fields
+      if (data.callerId !== undefined) updates.push(`caller_id = '${data.callerId}'`);
+      if (data.callerType !== undefined) updates.push(`caller_type = '${data.callerType}'`);
+      if (data.beneficiaryId !== undefined) updates.push(`beneficiary_id = '${data.beneficiaryId}'`);
+      if (data.beneficiaryType !== undefined) updates.push(`beneficiary_type = '${data.beneficiaryType}'`);
       if (data.assignedToId !== undefined) updates.push(`assigned_to_id = '${data.assignedToId}'`);
       
       updates.push('updated_at = NOW()');

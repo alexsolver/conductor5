@@ -84,7 +84,7 @@ export const favorecidos = pgTable("favorecidos", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Simplified tickets table
+// Simplified tickets table - Modern person management system
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
@@ -92,18 +92,24 @@ export const tickets = pgTable("tickets", {
   description: text("description"),
   status: varchar("status", { length: 50 }).default("open"),
   priority: varchar("priority", { length: 20 }).default("medium"),
-  customerId: uuid("customer_id").references(() => customers.id),
+  // Modern person management fields
+  callerId: uuid("caller_id").notNull(), // Person who reported the issue  
+  callerType: varchar("caller_type", { length: 20 }).notNull().default("customer"), // 'user' or 'customer'
+  beneficiaryId: uuid("beneficiary_id"), // Person who benefits from resolution (optional, defaults to caller)
+  beneficiaryType: varchar("beneficiary_type", { length: 20 }).default("customer"), // 'user' or 'customer'
   assignedToId: varchar("assigned_to_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Simplified ticket messages
+// Simplified ticket messages - Modern person management system
 export const ticketMessages = pgTable("ticket_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: "cascade" }),
-  customerId: uuid("customer_id").references(() => customers.id),
-  userId: varchar("user_id"),
+  // Modern person management - messages can be from any person type
+  personId: uuid("person_id"), // ID of the person who wrote the message
+  personType: varchar("person_type", { length: 20 }).default("customer"), // 'user' or 'customer'
+  userId: varchar("user_id"), // Legacy field for backward compatibility
   content: text("content").notNull(),
   type: varchar("type", { length: 50 }).default("comment"),
   isInternal: boolean("is_internal").default(false),

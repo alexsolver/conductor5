@@ -35,7 +35,7 @@ const ticketSchema = z.object({
   callerType: z.enum(["user", "customer"]).default("customer"),
   beneficiaryId: z.string().optional(), // Optional - defaults to callerId
   beneficiaryType: z.enum(["user", "customer"]).optional(),
-  customerId: z.string().min(1, "Customer is required"), // Legacy compatibility
+
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
@@ -69,7 +69,7 @@ interface Ticket {
   callerType: 'user' | 'customer';
   beneficiaryId?: string;
   beneficiaryType?: 'user' | 'customer';
-  customer: {
+  customer?: {
     id: string;
     firstName: string;
     lastName: string;
@@ -132,11 +132,7 @@ export default function TicketsTable() {
     retry: 3,
   });
 
-  // Fetch customers for the dropdown
-  const { data: customersData } = useQuery({
-    queryKey: ["/api/customers"],
-    retry: 3,
-  });
+  // Legacy customer system removed - using PersonSelector for modern person management
 
   // Fetch users for assignment
   const { data: usersData } = useQuery({
@@ -146,7 +142,7 @@ export default function TicketsTable() {
 
   const tickets = ticketsData?.tickets || [];
   const pagination = ticketsData?.pagination || { total: 0, totalPages: 0 };
-  const customers = customersData?.customers || [];
+  // Legacy customers array removed
   const users = usersData?.users || [];
 
   // Debug logging
@@ -154,7 +150,7 @@ export default function TicketsTable() {
     ticketsError,
     isLoading,
     ticketsCount: tickets.length,
-    customersCount: customers.length,
+    customersCount: 0, // Legacy system removed
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
   });
@@ -175,7 +171,7 @@ export default function TicketsTable() {
       callerType: "customer",
       beneficiaryId: "",
       beneficiaryType: "customer",
-      customerId: "",
+
       assignedToId: "unassigned",
       assignmentGroup: "",
       location: "",
@@ -291,11 +287,11 @@ export default function TicketsTable() {
       impact: (ticket as any).impact || "medium",
       urgency: (ticket as any).urgency || "medium",
       state: (ticket as any).state || ticket.status as any,
-      callerId: (ticket as any).callerId || ticket.customer?.id || "",
+      callerId: (ticket as any).callerId || "",
       callerType: (ticket as any).callerType || "customer",
-      beneficiaryId: (ticket as any).beneficiaryId || (ticket as any).callerId || ticket.customer?.id || "",
+      beneficiaryId: (ticket as any).beneficiaryId || (ticket as any).callerId || "",
       beneficiaryType: (ticket as any).beneficiaryType || "customer",
-      customerId: ticket.customer?.id || "",
+
       assignedToId: ticket.assignedTo?.id || "unassigned",
       assignmentGroup: (ticket as any).assignmentGroup || "",
       location: (ticket as any).location || "",
@@ -554,33 +550,6 @@ export default function TicketsTable() {
                       allowedTypes={['user', 'customer']}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="customerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Customer (Legacy) *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select customer" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {customers.map((customer: any) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.firstName && customer.lastName 
-                            ? `${customer.firstName} ${customer.lastName}`
-                            : customer.fullName || customer.email || 'Unknown'} ({customer.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
