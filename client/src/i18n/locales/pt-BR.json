@@ -150,10 +150,29 @@
     "deleted": "{{item}} excluído com sucesso"
   },
   "userManagement": {
+    "title": "Gestão de Usuários",
     "createUser": "Criar Usuário",
     "createUserDesc": "Adicione um novo usuário à sua organização",
     "inviteUser": "Convidar Usuário",
     "inviteUserDesc": "Envie um convite por email para um novo usuário",
+    "stats": {
+      "totalUsers": "Total de Usuários",
+      "totalUsersDesc": "Número total de usuários na organização",
+      "activeUsers": "Usuários Ativos",
+      "activeUsersDesc": "Usuários que fizeram login nos últimos 30 dias",
+      "pendingInvitations": "Convites Pendentes",
+      "pendingInvitationsDesc": "Convites enviados aguardando aceitação",
+      "activeSessions": "Sessões Ativas",
+      "activeSessionsDesc": "Usuários atualmente conectados no sistema"
+    },
+    "tabs": {
+      "users": "Usuários",
+      "groups": "Grupos",
+      "roles": "Papéis",
+      "invitations": "Convites",
+      "sessions": "Sessões",
+      "activity": "Atividade"
+    },
     "basicInfo": "Informações Básicas",
     "firstName": "Nome",
     "firstNamePlaceholder": "João",
