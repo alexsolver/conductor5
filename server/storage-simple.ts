@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, and, desc, asc, count, or, ilike } from "drizzle-orm";
+import { eq, and, desc, asc, count, or, ilike, sql } from "drizzle-orm";
 import { 
   users, 
   customers, 
@@ -343,7 +343,7 @@ export class DrizzleStorage implements IStorage {
 
   // Favorecidos (External Contacts) Methods - Using direct SQL for tenant-specific tables
   async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
-    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
     const result = await db.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
       WHERE id = ${id} AND tenant_id = ${tenantId}
@@ -354,7 +354,7 @@ export class DrizzleStorage implements IStorage {
 
   async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
     const { limit = 50, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
     
     let query = sql`
       SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
@@ -381,7 +381,7 @@ export class DrizzleStorage implements IStorage {
   }
 
   async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
-    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
     const id = crypto.randomUUID();
     
     await db.execute(sql`
@@ -402,7 +402,7 @@ export class DrizzleStorage implements IStorage {
   }
 
   async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
-    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
     const updates = [];
     const values = [tenantId, id]; // Start with tenantId and id for WHERE clause
     
@@ -430,7 +430,7 @@ export class DrizzleStorage implements IStorage {
   }
 
   async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
-    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
     const result = await db.execute(sql`
       DELETE FROM ${sql.identifier(schemaName)}.favorecidos 
       WHERE id = ${id} AND tenant_id = ${tenantId}
