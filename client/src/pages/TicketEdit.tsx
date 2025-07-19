@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowLeft, Save, Link2, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Link, Link2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -395,7 +395,7 @@ export default function TicketEdit() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Não atribuído</SelectItem>
+                              <SelectItem value="unassigned">Não atribuído</SelectItem>
                               {users.map((user) => (
                                 <SelectItem key={user.id} value={user.id}>
                                   {user.username}
@@ -454,8 +454,17 @@ export default function TicketEdit() {
 
           {/* Ticket Hierarchy */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Hierarquia</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsLinkingModalOpen(true)}
+                className="text-xs"
+              >
+                <Link className="w-3 h-3 mr-1" />
+                Vincular
+              </Button>
             </CardHeader>
             <CardContent>
               <TicketHierarchyView ticketId={id!} />
@@ -468,7 +477,7 @@ export default function TicketEdit() {
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
-        ticket={ticket}
+        currentTicket={ticket}
       />
     </div>
   );
