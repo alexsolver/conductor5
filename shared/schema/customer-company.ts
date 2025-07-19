@@ -200,6 +200,9 @@ export const insertCustomerCompanySchema = createInsertSchema(customerCompanies)
 }).extend({
   tenantId: z.string().uuid(),
   createdBy: z.string().min(1),
+  website: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
+    message: "Invalid URL format"
+  }),
 });
 
 export const updateCustomerCompanySchema = insertCustomerCompanySchema.partial().omit({

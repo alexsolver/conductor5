@@ -20,7 +20,9 @@ const createCustomerCompanySchema = z.object({
   size: z.enum(['small', 'medium', 'large', 'enterprise']).optional(),
   email: z.string().email().optional(),
   phone: z.string().max(50).optional(),
-  website: z.string().url().optional(),
+  website: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
+    message: "Invalid URL format"
+  }),
   address: z.object({
     street: z.string().optional(),
     city: z.string().optional(),
