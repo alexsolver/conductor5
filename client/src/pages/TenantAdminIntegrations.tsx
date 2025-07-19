@@ -458,8 +458,11 @@ export default function TenantAdminIntegrations() {
       // Load existing configuration from API
       const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
       console.log('Resposta completa do GET config:', existingConfig);
+      console.log('existingConfig.configured:', existingConfig?.configured);
+      console.log('existingConfig.config:', existingConfig?.config);
+      console.log('Object.keys length:', existingConfig?.config ? Object.keys(existingConfig.config).length : 0);
 
-      if (existingConfig && existingConfig.configured && existingConfig.config) {
+      if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
         const config = existingConfig.config;
         // Load existing configuration - dados reais do banco
         console.log('Carregando configuração existente:', config);
