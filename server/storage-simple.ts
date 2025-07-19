@@ -8,6 +8,7 @@ import {
   ticketMessages, 
   tenants,
   locations,
+  favorecidoLocations,
   type User,
   type Customer,
   type Favorecido,
@@ -15,6 +16,7 @@ import {
   type TicketMessage,
   type Tenant,
   type Location,
+  type FavorecidoLocation,
   type InsertCustomer,
   type InsertFavorecido,
   type InsertTicket,
@@ -73,6 +75,12 @@ export interface IStorage {
   getLocation(id: string, tenantId: string): Promise<Location | null>;
   getLocations(tenantId: string, limit?: number, offset?: number): Promise<Location[]>;
   createLocation(data: InsertLocation): Promise<Location>;
+  
+  // Favorecido-Location Associations
+  getFavorecidoLocations(favorecidoId: string, tenantId: string): Promise<(FavorecidoLocation & { location: Location })[]>;
+  addFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string, isPrimary?: boolean): Promise<FavorecidoLocation>;
+  removeFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string): Promise<boolean>;
+  updateFavorecidoLocationPrimary(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean>;
   updateLocation(id: string, tenantId: string, data: Partial<InsertLocation>): Promise<Location | null>;
   deleteLocation(id: string, tenantId: string): Promise<boolean>;
 
@@ -495,6 +503,98 @@ export class DrizzleStorage implements IStorage {
       openTickets: openTickets?.count || 0,
       resolvedTickets: (ticketCount?.count || 0) - (openTickets?.count || 0)
     };
+  }
+
+  // Favorecido-Location Associations Implementation
+  async getFavorecidoLocations(favorecidoId: string, tenantId: string): Promise<(FavorecidoLocation & { location: Location })[]> {
+    const results = await db
+      .select({
+        id: favorecidoLocations.id,
+        tenantId: favorecidoLocations.tenantId,
+        favorecidoId: favorecidoLocations.favorecidoId,
+        locationId: favorecidoLocations.locationId,
+        isPrimary: favorecidoLocations.isPrimary,
+        createdAt: favorecidoLocations.createdAt,
+        location: locations
+      })
+      .from(favorecidoLocations)
+      .leftJoin(locations, eq(favorecidoLocations.locationId, locations.id))
+      .where(and(
+        eq(favorecidoLocations.favorecidoId, favorecidoId),
+        eq(favorecidoLocations.tenantId, tenantId)
+      ))
+      .orderBy(desc(favorecidoLocations.isPrimary), asc(favorecidoLocations.createdAt));
+
+    return results.map(result => ({
+      id: result.id,
+      tenantId: result.tenantId,
+      favorecidoId: result.favorecidoId,
+      locationId: result.locationId,
+      isPrimary: result.isPrimary,
+      createdAt: result.createdAt,
+      location: result.location!
+    }));
+  }
+
+  async addFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean = false): Promise<FavorecidoLocation> {
+    // If setting as primary, unset all other primary locations for this favorecido
+    if (isPrimary) {
+      await db
+        .update(favorecidoLocations)
+        .set({ isPrimary: false })
+        .where(and(
+          eq(favorecidoLocations.favorecidoId, favorecidoId),
+          eq(favorecidoLocations.tenantId, tenantId)
+        ));
+    }
+
+    const [result] = await db
+      .insert(favorecidoLocations)
+      .values({
+        favorecidoId,
+        locationId,
+        tenantId,
+        isPrimary
+      })
+      .returning();
+
+    return result;
+  }
+
+  async removeFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string): Promise<boolean> {
+    const result = await db
+      .delete(favorecidoLocations)
+      .where(and(
+        eq(favorecidoLocations.favorecidoId, favorecidoId),
+        eq(favorecidoLocations.locationId, locationId),
+        eq(favorecidoLocations.tenantId, tenantId)
+      ));
+
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async updateFavorecidoLocationPrimary(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean> {
+    // If setting as primary, unset all other primary locations for this favorecido
+    if (isPrimary) {
+      await db
+        .update(favorecidoLocations)
+        .set({ isPrimary: false })
+        .where(and(
+          eq(favorecidoLocations.favorecidoId, favorecidoId),
+          eq(favorecidoLocations.tenantId, tenantId)
+        ));
+    }
+
+    const result = await db
+      .update(favorecidoLocations)
+      .set({ isPrimary })
+      .where(and(
+        eq(favorecidoLocations.favorecidoId, favorecidoId),
+        eq(favorecidoLocations.locationId, locationId),
+        eq(favorecidoLocations.tenantId, tenantId)
+      ));
+
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }
 

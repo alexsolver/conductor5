@@ -33,7 +33,9 @@ import {
   Building,
   Phone,
   Mail,
-  UserCheck
+  UserCheck,
+  MapPin,
+  Settings
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -81,6 +83,10 @@ export default function FavorecidosTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  
+  // Location management states
+  const [isLocationManagerOpen, setIsLocationManagerOpen] = useState(false);
+  const [selectedFavorecidoIdForLocations, setSelectedFavorecidoIdForLocations] = useState<string | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -249,7 +255,7 @@ export default function FavorecidosTable() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="w-full h-auto p-1">
-            <div className="grid grid-cols-3 gap-1 w-full">
+            <div className="grid grid-cols-4 gap-1 w-full">
               <TabsTrigger value="basic" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                 <User className="h-3 w-3 lg:h-4 lg:w-4" />
                 Básico
@@ -257,6 +263,10 @@ export default function FavorecidosTable() {
               <TabsTrigger value="contact" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                 <Phone className="h-3 w-3 lg:h-4 lg:w-4" />
                 Contato
+              </TabsTrigger>
+              <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
+                Locais
               </TabsTrigger>
               <TabsTrigger value="notes" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                 <Shield className="h-3 w-3 lg:h-4 lg:w-4" />
@@ -435,6 +445,43 @@ export default function FavorecidosTable() {
             />
           </TabsContent>
 
+          <TabsContent value="locations" className="space-y-4 mt-4">
+            <div className="text-center py-8 space-y-4">
+              <MapPin className="h-12 w-12 mx-auto text-gray-400" />
+              <div>
+                <h3 className="text-lg font-medium">Gerenciamento de Locais</h3>
+                <p className="text-sm text-gray-600">
+                  Associe locais a este favorecido para facilitar a gestão geográfica
+                </p>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    if (editingFavorecido?.id) {
+                      setSelectedFavorecidoIdForLocations(editingFavorecido.id);
+                      setIsLocationManagerOpen(true);
+                    } else {
+                      toast({
+                        title: "Salve o favorecido primeiro",
+                        description: "É necessário salvar o favorecido antes de gerenciar locais",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                >
+                  <Settings className="h-4 w-4" />
+                  Gerenciar Locais
+                </Button>
+              </div>
+              <p className="text-sm text-amber-600 mt-4">
+                💡 Salve o favorecido primeiro para gerenciar locais
+              </p>
+            </div>
+          </TabsContent>
+
           <TabsContent value="notes" className="space-y-4 mt-4">
             <FormField
               control={form.control}
@@ -488,6 +535,185 @@ export default function FavorecidosTable() {
       </div>
     );
   }
+
+  // Fetch locations for location manager
+  const { data: locationsData } = useQuery({
+    queryKey: ["/api/locations"],
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch("/api/locations", {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch locations');
+      return response.json();
+    },
+    enabled: isLocationManagerOpen
+  });
+
+  const locations = locationsData?.locations || [];
+
+  // Location Management Component
+  const LocationManager = () => {
+    const [favorecidoLocations, setFavorecidoLocations] = useState<any[]>([]);
+    
+    // Fetch favorecido locations
+    const { data: favorecidoLocationData } = useQuery({
+      queryKey: ["/api/favorecidos", selectedFavorecidoIdForLocations, "locations"],
+      queryFn: async () => {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`/api/favorecidos/${selectedFavorecidoIdForLocations}/locations`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        if (!response.ok) throw new Error('Failed to fetch favorecido locations');
+        return response.json();
+      },
+      enabled: !!selectedFavorecidoIdForLocations && isLocationManagerOpen
+    });
+
+    const favorecidoLocationsList = favorecidoLocationData?.locations || [];
+
+    // Add location to favorecido
+    const addLocationMutation = useMutation({
+      mutationFn: async ({ locationId, isPrimary }: { locationId: string; isPrimary: boolean }) => {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`/api/favorecidos/${selectedFavorecidoIdForLocations}/locations`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ locationId, isPrimary })
+        });
+        if (!response.ok) throw new Error('Failed to add location');
+        return response.json();
+      },
+      onSuccess: () => {
+        toast({
+          title: "Sucesso",
+          description: "Local adicionado ao favorecido",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/favorecidos", selectedFavorecidoIdForLocations, "locations"] });
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "Erro",
+          description: error.message || "Falha ao adicionar local",
+          variant: "destructive",
+        });
+      },
+    });
+
+    // Remove location from favorecido
+    const removeLocationMutation = useMutation({
+      mutationFn: async (locationId: string) => {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`/api/favorecidos/${selectedFavorecidoIdForLocations}/locations/${locationId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        if (!response.ok) throw new Error('Failed to remove location');
+        return response.json();
+      },
+      onSuccess: () => {
+        toast({
+          title: "Sucesso",
+          description: "Local removido do favorecido",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/favorecidos", selectedFavorecidoIdForLocations, "locations"] });
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "Erro",
+          description: error.message || "Falha ao remover local",
+          variant: "destructive",
+        });
+      },
+    });
+
+    return (
+      <Dialog open={isLocationManagerOpen} onOpenChange={setIsLocationManagerOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Locais do Favorecido</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Available Locations */}
+            <div>
+              <h3 className="text-lg font-medium mb-3">Locais Disponíveis</h3>
+              <div className="grid gap-3 max-h-40 overflow-y-auto">
+                {locations.filter(loc => 
+                  !favorecidoLocationsList.some(fl => fl.locationId === loc.id)
+                ).map((location: any) => (
+                  <div key={location.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{location.name}</p>
+                      <p className="text-sm text-gray-600">{location.address}, {location.city}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => addLocationMutation.mutate({ locationId: location.id, isPrimary: false })}
+                      disabled={addLocationMutation.isPending}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Adicionar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Associated Locations */}
+            <div>
+              <h3 className="text-lg font-medium mb-3">Locais Associados</h3>
+              <div className="space-y-3">
+                {favorecidoLocationsList.map((favorecidoLocation: any) => (
+                  <div key={favorecidoLocation.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{favorecidoLocation.location?.name}</p>
+                        {favorecidoLocation.isPrimary && (
+                          <Badge className="bg-blue-100 text-blue-800">Principal</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {favorecidoLocation.location?.address}, {favorecidoLocation.location?.city}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => removeLocationMutation.mutate(favorecidoLocation.locationId)}
+                      disabled={removeLocationMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remover
+                    </Button>
+                  </div>
+                ))}
+                {favorecidoLocationsList.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">Nenhum local associado</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -619,6 +845,15 @@ export default function FavorecidosTable() {
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem 
+                            onClick={() => {
+                              setSelectedFavorecidoIdForLocations(favorecido.id);
+                              setIsLocationManagerOpen(true);
+                            }}
+                          >
+                            <MapPin className="mr-2 h-4 w-4" />
+                            Gerenciar Locais
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
                             onClick={() => handleDelete(favorecido.id)}
                             className="text-red-600"
                           >
@@ -672,6 +907,9 @@ export default function FavorecidosTable() {
           <FavorecidoForm />
         </DialogContent>
       </Dialog>
+
+      {/* Location Manager */}
+      <LocationManager />
     </div>
   );
 }

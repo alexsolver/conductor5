@@ -176,4 +176,173 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// GET /api/favorecidos/:id/locations - Get locations associated with a favorecido
+router.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { user } = req;
+    const { id } = favorecidoIdSchema.parse(req.params);
+
+    // Verify favorecido exists and belongs to tenant
+    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    if (!favorecido) {
+      return res.status(404).json({
+        success: false,
+        message: "Favorecido not found"
+      });
+    }
+
+    const favorecidoLocations = await storage.getFavorecidoLocations(id, user.tenantId);
+
+    res.json({
+      success: true,
+      locations: favorecidoLocations
+    });
+  } catch (error) {
+    console.error("Error fetching favorecido locations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch favorecido locations",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// POST /api/favorecidos/:id/locations - Add location to favorecido
+router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { user } = req;
+    const { id } = favorecidoIdSchema.parse(req.params);
+    
+    const addLocationSchema = z.object({
+      locationId: z.string().uuid("Invalid location ID format"),
+      isPrimary: z.boolean().optional().default(false)
+    });
+    
+    const { locationId, isPrimary } = addLocationSchema.parse(req.body);
+
+    // Verify favorecido exists and belongs to tenant
+    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    if (!favorecido) {
+      return res.status(404).json({
+        success: false,
+        message: "Favorecido not found"
+      });
+    }
+
+    // Verify location exists and belongs to tenant
+    const location = await storage.getLocation(locationId, user.tenantId);
+    if (!location) {
+      return res.status(404).json({
+        success: false,
+        message: "Location not found"
+      });
+    }
+
+    const favorecidoLocation = await storage.addFavorecidoLocation(id, locationId, user.tenantId, isPrimary);
+
+    res.status(201).json({
+      success: true,
+      favorecidoLocation,
+      message: "Location added to favorecido successfully"
+    });
+  } catch (error) {
+    console.error("Error adding location to favorecido:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add location to favorecido",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// DELETE /api/favorecidos/:id/locations/:locationId - Remove location from favorecido
+router.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { user } = req;
+    const { id } = favorecidoIdSchema.parse(req.params);
+    const locationIdSchema = z.object({
+      locationId: z.string().uuid("Invalid location ID format")
+    });
+    const { locationId } = locationIdSchema.parse(req.params);
+
+    // Verify favorecido exists and belongs to tenant
+    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    if (!favorecido) {
+      return res.status(404).json({
+        success: false,
+        message: "Favorecido not found"
+      });
+    }
+
+    const success = await storage.removeFavorecidoLocation(id, locationId, user.tenantId);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: "Location removed from favorecido successfully"
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Location association not found"
+      });
+    }
+  } catch (error) {
+    console.error("Error removing location from favorecido:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to remove location from favorecido",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// PUT /api/favorecidos/:id/locations/:locationId/primary - Update primary status
+router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { user } = req;
+    const { id } = favorecidoIdSchema.parse(req.params);
+    const locationIdSchema = z.object({
+      locationId: z.string().uuid("Invalid location ID format")
+    });
+    const { locationId } = locationIdSchema.parse(req.params);
+    
+    const updatePrimarySchema = z.object({
+      isPrimary: z.boolean()
+    });
+    
+    const { isPrimary } = updatePrimarySchema.parse(req.body);
+
+    // Verify favorecido exists and belongs to tenant
+    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    if (!favorecido) {
+      return res.status(404).json({
+        success: false,
+        message: "Favorecido not found"
+      });
+    }
+
+    const success = await storage.updateFavorecidoLocationPrimary(id, locationId, user.tenantId, isPrimary);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: "Location primary status updated successfully"
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Location association not found"
+      });
+    }
+  } catch (error) {
+    console.error("Error updating location primary status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update location primary status",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
 export default router;

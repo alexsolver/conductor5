@@ -128,6 +128,16 @@ export const locations = pgTable("locations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Favorecido-Location association table (many-to-many relationship)
+export const favorecidoLocations = pgTable("favorecido_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").references(() => tenants.id),
+  favorecidoId: uuid("favorecido_id").references(() => favorecidos.id, { onDelete: "cascade" }),
+  locationId: uuid("location_id").references(() => locations.id, { onDelete: "cascade" }),
+  isPrimary: boolean("is_primary").default(false), // Mark primary location for favorecido
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertSessionSchema = createInsertSchema(sessions);
 export const insertTenantSchema = createInsertSchema(tenants).omit({
@@ -165,6 +175,10 @@ export const insertLocationSchema = createInsertSchema(locations).omit({
   createdAt: true,
   updatedAt: true,
 });
+export const insertFavorecidoLocationSchema = createInsertSchema(favorecidoLocations).omit({
+  id: true,
+  createdAt: true,
+});
 
 // Types
 export type Session = typeof sessions.$inferSelect;
@@ -176,6 +190,7 @@ export type Ticket = typeof tickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
 // Removed: ExternalContact type - functionality eliminated
 export type Location = typeof locations.$inferSelect;
+export type FavorecidoLocation = typeof favorecidoLocations.$inferSelect;
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
