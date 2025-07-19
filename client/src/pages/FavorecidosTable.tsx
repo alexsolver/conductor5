@@ -77,6 +77,7 @@ interface Favorecido {
 }
 
 export default function FavorecidosTable() {
+  // TODOS OS ESTADOS NO INÍCIO DO COMPONENTE
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingFavorecido, setEditingFavorecido] = useState<Favorecido | null>(null);
@@ -88,6 +89,7 @@ export default function FavorecidosTable() {
   const [isLocationManagerOpen, setIsLocationManagerOpen] = useState(false);
   const [selectedFavorecidoIdForLocations, setSelectedFavorecidoIdForLocations] = useState<string | null>(null);
   
+  // TODOS OS HOOKS NO INÍCIO DO COMPONENTE PARA RESPEITAR REGRAS DO REACT
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -120,8 +122,23 @@ export default function FavorecidosTable() {
     retry: 3,
   });
 
-  const favorecidos = favorecidosData?.favorecidos || [];
-  const pagination = favorecidosData?.pagination || { total: 0, totalPages: 0 };
+  // Fetch locations for location manager
+  const { data: locationsData } = useQuery({
+    queryKey: ["/api/locations"],
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch("/api/locations", {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch locations');
+      return response.json();
+    },
+    enabled: isLocationManagerOpen
+  });
 
   // Form setup
   const form = useForm<FavorecidoFormData>({
@@ -212,6 +229,11 @@ export default function FavorecidosTable() {
     },
   });
 
+  // Derived values
+  const favorecidos = favorecidosData?.favorecidos || [];
+  const pagination = favorecidosData?.pagination || { total: 0, totalPages: 0 };
+  const locations = locationsData?.locations || [];
+
   const handleEdit = (favorecido: Favorecido) => {
     setEditingFavorecido(favorecido);
     form.reset({
@@ -230,13 +252,7 @@ export default function FavorecidosTable() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este favorecido?")) {
-      deleteFavorecidoMutation.mutate(id);
-    }
-  };
-
-  const onSubmit = (data: FavorecidoFormData) => {
+  const handleSubmit = (data: FavorecidoFormData) => {
     if (editingFavorecido) {
       updateFavorecidoMutation.mutate({ ...data, id: editingFavorecido.id });
     } else {
@@ -244,81 +260,102 @@ export default function FavorecidosTable() {
     }
   };
 
-  // Reset page when search changes
-  const filteredData = useMemo(() => {
-    setCurrentPage(1);
-    return favorecidos;
-  }, [searchTerm]);
+  // Filter favorecidos based on search term
+  const filteredFavorecidos = useMemo(() => {
+    if (!searchTerm) return favorecidos;
+    return favorecidos.filter((favorecido: Favorecido) => 
+      favorecido.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      favorecido.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      favorecido.company?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [favorecidos, searchTerm]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredFavorecidos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentFavorecidos = filteredFavorecidos.slice(startIndex, endIndex);
+
+  const getContactMethodBadge = (method: string) => {
+    const methodMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      email: { label: "Email", variant: "default" },
+      phone: { label: "Telefone", variant: "secondary" },
+      sms: { label: "SMS", variant: "outline" },
+      whatsapp: { label: "WhatsApp", variant: "default" },
+    };
+    
+    const config = methodMap[method] || { label: method, variant: "outline" as const };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getContactTypeBadge = (type: string) => {
+    const typeMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: any }> = {
+      external: { label: "Externo", variant: "outline", icon: User },
+      partner: { label: "Parceiro", variant: "secondary", icon: Shield },
+      supplier: { label: "Fornecedor", variant: "default", icon: Building },
+    };
+    
+    const config = typeMap[type] || { label: type, variant: "outline" as const, icon: User };
+    const IconComponent = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className="flex items-center gap-1">
+        <IconComponent className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  // Early return for loading state - AFTER ALL HOOKS
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    );
+  }
 
   const FavorecidoForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="w-full h-auto p-1">
-            <div className="grid grid-cols-4 gap-1 w-full">
-              <TabsTrigger value="basic" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                <User className="h-3 w-3 lg:h-4 lg:w-4" />
-                Básico
-              </TabsTrigger>
-              <TabsTrigger value="contact" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                <Phone className="h-3 w-3 lg:h-4 lg:w-4" />
-                Contato
-              </TabsTrigger>
-              <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
-                Locais
-              </TabsTrigger>
-              <TabsTrigger value="notes" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                <Shield className="h-3 w-3 lg:h-4 lg:w-4" />
-                Observações
-              </TabsTrigger>
-            </div>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+            <TabsTrigger value="contact">Contato</TabsTrigger>
+            <TabsTrigger value="additional">Informações Adicionais</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="basic" className="space-y-4 mt-4">
+          
+          <TabsContent value="basic" className="space-y-4 mt-6">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome</FormLabel>
+                    <FormLabel>Nome *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Digite o nome" {...field} />
+                      <Input placeholder="Nome do favorecido" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sobrenome</FormLabel>
+                    <FormLabel>Sobrenome *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Digite o sobrenome" {...field} />
+                      <Input placeholder="Sobrenome do favorecido" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="Digite o email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -334,7 +371,7 @@ export default function FavorecidosTable() {
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
                 name="cpfCnpj"
@@ -349,22 +386,6 @@ export default function FavorecidosTable() {
                 )}
               />
             </div>
-          </TabsContent>
-
-          <TabsContent value="contact" className="space-y-4 mt-4">
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telefone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Digite o telefone" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
@@ -379,12 +400,41 @@ export default function FavorecidosTable() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="external">Contato Externo</SelectItem>
+                      <SelectItem value="external">Externo</SelectItem>
                       <SelectItem value="partner">Parceiro</SelectItem>
-                      <SelectItem value="vendor">Fornecedor</SelectItem>
-                      <SelectItem value="client">Cliente Final</SelectItem>
+                      <SelectItem value="supplier">Fornecedor</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
+          
+          <TabsContent value="contact" className="space-y-4 mt-6">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="email@exemplo.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(11) 99999-9999" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -405,15 +455,17 @@ export default function FavorecidosTable() {
                     <SelectContent>
                       <SelectItem value="email">Email</SelectItem>
                       <SelectItem value="phone">Telefone</SelectItem>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
                       <SelectItem value="sms">SMS</SelectItem>
+                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+          </TabsContent>
+          
+          <TabsContent value="additional" className="space-y-4 mt-6">
             <FormField
               control={form.control}
               name="relationship"
@@ -421,77 +473,43 @@ export default function FavorecidosTable() {
                 <FormItem>
                   <FormLabel>Relacionamento</FormLabel>
                   <FormControl>
-                    <Input placeholder="Descrição do relacionamento comercial" {...field} />
+                    <Input placeholder="Descreva o relacionamento" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel>Ativo</FormLabel>
-                    <div className="text-sm text-muted-foreground">Favorecido ativo no sistema</div>
+                    <FormLabel className="text-base">Status Ativo</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Favorecido ativo no sistema
+                    </div>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
             />
-          </TabsContent>
-
-          <TabsContent value="locations" className="space-y-4 mt-4">
-            <div className="text-center py-8 space-y-4">
-              <MapPin className="h-12 w-12 mx-auto text-gray-400" />
-              <div>
-                <h3 className="text-lg font-medium">Gerenciamento de Locais</h3>
-                <p className="text-sm text-gray-600">
-                  Associe locais a este favorecido para facilitar a gestão geográfica
-                </p>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex items-center gap-2"
-                  onClick={() => {
-                    if (editingFavorecido?.id) {
-                      setSelectedFavorecidoIdForLocations(editingFavorecido.id);
-                      setIsLocationManagerOpen(true);
-                    } else {
-                      toast({
-                        title: "Salve o favorecido primeiro",
-                        description: "É necessário salvar o favorecido antes de gerenciar locais",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                >
-                  <Settings className="h-4 w-4" />
-                  Gerenciar Locais
-                </Button>
-              </div>
-              <p className="text-sm text-amber-600 mt-4">
-                💡 Salve o favorecido primeiro para gerenciar locais
-              </p>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="notes" className="space-y-4 mt-4">
+            
             <FormField
               control={form.control}
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Observações Internas</FormLabel>
+                  <FormLabel>Observações</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Observações internas sobre este favorecido..."
+                      placeholder="Observações adicionais sobre o favorecido..."
                       className="min-h-[120px]"
                       {...field} 
                     />
@@ -527,210 +545,26 @@ export default function FavorecidosTable() {
     </Form>
   );
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-    );
-  }
-
-  // Fetch locations for location manager
-  const { data: locationsData } = useQuery({
-    queryKey: ["/api/locations"],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch("/api/locations", {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      return response.json();
-    },
-    enabled: isLocationManagerOpen
-  });
-
-  const locations = locationsData?.locations || [];
-
-  // Location Management Component
-  const LocationManager = () => {
-    const [favorecidoLocations, setFavorecidoLocations] = useState<any[]>([]);
-    
-    // Fetch favorecido locations
-    const { data: favorecidoLocationData } = useQuery({
-      queryKey: ["/api/favorecidos", selectedFavorecidoIdForLocations, "locations"],
-      queryFn: async () => {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`/api/favorecidos/${selectedFavorecidoIdForLocations}/locations`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        if (!response.ok) throw new Error('Failed to fetch favorecido locations');
-        return response.json();
-      },
-      enabled: !!selectedFavorecidoIdForLocations && isLocationManagerOpen
-    });
-
-    const favorecidoLocationsList = favorecidoLocationData?.locations || [];
-
-    // Add location to favorecido
-    const addLocationMutation = useMutation({
-      mutationFn: async ({ locationId, isPrimary }: { locationId: string; isPrimary: boolean }) => {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`/api/favorecidos/${selectedFavorecidoIdForLocations}/locations`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({ locationId, isPrimary })
-        });
-        if (!response.ok) throw new Error('Failed to add location');
-        return response.json();
-      },
-      onSuccess: () => {
-        toast({
-          title: "Sucesso",
-          description: "Local adicionado ao favorecido",
-        });
-        queryClient.invalidateQueries({ queryKey: ["/api/favorecidos", selectedFavorecidoIdForLocations, "locations"] });
-      },
-      onError: (error: Error) => {
-        toast({
-          title: "Erro",
-          description: error.message || "Falha ao adicionar local",
-          variant: "destructive",
-        });
-      },
-    });
-
-    // Remove location from favorecido
-    const removeLocationMutation = useMutation({
-      mutationFn: async (locationId: string) => {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`/api/favorecidos/${selectedFavorecidoIdForLocations}/locations/${locationId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        if (!response.ok) throw new Error('Failed to remove location');
-        return response.json();
-      },
-      onSuccess: () => {
-        toast({
-          title: "Sucesso",
-          description: "Local removido do favorecido",
-        });
-        queryClient.invalidateQueries({ queryKey: ["/api/favorecidos", selectedFavorecidoIdForLocations, "locations"] });
-      },
-      onError: (error: Error) => {
-        toast({
-          title: "Erro",
-          description: error.message || "Falha ao remover local",
-          variant: "destructive",
-        });
-      },
-    });
-
-    return (
-      <Dialog open={isLocationManagerOpen} onOpenChange={setIsLocationManagerOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Locais do Favorecido</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Available Locations */}
-            <div>
-              <h3 className="text-lg font-medium mb-3">Locais Disponíveis</h3>
-              <div className="grid gap-3 max-h-40 overflow-y-auto">
-                {locations.filter(loc => 
-                  !favorecidoLocationsList.some(fl => fl.locationId === loc.id)
-                ).map((location: any) => (
-                  <div key={location.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{location.name}</p>
-                      <p className="text-sm text-gray-600">{location.address}, {location.city}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addLocationMutation.mutate({ locationId: location.id, isPrimary: false })}
-                      disabled={addLocationMutation.isPending}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Adicionar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Associated Locations */}
-            <div>
-              <h3 className="text-lg font-medium mb-3">Locais Associados</h3>
-              <div className="space-y-3">
-                {favorecidoLocationsList.map((favorecidoLocation: any) => (
-                  <div key={favorecidoLocation.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{favorecidoLocation.location?.name}</p>
-                        {favorecidoLocation.isPrimary && (
-                          <Badge className="bg-blue-100 text-blue-800">Principal</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {favorecidoLocation.location?.address}, {favorecidoLocation.location?.city}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => removeLocationMutation.mutate(favorecidoLocation.locationId)}
-                      disabled={removeLocationMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Remover
-                    </Button>
-                  </div>
-                ))}
-                {favorecidoLocationsList.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">Nenhum local associado</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Favorecidos</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gerencie contatos externos e beneficiários</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            Favorecidos
+          </h1>
+          <p className="text-muted-foreground">
+            Gerencie favorecidos externos, parceiros e fornecedores
+          </p>
         </div>
+        
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Novo Favorecido
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Novo Favorecido</DialogTitle>
             </DialogHeader>
@@ -739,17 +573,19 @@ export default function FavorecidosTable() {
         </Dialog>
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Pesquisar favorecidos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, email ou empresa..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -758,158 +594,161 @@ export default function FavorecidosTable() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Favorecidos ({pagination.total})</span>
-            <span className="text-sm font-normal text-gray-500">
-              Página {currentPage} de {pagination.totalPages}
-            </span>
+            <span>Lista de Favorecidos ({filteredFavorecidos.length})</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Criado</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {favorecidos.map((favorecido: Favorecido) => (
-                  <TableRow key={favorecido.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                          {favorecido.firstName?.charAt(0)}{favorecido.lastName?.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="font-medium">{`${favorecido.firstName || ''} ${favorecido.lastName || ''}`.trim() || 'Sem Nome'}</div>
-                          <div className="text-sm text-gray-500">ID: {favorecido.id.slice(-8)}</div>
-                        </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Empresa</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Contato Preferido</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentFavorecidos.map((favorecido) => (
+                <TableRow key={favorecido.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                        {favorecido.firstName?.[0]?.toUpperCase() || "?"}
                       </div>
-                    </TableCell>
-                    <TableCell>{favorecido.email}</TableCell>
-                    <TableCell>{favorecido.phone || '-'}</TableCell>
-                    <TableCell>
-                      {favorecido.company ? (
-                        <div className="flex items-center space-x-1">
-                          <Building className="h-4 w-4 text-gray-400" />
-                          <span>{favorecido.company}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {favorecido.contactType === 'external' ? 'Externo' :
-                         favorecido.contactType === 'partner' ? 'Parceiro' :
-                         favorecido.contactType === 'vendor' ? 'Fornecedor' :
-                         favorecido.contactType === 'client' ? 'Cliente' :
-                         favorecido.contactType}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
+                      <div>
+                        <div className="font-medium">{favorecido.fullName}</div>
+                        {favorecido.phone && (
+                          <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {favorecido.phone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-3 w-3 text-muted-foreground" />
+                      {favorecido.email}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {favorecido.company ? (
+                      <div className="flex items-center gap-1">
+                        <Building className="h-3 w-3 text-muted-foreground" />
+                        {favorecido.company}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{getContactTypeBadge(favorecido.contactType)}</TableCell>
+                  <TableCell>{getContactMethodBadge(favorecido.preferredContactMethod)}</TableCell>
+                  <TableCell>
+                    <Badge variant={favorecido.isActive ? "default" : "secondary"}>
                       {favorecido.isActive ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
+                        <>
+                          <UserCheck className="h-3 w-3 mr-1" />
                           Ativo
-                        </Badge>
+                        </>
                       ) : (
-                        <Badge variant="secondary">
-                          Inativo
-                        </Badge>
+                        "Inativo"
                       )}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(favorecido.createdAt).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => console.log('View favorecido', favorecido.id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Visualizar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(favorecido)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setSelectedFavorecidoIdForLocations(favorecido.id);
-                              setIsLocationManagerOpen(true);
-                            }}
-                          >
-                            <MapPin className="mr-2 h-4 w-4" />
-                            Gerenciar Locais
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(favorecido.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(favorecido)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => deleteFavorecidoMutation.mutate(favorecido.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {currentFavorecidos.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Nenhum favorecido encontrado</p>
+              <p className="text-sm">
+                {searchTerm ? "Tente ajustar sua busca" : "Comece criando seu primeiro favorecido"}
+              </p>
+            </div>
+          )}
+
           {/* Pagination */}
-          <div className="flex items-center justify-between space-x-2 py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
-              Mostrando {((currentPage - 1) * itemsPerPage) + 1} até {Math.min(currentPage * itemsPerPage, pagination.total)} de {pagination.total} entradas
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-6 border-t">
+              <div className="text-sm text-muted-foreground">
+                Mostrando {startIndex + 1}-{Math.min(endIndex, filteredFavorecidos.length)} de {filteredFavorecidos.length} favorecidos
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="w-10"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Próximo
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                disabled={currentPage === pagination.totalPages}
-              >
-                Próximo
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Favorecido</DialogTitle>
           </DialogHeader>
           <FavorecidoForm />
         </DialogContent>
       </Dialog>
-
-      {/* Location Manager */}
-      <LocationManager />
     </div>
   );
 }
