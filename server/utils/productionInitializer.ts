@@ -93,13 +93,27 @@ export class ProductionInitializer {
       logInfo(`Validating ${tenants.length} tenant schemas`);
 
       for (const tenant of tenants) {
-        const isValid = await schemaManager.validateTenantSchema(tenant.id);
-        if (!isValid) {
-          logWarn(`Schema validation failed for tenant ${tenant.id}`, {});
-          // Try to create/fix the schema
-          await schemaManager.createTenantSchema(tenant.id);
-        } else {
-          logInfo(`Schema validated for tenant: ${tenant.id}`);
+        try {
+          const isValid = await schemaManager.validateTenantSchema(tenant.id);
+          if (!isValid) {
+            logWarn(`Schema validation failed for tenant ${tenant.id}, attempting auto-heal`, {});
+            
+            // CRITICAL FIX: Auto-healing com correção automática
+            await schemaManager.createTenantSchema(tenant.id);
+            
+            // Re-validate after healing
+            const isValidAfterHeal = await schemaManager.validateTenantSchema(tenant.id);
+            if (isValidAfterHeal) {
+              logInfo(`✅ Auto-healing successful for tenant: ${tenant.id}`);
+            } else {
+              logError(`❌ Auto-healing failed for tenant: ${tenant.id}`, new Error('Schema still invalid after healing'));
+            }
+          } else {
+            logInfo(`Schema validated for tenant: ${tenant.id}`);
+          }
+        } catch (error) {
+          logError(`Critical error during schema validation for tenant ${tenant.id}`, error);
+          // Continue with other tenants even if one fails
         }
       }
 

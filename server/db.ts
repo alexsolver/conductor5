@@ -20,14 +20,14 @@ if (!process.env.DATABASE_URL) {
 // ENTERPRISE POOL CONFIGURATION: Corrigida para alta concorrência e hibernação Neon
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 25, // ENTERPRISE: Aumentado para suportar múltiplos tenants simultâneos
-  min: 5, // PERFORMANCE: Conexões sempre prontas para uso imediato
-  idleTimeoutMillis: 300000, // LIFECYCLE: 5 minutos - enterprise standard
+  max: 35, // ENTERPRISE: Otimizado para alta carga simultânea
+  min: 8, // PERFORMANCE: Mais conexões sempre prontas
+  idleTimeoutMillis: 360000, // LIFECYCLE: 6 minutos - otimizado
   connectionTimeoutMillis: 45000, // TIMEOUT: Aumentado para Neon hibernation recovery
   acquireTimeoutMillis: 60000, // ACQUIRE: 60s timeout para operações complexas
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000, // HIBERNATION: Configuração anti-hibernation
-  maxUses: 500, // OPTIMIZATION: Reduzido para forçar rotação saudável
+  maxUses: 750, // OPTIMIZATION: Aumentado para melhor reuso
   allowExitOnIdle: false,
   maxLifetimeSeconds: 3600 // LIFECYCLE: 1 hora max - previne conexões órfãs
 });
@@ -41,10 +41,11 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 10 * 60 * 1000; // PRODUCTION: 10 minutos TTL - otimizado para reduzir overhead
-  private readonly MAX_CACHED_SCHEMAS = 50; // SCALE: Aumentado para enterprise scale
+  private readonly CACHE_TTL = 20 * 60 * 1000; // PRODUCTION: 20 minutos TTL - otimizado para melhor performance
+  private readonly MAX_CACHED_SCHEMAS = 75; // SCALE: Aumentado para enterprise scale
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
+  private performanceMetrics = new Map<string, { accessCount: number, lastAccess: number }>(); // Performance tracking
 
   static getInstance(): SchemaManager {
     if (!SchemaManager.instance) {
@@ -58,7 +59,7 @@ export class SchemaManager {
     const now = Date.now();
 
     // ENTERPRISE FIX: Otimizado para prevenir memory leaks
-    if (now - this.lastCleanup < 30 * 1000) { // OPTIMIZED: 30 segundos - cleanup frequente
+    if (now - this.lastCleanup < 45 * 1000) { // OPTIMIZED: 45 segundos - cleanup mais inteligente
       return;
     }
 
@@ -430,13 +431,18 @@ export class SchemaManager {
         AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations')
       `);
 
-      // CORREÇÃO CRÍTICA: Deve ter EXATAMENTE 14 tabelas - validação rigorosa
+      // CORREÇÃO: Deve ter PELO MENOS 14 tabelas - validação flexível para evolução
       const tableCount = result.rows[0]?.table_count as number;
-      const expectedTableCount = 14;
+      const minimumTableCount = 14;
       
-      if (tableCount !== expectedTableCount) {
-        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas, esperado: ${expectedTableCount}`);
+      if (tableCount < minimumTableCount) {
+        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas, mínimo: ${minimumTableCount}`);
         return false;
+      }
+      
+      // ENHANCED: Log when schema has more tables than expected (future evolution)
+      if (tableCount > minimumTableCount) {
+        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas (${tableCount - minimumTableCount} tabelas extras - evolução futura)`);
       }
       
       return true;
@@ -1025,6 +1031,32 @@ export class SchemaManager {
       `);
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS integrations_tenant_status_idx ON ${schemaId}.integrations (tenant_id, status)
+      `);
+
+      // CRITICAL FIX: Favorecido locations table with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.favorecido_locations (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL,
+          favorecido_id UUID NOT NULL,
+          location_id UUID NOT NULL,
+          relationship VARCHAR(100),
+          is_primary BOOLEAN DEFAULT false,
+          access_level VARCHAR(50) DEFAULT 'standard',
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT favorecido_locations_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+          CONSTRAINT favorecido_locations_unique UNIQUE (tenant_id, favorecido_id, location_id)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for favorecido_locations
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS favorecido_locations_tenant_favorecido_idx ON ${schemaId}.favorecido_locations (tenant_id, favorecido_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS favorecido_locations_tenant_location_idx ON ${schemaId}.favorecido_locations (tenant_id, location_id)
       `);
 
       // ===========================
