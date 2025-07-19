@@ -183,7 +183,8 @@ export default function TenantAdminIntegrations() {
 
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
-      return apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
+      const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
+      return response.json();
     },
     onSuccess: (data, integrationId) => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
@@ -456,7 +457,8 @@ export default function TenantAdminIntegrations() {
 
     try {
       // Load existing configuration from API
-      const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      const existingConfig = await response.json();
       console.log('Resposta completa do GET config:', existingConfig);
       console.log('existingConfig.configured:', existingConfig?.configured);
       console.log('existingConfig.config:', existingConfig?.config);
