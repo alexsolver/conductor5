@@ -255,10 +255,75 @@ export class EnterpriseOptimizer {
       await this.optimizeQuerySecurity();
       await this.stabilizeViteConnections();
       
+      // NOVAS OTIMIZAÇÕES ENTERPRISE
+      await this.initializeEnterpriseMonitoring();
+      await this.optimizeQueryPerformance();
+      await this.setupMigrationSafety();
+      
       console.log('✅ [EnterpriseOptimizer] All enterprise optimizations completed successfully');
     } catch (error) {
       console.error('❌ [EnterpriseOptimizer] Failed to complete optimizations:', error);
       throw error;
+    }
+  }
+
+  // ===========================
+  // NOVAS OTIMIZAÇÕES ADICIONAIS
+  // ===========================
+  
+  private async initializeEnterpriseMonitoring(): Promise<void> {
+    try {
+      console.log('[EnterpriseOptimizer] Initializing enterprise monitoring...');
+      
+      const { enterpriseMonitoring } = await import('../database/EnterpriseMonitoring');
+      enterpriseMonitoring.startContinuousMonitoring();
+      
+      console.log('✅ Enterprise monitoring system activated');
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to initialize monitoring:', error);
+    }
+  }
+
+  private async optimizeQueryPerformance(): Promise<void> {
+    console.log('[EnterpriseOptimizer] Optimizing query performance...');
+    
+    try {
+      const { enterpriseQueryOptimizer } = await import('../database/EnterpriseQueryOptimizer');
+      
+      // Analyze index usage for all tenants
+      const tenantSchemas = await this.getAllTenantSchemas();
+      for (const schema of tenantSchemas) {
+        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        await enterpriseQueryOptimizer.analyzeIndexUsage(tenantId);
+      }
+      
+      console.log('✅ Query performance optimization completed');
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to optimize query performance:', error);
+    }
+  }
+
+  private async setupMigrationSafety(): Promise<void> {
+    console.log('[EnterpriseOptimizer] Setting up migration safety protocols...');
+    
+    try {
+      const { enterpriseMigrationManager } = await import('../database/EnterpriseMigrationManager');
+      
+      // Validate all tenant schemas
+      const tenantSchemas = await this.getAllTenantSchemas();
+      for (const schema of tenantSchemas) {
+        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        const isValid = await enterpriseMigrationManager.validateSchemaIntegrity(tenantId);
+        
+        if (!isValid) {
+          console.warn(`[EnterpriseOptimizer] Schema ${schema} needs repair, executing safe migration...`);
+          await enterpriseMigrationManager.repairMissingTables(tenantId);
+        }
+      }
+      
+      console.log('✅ Migration safety protocols established');
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to setup migration safety:', error);
     }
   }
 }

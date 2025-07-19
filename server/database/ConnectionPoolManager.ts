@@ -22,9 +22,9 @@ interface TenantConnection {
 export class ConnectionPoolManager {
   private static instance: ConnectionPoolManager;
   private tenantPools = new Map<string, TenantConnection>();
-  private readonly MAX_POOLS = 2; // CRITICAL STABILITY: Minimal pools to prevent crashes
-  private readonly POOL_TTL = 15 * 60 * 1000; // 15 minutes - balanced for stability
-  private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes - reduced cleanup frequency
+  private readonly MAX_POOLS = 15; // ENTERPRISE: Aumentado para suportar múltiplos tenants
+  private readonly POOL_TTL = 30 * 60 * 1000; // ENTERPRISE: 30 minutos TTL balanceado
+  private readonly CLEANUP_INTERVAL = 2 * 60 * 1000; // OPTIMIZED: 2 minutos cleanup mais frequente
   private cleanupTimer?: NodeJS.Timeout;
 
   private constructor() {
@@ -98,15 +98,16 @@ export class ConnectionPoolManager {
       
       const pool = new Pool({ 
         connectionString: baseUrl.toString(),
-        max: 1, // ULTRA-STABLE: Single connection to prevent crashes
-        min: 1,
-        idleTimeoutMillis: 60000, // 1 minute
-        connectionTimeoutMillis: 15000,
-        acquireTimeoutMillis: 20000,
-        maxUses: 20, // Very low to prevent connection issues
+        max: 8, // ENTERPRISE: Aumentado para concurrent operations
+        min: 2, // PERFORMANCE: Mínimo de 2 para disponibilidade
+        idleTimeoutMillis: 300000, // ENTERPRISE: 5 minutos idle timeout
+        connectionTimeoutMillis: 45000, // HIBERNATION: 45s para Neon recovery
+        acquireTimeoutMillis: 60000, // ENTERPRISE: 60s acquire timeout
+        maxUses: 1000, // OPTIMIZED: Alto reuse para performance
         keepAlive: true,
+        keepAliveInitialDelayMillis: 10000, // ANTI-HIBERNATION
         allowExitOnIdle: false,
-        maxLifetimeSeconds: 120 // 2 minutes - frequent refresh
+        maxLifetimeSeconds: 3600 // ENTERPRISE: 1 hora lifecycle
       });
 
       const db = drizzle({ client: pool, schema });
