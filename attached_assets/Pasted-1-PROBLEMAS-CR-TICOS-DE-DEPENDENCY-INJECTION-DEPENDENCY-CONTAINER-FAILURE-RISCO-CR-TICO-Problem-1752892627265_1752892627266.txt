@@ -1,0 +1,81 @@
+1. PROBLEMAS CRÍTICOS DE DEPENDENCY INJECTION
+❌ DEPENDENCY CONTAINER FAILURE - RISCO CRÍTICO
+Problema: Storage não definido no DependencyContainer
+
+// server/application/services/DependencyContainer.ts - LINHA 51
+get storage() {
+  return storage; // ❌ ERRO: storage is not defined
+}
+Log de Erro:
+
+Error fetching tenant analytics: ReferenceError: storage is not defined
+at DependencyContainer.get storage
+Impacto: CRÍTICO - Analytics tenant completamente quebrado
+Urgência: IMEDIATA
+
+2. PROBLEMAS DE MIGRATION E TENANT VALIDATION
+❌ TENANT ID VALIDATION INCONSISTENTE
+Problema: Múltiplos validadores com critérios diferentes
+
+// TenantValidator.ts - UUID Pattern inconsistente
+const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+// ConnectionPoolManager.ts - Pattern mais permissivo
+const validTenantIdRegex = /^[a-zA-Z0-9_-]+$/;
+Impacto: ALTO - Possível bypass de validação
+Urgência: ALTA
+
+⚠️ MIGRATION SAFETY GAPS
+Problema: Migração sem rollback completo
+
+// db.ts - migrateLegacyTables()
+const migrationQueries = [
+  `DO $$ BEGIN ... END $$;` // Sem transação atomica
+];
+// FALTA: Backup antes de migration
+Impacto: MÉDIO - Risco de corrupção em falha
+Urgência: MÉDIA
+
+3. PROBLEMAS DE PERFORMANCE E CACHE
+⚠️ SCHEMA CACHE STRATEGY LIMITADA
+Problema: Cache sem estratégia de invalidação inteligente
+
+// SchemaManager.ts
+private readonly CACHE_TTL = 5 * 60 * 1000; // TTL fixo
+private readonly MAX_CACHED_SCHEMAS = 50; // Sem LRU real
+Impacto: MÉDIO - Memory growth em alta carga
+Urgência: MÉDIA
+
+⚠️ CONNECTION POOL SIZING SUBOTIMIZADO
+Problema: Pool pequeno para enterprise scale
+
+// ConnectionPoolManager.ts
+private readonly MAX_POOLS = 15; // Baixo para multi-tenant
+max: 8, // Por tenant - pode saturar
+Impacto: MÉDIO - Bottleneck em 100+ tenants simultâneos
+Urgência: MÉDIA
+
+4. PROBLEMAS DE HIBERNAÇÃO NEON
+⚠️ NEON HIBERNATION AINDA CAUSA TIMEOUTS
+Problema: Recovery parcial implementado
+
+# Logs ainda mostram:
+[Uncaught Exception] error: terminating connection due to administrator command
+[Connection Timeout] Socket timed out, closing gracefully (6x)
+Impacto: MÉDIO - Timeouts ocasionais de 15-45s
+Urgência: ALTA
+
+5. PROBLEMAS DE MONITORAMENTO E ALERTAS
+❌ REAL-TIME ALERTING AUSENTE
+Problema: Sem alertas automáticos para degradação
+
+// EnterpriseRealTimeAlerting.ts existe mas não integrado
+// FALTA: Pool exhaustion alerts, query timeout alerts
+Impacto: ALTO - Blind spots operacionais
+Urgência: ALTA
+
+⚠️ TENANT USAGE ANALYTICS LIMITADO
+Problema: Métricas por tenant insuficientes
+
+// FALTA: Capacity planning, usage patterns, resource quotas
+Impacto: MÉDIO - Falta insights para scaling
+Urgência: BAIXA

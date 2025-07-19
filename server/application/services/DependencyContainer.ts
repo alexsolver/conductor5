@@ -47,8 +47,21 @@ export class DependencyContainer {
     return this._tenantRepository;
   }
 
+  async getStorage() {
+    const { storageSimple } = await import('../../storage-simple');
+    return storageSimple;
+  }
+
   get storage() {
-    return storage;
+    // Return a proxy that lazily loads storage
+    return new Proxy({}, {
+      get: (target, prop) => {
+        if (typeof prop === 'string') {
+          const { storageSimple } = eval('require("../../storage-simple")');
+          return storageSimple[prop];
+        }
+      }
+    });
   }
 
   // Services

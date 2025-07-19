@@ -348,7 +348,7 @@ router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), as
     }
 
     const container = DependencyContainer.getInstance();
-    const storage = container.storage;
+    const storage = await container.getStorage();
     
     const stats = await storage.getDashboardStats(tenantId);
     
