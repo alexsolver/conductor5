@@ -72,6 +72,13 @@ export const tickets = pgTable("tickets", {
   beneficiaryType: varchar("beneficiary_type", { length: 20 }), // 'customer' or 'user'
   callerType: varchar("caller_type", { length: 20 }), // 'customer' or 'user'
   
+  // Ticket hierarchy and linking
+  parentTicketId: uuid("parent_ticket_id").references(() => tickets.id), // For ticket hierarchy
+  relatedTicketIds: jsonb("related_ticket_ids").default([]), // For linked tickets
+  linkType: varchar("link_type", { length: 30 }), // 'duplicate', 'related', 'blocks', 'caused_by'
+  hierarchyLevel: integer("hierarchy_level").default(0), // 0 = root, 1 = child, 2 = grandchild, etc.
+  rootTicketId: uuid("root_ticket_id").references(() => tickets.id), // Points to root ticket for fast queries
+  
   // Metadata
   tags: jsonb("tags").default([]),
   metadata: jsonb("metadata").default({}),
@@ -93,6 +100,20 @@ export const ticketMessages = pgTable("ticket_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Ticket relationships for linking and hierarchy
+export const ticketRelationships = pgTable("ticket_relationships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  sourceTicketId: uuid("source_ticket_id").notNull().references(() => tickets.id),
+  targetTicketId: uuid("target_ticket_id").notNull().references(() => tickets.id),
+  relationshipType: varchar("relationship_type", { length: 30 }).notNull(), 
+  // Types: 'parent_child', 'duplicate', 'related', 'blocks', 'caused_by', 'follows'
+  description: text("description"), // Optional description of the relationship
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schema types
 export const insertTicketSchema = createInsertSchema(tickets).omit({
   id: true,
@@ -105,7 +126,15 @@ export const insertTicketMessageSchema = createInsertSchema(ticketMessages).omit
   createdAt: true,
 });
 
+export const insertTicketRelationshipSchema = createInsertSchema(ticketRelationships).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
+export type InsertTicketRelationship = z.infer<typeof insertTicketRelationshipSchema>;
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
+export type TicketRelationship = typeof ticketRelationships.$inferSelect;

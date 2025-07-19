@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { PersonSelector } from "@/components/PersonSelector";
+import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
+import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
 
 // Schema for ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -102,6 +104,7 @@ export default function TicketsTable() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -1047,10 +1050,7 @@ export default function TicketsTable() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  // Link ticket functionality - placeholder for now
-                  console.log("Link ticket clicked");
-                }}
+                onClick={() => setIsLinkingModalOpen(true)}
                 className="flex items-center space-x-1"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1155,11 +1155,41 @@ export default function TicketsTable() {
                     <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{editingTicket?.description}</p>
                   </div>
                 </div>
+
+                {/* Ticket Hierarchy */}
+                {editingTicket && (
+                  <TicketHierarchyView 
+                    ticketId={editingTicket.id}
+                    onViewTicket={(ticketId) => {
+                      // Handle viewing another ticket
+                      console.log("View ticket:", ticketId);
+                    }}
+                    onCreateChild={(parentId) => {
+                      // Handle creating child ticket
+                      console.log("Create child for:", parentId);
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Ticket Linking Modal */}
+      {editingTicket && (
+        <TicketLinkingModal
+          isOpen={isLinkingModalOpen}
+          onClose={() => setIsLinkingModalOpen(false)}
+          currentTicket={{
+            id: editingTicket.id,
+            subject: editingTicket.shortDescription || editingTicket.subject,
+            status: editingTicket.state || editingTicket.status,
+            priority: editingTicket.priority,
+            number: editingTicket.number
+          }}
+        />
+      )}
     </div>
   );
 }

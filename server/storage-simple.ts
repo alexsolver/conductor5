@@ -32,6 +32,13 @@ export interface IStorage {
   createTicket(tenantId: string, ticketData: any): Promise<any>;
   updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any>;
   deleteTicket(tenantId: string, ticketId: string): Promise<boolean>;
+  searchTickets(tenantId: string, query: string): Promise<any[]>;
+
+  // Ticket Relationships Management
+  getTicketRelationships(tenantId: string, ticketId: string): Promise<any[]>;
+  createTicketRelationship(tenantId: string, ticketId: string, relationshipData: any): Promise<any>;
+  deleteTicketRelationship(relationshipId: string): Promise<boolean>;
+  getTicketHierarchy(tenantId: string, ticketId: string): Promise<any[]>;
 
   // Dashboard & Analytics
   getDashboardStats(tenantId: string): Promise<any>;
@@ -1228,6 +1235,196 @@ export class DatabaseStorage implements IStorage {
       logInfo('All 14 default integrations created', { tenantId, count: 14 });
     } catch (error) {
       logError('Error creating default integrations', error, { tenantId });
+      throw error;
+    }
+  }
+
+  // ==============================
+  // TICKET RELATIONSHIPS METHODS
+  // ==============================
+
+  async searchTickets(tenantId: string, query: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT id, short_description as subject, state as status, priority, number, created_at
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE tenant_id = ${validatedTenantId}
+        AND (
+          short_description ILIKE ${'%' + query + '%'} OR
+          description ILIKE ${'%' + query + '%'} OR
+          number ILIKE ${'%' + query + '%'} OR
+          id::text = ${query}
+        )
+        ORDER BY created_at DESC
+        LIMIT 20
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error searching tickets', error, { tenantId, query });
+      throw error;
+    }
+  }
+
+  async getTicketRelationships(tenantId: string, ticketId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          tr.id,
+          tr.relationship_type as "relationshipType",
+          tr.description,
+          tr.created_at as "createdAt",
+          t.id as "targetTicket.id",
+          t.short_description as "targetTicket.subject",
+          t.state as "targetTicket.status",
+          t.priority as "targetTicket.priority",
+          t.number as "targetTicket.number"
+        FROM ${sql.identifier(schemaName)}.ticket_relationships tr
+        JOIN ${sql.identifier(schemaName)}.tickets t ON t.id = tr.target_ticket_id
+        WHERE tr.source_ticket_id = ${ticketId} 
+        AND tr.tenant_id = ${validatedTenantId}
+        ORDER BY tr.created_at DESC
+      `);
+
+      // Transform flat results into nested objects
+      return (result.rows || []).map(row => ({
+        id: row.id,
+        relationshipType: row.relationshipType,
+        description: row.description,
+        createdAt: row.createdAt,
+        targetTicket: {
+          id: row['targetTicket.id'],
+          subject: row['targetTicket.subject'],
+          status: row['targetTicket.status'],
+          priority: row['targetTicket.priority'],
+          number: row['targetTicket.number']
+        }
+      }));
+    } catch (error) {
+      logError('Error fetching ticket relationships', error, { tenantId, ticketId });
+      throw error;
+    }
+  }
+
+  async createTicketRelationship(tenantId: string, ticketId: string, relationshipData: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const id = crypto.randomUUID();
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.ticket_relationships
+        (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at, updated_at)
+        VALUES (
+          ${id},
+          ${validatedTenantId},
+          ${ticketId},
+          ${relationshipData.targetTicketId},
+          ${relationshipData.relationshipType},
+          ${relationshipData.description || null},
+          ${relationshipData.createdBy || validatedTenantId},
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+      `);
+
+      logInfo('Ticket relationship created successfully', { tenantId: validatedTenantId, relationshipId: id });
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error creating ticket relationship', error, { tenantId, ticketId, relationshipData });
+      throw error;
+    }
+  }
+
+  async deleteTicketRelationship(relationshipId: string): Promise<boolean> {
+    try {
+      // Get relationship details first to determine tenant
+      const publicResult = await db.execute(sql`
+        SELECT tenant_id FROM ticket_relationships WHERE id = ${relationshipId}
+        LIMIT 1
+      `);
+
+      if (!publicResult.rows?.[0]) {
+        return false;
+      }
+
+      const tenantId = publicResult.rows[0].tenant_id;
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.ticket_relationships
+        WHERE id = ${relationshipId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      const deleted = result.rowCount && result.rowCount > 0;
+      if (deleted) {
+        logInfo('Ticket relationship deleted successfully', { tenantId: validatedTenantId, relationshipId });
+      }
+
+      return deleted;
+    } catch (error) {
+      logError('Error deleting ticket relationship', error, { relationshipId });
+      throw error;
+    }
+  }
+
+  async getTicketHierarchy(tenantId: string, ticketId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Build hierarchy using recursive CTE
+      const result = await tenantDb.execute(sql`
+        WITH RECURSIVE ticket_hierarchy AS (
+          -- Base case: find root ticket (no parent or current ticket)
+          SELECT 
+            t.id,
+            t.short_description as subject,
+            t.state as status,
+            t.priority,
+            t.number,
+            t.parent_ticket_id as "parentTicketId",
+            NULL::uuid as "rootTicketId",
+            0 as "hierarchyLevel"
+          FROM ${sql.identifier(schemaName)}.tickets t
+          WHERE t.id = ${ticketId} AND t.tenant_id = ${validatedTenantId}
+          
+          UNION ALL
+          
+          -- Recursive case: find children
+          SELECT 
+            t.id,
+            t.short_description as subject,
+            t.state as status,
+            t.priority,
+            t.number,
+            t.parent_ticket_id as "parentTicketId",
+            COALESCE(th."rootTicketId", ${ticketId}) as "rootTicketId",
+            th."hierarchyLevel" + 1 as "hierarchyLevel"
+          FROM ${sql.identifier(schemaName)}.tickets t
+          JOIN ticket_hierarchy th ON t.parent_ticket_id = th.id
+          WHERE t.tenant_id = ${validatedTenantId}
+        )
+        SELECT * FROM ticket_hierarchy
+        ORDER BY "hierarchyLevel", subject
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching ticket hierarchy', error, { tenantId, ticketId });
       throw error;
     }
   }
