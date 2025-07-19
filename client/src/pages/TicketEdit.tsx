@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
@@ -271,145 +272,372 @@ export default function TicketEdit() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Basic Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="subject"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Assunto</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Descreva o problema brevemente" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prioridade</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Tabs defaultValue="basic" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="basic">Básico</TabsTrigger>
+                      <TabsTrigger value="assignment">Atribuição</TabsTrigger>
+                      <TabsTrigger value="classification">Classificação</TabsTrigger>
+                      <TabsTrigger value="details">Detalhes</TabsTrigger>
+                    </TabsList>
+                    
+                    {/* Tab 1: Basic Information */}
+                    <TabsContent value="basic" className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Assunto</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a prioridade" />
-                              </SelectTrigger>
+                              <Input placeholder="Descreva o problema brevemente" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="low">Baixa</SelectItem>
-                              <SelectItem value="medium">Média</SelectItem>
-                              <SelectItem value="high">Alta</SelectItem>
-                              <SelectItem value="critical">Crítica</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o status" />
-                              </SelectTrigger>
+                              <Textarea
+                                placeholder="Descreva o problema em detalhes"
+                                className="min-h-[120px]"
+                                {...field}
+                              />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="open">Aberto</SelectItem>
-                              <SelectItem value="in_progress">Em Progresso</SelectItem>
-                              <SelectItem value="pending">Pendente</SelectItem>
-                              <SelectItem value="resolved">Resolvido</SelectItem>
-                              <SelectItem value="closed">Fechado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Descreva o problema em detalhes"
-                            className="min-h-[120px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="priority"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Prioridade</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="low">Baixa</SelectItem>
+                                  <SelectItem value="medium">Média</SelectItem>
+                                  <SelectItem value="high">Alta</SelectItem>
+                                  <SelectItem value="critical">Crítica</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                  {/* Assignment */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="callerId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Solicitante</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormField
+                          control={form.control}
+                          name="urgency"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Urgência</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="low">Baixa</SelectItem>
+                                  <SelectItem value="medium">Média</SelectItem>
+                                  <SelectItem value="high">Alta</SelectItem>
+                                  <SelectItem value="critical">Crítica</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="impact"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Impacto</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="low">Baixo</SelectItem>
+                                  <SelectItem value="medium">Médio</SelectItem>
+                                  <SelectItem value="high">Alto</SelectItem>
+                                  <SelectItem value="critical">Crítico</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="open">Aberto</SelectItem>
+                                <SelectItem value="in_progress">Em Progresso</SelectItem>
+                                <SelectItem value="pending">Pendente</SelectItem>
+                                <SelectItem value="resolved">Resolvido</SelectItem>
+                                <SelectItem value="closed">Fechado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+
+                    {/* Tab 2: Assignment */}
+                    <TabsContent value="assignment" className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="callerId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Solicitante</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o solicitante" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {customers.map((customer) => (
+                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
+                                    {customer.first_name} {customer.last_name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="beneficiaryId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Beneficiário</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o beneficiário (opcional)" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Nenhum</SelectItem>
+                                {customers.map((customer) => (
+                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
+                                    {customer.first_name} {customer.last_name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="assignedToId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Atribuído a</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione um agente" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="unassigned">Não atribuído</SelectItem>
+                                {users.map((user) => (
+                                  <SelectItem key={user.id} value={user.id}>
+                                    {user.username}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="assignmentGroup"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Grupo de Atribuição</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o solicitante" />
-                              </SelectTrigger>
+                              <Input placeholder="Ex: Suporte N1, Infraestrutura" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              {customers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
-                                  {customer.first_name} {customer.last_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="assignedToId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Atribuído a</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Localização</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione um agente" />
-                              </SelectTrigger>
+                              <Input placeholder="Ex: São Paulo - Matriz" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="unassigned">Não atribuído</SelectItem>
-                              {users.map((user) => (
-                                <SelectItem key={user.id} value={user.id}>
-                                  {user.username}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
 
-                  <div className="flex justify-end">
+                    {/* Tab 3: Classification */}
+                    <TabsContent value="classification" className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Categoria</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Hardware, Software, Rede" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="subcategory"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Subcategoria</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Impressora, Sistema ERP" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="contactType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Contato</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Como o ticket foi criado" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
+                                <SelectItem value="chat">Chat</SelectItem>
+                                <SelectItem value="portal">Portal</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="businessImpact"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Impacto no Negócio</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Descreva como isso afeta as operações da empresa"
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+
+                    {/* Tab 4: Technical Details */}
+                    <TabsContent value="details" className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="symptoms"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sintomas</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Descreva os sintomas observados"
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="workaround"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Solução Temporária</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Descreva alguma solução temporária aplicada"
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                  </Tabs>
+
+                  <div className="flex justify-end pt-4 border-t">
                     <Button 
                       type="submit" 
                       disabled={updateTicketMutation.isPending}
