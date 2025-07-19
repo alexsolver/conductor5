@@ -174,15 +174,14 @@ export default function TenantAdminIntegrations() {
     }
   });
 
-  // Mutation para testar integração com debounce
+  // Estado para controlar qual integração específica está sendo testada
   const [testingIntegrationId, setTestingIntegrationId] = useState<string | null>(null);
   
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
-      setTestingIntegrationId(integrationId);
       return apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
     },
-    onSuccess: (data) => {
+    onSuccess: (data, integrationId) => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       toast({
         title: "Teste realizado",
@@ -191,10 +190,23 @@ export default function TenantAdminIntegrations() {
       });
       setTestingIntegrationId(null);
     },
-    onError: () => {
+    onError: (error, integrationId) => {
+      toast({
+        title: "Erro no teste",
+        description: "Falha ao testar a integração",
+        variant: "destructive",
+      });
       setTestingIntegrationId(null);
     }
   });
+
+  // Função para testar uma integração específica
+  const handleTestIntegration = (integrationId: string) => {
+    if (testingIntegrationId === null) {
+      setTestingIntegrationId(integrationId);
+      testIntegrationMutation.mutate(integrationId);
+    }
+  };
 
   // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = (integrationsData?.integrations || []).map((integration: any) => ({
@@ -737,12 +749,9 @@ export default function TenantAdminIntegrations() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            // Only test if not already testing this specific integration
-                            if (testingIntegrationId !== integration.id && !testIntegrationMutation.isPending) {
-                              testIntegrationMutation.mutate(integration.id);
-                            }
+                            handleTestIntegration(integration.id);
                           }}
-                          disabled={testingIntegrationId === integration.id || testIntegrationMutation.isPending}
+                          disabled={testingIntegrationId === integration.id}
                         >
                           {testingIntegrationId === integration.id ? (
                             <>
@@ -774,15 +783,15 @@ export default function TenantAdminIntegrations() {
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
+            <div className="text-sm text-gray-600 mt-2">
+              Configure os parâmetros necessários para ativar esta integração no seu workspace.
+            </div>
           </DialogHeader>
-          <div id="integration-config-description" className="sr-only">
-            Formulário de configuração para integração {selectedIntegration?.name}. Configure os parâmetros necessários para ativar esta integração no seu workspace.
-          </div>
           
           {selectedIntegration && (
             <Form {...configForm}>
