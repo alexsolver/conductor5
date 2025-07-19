@@ -47,22 +47,33 @@ export class DependencyContainer {
     return this._tenantRepository;
   }
 
-  async getStorage() {
-    const { storageSimple } = await import('../../storage-simple');
-    return storageSimple;
-  }
-
   private _storage?: any;
 
   get storage() {
     if (!this._storage) {
-      // CORREÇÃO CRÍTICA: Lazy loading seguro do storage
+      // CORREÇÃO DEFINITIVA: Lazy loading seguro do storage
       try {
         const storageModule = require('../../storage-simple');
         this._storage = storageModule.storageSimple;
+        console.log('✅ [DependencyContainer] Storage loaded successfully');
       } catch (error) {
-        console.error('Failed to load storage in DependencyContainer:', error);
+        console.error('❌ [DependencyContainer] Failed to load storage:', error);
         throw new Error('Storage module not available');
+      }
+    }
+    return this._storage;
+  }
+
+  async getStorage() {
+    // Método alternativo para async loading
+    if (!this._storage) {
+      try {
+        const { storageSimple } = await import('../../storage-simple');
+        this._storage = storageSimple;
+        console.log('✅ [DependencyContainer] Storage loaded via async import');
+      } catch (error) {
+        console.error('❌ [DependencyContainer] Failed to async load storage:', error);
+        throw new Error('Storage module not available via async import');
       }
     }
     return this._storage;
