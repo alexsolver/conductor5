@@ -188,30 +188,26 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single query with proper indexing
-      const baseQuery = sql`
+      // OPTIMIZED: Single query with proper parameterization
+      let baseQuery = sql`
         SELECT 
           id, first_name, last_name, email, phone, company,
-          verified, active, suspended, timezone, locale, language,
-          external_id, role, notes, avatar, signature, 
           created_at, updated_at
         FROM ${sql.identifier(schemaName)}.customers
         WHERE 1=1
       `;
 
-      let finalQuery = baseQuery;
-
       // SECURE: Parameterized search
       if (search) {
-        finalQuery = sql`${baseQuery} AND (
-          first_name ILIKE ${'%' + search + '%'} OR 
-          last_name ILIKE ${'%' + search + '%'} OR 
-          email ILIKE ${'%' + search + '%'}
+        const searchPattern = `%${search}%`;
+        baseQuery = sql`${baseQuery} AND (
+          first_name ILIKE ${searchPattern} OR 
+          last_name ILIKE ${searchPattern} OR 
+          email ILIKE ${searchPattern}
         )`;
       }
 
-      // Add ordering and pagination
-      finalQuery = sql`${finalQuery} 
+      const finalQuery = sql`${baseQuery} 
         ORDER BY created_at DESC 
         LIMIT ${limit} 
         OFFSET ${offset}
@@ -338,15 +334,15 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single JOIN query instead of N+1
+      // OPTIMIZED: Single JOIN query instead of N+1  
       let baseQuery = sql`
         SELECT 
           tickets.*,
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email
-        FROM ${sql.identifier(schemaName), "tickets"}
-        LEFT JOIN ${sql.identifier(schemaName), "customers"} c ON tickets.customer_id = customers.id
+        FROM ${sql.identifier(schemaName)}.tickets
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.solicitante_id = customers.id
         WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
@@ -380,8 +376,8 @@ export class DatabaseStorage implements IStorage {
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email
-        FROM ${sql.identifier(schemaName), "tickets"}
-        LEFT JOIN ${sql.identifier(schemaName), "customers"} c ON tickets.customer_id = customers.id
+        FROM ${sql.identifier(schemaName)}.tickets
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.solicitante_id = customers.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
@@ -533,8 +529,8 @@ export class DatabaseStorage implements IStorage {
           tickets.status,
           tickets.created_at,
           customers.first_name || ' ' || customers.last_name as customer_name
-        FROM ${sql.identifier(schemaName), "tickets"}
-        LEFT JOIN ${sql.identifier(schemaName), "customers"} c ON tickets.customer_id = customers.id
+        FROM ${sql.identifier(schemaName)}.tickets
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.solicitante_id = customers.id
         WHERE tickets.tenant_id = ${validatedTenantId}
         ORDER BY tickets.created_at DESC
         LIMIT ${limit}
