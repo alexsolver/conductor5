@@ -454,12 +454,14 @@ export default function TenantAdminIntegrations() {
     try {
       // Load existing configuration from API
       const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      console.log('Resposta completa do GET config:', existingConfig);
       
       if (existingConfig && existingConfig.configured && existingConfig.config) {
         const config = existingConfig.config;
         // Load existing configuration - dados reais do banco
         console.log('Carregando configuração existente:', config);
-        configForm.reset({
+        
+        const formValues = {
           enabled: config.enabled === true,
           useSSL: config.useSSL === true,
           apiKey: config.apiKey || '',
@@ -480,12 +482,22 @@ export default function TenantAdminIntegrations() {
           dropboxAppSecret: config.dropboxAppSecret || '',
           dropboxAccessToken: config.dropboxAccessToken || '',
           backupFolder: config.backupFolder || '/Backups/Conductor'
-        });
+        };
+        
+        console.log('Valores sendo aplicados ao form:', formValues);
+        configForm.reset(formValues);
+        
+        // Força re-render do form
+        setTimeout(() => {
+          console.log('Estado atual do form após reset:', configForm.getValues());
+        }, 100);
+        
         toast({
           title: "Configuração carregada",
           description: "Dados existentes carregados com sucesso",
         });
       } else {
+        console.log('Nenhuma configuração encontrada, usando valores padrão');
         // Use default values if no configuration exists
         configForm.reset({
           enabled: false,
