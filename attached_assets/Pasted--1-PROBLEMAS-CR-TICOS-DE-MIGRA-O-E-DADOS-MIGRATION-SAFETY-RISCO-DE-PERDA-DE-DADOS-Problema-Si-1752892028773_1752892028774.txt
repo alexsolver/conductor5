@@ -1,0 +1,93 @@
+
+1. PROBLEMAS CRÍTICOS DE MIGRAÇÃO E DADOS
+❌ MIGRATION SAFETY - RISCO DE PERDA DE DADOS
+Problema: Sistema de migração sem rollback automático
+
+// server/db.ts - CRÍTICO
+const migrationQueries = [
+  `DO $$ BEGIN ... END $$;` // Sem transação com rollback
+];
+// FALTA: Backup antes de migration, rollback em falha
+Impacto: ALTO - Risco de corrupção de dados
+Urgência: CRÍTICA
+
+❌ TENANT ID VALIDATION GAPS
+Problema: Validação UUID inconsistente entre módulos
+
+// Alguns módulos validam UUID v4, outros aceitam qualquer formato
+const uuidRegex = /^[a-zA-Z0-9_-]+$/; // Muito permissivo
+Impacto: ALTO - Possível SQL injection
+Urgência: ALTA
+
+2. PROBLEMAS DE PERFORMANCE E ESCALABILIDADE
+⚠️ CACHE LRU STRATEGY DEFICIENTE
+Problema: Cache sem estratégia de eviction inteligente
+
+// SchemaManager - Limitação identificada
+private readonly MAX_CACHED_SCHEMAS = 50; // Sem LRU eviction
+private readonly CACHE_TTL = 5 * 60 * 1000; // TTL fixo
+Impacto: MÉDIO - Memory leaks em alta carga
+Urgência: MÉDIA
+
+⚠️ INDEXES FALTANDO PARA ANALYTICS
+Problema: Queries de dashboard sem indexes específicos
+
+-- MISSING: Indexes para queries frequentes
+CREATE INDEX IF NOT EXISTS activity_logs_recent_tenant_idx 
+ON tenant_schema.activity_logs (tenant_id, created_at DESC) 
+WHERE created_at >= NOW() - INTERVAL '7 days';
+Impacto: MÉDIO - Lentidão em dashboards
+Urgência: MÉDIA
+
+3. PROBLEMAS DE MONITORAMENTO E OBSERVABILIDADE
+❌ REAL-TIME ALERTING INEXISTENTE
+Problema: Sem alertas automáticos para degradação
+
+// EnterpriseMonitoring implementado mas incompleto
+// FALTA: Alertas para pool exhaustion, query timeout
+Impacto: ALTO - Blind spots operacionais
+Urgência: ALTA
+
+⚠️ TENANT USAGE ANALYTICS LIMITADO
+Problema: Métricas por tenant insuficientes
+
+// FALTA: Capacity planning, usage patterns
+Impacto: MÉDIO - Falta de insights para crescimento
+Urgência: BAIXA
+
+4. PROBLEMAS DE RESILÊNCIA E RECUPERAÇÃO
+⚠️ NEON HIBERNATION RECOVERY INCOMPLETO
+Problema: Recovery ainda pode causar timeouts
+
+# Logs mostram ainda ocorrem:
+[Uncaught Exception] error: terminating connection due to administrator command
+Impacto: MÉDIO - Timeouts de 15-30s ocasionais
+Urgência: ALTA
+
+❌ CONNECTION LEAK DETECTION AUSENTE
+Problema: Sem monitoramento de vazamentos por tenant
+
+// ConnectionPoolManager não detecta leaks específicos por tenant
+Impacato: MÉDIO - Degradação gradual
+Urgência: MÉDIA
+
+5. PROBLEMAS DE RECURSOS E QUOTAS
+❌ TENANT RESOURCE LIMITS NÃO IMPLEMENTADOS
+Problema: Sem limites de recursos por tenant
+
+// FALTA: Quotas para CPU/Memory/Connections por tenant
+Impacto: MÉDIO - Fair usage não garantido
+Urgência: MÉDIA
+
+⚠️ CAPACITY PLANNING AUSENTE
+Problema: Sem previsão de crescimento
+
+// FALTA: Forecasting automático de recursos
+Impacto: BAIXO - Planejamento reativo
+Urgência: BAIXA
+
+6. ANÁLISE DE LOGS DE PRODUÇÃO - PADRÕES IDENTIFICADOS
+Status das Conexões:
+✅ [SchemaManager] ✅ Schema tenant_*_validation passed (4 tenants)
+✅ [Stability] Connection cleanup completed
+⚠️ [ViteStability] Stale connection cleanup (comportamento esperado)

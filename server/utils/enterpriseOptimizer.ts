@@ -260,6 +260,12 @@ export class EnterpriseOptimizer {
       await this.optimizeQueryPerformance();
       await this.setupMigrationSafety();
       
+      // CORREÇÕES CRÍTICAS ADICIONAIS
+      await this.initializeRealTimeAlerting();
+      await this.setupTenantResourceManagement();
+      await this.enhanceUUIDValidation();
+      await this.setupIntelligentCaching();
+      
       console.log('✅ [EnterpriseOptimizer] All enterprise optimizations completed successfully');
     } catch (error) {
       console.error('❌ [EnterpriseOptimizer] Failed to complete optimizations:', error);
@@ -324,6 +330,82 @@ export class EnterpriseOptimizer {
       console.log('✅ Migration safety protocols established');
     } catch (error) {
       console.error('[EnterpriseOptimizer] Failed to setup migration safety:', error);
+    }
+  }
+
+  // ===========================
+  // NOVAS CORREÇÕES CRÍTICAS ADICIONAIS
+  // ===========================
+
+  private async initializeRealTimeAlerting(): Promise<void> {
+    try {
+      console.log('[EnterpriseOptimizer] Initializing real-time alerting system...');
+      
+      const { enterpriseRealTimeAlerting } = await import('../database/EnterpriseRealTimeAlerting');
+      enterpriseRealTimeAlerting.startContinuousAlerting();
+      
+      console.log('✅ Real-time alerting system activated');
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to initialize alerting:', error);
+    }
+  }
+
+  private async setupTenantResourceManagement(): Promise<void> {
+    try {
+      console.log('[EnterpriseOptimizer] Setting up tenant resource management...');
+      
+      const { tenantResourceManager } = await import('../database/TenantResourceManager');
+      
+      // Initialize default quotas for all tenants
+      const tenantSchemas = await this.getAllTenantSchemas();
+      for (const schema of tenantSchemas) {
+        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        tenantResourceManager.setTenantQuota(tenantId, 'enterprise'); // Default to enterprise
+      }
+      
+      console.log('✅ Tenant resource management configured');
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to setup tenant resource management:', error);
+    }
+  }
+
+  private async enhanceUUIDValidation(): Promise<void> {
+    try {
+      console.log('[EnterpriseOptimizer] Enhancing UUID validation across system...');
+      
+      const { enhancedUUIDValidator } = await import('../database/EnhancedUUIDValidator');
+      
+      // Validate all existing tenant IDs
+      const tenantSchemas = await this.getAllTenantSchemas();
+      const tenantIds = tenantSchemas.map(schema => schema.replace('tenant_', '').replace(/_/g, '-'));
+      
+      const validation = enhancedUUIDValidator.validateMultipleTenantIds(tenantIds);
+      
+      if (validation.invalid.length > 0) {
+        console.warn(`[EnterpriseOptimizer] Found ${validation.invalid.length} invalid tenant IDs:`, validation.invalid);
+      }
+      
+      console.log(`✅ UUID validation enhanced: ${validation.valid.length}/${validation.summary.total} valid tenant IDs`);
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to enhance UUID validation:', error);
+    }
+  }
+
+  private async setupIntelligentCaching(): Promise<void> {
+    try {
+      console.log('[EnterpriseOptimizer] Setting up intelligent caching system...');
+      
+      const { globalCacheManager } = await import('../database/IntelligentCacheManager');
+      
+      // Create specific caches for different data types
+      globalCacheManager.getCache('tenant-schemas', 50, 60); // 1 hour TTL
+      globalCacheManager.getCache('tenant-metrics', 100, 10); // 10 minutes TTL
+      globalCacheManager.getCache('query-results', 200, 5); // 5 minutes TTL
+      globalCacheManager.getCache('resource-quotas', 50, 30); // 30 minutes TTL
+      
+      console.log('✅ Intelligent caching system configured');
+    } catch (error) {
+      console.error('[EnterpriseOptimizer] Failed to setup intelligent caching:', error);
     }
   }
 }
