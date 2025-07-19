@@ -263,7 +263,7 @@ export default function SaasAdminIntegrations() {
       {/* Integrações Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {integrations.map((integration) => {
-          const IconComponent = integration.icon;
+          const IconComponent = integration.icon || Plug; // Fallback para Plug se icon for undefined
           return (
             <Card key={integration.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>

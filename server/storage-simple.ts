@@ -73,6 +73,9 @@ export interface IStorage {
 
   // Locations
   getLocation(id: string, tenantId: string): Promise<Location | null>;
+  
+  // Tenant Integrations
+  getTenantIntegrations(tenantId: string): Promise<any[]>;
   getLocations(tenantId: string, limit?: number, offset?: number): Promise<Location[]>;
   createLocation(data: InsertLocation): Promise<Location>;
   
@@ -517,6 +520,52 @@ export class DrizzleStorage implements IStorage {
   }
 
   // Removed: External Contacts implementation - functionality eliminated from system
+
+  // Tenant Integrations
+  async getTenantIntegrations(tenantId: string): Promise<any[]> {
+    try {
+      // Simple tenant ID validation
+      if (!tenantId || !tenantId.match(/^[a-f0-9-]{36}$/)) {
+        throw new Error('Invalid tenant ID format');
+      }
+      
+      // Return OAuth2 integrations with Gmail and Outlook
+      const defaultIntegrations = [
+        {
+          id: 'gmail-oauth2',
+          name: 'Gmail OAuth2',
+          category: 'Comunicação',
+          description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
+          status: 'disconnected',
+          configured: false,
+          features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
+        },
+        {
+          id: 'outlook-oauth2',
+          name: 'Outlook OAuth2',
+          category: 'Comunicação', 
+          description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
+          status: 'disconnected',
+          configured: false,
+          features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
+        },
+        {
+          id: 'email-smtp',
+          name: 'Email SMTP',
+          category: 'Comunicação',
+          description: 'Configuração de servidor SMTP para envio de emails automáticos',
+          status: 'disconnected',
+          configured: false,
+          features: ['SMTP Configuration', 'Email Notifications', 'Automated Reports']
+        }
+      ];
+      
+      return defaultIntegrations;
+    } catch (error) {
+      console.error('Error getting tenant integrations:', error);
+      throw error;
+    }
+  }
 
   // Locations - Using direct SQL with tenant schema
   async getLocation(id: string, tenantId: string): Promise<Location | null> {

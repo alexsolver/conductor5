@@ -37,10 +37,14 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const integrationConfigSchema = z.object({
-  apiKey: z.string().min(1, "API Key é obrigatória").optional(),
+  apiKey: z.string().optional(),
   apiSecret: z.string().optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  redirectUri: z.string().url("URL de redirecionamento deve ser válida").optional(),
   webhookUrl: z.string().url("URL deve ser válida").optional(),
   accessToken: z.string().optional(),
+  refreshToken: z.string().optional(),
   enabled: z.boolean().default(true),
   settings: z.record(z.any()).optional()
 });
@@ -91,8 +95,12 @@ export default function TenantAdminIntegrations() {
     defaultValues: {
       apiKey: "",
       apiSecret: "",
+      clientId: "",
+      clientSecret: "",
+      redirectUri: "",
       webhookUrl: "",
       accessToken: "",
+      refreshToken: "",
       enabled: true,
       settings: {}
     }
@@ -140,6 +148,26 @@ export default function TenantAdminIntegrations() {
   });
 
   const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations || [
+    {
+      id: 'gmail-oauth2',
+      name: 'Gmail OAuth2',
+      category: 'Comunicação',
+      description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
+      icon: Mail,
+      status: 'disconnected',
+      configured: false,
+      features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
+    },
+    {
+      id: 'outlook-oauth2',
+      name: 'Outlook OAuth2',
+      category: 'Comunicação',
+      description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
+      icon: Mail,
+      status: 'disconnected',
+      configured: false,
+      features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
+    },
     {
       id: 'email-smtp',
       name: 'Email SMTP',
@@ -277,6 +305,34 @@ export default function TenantAdminIntegrations() {
       configForm.reset(integration.config);
     }
     setIsConfigDialogOpen(true);
+  };
+
+  // Função para iniciar fluxo OAuth2
+  const startOAuthFlow = async (integration: TenantIntegration) => {
+    try {
+      const response = await apiRequest(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
+        method: 'POST',
+        body: JSON.stringify({
+          clientId: 'your-client-id', // This would come from form data
+          redirectUri: window.location.origin + `/auth/${integration.id}/callback`
+        })
+      });
+      
+      if (response.authUrl) {
+        // Open OAuth2 URL in new window
+        window.open(response.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
+        toast({
+          title: "OAuth2 Iniciado",
+          description: "Janela de autorização aberta. Complete o processo de login.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro OAuth2",
+        description: error.message || "Erro ao iniciar fluxo OAuth2",
+        variant: "destructive",
+      });
+    }
   };
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
@@ -430,11 +486,23 @@ export default function TenantAdminIntegrations() {
                           Configurar
                         </Button>
                         
+                        {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={() => startOAuthFlow(integration)}
+                            className="flex-1"
+                          >
+                            <Key className="h-4 w-4 mr-1" />
+                            OAuth2
+                          </Button>
+                        )}
+                        
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => testIntegrationMutation.mutate(integration.id)}
-                          disabled={!integration.configured || testIntegrationMutation.isPending}
+                          disabled={testIntegrationMutation.isPending}
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
                           Testar
@@ -466,6 +534,135 @@ export default function TenantAdminIntegrations() {
           
           <Form {...configForm}>
             <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
+              {selectedIntegration?.id === 'gmail-oauth2' && (
+                <>
+                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Configuração OAuth2 Gmail</h4>
+                    <p className="text-sm text-blue-700">
+                      Configure as credenciais OAuth2 do Google Cloud Console para integração segura com Gmail.
+                    </p>
+                  </div>
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="clientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client ID *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="123456789-abc.apps.googleusercontent.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="clientSecret"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client Secret *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="GOCSPX-..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="redirectUri"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Redirect URI</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://seudominio.com/auth/gmail/callback" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {selectedIntegration?.id === 'outlook-oauth2' && (
+                <>
+                  <div className="bg-orange-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-medium text-orange-900 mb-2">Configuração OAuth2 Outlook</h4>
+                    <p className="text-sm text-orange-700">
+                      Configure as credenciais OAuth2 do Azure AD para integração com Microsoft Outlook/Exchange.
+                    </p>
+                  </div>
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="clientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Application (Client) ID *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12345678-1234-1234-1234-123456789012" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="clientSecret"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client Secret *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="abc~123..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="redirectUri"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Redirect URI</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://seudominio.com/auth/outlook/callback" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="settings.tenantId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tenant ID (Opcional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="87654321-4321-4321-4321-210987654321" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
               {selectedIntegration?.id === 'email-smtp' && (
                 <>
                   <FormField
