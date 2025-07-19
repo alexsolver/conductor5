@@ -463,7 +463,7 @@ export default function TenantAdminIntegrations() {
 
         const formValues = {
           enabled: config.enabled === true,
-          useSSL: config.useSSL === true,
+          useSSL: config.useSSL !== false, // Default to true
           apiKey: config.apiKey || '',
           apiSecret: config.apiSecret || '',
           webhookUrl: config.webhookUrl || '',
@@ -472,11 +472,12 @@ export default function TenantAdminIntegrations() {
           redirectUri: config.redirectUri || '',
           tenantId: config.tenantId || '',
           serverHost: config.serverHost || config.imapServer || '',
-          serverPort: config.serverPort || (config.imapPort ? config.imapPort.toString() : '993'),
+          serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
           username: config.username || config.emailAddress || '',
           password: config.password || '',
           imapServer: config.imapServer || 'imap.gmail.com',
           imapPort: config.imapPort ? config.imapPort.toString() : '993',
+          imapSecurity: config.imapSecurity || 'SSL/TLS',
           emailAddress: config.emailAddress || '',
           dropboxAppKey: config.dropboxAppKey || '',
           dropboxAppSecret: config.dropboxAppSecret || '',
@@ -589,11 +590,15 @@ export default function TenantAdminIntegrations() {
           ...data,
           // Garantir que campos IMAP estejam presentes
           imapServer: data.imapServer || 'imap.gmail.com',
-          imapPort: parseInt(data.imapPort) || 993,
+          imapPort: parseInt(data.imapPort || '993') || 993,
           emailAddress: data.emailAddress || '',
           password: data.password || '',
           useSSL: data.useSSL !== false,
-          enabled: data.enabled === true
+          enabled: data.enabled === true,
+          // Manter compatibilidade com outros campos
+          serverHost: data.imapServer || 'imap.gmail.com',
+          serverPort: parseInt(data.imapPort || '993') || 993,
+          username: data.emailAddress || ''
         };
       }
       saveConfigMutation.mutate({
@@ -1057,6 +1062,27 @@ export default function TenantAdminIntegrations() {
                           <FormLabel>Senha do Email</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="Senha ou App Password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="imapSecurity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Segurança</FormLabel>
+                          <FormControl>
+                            <select 
+                              {...field} 
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              <option value="SSL/TLS">SSL/TLS (Porta 993)</option>
+                              <option value="STARTTLS">STARTTLS (Porta 143)</option>
+                              <option value="None">Sem criptografia (Porta 143)</option>
+                            </select>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
