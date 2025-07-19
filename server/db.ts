@@ -327,6 +327,41 @@ export class SchemaManager {
     }
   }
 
+  // Create integrations table for a specific schema
+  private async createIntegrationsTable(schemaName: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.integrations (
+          id VARCHAR(255) PRIMARY KEY,
+          tenant_id VARCHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          category VARCHAR(100),
+          icon VARCHAR(100),
+          status VARCHAR(50) DEFAULT 'disconnected',
+          config JSONB DEFAULT '{}',
+          features TEXT[],
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT integrations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS integrations_tenant_category_idx ON ${schemaId}.integrations (tenant_id, category)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS integrations_tenant_status_idx ON ${schemaId}.integrations (tenant_id, status)
+      `);
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to create integrations table in schema ${schemaName}`, error);
+      throw error;
+    }
+  }
+
   // CRITICAL: Insert sample favorecidos data
   private async insertSampleFavorecidos(schemaName: string, tenantId: string): Promise<void> {
     const schemaId = sql.identifier(schemaName);
@@ -392,10 +427,10 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'ticket_templates')
+        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations')
       `);
 
-      return (result.rows[0]?.table_count as number) >= 13;
+      return (result.rows[0]?.table_count as number) >= 14;
     } catch {
       return false;
     }
@@ -416,6 +451,14 @@ export class SchemaManager {
         await this.insertSampleFavorecidos(schemaName, tenantId);
         const { logInfo } = await import('./utils/logger');
         logInfo(`Favorecidos table created for schema ${schemaName}`);
+      }
+      
+      // CRITICAL: Check if integrations table exists and create if missing
+      const integrationsExists = await this.checkTableExists(schemaName, 'integrations');
+      if (!integrationsExists) {
+        await this.createIntegrationsTable(schemaName);
+        const { logInfo } = await import('./utils/logger');
+        logInfo(`Integrations table created for schema ${schemaName}`);
       }
       
       return; // Tables already exist, migration complete
@@ -946,6 +989,32 @@ export class SchemaManager {
         CREATE INDEX IF NOT EXISTS templates_tenant_active_idx ON ${schemaId}.ticket_templates (tenant_id, is_active)
       `);
 
+      // CRITICAL FIX: Integrations table with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.integrations (
+          id VARCHAR(255) PRIMARY KEY,
+          tenant_id VARCHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          category VARCHAR(100),
+          icon VARCHAR(100),
+          status VARCHAR(50) DEFAULT 'disconnected',
+          config JSONB DEFAULT '{}',
+          features TEXT[],
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT integrations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for integrations
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS integrations_tenant_category_idx ON ${schemaId}.integrations (tenant_id, category)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS integrations_tenant_status_idx ON ${schemaId}.integrations (tenant_id, status)
+      `);
+
       // ===========================
       // CRITICAL: CREATE ALL PERFORMANCE INDEXES
       // ===========================
@@ -1252,11 +1321,12 @@ export class SchemaManager {
         return false;
       }
 
-      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 12 TABELAS CRÍTICAS)
+      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 15 TABELAS CRÍTICAS)
       const requiredTables = [
         'customers', 'tickets', 'ticket_messages', 'activity_logs',
         'locations', 'customer_companies', 'skills', 'certifications',
-        'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships'
+        'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships',
+        'integrations', 'favorecido_locations'
       ];
 
       const tableResult = await db.execute(sql`
@@ -1264,7 +1334,7 @@ export class SchemaManager {
                COUNT(column_name) as column_count
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations')
         GROUP BY table_name
       `);
 
@@ -1283,7 +1353,7 @@ export class SchemaManager {
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
         AND column_name = 'tenant_id'
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations')
       `);
 
       const tablesWithTenantId = new Set(tenantIdValidation.rows.map(row => row.table_name as string));

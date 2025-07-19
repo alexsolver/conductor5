@@ -1010,6 +1010,7 @@ export class DatabaseStorage implements IStorage {
       await tenantDb.execute(sql`
         CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.integrations (
           id VARCHAR(255) PRIMARY KEY,
+          tenant_id VARCHAR(36) NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
           category VARCHAR(100),
@@ -1018,7 +1019,8 @@ export class DatabaseStorage implements IStorage {
           config JSONB DEFAULT '{}',
           features TEXT[],
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT integrations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
       `);
 
