@@ -17,17 +17,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// ENTERPRISE GRADE: Production-optimized pool settings for high availability
+// CRITICAL STABILITY FIX: Enhanced pool configuration to prevent administrator command termination
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 8, // FIXED: Increased for production load
-  min: 2, // Minimum healthy connections
-  idleTimeoutMillis: 120000, // 2 minutes - balanced timeout
-  connectionTimeoutMillis: 30000, // FIXED: Adequate timeout for production
-  acquireTimeoutMillis: 45000, // Sufficient acquire timeout
+  max: 3, // STABILITY: Reduced to prevent overload
+  min: 1, // Minimum connections
+  idleTimeoutMillis: 30000, // 30 seconds - prevent idle termination
+  connectionTimeoutMillis: 15000, // 15 seconds - faster timeout
+  acquireTimeoutMillis: 20000, // 20 seconds acquire timeout
   keepAlive: true,
-  maxUses: 1000, // Higher reuse for efficiency
-  allowExitOnIdle: false
+  maxUses: 200, // STABILITY: Reduced reuse to force fresh connections
+  allowExitOnIdle: false,
+  maxLifetimeSeconds: 180 // 3 minutes max lifetime for connection refresh
 });
 
 // Main database instance for tenant management and shared resources
