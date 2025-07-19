@@ -357,6 +357,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const ticketTemplatesRoutes = (await import('./routes/ticketTemplates')).default;
   app.use('/api/templates', ticketTemplatesRoutes);
 
+  // Email Templates routes  
+  const { emailTemplatesRouter } = await import('./routes/emailTemplates');
+  app.use('/api/email-templates', emailTemplatesRouter);
+
   // All routes now handled by dedicated microservices
 
   const httpServer = createServer(app);

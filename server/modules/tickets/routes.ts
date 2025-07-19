@@ -267,4 +267,179 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
   }
 });
 
+// === TICKET MODALS ENDPOINTS ===
+
+// Get ticket attachments
+ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Placeholder - return empty array for now
+    res.json([]);
+  } catch (error) {
+    console.error("Error fetching attachments:", error);
+    res.status(500).json({ message: "Failed to fetch attachments" });
+  }
+});
+
+// Upload ticket attachment
+ticketsRouter.post('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Placeholder - return success for now
+    res.json({ success: true, message: "Attachment uploaded successfully" });
+  } catch (error) {
+    console.error("Error uploading attachment:", error);
+    res.status(500).json({ message: "Failed to upload attachment" });
+  }
+});
+
+// Delete ticket attachment
+ticketsRouter.delete('/:id/attachments/:attachmentId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Placeholder - return success for now
+    res.json({ success: true, message: "Attachment deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting attachment:", error);
+    res.status(500).json({ message: "Failed to delete attachment" });
+  }
+});
+
+// Get ticket actions
+ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Placeholder - return empty array for now
+    res.json([]);
+  } catch (error) {
+    console.error("Error fetching actions:", error);
+    res.status(500).json({ message: "Failed to fetch actions" });
+  }
+});
+
+// Create ticket action
+ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { content, is_public } = req.body;
+
+    // Validate required fields
+    if (!content) {
+      return res.status(400).json({ message: "Content is required" });
+    }
+
+    // Placeholder - return success for now
+    res.json({ 
+      success: true, 
+      message: "Action created successfully",
+      action: {
+        id: Date.now().toString(),
+        content,
+        isPublic: is_public || false,
+        createdBy: req.user.id,
+        createdByName: req.user.name || req.user.email,
+        createdAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error("Error creating action:", error);
+    res.status(500).json({ message: "Failed to create action" });
+  }
+});
+
+// Get ticket emails
+ticketsRouter.get('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Placeholder - return empty array for now
+    res.json([]);
+  } catch (error) {
+    console.error("Error fetching emails:", error);
+    res.status(500).json({ message: "Failed to fetch emails" });
+  }
+});
+
+// Send ticket email
+ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { to, subject, content } = req.body;
+
+    // Validate required fields
+    if (!to || !subject || !content) {
+      return res.status(400).json({ message: "To, subject, and content are required" });
+    }
+
+    // Placeholder - return success for now
+    res.json({ success: true, message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Failed to send email" });
+  }
+});
+
+// Get ticket history
+ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    // Placeholder - return sample data
+    const sampleHistory = [
+      {
+        id: "1",
+        type: "status_change",
+        action: "Status alterado",
+        description: "Status alterado de 'Aberto' para 'Em Progresso'",
+        actor: req.user.id,
+        actorName: req.user.name || req.user.email,
+        actorType: "user",
+        oldValue: "open",
+        newValue: "in_progress",
+        fieldName: "status",
+        isPublic: true,
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: "2",
+        type: "comment",
+        action: "Comentário adicionado",
+        description: "Agente adicionou uma nova observação ao ticket",
+        actor: req.user.id,
+        actorName: req.user.name || req.user.email,
+        actorType: "user",
+        isPublic: false,
+        createdAt: new Date(Date.now() - 7200000).toISOString()
+      }
+    ];
+
+    res.json(sampleHistory);
+  } catch (error) {
+    console.error("Error fetching history:", error);
+    res.status(500).json({ message: "Failed to fetch history" });
+  }
+});
+
 export { ticketsRouter };

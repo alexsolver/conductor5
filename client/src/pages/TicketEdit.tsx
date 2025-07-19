@@ -20,6 +20,11 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
+import AttachmentsModal from "@/components/tickets/AttachmentsModal";
+import InternalActionModal from "@/components/tickets/InternalActionModal";
+import EmailHistoryModal from "@/components/tickets/EmailHistoryModal";
+import TicketHistoryModal from "@/components/tickets/TicketHistoryModal";
+import ApprovalRequestModal from "@/components/tickets/ApprovalRequestModal";
 
 // Form schema
 const ticketFormSchema = z.object({
@@ -71,6 +76,11 @@ export default function TicketEdit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
+  const [isAttachmentsModalOpen, setIsAttachmentsModalOpen] = useState(false);
+  const [isInternalActionModalOpen, setIsInternalActionModalOpen] = useState(false);
+  const [isEmailHistoryModalOpen, setIsEmailHistoryModalOpen] = useState(false);
+  const [isTicketHistoryModalOpen, setIsTicketHistoryModalOpen] = useState(false);
+  const [isApprovalRequestModalOpen, setIsApprovalRequestModalOpen] = useState(false);
 
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({
@@ -1194,6 +1204,7 @@ export default function TicketEdit() {
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                         title="Anexos"
+                        onClick={() => setIsAttachmentsModalOpen(true)}
                       >
                         <Paperclip className="w-6 h-6 text-blue-600" />
                         <span className="text-xs text-gray-700">Anexos</span>
@@ -1203,6 +1214,7 @@ export default function TicketEdit() {
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                         title="Ação Interna"
+                        onClick={() => setIsInternalActionModalOpen(true)}
                       >
                         <MessageSquare className="w-6 h-6 text-green-600" />
                         <span className="text-xs text-gray-700">Ação Interna</span>
@@ -1212,6 +1224,7 @@ export default function TicketEdit() {
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                         title="E-mail"
+                        onClick={() => setIsEmailHistoryModalOpen(true)}
                       >
                         <Mail className="w-6 h-6 text-purple-600" />
                         <span className="text-xs text-gray-700">E-mail</span>
@@ -1221,6 +1234,7 @@ export default function TicketEdit() {
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                         title="Pedidos de aprovação"
+                        onClick={() => setIsApprovalRequestModalOpen(true)}
                       >
                         <FileCheck className="w-6 h-6 text-orange-600" />
                         <span className="text-xs text-gray-700">Pedidos de aprovação</span>
@@ -1230,6 +1244,7 @@ export default function TicketEdit() {
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                         title="Histórico"
+                        onClick={() => setIsTicketHistoryModalOpen(true)}
                       >
                         <History className="w-6 h-6 text-indigo-600" />
                         <span className="text-xs text-gray-700">Histórico</span>
@@ -1309,11 +1324,41 @@ export default function TicketEdit() {
         </div>
       </div>
 
-      {/* Ticket Linking Modal */}
+      {/* All Modals */}
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
         currentTicket={ticket}
+      />
+      
+      <AttachmentsModal
+        ticketId={id!}
+        isOpen={isAttachmentsModalOpen}
+        onClose={() => setIsAttachmentsModalOpen(false)}
+      />
+      
+      <InternalActionModal
+        ticketId={id!}
+        isOpen={isInternalActionModalOpen}
+        onClose={() => setIsInternalActionModalOpen(false)}
+      />
+      
+      <EmailHistoryModal
+        ticketId={id!}
+        isOpen={isEmailHistoryModalOpen}
+        onClose={() => setIsEmailHistoryModalOpen(false)}
+      />
+      
+      <TicketHistoryModal
+        ticketId={id!}
+        isOpen={isTicketHistoryModalOpen}
+        onClose={() => setIsTicketHistoryModalOpen(false)}
+      />
+      
+      <ApprovalRequestModal
+        ticketId={id!}
+        isOpen={isApprovalRequestModalOpen}
+        onClose={() => setIsApprovalRequestModalOpen(false)}
       />
     </div>
   );
