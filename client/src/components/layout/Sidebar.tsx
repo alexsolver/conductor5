@@ -88,7 +88,7 @@ const adminNavigation = [
       { name: "Templates de Abertura", href: "/ticket-templates", icon: FileText },
       { name: "Gestão de Solicitantes", href: "/tenant-admin/solicitantes", icon: Users },
       { name: "Gestão de Favorecidos", href: "/tenant-admin/favorecidos", icon: UserCheck },
-
+      { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
@@ -266,7 +266,7 @@ export function Sidebar() {
           )}
 
           <div className="pt-4 mt-4 border-t border-white border-opacity-20">
-            
+
               <Link key="Aparência" href="/layouts">
                 <div className={cn(
                   "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
@@ -281,7 +281,7 @@ export function Sidebar() {
                   Aparência
                 </div>
               </Link>
-            
+
             {secondaryNavigation.map((item) => {
               const isActive = location === item.href;
               return (

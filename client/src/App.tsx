@@ -42,6 +42,7 @@ import { UserManagement } from "./pages/UserManagement";
 // Removed: MultiTenantManagement - functionality eliminated from system
 import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
+import InternalForms from './pages/InternalForms';
 import CustomerCompanies from "./pages/CustomerCompanies";
 import TechnicalSkills from "./pages/TechnicalSkills";
 import TicketTemplates from "./pages/TicketTemplates";

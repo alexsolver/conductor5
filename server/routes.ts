@@ -17,6 +17,7 @@ import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
 import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
+import internalFormsRoutes from './modules/internal-forms/routes';
 // Removed: external-contacts routes - functionality eliminated
 import locationRoutes from './routes/locationRoutes';
 import ticketRelationshipsRoutes from './routes/ticketRelationships';
@@ -347,19 +348,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
-
-  // Removed: External Contacts routes - functionality eliminated
-
-  // Location routes
+  app.use('/api/internal-forms', internalFormsRoutes);
   app.use('/api/locations', locationRoutes);
 
   // Ticket Templates routes
   const ticketTemplatesRoutes = (await import('./routes/ticketTemplates')).default;
   app.use('/api/templates', ticketTemplatesRoutes);
+  app.use('/api/auth', authRoutes);
 
   // Email Templates routes  
   const { emailTemplatesRouter } = await import('./routes/emailTemplates');
   app.use('/api/email-templates', emailTemplatesRouter);
+
+  // Removed: External Contacts routes - functionality eliminated
+
+  // Location routes
 
   // All routes now handled by dedicated microservices
 
