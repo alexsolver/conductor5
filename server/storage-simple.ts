@@ -361,6 +361,11 @@ export class DrizzleStorage implements IStorage {
 
   async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const id = crypto.randomUUID();
       
@@ -387,26 +392,37 @@ export class DrizzleStorage implements IStorage {
 
   async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
     try {
+      // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
+      const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
+        throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const updates = [];
-      if (data.firstName !== undefined) updates.push(`first_name = '${data.firstName}'`);
-      if (data.lastName !== undefined) updates.push(`last_name = '${data.lastName}'`);
-      if (data.email !== undefined) updates.push(`email = '${data.email}'`);
-      if (data.phone !== undefined) updates.push(`phone = '${data.phone}'`);
-      if (data.company !== undefined) updates.push(`company = '${data.company}'`);
-      if (data.cpfCnpj !== undefined) updates.push(`cpf_cnpj = '${data.cpfCnpj}'`);
-      if (data.contactType !== undefined) updates.push(`contact_type = '${data.contactType}'`);
-      if (data.relationship !== undefined) updates.push(`relationship = '${data.relationship}'`);
-      if (data.preferredContactMethod !== undefined) updates.push(`preferred_contact_method = '${data.preferredContactMethod}'`);
-      if (data.notes !== undefined) updates.push(`notes = '${data.notes}'`);
-      if (data.isActive !== undefined) updates.push(`is_active = ${data.isActive}`);
+      // CRITICAL SECURITY FIX: Use parameterized queries for all favorecido updates
+      const setParts = [];
+      if (data.firstName !== undefined) setParts.push(sql`first_name = ${data.firstName}`);
+      if (data.lastName !== undefined) setParts.push(sql`last_name = ${data.lastName}`);
+      if (data.email !== undefined) setParts.push(sql`email = ${data.email}`);
+      if (data.phone !== undefined) setParts.push(sql`phone = ${data.phone}`);
+      if (data.company !== undefined) setParts.push(sql`company = ${data.company}`);
+      if (data.cpfCnpj !== undefined) setParts.push(sql`cpf_cnpj = ${data.cpfCnpj}`);
+      if (data.contactType !== undefined) setParts.push(sql`contact_type = ${data.contactType}`);
+      if (data.relationship !== undefined) setParts.push(sql`relationship = ${data.relationship}`);
+      if (data.preferredContactMethod !== undefined) setParts.push(sql`preferred_contact_method = ${data.preferredContactMethod}`);
+      if (data.notes !== undefined) setParts.push(sql`notes = ${data.notes}`);
+      if (data.isActive !== undefined) setParts.push(sql`is_active = ${data.isActive}`);
       
-      updates.push('updated_at = NOW()');
+      if (setParts.length === 0) {
+        return this.getFavorecido(id, tenantId); // No updates to perform
+      }
+      
+      setParts.push(sql`updated_at = NOW()`);
       
       await db.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.favorecidos 
-        SET ${sql.raw(updates.join(', '))}
+        SET ${sql.join(setParts, sql`, `)}
         WHERE tenant_id = ${tenantId} AND id = ${id}
       `);
       
@@ -608,8 +624,9 @@ export class DrizzleStorage implements IStorage {
         throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
       }
       
-      // Return OAuth2 integrations with Gmail and Outlook
+      // Return complete integrations with all 5 categories (Comunicação, Automação, Dados, Segurança, Produtividade)
       const defaultIntegrations = [
+        // Comunicação
         {
           id: 'gmail-oauth2',
           name: 'Gmail OAuth2',
@@ -636,6 +653,100 @@ export class DrizzleStorage implements IStorage {
           status: 'disconnected',
           configured: false,
           features: ['SMTP Configuration', 'Email Notifications', 'Automated Reports']
+        },
+        {
+          id: 'whatsapp-business',
+          name: 'WhatsApp Business',
+          category: 'Comunicação',
+          description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
+          status: 'disconnected',
+          configured: false,
+          features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
+        },
+        {
+          id: 'slack',
+          name: 'Slack',
+          category: 'Comunicação',
+          description: 'Notificações e gerenciamento de tickets através do Slack',
+          status: 'disconnected',
+          configured: false,
+          features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
+        },
+        {
+          id: 'twilio-sms',
+          name: 'Twilio SMS',
+          category: 'Comunicação',
+          description: 'Envio de SMS para notificações e alertas importantes',
+          status: 'disconnected',
+          configured: false,
+          features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
+        },
+        // Automação
+        {
+          id: 'zapier',
+          name: 'Zapier',
+          category: 'Automação',
+          description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
+          status: 'disconnected',
+          configured: false,
+          features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
+        },
+        {
+          id: 'webhooks',
+          name: 'Webhooks',
+          category: 'Automação',
+          description: 'Configure webhooks personalizados para eventos do sistema',
+          status: 'disconnected',
+          configured: false,
+          features: ['Eventos em tempo real', 'Payload customizável', 'Retry automático']
+        },
+        // Dados
+        {
+          id: 'google-analytics',
+          name: 'Google Analytics',
+          category: 'Dados',
+          description: 'Rastreamento e análise de performance do atendimento',
+          status: 'disconnected',
+          configured: false,
+          features: ['Métricas de conversão', 'Funis de atendimento', 'Relatórios customizados']
+        },
+        {
+          id: 'crm-integration',
+          name: 'CRM Integration',
+          category: 'Dados',
+          description: 'Sincronização bidirecional com seu sistema CRM',
+          status: 'disconnected',
+          configured: false,
+          features: ['Sync automático', 'Campos customizados', 'Histórico completo']
+        },
+        // Segurança
+        {
+          id: 'sso-saml',
+          name: 'SSO/SAML',
+          category: 'Segurança',
+          description: 'Single Sign-On com provedores SAML para login corporativo',
+          status: 'disconnected',
+          configured: false,
+          features: ['Login corporativo', 'Múltiplos provedores', 'Controle de acesso']
+        },
+        // Produtividade
+        {
+          id: 'google-workspace',
+          name: 'Google Workspace',
+          category: 'Produtividade',
+          description: 'Integração com Gmail, Calendar e Drive para produtividade',
+          status: 'disconnected',
+          configured: false,
+          features: ['Sincronização de calendário', 'Anexos do Drive', 'Emails corporativos']
+        },
+        {
+          id: 'chatbot-ia',
+          name: 'Chatbot IA',
+          category: 'Produtividade',
+          description: 'Chatbot inteligente com IA para atendimento automatizado',
+          status: 'disconnected',
+          configured: false,
+          features: ['Respostas automáticas', 'Aprendizado contínuo', 'Escalação inteligente']
         }
       ];
       
