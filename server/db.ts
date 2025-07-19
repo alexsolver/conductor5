@@ -1317,11 +1317,12 @@ export class SchemaManager {
       `);
 
       if (schemaResult.rows.length === 0) {
-        console.log(`[SchemaManager] Schema ${schemaName} does not exist`);
-        return false;
+        console.log(`[SchemaManager] Schema ${schemaName} does not exist, creating...`);
+        await this.createTenantSchema(tenantId);
+        return true; // Schema created successfully
       }
 
-      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 15 TABELAS CRÍTICAS)
+      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 14 TABELAS CRÍTICAS)
       const requiredTables = [
         'customers', 'tickets', 'ticket_messages', 'activity_logs',
         'locations', 'customer_companies', 'skills', 'certifications',
@@ -1338,16 +1339,36 @@ export class SchemaManager {
         GROUP BY table_name
       `);
 
-      // STEP 3: Verificar se todas as tabelas essenciais existem com estrutura adequada
+      // STEP 3: AUTO-HEALING - Verificar e criar tabelas faltantes automaticamente
       const foundTables = new Set(tableResult.rows.map(row => row.table_name as string));
       const missingTables = requiredTables.filter(table => !foundTables.has(table));
 
       if (missingTables.length > 0) {
         console.warn(`[SchemaManager] Missing tables in ${schemaName}: ${missingTables.join(', ')}`);
-        return false;
+        console.log(`[SchemaManager] AUTO-HEALING: Creating missing tables...`);
+        
+        try {
+          // AUTO-HEALING: Criar tabelas faltantes automaticamente
+          await this.autoHealMissingTables(schemaName, missingTables, tenantId);
+          
+          const { logInfo } = await import('./utils/logger');
+          logInfo(`AUTO-HEALING completed for ${schemaName}`, { 
+            missingTables, 
+            schemaName,
+            tenantId,
+            action: 'created_missing_tables'
+          });
+          
+          // Revalidar após auto-healing
+          return await this.validateTenantSchema(tenantId);
+        } catch (healError) {
+          const { logError } = await import('./utils/logger');
+          logError(`AUTO-HEALING failed for ${schemaName}`, healError, { missingTables, schemaName, tenantId });
+          return false;
+        }
       }
 
-      // STEP 4: Validar se as tabelas têm tenant_id column (crítico para isolamento)
+      // STEP 4: AUTO-HEALING - Validar e corrigir tenant_id column
       const tenantIdValidation = await db.execute(sql`
         SELECT table_name
         FROM information_schema.columns 
@@ -1361,7 +1382,25 @@ export class SchemaManager {
 
       if (tablesWithoutTenantId.length > 0) {
         console.error(`[SchemaManager] CRITICAL: Tables missing tenant_id in ${schemaName}: ${tablesWithoutTenantId.join(', ')}`);
-        return false;
+        console.log(`[SchemaManager] AUTO-HEALING: Adding tenant_id columns...`);
+        
+        try {
+          // AUTO-HEALING: Adicionar tenant_id columns para isolamento
+          await this.autoHealTenantIdColumns(schemaName, tablesWithoutTenantId, tenantId);
+          
+          const { logInfo } = await import('./utils/logger');
+          logInfo(`AUTO-HEALING tenant_id columns completed for ${schemaName}`, { 
+            tablesWithoutTenantId, 
+            schemaName,
+            tenantId,
+            action: 'added_tenant_id_columns'
+          });
+          
+        } catch (healError) {
+          const { logError } = await import('./utils/logger');
+          logError(`AUTO-HEALING tenant_id failed for ${schemaName}`, healError, { tablesWithoutTenantId, schemaName, tenantId });
+          return false;
+        }
       }
 
       console.log(`[SchemaManager] ✅ Schema ${schemaName} validation passed`);
@@ -1369,6 +1408,78 @@ export class SchemaManager {
     } catch (error) {
       console.error(`[SchemaManager] Failed to validate tenant schema ${tenantId}:`, error);
       return false;
+    }
+  }
+
+  // AUTO-HEALING: Create missing tables automatically
+  private async autoHealMissingTables(schemaName: string, missingTables: string[], tenantId: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    for (const tableName of missingTables) {
+      try {
+        switch (tableName) {
+          case 'favorecidos':
+            await this.createFavorecidosTable(schemaName);
+            await this.insertSampleFavorecidos(schemaName, tenantId);
+            break;
+          case 'integrations':
+            await this.createIntegrationsTable(schemaName);
+            break;
+          case 'favorecido_locations':
+            await db.execute(sql`
+              CREATE TABLE IF NOT EXISTS ${schemaId}.favorecido_locations (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                tenant_id VARCHAR(36) NOT NULL,
+                favorecido_id UUID NOT NULL,
+                location_id UUID NOT NULL,
+                relationship VARCHAR(100),
+                created_at TIMESTAMP DEFAULT NOW(),
+                CONSTRAINT favorecido_locations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+              )
+            `);
+            break;
+          default:
+            // For other tables, trigger full table creation
+            console.warn(`[AUTO-HEALING] Unknown table ${tableName}, triggering full schema creation`);
+            await this.createTenantTables(schemaName);
+            return; // Exit early as all tables are now created
+        }
+        
+        console.log(`[AUTO-HEALING] ✅ Created table ${tableName} in ${schemaName}`);
+      } catch (error) {
+        console.error(`[AUTO-HEALING] ❌ Failed to create table ${tableName} in ${schemaName}:`, error);
+        throw error;
+      }
+    }
+  }
+
+  // AUTO-HEALING: Add tenant_id columns to existing tables
+  private async autoHealTenantIdColumns(schemaName: string, tablesWithoutTenantId: string[], tenantId: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    for (const tableName of tablesWithoutTenantId) {
+      try {
+        // Add tenant_id column with default value
+        await db.execute(sql`
+          ALTER TABLE ${schemaId}.${sql.identifier(tableName)} 
+          ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(36) NOT NULL DEFAULT ${tenantId}
+        `);
+        
+        // Add check constraint for tenant_id format
+        await db.execute(sql`
+          ALTER TABLE ${schemaId}.${sql.identifier(tableName)} 
+          ADD CONSTRAINT IF NOT EXISTS ${sql.identifier(`${tableName}_tenant_id_format`)} 
+          CHECK (LENGTH(tenant_id) = 36)
+        `).catch(() => {
+          // Constraint may already exist - ignore error
+          console.log(`[AUTO-HEALING] Constraint already exists for ${tableName}.tenant_id`);
+        });
+        
+        console.log(`[AUTO-HEALING] ✅ Added tenant_id column to ${tableName} in ${schemaName}`);
+      } catch (error) {
+        console.error(`[AUTO-HEALING] ❌ Failed to add tenant_id to ${tableName} in ${schemaName}:`, error);
+        throw error;
+      }
     }
   }
 

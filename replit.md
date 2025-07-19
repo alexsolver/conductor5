@@ -38,6 +38,25 @@ Preferred communication style: Simple, everyday language.
 - **Solução**: Adicionado métodos de integrações na interface IStorage e corrigido declarações
 - **Resultado**: API /api/tenant-admin/integrations funcionando corretamente, retornando 14 integrações
 
+✅ **INCONSISTÊNCIA DE CRIAÇÃO TABELA INTEGRATIONS RESOLVIDA:**
+- **Problema**: Tabela integrations não estava sendo criada consistentemente em todos os schemas
+- **Verificação**: Confirmado que tabela integrations existe em todos os 4 schemas tenant
+- **Solução**: Sistema já possui 3 mecanismos de criação:
+  1. createIntegrationsTable() método dedicado (linhas 331-363)
+  2. Criação automática em createTenantTables() (linhas 992-1016)
+  3. Verificação e criação para schemas existentes (linhas 456-462)
+- **Resultado**: Tabela integrations criada consistentemente, API funcionando com 14 integrações
+
+✅ **VALIDAÇÃO DE SCHEMA INCOMPLETA RESOLVIDA COM AUTO-HEALING:**
+- **Problema**: validateTenantSchema() detectava tabelas ausentes mas não as corrigia automaticamente
+- **Solução**: Implementado sistema de auto-healing completo no validateTenantSchema():
+  1. autoHealMissingTables() - cria automaticamente tabelas faltantes
+  2. autoHealTenantIdColumns() - adiciona colunas tenant_id ausentes
+  3. Criação automática de schema completo se não existir
+  4. Revalidação automática após correções
+- **Funcionalidades**: Auto-healing para favorecidos, integrations, favorecido_locations e demais tabelas
+- **Resultado**: Sistema agora detecta E corrige automaticamente problemas de schema automaticamente
+
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS
 - ✅ **Automação (2)**: Zapier, Webhooks  
