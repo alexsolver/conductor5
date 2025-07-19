@@ -347,10 +347,10 @@ router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), as
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    const container = DependencyContainer.getInstance();
-    const storage = await container.getStorage();
+    // CORREÇÃO CRÍTICA: Usar importação direta do storage ao invés do container
+    const { storageSimple } = await import('../../storage-simple');
     
-    const stats = await storage.getDashboardStats(tenantId);
+    const stats = await storageSimple.getDashboardStats(tenantId);
     
     res.json(stats);
   } catch (error) {
