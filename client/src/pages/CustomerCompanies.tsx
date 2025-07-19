@@ -38,7 +38,9 @@ const companySchema = z.object({
   size: z.enum(["startup", "small", "medium", "large", "enterprise"]).optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
-  website: z.string().url("URL inválida").optional().or(z.literal("")),
+  website: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
+    message: "URL inválida"
+  }),
   subscriptionTier: z.enum(["basic", "professional", "enterprise"]).default("basic"),
   status: z.enum(["active", "inactive", "suspended"]).default("active")
 });
