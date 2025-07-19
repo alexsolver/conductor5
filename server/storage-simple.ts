@@ -341,75 +341,100 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  // Favorecidos (External Contacts) Methods - Using tenant-specific database
+  // Favorecidos (External Contacts) Methods - Using direct SQL for tenant-specific tables
   async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
-    const { schemaManager } = await import('./db');
-    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
-    const { favorecidos } = await import('@shared/schema-simple');
-    
-    const result = await tenantDb.select().from(favorecidos)
-      .where(and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId)))
-      .limit(1);
-    return result[0] || null;
+    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const result = await db.execute(sql`
+      SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+    return (result.rows[0] as Favorecido) || null;
   }
 
   async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
     const { limit = 50, offset = 0, search } = options;
-    const { schemaManager } = await import('./db');
-    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
-    const { favorecidos } = await import('@shared/schema-simple');
+    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
     
-    let query = tenantDb.select().from(favorecidos)
-      .where(eq(favorecidos.tenantId, tenantId));
-      
+    let query = sql`
+      SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
+      WHERE tenant_id = ${tenantId}
+    `;
+    
     if (search) {
-      query = query.where(
-        and(
-          eq(favorecidos.tenantId, tenantId),
-          or(
-            ilike(favorecidos.firstName, `%${search}%`),
-            ilike(favorecidos.lastName, `%${search}%`),
-            ilike(favorecidos.email, `%${search}%`),
-            ilike(favorecidos.company, `%${search}%`)
-          )
+      query = sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE tenant_id = ${tenantId}
+        AND (
+          first_name ILIKE ${`%${search}%`} OR
+          last_name ILIKE ${`%${search}%`} OR
+          email ILIKE ${`%${search}%`} OR
+          company ILIKE ${`%${search}%`}
         )
-      );
+      `;
     }
     
-    return query.limit(limit).offset(offset).orderBy(desc(favorecidos.createdAt));
+    query = sql`${query} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    
+    const result = await db.execute(query);
+    return result.rows as Favorecido[];
   }
 
   async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
-    const { schemaManager } = await import('./db');
-    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
-    const { favorecidos } = await import('@shared/schema-simple');
+    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const id = crypto.randomUUID();
     
-    const result = await tenantDb.insert(favorecidos).values({
-      ...data,
-      tenantId
-    }).returning();
-    return result[0];
+    await db.execute(sql`
+      INSERT INTO ${sql.identifier(schemaName)}.favorecidos (
+        id, tenant_id, first_name, last_name, email, phone, company, 
+        cpf_cnpj, contact_type, relationship, preferred_contact_method, 
+        notes, is_active, created_at, updated_at
+      ) VALUES (
+        ${id}, ${tenantId}, ${data.firstName || ''}, ${data.lastName || ''}, ${data.email}, 
+        ${data.phone || ''}, ${data.company || ''}, ${data.cpfCnpj || ''}, 
+        ${data.contactType || 'external'}, ${data.relationship || ''}, 
+        ${data.preferredContactMethod || 'email'}, ${data.notes || ''}, 
+        ${data.isActive ?? true}, NOW(), NOW()
+      )
+    `);
+
+    return this.getFavorecido(id, tenantId) as Promise<Favorecido>;
   }
 
   async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
-    const { schemaManager } = await import('./db');
-    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
-    const { favorecidos } = await import('@shared/schema-simple');
+    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const updates = [];
+    const values = [tenantId, id]; // Start with tenantId and id for WHERE clause
     
-    const result = await tenantDb.update(favorecidos).set(data).where(
-      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
-    ).returning();
-    return result[0] || null;
+    if (data.firstName !== undefined) { updates.push(`first_name = $${values.length + 1}`); values.push(data.firstName); }
+    if (data.lastName !== undefined) { updates.push(`last_name = $${values.length + 1}`); values.push(data.lastName); }
+    if (data.email !== undefined) { updates.push(`email = $${values.length + 1}`); values.push(data.email); }
+    if (data.phone !== undefined) { updates.push(`phone = $${values.length + 1}`); values.push(data.phone); }
+    if (data.company !== undefined) { updates.push(`company = $${values.length + 1}`); values.push(data.company); }
+    if (data.cpfCnpj !== undefined) { updates.push(`cpf_cnpj = $${values.length + 1}`); values.push(data.cpfCnpj); }
+    if (data.contactType !== undefined) { updates.push(`contact_type = $${values.length + 1}`); values.push(data.contactType); }
+    if (data.relationship !== undefined) { updates.push(`relationship = $${values.length + 1}`); values.push(data.relationship); }
+    if (data.preferredContactMethod !== undefined) { updates.push(`preferred_contact_method = $${values.length + 1}`); values.push(data.preferredContactMethod); }
+    if (data.notes !== undefined) { updates.push(`notes = $${values.length + 1}`); values.push(data.notes); }
+    if (data.isActive !== undefined) { updates.push(`is_active = $${values.length + 1}`); values.push(data.isActive); }
+    
+    updates.push('updated_at = NOW()');
+    
+    await db.execute(sql`
+      UPDATE ${sql.identifier(schemaName)}.favorecidos 
+      SET ${sql.raw(updates.join(', '))}
+      WHERE tenant_id = ${tenantId} AND id = ${id}
+    `);
+    
+    return this.getFavorecido(id, tenantId);
   }
 
   async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
-    const { schemaManager } = await import('./db');
-    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
-    const { favorecidos } = await import('@shared/schema-simple');
-    
-    const result = await tenantDb.delete(favorecidos).where(
-      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
-    );
+    const schemaName = `tenant_${tenantId}`;  // Use exact tenant ID format
+    const result = await db.execute(sql`
+      DELETE FROM ${sql.identifier(schemaName)}.favorecidos 
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+    `);
     return result.rowCount > 0;
   }
 
