@@ -1037,13 +1037,88 @@ export class DatabaseStorage implements IStorage {
 
       // Insert default integrations
       const defaultIntegrations = [
+        // Comunicação
+        {
+          id: 'gmail-oauth2',
+          name: 'Gmail OAuth2',
+          description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
+          category: 'Comunicação',
+          icon: 'Mail',
+          features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
+        },
+        {
+          id: 'outlook-oauth2',
+          name: 'Outlook OAuth2',
+          description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
+          category: 'Comunicação',
+          icon: 'Mail',
+          features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
+        },
+        {
+          id: 'email-smtp',
+          name: 'Email SMTP',
+          description: 'Configuração de servidor SMTP para envio de emails automáticos e notificações',
+          category: 'Comunicação',
+          icon: 'Mail',
+          features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
+        },
         {
           id: 'imap-email',
           name: 'IMAP Email',
           description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
           category: 'Comunicação',
-          icon: 'Mail',
+          icon: 'Inbox',
           features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
+        },
+        {
+          id: 'whatsapp-business',
+          name: 'WhatsApp Business',
+          description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
+          category: 'Comunicação',
+          icon: 'MessageSquare',
+          features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
+        },
+        {
+          id: 'slack',
+          name: 'Slack',
+          description: 'Notificações e gerenciamento de tickets através do Slack',
+          category: 'Comunicação',
+          icon: 'MessageCircle',
+          features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
+        },
+        {
+          id: 'twilio-sms',
+          name: 'Twilio SMS',
+          description: 'Envio de SMS para notificações e alertas importantes',
+          category: 'Comunicação',
+          icon: 'Phone',
+          features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
+        },
+        // Automação
+        {
+          id: 'zapier',
+          name: 'Zapier',
+          description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
+          category: 'Automação',
+          icon: 'Zap',
+          features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
+        },
+        {
+          id: 'webhooks',
+          name: 'Webhooks',
+          description: 'Receba notificações em tempo real de eventos do sistema',
+          category: 'Automação',
+          icon: 'Webhook',
+          features: ['Eventos em tempo real', 'Custom endpoints', 'Retry automático']
+        },
+        // Dados
+        {
+          id: 'crm-integration',
+          name: 'CRM Integration',
+          description: 'Sincronização com sistemas CRM para gestão unificada de clientes',
+          category: 'Dados',
+          icon: 'Database',
+          features: ['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']
         },
         {
           id: 'dropbox-personal',
@@ -1053,48 +1128,59 @@ export class DatabaseStorage implements IStorage {
           icon: 'Cloud',
           features: ['Backup automático', 'Sincronização de arquivos', 'Versionamento']
         },
+        // Segurança
         {
-          id: 'whatsapp-business',
-          name: 'WhatsApp Business',
-          description: 'Integração com WhatsApp Business API',
-          category: 'Comunicação',
-          icon: 'MessageCircle',
-          features: ['Mensagens automáticas', 'Chatbot', 'Histórico completo']
+          id: 'sso-saml',
+          name: 'SSO/SAML',
+          description: 'Single Sign-On para autenticação corporativa segura',
+          category: 'Segurança',
+          icon: 'Shield',
+          features: ['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']
         },
-        {
-          id: 'slack',
-          name: 'Slack',
-          description: 'Notificações e colaboração em equipe',
-          category: 'Comunicação',
-          icon: 'Hash',
-          features: ['Notificações em tempo real', 'Canais dedicados', 'Bot integrado']
-        },
+        // Produtividade
         {
           id: 'google-workspace',
           name: 'Google Workspace',
           description: 'Integração completa com Gmail, Drive e Calendar',
           category: 'Produtividade',
-          icon: 'Chrome',
+          icon: 'Calendar',
           features: ['Gmail sync', 'Drive backup', 'Calendar integration']
+        },
+        {
+          id: 'chatbot-ai',
+          name: 'Chatbot IA',
+          description: 'Assistente virtual inteligente para atendimento automatizado',
+          category: 'Produtividade',
+          icon: 'Bot',
+          features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
         }
       ];
 
-      // Use raw SQL since Drizzle has issues with TEXT[] arrays
+      // Use raw SQL since Drizzle has issues with TEXT[] arrays - ALL 14 INTEGRATIONS
       const insertQuery = `
         INSERT INTO ${schemaName}.integrations 
         (id, tenant_id, name, description, category, icon, status, config, features)
         VALUES 
-        ('imap-email', '${tenantId}', 'IMAP Email', 'Conecte sua caixa de email via IMAP para sincronização de tickets', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']),
+        ('gmail-oauth2', '${tenantId}', 'Gmail OAuth2', 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']),
+        ('outlook-oauth2', '${tenantId}', 'Outlook OAuth2', 'Integração OAuth2 com Microsoft Outlook para emails corporativos', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']),
+        ('email-smtp', '${tenantId}', 'Email SMTP', 'Configuração de servidor SMTP para envio de emails automáticos e notificações', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['Notificações por email', 'Tickets por email', 'Relatórios automáticos']),
+        ('imap-email', '${tenantId}', 'IMAP Email', 'Conecte sua caixa de email via IMAP para sincronização de tickets', 'Comunicação', 'Inbox', 'disconnected', '{}', ARRAY['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']),
+        ('whatsapp-business', '${tenantId}', 'WhatsApp Business', 'Integração com WhatsApp Business API para atendimento via WhatsApp', 'Comunicação', 'MessageSquare', 'disconnected', '{}', ARRAY['Mensagens automáticas', 'Templates aprovados', 'Webhooks']),
+        ('slack', '${tenantId}', 'Slack', 'Notificações e gerenciamento de tickets através do Slack', 'Comunicação', 'MessageCircle', 'disconnected', '{}', ARRAY['Notificações de tickets', 'Comandos slash', 'Bot integrado']),
+        ('twilio-sms', '${tenantId}', 'Twilio SMS', 'Envio de SMS para notificações e alertas importantes', 'Comunicação', 'Phone', 'disconnected', '{}', ARRAY['SMS automático', 'Notificações críticas', 'Verificação 2FA']),
+        ('zapier', '${tenantId}', 'Zapier', 'Conecte com mais de 3000 aplicativos através de automações Zapier', 'Automação', 'Zap', 'disconnected', '{}', ARRAY['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']),
+        ('webhooks', '${tenantId}', 'Webhooks', 'Receba notificações em tempo real de eventos do sistema', 'Automação', 'Webhook', 'disconnected', '{}', ARRAY['Eventos em tempo real', 'Custom endpoints', 'Retry automático']),
+        ('crm-integration', '${tenantId}', 'CRM Integration', 'Sincronização com sistemas CRM para gestão unificada de clientes', 'Dados', 'Database', 'disconnected', '{}', ARRAY['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']),
         ('dropbox-personal', '${tenantId}', 'Dropbox Pessoal', 'Backup automático de dados e arquivos importantes', 'Dados', 'Cloud', 'disconnected', '{}', ARRAY['Backup automático', 'Sincronização de arquivos', 'Versionamento']),
-        ('whatsapp-business', '${tenantId}', 'WhatsApp Business', 'Integração com WhatsApp Business API', 'Comunicação', 'MessageCircle', 'disconnected', '{}', ARRAY['Mensagens automáticas', 'Chatbot', 'Histórico completo']),
-        ('slack', '${tenantId}', 'Slack', 'Notificações e colaboração em equipe', 'Comunicação', 'Hash', 'disconnected', '{}', ARRAY['Notificações em tempo real', 'Canais dedicados', 'Bot integrado']),
-        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Chrome', 'disconnected', '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration'])
+        ('sso-saml', '${tenantId}', 'SSO/SAML', 'Single Sign-On para autenticação corporativa segura', 'Segurança', 'Shield', 'disconnected', '{}', ARRAY['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']),
+        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Calendar', 'disconnected', '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration']),
+        ('chatbot-ai', '${tenantId}', 'Chatbot IA', 'Assistente virtual inteligente para atendimento automatizado', 'Produtividade', 'Bot', 'disconnected', '{}', ARRAY['Respostas automáticas', 'Machine Learning', 'Escalação inteligente'])
         ON CONFLICT (id) DO NOTHING
       `;
       
       await tenantDb.execute(sql.raw(insertQuery));
 
-      logInfo('Default integrations created', { tenantId, count: defaultIntegrations.length });
+      logInfo('All 14 default integrations created', { tenantId, count: 14 });
     } catch (error) {
       logError('Error creating default integrations', error, { tenantId });
       throw error;

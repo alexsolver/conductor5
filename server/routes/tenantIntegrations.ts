@@ -474,4 +474,166 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
   }
 });
 
+/**
+ * POST /api/tenant-admin/integrations/populate-all-14
+ * Endpoint para forçar a criação de todas as 14 integrações
+ */
+router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { storage } = await import('../storage-simple');
+    
+    // Lista completa das 14 integrações
+    const allIntegrations = [
+      // Comunicação (7 integrações)
+      {
+        id: 'gmail-oauth2',
+        name: 'Gmail OAuth2',
+        description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
+        category: 'Comunicação',
+        icon: 'Mail',
+        features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
+      },
+      {
+        id: 'outlook-oauth2',
+        name: 'Outlook OAuth2',
+        description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
+        category: 'Comunicação',
+        icon: 'Mail',
+        features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
+      },
+      {
+        id: 'email-smtp',
+        name: 'Email SMTP',
+        description: 'Configuração de servidor SMTP para envio de emails automáticos e notificações',
+        category: 'Comunicação',
+        icon: 'Mail',
+        features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
+      },
+      {
+        id: 'imap-email',
+        name: 'IMAP Email',
+        description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
+        category: 'Comunicação',
+        icon: 'Inbox',
+        features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
+      },
+      {
+        id: 'whatsapp-business',
+        name: 'WhatsApp Business',
+        description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
+        category: 'Comunicação',
+        icon: 'MessageSquare',
+        features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
+      },
+      {
+        id: 'slack',
+        name: 'Slack',
+        description: 'Notificações e gerenciamento de tickets através do Slack',
+        category: 'Comunicação',
+        icon: 'MessageCircle',
+        features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
+      },
+      {
+        id: 'twilio-sms',
+        name: 'Twilio SMS',
+        description: 'Envio de SMS para notificações e alertas importantes',
+        category: 'Comunicação',
+        icon: 'Phone',
+        features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
+      },
+      // Automação (2 integrações)
+      {
+        id: 'zapier',
+        name: 'Zapier',
+        description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
+        category: 'Automação',
+        icon: 'Zap',
+        features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
+      },
+      {
+        id: 'webhooks',
+        name: 'Webhooks',
+        description: 'Receba notificações em tempo real de eventos do sistema',
+        category: 'Automação',
+        icon: 'Webhook',
+        features: ['Eventos em tempo real', 'Custom endpoints', 'Retry automático']
+      },
+      // Dados (2 integrações)
+      {
+        id: 'crm-integration',
+        name: 'CRM Integration',
+        description: 'Sincronização com sistemas CRM para gestão unificada de clientes',
+        category: 'Dados',
+        icon: 'Database',
+        features: ['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']
+      },
+      {
+        id: 'dropbox-personal',
+        name: 'Dropbox Pessoal',
+        description: 'Backup automático de dados e arquivos importantes',
+        category: 'Dados',
+        icon: 'Cloud',
+        features: ['Backup automático', 'Sincronização de arquivos', 'Versionamento']
+      },
+      // Segurança (1 integração)
+      {
+        id: 'sso-saml',
+        name: 'SSO/SAML',
+        description: 'Single Sign-On para autenticação corporativa segura',
+        category: 'Segurança',
+        icon: 'Shield',
+        features: ['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']
+      },
+      // Produtividade (2 integrações)
+      {
+        id: 'google-workspace',
+        name: 'Google Workspace',
+        description: 'Integração completa com Gmail, Drive e Calendar',
+        category: 'Produtividade',
+        icon: 'Calendar',
+        features: ['Gmail sync', 'Drive backup', 'Calendar integration']
+      },
+      {
+        id: 'chatbot-ai',
+        name: 'Chatbot IA',
+        description: 'Assistente virtual inteligente para atendimento automatizado',
+        category: 'Produtividade',
+        icon: 'Bot',
+        features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
+      }
+    ];
+
+    console.log(`🔧 Populando ${allIntegrations.length} integrações para tenant ${tenantId}...`);
+
+    // Primeiro, limpar todas as integrações existentes
+    await storage.deleteTenantIntegrations(tenantId);
+
+    // Depois, inserir cada integração individualmente
+    for (const integration of allIntegrations) {
+      await storage.createTenantIntegration(tenantId, integration);
+    }
+
+    res.json({ 
+      message: `Successfully populated all ${allIntegrations.length} integrations`,
+      totalCreated: allIntegrations.length,
+      categories: {
+        'Comunicação': 7,
+        'Automação': 2,
+        'Dados': 2,
+        'Segurança': 1,
+        'Produtividade': 2
+      }
+    });
+  } catch (error) {
+    console.error('Error populating all integrations:', error);
+    res.status(500).json({ message: 'Failed to populate all integrations' });
+  }
+});
+
 export default router;
