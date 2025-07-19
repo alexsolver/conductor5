@@ -111,6 +111,24 @@ export default function TenantAdminIntegrations() {
     defaultValues: {
       enabled: false,
       useSSL: false,
+      apiKey: '',
+      apiSecret: '',
+      webhookUrl: '',
+      clientId: '',
+      clientSecret: '',
+      redirectUri: '',
+      tenantId: '',
+      serverHost: '',
+      serverPort: '',
+      username: '',
+      password: '',
+      imapServer: '',
+      imapPort: '',
+      emailAddress: '',
+      dropboxAppKey: '',
+      dropboxAppSecret: '',
+      dropboxAccessToken: '',
+      backupFolder: '/Backups/Conductor',
     },
   });
 
@@ -408,9 +426,32 @@ export default function TenantAdminIntegrations() {
 
   const onConfigureIntegration = (integration: TenantIntegration) => {
     setSelectedIntegration(integration);
-    if (integration.config) {
-      configForm.reset(integration.config);
-    }
+    
+    // Reset form with appropriate defaults for this integration
+    const defaultValues = {
+      enabled: integration.configured || false,
+      useSSL: true,
+      apiKey: integration.config?.apiKey || '',
+      apiSecret: integration.config?.apiSecret || '',
+      webhookUrl: integration.config?.webhookUrl || '',
+      clientId: integration.config?.clientId || '',
+      clientSecret: integration.config?.clientSecret || '',
+      redirectUri: integration.config?.redirectUri || '',
+      tenantId: integration.config?.tenantId || '',
+      serverHost: integration.config?.serverHost || '',
+      serverPort: integration.config?.serverPort || (integration.id === 'imap-email' ? '993' : ''),
+      username: integration.config?.username || '',
+      password: integration.config?.password || '',
+      imapServer: integration.config?.imapServer || '',
+      imapPort: integration.config?.imapPort || '993',
+      emailAddress: integration.config?.emailAddress || '',
+      dropboxAppKey: integration.config?.dropboxAppKey || '',
+      dropboxAppSecret: integration.config?.dropboxAppSecret || '',
+      dropboxAccessToken: integration.config?.dropboxAccessToken || '',
+      backupFolder: integration.config?.backupFolder || '/Backups/Conductor',
+    };
+    
+    configForm.reset(defaultValues);
     setIsConfigDialogOpen(true);
   };
 
@@ -629,12 +670,15 @@ export default function TenantAdminIntegrations() {
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description">
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
           </DialogHeader>
+          <div id="integration-config-description" className="sr-only">
+            Formulário de configuração para {selectedIntegration?.name}. Preencha os campos necessários e clique em salvar.
+          </div>
           
           {selectedIntegration && (
             <Form {...configForm}>
