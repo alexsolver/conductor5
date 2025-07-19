@@ -1488,9 +1488,9 @@ export class SchemaManager {
 
   // SECURITY: Validação rigorosa do formato tenant ID
   private isValidTenantId(tenantId: string): boolean {
-    // UUID v4 format: 8-4-4-4-12 characters
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(tenantId) && tenantId.length === 36;
+    // PADRONIZADO: UUID v4 rigoroso - mesmo padrão usado em TenantValidator e CrossTenantValidator
+    const strictUuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    return strictUuidPattern.test(tenantId) && tenantId.length === 36;
   }
 }
 

@@ -64,6 +64,16 @@ Preferred communication style: Simple, everyday language.
 - **Solução**: Extraído tenantId do schemaName com `schemaName.replace('tenant_', '').replace(/_/g, '-')`
 - **Resultado**: Variável tenantId agora definida corretamente no escopo da função
 
+✅ **INCONSISTÊNCIA DE VALIDAÇÃO UUID RESOLVIDA COMPLETAMENTE:**
+- **Problema**: Regex patterns diferentes entre validadores criando risco de bypass
+- **Componentes Afetados**: 
+  - TenantValidator: padrão rigoroso UUID v4
+  - CrossTenantValidator: padrão ligeiramente diferente
+  - db.ts: case-insensitive pattern
+  - EnhancedUUIDValidator: múltiplos padrões
+- **Solução**: Padronizou TODOS os validadores para usar `/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/`
+- **Resultado**: Validação UUID consistente em todos os módulos, eliminando bypass potential
+
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS
 - ✅ **Automação (2)**: Zapier, Webhooks  
