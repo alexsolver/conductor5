@@ -267,7 +267,7 @@ export function Sidebar() {
 
           <div className="pt-4 mt-4 border-t border-white border-opacity-20">
             
-              <Link key="Aparência" href="/templates">
+              <Link key="Templates" href="/templates">
                 <div className={cn(
                   "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                   location === "/templates"
@@ -277,8 +277,8 @@ export function Sidebar() {
                   backgroundColor: 'var(--accent)',
                   color: 'white'
                 } : {}}>
-                  <Palette className="mr-3 h-4 w-4 flex-shrink-0" />
-                  Aparência
+                  <FileText className="mr-3 h-4 w-4 flex-shrink-0" />
+                  Templates
                 </div>
               </Link>
             
