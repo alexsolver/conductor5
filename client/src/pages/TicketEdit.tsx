@@ -63,13 +63,16 @@ export default function TicketEdit() {
   });
 
   // Fetch customers for dropdowns
-  const { data: customers = [] } = useQuery({
+  const { data: customersData } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/customers");
       return response.json();
     },
   });
+
+  // Ensure customers is always an array
+  const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
 
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
@@ -368,7 +371,7 @@ export default function TicketEdit() {
                             </FormControl>
                             <SelectContent>
                               {customers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
+                                <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
                                   {customer.first_name} {customer.last_name}
                                 </SelectItem>
                               ))}

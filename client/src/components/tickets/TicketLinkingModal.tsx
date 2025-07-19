@@ -62,6 +62,10 @@ const RELATIONSHIP_TYPES = [
 ];
 
 export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: TicketLinkingModalProps) {
+  // Early return if currentTicket is not provided
+  if (!currentTicket) {
+    return null;
+  }
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [relationshipType, setRelationshipType] = useState("");
@@ -86,7 +90,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
   // Filter tickets based on search term, status, priority and exclude current ticket
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
-    if (ticket.id === currentTicket.id) return false;
+    if (currentTicket && ticket.id === currentTicket.id) return false;
     
     // Status filter
     if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
@@ -97,8 +101,8 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     // Search filter
     if (searchTerm.length > 0) {
       const searchLower = searchTerm.toLowerCase();
-      return ticket.subject?.toLowerCase().includes(searchLower) ||
-             ticket.number?.toLowerCase().includes(searchLower) ||
+      return (ticket.subject && ticket.subject.toLowerCase().includes(searchLower)) ||
+             (ticket.number && ticket.number.toLowerCase().includes(searchLower)) ||
              ticket.id.toLowerCase().includes(searchLower);
     }
     
@@ -107,11 +111,13 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
   // Get existing relationships
   const { data: relationships = [] } = useQuery<TicketRelationship[]>({
-    queryKey: ["/api/tickets", currentTicket.id, "relationships"],
+    queryKey: ["/api/tickets", currentTicket?.id, "relationships"],
     queryFn: async () => {
+      if (!currentTicket?.id) return [];
       const response = await apiRequest("GET", `/api/tickets/${currentTicket.id}/relationships`);
       return response.json();
     },
+    enabled: !!currentTicket?.id,
   });
 
   // Create relationship mutation
@@ -121,6 +127,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       relationshipType: string;
       description?: string;
     }) => {
+      if (!currentTicket?.id) {
+        throw new Error("Ticket atual não encontrado");
+      }
       const response = await apiRequest("POST", `/api/tickets/${currentTicket.id}/relationships`, data);
       return response.json();
     },
@@ -129,7 +138,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         title: "Sucesso",
         description: "Chamado vinculado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+      if (currentTicket?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+      }
       setSelectedTicket(null);
       setRelationshipType("");
       setDescription("");
@@ -154,7 +165,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         title: "Sucesso",
         description: "Vínculo removido com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+      if (currentTicket?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -333,7 +346,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               </Badge>
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
-                              {ticket.subject}
+                              {ticket.subject || "Sem assunto"}
                             </div>
                           </div>
                         </div>
