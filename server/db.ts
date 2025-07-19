@@ -20,7 +20,7 @@ if (!process.env.DATABASE_URL) {
 // ENTERPRISE POOL CONFIGURATION: Corrigida para alta concorrência e hibernação Neon
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 50, // ENTERPRISE: Otimizado para alta carga simultânea (baseado em análise DBA)
+  max: 75, // ENTERPRISE: Otimizado para cargas muito altas e scale enterprise
   min: 8, // PERFORMANCE: Mais conexões sempre prontas
   idleTimeoutMillis: 360000, // LIFECYCLE: 6 minutos - otimizado
   connectionTimeoutMillis: 45000, // TIMEOUT: Aumentado para Neon hibernation recovery
@@ -41,8 +41,8 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 35 * 60 * 1000; // PRODUCTION: 35 minutos TTL - otimizado para melhor performance (baseado em análise DBA)
-  private readonly MAX_CACHED_SCHEMAS = 75; // SCALE: Aumentado para enterprise scale
+  private readonly CACHE_TTL = 60 * 60 * 1000; // ENTERPRISE: 60 minutos TTL - otimizado para produção enterprise de alta escala
+  private readonly MAX_CACHED_SCHEMAS = 100; // ENTERPRISE: Aumentado para alta escala enterprise
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
   private performanceMetrics = new Map<string, { accessCount: number, lastAccess: number }>(); // Performance tracking
@@ -59,7 +59,7 @@ export class SchemaManager {
     const now = Date.now();
 
     // ENTERPRISE FIX: Otimizado para prevenir memory leaks
-    if (now - this.lastCleanup < 45 * 1000) { // OPTIMIZED: 45 segundos - cleanup mais inteligente
+    if (now - this.lastCleanup < 60 * 1000) { // ENTERPRISE: 60 segundos - cleanup enterprise otimizado
       return;
     }
 
