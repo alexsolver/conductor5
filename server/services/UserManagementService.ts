@@ -1,5 +1,5 @@
 import { schemaManager } from '../db';
-import { storage } from '../storage';
+import { storageSimple } from '../storage-simple';
 import { db } from '../db';
 import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
 import { 
@@ -110,7 +110,7 @@ export class UserManagementService {
   }
 
   async addUserToGroup(userId: string, groupId: string, role: string = 'member', assignedBy: string): Promise<UserGroupMembership> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) throw new Error('User not found');
 
     await this.logActivity(assignedBy, user.tenantId, 'group_assign', 'user_group', groupId, { userId, role });
@@ -129,7 +129,7 @@ export class UserManagementService {
   }
 
   async removeUserFromGroup(userId: string, groupId: string, removedBy: string): Promise<void> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) throw new Error('User not found');
 
     await this.logActivity(removedBy, user.tenantId, 'group_remove', 'user_group', groupId, { userId });
@@ -196,7 +196,7 @@ export class UserManagementService {
     assignment: Omit<InsertUserRoleAssignment, 'userId' | 'assignedBy'>, 
     assignedBy: string
   ): Promise<UserRoleAssignment> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) throw new Error('User not found');
 
     await this.logActivity(assignedBy, user.tenantId, 'role_assign', 'user', userId, assignment);
@@ -214,7 +214,7 @@ export class UserManagementService {
   }
 
   async removeRoleFromUser(userId: string, roleAssignmentId: string, removedBy: string): Promise<void> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) throw new Error('User not found');
 
     await this.logActivity(removedBy, user.tenantId, 'role_remove', 'user', userId, { roleAssignmentId });
@@ -232,7 +232,7 @@ export class UserManagementService {
     override: Omit<InsertUserPermissionOverride, 'userId' | 'grantedBy'>,
     grantedBy: string
   ): Promise<UserPermissionOverride> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) throw new Error('User not found');
 
     await this.logActivity(grantedBy, user.tenantId, 'permission_override', 'user', userId, override);
@@ -340,7 +340,7 @@ export class UserManagementService {
   // ============= ENHANCED USER MANAGEMENT =============
 
   async getEnhancedUser(userId: string, options: UserManagementOptions = {}): Promise<EnhancedUser | null> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) return null;
 
     const enhancedUser: EnhancedUser = {
@@ -411,7 +411,7 @@ export class UserManagementService {
   }
 
   async getUserEffectivePermissions(userId: string): Promise<Array<{resource: string, action: string, granted: boolean, source: string}>> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) return [];
 
     const permissions: Array<{resource: string, action: string, granted: boolean, source: string}> = [];
@@ -559,7 +559,7 @@ export class UserManagementService {
   }
 
   async terminateAllUserSessions(userId: string, terminatedBy: string): Promise<void> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) return;
 
     await this.logActivity(userId, user.tenantId, 'sessions_terminate_all', 'user', userId, undefined, terminatedBy);
@@ -831,7 +831,7 @@ export class UserManagementService {
   async updateTenantUser(userId: string, updateData: any, updatedByUserId: string): Promise<any> {
     try {
       // Get the user to verify tenant and role
-      const user = await storage.getUser(userId);
+      const user = await storageSimple.getUser(userId);
       if (!user) {
         throw new Error('User not found');
       }

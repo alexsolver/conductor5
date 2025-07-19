@@ -1027,3 +1027,4 @@ export class DrizzleStorage implements IStorage {
 }
 
 export const storage = new DrizzleStorage();
+export const storageSimple = storage;

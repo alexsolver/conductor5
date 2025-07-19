@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { storage } from "../../storage-simple";
+import { storageSimple } from "../../storage-simple";
 import { insertCustomerSchema } from "@shared/schema";
 import { z } from "zod";
 import { getCustomerCompanyController } from "./infrastructure/setup/CustomerDependencySetup";
@@ -20,7 +20,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
     
     // Performance optimization: Use cache-aware method
-    const customers = await storage.getCustomers(req.user.tenantId, {
+    const customers = await storageSimple.getCustomers(req.user.tenantId, {
       limit: parsedLimit,
       offset: parsedOffset
     });
@@ -57,7 +57,7 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     
     const validatedData = insertCustomerSchema.parse(dataToValidate);
 
-    const customer = await storage.createCustomer(req.user.tenantId, validatedData);
+    const customer = await storageSimple.createCustomer(req.user.tenantId, validatedData);
     res.status(201).json(customer);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -86,7 +86,7 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const updateSchema = insertCustomerSchema.partial().omit({ tenantId: true });
     const validatedData = updateSchema.parse(req.body);
 
-    const customer = await storage.updateCustomer(customerId, req.user.tenantId, validatedData);
+    const customer = await storageSimple.updateCustomer(customerId, req.user.tenantId, validatedData);
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
@@ -118,7 +118,7 @@ customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
       return res.status(400).json({ message: "Invalid customer ID" });
     }
 
-    const deleted = await storage.deleteCustomer(customerId, req.user.tenantId);
+    const deleted = await storageSimple.deleteCustomer(customerId, req.user.tenantId);
     if (!deleted) {
       return res.status(404).json({ message: "Customer not found" });
     }

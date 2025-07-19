@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission } from '../middleware/rbacMiddleware';
 import { userManagementService } from '../services/UserManagementService';
-import { storage } from '../storage';
+import { storageSimple } from '../storage-simple';
 
 const router = Router();
 
@@ -115,7 +115,7 @@ router.put('/users/:userId',
       const updateData = req.body;
 
       // Check if user exists and belongs to tenant
-      const targetUser = await storage.getUser(userId);
+      const targetUser = await storageSimple.getUser(userId);
       if (!targetUser || targetUser.tenantId !== tenantId) {
         return res.status(404).json({ message: 'User not found in your tenant' });
       }

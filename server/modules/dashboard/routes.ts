@@ -1,7 +1,7 @@
 // Dashboard Microservice Routes - JWT Authentication
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { storage } from "../../storage-simple";
+import { storageSimple } from "../../storage-simple";
 
 const dashboardRouter = Router();
 
@@ -12,7 +12,7 @@ dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) =>
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const stats = await storage.getDashboardStats(req.user.tenantId);
+    const stats = await storageSimple.getDashboardStats(req.user.tenantId);
     res.json(stats);
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -29,7 +29,7 @@ dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res)
     }
 
     const limit = parseInt(req.query.limit as string) || 20;
-    const activity = await storage.getRecentActivity(req.user.tenantId, limit);
+    const activity = await storageSimple.getRecentActivity(req.user.tenantId, limit);
     res.json(activity);
   } catch (error) {
     const { logError } = await import('../../utils/logger');

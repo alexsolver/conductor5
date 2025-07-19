@@ -1091,6 +1091,89 @@ export class SchemaManager {
       throw error;
     }
   }
+
+  // ENTERPRISE PUBLIC TABLES: Ensure all public schema tables exist
+  async ensurePublicTables(): Promise<void> {
+    try {
+      // Create tenants table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS tenants (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(255) NOT NULL,
+          slug VARCHAR(100) UNIQUE NOT NULL,
+          subdomain VARCHAR(100) UNIQUE,
+          is_active BOOLEAN DEFAULT true,
+          settings JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Create users table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          first_name VARCHAR(255),
+          last_name VARCHAR(255),
+          role VARCHAR(50) NOT NULL DEFAULT 'agent',
+          is_active BOOLEAN DEFAULT true,
+          last_login TIMESTAMP,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Create sessions table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS sessions (
+          id VARCHAR(255) PRIMARY KEY,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          data JSONB NOT NULL,
+          expires TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      console.log('[SchemaManager] Public tables ensured');
+    } catch (error) {
+      console.error('[SchemaManager] Failed to ensure public tables:', error);
+      throw error;
+    }
+  }
+
+  // VALIDATE TENANT SCHEMA: Check if tenant schema exists and has required tables
+  async validateTenantSchema(tenantId: string): Promise<boolean> {
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Check if schema exists
+      const schemaResult = await db.execute(sql`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name = ${schemaName}
+      `);
+
+      if (schemaResult.rows.length === 0) {
+        return false;
+      }
+
+      // Check if essential tables exist
+      const tableResult = await db.execute(sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = ${schemaName}
+        AND table_name IN ('customers', 'tickets', 'ticket_messages')
+      `);
+
+      return tableResult.rows.length >= 3;
+    } catch (error) {
+      console.error(`[SchemaManager] Failed to validate tenant schema ${tenantId}:`, error);
+      return false;
+    }
+  }
 }
 
 export const schemaManager = SchemaManager.getInstance();

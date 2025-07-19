@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { createRateLimitMiddleware, recordLoginAttempt } from '../middleware/rateLimitMiddleware';
 import { authSecurityService } from '../services/authSecurityService';
-import { storage } from '../storage';
+import { storageSimple } from '../storage-simple';
 
 const router = Router();
 
@@ -53,7 +53,7 @@ router.post('/magic-link/request', authRateLimit, recordLoginAttempt, async (req
     const { email } = magicLinkSchema.parse(req.body);
     
     // Check if user exists
-    const user = await storage.getUserByEmail(email);
+    const user = await storageSimple.getUserByEmail(email);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -90,7 +90,7 @@ router.post('/magic-link/verify', authRateLimit, recordLoginAttempt, async (req,
     }
 
     // Find user by email
-    const user = await storage.getUserByEmail(verification.email!);
+    const user = await storageSimple.getUserByEmail(verification.email!);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -160,7 +160,7 @@ router.post('/password-reset/request', authRateLimit, async (req, res) => {
     const { email } = passwordResetRequestSchema.parse(req.body);
     
     // Check if user exists
-    const user = await storage.getUserByEmail(email);
+    const user = await storageSimple.getUserByEmail(email);
     if (!user) {
       // Don't reveal if user exists or not
       return res.json({ message: 'If an account exists, password reset instructions have been sent' });
@@ -195,7 +195,7 @@ router.post('/password-reset/verify', authRateLimit, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     // Update user password (this would need to be implemented in storage)
-    // await storage.updateUserPassword(verification.userId!, hashedPassword);
+    // await storageSimple.updateUserPassword(verification.userId!, hashedPassword);
     
     // Mark token as used
     await authSecurityService.usePasswordResetToken(token);
@@ -213,7 +213,7 @@ router.post('/2fa/setup', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { password } = twoFactorSetupSchema.parse(req.body);
     
     // Verify current password
-    const user = await storage.getUser(req.user!.userId);
+    const user = await storageSimple.getUser(req.user!.userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -296,7 +296,7 @@ router.post('/account/lock', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const { userId, reason } = req.body;
     
     // Only allow admins to lock accounts
-    const user = await storage.getUser(req.user!.userId);
+    const user = await storageSimple.getUser(req.user!.userId);
     if (!user || !['saas_admin', 'tenant_admin'].includes(user.role)) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
@@ -315,7 +315,7 @@ router.post('/account/unlock', jwtAuth, async (req: AuthenticatedRequest, res) =
     const { userId } = req.body;
     
     // Only allow admins to unlock accounts
-    const user = await storage.getUser(req.user!.userId);
+    const user = await storageSimple.getUser(req.user!.userId);
     if (!user || !['saas_admin', 'tenant_admin'].includes(user.role)) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }

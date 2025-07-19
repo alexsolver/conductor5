@@ -1,4 +1,4 @@
-import { storage } from '../storage';
+import { storageSimple } from '../storage-simple';
 
 export interface FeatureFlag {
   id: string;

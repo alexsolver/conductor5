@@ -1,11 +1,9 @@
-
 import { sql } from 'drizzle-orm';
-import { databaseManager } from '../database/DatabaseManager';
-import { TenantValidator } from '../database/TenantValidator';
+import { db, schemaManager } from '../db';
 import { logInfo, logError, logWarn } from './logger';
 
 // ===========================
-// PRODUCTION INITIALIZATION SYSTEM
+// ENTERPRISE PRODUCTION INITIALIZATION SYSTEM
 // Ensures all systems are ready before starting the application
 // ===========================
 
@@ -70,13 +68,10 @@ export class ProductionInitializer {
   // ===========================
   private async initializeDatabase(): Promise<void> {
     try {
-      // Initialize main database connection
-      const mainDb = databaseManager.getMainDb();
-      await mainDb.execute(sql`SELECT 1`);
-
-      // Ensure public schema tables exist
-      await this.ensurePublicTables();
-
+      logInfo('Initializing database connections...');
+      
+      await schemaManager.ensurePublicTables();
+      
       logInfo('Database initialization completed');
     } catch (error) {
       logError('Database initialization failed', error);
@@ -84,62 +79,27 @@ export class ProductionInitializer {
     }
   }
 
-  private async ensurePublicTables(): Promise<void> {
-    const mainDb = databaseManager.getMainDb();
-
-    // Create tenants table if it doesn't exist
-    await mainDb.execute(sql`
-      CREATE TABLE IF NOT EXISTS tenants (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name VARCHAR(255) NOT NULL,
-        slug VARCHAR(100) UNIQUE NOT NULL,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // Create users table if it doesn't exist
-    await mainDb.execute(sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL DEFAULT 'agent',
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    logInfo('Public tables ensured');
-  }
-
   // ===========================
   // TENANT SCHEMA VALIDATION
   // ===========================
   private async validateTenantSchemas(): Promise<void> {
     try {
-      const mainDb = databaseManager.getMainDb();
-      
       // Get all active tenants
-      const result = await mainDb.execute(sql`
+      const result = await db.execute(sql`
         SELECT id, name FROM tenants WHERE is_active = true
       `);
 
-      const tenants = result.rows;
+      const tenants = result.rows as Array<{ id: string; name: string }>;
       logInfo(`Validating ${tenants.length} tenant schemas`);
 
-      // Validate each tenant schema
       for (const tenant of tenants) {
-        try {
-          const tenantId = tenant.id as string;
-          await databaseManager.ensureTenantSchema(tenantId);
-          logInfo(`Schema validated for tenant: ${tenantId}`);
-        } catch (error) {
-          logWarn(`Schema validation failed for tenant ${tenant.id}:`, error);
-          // Continue with other tenants
+        const isValid = await schemaManager.validateTenantSchema(tenant.id);
+        if (!isValid) {
+          logWarn(`Schema validation failed for tenant ${tenant.id}`, {});
+          // Try to create/fix the schema
+          await schemaManager.createTenantSchema(tenant.id);
+        } else {
+          logInfo(`Schema validated for tenant: ${tenant.id}`);
         }
       }
 
@@ -155,49 +115,25 @@ export class ProductionInitializer {
   // ===========================
   private async runHealthChecks(): Promise<void> {
     try {
-      // Database health check
-      const dbHealth = await databaseManager.healthCheck();
-      if (!dbHealth.healthy) {
-        throw new Error(`Database health check failed: ${JSON.stringify(dbHealth.details)}`);
-      }
+      // Test database connectivity
+      await db.execute(sql`SELECT 1`);
 
-      // Tenant validator health check
-      const validatorHealth = await this.validateTenantValidatorHealth();
-      if (!validatorHealth) {
-        throw new Error('Tenant validator health check failed');
+      // Test tenant schema access (using first available tenant)
+      const tenantResult = await db.execute(sql`
+        SELECT id FROM tenants WHERE is_active = true LIMIT 1
+      `);
+
+      if (tenantResult.rows.length > 0) {
+        const tenantId = tenantResult.rows[0].id as string;
+        const isValid = await schemaManager.validateTenantSchema(tenantId);
+        if (!isValid) {
+          logWarn(`Health check: Tenant schema ${tenantId} needs attention`);
+        }
       }
 
       logInfo('All health checks passed');
     } catch (error) {
       logError('Health checks failed', error);
-      throw error;
-    }
-  }
-
-  private async validateTenantValidatorHealth(): Promise<boolean> {
-    try {
-      // Test with a valid UUID format
-      const testId = '123e4567-e89b-12d3-a456-426614174000';
-      TenantValidator.validateTenantId(testId);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  // ===========================
-  // GRACEFUL SHUTDOWN
-  // ===========================
-  async shutdown(): Promise<void> {
-    try {
-      logInfo('Starting graceful shutdown...');
-      
-      // Shutdown database manager
-      await databaseManager.shutdown();
-      
-      logInfo('Graceful shutdown completed');
-    } catch (error) {
-      logError('Graceful shutdown failed', error);
       throw error;
     }
   }

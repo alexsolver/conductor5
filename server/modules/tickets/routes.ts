@@ -1,7 +1,7 @@
 // Tickets Microservice Routes - JWT Authentication
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { storage } from "../../storage-simple";
+import { storageSimple } from "../../storage-simple";
 import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/schema";
 import { z } from "zod";
 
@@ -21,7 +21,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const assignedTo = req.query.assignedTo as string;
 
     const offset = (page - 1) * limit;
-    let tickets = await storage.getTickets(req.user.tenantId, limit, offset);
+    let tickets = await storageSimple.getTickets(req.user.tenantId, limit, offset);
 
     // Apply filters
     if (status) {
@@ -57,7 +57,7 @@ ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const ticket = await storage.getTicket(req.params.id, req.user.tenantId);
+    const ticket = await storageSimple.getTicket(req.params.id, req.user.tenantId);
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -77,7 +77,7 @@ ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => 
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const urgentTickets = await storage.getUrgentTickets(req.user.tenantId);
+    const urgentTickets = await storageSimple.getUrgentTickets(req.user.tenantId);
     res.json(urgentTickets);
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -98,10 +98,10 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       tenantId: req.user.tenantId,
     });
 
-    const ticket = await storage.createTicket(ticketData);
+    const ticket = await storageSimple.createTicket(ticketData);
     
     // Log activity
-    await storage.createActivityLog({
+    await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
       userId: req.user.id,
       entityType: 'ticket',
@@ -131,14 +131,14 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const ticketId = req.params.id;
     const updates = req.body;
 
-    const updatedTicket = await storage.updateTicket(ticketId, req.user.tenantId, updates);
+    const updatedTicket = await storageSimple.updateTicket(ticketId, req.user.tenantId, updates);
     
     if (!updatedTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
     // Log activity
-    await storage.createActivityLog({
+    await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
       userId: req.user.id,
       entityType: 'ticket',
@@ -169,10 +169,10 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
       authorId: req.user.id,
     });
 
-    const message = await storage.createTicketMessage(messageData);
+    const message = await storageSimple.createTicketMessage(messageData);
     
     // Log activity
-    await storage.createActivityLog({
+    await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
       userId: req.user.id,
       entityType: 'ticket',
@@ -202,7 +202,7 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
     const ticketId = req.params.id;
     const { assignedToId } = req.body;
 
-    const updatedTicket = await storage.updateTicket(ticketId, req.user.tenantId, { 
+    const updatedTicket = await storageSimple.updateTicket(ticketId, req.user.tenantId, { 
       assignedToId,
       status: 'in_progress'
     });
@@ -212,7 +212,7 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
     }
 
     // Log activity
-    await storage.createActivityLog({
+    await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
       userId: req.user.id,
       entityType: 'ticket',
@@ -238,20 +238,20 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const ticketId = req.params.id;
     
     // First check if ticket exists
-    const existingTicket = await storage.getTicket(ticketId, req.user.tenantId);
+    const existingTicket = await storageSimple.getTicket(ticketId, req.user.tenantId);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
     // Mark as deleted by updating status
-    const success = await storage.updateTicket(ticketId, req.user.tenantId, { status: 'deleted' });
+    const success = await storageSimple.updateTicket(ticketId, req.user.tenantId, { status: 'deleted' });
     
     if (!success) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
     // Log activity
-    await storage.createActivityLog({
+    await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
       userId: req.user.id,
       entityType: 'ticket',

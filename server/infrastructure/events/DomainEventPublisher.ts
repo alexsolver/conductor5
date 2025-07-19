@@ -1,6 +1,6 @@
 // Infrastructure - Event Publisher Implementation
 import { DomainEvent, IDomainEventPublisher } from "../../domain/events/DomainEvent";
-import { storage } from "../../storage-simple";
+import { storageSimple } from "../../storage-simple";
 import { insertActivityLogSchema } from "../../../shared/schema";
 
 export class DomainEventPublisher implements IDomainEventPublisher {
@@ -46,7 +46,7 @@ export class DomainEventPublisher implements IDomainEventPublisher {
       const activityData = this.mapEventToActivity(event);
       
       if (activityData) {
-        await storage.createActivityLog(activityData);
+        await storageSimple.createActivityLog(activityData);
       }
     } catch (error) {
       const { logError } = await import('../../utils/logger');

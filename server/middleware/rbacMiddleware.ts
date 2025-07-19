@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
+import { storageSimple } from '../storage-simple';
 
 // Enhanced RBAC/ABAC System with Tenant-specific permissions
 export interface Permission {
@@ -177,7 +177,7 @@ export class RBACService {
   }
 
   async getUserPermissions(userId: string, tenantId?: string): Promise<Permission[]> {
-    const user = await storage.getUser(userId);
+    const user = await storageSimple.getUser(userId);
     if (!user) return [];
 
     const rolePermissions = ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS] || [];
