@@ -214,13 +214,15 @@ export default function TenantAdminIntegrations() {
   };
 
   // Map integrations with proper icons and saved configuration status
-  const tenantIntegrations: TenantIntegration[] = (integrationsData?.integrations || []).map((integration: any) => ({
-    ...integration,
-    icon: getIntegrationIcon(integration.id),
-    // Update status based on saved configuration
-    status: integration.configured ? 'connected' : 'disconnected',
-    configured: integration.configured || false
-  })) || [
+  const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
+    ? integrationsData.integrations.map((integration: any) => ({
+        ...integration,
+        icon: getIntegrationIcon(integration.id),
+        // Update status based on saved configuration
+        status: integration.configured ? 'connected' : 'disconnected',
+        configured: integration.configured || false
+      }))
+    : [
     // Comunicação
     {
       id: 'gmail-oauth2',
@@ -681,7 +683,7 @@ export default function TenantAdminIntegrations() {
 
       {/* Integrações por Categoria */}
       <Tabs defaultValue={Object.keys(groupedIntegrations)[0]} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={`grid w-full ${Object.keys(groupedIntegrations).length === 3 ? 'grid-cols-3' : Object.keys(groupedIntegrations).length === 4 ? 'grid-cols-4' : 'grid-cols-5'}`}>
           {Object.keys(groupedIntegrations).map((category) => (
             <TabsTrigger key={category} value={category}>
               {category}
