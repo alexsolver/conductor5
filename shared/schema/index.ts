@@ -11,7 +11,7 @@ export * from "./location";
 export * from "./security";
 export * from "./tenant-specific";
 export * from "./user-management";
-export * from "./multi-tenant";
+// Removed: multi-tenant schema - functionality eliminated from system
 export * from "./technical-skills";
 
 // Main schema aggregation for backwards compatibility

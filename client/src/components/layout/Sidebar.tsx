@@ -67,7 +67,7 @@ const adminNavigation = [
       { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
       { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages },
       { name: "Gestão de Usuários", href: "/user-management", icon: UserCog },
-      { name: "Multi-Tenant", href: "/multi-tenant", icon: Users },
+      // Removed: Multi-Tenant management - functionality eliminated from system
       { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },
       { name: "Controle de Integridade", href: "/module-integrity", icon: Shield },
     ]

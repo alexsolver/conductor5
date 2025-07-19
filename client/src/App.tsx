@@ -38,7 +38,7 @@ import TenantAdminBranding from "./pages/TenantAdminBranding";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import TicketConfiguration from "./pages/TicketConfiguration";
 import { UserManagement } from "./pages/UserManagement";
-import MultiTenantManagement from "./pages/MultiTenantManagement";
+// Removed: MultiTenantManagement - functionality eliminated from system
 import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 import CustomerCompanies from "./pages/CustomerCompanies";
@@ -106,7 +106,7 @@ function AppRouter() {
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/ticket-configuration" component={TicketConfiguration} />
         <Route path="/user-management" component={UserManagement} />
-        <Route path="/multi-tenant" component={MultiTenantManagement} />
+        {/* Removed: Multi-tenant management route - functionality eliminated */}
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />
         <Route path="/templates" component={TemplateSelector} />
