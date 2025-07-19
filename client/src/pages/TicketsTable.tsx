@@ -798,11 +798,26 @@ export default function TicketsTable() {
               New Ticket
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Ticket</DialogTitle>
-            </DialogHeader>
-            <TicketForm />
+          <DialogContent className="fixed inset-0 w-screen h-screen max-w-none max-h-none p-0 m-0 bg-white dark:bg-gray-900 overflow-y-auto">
+            <div className="h-full flex flex-col">
+              <DialogHeader className="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
+                <DialogTitle className="text-2xl font-semibold">Create New Ticket</DialogTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    form.reset();
+                  }}
+                  className="h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </DialogHeader>
+              <div className="flex-1 p-6">
+                <TicketForm />
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -1024,11 +1039,27 @@ export default function TicketsTable() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Ticket</DialogTitle>
-          </DialogHeader>
-          <TicketForm />
+        <DialogContent className="fixed inset-0 w-screen h-screen max-w-none max-h-none p-0 m-0 bg-white dark:bg-gray-900 overflow-y-auto">
+          <div className="h-full flex flex-col">
+            <DialogHeader className="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
+              <DialogTitle className="text-2xl font-semibold">Edit Ticket</DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingTicket(null);
+                  form.reset();
+                }}
+                className="h-8 w-8 p-0"
+              >
+                ×
+              </Button>
+            </DialogHeader>
+            <div className="flex-1 p-6">
+              <TicketForm />
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
