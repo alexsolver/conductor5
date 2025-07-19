@@ -59,7 +59,16 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
+  // Document information
   cpfCnpj: varchar("cpf_cnpj", { length: 20 }), // For Brazilian customers
+  // Address fields
+  address: varchar("address", { length: 500 }),
+  addressNumber: varchar("address_number", { length: 20 }),
+  complement: varchar("complement", { length: 100 }),
+  neighborhood: varchar("neighborhood", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 50 }),
+  zipCode: varchar("zip_code", { length: 20 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -71,10 +80,14 @@ export const favorecidos = pgTable("favorecidos", {
   tenantId: uuid("tenant_id").references(() => tenants.id),
   firstName: varchar("first_name", { length: 255 }),
   lastName: varchar("last_name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 50 }),
+  cellPhone: varchar("cell_phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
+  // Document information
+  rg: varchar("rg", { length: 20 }), // Brazilian RG
   cpfCnpj: varchar("cpf_cnpj", { length: 20 }), // For Brazilian contacts
+  integrationCode: varchar("integration_code", { length: 100 }), // External system integration code
   contactType: varchar("contact_type", { length: 50 }).default("external"), // external, partner, vendor
   relationship: varchar("relationship", { length: 100 }), // business relationship description
   preferredContactMethod: varchar("preferred_contact_method", { length: 50 }).default("email"), // email, phone, whatsapp
@@ -88,16 +101,43 @@ export const favorecidos = pgTable("favorecidos", {
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
+  number: varchar("number", { length: 50 }), // Ticket number for display
   subject: varchar("subject", { length: 500 }).notNull(),
   description: text("description"),
   status: varchar("status", { length: 50 }).default("open"),
   priority: varchar("priority", { length: 20 }).default("medium"),
+  urgency: varchar("urgency", { length: 20 }).default("medium"),
+  impact: varchar("impact", { length: 20 }).default("medium"),
+  
+  // Classification fields
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  contactType: varchar("contact_type", { length: 20 }).default("email"), // email, phone, chat, portal
+  
   // Modern person management fields
   callerId: uuid("caller_id").notNull(), // Person who reported the issue  
   callerType: varchar("caller_type", { length: 20 }).notNull().default("customer"), // 'user' or 'customer'
   beneficiaryId: uuid("beneficiary_id"), // Person who benefits from resolution (optional, defaults to caller)
   beneficiaryType: varchar("beneficiary_type", { length: 20 }).default("customer"), // 'user' or 'customer'
+  
+  // Assignment fields
   assignedToId: varchar("assigned_to_id"),
+  assignmentGroup: varchar("assignment_group", { length: 100 }),
+  location: varchar("location", { length: 255 }),
+  
+  // Business impact fields
+  businessImpact: text("business_impact"),
+  symptoms: text("symptoms"),
+  workaround: text("workaround"),
+  
+  // Date/Time fields from the interface
+  dueDate: timestamp("due_date"), // Vencimento
+  triggerDate: timestamp("trigger_date"), // Vencimento Acionamento  
+  originalDueDate: timestamp("original_due_date"), // Data/hora vencimento original
+  resolutionDate: timestamp("resolution_date"), // Resolução
+  closedDate: timestamp("closed_date"), // Fechamento
+  daysInStatus: varchar("days_in_status", { length: 10 }), // Dia(s) no status
+  
   // Hierarchy support
   parentTicketId: uuid("parent_ticket_id").references(() => tickets.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),

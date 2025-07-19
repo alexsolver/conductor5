@@ -273,11 +273,12 @@ export default function TicketEdit() {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <Tabs defaultValue="basic" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-5">
                       <TabsTrigger value="basic">Básico</TabsTrigger>
                       <TabsTrigger value="assignment">Atribuição</TabsTrigger>
                       <TabsTrigger value="classification">Classificação</TabsTrigger>
                       <TabsTrigger value="details">Detalhes</TabsTrigger>
+                      <TabsTrigger value="people">Pessoas</TabsTrigger>
                     </TabsList>
                     
                     {/* Tab 1: Basic Information */}
@@ -634,6 +635,122 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
+                    </TabsContent>
+
+                    {/* Tab 5: People Information */}
+                    <TabsContent value="people" className="space-y-6">
+                      {/* Solicitante Information */}
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-medium text-blue-900 mb-4">Informações do Solicitante:</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
+                            <div className="text-sm text-gray-900">giovanna jovina</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail:</label>
+                            <div className="text-sm text-gray-900">giovanna.santos@lansolver.com</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Telefone:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Endereço:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Número:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Complemento:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Bairro:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Cidade:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Favorecido Information */}
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-medium text-green-900 mb-4">Informações do Favorecido:</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
+                            <div className="text-sm text-gray-900">MTM - Motormac</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">RG:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Telefone:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Celular:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Código de Integração:</label>
+                            <div className="text-sm text-gray-900">MTM - Motormac</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Date/Time Information */}
+                      <div className="bg-purple-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-medium text-purple-900 mb-4">Data/Hora</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Criação:</label>
+                            <div className="text-sm text-gray-900">18/07/2025 14:52</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vencimento:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Data/hora vencimento original:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vencimento Acionamento:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Resolução:</label>
+                            <div className="text-sm text-gray-900">[Campo vazio]</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Fechamento:</label>
+                            <div className="text-sm text-gray-900">18/07/2025 15:03</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Dia(s) no status:</label>
+                            <div className="text-sm text-gray-900">0</div>
+                          </div>
+                        </div>
+                      </div>
                     </TabsContent>
                   </Tabs>
 
