@@ -92,6 +92,7 @@ export interface IStorage {
 }
 
 export class DrizzleStorage implements IStorage {
+
   // Users
   async getUser(id: string): Promise<User | null> {
     const result = await db.select().from(users).where(eq(users.id, id));
@@ -144,143 +145,345 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  // Customers
+  // Customers - Using direct SQL with tenant schema
   async getCustomer(id: string, tenantId: string): Promise<Customer | null> {
-    const result = await db.select().from(customers).where(
-      and(eq(customers.id, id), eq(customers.tenantId, tenantId))
-    );
-    return result[0] || null;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.customers 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `);
+      return (result.rows[0] as Customer) || null;
+    } catch (error) {
+      console.error('Error getting customer:', error);
+      return null;
+    }
   }
 
   async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Customer[]> {
-    const { limit = 50, offset = 0, search } = options;
-    
-    let query = db.select().from(customers)
-      .where(eq(customers.tenantId, tenantId))
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(customers.createdAt));
-    
-    if (search) {
-      query = query.where(
-        and(
-          eq(customers.tenantId, tenantId),
-          or(
-            ilike(customers.firstName, `%${search}%`),
-            ilike(customers.lastName, `%${search}%`),
-            ilike(customers.email, `%${search}%`)
+    try {
+      const { limit = 50, offset = 0, search } = options;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      let query = sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.customers 
+        WHERE tenant_id = ${tenantId}
+      `;
+      
+      if (search) {
+        query = sql`
+          SELECT * FROM ${sql.identifier(schemaName)}.customers 
+          WHERE tenant_id = ${tenantId}
+          AND (
+            first_name ILIKE ${`%${search}%`} OR
+            last_name ILIKE ${`%${search}%`} OR
+            email ILIKE ${`%${search}%`} OR
+            company ILIKE ${`%${search}%`}
           )
-        )
-      );
+        `;
+      }
+      
+      query = sql`${query} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+      
+      const result = await db.execute(query);
+      return result.rows as Customer[];
+    } catch (error) {
+      console.error('Error getting customers:', error);
+      return [];
     }
-    
-    return await query;
   }
 
   async createCustomer(tenantId: string, data: InsertCustomer): Promise<Customer> {
-    const result = await db.insert(customers).values({ ...data, tenantId }).returning();
-    return result[0];
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const id = crypto.randomUUID();
+      
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.customers (
+          id, tenant_id, first_name, last_name, email, phone, 
+          company, cpf_cnpj, is_active, created_at, updated_at
+        ) VALUES (
+          ${id}, ${tenantId}, ${data.firstName || ''}, ${data.lastName || ''}, 
+          ${data.email}, ${data.phone || ''}, ${data.company || ''}, 
+          ${data.cpfCnpj || ''}, ${data.isActive ?? true}, NOW(), NOW()
+        )
+      `);
+
+      return this.getCustomer(id, tenantId) as Promise<Customer>;
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw error;
+    }
   }
 
   async updateCustomer(id: string, tenantId: string, data: Partial<InsertCustomer>): Promise<Customer | null> {
-    const result = await db.update(customers).set(data).where(
-      and(eq(customers.id, id), eq(customers.tenantId, tenantId))
-    ).returning();
-    return result[0] || null;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const updates = [];
+      if (data.firstName !== undefined) updates.push(`first_name = '${data.firstName}'`);
+      if (data.lastName !== undefined) updates.push(`last_name = '${data.lastName}'`);
+      if (data.email !== undefined) updates.push(`email = '${data.email}'`);
+      if (data.phone !== undefined) updates.push(`phone = '${data.phone}'`);
+      if (data.company !== undefined) updates.push(`company = '${data.company}'`);
+      if (data.cpfCnpj !== undefined) updates.push(`cpf_cnpj = '${data.cpfCnpj}'`);
+      if (data.isActive !== undefined) updates.push(`is_active = ${data.isActive}`);
+      
+      updates.push('updated_at = NOW()');
+      
+      await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.customers 
+        SET ${sql.raw(updates.join(', '))}
+        WHERE tenant_id = ${tenantId} AND id = ${id}
+      `);
+      
+      return this.getCustomer(id, tenantId);
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      return null;
+    }
   }
 
   async deleteCustomer(id: string, tenantId: string): Promise<boolean> {
-    const result = await db.delete(customers).where(
-      and(eq(customers.id, id), eq(customers.tenantId, tenantId))
-    );
-    return result.rowCount > 0;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.customers 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      return false;
+    }
   }
 
-  // Favorecidos (External Contacts)
+  // Favorecidos (External Contacts) - Using direct SQL with tenant schema  
   async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
-    const result = await db.select().from(favorecidos).where(
-      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
-    );
-    return result[0] || null;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `);
+      return (result.rows[0] as Favorecido) || null;
+    } catch (error) {
+      console.error('Error getting favorecido:', error);
+      return null;
+    }
   }
 
   async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
-    const { limit = 50, offset = 0, search } = options;
-    
-    let query = db.select().from(favorecidos)
-      .where(eq(favorecidos.tenantId, tenantId))
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(favorecidos.createdAt));
-    
-    if (search) {
-      query = query.where(
-        and(
-          eq(favorecidos.tenantId, tenantId),
-          or(
-            ilike(favorecidos.firstName, `%${search}%`),
-            ilike(favorecidos.lastName, `%${search}%`),
-            ilike(favorecidos.email, `%${search}%`)
+    try {
+      const { limit = 50, offset = 0, search } = options;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      let query = sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE tenant_id = ${tenantId}
+      `;
+      
+      if (search) {
+        query = sql`
+          SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
+          WHERE tenant_id = ${tenantId}
+          AND (
+            first_name ILIKE ${`%${search}%`} OR
+            last_name ILIKE ${`%${search}%`} OR
+            email ILIKE ${`%${search}%`} OR
+            company ILIKE ${`%${search}%`}
           )
-        )
-      );
+        `;
+      }
+      
+      query = sql`${query} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+      
+      const result = await db.execute(query);
+      return result.rows as Favorecido[];
+    } catch (error) {
+      console.error('Error getting favorecidos:', error);
+      return [];
     }
-    
-    return await query;
   }
 
   async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
-    const result = await db.insert(favorecidos).values({ ...data, tenantId }).returning();
-    return result[0];
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const id = crypto.randomUUID();
+      
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.favorecidos (
+          id, tenant_id, first_name, last_name, email, phone, company, 
+          cpf_cnpj, contact_type, relationship, preferred_contact_method, 
+          notes, is_active, created_at, updated_at
+        ) VALUES (
+          ${id}, ${tenantId}, ${data.firstName || ''}, ${data.lastName || ''}, ${data.email}, 
+          ${data.phone || ''}, ${data.company || ''}, ${data.cpfCnpj || ''}, 
+          ${data.contactType || 'external'}, ${data.relationship || ''}, 
+          ${data.preferredContactMethod || 'email'}, ${data.notes || ''}, 
+          ${data.isActive ?? true}, NOW(), NOW()
+        )
+      `);
+
+      return this.getFavorecido(id, tenantId) as Promise<Favorecido>;
+    } catch (error) {
+      console.error('Error creating favorecido:', error);
+      throw error;
+    }
   }
 
   async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
-    const result = await db.update(favorecidos).set(data).where(
-      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
-    ).returning();
-    return result[0] || null;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const updates = [];
+      if (data.firstName !== undefined) updates.push(`first_name = '${data.firstName}'`);
+      if (data.lastName !== undefined) updates.push(`last_name = '${data.lastName}'`);
+      if (data.email !== undefined) updates.push(`email = '${data.email}'`);
+      if (data.phone !== undefined) updates.push(`phone = '${data.phone}'`);
+      if (data.company !== undefined) updates.push(`company = '${data.company}'`);
+      if (data.cpfCnpj !== undefined) updates.push(`cpf_cnpj = '${data.cpfCnpj}'`);
+      if (data.contactType !== undefined) updates.push(`contact_type = '${data.contactType}'`);
+      if (data.relationship !== undefined) updates.push(`relationship = '${data.relationship}'`);
+      if (data.preferredContactMethod !== undefined) updates.push(`preferred_contact_method = '${data.preferredContactMethod}'`);
+      if (data.notes !== undefined) updates.push(`notes = '${data.notes}'`);
+      if (data.isActive !== undefined) updates.push(`is_active = ${data.isActive}`);
+      
+      updates.push('updated_at = NOW()');
+      
+      await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.favorecidos 
+        SET ${sql.raw(updates.join(', '))}
+        WHERE tenant_id = ${tenantId} AND id = ${id}
+      `);
+      
+      return this.getFavorecido(id, tenantId);
+    } catch (error) {
+      console.error('Error updating favorecido:', error);
+      return null;
+    }
   }
 
   async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
-    const result = await db.delete(favorecidos).where(
-      and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
-    );
-    return result.rowCount > 0;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting favorecido:', error);
+      return false;
+    }
   }
 
-  // Tickets
+  // Tickets - Using tenant-specific database connections
   async getTicket(id: string, tenantId: string): Promise<Ticket | null> {
-    const result = await db.select().from(tickets).where(
-      and(eq(tickets.id, id), eq(tickets.tenantId, tenantId))
-    );
-    return result[0] || null;
+    try {
+      await this.schemaManager.createTenantSchema(tenantId);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM tickets 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `);
+      return (result.rows[0] as Ticket) || null;
+    } catch (error) {
+      console.error('Error getting ticket:', error);
+      return null;
+    }
   }
 
   async getTickets(tenantId: string, limit: number = 50, offset: number = 0): Promise<Ticket[]> {
-    return await db.select().from(tickets)
-      .where(eq(tickets.tenantId, tenantId))
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(tickets.createdAt));
+    try {
+      await this.schemaManager.createTenantSchema(tenantId);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM tickets 
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+      return result.rows as Ticket[];
+    } catch (error) {
+      console.error('Error getting tickets:', error);
+      return [];
+    }
   }
 
   async createTicket(data: InsertTicket): Promise<Ticket> {
-    const result = await db.insert(tickets).values(data).returning();
-    return result[0];
+    try {
+      await this.schemaManager.createTenantSchema(data.tenantId!);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(data.tenantId!);
+      const id = crypto.randomUUID();
+      
+      await tenantDb.execute(sql`
+        INSERT INTO tickets (
+          id, tenant_id, subject, description, status, priority, 
+          customer_id, assigned_to_id, created_at, updated_at
+        ) VALUES (
+          ${id}, ${data.tenantId}, ${data.subject}, ${data.description || ''}, 
+          ${data.status || 'open'}, ${data.priority || 'medium'}, 
+          ${data.customerId || null}, ${data.assignedToId || null}, NOW(), NOW()
+        )
+      `);
+
+      return this.getTicket(id, data.tenantId!) as Promise<Ticket>;
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      throw error;
+    }
   }
 
   async updateTicket(id: string, tenantId: string, data: Partial<InsertTicket>): Promise<Ticket | null> {
-    const result = await db.update(tickets).set(data).where(
-      and(eq(tickets.id, id), eq(tickets.tenantId, tenantId))
-    ).returning();
-    return result[0] || null;
+    try {
+      await this.schemaManager.createTenantSchema(tenantId);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      
+      const updates = [];
+      if (data.subject !== undefined) updates.push(`subject = '${data.subject}'`);
+      if (data.description !== undefined) updates.push(`description = '${data.description}'`);
+      if (data.status !== undefined) updates.push(`status = '${data.status}'`);
+      if (data.priority !== undefined) updates.push(`priority = '${data.priority}'`);
+      if (data.customerId !== undefined) updates.push(`customer_id = '${data.customerId}'`);
+      if (data.assignedToId !== undefined) updates.push(`assigned_to_id = '${data.assignedToId}'`);
+      
+      updates.push('updated_at = NOW()');
+      
+      await tenantDb.execute(sql`
+        UPDATE tickets 
+        SET ${sql.raw(updates.join(', '))}
+        WHERE tenant_id = ${tenantId} AND id = ${id}
+      `);
+      
+      return this.getTicket(id, tenantId);
+    } catch (error) {
+      console.error('Error updating ticket:', error);
+      return null;
+    }
   }
 
   async deleteTicket(id: string, tenantId: string): Promise<boolean> {
-    const result = await db.delete(tickets).where(
-      and(eq(tickets.id, id), eq(tickets.tenantId, tenantId))
-    );
-    return result.rowCount > 0;
+    try {
+      await this.schemaManager.createTenantSchema(tenantId);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      
+      const result = await tenantDb.execute(sql`
+        DELETE FROM tickets 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      return false;
+    }
   }
 
   // Ticket Messages
@@ -314,165 +517,147 @@ export class DrizzleStorage implements IStorage {
 
   // Removed: External Contacts implementation - functionality eliminated from system
 
-  // Locations
+  // Locations - Using direct SQL with tenant schema
   async getLocation(id: string, tenantId: string): Promise<Location | null> {
-    const result = await db.select().from(locations).where(
-      and(eq(locations.id, id), eq(locations.tenantId, tenantId))
-    );
-    return result[0] || null;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.locations 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `);
+      return (result.rows[0] as Location) || null;
+    } catch (error) {
+      console.error('Error getting location:', error);
+      return null;
+    }
   }
 
   async getLocations(tenantId: string, limit: number = 50, offset: number = 0): Promise<Location[]> {
-    return await db.select().from(locations)
-      .where(eq(locations.tenantId, tenantId))
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(locations.createdAt));
+    try {
+      await this.schemaManager.createTenantSchema(tenantId);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM locations 
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+      return result.rows as Location[];
+    } catch (error) {
+      console.error('Error getting locations:', error);
+      return [];
+    }
   }
 
   async createLocation(data: InsertLocation): Promise<Location> {
-    const result = await db.insert(locations).values(data).returning();
-    return result[0];
+    try {
+      const schemaName = `tenant_${data.tenantId!.replace(/-/g, '_')}`;
+      const id = crypto.randomUUID();
+      
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.locations (
+          id, tenant_id, name, address, city, state, zip_code, 
+          latitude, longitude, created_at, updated_at
+        ) VALUES (
+          ${id}, ${data.tenantId}, ${data.name}, ${data.address}, 
+          ${data.city}, ${data.state}, ${data.zipCode}, 
+          ${data.latitude || null}, ${data.longitude || null}, NOW(), NOW()
+        )
+      `);
+
+      return this.getLocation(id, data.tenantId!) as Promise<Location>;
+    } catch (error) {
+      console.error('Error creating location:', error);
+      throw error;
+    }
   }
 
   async updateLocation(id: string, tenantId: string, data: Partial<InsertLocation>): Promise<Location | null> {
-    const result = await db.update(locations).set(data).where(
-      and(eq(locations.id, id), eq(locations.tenantId, tenantId))
-    ).returning();
-    return result[0] || null;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const updates = [];
+      if (data.name !== undefined) updates.push(`name = '${data.name}'`);
+      if (data.address !== undefined) updates.push(`address = '${data.address}'`);
+      if (data.city !== undefined) updates.push(`city = '${data.city}'`);
+      if (data.state !== undefined) updates.push(`state = '${data.state}'`);
+      if (data.zipCode !== undefined) updates.push(`zip_code = '${data.zipCode}'`);
+      if (data.latitude !== undefined) updates.push(`latitude = '${data.latitude}'`);
+      if (data.longitude !== undefined) updates.push(`longitude = '${data.longitude}'`);
+      
+      updates.push('updated_at = NOW()');
+      
+      await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.locations 
+        SET ${sql.raw(updates.join(', '))}
+        WHERE tenant_id = ${tenantId} AND id = ${id}
+      `);
+      
+      return this.getLocation(id, tenantId);
+    } catch (error) {
+      console.error('Error updating location:', error);
+      return null;
+    }
   }
 
   async deleteLocation(id: string, tenantId: string): Promise<boolean> {
-    const result = await db.delete(locations).where(
-      and(eq(locations.id, id), eq(locations.tenantId, tenantId))
-    );
-    return result.rowCount > 0;
-  }
-
-  // Favorecidos (External Contacts) Methods - Using direct SQL for tenant-specific tables
-  async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
-    const result = await db.execute(sql`
-      SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
-      WHERE id = ${id} AND tenant_id = ${tenantId}
-      LIMIT 1
-    `);
-    return (result.rows[0] as Favorecido) || null;
-  }
-
-  async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
-    const { limit = 50, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
-    
-    let query = sql`
-      SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
-      WHERE tenant_id = ${tenantId}
-    `;
-    
-    if (search) {
-      query = sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.favorecidos 
-        WHERE tenant_id = ${tenantId}
-        AND (
-          first_name ILIKE ${`%${search}%`} OR
-          last_name ILIKE ${`%${search}%`} OR
-          email ILIKE ${`%${search}%`} OR
-          company ILIKE ${`%${search}%`}
-        )
-      `;
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.locations 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      return false;
     }
-    
-    query = sql`${query} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
-    
-    const result = await db.execute(query);
-    return result.rows as Favorecido[];
   }
 
-  async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
-    const id = crypto.randomUUID();
-    
-    await db.execute(sql`
-      INSERT INTO ${sql.identifier(schemaName)}.favorecidos (
-        id, tenant_id, first_name, last_name, email, phone, company, 
-        cpf_cnpj, contact_type, relationship, preferred_contact_method, 
-        notes, is_active, created_at, updated_at
-      ) VALUES (
-        ${id}, ${tenantId}, ${data.firstName || ''}, ${data.lastName || ''}, ${data.email}, 
-        ${data.phone || ''}, ${data.company || ''}, ${data.cpfCnpj || ''}, 
-        ${data.contactType || 'external'}, ${data.relationship || ''}, 
-        ${data.preferredContactMethod || 'email'}, ${data.notes || ''}, 
-        ${data.isActive ?? true}, NOW(), NOW()
-      )
-    `);
+  // REMOVED: Duplicate favorecidos methods - already implemented above with tenant-specific connections
 
-    return this.getFavorecido(id, tenantId) as Promise<Favorecido>;
-  }
-
-  async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
-    const updates = [];
-    const values = [tenantId, id]; // Start with tenantId and id for WHERE clause
-    
-    if (data.firstName !== undefined) { updates.push(`first_name = $${values.length + 1}`); values.push(data.firstName); }
-    if (data.lastName !== undefined) { updates.push(`last_name = $${values.length + 1}`); values.push(data.lastName); }
-    if (data.email !== undefined) { updates.push(`email = $${values.length + 1}`); values.push(data.email); }
-    if (data.phone !== undefined) { updates.push(`phone = $${values.length + 1}`); values.push(data.phone); }
-    if (data.company !== undefined) { updates.push(`company = $${values.length + 1}`); values.push(data.company); }
-    if (data.cpfCnpj !== undefined) { updates.push(`cpf_cnpj = $${values.length + 1}`); values.push(data.cpfCnpj); }
-    if (data.contactType !== undefined) { updates.push(`contact_type = $${values.length + 1}`); values.push(data.contactType); }
-    if (data.relationship !== undefined) { updates.push(`relationship = $${values.length + 1}`); values.push(data.relationship); }
-    if (data.preferredContactMethod !== undefined) { updates.push(`preferred_contact_method = $${values.length + 1}`); values.push(data.preferredContactMethod); }
-    if (data.notes !== undefined) { updates.push(`notes = $${values.length + 1}`); values.push(data.notes); }
-    if (data.isActive !== undefined) { updates.push(`is_active = $${values.length + 1}`); values.push(data.isActive); }
-    
-    updates.push('updated_at = NOW()');
-    
-    await db.execute(sql`
-      UPDATE ${sql.identifier(schemaName)}.favorecidos 
-      SET ${sql.raw(updates.join(', '))}
-      WHERE tenant_id = ${tenantId} AND id = ${id}
-    `);
-    
-    return this.getFavorecido(id, tenantId);
-  }
-
-  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;  // Convert hyphens to underscores
-    const result = await db.execute(sql`
-      DELETE FROM ${sql.identifier(schemaName)}.favorecidos 
-      WHERE id = ${id} AND tenant_id = ${tenantId}
-    `);
-    return result.rowCount > 0;
-  }
-
-  // Dashboard stats
+  // Dashboard stats - Using tenant-specific connections
   async getRecentActivity(tenantId: string, limit: number = 20): Promise<any[]> {
     try {
-      const recentTickets = await db.select().from(tickets)
-        .where(eq(tickets.tenantId, tenantId))
-        .orderBy(desc(tickets.createdAt))
-        .limit(5);
+      await this.schemaManager.createTenantSchema(tenantId);
+      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
 
-      const recentCustomers = await db.select().from(customers)
-        .where(eq(customers.tenantId, tenantId))
-        .orderBy(desc(customers.createdAt))
-        .limit(5);
+      // Get recent tickets from tenant schema
+      const recentTicketsResult = await tenantDb.execute(sql`
+        SELECT * FROM tickets 
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC 
+        LIMIT 5
+      `);
+
+      // Get recent customers from tenant schema  
+      const recentCustomersResult = await tenantDb.execute(sql`
+        SELECT * FROM customers 
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC 
+        LIMIT 5
+      `);
+
+      const recentTickets = recentTicketsResult.rows;
+      const recentCustomers = recentCustomersResult.rows;
 
       // Combine activities
       const activities = [
-        ...recentTickets.map(ticket => ({
+        ...recentTickets.map((ticket: any) => ({
           type: 'ticket',
           id: ticket.id,
           title: ticket.subject,
-          createdAt: ticket.createdAt,
+          createdAt: ticket.created_at,
           data: ticket
         })),
-        ...recentCustomers.map(customer => ({
+        ...recentCustomers.map((customer: any) => ({
           type: 'customer',
           id: customer.id,
-          title: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
-          createdAt: customer.createdAt,
+          title: `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || customer.email,
+          createdAt: customer.created_at,
           data: customer
         }))
       ];

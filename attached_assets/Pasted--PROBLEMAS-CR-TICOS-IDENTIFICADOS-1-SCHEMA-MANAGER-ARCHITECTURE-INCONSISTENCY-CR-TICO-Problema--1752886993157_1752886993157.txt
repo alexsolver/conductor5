@@ -1,0 +1,54 @@
+🔥 PROBLEMAS CRÍTICOS IDENTIFICADOS
+1. SCHEMA MANAGER ARCHITECTURE INCONSISTENCY - CRÍTICO
+Problema: SchemaManager.ts em server/modules/shared/database/ apenas re-exporta, não implementa
+Localização: server/modules/shared/database/SchemaManager.ts
+Impacto: Falha na obtenção de conexões tenant (getTenantDatabase is not a function)
+Evidência: Arquivo contém apenas export { schemaManager } from "../../../db"
+Status: ❌ BREAKING SYSTEM
+2. DATABASE MANAGER SINGLETON BOTTLENECK - PERFORMANCE
+Problema: Connection pool ultra-conservativo limitando escalabilidade
+Configuração Atual: MAX_TENANT_POOLS = 3, max: 1 per tenant
+Impacto: Severe performance degradation sob load
+Evidência: maxLifetimeSeconds: 120 força reconnections excessivas
+Localização: server/database/DatabaseManager.ts
+3. TENANT VALIDATION CACHE INEFFICIENCY - PERFORMANCE
+Problema: Cache TTL muito baixo causando validações excessivas
+Configuração: CACHE_TTL = 10 * 60 * 1000 (10 min)
+Impacto: Overhead desnecessário em tenant validation
+Evidência: TenantValidator.ts linha 12
+Frequência: Re-validação a cada 10 minutos mesmo para tenants ativos
+4. SCHEMA CREATION OVERHEAD - PERFORMANCE
+Problema: Criação de 11+ tabelas por tenant com múltiplos indexes
+Impacto: Overhead significativo na criação de novos tenants
+Evidência: createTenantTables() executa 6+ queries separadas
+Localização: DatabaseManager.ts método createTenantTables()
+5. CROSS-TENANT VALIDATOR PARAMETER BINDING - SEGURANÇA
+Problema: Queries usam interpolação de string em alguns pontos
+Impacto: Potencial SQL injection risk
+Evidência: schemaName = 'tenant_${validatedId.replace(/-/g, '_')}'
+Localização: CrossTenantValidator.ts método validateResourceOwnership
+6. MULTI-SCHEMA DUPLICATION - MANUTENIBILIDADE
+Problema: 4 schemas diferentes com sobreposição funcional
+Evidência: schema.ts, schema-simple.ts, schema-unified.ts, schema-backup.ts
+Impacto: Complexidade de manutenção e inconsistências
+Localização: /shared/schema/ directory
+7. TENANT-SPECIFIC SCHEMA GENERATION OVERHEAD - PERFORMANCE
+Problema: Schema generation dinâmico sem cache eficiente
+Evidência: getTenantSpecificSchema(schemaName) executa a cada request
+Impacto: CPU overhead desnecessário
+Localização: shared/schema/tenant-specific.ts
+8. LEGACY SCHEMA MIGRATION COMPLEXITY - MANUTENIBILIDADE
+Problema: Migration logic complexa usando raw SQL
+Evidência: migrateLegacyTables() com DO $$ blocks
+Impacto: Difficult to maintain and debug
+Localização: server/db.ts método migrateLegacyTables
+9. CONNECTION CLEANUP AGGRESSIVE SETTINGS - STABILITY
+Problema: Cleanup muito frequente pode causar instabilidade
+Configuração: Cleanup a cada 5 minutos
+Evidência: startCleanupRoutine() interval de 5min
+Impacto: Potential connection interruptions
+10. TENANT CACHE INVALIDATION GAPS - CONSISTENCY
+Problema: Cache pode ficar stale durante operações tenant
+Evidência: schemaCache.clear() em cleanup, mas não em updates
+Impacto: Potential inconsistent data access
+Localização: DatabaseManager.ts método cleanupConnections
