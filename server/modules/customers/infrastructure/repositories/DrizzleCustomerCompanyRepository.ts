@@ -207,7 +207,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         INSERT INTO ${schemaName}.customer_companies (
           id, name, display_name, description, industry, size, status,
           email, phone, website, subscription_tier, is_active, 
-          created_at, updated_at, created_by, updated_by
+          tenant_id, created_at, updated_at, created_by, updated_by
         ) VALUES (
           ${safeString(companyData.id)},
           ${safeString(companyData.name)},
@@ -221,6 +221,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
           ${safeString(companyData.website)},
           ${safeString(companyData.subscription_tier)},
           ${companyData.is_active},
+          ${safeString(company.getTenantId())},
           ${safeString(now)},
           ${safeString(now)},
           ${safeString(companyData.created_by)},
