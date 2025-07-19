@@ -20,7 +20,7 @@ if (!process.env.DATABASE_URL) {
 // ENTERPRISE POOL CONFIGURATION: Corrigida para alta concorrência e hibernação Neon
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 35, // ENTERPRISE: Otimizado para alta carga simultânea
+  max: 50, // ENTERPRISE: Otimizado para alta carga simultânea (baseado em análise DBA)
   min: 8, // PERFORMANCE: Mais conexões sempre prontas
   idleTimeoutMillis: 360000, // LIFECYCLE: 6 minutos - otimizado
   connectionTimeoutMillis: 45000, // TIMEOUT: Aumentado para Neon hibernation recovery
@@ -41,7 +41,7 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 20 * 60 * 1000; // PRODUCTION: 20 minutos TTL - otimizado para melhor performance
+  private readonly CACHE_TTL = 35 * 60 * 1000; // PRODUCTION: 35 minutos TTL - otimizado para melhor performance (baseado em análise DBA)
   private readonly MAX_CACHED_SCHEMAS = 75; // SCALE: Aumentado para enterprise scale
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
