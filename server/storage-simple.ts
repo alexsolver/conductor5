@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { eq, and, desc, asc, count, or, ilike, sql } from "drizzle-orm";
+import { withHibernationHandling } from './database/NeonHibernationHandler';
 import { 
   users, 
   customers, 
@@ -171,7 +172,8 @@ export class DrizzleStorage implements IStorage {
   }
 
   async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Customer[]> {
-    try {
+    // HIBERNATION PROTECTION: Wrap operation with hibernation handling
+    return withHibernationHandling(async () => {
       // ENTERPRISE SECURITY: Strict UUID-v4 validation for tenant ID
       const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
       if (!tenantId || !strictUuidRegex.test(tenantId) || tenantId.length !== 36) {
@@ -203,10 +205,7 @@ export class DrizzleStorage implements IStorage {
       
       const result = await db.execute(query);
       return result.rows as Customer[];
-    } catch (error) {
-      console.error('Error getting customers:', error);
-      return [];
-    }
+    }, `getCustomers-${tenantId}`, `tenant-${tenantId}`);
   }
 
   async createCustomer(tenantId: string, data: InsertCustomer): Promise<Customer> {
@@ -916,21 +915,24 @@ export class DrizzleStorage implements IStorage {
   }
 
   async getDashboardStats(tenantId: string): Promise<any> {
-    const [ticketCount] = await db.select({ count: count() }).from(tickets)
-      .where(eq(tickets.tenantId, tenantId));
+    // HIBERNATION PROTECTION: Wrap operation with hibernation handling
+    return withHibernationHandling(async () => {
+      const [ticketCount] = await db.select({ count: count() }).from(tickets)
+        .where(eq(tickets.tenantId, tenantId));
 
-    const [customerCount] = await db.select({ count: count() }).from(customers)
-      .where(eq(customers.tenantId, tenantId));
+      const [customerCount] = await db.select({ count: count() }).from(customers)
+        .where(eq(customers.tenantId, tenantId));
 
-    const [openTickets] = await db.select({ count: count() }).from(tickets)
-      .where(and(eq(tickets.tenantId, tenantId), eq(tickets.status, 'open')));
+      const [openTickets] = await db.select({ count: count() }).from(tickets)
+        .where(and(eq(tickets.tenantId, tenantId), eq(tickets.status, 'open')));
 
-    return {
-      totalTickets: ticketCount?.count || 0,
-      totalCustomers: customerCount?.count || 0,
-      openTickets: openTickets?.count || 0,
-      resolvedTickets: (ticketCount?.count || 0) - (openTickets?.count || 0)
-    };
+      return {
+        totalTickets: ticketCount?.count || 0,
+        totalCustomers: customerCount?.count || 0,
+        openTickets: openTickets?.count || 0,
+        resolvedTickets: (ticketCount?.count || 0) - (openTickets?.count || 0)
+      };
+    }, `getDashboardStats-${tenantId}`, `tenant-${tenantId}`);
   }
 
   // Favorecido-Location Associations Implementation
