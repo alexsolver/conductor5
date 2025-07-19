@@ -4,17 +4,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowLeft, Save, Link, Link2, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Link, Link2, Trash2, Paperclip, MessageSquare, Mail, FileCheck, History } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
@@ -42,6 +43,24 @@ const ticketFormSchema = z.object({
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
   tags: z.array(z.string()).default([]),
+  // Template/Environment fields
+  environment: z.string().optional(),
+  template_name: z.string().optional(),
+  template_alternative: z.string().optional(),
+  caller_name_responsible: z.string().optional(),
+  call_type: z.string().optional(),
+  call_url: z.string().optional(),
+  environment_error: z.string().optional(),
+  call_number: z.string().optional(),
+  group_field: z.string().optional(),
+  service_version: z.string().optional(),
+  summary: z.string().optional(),
+  // Assignment/Publication fields
+  publication_priority: z.string().optional(),
+  responsible_team: z.string().optional(),
+  infrastructure: z.string().optional(),
+  environment_publication: z.string().optional(),
+  close_to_publish: z.boolean().default(false),
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;
@@ -108,6 +127,24 @@ export default function TicketEdit() {
       symptoms: "",
       workaround: "",
       tags: [],
+      // Template/Environment defaults
+      environment: "",
+      template_name: "",
+      template_alternative: "",
+      caller_name_responsible: "",
+      call_type: "",
+      call_url: "",
+      environment_error: "",
+      call_number: "",
+      group_field: "",
+      service_version: "",
+      summary: "",
+      // Assignment/Publication defaults
+      publication_priority: "",
+      responsible_team: "",
+      infrastructure: "",
+      environment_publication: "",
+      close_to_publish: false,
     },
   });
 
@@ -135,6 +172,24 @@ export default function TicketEdit() {
         symptoms: ticket.symptoms || "",
         workaround: ticket.workaround || "",
         tags: ticket.tags || [],
+        // Template/Environment values
+        environment: ticket.environment || "",
+        template_name: ticket.template_name || "",
+        template_alternative: ticket.template_alternative || "",
+        caller_name_responsible: ticket.caller_name_responsible || "",
+        call_type: ticket.call_type || "",
+        call_url: ticket.call_url || "",
+        environment_error: ticket.environment_error || "",
+        call_number: ticket.call_number || "",
+        group_field: ticket.group_field || "",
+        service_version: ticket.service_version || "",
+        summary: ticket.summary || "",
+        // Assignment/Publication values
+        publication_priority: ticket.publication_priority || "",
+        responsible_team: ticket.responsible_team || "",
+        infrastructure: ticket.infrastructure || "",
+        environment_publication: ticket.environment_publication || "",
+        close_to_publish: ticket.close_to_publish || false,
       });
     }
   }, [ticket, form]);
@@ -769,6 +824,136 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Publication Priority */}
+                        <FormField
+                          control={form.control}
+                          name="publication_priority"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Prioridade da publicação:</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="4 - Crítico - até 30 minutos" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="1-baixa">1 - Baixa - até 7 dias</SelectItem>
+                                  <SelectItem value="2-normal">2 - Normal - até 3 dias</SelectItem>
+                                  <SelectItem value="3-alta">3 - Alta - até 1 dia</SelectItem>
+                                  <SelectItem value="4-critica">4 - Crítico - até 30 minutos</SelectItem>
+                                  <SelectItem value="5-emergencial">5 - Emergencial - imediato</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Responsible */}
+                        <FormField
+                          control={form.control}
+                          name="responsible_team"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Responsável:</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Tiago Canossa de Abreu Silva" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="tiago-canossa">Tiago Canossa de Abreu Silva</SelectItem>
+                                  <SelectItem value="giovanna-jovina">Giovanna Jovina</SelectItem>
+                                  <SelectItem value="admin">Administrador</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Infrastructure */}
+                        <FormField
+                          control={form.control}
+                          name="infrastructure"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Infraestrutura:</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Infraestrutura" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="infraestrutura">Infraestrutura</SelectItem>
+                                  <SelectItem value="aplicacao">Aplicação</SelectItem>
+                                  <SelectItem value="banco-dados">Banco de Dados</SelectItem>
+                                  <SelectItem value="rede">Rede</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Environment to Publish */}
+                        <FormField
+                          control={form.control}
+                          name="environment_publication"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ambiente a ser publicado:</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Produção" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="producao">Produção</SelectItem>
+                                  <SelectItem value="homologacao">Homologação</SelectItem>
+                                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                                  <SelectItem value="staging">Staging</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Close to Publish Checkbox */}
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name="close_to_publish"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value}
+                                  onChange={field.onChange}
+                                  className="mt-1"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>
+                                  Próximo a ser publicado
+                                </FormLabel>
+                                <FormDescription>
+                                  Marque se este item deve ser publicado prioritariamente
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </TabsContent>
 
                     {/* Tab 3: Classification */}
@@ -1002,7 +1187,65 @@ export default function TicketEdit() {
                     </TabsContent>
                   </Tabs>
 
-                  <div className="flex justify-end pt-4 border-t">
+                  {/* Action Icons Section */}
+                  <div className="bg-gray-50 p-4 rounded-lg border mt-6">
+                    <div className="flex items-center justify-center space-x-8">
+                      <button
+                        type="button"
+                        className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="Anexos"
+                      >
+                        <Paperclip className="w-6 h-6 text-blue-600" />
+                        <span className="text-xs text-gray-700">Anexos</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="Ação Interna"
+                      >
+                        <MessageSquare className="w-6 h-6 text-green-600" />
+                        <span className="text-xs text-gray-700">Ação Interna</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="E-mail"
+                      >
+                        <Mail className="w-6 h-6 text-purple-600" />
+                        <span className="text-xs text-gray-700">E-mail</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="Pedidos de aprovação"
+                      >
+                        <FileCheck className="w-6 h-6 text-orange-600" />
+                        <span className="text-xs text-gray-700">Pedidos de aprovação</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="Histórico"
+                      >
+                        <History className="w-6 h-6 text-indigo-600" />
+                        <span className="text-xs text-gray-700">Histórico</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                    >
+                      Voltar à lista
+                    </Button>
+                    
                     <Button 
                       type="submit" 
                       disabled={updateTicketMutation.isPending}
