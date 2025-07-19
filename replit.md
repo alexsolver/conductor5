@@ -81,6 +81,22 @@ Preferred communication style: Simple, everyday language.
 - **Solução**: Aumentado TTL de 2 minutos para 10 minutos (5x otimização)
 - **Resultado**: Overhead de validação reduzido drasticamente mantendo cache adequado
 
+✅ **LÓGICA DE HEALTH CHECK REATIVA MELHORADA:**
+- **Problema**: Health check detectava problemas mas logs não mostravam correção automática claramente
+- **Evidência**: Sistema já tinha auto-healing mas logging inadequado
+- **Solução**: Melhorado logging detalhado para health checks com informações completas:
+  - Status de auto-healing executado
+  - Tabelas validadas vs. requeridas
+  - Timestamp detalhado de validação
+- **Resultado**: Health checks agora mostram claramente quando auto-healing é executado
+
+✅ **VALIDAÇÃO DE TABELAS EXISTENTES CORRIGIDA:**
+- **Problema**: tablesExist() usava `>= 14` permitindo passar mesmo com tabelas faltantes
+- **Risco**: Schema considerado válido mesmo com tabelas ausentes
+- **Localização**: server/db.ts - método tablesExist linha 433
+- **Solução**: Corrigido para `=== 14` (exatamente 14 tabelas obrigatórias)
+- **Resultado**: Validação rigorosa garantindo todas as 14 tabelas essenciais presentes
+
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS
 - ✅ **Automação (2)**: Zapier, Webhooks  

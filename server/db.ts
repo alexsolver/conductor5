@@ -430,7 +430,9 @@ export class SchemaManager {
         AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations')
       `);
 
-      return (result.rows[0]?.table_count as number) >= 14;
+      // CORREÇÃO CRÍTICA: Deve ter EXATAMENTE 14 tabelas, não >=
+      const tableCount = result.rows[0]?.table_count as number;
+      return tableCount === 14;
     } catch {
       return false;
     }
@@ -1406,6 +1408,16 @@ export class SchemaManager {
         }
       }
 
+      // HEALTH CHECK REATIVO: Log detalhado do status final
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`✅ Health Check Passed: Schema ${schemaName} fully validated`, { 
+        tenantId,
+        schemaName,
+        tablesValidated: requiredTables.length,
+        autoHealingExecuted: missingTables.length > 0 || tablesWithoutTenantId.length > 0,
+        timestamp: new Date().toISOString()
+      });
+      
       console.log(`[SchemaManager] ✅ Schema ${schemaName} validation passed`);
       return true;
     } catch (error) {
