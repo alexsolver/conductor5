@@ -56,7 +56,15 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     }
 
     console.log(`[GET config route] Config encontrada, retornando:`, config);
-    res.json({ config: config, configured: true });
+    
+    // Serialização manual para garantir que o JSON seja enviado corretamente
+    const response = {
+      config: config,
+      configured: true
+    };
+    console.log(`[GET config route] Response being sent:`, JSON.stringify(response, null, 2));
+    
+    res.json(response);
   } catch (error) {
     console.error('Error fetching tenant integration config:', error);
     res.status(500).json({ message: 'Failed to fetch integration configuration' });
