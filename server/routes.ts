@@ -161,9 +161,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const authSecurityRoutes = await import('./routes/authSecurity');
   app.use('/api/auth-security', authSecurityRoutes.default);
 
-  // Import and mount template routes
+  // Import and mount template routes (design templates)
   const templateRoutes = await import('./routes/templateRoutes');
-  app.use('/api/templates', templateRoutes.default);
+  app.use('/api/design-templates', templateRoutes.default);
+
+  // Import and mount ticket template routes
+  const ticketTemplateRoutes = await import('./routes/ticketTemplates');
+  app.use('/api/templates', ticketTemplateRoutes.default);
 
   // Import and mount admin routes
   const saasAdminRoutes = await import('./modules/saas-admin/routes');
@@ -349,9 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Location routes
   app.use('/api/locations', locationRoutes);
 
-  // Ticket Templates routes
-  const ticketTemplatesRoutes = (await import('./routes/ticketTemplates')).default;
-  app.use('/api/templates', ticketTemplatesRoutes);
+  // Ticket Templates routes already mounted above
 
   // All routes now handled by dedicated microservices
 

@@ -45,7 +45,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
 });
 
 // GET /api/templates/categories - List available categories
-router.get('/categories', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
+router.get('/categories', async (req: AuthenticatedRequest, res) => {
   try {
     res.json({
       success: true,
@@ -104,7 +104,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse)
 });
 
 // POST /api/templates - Create new template
-router.post('/', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
+router.post('/', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
@@ -130,7 +130,7 @@ router.post('/', async (req: AuthenticatedRequest, res: AuthenticatedResponse) =
       createdBy: userId
     };
 
-    const newTemplate = await storage.createTicketTemplate(templateData);
+    const newTemplate = await storage.createTicketTemplate(tenantId, templateData);
 
     logger.info('Template criado com sucesso:', { 
       templateId: newTemplate.id, 
@@ -154,7 +154,7 @@ router.post('/', async (req: AuthenticatedRequest, res: AuthenticatedResponse) =
 });
 
 // PUT /api/templates/:id - Update template
-router.put('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
+router.put('/:id', async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
@@ -218,7 +218,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse)
 });
 
 // DELETE /api/templates/:id - Delete template
-router.delete('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
+router.delete('/:id', async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
@@ -271,7 +271,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: AuthenticatedRespon
 });
 
 // POST /api/templates/:id/apply - Apply template to create new ticket
-router.post('/:id/apply', async (req: AuthenticatedRequest, res: AuthenticatedResponse) => {
+router.post('/:id/apply', async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
