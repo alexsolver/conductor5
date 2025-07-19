@@ -52,16 +52,20 @@ export class DependencyContainer {
     return storageSimple;
   }
 
+  private _storage?: any;
+
   get storage() {
-    // Return a proxy that lazily loads storage
-    return new Proxy({}, {
-      get: (target, prop) => {
-        if (typeof prop === 'string') {
-          const { storageSimple } = eval('require("../../storage-simple")');
-          return storageSimple[prop];
-        }
+    if (!this._storage) {
+      // CORREÇÃO CRÍTICA: Lazy loading seguro do storage
+      try {
+        const storageModule = require('../../storage-simple');
+        this._storage = storageModule.storageSimple;
+      } catch (error) {
+        console.error('Failed to load storage in DependencyContainer:', error);
+        throw new Error('Storage module not available');
       }
-    });
+    }
+    return this._storage;
   }
 
   // Services

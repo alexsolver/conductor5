@@ -1,0 +1,95 @@
+
+1. PROBLEMAS CRÍTICOS DE DEPENDENCY INJECTION
+❌ DEPENDENCY CONTAINER FAILURE - RISCO CRÍTICO
+Problema: Storage não definido no DependencyContainer
+
+// server/application/services/DependencyContainer.ts - LINHA 51
+get storage() {
+  return storage; // ❌ ERRO: storage is not defined
+}
+Log de Erro:
+
+Error fetching tenant analytics: ReferenceError: storage is not defined
+at DependencyContainer.get storage
+Impacto: CRÍTICO - Analytics tenant completamente quebrado
+Urgência: IMEDIATA
+
+2. PROBLEMAS DE VALIDAÇÃO DE TENANT ID INCONSISTENTE
+❌ UUID VALIDATION PATTERNS CONFLITANTES
+Problema: Múltiplos validadores com critérios diferentes
+
+TenantValidator.ts (Linha 28):
+
+const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+ConnectionPoolManager.ts (Linha 45):
+
+const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+SchemaManager.ts (Linha 328):
+
+const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+Impacto: ALTO - Inconsistência entre validadores pode permitir bypass
+Urgência: ALTA
+
+3. PROBLEMAS DE CONNECTION POOL
+⚠️ POOL SIZING SUBOTIMIZADO PARA ENTERPRISE
+Problema: Pool pequeno para enterprise scale
+
+// ConnectionPoolManager.ts
+private readonly MAX_POOLS = 15; // Baixo para multi-tenant enterprise
+max: 8, // Por tenant - pode saturar rapidamente
+Impacto: MÉDIO - Bottleneck com 100+ tenants simultâneos
+Urgência: MÉDIA
+
+⚠️ SCHEMA CACHE STRATEGY LIMITADA
+Problema: Cache sem estratégia de invalidação inteligente
+
+// SchemaManager.ts
+private readonly CACHE_TTL = 5 * 60 * 1000; // TTL fixo
+private readonly MAX_CACHED_SCHEMAS = 50; // Sem LRU real
+Impacto: MÉDIO - Memory growth em alta carga
+Urgência: MÉDIA
+
+4. PROBLEMAS DE HIBERNAÇÃO NEON
+⚠️ NEON HIBERNATION AINDA CAUSA TIMEOUTS
+Problema: Recovery parcial implementado, mas timeouts persistem
+
+# Logs ainda mostram:
+[Uncaught Exception] error: terminating connection due to administrator command
+[Connection Timeout] Socket timed out, closing gracefully (6x)
+Configuração Atual:
+
+connectionTimeoutMillis: 45000, // 45s para Neon recovery
+acquireTimeoutMillis: 60000, // 60s acquire timeout
+Impacto: MÉDIO - Timeouts ocasionais de 15-45s em cold start
+Urgência: ALTA
+
+5. PROBLEMAS DE MIGRATION SAFETY
+⚠️ MIGRATION SAFETY GAPS
+Problema: Migração sem rollback completo e backup automático
+
+// db.ts - migrateLegacyTables()
+const migrationQueries = [
+  `DO $$ BEGIN ... END $$;` // Sem transação atomica global
+];
+// FALTA: Backup automático antes de migration
+// FALTA: Rollback strategy em caso de falha
+Impacto: MÉDIO - Risco de corrupção em falha de migração
+Urgência: MÉDIA
+
+6. PROBLEMAS DE MONITORAMENTO E ALERTAS
+❌ REAL-TIME ALERTING AUSENTE
+Problema: Sem alertas automáticos para degradação
+
+// EnterpriseRealTimeAlerting.ts existe mas não integrado ao sistema principal
+// FALTA: Pool exhaustion alerts
+// FALTA: Query timeout alerts
+// FALTA: Cross-tenant breach alerts
+Impacto: ALTO - Blind spots operacionais críticos
+Urgência: ALTA
+
+⚠️ TENANT USAGE ANALYTICS LIMITADO
+Problema: Métricas por tenant insuficientes para capacity planning
+
+// FALTA: Per-tenant resource usage tracking
+// FALTA: Query performance per tenant
+// FALTA: Storage usage per tenant

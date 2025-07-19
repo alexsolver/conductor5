@@ -1,402 +1,520 @@
 // ===========================
-// INTELLIGENT CACHE MANAGER
-// Resolver problema 2: Cache LRU strategy deficiente
+// INTELLIGENT CACHE MANAGER - LRU ENTERPRISE
+// Resolver problemas de cache strategy limitada
 // ===========================
 
 interface CacheEntry<T> {
+  key: string;
   value: T;
-  timestamp: number;
-  hits: number;
-  lastAccessed: number;
-  size?: number;
+  accessCount: number;
+  lastAccessed: Date;
+  createdAt: Date;
+  size: number; // Memory size in bytes (estimated)
+  ttl?: number; // TTL in milliseconds
+  tags: string[]; // For batch invalidation
 }
 
-interface CacheStats {
+interface CacheMetrics {
   hits: number;
   misses: number;
   evictions: number;
-  hitRate: number;
-  memoryUsage: number;
-  entryCount: number;
+  totalAccesses: number;
+  memoryUsage: number; // in bytes
+  avgAccessTime: number;
 }
 
-export class IntelligentCacheManager<T> {
+interface EvictionScore {
+  key: string;
+  score: number; // Lower score = higher priority for eviction
+  reason: string;
+}
+
+export class IntelligentCacheManager<T = any> {
+  private static instances = new Map<string, IntelligentCacheManager>();
+  
   private cache = new Map<string, CacheEntry<T>>();
-  private readonly maxSize: number;
-  private readonly ttl: number;
-  private stats: CacheStats = {
+  private metrics: CacheMetrics = {
     hits: 0,
     misses: 0,
     evictions: 0,
-    hitRate: 0,
+    totalAccesses: 0,
     memoryUsage: 0,
-    entryCount: 0
+    avgAccessTime: 0
   };
+  
+  private readonly maxSize: number;
+  private readonly maxMemoryMB: number;
+  private readonly defaultTTL: number;
+  private readonly evictionBatchSize: number;
+  private cleanupTimer?: NodeJS.Timeout;
 
-  // Strategy weights for eviction scoring
-  private readonly AGE_WEIGHT = 0.3;
-  private readonly FREQUENCY_WEIGHT = 0.4;
-  private readonly RECENCY_WEIGHT = 0.3;
-
-  constructor(maxSize: number = 100, ttlMinutes: number = 30) {
-    this.maxSize = maxSize;
-    this.ttl = ttlMinutes * 60 * 1000; // Convert to milliseconds
+  constructor(
+    private namespace: string,
+    options: {
+      maxSize?: number;
+      maxMemoryMB?: number;
+      defaultTTL?: number;
+      evictionBatchSize?: number;
+      cleanupInterval?: number;
+    } = {}
+  ) {
+    this.maxSize = options.maxSize || 1000;
+    this.maxMemoryMB = options.maxMemoryMB || 100;
+    this.defaultTTL = options.defaultTTL || 300000; // 5 minutes
+    this.evictionBatchSize = options.evictionBatchSize || 10;
     
-    // Start cleanup routine
-    this.startCleanupRoutine();
+    this.startPeriodicCleanup(options.cleanupInterval || 60000); // 1 minute
+    console.log(`✅ [IntelligentCache:${namespace}] Initialized with maxSize=${this.maxSize}, maxMemory=${this.maxMemoryMB}MB`);
+  }
+
+  static getInstance<T = any>(namespace: string, options?: any): IntelligentCacheManager<T> {
+    if (!IntelligentCacheManager.instances.has(namespace)) {
+      IntelligentCacheManager.instances.set(namespace, new IntelligentCacheManager<T>(namespace, options));
+    }
+    return IntelligentCacheManager.instances.get(namespace) as IntelligentCacheManager<T>;
   }
 
   // ===========================
-  // OPERAÇÕES BÁSICAS DE CACHE
+  // CORE CACHE OPERATIONS
   // ===========================
-  get(key: string): T | null {
+  set(key: string, value: T, options: { ttl?: number; tags?: string[] } = {}): void {
+    const startTime = Date.now();
+    
+    // Check if we need to evict before adding
+    if (this.shouldEvict()) {
+      this.performIntelligentEviction();
+    }
+    
+    const size = this.estimateObjectSize(value);
+    const now = new Date();
+    
+    const entry: CacheEntry<T> = {
+      key,
+      value,
+      accessCount: 1,
+      lastAccessed: now,
+      createdAt: now,
+      size,
+      ttl: options.ttl || this.defaultTTL,
+      tags: options.tags || []
+    };
+    
+    // Remove old entry if exists
+    if (this.cache.has(key)) {
+      this.metrics.memoryUsage -= this.cache.get(key)!.size;
+    }
+    
+    this.cache.set(key, entry);
+    this.metrics.memoryUsage += size;
+    
+    this.updateAccessTime(Date.now() - startTime);
+    console.log(`📝 [IntelligentCache:${this.namespace}] Set ${key} (${size} bytes, TTL=${entry.ttl}ms)`);
+  }
+
+  get(key: string): T | undefined {
+    const startTime = Date.now();
+    this.metrics.totalAccesses++;
+    
     const entry = this.cache.get(key);
-    const now = Date.now();
-
+    
     if (!entry) {
-      this.stats.misses++;
-      this.updateHitRate();
-      return null;
+      this.metrics.misses++;
+      this.updateAccessTime(Date.now() - startTime);
+      return undefined;
     }
-
-    // Check TTL
-    if (now - entry.timestamp > this.ttl) {
-      this.cache.delete(key);
-      this.stats.misses++;
-      this.updateHitRate();
-      return null;
+    
+    // Check TTL expiration
+    if (this.isExpired(entry)) {
+      this.delete(key);
+      this.metrics.misses++;
+      this.updateAccessTime(Date.now() - startTime);
+      return undefined;
     }
-
-    // Update access stats
-    entry.hits++;
-    entry.lastAccessed = now;
-    this.stats.hits++;
-    this.updateHitRate();
-
+    
+    // Update access statistics
+    entry.accessCount++;
+    entry.lastAccessed = new Date();
+    this.metrics.hits++;
+    
+    this.updateAccessTime(Date.now() - startTime);
     return entry.value;
   }
 
-  set(key: string, value: T, customTtl?: number): void {
-    const now = Date.now();
-    const effectiveTtl = customTtl || this.ttl;
-
-    // Check if we need to evict entries
-    if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
-      this.intelligentEviction();
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
+    if (!entry) return false;
+    
+    if (this.isExpired(entry)) {
+      this.delete(key);
+      return false;
     }
-
-    const entry: CacheEntry<T> = {
-      value,
-      timestamp: now,
-      hits: 0,
-      lastAccessed: now,
-      size: this.estimateSize(value)
-    };
-
-    this.cache.set(key, entry);
-    this.updateStats();
+    
+    return true;
   }
 
   delete(key: string): boolean {
-    const deleted = this.cache.delete(key);
-    if (deleted) {
-      this.updateStats();
+    const entry = this.cache.get(key);
+    if (entry) {
+      this.metrics.memoryUsage -= entry.size;
+      this.cache.delete(key);
+      console.log(`🗑️ [IntelligentCache:${this.namespace}] Deleted ${key}`);
+      return true;
     }
-    return deleted;
+    return false;
   }
 
   clear(): void {
+    const count = this.cache.size;
     this.cache.clear();
-    this.stats.entryCount = 0;
-    this.stats.memoryUsage = 0;
+    this.metrics.memoryUsage = 0;
+    console.log(`🧹 [IntelligentCache:${this.namespace}] Cleared ${count} entries`);
   }
 
   // ===========================
-  // INTELLIGENT LRU EVICTION
+  // INTELLIGENT EVICTION
   // ===========================
-  private intelligentEviction(): void {
-    if (this.cache.size === 0) return;
+  private shouldEvict(): boolean {
+    const sizeExceeded = this.cache.size >= this.maxSize;
+    const memoryExceeded = this.metrics.memoryUsage >= (this.maxMemoryMB * 1024 * 1024);
+    
+    return sizeExceeded || memoryExceeded;
+  }
 
+  private performIntelligentEviction(): void {
+    const evictionCandidates = this.calculateEvictionScores();
+    const toEvict = evictionCandidates.slice(0, this.evictionBatchSize);
+    
+    let evictedCount = 0;
+    let freedMemory = 0;
+    
+    for (const candidate of toEvict) {
+      const entry = this.cache.get(candidate.key);
+      if (entry) {
+        freedMemory += entry.size;
+        this.delete(candidate.key);
+        evictedCount++;
+        this.metrics.evictions++;
+      }
+    }
+    
+    console.log(`🗑️ [IntelligentCache:${this.namespace}] Evicted ${evictedCount} entries, freed ${(freedMemory / 1024).toFixed(1)}KB`);
+  }
+
+  private calculateEvictionScores(): EvictionScore[] {
     const now = Date.now();
-    const entries = Array.from(this.cache.entries());
+    const scores: EvictionScore[] = [];
     
-    // Score each entry based on multiple factors
-    const scored = entries.map(([key, entry]) => {
-      const age = now - entry.timestamp;
-      const recency = now - entry.lastAccessed;
-      const frequency = entry.hits;
-
-      // Normalize scores (0-1)
-      const ageScore = Math.min(age / this.ttl, 1);
-      const recencyScore = Math.min(recency / this.ttl, 1);
-      const frequencyScore = frequency > 0 ? 1 / Math.log(frequency + 1) : 1;
-
-      // Calculate composite score (higher = more likely to evict)
-      const score = (ageScore * this.AGE_WEIGHT) + 
-                   (recencyScore * this.RECENCY_WEIGHT) + 
-                   (frequencyScore * this.FREQUENCY_WEIGHT);
-
-      return { key, entry, score };
-    });
-
-    // Sort by score (highest first)
-    scored.sort((a, b) => b.score - a.score);
-
-    // Evict entries until we're under the limit
-    const evictCount = Math.max(1, Math.floor(this.maxSize * 0.1)); // Evict 10% at once
-    for (let i = 0; i < evictCount && this.cache.size > 0; i++) {
-      const toEvict = scored[i];
-      if (toEvict) {
-        this.cache.delete(toEvict.key);
-        this.stats.evictions++;
+    for (const [key, entry] of this.cache.entries()) {
+      let score = 0;
+      let reason = '';
+      
+      // TTL factor (higher = more likely to evict)
+      if (entry.ttl) {
+        const timeAlive = now - entry.createdAt.getTime();
+        const ttlProgress = timeAlive / entry.ttl;
+        score += ttlProgress * 40; // Max 40 points for TTL
+        if (ttlProgress > 0.8) reason += 'Near TTL expiry; ';
       }
+      
+      // Access frequency factor (lower access count = higher eviction score)
+      const avgAccessRate = entry.accessCount / ((now - entry.createdAt.getTime()) / 60000); // per minute
+      score += Math.max(0, 30 - (avgAccessRate * 10)); // Max 30 points, scaled by access rate
+      if (avgAccessRate < 0.1) reason += 'Low access frequency; ';
+      
+      // Recency factor (older last access = higher eviction score)
+      const minutesSinceAccess = (now - entry.lastAccessed.getTime()) / 60000;
+      score += Math.min(minutesSinceAccess * 2, 20); // Max 20 points for recency
+      if (minutesSinceAccess > 10) reason += 'Not accessed recently; ';
+      
+      // Size factor (larger entries = slightly higher eviction score)
+      const sizeMB = entry.size / (1024 * 1024);
+      score += Math.min(sizeMB * 5, 10); // Max 10 points for size
+      if (sizeMB > 1) reason += 'Large memory footprint; ';
+      
+      scores.push({
+        key,
+        score,
+        reason: reason.trim() || 'General cleanup'
+      });
     }
-
-    this.updateStats();
-    console.log(`[IntelligentCache] Evicted ${evictCount} entries using intelligent scoring`);
-  }
-
-  // ===========================
-  // CACHE WARMING E PRE-LOADING
-  // ===========================
-  async warmCache(keys: string[], valueLoader: (key: string) => Promise<T>): Promise<void> {
-    console.log(`[IntelligentCache] Warming cache with ${keys.length} entries...`);
     
-    const promises = keys.map(async (key) => {
-      if (!this.cache.has(key)) {
-        try {
-          const value = await valueLoader(key);
-          this.set(key, value);
-        } catch (error) {
-          console.warn(`[IntelligentCache] Failed to warm cache for key ${key}:`, error);
-        }
-      }
-    });
-
-    await Promise.all(promises);
-    console.log(`[IntelligentCache] Cache warming completed. ${this.cache.size} entries cached.`);
-  }
-
-  // ===========================
-  // CACHE WITH REFRESH
-  // ===========================
-  async getOrRefresh(
-    key: string, 
-    refreshFunction: () => Promise<T>, 
-    forceRefresh: boolean = false
-  ): Promise<T> {
-    if (!forceRefresh) {
-      const cached = this.get(key);
-      if (cached !== null) {
-        return cached;
-      }
-    }
-
-    try {
-      const fresh = await refreshFunction();
-      this.set(key, fresh);
-      return fresh;
-    } catch (error) {
-      // Return stale data if refresh fails and we have it
-      const stale = this.cache.get(key);
-      if (stale) {
-        console.warn(`[IntelligentCache] Refresh failed for ${key}, returning stale data`);
-        return stale.value;
-      }
-      throw error;
-    }
+    // Sort by eviction score (highest first)
+    return scores.sort((a, b) => b.score - a.score);
   }
 
   // ===========================
   // BATCH OPERATIONS
   // ===========================
-  getMultiple(keys: string[]): Map<string, T> {
+  setMany(entries: Array<{ key: string; value: T; options?: { ttl?: number; tags?: string[] } }>): void {
+    const startTime = Date.now();
+    
+    for (const entry of entries) {
+      this.set(entry.key, entry.value, entry.options);
+    }
+    
+    console.log(`📦 [IntelligentCache:${this.namespace}] Set ${entries.length} entries in ${Date.now() - startTime}ms`);
+  }
+
+  getMany(keys: string[]): Map<string, T> {
+    const startTime = Date.now();
     const results = new Map<string, T>();
     
     for (const key of keys) {
       const value = this.get(key);
-      if (value !== null) {
+      if (value !== undefined) {
         results.set(key, value);
       }
     }
-
+    
+    console.log(`📦 [IntelligentCache:${this.namespace}] Got ${results.size}/${keys.length} entries in ${Date.now() - startTime}ms`);
     return results;
   }
 
-  setMultiple(entries: Array<{ key: string; value: T; ttl?: number }>): void {
-    for (const entry of entries) {
-      this.set(entry.key, entry.value, entry.ttl);
+  deleteMany(keys: string[]): number {
+    let deletedCount = 0;
+    
+    for (const key of keys) {
+      if (this.delete(key)) {
+        deletedCount++;
+      }
     }
+    
+    console.log(`🗑️ [IntelligentCache:${this.namespace}] Deleted ${deletedCount}/${keys.length} entries`);
+    return deletedCount;
   }
 
   // ===========================
-  // PATTERN-BASED OPERATIONS
+  // TAG-BASED OPERATIONS
+  // ===========================
+  invalidateByTag(tag: string): number {
+    const keysToDelete: string[] = [];
+    
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.tags.includes(tag)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    const deletedCount = this.deleteMany(keysToDelete);
+    console.log(`🏷️ [IntelligentCache:${this.namespace}] Invalidated ${deletedCount} entries with tag '${tag}'`);
+    return deletedCount;
+  }
+
+  getByTag(tag: string): Map<string, T> {
+    const results = new Map<string, T>();
+    
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.tags.includes(tag) && !this.isExpired(entry)) {
+        results.set(key, entry.value);
+      }
+    }
+    
+    return results;
+  }
+
+  // ===========================
+  // PATTERN OPERATIONS
   // ===========================
   getByPattern(pattern: RegExp): Map<string, T> {
     const results = new Map<string, T>();
     
     for (const [key, entry] of this.cache.entries()) {
-      if (pattern.test(key)) {
-        const value = this.get(key); // Use get() to update access stats
-        if (value !== null) {
-          results.set(key, value);
-        }
+      if (pattern.test(key) && !this.isExpired(entry)) {
+        results.set(key, entry.value);
       }
     }
-
+    
     return results;
   }
 
   deleteByPattern(pattern: RegExp): number {
-    let deletedCount = 0;
+    const keysToDelete: string[] = [];
     
     for (const key of this.cache.keys()) {
       if (pattern.test(key)) {
-        this.cache.delete(key);
-        deletedCount++;
+        keysToDelete.push(key);
       }
     }
-
-    this.updateStats();
-    return deletedCount;
+    
+    return this.deleteMany(keysToDelete);
   }
 
   // ===========================
-  // MÉTRICAS E MONITORAMENTO
+  // UTILITY METHODS
   // ===========================
-  private updateHitRate(): void {
-    const total = this.stats.hits + this.stats.misses;
-    this.stats.hitRate = total > 0 ? (this.stats.hits / total) * 100 : 0;
+  private isExpired(entry: CacheEntry<T>): boolean {
+    if (!entry.ttl) return false;
+    return Date.now() - entry.createdAt.getTime() > entry.ttl;
   }
 
-  private updateStats(): void {
-    this.stats.entryCount = this.cache.size;
-    this.stats.memoryUsage = this.estimateTotalSize();
-    this.updateHitRate();
-  }
-
-  private estimateSize(value: T): number {
+  private estimateObjectSize(obj: any): number {
     try {
-      return JSON.stringify(value).length * 2; // Rough estimation (bytes)
+      const jsonString = JSON.stringify(obj);
+      return jsonString.length * 2; // Approximate UTF-16 encoding
     } catch {
-      return 100; // Default size if JSON.stringify fails
+      return 1024; // Default 1KB if can't stringify
     }
   }
 
-  private estimateTotalSize(): number {
-    let total = 0;
-    for (const entry of this.cache.values()) {
-      total += entry.size || 100;
+  private updateAccessTime(timeMs: number): void {
+    this.metrics.avgAccessTime = (this.metrics.avgAccessTime * 0.9) + (timeMs * 0.1);
+  }
+
+  private startPeriodicCleanup(intervalMs: number): void {
+    this.cleanupTimer = setInterval(() => {
+      this.performPeriodicCleanup();
+    }, intervalMs);
+  }
+
+  private performPeriodicCleanup(): void {
+    const beforeSize = this.cache.size;
+    const beforeMemory = this.metrics.memoryUsage;
+    
+    // Remove expired entries
+    const expiredKeys: string[] = [];
+    for (const [key, entry] of this.cache.entries()) {
+      if (this.isExpired(entry)) {
+        expiredKeys.push(key);
+      }
     }
-    return total;
+    
+    const expiredCount = this.deleteMany(expiredKeys);
+    
+    // Perform eviction if still over limits
+    if (this.shouldEvict()) {
+      this.performIntelligentEviction();
+    }
+    
+    const afterSize = this.cache.size;
+    const afterMemory = this.metrics.memoryUsage;
+    const freedMemory = beforeMemory - afterMemory;
+    
+    if (expiredCount > 0 || freedMemory > 0) {
+      console.log(`🧹 [IntelligentCache:${this.namespace}] Cleanup: ${beforeSize}→${afterSize} entries, freed ${(freedMemory / 1024).toFixed(1)}KB`);
+    }
   }
 
-  getStats(): CacheStats {
-    this.updateStats();
-    return { ...this.stats };
-  }
-
-  getDetailedStats(): any {
-    const stats = this.getStats();
-    const now = Date.now();
+  // ===========================
+  // METRICS & MONITORING
+  // ===========================
+  getMetrics(): CacheMetrics & {
+    size: number;
+    memoryUsageMB: number;
+    hitRate: number;
+    evictionRate: number;
+  } {
+    const hitRate = this.metrics.totalAccesses > 0 ? (this.metrics.hits / this.metrics.totalAccesses) * 100 : 0;
+    const evictionRate = this.metrics.totalAccesses > 0 ? (this.metrics.evictions / this.metrics.totalAccesses) * 100 : 0;
     
-    const entryAges = Array.from(this.cache.values())
-      .map(entry => now - entry.timestamp);
-    
-    const entryHits = Array.from(this.cache.values())
-      .map(entry => entry.hits);
-
     return {
-      ...stats,
-      averageAge: entryAges.length > 0 ? entryAges.reduce((a, b) => a + b, 0) / entryAges.length : 0,
-      averageHits: entryHits.length > 0 ? entryHits.reduce((a, b) => a + b, 0) / entryHits.length : 0,
-      oldestEntry: entryAges.length > 0 ? Math.max(...entryAges) : 0,
-      newestEntry: entryAges.length > 0 ? Math.min(...entryAges) : 0,
-      hotKeys: this.getHotKeys(5)
+      ...this.metrics,
+      size: this.cache.size,
+      memoryUsageMB: this.metrics.memoryUsage / (1024 * 1024),
+      hitRate,
+      evictionRate
     };
   }
 
-  private getHotKeys(limit: number): Array<{ key: string; hits: number }> {
-    return Array.from(this.cache.entries())
-      .map(([key, entry]) => ({ key, hits: entry.hits }))
-      .sort((a, b) => b.hits - a.hits)
-      .slice(0, limit);
-  }
-
-  // ===========================
-  // CLEANUP E MANUTENÇÃO
-  // ===========================
-  private startCleanupRoutine(): void {
-    setInterval(() => {
-      this.cleanup();
-    }, this.ttl / 4); // Cleanup every quarter of TTL
-  }
-
-  private cleanup(): void {
+  getDetailedStats(): {
+    totalEntries: number;
+    oldestEntry?: { key: string; ageMinutes: number };
+    mostAccessed?: { key: string; accessCount: number };
+    largestEntry?: { key: string; sizeMB: number };
+    tagDistribution: Record<string, number>;
+  } {
+    if (this.cache.size === 0) {
+      return {
+        totalEntries: 0,
+        tagDistribution: {}
+      };
+    }
+    
+    let oldestEntry: { key: string; ageMinutes: number } | undefined;
+    let mostAccessed: { key: string; accessCount: number } | undefined;
+    let largestEntry: { key: string; sizeMB: number } | undefined;
+    const tagDistribution: Record<string, number> = {};
+    
     const now = Date.now();
-    let expiredCount = 0;
-
+    
     for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > this.ttl) {
-        this.cache.delete(key);
-        expiredCount++;
+      // Find oldest entry
+      const ageMinutes = (now - entry.createdAt.getTime()) / 60000;
+      if (!oldestEntry || ageMinutes > oldestEntry.ageMinutes) {
+        oldestEntry = { key, ageMinutes };
+      }
+      
+      // Find most accessed entry
+      if (!mostAccessed || entry.accessCount > mostAccessed.accessCount) {
+        mostAccessed = { key, accessCount: entry.accessCount };
+      }
+      
+      // Find largest entry
+      const sizeMB = entry.size / (1024 * 1024);
+      if (!largestEntry || sizeMB > largestEntry.sizeMB) {
+        largestEntry = { key, sizeMB };
+      }
+      
+      // Count tags
+      for (const tag of entry.tags) {
+        tagDistribution[tag] = (tagDistribution[tag] || 0) + 1;
       }
     }
-
-    if (expiredCount > 0) {
-      this.updateStats();
-      console.log(`[IntelligentCache] Cleaned up ${expiredCount} expired entries`);
-    }
+    
+    return {
+      totalEntries: this.cache.size,
+      oldestEntry,
+      mostAccessed,
+      largestEntry,
+      tagDistribution
+    };
   }
 
-  // Force cleanup for expired entries
-  forceCleanup(): number {
-    const sizeBefore = this.cache.size;
-    this.cleanup();
-    return sizeBefore - this.cache.size;
+  // ===========================
+  // SHUTDOWN
+  // ===========================
+  shutdown(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+    this.clear();
+    console.log(`✅ [IntelligentCache:${this.namespace}] Shutdown completed`);
   }
 }
 
 // ===========================
-// CACHE MANAGER SINGLETON
+// PREDEFINED CACHE INSTANCES
 // ===========================
-export class GlobalCacheManager {
-  private static instance: GlobalCacheManager;
-  private caches = new Map<string, IntelligentCacheManager<any>>();
 
-  static getInstance(): GlobalCacheManager {
-    if (!GlobalCacheManager.instance) {
-      GlobalCacheManager.instance = new GlobalCacheManager();
-    }
-    return GlobalCacheManager.instance;
-  }
+// Schema validation cache
+export const schemaCache = IntelligentCacheManager.getInstance<any>('schema', {
+  maxSize: 100,
+  maxMemoryMB: 10,
+  defaultTTL: 120000, // 2 minutes for schema validation
+  cleanupInterval: 60000
+});
 
-  getCache<T>(
-    name: string, 
-    maxSize: number = 100, 
-    ttlMinutes: number = 30
-  ): IntelligentCacheManager<T> {
-    if (!this.caches.has(name)) {
-      this.caches.set(name, new IntelligentCacheManager<T>(maxSize, ttlMinutes));
-      console.log(`[GlobalCacheManager] Created cache: ${name} (maxSize: ${maxSize}, ttl: ${ttlMinutes}min)`);
-    }
-    return this.caches.get(name)!;
-  }
+// Database connection cache
+export const connectionCache = IntelligentCacheManager.getInstance<any>('connections', {
+  maxSize: 50,
+  maxMemoryMB: 5,
+  defaultTTL: 1800000, // 30 minutes for connections
+  cleanupInterval: 300000
+});
 
-  getAllCacheStats(): Map<string, any> {
-    const stats = new Map();
-    for (const [name, cache] of this.caches.entries()) {
-      stats.set(name, cache.getDetailedStats());
-    }
-    return stats;
-  }
+// Query result cache
+export const queryCache = IntelligentCacheManager.getInstance<any>('queries', {
+  maxSize: 500,
+  maxMemoryMB: 50,
+  defaultTTL: 300000, // 5 minutes for query results
+  cleanupInterval: 60000
+});
 
-  clearAllCaches(): void {
-    for (const cache of this.caches.values()) {
-      cache.clear();
-    }
-    console.log('[GlobalCacheManager] All caches cleared');
-  }
-}
+// Tenant analytics cache
+export const analyticsCache = IntelligentCacheManager.getInstance<any>('analytics', {
+  maxSize: 200,
+  maxMemoryMB: 20,
+  defaultTTL: 180000, // 3 minutes for analytics
+  cleanupInterval: 90000
+});
 
-export const globalCacheManager = GlobalCacheManager.getInstance();
+export default IntelligentCacheManager;
