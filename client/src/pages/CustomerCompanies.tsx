@@ -78,10 +78,7 @@ export default function CustomerCompanies() {
 
   // Mutation para criar company
   const createCompanyMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/customers/companies', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: (data: any) => apiRequest('POST', '/api/customers/companies', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       setIsCreateDialogOpen(false);
@@ -103,10 +100,7 @@ export default function CustomerCompanies() {
   // Mutation para atualizar company
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest(`/api/customers/companies/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      }),
+      apiRequest('PUT', `/api/customers/companies/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       setIsEditDialogOpen(false);
@@ -252,7 +246,7 @@ export default function CustomerCompanies() {
               Nova Empresa
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl" aria-describedby="create-company-description">
             <DialogHeader>
               <DialogTitle>Criar Nova Empresa</DialogTitle>
             </DialogHeader>
@@ -577,7 +571,7 @@ export default function CustomerCompanies() {
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="edit-company-description">
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
