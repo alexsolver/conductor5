@@ -1196,10 +1196,11 @@ export class SchemaManager {
         return false;
       }
 
-      // STEP 2: Validação estrutural completa das tabelas essenciais
+      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 12 TABELAS CRÍTICAS)
       const requiredTables = [
         'customers', 'tickets', 'ticket_messages', 'activity_logs',
-        'locations', 'customer_companies', 'skills', 'certifications'
+        'locations', 'customer_companies', 'skills', 'certifications',
+        'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships'
       ];
 
       const tableResult = await db.execute(sql`
@@ -1207,7 +1208,7 @@ export class SchemaManager {
                COUNT(column_name) as column_count
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships')
         GROUP BY table_name
       `);
 
@@ -1226,7 +1227,7 @@ export class SchemaManager {
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
         AND column_name = 'tenant_id'
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships')
       `);
 
       const tablesWithTenantId = new Set(tenantIdValidation.rows.map(row => row.table_name as string));
