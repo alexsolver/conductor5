@@ -101,6 +101,7 @@ export default function TicketsTable() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -236,6 +237,7 @@ export default function TicketsTable() {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       setIsEditDialogOpen(false);
       setEditingTicket(null);
+      setIsEditMode(false);
       form.reset();
     },
     onError: (error: Error) => {
@@ -278,6 +280,7 @@ export default function TicketsTable() {
 
   const handleEdit = (ticket: Ticket) => {
     setEditingTicket(ticket);
+    setIsEditMode(false); // Start in view mode
     form.reset({
       shortDescription: (ticket as any).shortDescription || ticket.subject,
       description: ticket.description || "",
@@ -1042,22 +1045,121 @@ export default function TicketsTable() {
         <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !bg-white dark:!bg-gray-900 !overflow-y-auto !translate-x-0 !translate-y-0 !left-0 !top-0 !z-[100]" style={{ transform: 'none', left: '0', top: '0', width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }}>
           <div className="h-full flex flex-col">
             <DialogHeader className="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
-              <DialogTitle className="text-2xl font-semibold">Edit Ticket</DialogTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  setEditingTicket(null);
-                  form.reset();
-                }}
-                className="h-8 w-8 p-0"
-              >
-                ×
-              </Button>
+              <DialogTitle className="text-2xl font-semibold">{isEditMode ? 'Editar Chamado' : 'Visualizar Chamado'}</DialogTitle>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Link ticket functionality - placeholder for now
+                    console.log("Link ticket clicked");
+                  }}
+                  className="flex items-center space-x-1"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <span>Vincular</span>
+                </Button>
+                <Button
+                  variant={isEditMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className="flex items-center space-x-1"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span>{isEditMode ? "Visualizar" : "Editar"}</span>
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (editingTicket && confirm("Tem certeza que deseja excluir este chamado?")) {
+                      deleteTicketMutation.mutate(editingTicket.id);
+                      setIsEditDialogOpen(false);
+                      setEditingTicket(null);
+                      setIsEditMode(false);
+                    }
+                  }}
+                  className="flex items-center space-x-1"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Excluir</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingTicket(null);
+                    setIsEditMode(false);
+                    form.reset();
+                  }}
+                  className="flex items-center space-x-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Voltar</span>
+                </Button>
+              </div>
             </DialogHeader>
             <div className="flex-1 p-6">
-              <TicketForm />
+              {isEditMode ? (
+                <TicketForm />
+              ) : (
+                <div className="space-y-6">
+                  {/* View Mode - Display ticket information in a readable format */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Descrição Resumida</h3>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.shortDescription}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Prioridade</h3>
+                        <Badge variant={editingTicket?.priority === 'critical' ? 'destructive' : editingTicket?.priority === 'high' ? 'default' : 'secondary'}>
+                          {editingTicket?.priority}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</h3>
+                        <Badge variant={editingTicket?.state === 'resolved' ? 'default' : editingTicket?.state === 'closed' ? 'secondary' : 'outline'}>
+                          {editingTicket?.state}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</h3>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.category || 'Não informado'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Solicitante</h3>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.caller?.fullName || 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</h3>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.assignedTo ? `${editingTicket.assignedTo.firstName} ${editingTicket.assignedTo.lastName}` : 'Não atribuído'}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Data de Criação</h3>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.createdAt ? new Date(editingTicket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Última Atualização</h3>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.updatedAt ? new Date(editingTicket.updatedAt).toLocaleString('pt-BR') : 'Não informado'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Descrição Detalhada</h3>
+                    <div className="mt-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                      <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{editingTicket?.description}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
