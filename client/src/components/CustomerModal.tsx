@@ -128,7 +128,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="customer-modal-description">
+          <div id="customer-modal-description" className="sr-only">
+            Formulário para criar ou editar informações de cliente
+          </div>
           <DialogHeader>
             <DialogTitle>
               {customer?.id ? "Editar Cliente" : "Novo Cliente"}

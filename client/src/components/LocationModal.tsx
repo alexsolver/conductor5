@@ -141,7 +141,10 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="location-modal-description">
+          <div id="location-modal-description" className="sr-only">
+            Formulário para criar ou editar informações de localização
+          </div>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
@@ -494,7 +497,10 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
 
       {/* Map Selector Modal */}
       <Dialog open={showMap} onOpenChange={setShowMap}>
-        <DialogContent className="max-w-5xl max-h-[90vh]">
+        <DialogContent className="max-w-5xl max-h-[90vh]" aria-describedby="map-selector-description">
+          <div id="map-selector-description" className="sr-only">
+            Seletor de mapa interativo para definir coordenadas de localização
+          </div>
           <DialogHeader>
             <DialogTitle>Selecionar Coordenadas no Mapa</DialogTitle>
           </DialogHeader>
