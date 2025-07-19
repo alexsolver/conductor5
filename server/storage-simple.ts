@@ -58,6 +58,9 @@ export interface IStorage {
   getTenantIntegrations(tenantId: string): Promise<any[]>;
   getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined>;
   saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any>;
+  updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void>;
+  
+  // Template Bulk Operations
   bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
 }
 

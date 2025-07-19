@@ -33,6 +33,11 @@ Preferred communication style: Simple, everyday language.
 - **Solução**: Implementado updateTenantIntegrationStatus() para atualizar status automaticamente após testes
 - **Resultado**: IMAP Email agora mostra "connected" quando teste é bem-sucedido
 
+✅ **ERRO CRÍTICO MÉTODO INEXISTENTE RESOLVIDO:**
+- **Problema**: storage.getTenantIntegrations is not a function (server/routes/tenantIntegrations.ts:92)
+- **Solução**: Adicionado métodos de integrações na interface IStorage e corrigido declarações
+- **Resultado**: API /api/tenant-admin/integrations funcionando corretamente, retornando 14 integrações
+
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS
 - ✅ **Automação (2)**: Zapier, Webhooks  
