@@ -273,8 +273,9 @@ export default function TicketEdit() {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <Tabs defaultValue="basic" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
+                    <TabsList className="grid w-full grid-cols-6">
                       <TabsTrigger value="basic">Básico</TabsTrigger>
+                      <TabsTrigger value="template">Template/Ambiente</TabsTrigger>
                       <TabsTrigger value="assignment">Atribuição</TabsTrigger>
                       <TabsTrigger value="classification">Classificação</TabsTrigger>
                       <TabsTrigger value="details">Detalhes</TabsTrigger>
@@ -415,7 +416,254 @@ export default function TicketEdit() {
                       />
                     </TabsContent>
 
-                    {/* Tab 2: Assignment */}
+                    {/* Tab 2: Template/Environment */}
+                    <TabsContent value="template" className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Environment Section */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="environment"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ambiente:</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="LANSOLVER" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="lansolver">LANSOLVER</SelectItem>
+                                    <SelectItem value="production">PRODUÇÃO</SelectItem>
+                                    <SelectItem value="development">DESENVOLVIMENTO</SelectItem>
+                                    <SelectItem value="staging">HOMOLOGAÇÃO</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Template Section */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="template_name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Template:</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Publicação - Infra" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="publicacao-infra">Publicação - Infra</SelectItem>
+                                    <SelectItem value="manutencao">Manutenção</SelectItem>
+                                    <SelectItem value="incidente">Incidente</SelectItem>
+                                    <SelectItem value="requisicao">Requisição</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Template Alternative */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="template_alternative"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Template Alternativo:</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Publicação - Infra" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="publicacao-infra">Publicação - Infra</SelectItem>
+                                    <SelectItem value="manutencao">Manutenção</SelectItem>
+                                    <SelectItem value="incidente">Incidente</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Caller Name/Responsible */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="caller_name_responsible"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome do responsável:</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="giovanna" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Call Type */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="call_type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tipo de Chamado:</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Solicitação" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="solicitacao">Solicitação</SelectItem>
+                                    <SelectItem value="incidente">Incidente</SelectItem>
+                                    <SelectItem value="problema">Problema</SelectItem>
+                                    <SelectItem value="mudanca">Mudança</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* URL Field */}
+                        <FormField
+                          control={form.control}
+                          name="call_url"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL do pull request:</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://bitbucket.org/repositories/motormac-pdfs/pull-requests/117" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Environment Error */}
+                        <FormField
+                          control={form.control}
+                          name="environment_error"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Alteração no env:</FormLabel>
+                              <FormControl>
+                                <Input placeholder="não" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Call Number */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="call_number"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Número do chamado/tarefa:</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="401461" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Group */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="group_field"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Grupo:</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Infraestrutura" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="infraestrutura">Infraestrutura</SelectItem>
+                                    <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                                    <SelectItem value="suporte">Suporte</SelectItem>
+                                    <SelectItem value="qualidade">Qualidade</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Service Version */}
+                        <div>
+                          <FormField
+                            control={form.control}
+                            name="service_version"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Número da versão publicada:</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="0.8" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        {/* Summary/Resume */}
+                        <FormField
+                          control={form.control}
+                          name="summary"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Resumo:</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="21822 - ajuste parâmetro do fim de trabalho"
+                                  className="min-h-[100px]"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    {/* Tab 3: Assignment */}
                     <TabsContent value="assignment" className="space-y-4">
                       <FormField
                         control={form.control}
