@@ -624,6 +624,7 @@ export class DrizzleStorage implements IStorage {
   // Tenant Integration Configuration methods
   async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<TenantIntegrationConfig | null> {
     return withHibernationHandling(async () => {
+      console.log(`[getTenantIntegrationConfig] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
       const result = await db
         .select()
         .from(tenantIntegrationsConfig)
@@ -633,6 +634,7 @@ export class DrizzleStorage implements IStorage {
         ))
         .limit(1);
       
+      console.log(`[getTenantIntegrationConfig] Resultado encontrado:`, result);
       return result[0] || null;
     });
   }

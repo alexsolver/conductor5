@@ -46,12 +46,16 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     }
 
     const { storage } = await import('../storage-simple');
+    console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
     const config = await storage.getTenantIntegrationConfig(tenantId, integrationId);
+    console.log(`[GET config route] Resultado recebido do storage:`, config);
     
     if (!config) {
+      console.log(`[GET config route] Nenhuma config encontrada, retornando null`);
       return res.json({ config: null, configured: false });
     }
 
+    console.log(`[GET config route] Config encontrada, retornando:`, config);
     res.json({ config: config, configured: true });
   } catch (error) {
     console.error('Error fetching tenant integration config:', error);
