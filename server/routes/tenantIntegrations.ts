@@ -9,15 +9,6 @@ const router = Router();
 router.use(jwtAuth);
 router.use(requireTenantAdmin);
 
-/**
- * GET /api/tenant-admin/integrations
- * Obter integrações do tenant - 100% PostgreSQL Database
- */
-router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
-  try {
-    const tenantId = req.user!.tenantId;
-    
-
 // Função para testar conexão IMAP
 async function testIMAPConnection(config: any): Promise<{ success: boolean; error?: string; details?: any }> {
   try {
@@ -83,8 +74,16 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
   }
 }
 
+/**
+ * GET /api/tenant-admin/integrations
+ * Obter integrações do tenant - 100% PostgreSQL Database
+ */
+router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    
 
-    if (!tenantId) {
+if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
@@ -472,57 +471,6 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
   } catch (error) {
     console.error('Error starting OAuth2 flow:', error);
     res.status(500).json({ message: 'Failed to start OAuth2 flow' });
-  }
-});
-
-/**
- * POST /api/tenant-admin/integrations/:integrationId/test
- * Testar integração configurada
- */
-router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
-  try {
-    const { integrationId } = req.params;
-    const tenantId = req.user!.tenantId;
-    
-    if (!tenantId) {
-      return res.status(400).json({ message: 'User not associated with a tenant' });
-    }
-
-    // Simular teste da integração
-    const testResults = {
-      'gmail-oauth2': {
-        success: true,
-        message: 'Conectado ao Gmail OAuth2 com sucesso',
-        details: 'Tokens válidos, permissões corretas'
-      },
-      'outlook-oauth2': {
-        success: true,
-        message: 'Conectado ao Outlook OAuth2 com sucesso', 
-        details: 'Autenticação Azure AD ativa'
-      },
-      'email-smtp': {
-        success: true,
-        message: 'Conexão SMTP estabelecida com sucesso',
-        details: 'Servidor respondendo na porta 587'
-      }
-    };
-
-    const result = testResults[integrationId as keyof typeof testResults] || {
-      success: false,
-      message: 'Teste não implementado para esta integração',
-      details: 'Configuração necessária'
-    };
-
-    res.json({
-      integrationId,
-      tenantId,
-      ...result,
-      testedAt: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('Error testing integration:', error);
-    res.status(500).json({ message: 'Failed to test integration' });
   }
 });
 
