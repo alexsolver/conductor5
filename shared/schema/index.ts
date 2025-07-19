@@ -213,3 +213,17 @@ const schema = {
 };
 
 export default schema;
+// Export all schema modules
+export * from './base';
+export * from './customer';
+export * from './customer-company';
+export * from './ticket';
+export * from './ticket-templates';
+export * from './location';
+export * from './user-management';
+export * from './technical-skills';
+export * from './security';
+export * from './tenant-constraints';
+export * from './tenant-specific';
+export * from './internal-forms';
+export * from './email-config';

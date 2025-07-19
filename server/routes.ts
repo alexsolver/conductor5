@@ -349,6 +349,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/internal-forms', internalFormsRoutes);
+  
+  // Email Configuration routes
+  const emailConfigRoutes = (await import('./modules/email-config/routes')).default;
+  app.use('/api/email-config', emailConfigRoutes);
+  
   app.use('/api/locations', locationRoutes);
 
   // Ticket Templates routes
