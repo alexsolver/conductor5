@@ -74,6 +74,13 @@ Preferred communication style: Simple, everyday language.
 - **Solução**: Padronizou TODOS os validadores para usar `/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/`
 - **Resultado**: Validação UUID consistente em todos os módulos, eliminando bypass potential
 
+✅ **CACHE TTL OTIMIZADO PARA PRODUÇÃO:**
+- **Problema**: Cache TTL de 2 minutos causava overhead desnecessário com muitas re-validações
+- **Localização**: SchemaManager - CACHE_TTL linha 44 em server/db.ts
+- **Impacto**: Re-validações excessivas de schema reduzindo performance
+- **Solução**: Aumentado TTL de 2 minutos para 10 minutos (5x otimização)
+- **Resultado**: Overhead de validação reduzido drasticamente mantendo cache adequado
+
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS
 - ✅ **Automação (2)**: Zapier, Webhooks  

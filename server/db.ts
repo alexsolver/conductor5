@@ -41,7 +41,7 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 2 * 60 * 1000; // DEVELOPMENT: 2 minutos TTL para detecção rápida de problemas
+  private readonly CACHE_TTL = 10 * 60 * 1000; // PRODUCTION: 10 minutos TTL - otimizado para reduzir overhead
   private readonly MAX_CACHED_SCHEMAS = 50; // SCALE: Aumentado para enterprise scale
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
