@@ -1,0 +1,64 @@
+🚨 ANÁLISE DBA MASTER - PROBLEMAS CRÍTICOS IDENTIFICADOS
+Após uma análise técnica profunda do sistema multi-tenant, identifiquei os seguintes problemas críticos:
+
+1. ERRO CRÍTICO DE INTEGRAÇÃO - MÉTODO INEXISTENTE
+Severidade: CRÍTICA
+
+Problema: storage.getTenantIntegrations is not a function
+Localização: server/routes/tenantIntegrations.ts:92
+Impacto: Falha completa na funcionalidade de integrações tenant
+Causa: Método não implementado no storage service
+2. INCONSISTÊNCIA CRÍTICA DE VALIDAÇÃO UUID
+Severidade: CRÍTICA
+
+Problema: Padrões regex diferentes para validação de tenant_id
+TenantValidator: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+CrossTenantValidator: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
+Risco: Bypass de validação de segurança
+3. VALIDAÇÃO DE SCHEMA INCOMPLETA
+Severidade: ALTA
+
+Problema: Sistema valida apenas 12 tabelas quando deveria validar 13+ tabelas críticas
+Localização: server/db.ts - método validateTenantSchema
+Tabela em risco: ticket_templates pode não estar sendo validada corretamente
+4. PROBLEMAS DE PERFORMANCE E HIBERNAÇÃO NEON
+Severidade: MÉDIA
+
+Problema: Timeouts frequentes e hibernação do banco
+Evidência: Múltiplos [Connection Timeout] Socket timed out, closing gracefully
+Pool settings: Podem não estar otimizados para hibernação Neon
+5. FALHAS DE MULTI-TENANCY
+Severidade: CRÍTICA
+
+Problema: Possível vazamento de dados cross-tenant
+Localização: Queries sem validação rigorosa de tenant_id
+Risco: Dados de um tenant podem ser acessados por outro
+6. TABELA DE INTEGRATIONS AUSENTE
+Severidade: CRÍTICA
+
+Problema: Tabela integrations não existe nos schemas tenant
+Impacto: Sistema de integrações completamente quebrado
+Solução necessária: Criar tabela e métodos correspondentes
+7. GESTÃO DE POOL SUBÓTIMA
+Severidade: MÉDIA
+
+Problema: Pool de conexões não otimizado para alta concorrência
+Detalhes:
+Max connections: 25 (pode ser insuficiente)
+Timeout settings inadequados para Neon
+Falta de reciclagem adequada de conexões
+8. LOGS DE HIBERNAÇÃO EXCESSIVOS
+Severidade: BAIXA
+
+Problema: Logs repetitivos mascarando problemas reais
+Evidência: "terminating connection due to administrator command"
+9. ÍNDICES DE PERFORMANCE INCOMPLETOS
+Severidade: MÉDIA
+
+Problema: Índices tenant-first possivelmente ausentes
+Impacto: Queries lentas em schemas com muitos dados
+10. WEBSOCKET INSTABILITY
+Severidade: BAIXA
+
+Problema: Reconexões frequentes do Vite
+Impacto: Degradação da experiência de desenvolvimento
