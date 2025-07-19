@@ -270,6 +270,84 @@ export class SchemaManager {
     return this.tenantConnections.get(tenantId)!;
   }
 
+  // CRITICAL: Check if specific table exists in schema
+  private async checkTableExists(schemaName: string, tableName: string): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as table_count
+        FROM information_schema.tables 
+        WHERE table_schema = ${schemaName} AND table_name = ${tableName}
+      `);
+
+      return (result.rows[0]?.table_count as number) >= 1;
+    } catch {
+      return false;
+    }
+  }
+
+  // CRITICAL: Create favorecidos table for existing schemas
+  private async createFavorecidosTable(schemaName: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.favorecidos (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL,
+          first_name VARCHAR(255),
+          last_name VARCHAR(255),
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          company VARCHAR(255),
+          cpf_cnpj VARCHAR(20),
+          contact_type VARCHAR(50) DEFAULT 'external',
+          relationship VARCHAR(100),
+          preferred_contact_method VARCHAR(50) DEFAULT 'email',
+          notes TEXT,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT favorecidos_tenant_email_unique UNIQUE (tenant_id, email),
+          CONSTRAINT favorecidos_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS favorecidos_tenant_email_idx ON ${schemaId}.favorecidos (tenant_id, email)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS favorecidos_tenant_active_idx ON ${schemaId}.favorecidos (tenant_id, is_active)
+      `);
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to create favorecidos table in schema ${schemaName}`, error);
+      throw error;
+    }
+  }
+
+  // CRITICAL: Insert sample favorecidos data
+  private async insertSampleFavorecidos(schemaName: string, tenantId: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    try {
+      await db.execute(sql`
+        INSERT INTO ${schemaId}.favorecidos (
+          tenant_id, first_name, last_name, email, phone, company, 
+          contact_type, relationship, preferred_contact_method, notes, is_active
+        ) VALUES 
+        (${tenantId}, 'Maria', 'Santos', 'maria@externa.com', '(11) 99999-1234', 'Empresa Externa Ltd', 
+         'external', 'Cliente', 'email', 'Contato externo principal', true),
+        (${tenantId}, 'João', 'Silva', 'joao@parceiro.com', '(11) 88888-5678', 'Parceiro Comercial', 
+         'external', 'Parceiro', 'phone', 'Contato de parceria', true),
+        (${tenantId}, 'Ana', 'Costa', 'ana@fornecedor.com', '(11) 77777-9012', 'Fornecedor Sistemas', 
+         'external', 'Fornecedor', 'email', 'Contato técnico principal', true)
+      `);
+    } catch (error) {
+      // Sample data insertion is not critical - just log the error
+      console.warn(`Could not insert sample favorecidos data in schema ${schemaName}:`, error);
+    }
+  }
+
   // Drop a tenant schema (for cleanup)
   async dropTenantSchema(tenantId: string): Promise<void> {
     const schemaName = this.getSchemaName(tenantId);
@@ -327,6 +405,16 @@ export class SchemaManager {
     if (tablesExist) {
       // Check if existing tables need tenant_id column migration
       await this.migrateLegacyTables(schemaName);
+      
+      // CRITICAL: Check if favorecidos table exists and create if missing
+      const favorecidosExists = await this.checkTableExists(schemaName, 'favorecidos');
+      if (!favorecidosExists) {
+        await this.createFavorecidosTable(schemaName);
+        await this.insertSampleFavorecidos(schemaName, tenantId);
+        const { logInfo } = await import('./utils/logger');
+        logInfo(`Favorecidos table created for schema ${schemaName}`);
+      }
+      
       return; // Tables already exist, migration complete
     }
 

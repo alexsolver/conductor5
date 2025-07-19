@@ -341,9 +341,13 @@ export class DrizzleStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  // Favorecidos (External Contacts) Methods
+  // Favorecidos (External Contacts) Methods - Using tenant-specific database
   async getFavorecido(id: string, tenantId: string): Promise<Favorecido | null> {
-    const result = await db.select().from(favorecidos)
+    const { schemaManager } = await import('./db');
+    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+    const { favorecidos } = await import('@shared/schema-simple');
+    
+    const result = await tenantDb.select().from(favorecidos)
       .where(and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId)))
       .limit(1);
     return result[0] || null;
@@ -351,17 +355,23 @@ export class DrizzleStorage implements IStorage {
 
   async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<Favorecido[]> {
     const { limit = 50, offset = 0, search } = options;
+    const { schemaManager } = await import('./db');
+    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+    const { favorecidos } = await import('@shared/schema-simple');
     
-    let query = db.select().from(favorecidos)
+    let query = tenantDb.select().from(favorecidos)
       .where(eq(favorecidos.tenantId, tenantId));
       
     if (search) {
       query = query.where(
-        or(
-          ilike(favorecidos.firstName, `%${search}%`),
-          ilike(favorecidos.lastName, `%${search}%`),
-          ilike(favorecidos.email, `%${search}%`),
-          ilike(favorecidos.company, `%${search}%`)
+        and(
+          eq(favorecidos.tenantId, tenantId),
+          or(
+            ilike(favorecidos.firstName, `%${search}%`),
+            ilike(favorecidos.lastName, `%${search}%`),
+            ilike(favorecidos.email, `%${search}%`),
+            ilike(favorecidos.company, `%${search}%`)
+          )
         )
       );
     }
@@ -370,7 +380,11 @@ export class DrizzleStorage implements IStorage {
   }
 
   async createFavorecido(tenantId: string, data: InsertFavorecido): Promise<Favorecido> {
-    const result = await db.insert(favorecidos).values({
+    const { schemaManager } = await import('./db');
+    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+    const { favorecidos } = await import('@shared/schema-simple');
+    
+    const result = await tenantDb.insert(favorecidos).values({
       ...data,
       tenantId
     }).returning();
@@ -378,14 +392,22 @@ export class DrizzleStorage implements IStorage {
   }
 
   async updateFavorecido(id: string, tenantId: string, data: Partial<InsertFavorecido>): Promise<Favorecido | null> {
-    const result = await db.update(favorecidos).set(data).where(
+    const { schemaManager } = await import('./db');
+    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+    const { favorecidos } = await import('@shared/schema-simple');
+    
+    const result = await tenantDb.update(favorecidos).set(data).where(
       and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
     ).returning();
     return result[0] || null;
   }
 
   async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
-    const result = await db.delete(favorecidos).where(
+    const { schemaManager } = await import('./db');
+    const tenantDb = await schemaManager.getTenantDatabase(tenantId);
+    const { favorecidos } = await import('@shared/schema-simple');
+    
+    const result = await tenantDb.delete(favorecidos).where(
       and(eq(favorecidos.id, id), eq(favorecidos.tenantId, tenantId))
     );
     return result.rowCount > 0;

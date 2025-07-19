@@ -6,6 +6,8 @@ import { enhancedWebsocketStability, configureServerForStability } from "./middl
 import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
+import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
+import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
 
 const app = express();
 
@@ -21,14 +23,21 @@ app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
 
-  // CRITICAL: Skip logging for health checks and static assets to reduce I/O
+  // CRITICAL: Skip logging for health checks, static assets, and Vite HMR to reduce I/O and prevent reconnections
   const skipLogging = path.includes('/health') || 
                      path.includes('/favicon') || 
                      path.includes('.js') || 
                      path.includes('.css') || 
                      path.includes('.png') || 
                      path.includes('.svg') ||
-                     path.includes('/assets/');
+                     path.includes('/assets/') ||
+                     path.includes('/@vite/') ||
+                     path.includes('/@react-refresh') ||
+                     path.includes('/__vite_ping') ||
+                     path.includes('/node_modules/') ||
+                     path.includes('/@fs/') ||
+                     path.includes('/src/') ||
+                     req.method === 'HEAD';
 
   if (skipLogging) {
     return next();
@@ -66,6 +75,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // CRITICAL: Initialize Vite HMR optimizations
+  optimizeViteHMR();
+  preventViteReconnections();
+  disableVitePolling();
+  
   // CRITICAL FIX: Initialize cleanup and stability systems before starting server
   await initializeCleanup();
 
@@ -74,6 +88,7 @@ app.use((req, res, next) => {
   // CRITICAL: Initialize connection stabilizer and server stability
   connectionStabilizer.initialize(server);
   configureServerForStability(server);
+  applyViteConnectionOptimizer(app, server);
 
   // Initialize production systems
   await productionInitializer.initialize();

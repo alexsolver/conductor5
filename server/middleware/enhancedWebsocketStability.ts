@@ -47,10 +47,17 @@ export function enhancedWebsocketStability(req: Request, res: Response, next: Ne
     }
   }
 
-  // CRITICAL: Enhanced response headers for stability
+  // CRITICAL: Enhanced response headers for stability and HMR
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('Keep-Alive', 'timeout=300, max=1000');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  
+  // CRITICAL: Different cache headers for different content types
+  if (req.path.includes('/@vite/') || req.path.includes('/@react-refresh')) {
+    res.setHeader('Cache-Control', 'max-age=0, must-revalidate');
+  } else {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
