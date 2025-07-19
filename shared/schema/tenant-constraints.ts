@@ -147,7 +147,7 @@ BEGIN
   END IF;
   
   -- Validate tenant_id format (UUID)
-  IF NEW.tenant_id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+  IF NEW.tenant_id !~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$' THEN
     RAISE EXCEPTION 'Invalid tenant_id format: %', NEW.tenant_id;
   END IF;
   

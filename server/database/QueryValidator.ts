@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 import { logError, logWarn } from '../utils/logger';
 
 export class QueryValidator {
-  private static readonly TENANT_ID_REGEX = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+  private static readonly TENANT_ID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
   /**
    * CRITICAL: Validate tenant_id in all query contexts
@@ -31,7 +31,7 @@ export class QueryValidator {
     const tenantValidatedQuery = `
       WITH tenant_validation AS (
         SELECT '${tenantId}' as validated_tenant_id
-        WHERE '${tenantId}' ~ '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
+        WHERE '${tenantId}' ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
         AND LENGTH('${tenantId}') = 36
       )
       ${baseQuery}
