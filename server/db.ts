@@ -17,18 +17,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// CRITICAL STABILITY FIX: Enhanced pool configuration to prevent administrator command termination
+// ENTERPRISE POOL CONFIGURATION: Optimized for high-performance multi-tenant environment
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 3, // STABILITY: Reduced to prevent overload
-  min: 1, // Minimum connections
-  idleTimeoutMillis: 30000, // 30 seconds - prevent idle termination
-  connectionTimeoutMillis: 15000, // 15 seconds - faster timeout
-  acquireTimeoutMillis: 20000, // 20 seconds acquire timeout
+  max: 15, // ENTERPRISE: Increased for concurrent tenant operations
+  min: 3, // Always keep minimum connections ready
+  idleTimeoutMillis: 120000, // 2 minutes - balanced for enterprise use
+  connectionTimeoutMillis: 30000, // 30 seconds - enterprise timeout
+  acquireTimeoutMillis: 45000, // 45 seconds acquire timeout
   keepAlive: true,
-  maxUses: 200, // STABILITY: Reduced reuse to force fresh connections
+  maxUses: 1000, // ENTERPRISE: High reuse for performance
   allowExitOnIdle: false,
-  maxLifetimeSeconds: 180 // 3 minutes max lifetime for connection refresh
+  maxLifetimeSeconds: 0 // No lifetime limit - let Neon manage connection lifecycle
 });
 
 // Main database instance for tenant management and shared resources

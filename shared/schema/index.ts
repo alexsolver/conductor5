@@ -1,18 +1,18 @@
-// Main schema index - Re-exports all schema modules for backwards compatibility
-// This maintains the existing import structure while providing modular organization
+// ENTERPRISE SCHEMA INDEX: Optimized modular exports for clean architecture
+// Centralized export point maintaining backwards compatibility with improved organization
 
-// Base schema exports
+// Core domain schemas
 export * from "./base";
 export * from "./customer";
 export * from "./customer-company";
-// Removed: external-contacts functionality eliminated
 export * from "./ticket";
 export * from "./location";
 export * from "./security";
 export * from "./tenant-specific";
 export * from "./user-management";
-// Removed: multi-tenant schema - functionality eliminated from system
 export * from "./technical-skills";
+
+// SCHEMA CONSOLIDATION: Unified type exports to eliminate duplication
 
 // Main schema aggregation for backwards compatibility
 import { 
