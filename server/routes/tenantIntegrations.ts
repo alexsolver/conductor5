@@ -341,6 +341,9 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
               const connectionTest = await testIMAPConnection(config);
               
               if (connectionTest.success) {
+                // Atualizar status para connected quando teste passa
+                await storage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
+                
                 testResult = { 
                   success: true, 
                   error: '', 

@@ -25,8 +25,13 @@ Preferred communication style: Simple, everyday language.
 
 ✅ **CONFIGURAÇÕES IMAP RESTAURADAS:**
 - **Problema**: Configurações IMAP perdidas durante recriação das integrações
-- **Solução**: Restauradas configurações com valores de exemplo (imap.gmail.com:993, SSL/TLS)
+- **Solução**: Restauradas configurações com alexsolver@gmail.com (imap.gmail.com:993, SSL/TLS)
 - **Resultado**: Formulário IMAP carrega configurações salvas automaticamente
+
+✅ **STATUS DE CONEXÃO CORRIGIDO:**
+- **Problema**: Cards mostravam "disconnected" mesmo com configurações válidas e testes passando
+- **Solução**: Implementado updateTenantIntegrationStatus() para atualizar status automaticamente após testes
+- **Resultado**: IMAP Email agora mostra "connected" quando teste é bem-sucedido
 
 **🚀 RESULTADO FINAL:**
 - ✅ **Comunicação (7)**: Gmail OAuth2, Outlook OAuth2, Email SMTP, IMAP Email, WhatsApp Business, Slack, Twilio SMS

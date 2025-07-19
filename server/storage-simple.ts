@@ -925,6 +925,29 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
+        SET status = ${status}, updated_at = NOW()
+        WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      logInfo('Integration status updated successfully', { 
+        tenantId: validatedTenantId, 
+        integrationId, 
+        status 
+      });
+    } catch (error) {
+      logError('Error updating integration status', error, { tenantId, integrationId, status });
+      throw error;
+    }
+  }
+
   // ===========================  
   // TENANT INTEGRATIONS
   // ===========================
