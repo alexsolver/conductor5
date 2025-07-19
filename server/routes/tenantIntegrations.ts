@@ -33,10 +33,10 @@ router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req
 });
 
 /**
- * PUT /api/tenant-admin/integrations/:integrationId/config
+ * POST /api/tenant-admin/integrations/:integrationId/config
  * Configurar integração do tenant
  */
-router.put('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
@@ -64,39 +64,72 @@ router.put('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
       return res.status(400).json({ message: 'Invalid integration ID' });
     }
 
-    // Configurar integração OAuth2 ou tradicional
-    const config = {
+    // Save configuration to database
+    const { storage } = await import('../storage-simple');
+    
+    // Prepare configuration for storage (store actual values, not masked)
+    const configData = {
+      // OAuth2 fields
+      clientId: clientId || '',
+      clientSecret: clientSecret || '',
+      redirectUri: redirectUri || '',
+      // Traditional fields
+      apiKey: apiKey || '',
+      apiSecret: apiSecret || '',
+      webhookUrl: webhookUrl || '',
+      accessToken: accessToken || '',
+      refreshToken: refreshToken || '',
+      // IMAP specific fields
+      imapServer: imapServer || '',
+      imapPort: imapPort || 993,
+      emailAddress: emailAddress || '',
+      password: password || '',
+      useSSL: useSSL !== false,
+      // Dropbox specific fields
+      dropboxAppKey: dropboxAppKey || '',
+      dropboxAppSecret: dropboxAppSecret || '',
+      dropboxAccessToken: dropboxAccessToken || '',
+      backupFolder: backupFolder || '/Backups/Conductor',
+      enabled: enabled !== false,
+      settings: settings || {}
+    };
+
+    // Save to database
+    const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
+    
+    // Return masked configuration for security
+    const maskedConfig = {
       integrationId,
       tenantId,
-      // OAuth2 fields
-      clientId: clientId ? '***' + clientId.slice(-4) : undefined,
-      clientSecret: clientSecret ? '***' + clientSecret.slice(-4) : undefined,
+      // OAuth2 fields (masked)
+      clientId: clientId ? '***' + clientId.slice(-4) : '',
+      clientSecret: clientSecret ? '***' + clientSecret.slice(-4) : '',
       redirectUri,
-      // Traditional fields
-      apiKey: apiKey ? '***' + apiKey.slice(-4) : undefined,
-      apiSecret: apiSecret ? '***' + apiSecret.slice(-4) : undefined,
+      // Traditional fields (masked)
+      apiKey: apiKey ? '***' + apiKey.slice(-4) : '',
+      apiSecret: apiSecret ? '***' + apiSecret.slice(-4) : '',
       webhookUrl,
-      accessToken: accessToken ? '***' + accessToken.slice(-4) : undefined,
-      refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : undefined,
-      // IMAP specific fields
+      accessToken: accessToken ? '***' + accessToken.slice(-4) : '',
+      refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : '',
+      // IMAP specific fields (masked)
       imapServer,
       imapPort,
       emailAddress,
-      password: password ? '***' + password.slice(-4) : undefined,
+      password: password ? '***' + password.slice(-4) : '',
       useSSL,
-      // Dropbox specific fields
-      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : undefined,
-      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : undefined,
-      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : undefined,
+      // Dropbox specific fields (masked)
+      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : '',
+      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : '',
+      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : '',
       backupFolder,
       enabled: enabled !== false,
       settings: settings || {},
-      updatedAt: new Date().toISOString()
+      updatedAt: savedConfig.updatedAt
     };
 
     res.json({
       message: 'Integration configured successfully',
-      config
+      config: maskedConfig
     });
   } catch (error) {
     console.error('Error configuring tenant integration:', error);

@@ -144,6 +144,17 @@ export const favorecidoLocations = pgTable("favorecido_locations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Tenant Integrations Configuration table
+export const tenantIntegrationsConfig = pgTable("tenant_integrations_config", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
+  integrationId: varchar("integration_id", { length: 100 }).notNull(),
+  config: jsonb("config").default({}),
+  enabled: boolean("enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertSessionSchema = createInsertSchema(sessions);
 export const insertTenantSchema = createInsertSchema(tenants).omit({
@@ -185,6 +196,11 @@ export const insertFavorecidoLocationSchema = createInsertSchema(favorecidoLocat
   id: true,
   createdAt: true,
 });
+export const insertTenantIntegrationConfigSchema = createInsertSchema(tenantIntegrationsConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 // Types
 export type Session = typeof sessions.$inferSelect;
@@ -197,6 +213,7 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 // Removed: ExternalContact type - functionality eliminated
 export type Location = typeof locations.$inferSelect;
 export type FavorecidoLocation = typeof favorecidoLocations.$inferSelect;
+export type TenantIntegrationConfig = typeof tenantIntegrationsConfig.$inferSelect;
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
@@ -207,3 +224,4 @@ export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
 // Removed: InsertExternalContact type - functionality eliminated
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
+export type InsertTenantIntegrationConfig = z.infer<typeof insertTenantIntegrationConfigSchema>;

@@ -10,6 +10,7 @@ import {
   tenants,
   locations,
   favorecidoLocations,
+  tenantIntegrationsConfig,
   type User,
   type Customer,
   type Favorecido,
@@ -18,13 +19,15 @@ import {
   type Tenant,
   type Location,
   type FavorecidoLocation,
+  type TenantIntegrationConfig,
   type InsertCustomer,
   type InsertFavorecido,
   type InsertTicket,
   type InsertTicketMessage,
   type InsertUser,
   type InsertTenant,
-  type InsertLocation
+  type InsertLocation,
+  type InsertTenantIntegrationConfig
 } from "@shared/schema-simple";
 
 export interface IStorage {
@@ -77,6 +80,9 @@ export interface IStorage {
   
   // Tenant Integrations
   getTenantIntegrations(tenantId: string): Promise<any[]>;
+  getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<TenantIntegrationConfig | null>;
+  saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<TenantIntegrationConfig>;
+  
   getLocations(tenantId: string, limit?: number, offset?: number): Promise<Location[]>;
   createLocation(data: InsertLocation): Promise<Location>;
   
@@ -615,6 +621,60 @@ export class DrizzleStorage implements IStorage {
   // Removed: External Contacts implementation - functionality eliminated from system
 
   // Tenant Integrations
+  // Tenant Integration Configuration methods
+  async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<TenantIntegrationConfig | null> {
+    return withHibernationHandling(async () => {
+      const result = await db
+        .select()
+        .from(tenantIntegrationsConfig)
+        .where(and(
+          eq(tenantIntegrationsConfig.tenantId, tenantId),
+          eq(tenantIntegrationsConfig.integrationId, integrationId)
+        ))
+        .limit(1);
+      
+      return result[0] || null;
+    });
+  }
+
+  async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<TenantIntegrationConfig> {
+    return withHibernationHandling(async () => {
+      // Check if configuration exists
+      const existing = await this.getTenantIntegrationConfig(tenantId, integrationId);
+      
+      if (existing) {
+        // Update existing configuration
+        const result = await db
+          .update(tenantIntegrationsConfig)
+          .set({
+            config,
+            enabled: config.enabled !== false,
+            updatedAt: new Date()
+          })
+          .where(and(
+            eq(tenantIntegrationsConfig.tenantId, tenantId),
+            eq(tenantIntegrationsConfig.integrationId, integrationId)
+          ))
+          .returning();
+        
+        return result[0];
+      } else {
+        // Create new configuration
+        const result = await db
+          .insert(tenantIntegrationsConfig)
+          .values({
+            tenantId,
+            integrationId,
+            config,
+            enabled: config.enabled !== false
+          })
+          .returning();
+        
+        return result[0];
+      }
+    });
+  }
+
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
     try {
       // ENTERPRISE SECURITY: Strict UUID-v4 validation

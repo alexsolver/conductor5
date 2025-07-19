@@ -482,6 +482,7 @@ export default function TenantAdminIntegrations() {
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
+      console.log('Salvando configuração para:', selectedIntegration.id, data);
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: data
@@ -624,7 +625,11 @@ export default function TenantAdminIntegrations() {
                       <div className="flex space-x-2">
                         <Button 
                           size="sm" 
-                          onClick={() => onConfigureIntegration(integration)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onConfigureIntegration(integration);
+                          }}
                           className="flex-1"
                         >
                           <Settings className="h-4 w-4 mr-1" />
@@ -635,7 +640,11 @@ export default function TenantAdminIntegrations() {
                           <Button 
                             size="sm" 
                             variant="secondary"
-                            onClick={() => startOAuthFlow(integration)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              startOAuthFlow(integration);
+                            }}
                             className="flex-1"
                           >
                             <Key className="h-4 w-4 mr-1" />
@@ -646,7 +655,11 @@ export default function TenantAdminIntegrations() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => testIntegrationMutation.mutate(integration.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            testIntegrationMutation.mutate(integration.id);
+                          }}
                           disabled={testIntegrationMutation.isPending}
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
@@ -682,7 +695,11 @@ export default function TenantAdminIntegrations() {
           
           {selectedIntegration && (
             <Form {...configForm}>
-              <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                configForm.handleSubmit(onSubmitConfig)(e);
+              }} className="space-y-4">
                 <FormField
                   control={configForm.control}
                   name="enabled"
