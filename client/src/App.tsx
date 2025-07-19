@@ -111,7 +111,7 @@ function AppRouter() {
         {/* Removed: Multi-tenant management route - functionality eliminated */}
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />
-        <Route path="/templates" component={TemplateSelector} />
+        <Route path="/layouts" component={TemplateSelector} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>

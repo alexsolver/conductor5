@@ -267,13 +267,13 @@ export function Sidebar() {
 
           <div className="pt-4 mt-4 border-t border-white border-opacity-20">
             
-              <Link key="Aparência" href="/templates">
+              <Link key="Aparência" href="/layouts">
                 <div className={cn(
                   "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                  location === "/templates"
+                  location === "/layouts"
                     ? "text-white"
                     : "text-white hover:bg-white hover:bg-opacity-10"
-                )} style={location === "/templates" ? {
+                )} style={location === "/layouts" ? {
                   backgroundColor: 'var(--accent)',
                   color: 'white'
                 } : {}}>
