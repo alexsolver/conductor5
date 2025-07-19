@@ -17,18 +17,19 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// ENTERPRISE POOL CONFIGURATION: Optimized for high-performance multi-tenant environment
+// ENTERPRISE POOL CONFIGURATION: Corrigida para alta concorrência e hibernação Neon
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 15, // ENTERPRISE: Increased for concurrent tenant operations
-  min: 3, // Always keep minimum connections ready
-  idleTimeoutMillis: 120000, // 2 minutes - balanced for enterprise use
-  connectionTimeoutMillis: 30000, // 30 seconds - enterprise timeout
-  acquireTimeoutMillis: 45000, // 45 seconds acquire timeout
+  max: 25, // ENTERPRISE: Aumentado para suportar múltiplos tenants simultâneos
+  min: 5, // PERFORMANCE: Conexões sempre prontas para uso imediato
+  idleTimeoutMillis: 300000, // LIFECYCLE: 5 minutos - enterprise standard
+  connectionTimeoutMillis: 45000, // TIMEOUT: Aumentado para Neon hibernation recovery
+  acquireTimeoutMillis: 60000, // ACQUIRE: 60s timeout para operações complexas
   keepAlive: true,
-  maxUses: 1000, // ENTERPRISE: High reuse for performance
+  keepAliveInitialDelayMillis: 10000, // HIBERNATION: Configuração anti-hibernation
+  maxUses: 500, // OPTIMIZATION: Reduzido para forçar rotação saudável
   allowExitOnIdle: false,
-  maxLifetimeSeconds: 0 // No lifetime limit - let Neon manage connection lifecycle
+  maxLifetimeSeconds: 3600 // LIFECYCLE: 1 hora max - previne conexões órfãs
 });
 
 // Main database instance for tenant management and shared resources
@@ -40,8 +41,8 @@ export class SchemaManager {
   private tenantConnections = new Map<string, { db: ReturnType<typeof drizzle>; schema: any }>();
   private initializedSchemas = new Set<string>(); // Cache for initialized schemas
   private schemaValidationCache = new Map<string, { isValid: boolean; timestamp: number }>(); // Cache validation results
-  private readonly CACHE_TTL = 1 * 60 * 1000; // FIXED: 1 minute TTL to prevent stale data
-  private readonly MAX_CACHED_SCHEMAS = 20; // Optimized for enterprise scale
+  private readonly CACHE_TTL = 5 * 60 * 1000; // ENTERPRISE: 5 minutos TTL balanceado
+  private readonly MAX_CACHED_SCHEMAS = 50; // SCALE: Aumentado para enterprise scale
   private lastCleanup = Date.now();
   private lastValidation = new Map<string, number>(); // Track validation frequency
 
@@ -56,8 +57,8 @@ export class SchemaManager {
   private cleanupCache(): void {
     const now = Date.now();
 
-    // ENTERPRISE FIX: High-frequency cleanup for memory efficiency
-    if (now - this.lastCleanup < 2 * 60 * 1000) { // FIXED: 2 minutes - prevents memory leaks
+    // ENTERPRISE FIX: Otimizado para prevenir memory leaks
+    if (now - this.lastCleanup < 30 * 1000) { // OPTIMIZED: 30 segundos - cleanup frequente
       return;
     }
 
@@ -1144,12 +1145,18 @@ export class SchemaManager {
     }
   }
 
-  // VALIDATE TENANT SCHEMA: Check if tenant schema exists and has required tables
+  // ENTERPRISE TENANT VALIDATION: Validação robusta com verificação de estrutura
   async validateTenantSchema(tenantId: string): Promise<boolean> {
     try {
+      // SECURITY: Validação rigorosa do tenant ID format
+      if (!this.isValidTenantId(tenantId)) {
+        console.error(`[SchemaManager] Invalid tenant ID format: ${tenantId}`);
+        return false;
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Check if schema exists
+      // STEP 1: Verificar se schema existe
       const schemaResult = await db.execute(sql`
         SELECT schema_name 
         FROM information_schema.schemata 
@@ -1157,22 +1164,64 @@ export class SchemaManager {
       `);
 
       if (schemaResult.rows.length === 0) {
+        console.log(`[SchemaManager] Schema ${schemaName} does not exist`);
         return false;
       }
 
-      // Check if essential tables exist
+      // STEP 2: Validação estrutural completa das tabelas essenciais
+      const requiredTables = [
+        'customers', 'tickets', 'ticket_messages', 'activity_logs',
+        'locations', 'customer_companies', 'skills', 'certifications'
+      ];
+
       const tableResult = await db.execute(sql`
-        SELECT table_name 
-        FROM information_schema.tables 
+        SELECT table_name, 
+               COUNT(column_name) as column_count
+        FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications')
+        GROUP BY table_name
       `);
 
-      return tableResult.rows.length >= 3;
+      // STEP 3: Verificar se todas as tabelas essenciais existem com estrutura adequada
+      const foundTables = new Set(tableResult.rows.map(row => row.table_name as string));
+      const missingTables = requiredTables.filter(table => !foundTables.has(table));
+
+      if (missingTables.length > 0) {
+        console.warn(`[SchemaManager] Missing tables in ${schemaName}: ${missingTables.join(', ')}`);
+        return false;
+      }
+
+      // STEP 4: Validar se as tabelas têm tenant_id column (crítico para isolamento)
+      const tenantIdValidation = await db.execute(sql`
+        SELECT table_name
+        FROM information_schema.columns 
+        WHERE table_schema = ${schemaName}
+        AND column_name = 'tenant_id'
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications')
+      `);
+
+      const tablesWithTenantId = new Set(tenantIdValidation.rows.map(row => row.table_name as string));
+      const tablesWithoutTenantId = requiredTables.filter(table => !tablesWithTenantId.has(table));
+
+      if (tablesWithoutTenantId.length > 0) {
+        console.error(`[SchemaManager] CRITICAL: Tables missing tenant_id in ${schemaName}: ${tablesWithoutTenantId.join(', ')}`);
+        return false;
+      }
+
+      console.log(`[SchemaManager] ✅ Schema ${schemaName} validation passed`);
+      return true;
     } catch (error) {
       console.error(`[SchemaManager] Failed to validate tenant schema ${tenantId}:`, error);
       return false;
     }
+  }
+
+  // SECURITY: Validação rigorosa do formato tenant ID
+  private isValidTenantId(tenantId: string): boolean {
+    // UUID v4 format: 8-4-4-4-12 characters
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(tenantId) && tenantId.length === 36;
   }
 }
 

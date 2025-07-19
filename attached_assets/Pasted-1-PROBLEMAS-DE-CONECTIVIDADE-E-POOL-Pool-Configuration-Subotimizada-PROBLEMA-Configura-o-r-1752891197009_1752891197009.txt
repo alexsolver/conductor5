@@ -1,0 +1,69 @@
+1. PROBLEMAS DE CONECTIVIDADE E POOL
+❌ Pool Configuration Subotimizada:
+
+// PROBLEMA: Configuração restritiva demais
+max: 15, // Muito baixo para enterprise scale
+maxLifetimeSeconds: 0 // Sem limite pode causar conexões órfãs
+❌ Tenant Connection Pool Issues:
+
+// PROBLEMA: Pool per-tenant muito pequeno
+max: 2, // Insuficiente para concurrent requests
+maxUses: 1500, // Muito alto, força recriação desnecessária
+2. PROBLEMAS DE HIBERNAÇÃO NEON
+✅ Parcialmente Corrigido - Mas Incompleto:
+
+Erro terminating connection due to administrator command ainda ocorre
+Tratamento existe mas não cobre todos os casos de hibernação
+FALTA: Reconnection retry logic robusto
+3. VULNERABILIDADES DE TENANT ISOLATION
+❌ Inconsistências na Validação:
+
+// PROBLEMA: Validação inconsistente
+const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+// CRÍTICO: Não valida se o tenant_id extraído é válido
+❌ Schema Creation Race Conditions:
+
+// PROBLEMA: Race condition na criação de schema
+if (this.initializedSchemas.has(tenantId)) {
+  return; // Pode retornar antes da criação completa
+}
+4. PROBLEMAS DE PERFORMANCE E INDEXES
+❌ Indexes Inadequados:
+
+Faltam indexes compostos (tenant_id, business_key) em várias tabelas
+Indexes concorrentes não são criados com CONCURRENTLY
+CRÍTICO: Query plans não otimizados para tenant isolation
+❌ Cache Strategy Deficiente:
+
+// PROBLEMA: Cache TTL muito longo
+private readonly CACHE_TTL = 1 * 60 * 1000; // 1 minuto muito curto para prod
+private readonly MAX_CACHED_SCHEMAS = 20; // Muito baixo para enterprise
+5. PROBLEMAS DE MIGRAÇÃO E SCHEMA
+❌ Legacy Migration Vulnerabilities:
+
+-- PROBLEMA: Raw SQL sem proper error handling
+ALTER TABLE ${schemaName}.skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+-- CRÍTICO: Sem transação, sem rollback strategy
+❌ Schema Validation Incompleta:
+
+// PROBLEMA: Validação baseada em count simples
+return (result.rows[0]?.table_count as number) >= 8;
+// Deveria validar estrutura específica de cada tabela
+6. PROBLEMAS DE QUERIES E SEGURANÇA
+⚠️ Query Optimization Issues:
+
+// PROBLEMA: Queries sem LIMIT adequado em várias operações
+SELECT * FROM customers WHERE tenant_id = ? 
+// Sem paginação otimizada, pode causar OOM
+❌ Connection Leak Detection:
+
+Falta monitoramento de connection leaks
+Pool cleanup muito lento (2 minutos)
+Sem alertas para connections órfãs
+7. PROBLEMAS DE VITE STABILITY
+❌ WebSocket Reconnection Issues:
+
+[vite] server connection lost. Polling for restart...
+Reconexões frequentes causam instabilidade
+Frontend perde estado durante reconexões
+IMPACTO: Degradação da UX
