@@ -385,11 +385,9 @@ export class DrizzleStorage implements IStorage {
   // Tickets - Using tenant-specific database connections
   async getTicket(id: string, tenantId: string): Promise<Ticket | null> {
     try {
-      await this.schemaManager.createTenantSchema(tenantId);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
-      
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM tickets 
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.tickets 
         WHERE id = ${id} AND tenant_id = ${tenantId}
         LIMIT 1
       `);
@@ -402,11 +400,10 @@ export class DrizzleStorage implements IStorage {
 
   async getTickets(tenantId: string, limit: number = 50, offset: number = 0): Promise<Ticket[]> {
     try {
-      await this.schemaManager.createTenantSchema(tenantId);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM tickets 
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.tickets 
         WHERE tenant_id = ${tenantId}
         ORDER BY created_at DESC 
         LIMIT ${limit} OFFSET ${offset}
@@ -420,12 +417,11 @@ export class DrizzleStorage implements IStorage {
 
   async createTicket(data: InsertTicket): Promise<Ticket> {
     try {
-      await this.schemaManager.createTenantSchema(data.tenantId!);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(data.tenantId!);
+      const schemaName = `tenant_${data.tenantId!.replace(/-/g, '_')}`;
       const id = crypto.randomUUID();
       
-      await tenantDb.execute(sql`
-        INSERT INTO tickets (
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.tickets (
           id, tenant_id, subject, description, status, priority, 
           customer_id, assigned_to_id, created_at, updated_at
         ) VALUES (
@@ -444,8 +440,7 @@ export class DrizzleStorage implements IStorage {
 
   async updateTicket(id: string, tenantId: string, data: Partial<InsertTicket>): Promise<Ticket | null> {
     try {
-      await this.schemaManager.createTenantSchema(tenantId);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       const updates = [];
       if (data.subject !== undefined) updates.push(`subject = '${data.subject}'`);
@@ -457,8 +452,8 @@ export class DrizzleStorage implements IStorage {
       
       updates.push('updated_at = NOW()');
       
-      await tenantDb.execute(sql`
-        UPDATE tickets 
+      await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.tickets 
         SET ${sql.raw(updates.join(', '))}
         WHERE tenant_id = ${tenantId} AND id = ${id}
       `);
@@ -472,11 +467,10 @@ export class DrizzleStorage implements IStorage {
 
   async deleteTicket(id: string, tenantId: string): Promise<boolean> {
     try {
-      await this.schemaManager.createTenantSchema(tenantId);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const result = await tenantDb.execute(sql`
-        DELETE FROM tickets 
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.tickets 
         WHERE id = ${id} AND tenant_id = ${tenantId}
       `);
       return (result.rowCount || 0) > 0;
@@ -535,11 +529,10 @@ export class DrizzleStorage implements IStorage {
 
   async getLocations(tenantId: string, limit: number = 50, offset: number = 0): Promise<Location[]> {
     try {
-      await this.schemaManager.createTenantSchema(tenantId);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM locations 
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.locations 
         WHERE tenant_id = ${tenantId}
         ORDER BY created_at DESC 
         LIMIT ${limit} OFFSET ${offset}
@@ -619,23 +612,22 @@ export class DrizzleStorage implements IStorage {
 
   // REMOVED: Duplicate favorecidos methods - already implemented above with tenant-specific connections
 
-  // Dashboard stats - Using tenant-specific connections
+  // Dashboard stats - Using direct SQL with tenant schema
   async getRecentActivity(tenantId: string, limit: number = 20): Promise<any[]> {
     try {
-      await this.schemaManager.createTenantSchema(tenantId);
-      const { db: tenantDb } = await this.schemaManager.getTenantDb(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Get recent tickets from tenant schema
-      const recentTicketsResult = await tenantDb.execute(sql`
-        SELECT * FROM tickets 
+      const recentTicketsResult = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.tickets 
         WHERE tenant_id = ${tenantId}
         ORDER BY created_at DESC 
         LIMIT 5
       `);
 
       // Get recent customers from tenant schema  
-      const recentCustomersResult = await tenantDb.execute(sql`
-        SELECT * FROM customers 
+      const recentCustomersResult = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.customers 
         WHERE tenant_id = ${tenantId}
         ORDER BY created_at DESC 
         LIMIT 5
