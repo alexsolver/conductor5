@@ -57,7 +57,7 @@ ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const ticket = await storageSimple.getTicket(req.params.id, req.user.tenantId);
+    const ticket = await storageSimple.getTicketById(req.user.tenantId, req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }

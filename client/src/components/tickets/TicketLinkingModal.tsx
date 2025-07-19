@@ -66,19 +66,40 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [relationshipType, setRelationshipType] = useState("");
   const [description, setDescription] = useState("");
-  const [isLinking, setIsLinking] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Search for tickets
-  const { data: searchResults = [] } = useQuery({
-    queryKey: ["/api/tickets/search", searchTerm],
-    enabled: searchTerm.length > 2,
+  // Fetch all tickets and filter locally for better UX
+  const { data: allTickets = [], isLoading } = useQuery({
+    queryKey: ["/api/tickets"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/search?q=${encodeURIComponent(searchTerm)}`);
-      return response.json();
+      const response = await apiRequest("GET", "/api/tickets");
+      return response.json().then(data => data.tickets || []);
     },
+  });
+
+  // Filter tickets based on search term, status, priority and exclude current ticket
+  const filteredTickets = allTickets.filter((ticket: Ticket) => {
+    if (ticket.id === currentTicket.id) return false;
+    
+    // Status filter
+    if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
+    
+    // Priority filter  
+    if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false;
+    
+    // Search filter
+    if (searchTerm.length > 0) {
+      const searchLower = searchTerm.toLowerCase();
+      return ticket.subject?.toLowerCase().includes(searchLower) ||
+             ticket.number?.toLowerCase().includes(searchLower) ||
+             ticket.id.toLowerCase().includes(searchLower);
+    }
+    
+    return true;
   });
 
   // Get existing relationships
@@ -226,52 +247,100 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
           <div>
             <h3 className="text-lg font-semibold mb-3">Vincular Novo Chamado</h3>
             
-            {/* Search */}
+            {/* Search and Filters */}
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="search">Buscar Chamado</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="search"
-                    placeholder="Digite número ou descrição do chamado..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="search">Buscar Chamado</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="search"
+                      placeholder="Digite número ou descrição..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="status-filter">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="open">Aberto</SelectItem>
+                      <SelectItem value="in_progress">Em Progresso</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="resolved">Resolvido</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="priority-filter">Prioridade</Label>
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as prioridades" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as prioridades</SelectItem>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="critical">Crítica</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="border rounded-lg max-h-48 overflow-y-auto">
-                  {searchResults
-                    .filter((ticket: Ticket) => ticket.id !== currentTicket.id)
-                    .map((ticket: Ticket) => (
-                    <div
-                      key={ticket.id}
-                      className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                        selectedTicket?.id === ticket.id ? "bg-blue-50 dark:bg-blue-900/20" : ""
-                      }`}
-                      onClick={() => setSelectedTicket(ticket)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{ticket.number || ticket.id.slice(0, 8)}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">{ticket.subject}</div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Badge variant="outline">{ticket.status}</Badge>
-                          <Badge variant={
-                            ticket.priority === 'critical' ? 'destructive' : 
-                            ticket.priority === 'high' ? 'default' : 'secondary'
-                          }>
-                            {ticket.priority}
-                          </Badge>
+              {/* Ticket List */}
+              {isLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                </div>
+              ) : (
+                <div className="border rounded-lg max-h-80 overflow-y-auto">
+                  {filteredTickets.length > 0 ? (
+                    filteredTickets.map((ticket: Ticket) => (
+                      <div
+                        key={ticket.id}
+                        className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                          selectedTicket?.id === ticket.id ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                        }`}
+                        onClick={() => setSelectedTicket(ticket)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">#{ticket.number || ticket.id.slice(-8)}</span>
+                              <Badge variant={
+                                ticket.priority === 'critical' ? 'destructive' :
+                                ticket.priority === 'high' ? 'default' :
+                                'secondary'
+                              }>
+                                {ticket.priority}
+                              </Badge>
+                              <Badge variant="outline">
+                                {ticket.status}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
+                              {ticket.subject}
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-gray-500">
+                      Nenhum chamado encontrado com os filtros selecionados
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
