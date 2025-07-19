@@ -456,11 +456,12 @@ export default function TenantAdminIntegrations() {
       const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
       
       if (existingConfig && existingConfig.configured && existingConfig.config) {
-        const config = existingConfig.config.config;
-        // Load existing configuration
+        const config = existingConfig.config;
+        // Load existing configuration - dados reais do banco
+        console.log('Carregando configuração existente:', config);
         configForm.reset({
-          enabled: config.enabled !== false,
-          useSSL: config.useSSL !== false,
+          enabled: config.enabled === true,
+          useSSL: config.useSSL === true,
           apiKey: config.apiKey || '',
           apiSecret: config.apiSecret || '',
           webhookUrl: config.webhookUrl || '',
@@ -468,12 +469,12 @@ export default function TenantAdminIntegrations() {
           clientSecret: config.clientSecret || '',
           redirectUri: config.redirectUri || '',
           tenantId: config.tenantId || '',
-          serverHost: config.imapServer || '',
-          serverPort: (config.imapPort || 993).toString(),
-          username: config.emailAddress || '',
+          serverHost: config.serverHost || config.imapServer || '',
+          serverPort: config.serverPort || (config.imapPort ? config.imapPort.toString() : '993'),
+          username: config.username || config.emailAddress || '',
           password: config.password || '',
           imapServer: config.imapServer || 'imap.gmail.com',
-          imapPort: (config.imapPort || 993).toString(),
+          imapPort: config.imapPort ? config.imapPort.toString() : '993',
           emailAddress: config.emailAddress || '',
           dropboxAppKey: config.dropboxAppKey || '',
           dropboxAppSecret: config.dropboxAppSecret || '',
