@@ -1,0 +1,51 @@
+🔥 PROBLEMAS CRÍTICOS IDENTIFICADOS
+1. FAVORECIDOS API FAILURE - CRÍTICO
+Problema: schemaManager.getTenantDatabase is not a function
+Localização: Favorecidos routes
+Impacto: Módulo completamente não funcional
+Evidência: Console logs mostram falha 500 repetida
+2. VITE CONNECTION INSTABILITY - CRÍTICO
+Problema: Reconnection loops contínuos
+Impacto: Performance degradada, instabilidade do frontend
+Evidência: [vite] server connection lost. Polling for restart...
+Frequência: Multiple disconnects observados nos logs
+3. I18N INITIALIZATION OVERHEAD - PERFORMANCE
+Problema: Inicialização repetitiva do i18next
+Impacto: Memory overhead, performance degradation
+Evidência: Multiple i18next: initialized em cada component load
+Localização: Frontend components
+4. MISSING TRANSLATION KEYS - FUNCIONAL
+Problema: Chaves de tradução faltando para User Management
+Impacto: UX degradada com textos não traduzidos
+Evidência: i18next::translator: missingKey para userManagement.*
+Localização: pt-BR.json incompleto
+5. TENANT DATABASE CONNECTION ARCHITECTURE - PERFORMANCE
+Problema: Connection pool settings ultra-conservadoras
+Impacto: Possível underutilization de recursos
+Evidência: MAX_TENANT_POOLS = 3, maxLifetimeSeconds: 120
+Localização: DatabaseManager.ts
+6. SCHEMA ARCHITECTURE COMPLEXITY - MANUTENIBILIDADE
+Problema: Múltiplos arquivos de schema com sobreposição
+Impacto: Complexidade de manutenção
+Evidência: schema.ts, schema-simple.ts, schema-unified.ts
+Localização: /shared/schema/ com 10+ módulos
+7. TENANT VALIDATION GAPS - SEGURANÇA
+Problema: Validação tenant_id pode não ser aplicada consistentemente
+Impacto: Potencial cross-tenant data leakage
+Evidência: Alguns módulos podem não ter validação completa
+Localização: Routes modules
+8. DATABASE MANAGER SINGLETON PATTERN - ARQUITETURA
+Problema: Padrão singleton pode criar bottlenecks
+Impacto: Escalabilidade limitada
+Evidência: Single instance para todos os tenants
+Localização: DatabaseManager.ts
+9. TENANT SCHEMA CREATION OVERHEAD - PERFORMANCE
+Problema: Criação de 6+ tabelas por tenant com múltiplos indexes
+Impacto: Overhead na criação de novos tenants
+Evidência: createTenantTables() com múltiplas queries
+Localização: DatabaseManager.ts método createTenantTables()
+10. QUERY VALIDATION COVERAGE - SEGURANÇA
+Problema: Nem todas as queries podem ter validação tenant obrigatória
+Impacto: Possível data leakage
+Evidência: Sistema de validação existe mas aplicação pode ser inconsistente
+Localização: CrossTenantValidator.ts
