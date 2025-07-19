@@ -22,6 +22,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -788,9 +789,9 @@ export default function TenantAdminIntegrations() {
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
-            <div className="text-sm text-gray-600 mt-2">
+            <DialogDescription>
               Configure os parâmetros necessários para ativar esta integração no seu workspace.
-            </div>
+            </DialogDescription>
           </DialogHeader>
           
           {selectedIntegration && (
