@@ -8,11 +8,13 @@ import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
 import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
 import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
+import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
 
 const app = express();
 
-// CRITICAL FIX: Apply enhanced WebSocket stability middleware first
+// CRITICAL VITE STABILITY: Apply enhanced WebSocket stability middleware first
 app.use(enhancedWebsocketStability);
+app.use(viteStabilityMiddleware);
 
 app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
@@ -153,6 +155,7 @@ app.use((req, res, next) => {
   process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
     connectionStabilizer.cleanup();
+    viteWebSocketStabilizer.cleanup();
     server.close(() => {
       process.exit(0);
     });
@@ -161,23 +164,43 @@ app.use((req, res, next) => {
   process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully');
     connectionStabilizer.cleanup();
+    viteWebSocketStabilizer.cleanup();
     server.close(() => {
       process.exit(0);
     });
   });
 
-  // CRITICAL: Handle uncaught exceptions to prevent crashes
+  // CRITICAL STABILITY FIX: Enhanced error handling for WebSocket and database connection issues
   process.on('uncaughtException', (error) => {
-    if (error.message && !error.message.includes('WebSocket') && !error.message.includes('ECONNRESET')) {
-      console.error('[Uncaught Exception]', error);
-      connectionStabilizer.cleanup();
-      process.exit(1);
+    const errorMsg = error.message || '';
+    
+    // VITE STABILITY: Ignore WebSocket and HMR related errors
+    if (errorMsg.includes('WebSocket') || 
+        errorMsg.includes('ECONNRESET') || 
+        errorMsg.includes('HMR') ||
+        errorMsg.includes('terminating connection due to administrator command')) {
+      console.log('[Stability] Ignoring transient connection error:', errorMsg.substring(0, 100));
+      return;
     }
+    
+    console.error('[Uncaught Exception]', error);
+    connectionStabilizer.cleanup();
+    process.exit(1);
   });
 
   process.on('unhandledRejection', (reason, promise) => {
+    const reasonStr = String(reason);
+    
+    // VITE STABILITY: Ignore WebSocket rejections and database connection drops
+    if (reasonStr.includes('WebSocket') || 
+        reasonStr.includes('terminating connection') ||
+        reasonStr.includes('HMR') ||
+        reasonStr.includes('ECONNRESET')) {
+      console.log('[Stability] Ignoring connection rejection:', reasonStr.substring(0, 100));
+      return;
+    }
+    
     console.warn('[Unhandled Rejection]', reason);
-    // Don't exit on unhandled rejections, just log them
   });
 
   server.listen({
