@@ -127,7 +127,24 @@ export class ProductionInitializer {
         const tenantId = tenantResult.rows[0].id as string;
         const isValid = await schemaManager.validateTenantSchema(tenantId);
         if (!isValid) {
-          logWarn(`Health check: Tenant schema ${tenantId} needs attention`);
+          logWarn(`Health check: Tenant schema ${tenantId} needs attention, attempting auto-correction...`);
+          
+          try {
+            // AUTO-CORRECTION: Tentar corrigir problemas de schema automaticamente
+            await schemaManager.createTenantSchema(tenantId);
+            
+            // Revalidar após correção
+            const isValidAfterFix = await schemaManager.validateTenantSchema(tenantId);
+            if (isValidAfterFix) {
+              logInfo(`Health check: Auto-correction successful for tenant ${tenantId}`);
+            } else {
+              logWarn(`Health check: Auto-correction failed for tenant ${tenantId}`);
+            }
+          } catch (correctionError) {
+            logError(`Health check: Auto-correction error for tenant ${tenantId}`, correctionError);
+          }
+        } else {
+          logInfo(`Health check: Tenant schema ${tenantId} is healthy`);
         }
       }
 

@@ -430,9 +430,16 @@ export class SchemaManager {
         AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations')
       `);
 
-      // CORREÇÃO CRÍTICA: Deve ter EXATAMENTE 14 tabelas, não >=
+      // CORREÇÃO CRÍTICA: Deve ter EXATAMENTE 14 tabelas - validação rigorosa
       const tableCount = result.rows[0]?.table_count as number;
-      return tableCount === 14;
+      const expectedTableCount = 14;
+      
+      if (tableCount !== expectedTableCount) {
+        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas, esperado: ${expectedTableCount}`);
+        return false;
+      }
+      
+      return true;
     } catch {
       return false;
     }

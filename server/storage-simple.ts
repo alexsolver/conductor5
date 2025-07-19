@@ -14,32 +14,32 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
-  
+
   // Tenant Management  
   createTenant(tenantData: any): Promise<any>;
   getTenantUsers(tenantId: string, options?: { limit?: number; offset?: number }): Promise<User[]>;
-  
+
   // Customer Management
   getCustomers(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
   getCustomerById(tenantId: string, customerId: string): Promise<any | undefined>;
   createCustomer(tenantId: string, customerData: any): Promise<any>;
   updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any>;
   deleteCustomer(tenantId: string, customerId: string): Promise<boolean>;
-  
+
   // Ticket Management
   getTickets(tenantId: string, options?: { limit?: number; offset?: number; status?: string }): Promise<any[]>;
   getTicketById(tenantId: string, ticketId: string): Promise<any | undefined>;
   createTicket(tenantId: string, ticketData: any): Promise<any>;
   updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any>;
   deleteTicket(tenantId: string, ticketId: string): Promise<boolean>;
-  
+
   // Dashboard & Analytics
   getDashboardStats(tenantId: string): Promise<any>;
   getRecentActivity(tenantId: string, options?: { limit?: number }): Promise<any[]>;
-  
+
   // Knowledge Base
   createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any>;
-  
+
   // External Contacts
   getSolicitantes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
   getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
@@ -59,7 +59,7 @@ export interface IStorage {
   getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined>;
   saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any>;
   updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void>;
-  
+
   // Template Bulk Operations
   bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
 }
@@ -104,7 +104,7 @@ export class DatabaseStorage implements IStorage {
       if (!username) {
         throw new Error('Username is required');
       }
-      
+
       const [user] = await db.select().from(users).where(eq(users.email, username));
       return user || undefined;
     } catch (error) {
@@ -126,7 +126,7 @@ export class DatabaseStorage implements IStorage {
           ...insertUser
         })
         .returning();
-        
+
       logInfo('User created successfully', { userId: user.id, email: user.email });
       return user;
     } catch (error) {
@@ -191,7 +191,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
-      
+
       // Use connection pool for better performance
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
@@ -278,7 +278,7 @@ export class DatabaseStorage implements IStorage {
       if (customer) {
         logInfo('Customer created successfully', { tenantId, customerId: customer.id });
       }
-      
+
       return customer;
     } catch (error) {
       logError('Error creating customer', error, { tenantId, customerData });
@@ -431,7 +431,7 @@ export class DatabaseStorage implements IStorage {
       if (ticket) {
         logInfo('Ticket created successfully', { tenantId, ticketId: ticket.id, ticketNumber });
       }
-      
+
       return ticket;
     } catch (error) {
       logError('Error creating ticket', error, { tenantId, ticketData });
@@ -873,7 +873,7 @@ export class DatabaseStorage implements IStorage {
   async duplicateTicketTemplate(tenantId: string, templateId: string): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      
+
       // First get the original template
       const original = await this.getTicketTemplateById(validatedTenantId, templateId);
       if (!original) {
@@ -1203,7 +1203,7 @@ export class DatabaseStorage implements IStorage {
         ('chatbot-ai', '${tenantId}', 'Chatbot IA', 'Assistente virtual inteligente para atendimento automatizado', 'Produtividade', 'Bot', 'disconnected', '{}', ARRAY['Respostas automáticas', 'Machine Learning', 'Escalação inteligente'])
         ON CONFLICT (id) DO NOTHING
       `;
-      
+
       await tenantDb.execute(sql.raw(insertQuery));
 
       logInfo('All 14 default integrations created', { tenantId, count: 14 });
