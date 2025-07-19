@@ -17,7 +17,7 @@ const createCustomerCompanySchema = z.object({
   displayName: z.string().max(255).optional(),
   description: z.string().optional(),
   industry: z.string().max(100).optional(),
-  size: z.enum(['small', 'medium', 'large', 'enterprise']).optional(),
+  size: z.enum(['startup', 'small', 'medium', 'large', 'enterprise']).optional(),
   email: z.string().email().optional(),
   phone: z.string().max(50).optional(),
   website: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
@@ -75,7 +75,7 @@ const updateMembershipSchema = z.object({
 const queryParamsSchema = z.object({
   search: z.string().optional(),
   industry: z.string().optional(),
-  size: z.enum(['small', 'medium', 'large', 'enterprise']).optional(),
+  size: z.enum(['startup', 'small', 'medium', 'large', 'enterprise']).optional(),
   status: z.enum(['active', 'inactive', 'suspended', 'trial']).optional(),
   subscriptionTier: z.enum(['basic', 'premium', 'enterprise']).optional(),
   isActive: z.string().transform((val) => val === 'true' ? true : val === 'false' ? false : undefined).optional(),

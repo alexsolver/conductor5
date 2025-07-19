@@ -144,7 +144,10 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden" aria-describedby="create-user-description">
+        <div id="create-user-description" className="sr-only">
+          Formulário para criar novo usuário no sistema
+        </div>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{t("userManagement.createUser", "Criar Usuário")}</DialogTitle>
