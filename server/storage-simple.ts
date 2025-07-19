@@ -634,7 +634,15 @@ export class DrizzleStorage implements IStorage {
         ))
         .limit(1);
       
-      console.log(`[getTenantIntegrationConfig] Resultado encontrado:`, result);
+      console.log(`[getTenantIntegrationConfig] Raw result:`, result);
+      console.log(`[getTenantIntegrationConfig] Result length:`, result.length);
+      
+      if (result.length > 0) {
+        console.log(`[getTenantIntegrationConfig] Found config:`, result[0]);
+        console.log(`[getTenantIntegrationConfig] Config field type:`, typeof result[0].config);
+        console.log(`[getTenantIntegrationConfig] Config field value:`, result[0].config);
+      }
+      
       return result[0] || null;
     });
   }

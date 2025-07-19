@@ -45,8 +45,8 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    const { storage } = await import('../storage-simple');
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
+    const { storage } = await import('../storage-simple');
     const config = await storage.getTenantIntegrationConfig(tenantId, integrationId);
     console.log(`[GET config route] Resultado recebido do storage:`, config);
     
