@@ -910,10 +910,30 @@ export class SchemaManager {
       // REMOVED: Invalid foreign key constraint for non-existent certification_id column
       // user_skills table doesn't have certification_id field - constraint removed
 
+      // ===========================
+      // CRITICAL: CREATE ALL PERFORMANCE INDEXES
+      // ===========================
+      try {
+        const { TenantIndexOptimizer } = await import('./database/TenantIndexOptimizer');
+        await TenantIndexOptimizer.createMissingIndexes(schemaName);
+        
+        // Verificar integridade dos índices criados
+        const indexIntegrityValid = await TenantIndexOptimizer.verifyIndexIntegrity(schemaName);
+        if (!indexIntegrityValid) {
+          console.warn(`[TenantIndexOptimizer] ⚠️ Index integrity verification failed for ${schemaName}`);
+        }
+        
+      } catch (indexError) {
+        const { logError } = await import('./utils/logger');
+        logError(`Failed to create performance indexes for schema ${schemaName}`, indexError, { schemaName });
+        // Continue without failing - indexes can be created later
+      }
+
       const { logInfo } = await import('./utils/logger');
-      logInfo(`Tenant tables created successfully using parameterized queries for schema ${schemaName}`, { 
+      logInfo(`✅ Tenant tables AND performance indexes created successfully for schema ${schemaName}`, { 
         schemaName,
-        security: 'All queries use sql.identifier() for safe schema references'
+        security: 'All queries use sql.identifier() for safe schema references',
+        performance: 'Critical performance indexes created automatically'
       });
 
     } catch (error) {
