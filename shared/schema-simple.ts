@@ -98,6 +98,8 @@ export const tickets = pgTable("tickets", {
   beneficiaryId: uuid("beneficiary_id"), // Person who benefits from resolution (optional, defaults to caller)
   beneficiaryType: varchar("beneficiary_type", { length: 20 }).default("customer"), // 'user' or 'customer'
   assignedToId: varchar("assigned_to_id"),
+  // Hierarchy support
+  parentTicketId: uuid("parent_ticket_id").references(() => tickets.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -114,6 +116,18 @@ export const ticketMessages = pgTable("ticket_messages", {
   type: varchar("type", { length: 50 }).default("comment"),
   isInternal: boolean("is_internal").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Ticket relationships table for linking tickets
+export const ticketRelationships = pgTable("ticket_relationships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  sourceTicketId: uuid("source_ticket_id").references(() => tickets.id, { onDelete: "cascade" }).notNull(),
+  targetTicketId: uuid("target_ticket_id").references(() => tickets.id, { onDelete: "cascade" }).notNull(),
+  relationshipType: varchar("relationship_type", { length: 50 }).notNull(), // blocks, relates_to, duplicates, parent_child
+  description: text("description"), // Optional description of the relationship
+  createdAt: timestamp("created_at").defaultNow(),
+  createdBy: varchar("created_by").notNull(),
 });
 
 // Removed: external_contacts table - functionality eliminated from system
@@ -186,6 +200,10 @@ export const insertTicketMessageSchema = createInsertSchema(ticketMessages).omit
   id: true,
   createdAt: true,
 });
+export const insertTicketRelationshipSchema = createInsertSchema(ticketRelationships).omit({
+  id: true,
+  createdAt: true,
+});
 // Removed: insertExternalContactSchema - functionality eliminated
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,
@@ -210,6 +228,7 @@ export type Customer = typeof customers.$inferSelect;
 export type Favorecido = typeof favorecidos.$inferSelect;
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
+export type TicketRelationship = typeof ticketRelationships.$inferSelect;
 // Removed: ExternalContact type - functionality eliminated
 export type Location = typeof locations.$inferSelect;
 export type FavorecidoLocation = typeof favorecidoLocations.$inferSelect;
@@ -222,6 +241,7 @@ export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type InsertFavorecido = z.infer<typeof insertFavorecidoSchema>;
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
+export type InsertTicketRelationship = z.infer<typeof insertTicketRelationshipSchema>;
 // Removed: InsertExternalContact type - functionality eliminated
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type InsertTenantIntegrationConfig = z.infer<typeof insertTenantIntegrationConfigSchema>;
