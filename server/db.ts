@@ -392,10 +392,10 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts')
+        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills')
       `);
 
-      return (result.rows[0]?.table_count as number) >= 8;
+      return (result.rows[0]?.table_count as number) >= 12;
     } catch {
       return false;
     }

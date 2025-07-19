@@ -171,6 +171,44 @@ Preferred communication style: Simple, everyday language.
 - ✅ Segurança enterprise maximizada com validação padronizada
 - ✅ Zero gaps de validação entre TenantValidator, ConnectionPoolManager e demais componentes
 
+### July 19, 2025 - TABLESEXIST QUERY INCOMPLETE RESOLUTION ✅ ALL 12 CRITICAL TABLES VALIDATED
+
+**🔧 CORREÇÃO CRÍTICA DA QUERY INCOMPLETA TABLESEXIST:**
+
+✅ **PROBLEMA: QUERY SÓ VERIFICAVA 9 DAS 12 TABELAS CRÍTICAS - RESOLVIDO DEFINITIVAMENTE**
+- **Erro**: Query em server/db.ts:394-401 verificava apenas 9 tabelas (`customers`, `favorecidos`, `tickets`, `ticket_messages`, `activity_logs`, `locations`, `customer_companies`, `customer_company_memberships`, `external_contacts`)
+- **Tabelas Ausentes**: `skills`, `certifications`, `user_skills` não eram verificadas
+- **Impacto**: Schemas considerados "válidos" mesmo estando incompletos, causando falhas em runtime
+- **Solução**: Atualizado query para incluir TODAS as 12 tabelas críticas e ajustado threshold de 8 para 12
+- **Resultado**: Validação enterprise agora rejeita schemas incompletos corretamente
+
+**🎯 CORREÇÕES IMPLEMENTADAS:**
+- **Query Atualizada**: Adicionadas tabelas `'skills', 'certifications', 'user_skills'` na validação IN clause
+- **Threshold Aumentado**: `>= 8` alterado para `>= 12` para validação rigorosa
+- **Prevenção Runtime**: Schemas incompletos agora detectados antes de causar falhas
+- **Consistência Operacional**: tablesExist() agora alinhado com todas as 12 tabelas do sistema
+
+**📊 12 TABELAS AGORA VALIDADAS CORRETAMENTE:**
+1. customers - Gestão de clientes
+2. favorecidos - Sistema de favorecidos  
+3. tickets - Sistema de tickets
+4. ticket_messages - Mensagens dos tickets
+5. activity_logs - Logs de atividade
+6. locations - Gestão de localizações
+7. customer_companies - Empresas dos clientes
+8. customer_company_memberships - Associações empresa-cliente
+9. external_contacts - Contatos externos
+10. skills - Habilidades técnicas ✅ (NOVA)
+11. certifications - Certificações ✅ (NOVA) 
+12. user_skills - Habilidades por usuário ✅ (NOVA)
+
+**🚀 RESULTADO FINAL:**
+- ✅ Query tablesExist() agora valida TODAS as 12 tabelas críticas
+- ✅ Threshold ajustado para >= 12 (rigoroso)
+- ✅ Prevenção de falhas runtime por tabelas faltantes
+- ✅ Validação operacional enterprise completa e consistente
+- ✅ Zero risco de schemas "pseudo-válidos" incompletos
+
 ### July 19, 2025 - CORREÇÕES FINAIS DOS PROBLEMAS CRÍTICOS IDENTIFICADOS ✅ PROBLEMAS ESPECÍFICOS RESOLVIDOS
 
 **🔧 CORREÇÕES ESPECÍFICAS DOS PROBLEMAS IDENTIFICADOS:**
