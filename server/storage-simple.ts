@@ -654,6 +654,15 @@ export class DrizzleStorage implements IStorage {
           features: ['SMTP Configuration', 'Email Notifications', 'Automated Reports']
         },
         {
+          id: 'imap-email',
+          name: 'IMAP Email',
+          category: 'Comunicação',
+          description: 'Conexão IMAP para recebimento automático de emails e criação de tickets',
+          status: 'disconnected',
+          configured: false,
+          features: ['Auto-criação de tickets', 'Monitoramento de caixa de entrada', 'Sincronização bidirecional', 'Suporte SSL/TLS']
+        },
+        {
           id: 'whatsapp-business',
           name: 'WhatsApp Business',
           category: 'Comunicação',
@@ -717,6 +726,15 @@ export class DrizzleStorage implements IStorage {
           status: 'disconnected',
           configured: false,
           features: ['Sync automático', 'Campos customizados', 'Histórico completo']
+        },
+        {
+          id: 'dropbox-personal',
+          name: 'Dropbox Pessoal',
+          category: 'Dados',
+          description: 'Integração com conta pessoal do Dropbox para backup e armazenamento de documentos',
+          status: 'disconnected',
+          configured: false,
+          features: ['Backup automático', 'Sincronização de anexos', 'Armazenamento seguro', 'API v2 Dropbox']
         },
         // Segurança
         {
