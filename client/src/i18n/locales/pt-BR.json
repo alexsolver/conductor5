@@ -194,10 +194,31 @@
     "groups": "Grupos",
     "noGroups": "Nenhum grupo disponível",
     "roles": {
-      "customer": "Cliente",
+      "customer": "Cliente", 
       "agent": "Agente",
       "workspaceAdmin": "Admin do Workspace",
       "saasAdmin": "SaaS Admin"
+    },
+    "accountActive": "Conta Ativa",
+    "accountInactive": "Conta Inativa", 
+    "accountSuspended": "Conta Suspensa",
+    "accountVerified": "Conta Verificada",
+    "accountUnverified": "Conta Não Verificada",
+    "userCreated": "Usuário criado com sucesso",
+    "userUpdated": "Usuário atualizado com sucesso",
+    "userDeleted": "Usuário excluído com sucesso",
+    "userInvited": "Convite enviado com sucesso",
+    "invalidCredentials": "Credenciais inválidas",
+    "accountLocked": "Conta bloqueada",
+    "passwordExpired": "Senha expirada",
+    "permissions": {
+      "viewUsers": "Visualizar Usuários",
+      "createUsers": "Criar Usuários", 
+      "editUsers": "Editar Usuários",
+      "deleteUsers": "Excluir Usuários",
+      "manageRoles": "Gerenciar Funções",
+      "viewReports": "Visualizar Relatórios",
+      "systemAdmin": "Administração do Sistema"
     }
   },
   "workspaceAdmin": {
