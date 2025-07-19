@@ -145,11 +145,11 @@ export default function TenantAdminIntegrations() {
         },
         credentials: 'include'
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return response.json();
     }
   });
@@ -177,7 +177,7 @@ export default function TenantAdminIntegrations() {
 
   // Estado para controlar qual integração específica está sendo testada
   const [testingIntegrationId, setTestingIntegrationId] = useState<string | null>(null);
-  
+
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
       return apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
@@ -450,17 +450,17 @@ export default function TenantAdminIntegrations() {
 
   const onConfigureIntegration = async (integration: TenantIntegration) => {
     setSelectedIntegration(integration);
-    
+
     try {
       // Load existing configuration from API
       const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
       console.log('Resposta completa do GET config:', existingConfig);
-      
+
       if (existingConfig && existingConfig.configured && existingConfig.config) {
         const config = existingConfig.config;
         // Load existing configuration - dados reais do banco
         console.log('Carregando configuração existente:', config);
-        
+
         const formValues = {
           enabled: config.enabled === true,
           useSSL: config.useSSL === true,
@@ -483,15 +483,15 @@ export default function TenantAdminIntegrations() {
           dropboxAccessToken: config.dropboxAccessToken || '',
           backupFolder: config.backupFolder || '/Backups/Conductor'
         };
-        
+
         console.log('Valores sendo aplicados ao form:', formValues);
         configForm.reset(formValues);
-        
+
         // Força re-render do form
         setTimeout(() => {
           console.log('Estado atual do form após reset:', configForm.getValues());
         }, 100);
-        
+
         toast({
           title: "Configuração carregada",
           description: "Dados existentes carregados com sucesso",
@@ -548,7 +548,7 @@ export default function TenantAdminIntegrations() {
         backupFolder: '/Backups/Conductor'
       });
     }
-    
+
     setIsConfigDialogOpen(true);
   };
 
@@ -559,7 +559,7 @@ export default function TenantAdminIntegrations() {
         clientId: 'your-client-id', // This would come from form data
         redirectUri: window.location.origin + `/auth/${integration.id}/callback`
       });
-      
+
       if (response.authUrl) {
         // Open OAuth2 URL in new window
         window.open(response.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
@@ -580,9 +580,25 @@ export default function TenantAdminIntegrations() {
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
       console.log('Salvando configuração para:', selectedIntegration.id, data);
+
+      // Preparar dados específicos para IMAP
+      let configData = { ...data };
+
+      if (selectedIntegration.id === 'imap-email') {
+        configData = {
+          ...data,
+          // Garantir que campos IMAP estejam presentes
+          imapServer: data.imapServer || 'imap.gmail.com',
+          imapPort: parseInt(data.imapPort) || 993,
+          emailAddress: data.emailAddress || '',
+          password: data.password || '',
+          useSSL: data.useSSL !== false,
+          enabled: data.enabled === true
+        };
+      }
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
-        config: data
+        config: configData
       });
     }
   };
@@ -708,7 +724,7 @@ export default function TenantAdminIntegrations() {
                       <p className="text-sm text-gray-600 mb-4">
                         {integration.description}
                       </p>
-                      
+
                       {integration.features && integration.features.length > 0 && (
                         <div className="mb-4">
                           <h4 className="text-sm font-medium mb-2">Recursos:</h4>
@@ -740,7 +756,7 @@ export default function TenantAdminIntegrations() {
                           <Settings className="h-4 w-4 mr-1" />
                           Configurar
                         </Button>
-                        
+
                         {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
                           <Button 
                             size="sm" 
@@ -756,7 +772,7 @@ export default function TenantAdminIntegrations() {
                             OAuth2
                           </Button>
                         )}
-                        
+
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -806,7 +822,7 @@ export default function TenantAdminIntegrations() {
               Configure os parâmetros necessários para ativar esta integração no seu workspace.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedIntegration && (
             <Form {...configForm}>
               <form onSubmit={(e) => {
@@ -914,8 +930,7 @@ export default function TenantAdminIntegrations() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Servidor SMTP</FormLabel>
-                          <FormControl>
-                            <Input placeholder="smtp.gmail.com" {...field} />
+                          <FormControl>                            <Input placeholder="smtp.gmail.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

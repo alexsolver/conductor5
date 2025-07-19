@@ -47,19 +47,21 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
 
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
     const { storage } = await import('../storage-simple');
-    const config = await storage.getTenantIntegrationConfig(tenantId, integrationId);
-    console.log(`[GET config route] Resultado recebido do storage:`, config);
+    const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
+    console.log(`[GET config route] Resultado recebido do storage:`, configResult);
     
-    if (!config) {
+    if (!configResult) {
       console.log(`[GET config route] Nenhuma config encontrada, retornando null`);
       return res.json({ config: null, configured: false });
     }
 
-    console.log(`[GET config route] Config encontrada, retornando:`, config);
+    // Extrair apenas os dados de configuração do campo config
+    const configData = configResult.config || {};
+    console.log(`[GET config route] Config data extraída:`, configData);
     
-    // Serialização manual para garantir que o JSON seja enviado corretamente
+    // Retornar estrutura simples para o frontend
     const response = {
-      config: config,
+      config: configData,
       configured: true
     };
     console.log(`[GET config route] Response being sent:`, JSON.stringify(response, null, 2));
@@ -119,8 +121,8 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       accessToken: accessToken || '',
       refreshToken: refreshToken || '',
       // IMAP specific fields
-      imapServer: imapServer || '',
-      imapPort: imapPort || 993,
+      imapServer: imapServer || 'imap.gmail.com',
+      imapPort: parseInt(imapPort) || 993,
       emailAddress: emailAddress || '',
       password: password || '',
       useSSL: useSSL !== false,
@@ -132,6 +134,8 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       enabled: enabled !== false,
       settings: settings || {}
     };
+
+    console.log(`[POST config] Dados preparados para ${integrationId}:`, configData);
 
     // Save to database
     const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
@@ -230,17 +234,47 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
         break;
 
       case 'imap-email':
-        testResult = { 
-          success: true, 
-          error: '', 
-          details: { 
-            server: 'imap.gmail.com',
-            port: '993',
-            connection: 'SSL/TLS successful',
-            folderCount: 5,
-            unreadEmails: 12
+        // Get the saved configuration to validate
+        const { storage } = await import('../storage-simple');
+        const imapConfig = await storage.getTenantIntegrationConfig(tenantId, integrationId);
+        
+        if (!imapConfig || !imapConfig.config) {
+          testResult = { 
+            success: false, 
+            error: 'Configuração IMAP não encontrada. Configure a integração primeiro.', 
+            details: {}
+          };
+        } else {
+          const config = imapConfig.config;
+          
+          // Validate required fields
+          if (!config.emailAddress || !config.password || !config.imapServer) {
+            testResult = { 
+              success: false, 
+              error: 'Campos obrigatórios faltando: email, password e servidor IMAP são necessários.', 
+              details: {
+                missingFields: [
+                  !config.emailAddress ? 'emailAddress' : null,
+                  !config.password ? 'password' : null,
+                  !config.imapServer ? 'imapServer' : null
+                ].filter(Boolean)
+              }
+            };
+          } else {
+            testResult = { 
+              success: true, 
+              error: '', 
+              details: { 
+                server: config.imapServer,
+                port: config.imapPort || 993,
+                email: config.emailAddress,
+                ssl: config.useSSL ? 'Enabled' : 'Disabled',
+                connection: 'Configuration validated',
+                status: 'Ready for email processing'
+              }
+            };
           }
-        };
+        }
         break;
 
       case 'dropbox-personal':
