@@ -249,6 +249,9 @@ export default function CustomerCompanies() {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl" aria-describedby="create-company-description">
+            <div id="create-company-description" className="sr-only">
+              Formulário para criar uma nova empresa cliente com informações básicas
+            </div>
             <DialogHeader>
               <DialogTitle>Criar Nova Empresa</DialogTitle>
             </DialogHeader>
@@ -574,6 +577,9 @@ export default function CustomerCompanies() {
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl" aria-describedby="edit-company-description">
+          <div id="edit-company-description" className="sr-only">
+            Formulário para editar informações da empresa cliente selecionada
+          </div>
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
