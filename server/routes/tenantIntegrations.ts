@@ -33,6 +33,33 @@ router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req
 });
 
 /**
+ * GET /api/tenant-admin/integrations/:integrationId/config
+ * Obter configuração específica de uma integração
+ */
+router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { integrationId } = req.params;
+    const tenantId = req.user!.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { storage } = await import('../storage-simple');
+    const config = await storage.getTenantIntegrationConfig(tenantId, integrationId);
+    
+    if (!config) {
+      return res.json({ config: null, configured: false });
+    }
+
+    res.json({ config: config, configured: true });
+  } catch (error) {
+    console.error('Error fetching tenant integration config:', error);
+    res.status(500).json({ message: 'Failed to fetch integration configuration' });
+  }
+});
+
+/**
  * POST /api/tenant-admin/integrations/:integrationId/config
  * Configurar integração do tenant
  */

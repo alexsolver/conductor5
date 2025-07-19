@@ -174,10 +174,14 @@ export default function TenantAdminIntegrations() {
     }
   });
 
-  // Mutation para testar integração
+  // Mutation para testar integração com debounce
+  const [testingIntegrationId, setTestingIntegrationId] = useState<string | null>(null);
+  
   const testIntegrationMutation = useMutation({
-    mutationFn: (integrationId: string) =>
-      apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`),
+    mutationFn: async (integrationId: string) => {
+      setTestingIntegrationId(integrationId);
+      return apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       toast({
@@ -185,13 +189,20 @@ export default function TenantAdminIntegrations() {
         description: data.success ? "Integração funcionando corretamente." : "Erro na integração: " + data.error,
         variant: data.success ? "default" : "destructive",
       });
+      setTestingIntegrationId(null);
+    },
+    onError: () => {
+      setTestingIntegrationId(null);
     }
   });
 
-  // Map integrations with proper icons
+  // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = (integrationsData?.integrations || []).map((integration: any) => ({
     ...integration,
-    icon: getIntegrationIcon(integration.id)
+    icon: getIntegrationIcon(integration.id),
+    // Update status based on saved configuration
+    status: integration.configured ? 'connected' : 'disconnected',
+    configured: integration.configured || false
   })) || [
     // Comunicação
     {
@@ -424,34 +435,94 @@ export default function TenantAdminIntegrations() {
     }
   };
 
-  const onConfigureIntegration = (integration: TenantIntegration) => {
+  const onConfigureIntegration = async (integration: TenantIntegration) => {
     setSelectedIntegration(integration);
     
-    // Reset form with appropriate defaults for this integration
-    const defaultValues = {
-      enabled: integration.configured || false,
-      useSSL: true,
-      apiKey: integration.config?.apiKey || '',
-      apiSecret: integration.config?.apiSecret || '',
-      webhookUrl: integration.config?.webhookUrl || '',
-      clientId: integration.config?.clientId || '',
-      clientSecret: integration.config?.clientSecret || '',
-      redirectUri: integration.config?.redirectUri || '',
-      tenantId: integration.config?.tenantId || '',
-      serverHost: integration.config?.serverHost || '',
-      serverPort: integration.config?.serverPort || (integration.id === 'imap-email' ? '993' : ''),
-      username: integration.config?.username || '',
-      password: integration.config?.password || '',
-      imapServer: integration.config?.imapServer || '',
-      imapPort: integration.config?.imapPort || '993',
-      emailAddress: integration.config?.emailAddress || '',
-      dropboxAppKey: integration.config?.dropboxAppKey || '',
-      dropboxAppSecret: integration.config?.dropboxAppSecret || '',
-      dropboxAccessToken: integration.config?.dropboxAccessToken || '',
-      backupFolder: integration.config?.backupFolder || '/Backups/Conductor',
-    };
+    try {
+      // Load existing configuration from API
+      const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      
+      if (existingConfig && existingConfig.configured && existingConfig.config) {
+        const config = existingConfig.config.config;
+        // Load existing configuration
+        configForm.reset({
+          enabled: config.enabled !== false,
+          useSSL: config.useSSL !== false,
+          apiKey: config.apiKey || '',
+          apiSecret: config.apiSecret || '',
+          webhookUrl: config.webhookUrl || '',
+          clientId: config.clientId || '',
+          clientSecret: config.clientSecret || '',
+          redirectUri: config.redirectUri || '',
+          tenantId: config.tenantId || '',
+          serverHost: config.imapServer || '',
+          serverPort: (config.imapPort || 993).toString(),
+          username: config.emailAddress || '',
+          password: config.password || '',
+          imapServer: config.imapServer || 'imap.gmail.com',
+          imapPort: (config.imapPort || 993).toString(),
+          emailAddress: config.emailAddress || '',
+          dropboxAppKey: config.dropboxAppKey || '',
+          dropboxAppSecret: config.dropboxAppSecret || '',
+          dropboxAccessToken: config.dropboxAccessToken || '',
+          backupFolder: config.backupFolder || '/Backups/Conductor'
+        });
+        toast({
+          title: "Configuração carregada",
+          description: "Dados existentes carregados com sucesso",
+        });
+      } else {
+        // Use default values if no configuration exists
+        configForm.reset({
+          enabled: false,
+          useSSL: true,
+          apiKey: '',
+          apiSecret: '',
+          webhookUrl: '',
+          clientId: '',
+          clientSecret: '',
+          redirectUri: '',
+          tenantId: '',
+          serverHost: '',
+          serverPort: integration.id === 'imap-email' ? '993' : '',
+          username: '',
+          password: '',
+          imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
+          imapPort: '993',
+          emailAddress: '',
+          dropboxAppKey: '',
+          dropboxAppSecret: '',
+          dropboxAccessToken: '',
+          backupFolder: '/Backups/Conductor'
+        });
+      }
+    } catch (error) {
+      console.error('Error loading integration config:', error);
+      // Fallback to default values
+      configForm.reset({
+        enabled: false,
+        useSSL: true,
+        apiKey: '',
+        apiSecret: '',
+        webhookUrl: '',
+        clientId: '',
+        clientSecret: '',
+        redirectUri: '',
+        tenantId: '',
+        serverHost: '',
+        serverPort: integration.id === 'imap-email' ? '993' : '',
+        username: '',
+        password: '',
+        imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
+        imapPort: '993',
+        emailAddress: '',
+        dropboxAppKey: '',
+        dropboxAppSecret: '',
+        dropboxAccessToken: '',
+        backupFolder: '/Backups/Conductor'
+      });
+    }
     
-    configForm.reset(defaultValues);
     setIsConfigDialogOpen(true);
   };
 
@@ -593,10 +664,18 @@ export default function TenantAdminIntegrations() {
                             </Badge>
                           </div>
                         </div>
-                        <Badge className={getStatusColor(integration.status)}>
-                          {getStatusIcon(integration.status)}
-                          <span className="ml-1 capitalize">{integration.status}</span>
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          {integration.configured && (
+                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Configurado
+                            </Badge>
+                          )}
+                          <Badge className={getStatusColor(integration.status)}>
+                            {getStatusIcon(integration.status)}
+                            <span className="ml-1 capitalize">{integration.status}</span>
+                          </Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -658,12 +737,24 @@ export default function TenantAdminIntegrations() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            testIntegrationMutation.mutate(integration.id);
+                            // Only test if not already testing this specific integration
+                            if (testingIntegrationId !== integration.id && !testIntegrationMutation.isPending) {
+                              testIntegrationMutation.mutate(integration.id);
+                            }
                           }}
-                          disabled={testIntegrationMutation.isPending}
+                          disabled={testingIntegrationId === integration.id || testIntegrationMutation.isPending}
                         >
-                          <ExternalLink className="h-4 w-4 mr-1" />
-                          Testar
+                          {testingIntegrationId === integration.id ? (
+                            <>
+                              <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
+                              Testando...
+                            </>
+                          ) : (
+                            <>
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Testar
+                            </>
+                          )}
                         </Button>
                       </div>
 
@@ -690,7 +781,7 @@ export default function TenantAdminIntegrations() {
             </DialogTitle>
           </DialogHeader>
           <div id="integration-config-description" className="sr-only">
-            Formulário de configuração para {selectedIntegration?.name}. Preencha os campos necessários e clique em salvar.
+            Formulário de configuração para integração {selectedIntegration?.name}. Configure os parâmetros necessários para ativar esta integração no seu workspace.
           </div>
           
           {selectedIntegration && (

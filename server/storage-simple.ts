@@ -683,6 +683,18 @@ export class DrizzleStorage implements IStorage {
         throw new Error('Tenant ID must be a valid UUID-v4 format (36 chars)');
       }
       
+      // Get saved configurations for this tenant
+      const savedConfigs = await db
+        .select()
+        .from(tenantIntegrationsConfig)
+        .where(eq(tenantIntegrationsConfig.tenantId, tenantId));
+
+      // Create a map of saved configurations
+      const configMap = savedConfigs.reduce((acc, config) => {
+        acc[config.integrationId] = config;
+        return acc;
+      }, {} as Record<string, any>);
+
       // Return complete integrations with all 5 categories (Comunicação, Automação, Dados, Segurança, Produtividade)
       const defaultIntegrations = [
         // Comunicação
@@ -827,7 +839,21 @@ export class DrizzleStorage implements IStorage {
         }
       ];
       
-      return defaultIntegrations;
+      // Apply saved configurations to integrations
+      const integrationsWithConfig = defaultIntegrations.map(integration => {
+        const savedConfig = configMap[integration.id];
+        if (savedConfig) {
+          return {
+            ...integration,
+            configured: true,
+            status: savedConfig.enabled ? 'connected' : 'disconnected',
+            config: savedConfig.config
+          };
+        }
+        return integration;
+      });
+      
+      return integrationsWithConfig;
     } catch (error) {
       console.error('Error getting tenant integrations:', error);
       throw error;
