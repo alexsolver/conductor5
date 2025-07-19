@@ -6,10 +6,11 @@
 export class EnterpriseUUIDValidator {
   private static instance: EnterpriseUUIDValidator;
   
-  // PADRÃO UUID RIGOROSO UNIFICADO - UUID v4 ESTRITO
+  // PADRÃO UUID RIGOROSO UNIFICADO - UUID v4 ESTRITO (PADRONIZADO EM TODO O SISTEMA)
+  // IGUAL: TenantValidator.ts e ConnectionPoolManager.ts agora usam o mesmo padrão
   private static readonly STRICT_UUID_V4_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
   
-  // PADRÃO UUID RELAXADO - Para compatibilidade
+  // PADRÃO UUID RELAXADO - Para compatibilidade legada apenas
   private static readonly RELAXED_UUID_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
   static getInstance(): EnterpriseUUIDValidator {

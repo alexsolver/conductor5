@@ -48,7 +48,8 @@ export class ConnectionPoolManager {
       throw new Error('Invalid tenant ID: must be a non-empty string');
     }
     
-    // CRITICAL FIX: Usar padrão UUID rigoroso consistente com EnterpriseUUIDValidator
+    // CRITICAL FIX: Padrão UUID v4 rigoroso PADRONIZADO em todo o sistema
+    // CORREÇÃO: Mesmo padrão usado em TenantValidator para consistência total
     const strictUuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
     if (!strictUuidPattern.test(tenantId.trim())) {
       throw new Error(`Invalid tenant ID: must be valid UUID v4 format: ${tenantId}`);

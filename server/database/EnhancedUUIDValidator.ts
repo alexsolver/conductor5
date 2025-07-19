@@ -6,8 +6,8 @@
 export class EnhancedUUIDValidator {
   private static instance: EnhancedUUIDValidator;
 
-  // UUID v4 strict regex - exatamente 36 caracteres com formato específico
-  private readonly UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  // UUID v4 strict regex - PADRONIZADO com TenantValidator e ConnectionPoolManager
+  private readonly UUID_V4_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
   
   // Relaxed UUID regex for legacy compatibility
   private readonly UUID_RELAXED_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

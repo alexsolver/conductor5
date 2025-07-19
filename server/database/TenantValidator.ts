@@ -23,11 +23,12 @@ export class TenantValidator {
     // CRITICAL: Enforce strict UUID format only (36 characters)
     const sanitized = tenantId.trim();
     
-    // CRITICAL: Only allow exact UUID format (no legacy support)
-    const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
-    if (!uuidPattern.test(sanitized)) {
-      logWarn('Invalid tenant UUID format attempted', { tenantId, sanitized });
-      throw new Error(`Tenant ID must be valid UUID format: ${tenantId}`);
+    // CRITICAL: Only allow exact UUID v4 format (rigoroso, sem legacy support)
+    // PADRONIZADO: Usar o mesmo padrão UUID v4 rigoroso em todo o sistema
+    const strictUuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    if (!strictUuidPattern.test(sanitized)) {
+      logWarn('Invalid tenant UUID v4 format attempted', { tenantId, sanitized });
+      throw new Error(`Tenant ID must be valid UUID v4 format: ${tenantId}`);
     }
 
     // CRITICAL: Enforce exact UUID length
