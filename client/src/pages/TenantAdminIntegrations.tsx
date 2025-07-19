@@ -218,8 +218,8 @@ export default function TenantAdminIntegrations() {
     ? integrationsData.integrations.map((integration: any) => ({
         ...integration,
         icon: getIntegrationIcon(integration.id),
-        // Update status based on saved configuration
-        status: integration.configured ? 'connected' : 'disconnected',
+        // Use the actual status from backend instead of overriding it
+        status: integration.status || 'disconnected',
         configured: integration.configured || false
       }))
     : [
