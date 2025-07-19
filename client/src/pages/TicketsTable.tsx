@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -113,6 +114,7 @@ export default function TicketsTable() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   // Fetch tickets with pagination and filters
   const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
@@ -282,34 +284,8 @@ export default function TicketsTable() {
   };
 
   const handleEdit = (ticket: Ticket) => {
-    setEditingTicket(ticket);
-    setIsEditMode(false); // Start in view mode
-    form.reset({
-      shortDescription: (ticket as any).shortDescription || ticket.subject,
-      description: ticket.description || "",
-      category: (ticket as any).category || "",
-      subcategory: (ticket as any).subcategory || "",
-      priority: ticket.priority as any,
-      impact: (ticket as any).impact || "medium",
-      urgency: (ticket as any).urgency || "medium",
-      state: (ticket as any).state || ticket.status as any,
-      callerId: (ticket as any).callerId || "",
-      callerType: (ticket as any).callerType || "customer",
-      beneficiaryId: (ticket as any).beneficiaryId || (ticket as any).callerId || "",
-      beneficiaryType: (ticket as any).beneficiaryType || "customer",
-
-      assignedToId: ticket.assignedTo?.id || "unassigned",
-      assignmentGroup: (ticket as any).assignmentGroup || "",
-      location: (ticket as any).location || "",
-      contactType: (ticket as any).contactType || "email",
-      businessImpact: (ticket as any).businessImpact || "",
-      symptoms: (ticket as any).symptoms || "",
-      workaround: (ticket as any).workaround || "",
-      subject: ticket.subject,
-      status: ticket.status as any,
-      tags: [],
-    });
-    setIsEditDialogOpen(true);
+    // Navigate to the edit page instead of opening a modal
+    navigate(`/tickets/edit/${ticket.id}`);
   };
 
   const handleDelete = (ticketId: string) => {

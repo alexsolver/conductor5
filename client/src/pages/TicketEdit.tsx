@@ -16,8 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { TicketLinkingModal } from "@/components/tickets/TicketLinkingModal";
-import { TicketHierarchyView } from "@/components/tickets/TicketHierarchyView";
+import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
+import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
 
 // Form schema
 const ticketFormSchema = z.object({
