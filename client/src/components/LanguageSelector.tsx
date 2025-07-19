@@ -43,12 +43,15 @@ export function LanguageSelector({
     lang => lang.code === i18n.language
   ) || supportedLanguages[0];
 
+  // Ensure we have a valid language value
+  const currentLanguageCode = i18n.language || 'en';
+
   if (variant === 'icon-only') {
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Select value={i18n.language} onValueChange={handleLanguageChange}>
+            <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
               <SelectTrigger className={`w-10 h-10 border-0 bg-transparent hover:bg-muted ${className}`}>
                 <Globe className="h-4 w-4" />
               </SelectTrigger>
@@ -74,7 +77,7 @@ export function LanguageSelector({
 
   if (variant === 'compact') {
     return (
-      <Select value={i18n.language} onValueChange={handleLanguageChange}>
+      <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
         <SelectTrigger className={`w-16 h-8 text-xs ${className}`}>
           <SelectValue>
             {showFlag ? currentLanguage.flag : currentLanguage.code.toUpperCase()}
@@ -95,7 +98,7 @@ export function LanguageSelector({
   }
 
   return (
-    <Select value={i18n.language} onValueChange={handleLanguageChange}>
+    <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
       <SelectTrigger className={`w-48 ${className}`}>
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4" />
