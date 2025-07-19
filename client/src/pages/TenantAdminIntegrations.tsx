@@ -1,53 +1,61 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { 
-  Mail, 
-  MessageSquare, 
-  Phone, 
-  Slack, 
-  Settings, 
   CheckCircle, 
   XCircle, 
-  AlertTriangle,
-  ExternalLink,
-  Key,
-  Plug,
-  Webhook,
+  AlertTriangle, 
+  Settings, 
+  ExternalLink, 
+  Key, 
+  Mail,
   Database,
-  Shield,
-  Globe,
+  Activity,
+  UserCheck,
+  Phone,
+  MessageSquare,
+  MessageCircle,
   Zap,
+  Webhook,
+  BarChart3,
+  Shield,
+  Calendar,
   Bot
 } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-
-const integrationConfigSchema = z.object({
-  apiKey: z.string().optional(),
-  apiSecret: z.string().optional(),
-  clientId: z.string().optional(),
-  clientSecret: z.string().optional(),
-  redirectUri: z.string().url("URL de redirecionamento deve ser válida").optional(),
-  webhookUrl: z.string().url("URL deve ser válida").optional(),
-  accessToken: z.string().optional(),
-  refreshToken: z.string().optional(),
-  enabled: z.boolean().default(true),
-  settings: z.record(z.any()).optional()
-});
 
 interface TenantIntegration {
   id: string;
@@ -57,66 +65,57 @@ interface TenantIntegration {
   icon: any;
   status: 'connected' | 'error' | 'disconnected';
   configured: boolean;
-  lastSync?: string;
-  config?: any;
   features: string[];
+  config?: any;
+  lastSync?: string;
 }
 
+const integrationConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  apiKey: z.string().optional(),
+  apiSecret: z.string().optional(),
+  webhookUrl: z.string().optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  redirectUri: z.string().optional(),
+  tenantId: z.string().optional(),
+  serverHost: z.string().optional(),
+  serverPort: z.string().optional(),
+  username: z.string().optional(),
+  password: z.string().optional(),
+  useSSL: z.boolean().default(false),
+});
+
 export default function TenantAdminIntegrations() {
-  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedIntegration, setSelectedIntegration] = useState<TenantIntegration | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
 
-  // Verificar se usuário é tenant admin
-  if (!user || (user.role !== 'tenant_admin' && user.role !== 'saas_admin')) {
-    return (
-      <div className="p-8 text-center">
-        <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          Acesso Negado
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Esta página é restrita para administradores do tenant.
-        </p>
-      </div>
-    );
-  }
-
-  // Query para integrações do tenant
-  const { data: integrationsData, isLoading } = useQuery({
-    queryKey: ['/api/tenant-admin/integrations'],
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Form para configurar integração
-  const configForm = useForm({
+  const configForm = useForm<z.infer<typeof integrationConfigSchema>>({
     resolver: zodResolver(integrationConfigSchema),
     defaultValues: {
-      apiKey: "",
-      apiSecret: "",
-      clientId: "",
-      clientSecret: "",
-      redirectUri: "",
-      webhookUrl: "",
-      accessToken: "",
-      refreshToken: "",
-      enabled: true,
-      settings: {}
-    }
+      enabled: false,
+      useSSL: false,
+    },
+  });
+
+  // Query para buscar integrações
+  const { data: integrationsData, isLoading } = useQuery({
+    queryKey: ['/api/tenant-admin/integrations'],
+    queryFn: () => apiRequest('/api/tenant-admin/integrations'),
   });
 
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
-    mutationFn: (data: { integrationId: string; config: z.infer<typeof integrationConfigSchema> }) => 
-      apiRequest(`/api/tenant-admin/integrations/${data.integrationId}/config`, { 
-        method: 'PUT', 
-        body: JSON.stringify(data.config) 
+    mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) =>
+      apiRequest(`/api/tenant-admin/integrations/${integrationId}/config`, {
+        method: 'POST',
+        body: JSON.stringify(config),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       setIsConfigDialogOpen(false);
-      configForm.reset();
       toast({
         title: "Configuração salva",
         description: "A integração foi configurada com sucesso.",
@@ -147,7 +146,12 @@ export default function TenantAdminIntegrations() {
     }
   });
 
-  const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations || [
+  // Map integrations with proper icons
+  const tenantIntegrations: TenantIntegration[] = (integrationsData?.integrations || []).map((integration: any) => ({
+    ...integration,
+    icon: getIntegrationIcon(integration.id)
+  })) || [
+    // Comunicação
     {
       id: 'gmail-oauth2',
       name: 'Gmail OAuth2',
@@ -186,89 +190,144 @@ export default function TenantAdminIntegrations() {
       icon: MessageSquare,
       status: 'disconnected',
       configured: false,
-      features: ['Chat em tempo real', 'Mensagens automáticas', 'Status de entrega']
+      features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
     },
     {
       id: 'slack',
       name: 'Slack',
       category: 'Comunicação',
-      description: 'Integração com Slack para notificações e colaboração da equipe',
-      icon: Slack,
+      description: 'Notificações e gerenciamento de tickets através do Slack',
+      icon: MessageCircle,
       status: 'disconnected',
       configured: false,
-      features: ['Notificações de tickets', 'Alertas de SLA', 'Colaboração em tempo real']
+      features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
     },
     {
       id: 'twilio-sms',
       name: 'Twilio SMS',
       category: 'Comunicação',
-      description: 'Envio de SMS através da API Twilio para notificações urgentes',
+      description: 'Envio de SMS para notificações e alertas importantes',
       icon: Phone,
       status: 'disconnected',
       configured: false,
-      features: ['SMS automático', 'Notificações urgentes', 'Confirmações']
+      features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
     },
+    // Automação
     {
       id: 'zapier',
       name: 'Zapier',
       category: 'Automação',
-      description: 'Conecte com mais de 3000 aplicativos através do Zapier',
+      description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
       icon: Zap,
       status: 'disconnected',
       configured: false,
-      features: ['Automação de fluxos', 'Sincronização de dados', 'Triggers personalizados']
+      features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
     },
     {
       id: 'webhooks',
       name: 'Webhooks',
       category: 'Automação',
-      description: 'Configuração de webhooks personalizados para integração com sistemas externos',
+      description: 'Configure webhooks personalizados para eventos do sistema',
       icon: Webhook,
       status: 'disconnected',
       configured: false,
-      features: ['URLs personalizadas', 'Eventos em tempo real', 'Payload customizável']
+      features: ['Eventos em tempo real', 'Payload customizável', 'Retry automático']
+    },
+    // Dados
+    {
+      id: 'google-analytics',
+      name: 'Google Analytics',
+      category: 'Dados',
+      description: 'Rastreamento e análise de performance do atendimento',
+      icon: BarChart3,
+      status: 'disconnected',
+      configured: false,
+      features: ['Métricas de conversão', 'Funis de atendimento', 'Relatórios customizados']
     },
     {
       id: 'crm-integration',
       name: 'CRM Integration',
       category: 'Dados',
-      description: 'Sincronização bidirecional com sistemas CRM (Salesforce, HubSpot, etc.)',
+      description: 'Sincronização bidirecional com seu sistema CRM',
       icon: Database,
       status: 'disconnected',
       configured: false,
-      features: ['Sincronização de contatos', 'Histórico de interações', 'Pipeline de vendas']
+      features: ['Sync automático', 'Campos customizados', 'Histórico completo']
     },
+    // Segurança
     {
       id: 'sso-saml',
       name: 'SSO/SAML',
       category: 'Segurança',
-      description: 'Single Sign-On com provedores SAML para autenticação corporativa',
+      description: 'Single Sign-On com provedores SAML para login corporativo',
       icon: Shield,
       status: 'disconnected',
       configured: false,
-      features: ['Login único', 'Autenticação corporativa', 'Gerenciamento de usuários']
+      features: ['Login corporativo', 'Múltiplos provedores', 'Controle de acesso']
     },
+    // Produtividade
     {
       id: 'google-workspace',
       name: 'Google Workspace',
       category: 'Produtividade',
-      description: 'Integração com Google Workspace para calendário, drive e documentos',
-      icon: Globe,
+      description: 'Integração com Gmail, Calendar e Drive para produtividade',
+      icon: Calendar,
       status: 'disconnected',
       configured: false,
-      features: ['Calendário compartilhado', 'Documentos colaborativos', 'Backup automático']
+      features: ['Sincronização de calendário', 'Anexos do Drive', 'Emails corporativos']
     },
     {
-      id: 'chatbot',
+      id: 'chatbot-ai',
       name: 'Chatbot IA',
-      category: 'Automação',
+      category: 'Produtividade',
       description: 'Chatbot inteligente para atendimento automatizado 24/7',
       icon: Bot,
       status: 'disconnected',
       configured: false,
-      features: ['Atendimento 24/7', 'Respostas inteligentes', 'Escalação automática']
+      features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
     }
   ];
+
+  function getIntegrationIcon(id: string) {
+    switch (id) {
+      case 'gmail-oauth2':
+      case 'outlook-oauth2':
+      case 'email-smtp':
+        return Mail;
+      case 'whatsapp-business':
+        return MessageSquare;
+      case 'slack':
+        return MessageCircle;
+      case 'twilio-sms':
+        return Phone;
+      case 'zapier':
+        return Zap;
+      case 'webhooks':
+        return Webhook;
+      case 'google-analytics':
+        return BarChart3;
+      case 'crm-integration':
+        return Database;
+      case 'sso-saml':
+        return Shield;
+      case 'google-workspace':
+        return Calendar;
+      case 'chatbot-ai':
+        return Bot;
+      default:
+        return Database;
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Carregando integrações...</div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -373,7 +432,7 @@ export default function TenantAdminIntegrations() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Integrações</CardTitle>
-            <Plug className="h-4 w-4 text-muted-foreground" />
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{tenantIntegrations.length}</div>
@@ -382,11 +441,11 @@ export default function TenantAdminIntegrations() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conectadas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Ativas</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-green-600">
               {tenantIntegrations.filter(i => i.status === 'connected').length}
             </div>
           </CardContent>
@@ -395,7 +454,7 @@ export default function TenantAdminIntegrations() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Configuradas</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -431,7 +490,7 @@ export default function TenantAdminIntegrations() {
           <TabsContent key={category} value={category} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {integrations.map((integration) => {
-                const IconComponent = integration.icon;
+                const IconComponent = integration.icon || Mail; // Fallback to Mail icon
                 return (
                   <Card key={integration.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
@@ -525,163 +584,127 @@ export default function TenantAdminIntegrations() {
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
           </DialogHeader>
           
-          <Form {...configForm}>
-            <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
-              {selectedIntegration?.id === 'gmail-oauth2' && (
-                <>
-                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                    <h4 className="font-medium text-blue-900 mb-2">Configuração OAuth2 Gmail</h4>
-                    <p className="text-sm text-blue-700">
-                      Configure as credenciais OAuth2 do Google Cloud Console para integração segura com Gmail.
-                    </p>
-                  </div>
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="clientId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Client ID *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123456789-abc.apps.googleusercontent.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="clientSecret"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Client Secret *</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="GOCSPX-..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="redirectUri"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Redirect URI</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://seudominio.com/auth/gmail/callback" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+          {selectedIntegration && (
+            <Form {...configForm}>
+              <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
+                <FormField
+                  control={configForm.control}
+                  name="enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Habilitar Integração
+                        </FormLabel>
+                        <div className="text-sm text-gray-500">
+                          Ativar ou desativar esta integração
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-              {selectedIntegration?.id === 'outlook-oauth2' && (
-                <>
-                  <div className="bg-orange-50 p-4 rounded-lg mb-4">
-                    <h4 className="font-medium text-orange-900 mb-2">Configuração OAuth2 Outlook</h4>
-                    <p className="text-sm text-orange-700">
-                      Configure as credenciais OAuth2 do Azure AD para integração com Microsoft Outlook/Exchange.
-                    </p>
-                  </div>
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="clientId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Application (Client) ID *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="12345678-1234-1234-1234-123456789012" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="clientSecret"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Client Secret *</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="abc~123..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="redirectUri"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Redirect URI</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://seudominio.com/auth/outlook/callback" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="settings.tenantId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tenant ID (Opcional)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="87654321-4321-4321-4321-210987654321" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {selectedIntegration?.id === 'email-smtp' && (
-                <>
-                  <FormField
-                    control={configForm.control}
-                    name="settings.smtpHost"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Servidor SMTP</FormLabel>
-                        <FormControl>
-                          <Input placeholder="smtp.gmail.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Campos específicos para OAuth2 */}
+                {(selectedIntegration.id === 'gmail-oauth2' || selectedIntegration.id === 'outlook-oauth2') && (
+                  <>
                     <FormField
                       control={configForm.control}
-                      name="settings.smtpPort"
+                      name="clientId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            {selectedIntegration.id === 'gmail-oauth2' ? 'Client ID (Google Cloud Console)' : 'Application (Client) ID (Azure AD)'}
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: 123456789-abcdef.apps.googleusercontent.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="clientSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client Secret</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Client Secret" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="redirectUri"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Redirect URI</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder={`${window.location.origin}/auth/${selectedIntegration.id}/callback`} 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {selectedIntegration.id === 'outlook-oauth2' && (
+                      <FormField
+                        control={configForm.control}
+                        name="tenantId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tenant ID (Opcional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Azure AD Tenant ID" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </>
+                )}
+
+                {/* Campos para SMTP */}
+                {selectedIntegration.id === 'email-smtp' && (
+                  <>
+                    <FormField
+                      control={configForm.control}
+                      name="serverHost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Servidor SMTP</FormLabel>
+                          <FormControl>
+                            <Input placeholder="smtp.gmail.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="serverPort"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Porta</FormLabel>
@@ -692,180 +715,111 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
-                      name="settings.smtpUser"
+                      name="username"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Usuário</FormLabel>
                           <FormControl>
-                            <Input placeholder="usuario@empresa.com" {...field} />
+                            <Input placeholder="usuario@exemplo.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
-                  <FormField
-                    control={configForm.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha/App Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
 
-              {selectedIntegration?.id === 'whatsapp-business' && (
-                <>
-                  <FormField
-                    control={configForm.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>WhatsApp Business API Token</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="EAAxxxxxxxxx..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={configForm.control}
-                    name="settings.phoneNumberId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number ID</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123456789012345" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={configForm.control}
-                    name="webhookUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Webhook URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://seudominio.com/webhook/whatsapp" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+                    <FormField
+                      control={configForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Senha</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Senha do email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {selectedIntegration?.id === 'webhooks' && (
-                <>
-                  <FormField
-                    control={configForm.control}
-                    name="webhookUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL do Webhook</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://seudominio.com/webhook" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={configForm.control}
-                    name="apiSecret"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Secret Key (Opcional)</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {/* Configuração genérica para outras integrações */}
-              {!['email-smtp', 'whatsapp-business', 'webhooks'].includes(selectedIntegration?.id || '') && (
-                <>
-                  <FormField
-                    control={configForm.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>API Key</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={configForm.control}
-                    name="webhookUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Webhook URL (Opcional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://seudominio.com/webhook" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              <FormField
-                control={configForm.control}
-                name="enabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Habilitar Integração
-                      </FormLabel>
-                      <div className="text-sm text-muted-foreground">
-                        Permitir que esta integração seja usada no tenant
-                      </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
+                    <FormField
+                      control={configForm.control}
+                      name="useSSL"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Usar SSL/TLS
+                            </FormLabel>
+                            <div className="text-sm text-gray-500">
+                              Habilitar conexão segura
+                            </div>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
                 )}
-              />
 
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsConfigDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={saveConfigMutation.isPending}>
-                  {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
-                </Button>
-              </div>
-            </form>
-          </Form>
+                {/* Campos genéricos para outras integrações */}
+                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp'].includes(selectedIntegration.id) && (
+                  <>
+                    <FormField
+                      control={configForm.control}
+                      name="apiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API Key</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="API Key da integração" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="webhookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Webhook URL</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://seu-webhook.com/endpoint" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsConfigDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={saveConfigMutation.isPending}
+                  >
+                    {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
         </DialogContent>
       </Dialog>
     </div>
