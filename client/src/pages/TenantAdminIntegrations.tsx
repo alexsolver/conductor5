@@ -459,16 +459,11 @@ export default function TenantAdminIntegrations() {
       // Load existing configuration from API
       const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
       const existingConfig = await response.json();
-      console.log('Resposta completa do GET config:', existingConfig);
-      console.log('existingConfig.configured:', existingConfig?.configured);
-      console.log('existingConfig.config:', existingConfig?.config);
-      console.log('Object.keys length:', existingConfig?.config ? Object.keys(existingConfig.config).length : 0);
+
 
       if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
         const config = existingConfig.config;
         // Load existing configuration - dados reais do banco
-        console.log('Carregando configuração existente:', config);
-
         const formValues = {
           enabled: config.enabled === true,
           useSSL: config.useSSL !== false, // Default to true
@@ -493,20 +488,14 @@ export default function TenantAdminIntegrations() {
           backupFolder: config.backupFolder || '/Backups/Conductor'
         };
 
-        console.log('Valores sendo aplicados ao form:', formValues);
         configForm.reset(formValues);
-
-        // Força re-render do form
-        setTimeout(() => {
-          console.log('Estado atual do form após reset:', configForm.getValues());
-        }, 100);
 
         toast({
           title: "Configuração carregada",
           description: "Dados existentes carregados com sucesso",
         });
       } else {
-        console.log('Nenhuma configuração encontrada, usando valores padrão');
+
         // Use default values if no configuration exists
         configForm.reset({
           enabled: false,
@@ -590,7 +579,6 @@ export default function TenantAdminIntegrations() {
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
-      console.log('Salvando configuração para:', selectedIntegration.id, data);
 
       // Preparar dados específicos para IMAP
       let configData = { ...data };
