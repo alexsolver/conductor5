@@ -18,7 +18,7 @@ class ViteWebSocketStabilizer {
     // ENTERPRISE PATTERN: Proactive stability monitoring
     this.stabilityCheckInterval = setInterval(() => {
       this.performConnectionHealthCheck();
-    }, 15000); // Check every 15 seconds for optimal stability
+    }, 45000); // Check every 45 seconds to reduce overhead
   }
 
   private performConnectionHealthCheck(): void {
@@ -33,7 +33,7 @@ class ViteWebSocketStabilizer {
 
       // STABILITY METRICS: Log connection health
       const activeConnections = this.connectionHealthMap.size;
-      if (activeConnections > 10) {
+      if (activeConnections > 4) {
         console.log(`[ViteStability] High connection count detected: ${activeConnections}`);
         this.optimizeConnections();
       }
@@ -59,7 +59,7 @@ class ViteWebSocketStabilizer {
 
   private optimizeConnections(): void {
     // WEBSOCKET OPTIMIZATION: Force cleanup of excess connections
-    const connectionsToClean = this.connectionHealthMap.size - 8; // Keep max 8 active
+    const connectionsToClean = this.connectionHealthMap.size - 3; // Keep max 3 active
     
     if (connectionsToClean > 0) {
       const sortedConnections = Array.from(this.connectionHealthMap.entries())
