@@ -816,12 +816,12 @@ export default function TenantAdminIntegrations() {
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description">
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="integration-config-description">
               Configure os parâmetros necessários para ativar esta integração no seu workspace.
             </DialogDescription>
           </DialogHeader>

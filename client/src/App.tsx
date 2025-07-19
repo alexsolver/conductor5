@@ -43,6 +43,7 @@ import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 import CustomerCompanies from "./pages/CustomerCompanies";
 import TechnicalSkills from "./pages/TechnicalSkills";
+import TicketTemplates from "./pages/TicketTemplates";
 // Removed: ExternalContactsManagement - functionality eliminated
 
 // Components
@@ -101,6 +102,7 @@ function AppRouter() {
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
+        <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />

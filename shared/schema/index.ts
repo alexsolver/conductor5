@@ -11,6 +11,7 @@ export * from "./security";
 export * from "./tenant-specific";
 export * from "./user-management";
 export * from "./technical-skills";
+export * from "./ticket-templates";
 
 // SCHEMA CONSOLIDATION: Unified type exports to eliminate duplication
 

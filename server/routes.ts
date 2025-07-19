@@ -349,6 +349,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Location routes
   app.use('/api/locations', locationRoutes);
 
+  // Ticket Templates routes
+  const ticketTemplatesRoutes = (await import('./routes/ticketTemplates')).default;
+  app.use('/api/templates', ticketTemplatesRoutes);
+
   // All routes now handled by dedicated microservices
 
   const httpServer = createServer(app);

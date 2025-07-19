@@ -36,7 +36,8 @@ import {
   PieChart,
   Building2,
   Award,
-  UserCheck
+  UserCheck,
+  FileText
 } from "lucide-react";
 
 // Base navigation without dynamic badges
@@ -84,6 +85,7 @@ const adminNavigation = [
       { name: "SLAs", href: "/tenant-admin/slas", icon: Target },
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
+      { name: "Templates de Abertura", href: "/ticket-templates", icon: FileText },
       { name: "Gestão de Solicitantes", href: "/tenant-admin/solicitantes", icon: Users },
       { name: "Gestão de Favorecidos", href: "/tenant-admin/favorecidos", icon: UserCheck },
 

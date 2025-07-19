@@ -1,0 +1,66 @@
+criar um módulo para templates de abertura de chamados, você pode considerar as seguintes operações e recursos:
+
+Operações
+Criação de Template: Permitir que os usuários criem e salvem templates para abertura de chamado com campos predefinidos.
+
+Listagem de Templates: Exibir uma lista de todos os templates disponíveis, permitindo a edição ou exclusão.
+
+Aplicação de Template: Permitir que os usuários apliquem um template existente ao criar um novo chamado.
+
+Recursos
+Modelo de Dados: Criar uma tabela ticket_templates no banco de dados para armazenar os templates com campos como id, name, description, defaultPriority, e category.
+
+Endpoints da API:
+
+POST /api/templates: Para criar um novo template.
+GET /api/templates: Para listar todos os templates.
+GET /api/templates/:id: Para obter um template específico por ID.
+PUT /api/templates/:id: Para atualizar um template existente.
+DELETE /api/templates/:id: Para excluir um template.
+Interface do Usuário: Criar uma página onde os usuários possam:
+
+Preencher um formulário para criar novos templates.
+Listar e gerenciar os templates existentes.
+Exemplo de Implementação
+Esquema do Banco de Dados
+const createTemplateTable = async () => {
+  await db.execute(`
+    CREATE TABLE ticket_templates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      defaultPriority VARCHAR(20),
+      category VARCHAR(50),
+      createdAt TIMESTAMP DEFAULT NOW()
+    )
+  `);
+};
+Estrutura de Rotas
+// server/routes/templateRoutes.ts
+import express from 'express';
+const router = express.Router();
+import { createTemplate, getTemplates, getTemplateById, updateTemplate, deleteTemplate } from '../controllers/templateController';
+router.post('/', createTemplate);
+router.get('/', getTemplates);
+router.get('/:id', getTemplateById);
+router.put('/:id', updateTemplate);
+router.delete('/:id', deleteTemplate);
+export default router;
+Controladores
+// server/controllers/templateController.ts
+import { Request, Response } from 'express';
+import db from '../db';
+export const createTemplate = async (req: Request, res: Response) => {
+  const { name, description, defaultPriority, category } = req.body;
+  const result = await db.query('INSERT INTO ticket_templates (name, description, defaultPriority, category) VALUES ($1, $2, $3, $4)', [name, description, defaultPriority, category]);
+  res.status(201).json({ id: result.id });
+};
+export const getTemplates = async (req: Request, res: Response) => {
+  const result = await db.query('SELECT * FROM ticket_templates');
+  res.json(result.rows);
+};
+// Adicione implementações para getTemplateById, updateTemplate, deleteTemplate
+Interface do Usuário
+Para a interface, crie componentes React para trabalhar com os templates, usando formulários e listas. Certifique-se de fazer chamadas para os novos endpoints da API.
+
+Com essa estrutura, você terá um módulo funcional para gerenciar templates de abertura de chamado, facilitando a criação de novos chamados com informações pré-definidas.

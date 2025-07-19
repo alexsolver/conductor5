@@ -392,10 +392,10 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills')
+        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'ticket_templates')
       `);
 
-      return (result.rows[0]?.table_count as number) >= 12;
+      return (result.rows[0]?.table_count as number) >= 13;
     } catch {
       return false;
     }
@@ -909,6 +909,42 @@ export class SchemaManager {
 
       // REMOVED: Invalid foreign key constraint for non-existent certification_id column
       // user_skills table doesn't have certification_id field - constraint removed
+
+      // CRITICAL FIX: Ticket templates table with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.ticket_templates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          category VARCHAR(100) NOT NULL,
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+          urgency VARCHAR(20) NOT NULL DEFAULT 'medium',
+          impact VARCHAR(20) NOT NULL DEFAULT 'medium',
+          default_title VARCHAR(500),
+          default_description TEXT,
+          default_tags TEXT, -- JSON array of tags
+          estimated_hours INTEGER DEFAULT 0,
+          requires_approval BOOLEAN DEFAULT FALSE,
+          auto_assign BOOLEAN DEFAULT FALSE,
+          default_assignee_role VARCHAR(50),
+          is_active BOOLEAN DEFAULT TRUE,
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          -- CRITICAL: Tenant isolation constraints
+          CONSTRAINT templates_tenant_name_unique UNIQUE (tenant_id, name),
+          CONSTRAINT templates_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for ticket templates
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS templates_tenant_category_idx ON ${schemaId}.ticket_templates (tenant_id, category)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS templates_tenant_active_idx ON ${schemaId}.ticket_templates (tenant_id, is_active)
+      `);
 
       // ===========================
       // CRITICAL: CREATE ALL PERFORMANCE INDEXES
