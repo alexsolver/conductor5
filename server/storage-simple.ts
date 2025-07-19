@@ -935,7 +935,7 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Check if integrations table exists, if not create it with default integrations
+      // Check if integrations table exists
       const tableExists = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
@@ -953,6 +953,17 @@ export class DatabaseStorage implements IStorage {
         SELECT * FROM ${sql.identifier(schemaName)}.integrations 
         ORDER BY created_at DESC
       `);
+
+      // If integrations table exists but is empty, create default integrations
+      if (result.rows && result.rows.length === 0) {
+        await this.createDefaultIntegrations(validatedTenantId);
+        // Re-fetch after creating defaults
+        const newResult = await tenantDb.execute(sql`
+          SELECT * FROM ${sql.identifier(schemaName)}.integrations 
+          ORDER BY created_at DESC
+        `);
+        return newResult.rows || [];
+      }
 
       return result.rows || [];
     } catch (error) {
@@ -1068,23 +1079,20 @@ export class DatabaseStorage implements IStorage {
         }
       ];
 
-      for (const integration of defaultIntegrations) {
-        await tenantDb.execute(sql`
-          INSERT INTO ${sql.identifier(schemaName)}.integrations 
-          (id, name, description, category, icon, status, config, features)
-          VALUES (
-            ${integration.id}, 
-            ${integration.name}, 
-            ${integration.description}, 
-            ${integration.category}, 
-            ${integration.icon}, 
-            'disconnected', 
-            '{}', 
-            ${sql`ARRAY[${integration.features.map(f => sql`${f}`)}]`}
-          )
-          ON CONFLICT (id) DO NOTHING
-        `);
-      }
+      // Use raw SQL since Drizzle has issues with TEXT[] arrays
+      const insertQuery = `
+        INSERT INTO ${schemaName}.integrations 
+        (id, tenant_id, name, description, category, icon, status, config, features)
+        VALUES 
+        ('imap-email', '${tenantId}', 'IMAP Email', 'Conecte sua caixa de email via IMAP para sincronização de tickets', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']),
+        ('dropbox-personal', '${tenantId}', 'Dropbox Pessoal', 'Backup automático de dados e arquivos importantes', 'Dados', 'Cloud', 'disconnected', '{}', ARRAY['Backup automático', 'Sincronização de arquivos', 'Versionamento']),
+        ('whatsapp-business', '${tenantId}', 'WhatsApp Business', 'Integração com WhatsApp Business API', 'Comunicação', 'MessageCircle', 'disconnected', '{}', ARRAY['Mensagens automáticas', 'Chatbot', 'Histórico completo']),
+        ('slack', '${tenantId}', 'Slack', 'Notificações e colaboração em equipe', 'Comunicação', 'Hash', 'disconnected', '{}', ARRAY['Notificações em tempo real', 'Canais dedicados', 'Bot integrado']),
+        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Chrome', 'disconnected', '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration'])
+        ON CONFLICT (id) DO NOTHING
+      `;
+      
+      await tenantDb.execute(sql.raw(insertQuery));
 
       logInfo('Default integrations created', { tenantId, count: defaultIntegrations.length });
     } catch (error) {
