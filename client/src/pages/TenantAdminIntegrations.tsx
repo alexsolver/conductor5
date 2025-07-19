@@ -92,7 +92,9 @@ const integrationConfigSchema = z.object({
   imapServer: z.string().optional(),
   imapPort: z.string().optional(),
   imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', 'None']).optional(),
-  emailAddress: z.string().email().optional(),
+  emailAddress: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
+    message: "Deve ser um email válido"
+  }),
   // Dropbox specific fields
   dropboxAppKey: z.string().optional(),
   dropboxAppSecret: z.string().optional(),
@@ -125,6 +127,7 @@ export default function TenantAdminIntegrations() {
       password: '',
       imapServer: '',
       imapPort: '',
+      imapSecurity: 'SSL/TLS',
       emailAddress: '',
       dropboxAppKey: '',
       dropboxAppSecret: '',
@@ -516,6 +519,7 @@ export default function TenantAdminIntegrations() {
           password: '',
           imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
           imapPort: '993',
+          imapSecurity: 'SSL/TLS',
           emailAddress: '',
           dropboxAppKey: '',
           dropboxAppSecret: '',
@@ -542,6 +546,7 @@ export default function TenantAdminIntegrations() {
         password: '',
         imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
         imapPort: '993',
+        imapSecurity: 'SSL/TLS',
         emailAddress: '',
         dropboxAppKey: '',
         dropboxAppSecret: '',
