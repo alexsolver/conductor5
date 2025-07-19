@@ -73,13 +73,16 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const queryClient = useQueryClient();
 
   // Fetch all tickets and filter locally for better UX
-  const { data: allTickets = [], isLoading } = useQuery({
+  const { data: ticketsData, isLoading } = useQuery({
     queryKey: ["/api/tickets"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/tickets");
-      return response.json().then(data => data.tickets || []);
+      return response.json();
     },
   });
+
+  // Ensure allTickets is always an array
+  const allTickets = Array.isArray(ticketsData?.tickets) ? ticketsData.tickets : [];
 
   // Filter tickets based on search term, status, priority and exclude current ticket
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
