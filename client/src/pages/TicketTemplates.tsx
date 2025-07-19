@@ -78,7 +78,7 @@ export default function TicketTemplates() {
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['/api/templates'],
     queryFn: async () => {
-      const response = await apiRequest('/api/templates');
+      const response = await apiRequest('GET', '/api/templates');
       const data = await response.json();
       return data.data || [];
     }
@@ -102,11 +102,7 @@ export default function TicketTemplates() {
   // Mutations
   const createTemplateMutation = useMutation({
     mutationFn: async (data: TemplateFormData) => {
-      const response = await apiRequest('/api/templates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('POST', '/api/templates', data);
       return response.json();
     },
     onSuccess: () => {
@@ -129,11 +125,7 @@ export default function TicketTemplates() {
 
   const updateTemplateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: TemplateFormData }) => {
-      const response = await apiRequest(`/api/templates/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('PUT', `/api/templates/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -149,9 +141,7 @@ export default function TicketTemplates() {
 
   const deleteTemplateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest(`/api/templates/${id}`, {
-        method: 'DELETE'
-      });
+      const response = await apiRequest('DELETE', `/api/templates/${id}`);
       return response.json();
     },
     onSuccess: () => {

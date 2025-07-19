@@ -732,8 +732,10 @@ export class DatabaseStorage implements IStorage {
       const offset = options?.offset || 0;
 
       let baseQuery = sql`
-        SELECT id, name, description, category, priority, estimated_time, assignee_id, 
-               custom_fields, is_active, tenant_id, created_at, updated_at
+        SELECT id, name, description, category, priority, urgency, impact, 
+               default_title, default_description, default_tags, estimated_hours, 
+               requires_approval, auto_assign, default_assignee_role, is_active, 
+               tenant_id, created_by, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.ticket_templates
         WHERE tenant_id = ${validatedTenantId}
       `;
@@ -765,8 +767,10 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT id, name, description, category, priority, estimated_time, assignee_id,
-               custom_fields, is_active, tenant_id, created_at, updated_at
+        SELECT id, name, description, category, priority, urgency, impact,
+               default_title, default_description, default_tags, estimated_hours,
+               requires_approval, auto_assign, default_assignee_role, is_active,
+               tenant_id, created_by, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.ticket_templates
         WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
         LIMIT 1
@@ -788,18 +792,27 @@ export class DatabaseStorage implements IStorage {
       const id = crypto.randomUUID();
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.ticket_templates
-        (id, name, description, category, priority, estimated_time, assignee_id, custom_fields, is_active, tenant_id, created_at, updated_at)
+        (id, name, description, category, priority, urgency, impact, default_title, 
+         default_description, default_tags, estimated_hours, requires_approval, 
+         auto_assign, default_assignee_role, is_active, tenant_id, created_by, created_at, updated_at)
         VALUES (
           ${id},
           ${templateData.name},
           ${templateData.description || null},
           ${templateData.category || 'Geral'},
           ${templateData.priority || 'medium'},
-          ${templateData.estimated_time || null},
-          ${templateData.assignee_id || null},
-          ${JSON.stringify(templateData.custom_fields || {})},
+          ${templateData.urgency || 'medium'},
+          ${templateData.impact || 'medium'},
+          ${templateData.default_title || null},
+          ${templateData.default_description || null},
+          ${templateData.default_tags || null},
+          ${templateData.estimated_hours || 0},
+          ${templateData.requires_approval || false},
+          ${templateData.auto_assign || false},
+          ${templateData.default_assignee_role || null},
           ${templateData.is_active !== false},
           ${validatedTenantId},
+          ${templateData.created_by || validatedTenantId},
           NOW(),
           NOW()
         )
@@ -826,9 +839,15 @@ export class DatabaseStorage implements IStorage {
             description = ${templateData.description || null},
             category = ${templateData.category || 'Geral'},
             priority = ${templateData.priority || 'medium'},
-            estimated_time = ${templateData.estimated_time || null},
-            assignee_id = ${templateData.assignee_id || null},
-            custom_fields = ${JSON.stringify(templateData.custom_fields || {})},
+            urgency = ${templateData.urgency || 'medium'},
+            impact = ${templateData.impact || 'medium'},
+            default_title = ${templateData.default_title || null},
+            default_description = ${templateData.default_description || null},
+            default_tags = ${templateData.default_tags || null},
+            estimated_hours = ${templateData.estimated_hours || 0},
+            requires_approval = ${templateData.requires_approval || false},
+            auto_assign = ${templateData.auto_assign || false},
+            default_assignee_role = ${templateData.default_assignee_role || null},
             is_active = ${templateData.is_active !== false},
             updated_at = NOW()
         WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
