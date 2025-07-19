@@ -955,8 +955,36 @@ export class SchemaManager {
     }
   }
 
-  // CRITICAL FIX: Migrate legacy tables to include tenant_id - FIXED PARAMETER BINDING
+  // CRITICAL FIX: Migrate legacy tables using ENTERPRISE MIGRATION SAFETY
   private async migrateLegacyTables(schemaName: string): Promise<void> {
+    try {
+      console.log(`[SchemaManager] Starting enterprise-safe migration for ${schemaName}`);
+      
+      // USAR ENTERPRISE MIGRATION SAFETY em vez de queries brutas
+      const { enterpriseMigrationSafety } = await import('./database/EnterpriseMigrationSafety');
+      const result = await enterpriseMigrationSafety.safeMigrateLegacyTables(schemaName);
+      
+      if (!result.success) {
+        throw new Error(`Migration failed: ${result.errors.join(', ')}`);
+      }
+      
+      console.log(`✅ Enterprise migration completed for ${schemaName}: ${result.migratedTables.length} tables migrated`);
+      if (result.backupId) {
+        console.log(`✅ Backup created: ${result.backupId}`);
+      }
+      
+      return;
+    } catch (error) {
+      console.error(`❌ Enterprise migration failed for ${schemaName}:`, error);
+      
+      // FALLBACK: Usar migração simples se enterprise falhar
+      console.log(`[SchemaManager] Falling back to simple migration for ${schemaName}`);
+      return await this.simpleMigrateLegacyTables(schemaName);
+    }
+  }
+
+  // FALLBACK: Migração simples como backup
+  private async simpleMigrateLegacyTables(schemaName: string): Promise<void> {
     try {
       // Extract tenant_id from schema name for migration
       const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');

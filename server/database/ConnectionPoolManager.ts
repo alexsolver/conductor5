@@ -39,25 +39,27 @@ export class ConnectionPoolManager {
   }
 
   // ===========================
-  // SECURE TENANT ID VALIDATION
+  // SECURE TENANT ID VALIDATION - PADRONIZADO
   // Fixes: SQL injection vulnerability in schema naming
+  // CRITICAL FIX: Usar o mesmo padrão UUID rigoroso do TenantValidator
   // ===========================
   private validateTenantId(tenantId: string): string {
     if (!tenantId || typeof tenantId !== 'string') {
       throw new Error('Invalid tenant ID: must be a non-empty string');
     }
     
-    // CRITICAL: Only allow alphanumeric, hyphens, underscores
-    const validTenantIdRegex = /^[a-zA-Z0-9_-]+$/;
-    if (!validTenantIdRegex.test(tenantId)) {
-      throw new Error(`Invalid tenant ID: contains invalid characters: ${tenantId}`);
+    // CRITICAL FIX: Usar padrão UUID rigoroso consistente com TenantValidator
+    const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+    if (!uuidPattern.test(tenantId.trim())) {
+      throw new Error(`Invalid tenant ID: must be valid UUID format: ${tenantId}`);
     }
     
-    if (tenantId.length > 50) {
-      throw new Error('Invalid tenant ID: exceeds maximum length');
+    // CRITICAL: Enforce exact UUID length (36 characters)
+    if (tenantId.length !== 36) {
+      throw new Error('Invalid tenant ID: must be exactly 36 characters (UUID format)');
     }
     
-    return tenantId;
+    return tenantId.trim();
   }
 
   // ===========================
