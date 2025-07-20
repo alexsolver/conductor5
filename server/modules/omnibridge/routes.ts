@@ -59,7 +59,7 @@ router.get('/channels/:channelId', omnibridgeController.getChannelById.bind(omni
 router.put('/channels/:channelId', omnibridgeController.updateChannel.bind(omnibridgeController));
 router.delete('/channels/:channelId', omnibridgeController.deleteChannel.bind(omnibridgeController));
 router.post('/channels/:channelId/test', omnibridgeController.testChannelConnection.bind(omnibridgeController));
-router.post('/channels/:channelId/monitoring', omnibridgeController.toggleChannelMonitoring.bind(omnibridgeController));
+router.put('/channels/:channelId/monitoring', omnibridgeController.toggleChannelMonitoring.bind(omnibridgeController));
 
 // =====================================================
 // UNIFIED INBOX
