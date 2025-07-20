@@ -465,28 +465,28 @@ export default function TenantAdminIntegrations() {
 
       if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
         const config = existingConfig.config;
-        // Load existing configuration - dados reais do banco
+        // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
         const formValues = {
           enabled: config.enabled === true,
           useSSL: config.useSSL !== false, // Default to true
-          apiKey: config.apiKey || '',
-          apiSecret: config.apiSecret || '',
+          apiKey: config.apiKey ? '••••••••' : '', // Mascarar API key
+          apiSecret: config.apiSecret ? '••••••••' : '', // Mascarar API secret
           webhookUrl: config.webhookUrl || '',
           clientId: config.clientId || '',
-          clientSecret: config.clientSecret || '',
+          clientSecret: config.clientSecret ? '••••••••' : '', // Mascarar Client secret
           redirectUri: config.redirectUri || '',
           tenantId: config.tenantId || '',
           serverHost: config.serverHost || config.imapServer || '',
           serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
           username: config.username || config.emailAddress || '',
-          password: config.password || '',
+          password: config.password ? '••••••••' : '', // CRÍTICO: Mascarar senha
           imapServer: config.imapServer || 'imap.gmail.com',
           imapPort: config.imapPort ? config.imapPort.toString() : '993',
           imapSecurity: config.imapSecurity || 'SSL/TLS',
           emailAddress: config.emailAddress || '',
           dropboxAppKey: config.dropboxAppKey || '',
-          dropboxAppSecret: config.dropboxAppSecret || '',
-          dropboxAccessToken: config.dropboxAccessToken || '',
+          dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
+          dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
           backupFolder: config.backupFolder || '/Backups/Conductor'
         };
 

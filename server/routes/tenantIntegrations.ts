@@ -9,6 +9,24 @@ const router = Router();
 router.use(jwtAuth);
 router.use(requireTenantAdmin);
 
+// Função para mascarar dados sensíveis antes de enviar ao frontend
+function sanitizeConfigForFrontend(config: any): any {
+  if (!config) return config;
+  
+  const sanitized = { ...config };
+  
+  // Mascarar campos sensíveis
+  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken'];
+  
+  sensitiveFields.forEach(field => {
+    if (sanitized[field] && sanitized[field].length > 0) {
+      sanitized[field] = '••••••••'; // Mascarar com bullets
+    }
+  });
+  
+  return sanitized;
+}
+
 // Função para testar conexão IMAP
 async function testIMAPConnection(config: any): Promise<{ success: boolean; error?: string; details?: any }> {
   try {
@@ -125,12 +143,15 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     const configData = configResult.config || {};
     console.log(`[GET config route] Config data extraída:`, configData);
     
+    // SEGURANÇA: Mascarar dados sensíveis antes de enviar ao frontend
+    const sanitizedConfig = sanitizeConfigForFrontend(configData);
+    
     // Retornar estrutura simples para o frontend
     const response = {
-      config: configData,
+      config: sanitizedConfig,
       configured: true
     };
-    console.log(`[GET config route] Response being sent:`, JSON.stringify(response, null, 2));
+    console.log(`[GET config route] Response being sent (sanitized):`, JSON.stringify(response, null, 2));
     
     res.json(response);
   } catch (error) {
