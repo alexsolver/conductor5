@@ -836,9 +836,16 @@ export default function EmailConfiguration() {
               <Badge variant="outline">
                 {inboxMessages.filter((m: InboxMessage) => !m.isRead).length} não lidas
               </Badge>
-              <Button variant="outline" onClick={() => refetchInbox()}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  refetchInbox();
+                  queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+                }}
+                disabled={inboxLoading}
+              >
                 <Download className="w-4 h-4 mr-2" />
-                Atualizar
+                {inboxLoading ? 'Atualizando...' : 'Atualizar'}
               </Button>
             </div>
           </div>

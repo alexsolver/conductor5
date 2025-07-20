@@ -486,6 +486,19 @@ export class SchemaManager {
         )
       `);
 
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.system_settings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          setting_key VARCHAR(255) NOT NULL,
+          setting_value JSONB NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, setting_key),
+          CONSTRAINT system_settings_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
       // Create email inbox messages table
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.email_inbox_messages (

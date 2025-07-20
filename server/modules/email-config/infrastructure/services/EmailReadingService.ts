@@ -1,4 +1,3 @@
-
 import { simpleParser, ParsedMail } from 'mailparser';
 import Imap from 'imap';
 import { DrizzleEmailConfigRepository } from '../repositories/DrizzleEmailConfigRepository';
@@ -33,7 +32,7 @@ export class EmailReadingService {
 
   async startMonitoring(tenantId: string): Promise<void> {
     console.log(`🚀 Starting real email monitoring for tenant: ${tenantId}`);
-    
+
     try {
       // Get email integrations for this tenant
       const integrations = await this.repository.getEmailIntegrations(tenantId);
@@ -55,7 +54,7 @@ export class EmailReadingService {
       }
 
       this.isMonitoring = true;
-      
+
       // Set up periodic check for new emails (every 2 minutes for real monitoring)
       this.monitoringInterval = setInterval(async () => {
         try {
@@ -75,9 +74,9 @@ export class EmailReadingService {
 
   async stopMonitoring(): Promise<void> {
     console.log('⏹️ Stopping email monitoring...');
-    
+
     this.isMonitoring = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
@@ -92,7 +91,7 @@ export class EmailReadingService {
         console.error(`❌ Error closing IMAP connection for ${integrationId}:`, error);
       }
     }
-    
+
     this.activeConnections.clear();
     console.log('✅ Email monitoring stopped successfully');
   }
@@ -107,11 +106,11 @@ export class EmailReadingService {
         } else if (integration.config) {
           config = typeof integration.config === 'string' ? JSON.parse(integration.config) : integration.config;
         }
-        
+
         // Check for email credentials - try multiple field names
         const emailAddress = config.emailAddress || config.username || config.email || '';
         const password = config.password || config.pass || '';
-        
+
         console.log(`🔍 Checking credentials for ${integration.name}:`, {
           emailAddress: emailAddress || 'missing',
           hasPassword: !!password,
@@ -119,7 +118,7 @@ export class EmailReadingService {
           integrationStatus: integration.status,
           isConfigured: integration.isConfigured
         });
-        
+
         if (!emailAddress || !password) {
           console.log(`⚠️ Integration ${integration.name} missing email credentials, skipping. Email: ${emailAddress}, Password: ${password ? '***' : 'missing'}`);
           resolve();
@@ -128,7 +127,7 @@ export class EmailReadingService {
 
         // Determine IMAP server settings based on email provider
         const imapConfig = this.getImapConfig(emailAddress, config);
-        
+
         console.log(`🔗 Connecting to IMAP for ${integration.name}: ${imapConfig.host}:${imapConfig.port}`);
         console.log(`📧 Email: ${emailAddress}`);
 
@@ -162,11 +161,11 @@ export class EmailReadingService {
 
   private getImapConfig(emailAddress: string, config: any) {
     const domain = emailAddress.split('@')[1]?.toLowerCase() || '';
-    
+
     // Auto-detect IMAP settings based on email provider
     let host = config.serverHost || config.imapServer || 'imap.gmail.com';
     let port = config.serverPort || config.imapPort || 993;
-    
+
     if (domain.includes('gmail.com')) {
       host = 'imap.gmail.com';
       port = 993;
@@ -248,7 +247,7 @@ export class EmailReadingService {
             markSeen: false,
             struct: true 
           });
-          
+
           let emailsProcessed = 0;
 
           fetch.on('message', (msg, seqno) => {
@@ -334,7 +333,7 @@ export class EmailReadingService {
   private determinePriority(parsedEmail: ParsedMail): 'low' | 'medium' | 'high' {
     const subject = (parsedEmail.subject || '').toLowerCase();
     const text = (parsedEmail.text || '').toLowerCase();
-    
+
     const highPriorityWords = ['urgent', 'critical', 'emergency', 'asap', 'urgente', 'crítico', 'emergência'];
     const lowPriorityWords = ['fyi', 'info', 'informação', 'newsletter', 'update', 'atualização'];
 
@@ -437,7 +436,7 @@ export class EmailReadingService {
       if (rule.actionType === 'create_ticket') {
         // Here you would integrate with your ticket creation system
         console.log(`🎫 Would create ticket for email: ${email.subject}`);
-        
+
         // Log the processing
         await this.repository.createProcessingLog(tenantId, {
           messageId: email.messageId,
@@ -462,7 +461,7 @@ export class EmailReadingService {
 
     } catch (error) {
       console.error('❌ Error executing rule action:', error);
-      
+
       // Log the error
       await this.repository.createProcessingLog(tenantId, {
         messageId: email.messageId,

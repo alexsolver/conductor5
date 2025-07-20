@@ -5,6 +5,7 @@ import { ManageEmailRulesUseCase } from '../use-cases/ManageEmailRulesUseCase';
 import { ManageEmailTemplatesUseCase } from '../use-cases/ManageEmailTemplatesUseCase';
 import { EmailProcessingService } from '../services/EmailProcessingService';
 import { DrizzleEmailConfigRepository } from '../../infrastructure/repositories/DrizzleEmailConfigRepository';
+import { EmailMonitoringPersistence } from '../../infrastructure/services/EmailMonitoringPersistence';
 import { 
   insertEmailProcessingRuleSchema,
   updateEmailProcessingRuleSchema,
@@ -402,6 +403,15 @@ export class EmailConfigController {
           emailAddress: JSON.parse(i.configurationData || '{}').emailAddress || 'Not configured'
         }))
       };
+
+      // Save monitoring state
+      await EmailMonitoringPersistence.saveMonitoringState(tenantId, {
+        tenantId,
+        isActive: true,
+        startedAt: new Date().toISOString(),
+        startedBy: req.user?.email || 'unknown',
+        integrations: emailIntegrations.map(i => i.id)
+      });
 
       res.json({ 
         success: true, 
