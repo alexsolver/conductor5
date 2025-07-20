@@ -414,22 +414,26 @@ export class OmnibridgeController {
         search
       } = req.query;
 
-      // Use repository to get real messages
-      const messages = await this.repository.getInboxMessages(tenantId, {
-        channelId: channelId as string,
-        channelType: channelType as any,
-        direction: direction as any,
-        priority: priority as any,
-        isRead: isRead === 'true' ? true : isRead === 'false' ? false : undefined,
-        isProcessed: isProcessed === 'true' ? true : isProcessed === 'false' ? false : undefined,
-        isArchived: isArchived === 'true' ? true : isArchived === 'false' ? false : undefined,
-        needsResponse: needsResponse === 'true' ? true : needsResponse === 'false' ? false : undefined,
-        fromDate: fromDate ? new Date(fromDate as string) : undefined,
-        toDate: toDate ? new Date(toDate as string) : undefined,
-        limit: limit ? parseInt(limit as string) : undefined,
-        offset: offset ? parseInt(offset as string) : undefined,
-        search: search as string
-      });
+      // Get messages directly from inbox table using correct schema
+      const { schemaManager } = require('../../shared/database/SchemaManager');
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const { inbox } = require('@shared/schema');
+      const { desc } = require('drizzle-orm');
+      
+      let query = tenantDb
+        .select()
+        .from(inbox)
+        .orderBy(desc(inbox.receivedAt));
+
+      if (limit) {
+        query = query.limit(parseInt(limit as string));
+      }
+
+      if (offset) {
+        query = query.offset(parseInt(offset as string));
+      }
+
+      const messages = await query;
 
       console.log(`📬 OmniBridge inbox API Response:`, {
         success: true,

@@ -333,8 +333,6 @@ export class DrizzleOmnibridgeRepository implements IOmnibridgeRepository {
   }): Promise<void> {
     await this.updateInboxMessage(tenantId, messageId, {
       isProcessed: true,
-      processingRuleId: processingData.processingRuleId,
-      ticketId: processingData.ticketId,
       processedAt: processingData.processedAt
     });
   }

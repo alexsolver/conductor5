@@ -59,33 +59,45 @@ export class EmailMonitoringService {
   }
 
   private async simulateEmailCapture(tenantId: string): Promise<void> {
-    // Simulate capturing emails and saving to database
-    const simulatedEmails: InsertOmnibridgeInboxMessage[] = [
+    // Simulate capturing emails and saving to database using correct schema structure
+    const simulatedEmails = [
       {
         tenantId,
         messageId: 'test-2025-email-001',
-        fromContact: 'cliente@empresa.com',
-        fromName: 'João Cliente',
-        toContact: 'alexsolver@gmail.com',
+        fromEmail: 'cliente@empresa.com',
+        fromName: 'João Cliente', 
+        toEmail: 'alexsolver@gmail.com',
         subject: 'Urgente: Problema no sistema de vendas',
         bodyText: 'Olá, estamos enfrentando um problema crítico no sistema de vendas. Preciso de ajuda urgente.',
         bodyHtml: '<p>Olá,</p><p>Estamos enfrentando um problema crítico no sistema de vendas. Preciso de ajuda urgente.</p>',
-        channelId: 'ch-gmail-oauth2',
-        channelType: 'email',
-        direction: 'inbound',
-        priority: 'high',
-        messageDate: new Date('2025-07-20 18:00:00'),
-        originalHeaders: {
+        hasAttachments: false,
+        attachmentCount: 0,
+        attachmentDetails: [],
+        emailHeaders: {
           'date': 'Sun, 20 Jul 2025 18:00:00 -0300',
           'from': 'João Cliente <cliente@empresa.com>',
           'subject': 'Urgente: Problema no sistema de vendas'
-        }
+        },
+        priority: 'high',
+        isRead: false,
+        isProcessed: false,
+        emailDate: new Date('2025-07-20 18:00:00'),
+        receivedAt: new Date(),
+        ccEmails: '[]',
+        bccEmails: '[]'
       }
     ];
 
     for (const email of simulatedEmails) {
       try {
-        await this.repository.saveInboxMessage(tenantId, email);
+        // Use direct database insertion since this matches the inbox table structure
+        const { db: tenantDb } = await require('../../shared/database/SchemaManager').schemaManager.getTenantDb(tenantId);
+        
+        await tenantDb
+          .insert(require('@shared/schema').inbox)
+          .values(email)
+          .onConflictDoNothing();
+          
         console.log(`📧 Simulated email saved: ${email.subject}`);
       } catch (error) {
         console.error('Error saving simulated email:', error);
