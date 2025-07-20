@@ -289,6 +289,11 @@ export default function EmailConfiguration() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/email-config/inbox?limit=50');
       const data = await response.json();
+      console.log('📧 Inbox API Response:', { 
+        success: data.success, 
+        dataLength: data.data?.length, 
+        firstMessage: data.data?.[0] 
+      });
       return data.data || [];
     },
     enabled: activeTab === 'inbox'
