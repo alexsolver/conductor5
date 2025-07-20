@@ -361,28 +361,51 @@ export class EmailConfigController {
         return;
       }
 
-      // Get active email rules to verify configuration
-      const rules = await this.emailRulesUseCase.getRules(tenantId, true);
-      
-      if (rules.length === 0) {
+      // Import email reading service
+      const { emailReadingService } = await import('../../infrastructure/services/EmailReadingService');
+
+      // Check if monitoring is already active
+      if (emailReadingService.isCurrentlyMonitoring()) {
         res.status(400).json({ 
-          message: 'No active email rules found. Please create at least one active rule before starting email monitoring.' 
+          message: 'Email monitoring is already active' 
         });
         return;
       }
 
-      // Here you would start your email monitoring service
-      // This could be IMAP, POP3, webhook, or API integration
+      // Check if there are configured email integrations
+      const repository = new DrizzleEmailConfigRepository();
+      const integrations = await repository.getEmailIntegrations(tenantId);
+      const emailIntegrations = integrations.filter(i => 
+        i.category === 'Comunicação' && 
+        i.isConfigured && 
+        (i.name === 'IMAP Email' || i.name === 'Gmail OAuth2' || i.name === 'Outlook OAuth2')
+      );
+      
+      if (emailIntegrations.length === 0) {
+        res.status(400).json({ 
+          message: 'No configured email integrations found. Please configure at least one email integration in Workspace Admin → Integrações.' 
+        });
+        return;
+      }
+
+      // Start email monitoring service
+      await emailReadingService.startMonitoring(tenantId);
+
       const monitoringConfig = {
-        tenantId,
-        activeRules: rules.length,
-        status: 'active',
-        startedAt: new Date()
+        isActive: true,
+        totalIntegrations: emailIntegrations.length,
+        activeConnections: emailReadingService.getActiveConnectionsCount(),
+        startedAt: new Date().toISOString(),
+        startedBy: req.user?.email,
+        integrations: emailIntegrations.map(i => ({
+          name: i.name,
+          emailAddress: JSON.parse(i.configurationData || '{}').emailAddress || 'Not configured'
+        }))
       };
 
       res.json({ 
         success: true, 
-        message: 'Email monitoring started successfully',
+        message: 'Email monitoring started successfully. The system will now check for new emails every 5 minutes.',
         data: monitoringConfig
       });
 
@@ -404,11 +427,25 @@ export class EmailConfigController {
         return;
       }
 
-      // Here you would stop your email monitoring service
+      // Import email reading service
+      const { emailReadingService } = await import('../../infrastructure/services/EmailReadingService');
+
+      // Check if monitoring is active
+      if (!emailReadingService.isCurrentlyMonitoring()) {
+        res.status(400).json({ 
+          message: 'Email monitoring is not currently active' 
+        });
+        return;
+      }
+
+      // Stop email monitoring service
+      await emailReadingService.stopMonitoring();
+
       const monitoringConfig = {
-        tenantId,
-        status: 'stopped',
-        stoppedAt: new Date()
+        isActive: false,
+        activeConnections: 0,
+        stoppedAt: new Date().toISOString(),
+        stoppedBy: req.user?.email
       };
 
       res.json({ 
@@ -435,26 +472,42 @@ export class EmailConfigController {
         return;
       }
 
+      // Import email reading service
+      const { emailReadingService } = await import('../../infrastructure/services/EmailReadingService');
+
       // Get monitoring status and statistics
-      const rules = await this.emailRulesUseCase.getRules(tenantId);
-      const activeRules = rules.filter(rule => rule.isActive);
-      
       const repository = new DrizzleEmailConfigRepository();
+      const integrations = await repository.getEmailIntegrations(tenantId);
+      const emailIntegrations = integrations.filter(i => 
+        i.category === 'Comunicação' && 
+        i.isConfigured && 
+        (i.name === 'IMAP Email' || i.name === 'Gmail OAuth2' || i.name === 'Outlook OAuth2')
+      );
+
       const recentLogs = await repository.getProcessingLogs(tenantId, {
         limit: 10,
         dateFrom: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
       });
 
+      const connectionStatus = emailReadingService.getConnectionStatus();
+
       const status = {
-        isActive: activeRules.length > 0,
-        totalRules: rules.length,
-        activeRules: activeRules.length,
+        isActive: emailReadingService.isCurrentlyMonitoring(),
+        totalIntegrations: emailIntegrations.length,
+        activeConnections: emailReadingService.getActiveConnectionsCount(),
+        connectionStatus,
         recentProcessing: {
           last24Hours: recentLogs.length,
-          successful: recentLogs.filter(log => log.processingStatus === 'processed').length,
-          failed: recentLogs.filter(log => log.processingStatus === 'failed').length
+          successful: recentLogs.filter(log => log.processingStatus === 'success').length,
+          failed: recentLogs.filter(log => log.processingStatus === 'error').length
         },
-        lastProcessedEmail: recentLogs[0] || null
+        lastProcessedEmail: recentLogs[0] || null,
+        integrations: emailIntegrations.map(i => ({
+          id: i.id,
+          name: i.name,
+          emailAddress: JSON.parse(i.configurationData || '{}').emailAddress || 'Not configured',
+          isConnected: connectionStatus[i.id] || false
+        }))
       };
 
       res.json({ success: true, data: status });

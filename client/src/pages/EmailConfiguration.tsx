@@ -806,10 +806,14 @@ export default function EmailConfiguration() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="inbox">
             <Mail className="w-4 h-4 mr-2" />
             Caixa de Entrada
+          </TabsTrigger>
+          <TabsTrigger value="monitoring">
+            <Play className="w-4 h-4 mr-2" />
+            Monitoramento
           </TabsTrigger>
           <TabsTrigger value="integrations">
             <Settings className="w-4 h-4 mr-2" />
