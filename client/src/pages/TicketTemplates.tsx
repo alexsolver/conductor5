@@ -244,7 +244,7 @@ export default function TicketTemplates() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 pl-[16px] pr-[16px]">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Templates de Abertura de Chamados</h1>
@@ -258,7 +258,6 @@ export default function TicketTemplates() {
           Novo Template
         </Button>
       </div>
-
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="pt-6">
@@ -309,7 +308,6 @@ export default function TicketTemplates() {
           )}
         </CardContent>
       </Card>
-
       {/* Templates Grid */}
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -422,7 +420,6 @@ export default function TicketTemplates() {
           ))}
         </div>
       )}
-
       {filteredTemplates.length === 0 && !isLoading && (
         <Card>
           <CardContent className="py-12 text-center">
@@ -438,7 +435,6 @@ export default function TicketTemplates() {
           </CardContent>
         </Card>
       )}
-
       {/* Create/Edit Dialog */}
       <Dialog 
         open={isCreateDialogOpen || editingTemplate !== null} 
