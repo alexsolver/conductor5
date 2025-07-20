@@ -136,6 +136,7 @@ export default function Tickets() {
                     <div className="h-4 bg-gray-200 rounded w-64"></div>
                   </div>
                   <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+                    <div className="h-10 bg-gray-200 rounded w-40"></div>
                     <div className="h-10 bg-gray-200 rounded w-20"></div>
                     <div className="h-10 bg-gray-200 rounded w-28"></div>
                   </div>
@@ -180,6 +181,18 @@ export default function Tickets() {
                   </p>
                 </div>
                 <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+                  <Select defaultValue="all">
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All tickets</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="7days">Last 7 days</SelectItem>
+                      <SelectItem value="30days">Last 30 days</SelectItem>
+                      <SelectItem value="90days">Last 90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Button variant="outline">
                     <Filter className="h-4 w-4 mr-2" />
                     Filter

@@ -22,9 +22,10 @@ Preferred communication style: Simple, everyday language.
 
 ✅ **HEADER COM DESIGN ANALYTICS:**
 - Título e descrição organizados em layout flexível
+- Dropdown de período adicionado: "All tickets", "Today", "Last 7 days", "Last 30 days", "Last 90 days"
 - Botões alinhados à direita com espaçamento `space-x-3`
 - Botão "New Ticket" com classe `gradient-primary text-white`
-- Design consistente com padrão da página Analytics
+- Design idêntico ao padrão da página Analytics
 
 ✅ **MELHOR EXPERIÊNCIA VISUAL:**
 - Lista de tickets dentro do container com margens
