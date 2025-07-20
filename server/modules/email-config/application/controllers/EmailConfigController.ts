@@ -449,12 +449,30 @@ export class EmailConfigController {
         return;
       }
 
-      res.json({ success: true, message: 'Historical emails imported' });
+      const { limit = 100, startDate, endDate } = req.body;
+      
+      // Since you mentioned not importing historical emails, we'll just return a success response
+      // with the expected format but without actually importing anything
+      const result = {
+        imported: 0,
+        errors: 0,
+        message: 'Importação histórica desabilitada por preferência do usuário'
+      };
+
+      res.json({ 
+        success: true, 
+        message: 'Historical import completed',
+        data: result
+      });
     } catch (error) {
       console.error('Error importing historical emails:', error);
       res.status(500).json({ 
         message: 'Failed to import historical emails',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        data: {
+          imported: 0,
+          errors: 1
+        }
       });
     }
   }
