@@ -73,6 +73,8 @@ export default function OmniBridge() {
   const [messages, setMessages] = useState<UnifiedMessage[]>([]);
   const [monitoring, setMonitoring] = useState<MonitoringStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [processLoading, setProcessLoading] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<UnifiedMessage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -95,44 +97,58 @@ export default function OmniBridge() {
   };
 
   const refreshTokenIfNeeded = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
+    // Primeiro, tenta obter o token atual
+    let token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    
+    if (!token) {
+      console.log('🔑 Nenhum token encontrado, redirecionando para login');
+      window.location.href = '/login';
+      return null;
+    }
 
     try {
       // Verificar se o token atual ainda é válido
       const testResponse = await fetch('/api/auth/user', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (testResponse.ok) {
+        console.log('🔑 Token ainda válido');
         return token; // Token ainda válido
       }
 
-      // Token expirado, tentar renovar
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        // Redirecionar para login se não houver refresh token
-        window.location.href = '/login';
-        return null;
-      }
+      console.log('🔄 Token expirado, tentando renovar...');
 
+      // Token expirado, tentar renovar usando cookies (httpOnly)
       const refreshResponse = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken })
+        credentials: 'include' // Importante para incluir cookies httpOnly
       });
 
       if (refreshResponse.ok) {
         const { accessToken } = await refreshResponse.json();
         localStorage.setItem('token', accessToken);
+        localStorage.setItem('accessToken', accessToken);
+        console.log('✅ Token renovado com sucesso');
         return accessToken;
       } else {
-        // Refresh token também expirado
+        console.log('❌ Falha ao renovar token, redirecionando para login');
+        // Limpar tokens inválidos
+        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         window.location.href = '/login';
         return null;
       }
     } catch (error) {
-      console.error('Error refreshing token:', error);
+      console.error('❌ Erro ao renovar token:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       window.location.href = '/login';
       return null;
     }
@@ -276,8 +292,13 @@ export default function OmniBridge() {
   };
 
   const syncChannels = async () => {
+    if (syncLoading) {
+      console.log('🔄 Sincronização já em andamento, ignorando...');
+      return;
+    }
+
     console.log('🔄 Iniciando sincronização de canais...');
-    setLoading(true);
+    setSyncLoading(true);
     try {
       const token = await refreshTokenIfNeeded();
       if (!token) return;
@@ -301,6 +322,7 @@ export default function OmniBridge() {
       }
 
       const processedCount = data.processed || data.channels?.length || 0;
+      console.log('✅ Sincronização concluída:', processedCount, 'canais');
       toast({
         title: "Canais sincronizados",
         description: `${processedCount} canais sincronizados com sucesso`,
@@ -308,20 +330,25 @@ export default function OmniBridge() {
 
       await loadData();
     } catch (error) {
-      console.error('Error syncing channels:', error);
+      console.error('❌ Erro na sincronização:', error);
       toast({
         title: "Erro na sincronização",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setSyncLoading(false);
     }
   };
 
   const processMessages = async () => {
+    if (processLoading) {
+      console.log('⚡ Processamento já em andamento, ignorando...');
+      return;
+    }
+
     console.log('⚡ Iniciando processamento de mensagens...');
-    setLoading(true);
+    setProcessLoading(true);
     try {
       const token = await refreshTokenIfNeeded();
       if (!token) return;
@@ -345,6 +372,7 @@ export default function OmniBridge() {
       }
 
       const processedCount = data.processed || data.result?.processedCount || 0;
+      console.log('✅ Processamento concluído:', processedCount, 'mensagens');
       toast({
         title: "Processamento concluído",
         description: `${processedCount} mensagens processadas com sucesso`,
@@ -352,14 +380,14 @@ export default function OmniBridge() {
 
       await loadData();
     } catch (error) {
-      console.error('Error processing messages:', error);
+      console.error('❌ Erro no processamento:', error);
       toast({
         title: "Erro no processamento",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setProcessLoading(false);
     }
   };
 
@@ -444,13 +472,13 @@ export default function OmniBridge() {
           <p className="text-muted-foreground">Central unificada de comunicação multicanal</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={syncChannels} disabled={loading} variant="outline">
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Sincronizar Canais
+          <Button onClick={syncChannels} disabled={syncLoading || loading} variant="outline">
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncLoading ? 'animate-spin' : ''}`} />
+            {syncLoading ? 'Sincronizando...' : 'Sincronizar Canais'}
           </Button>
-          <Button onClick={processMessages} disabled={loading}>
-            <Zap className="h-4 w-4 mr-2" />
-            Processar Mensagens
+          <Button onClick={processMessages} disabled={processLoading || loading}>
+            <Zap className={`h-4 w-4 mr-2 ${processLoading ? 'animate-spin' : ''}`} />
+            {processLoading ? 'Processando...' : 'Processar Mensagens'}
           </Button>
         </div>
       </div>
