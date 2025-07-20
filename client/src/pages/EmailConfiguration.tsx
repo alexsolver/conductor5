@@ -1044,6 +1044,178 @@ export default function EmailConfiguration() {
           </div>
         </TabsContent>
 
+        {/* Email Monitoring Tab */}
+        <TabsContent value="monitoring" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold">Monitoramento de Email</h2>
+          </div>
+
+          {/* Real-time Monitoring Status */}
+          <div className="grid gap-6">
+            {monitoringStatus && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Play className="w-5 h-5" />
+                    Status do Monitoramento
+                    <Badge variant={monitoringStatus.isActive ? 'default' : 'secondary'}>
+                      {monitoringStatus.isActive ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    Sistema de monitoramento em tempo real para leitura e processamento de emails
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {monitoringStatus.totalIntegrations || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">Integrações Configuradas</p>
+                    </div>
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {monitoringStatus.activeConnections || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">Conexões Ativas</p>
+                    </div>
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {monitoringStatus.recentProcessing?.successful || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">Emails Processados (24h)</p>
+                    </div>
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">
+                        {monitoringStatus.recentProcessing?.failed || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">Falhas (24h)</p>
+                    </div>
+                  </div>
+
+                  {/* Control Buttons */}
+                  <div className="flex gap-3 mb-6">
+                    {!monitoringStatus.isActive ? (
+                      <Button 
+                        onClick={() => startMonitoringMutation.mutate()}
+                        disabled={startMonitoringMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        {startMonitoringMutation.isPending ? 'Iniciando...' : 'Iniciar Monitoramento'}
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => stopMonitoringMutation.mutate()}
+                        disabled={stopMonitoringMutation.isPending}
+                        variant="destructive"
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        {stopMonitoringMutation.isPending ? 'Parando...' : 'Parar Monitoramento'}
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Atualizar Status
+                    </Button>
+                  </div>
+
+                  {/* Active Integrations */}
+                  {monitoringStatus.integrations && monitoringStatus.integrations.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-3">Integrações Monitoradas:</h4>
+                      <div className="grid gap-3">
+                        {monitoringStatus.integrations.map((integration: any) => (
+                          <div key={integration.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-3 h-3 rounded-full ${integration.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                              <div>
+                                <p className="font-medium">{integration.name}</p>
+                                <p className="text-sm text-muted-foreground">{integration.emailAddress}</p>
+                              </div>
+                            </div>
+                            <Badge variant={integration.isConnected ? 'default' : 'destructive'}>
+                              {integration.isConnected ? 'Conectado' : 'Desconectado'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Last Processed Email */}
+                  {monitoringStatus.lastProcessedEmail && (
+                    <div className="mt-6 pt-4 border-t">
+                      <h4 className="font-medium mb-2">Último Email Processado:</h4>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <span className="font-medium">De:</span> {monitoringStatus.lastProcessedEmail.fromEmail}
+                          </div>
+                          <div>
+                            <span className="font-medium">Assunto:</span> {monitoringStatus.lastProcessedEmail.subject}
+                          </div>
+                          <div>
+                            <span className="font-medium">Ação:</span> {monitoringStatus.lastProcessedEmail.actionTaken}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Monitoring Instructions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5" />
+                  Como Funciona o Monitoramento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Conexão Automática</p>
+                      <p className="text-muted-foreground">O sistema conecta automaticamente às suas integrações de email configuradas (IMAP, OAuth2)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Verificação Periódica</p>
+                      <p className="text-muted-foreground">Emails são verificados a cada 5 minutos quando o monitoramento está ativo</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Processamento Inteligente</p>
+                      <p className="text-muted-foreground">Novos emails são processados de acordo com as regras configuradas</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Criação de Tickets</p>
+                      <p className="text-muted-foreground">Emails correspondem automaticamente geram tickets no sistema</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         {/* Email Rules Tab */}
         <TabsContent value="rules" className="space-y-6">
           <div className="flex justify-between items-center">
