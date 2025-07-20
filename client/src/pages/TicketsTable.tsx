@@ -768,7 +768,7 @@ export default function TicketsTable() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center ml-[9px] mr-[9px]">
+      <div className="flex justify-between items-center ml-[20px] mr-[20px]">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
