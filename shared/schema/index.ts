@@ -108,33 +108,33 @@ export {
   sessions,
   tenants,
   users,
-  
+
   // Customer tables
   customers,
   customerLocations,
   customerCompanies,
   customerCompanyMemberships,
   customerCompanyBilling,
-  
+
   // Removed: external contacts tables - functionality eliminated
-  
+
   // Ticket tables
   tickets,
   ticketMessages,
-  
+
   // Location tables
   locations,
-  
+
   // Security tables
   securityEvents,
   userTwoFactor,
   accountLockouts,
   passwordResets,
   magicLinks,
-  
+
   // Schema generators
   getTenantSpecificSchema,
-  
+
   // Insert schemas
   insertSessionSchema,
   insertTenantSchema,
@@ -153,7 +153,7 @@ export {
   insertAccountLockoutSchema,
   insertPasswordResetSchema,
   insertMagicLinkSchema,
-  
+
   // Types
   type Session,
   type Tenant,
@@ -227,3 +227,5 @@ export * from './tenant-constraints';
 export * from './tenant-specific';
 export * from './internal-forms';
 export * from './email-config';
+export * from './projects';
+export * from './projects-db';

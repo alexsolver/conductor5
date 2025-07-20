@@ -349,11 +349,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/internal-forms', internalFormsRoutes);
-  
+
   // Email Configuration routes
   const emailConfigRoutes = (await import('./modules/email-config/routes')).default;
   app.use('/api/email-config', emailConfigRoutes);
-  
+
   app.use('/api/locations', locationRoutes);
 
   // Ticket Templates routes
@@ -370,6 +370,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Location routes
 
   // All routes now handled by dedicated microservices
+  const { default: projectRoutes } = await import('./modules/projects/routes');
+
+  // Configure routes
+  // Import and mount authentication routes
+  const { authRouter: authRoutes } = await import('./modules/auth/routes');
+  const { customersRouter: customerRoutes } = await import('./modules/customers/routes');
+  const { ticketsRouter: ticketRoutes } = await import('./modules/tickets/routes');
+  const { locationsRouter: locationRoutes } = await import('./modules/locations/routes');
+  const { technicalSkillsRoutes } = await import('./modules/technical-skills/routes');
+  const { dashboardRouter: dashboardRoutes } = await import('./modules/dashboard/routes');
+  const { tenantAdminRoutes } = await import('./modules/tenant-admin/routes');
+  const { saasAdminRoutes } = await import('./modules/saas-admin/routes');
+  const { peopleRouter: peopleRoutes } = await import('./modules/people/routes');
+  const { default: favorecidosRoutes } = await import('./modules/favorecidos/routes');
+  const { knowledgeBaseRouter: knowledgeBaseRoutes } = await import('./modules/knowledge-base/routes');
+  const { internalFormsRoutes } = await import('./modules/internal-forms/routes');
+  const emailConfigRoutes1 = (await import('./modules/email-config/routes')).default;
+
+  app.use('/api/auth', authRoutes);
+  app.use('/api/customers', customerRoutes);
+  app.use('/api/tickets', ticketRoutes);
+  app.use('/api/locations', locationRoutes);
+  app.use('/api/technical-skills', technicalSkillsRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/tenant-admin', tenantAdminRoutes);
+  app.use('/api/saas-admin', saasAdminRoutes);
+  app.use('/api/people', peopleRoutes);
+  app.use('/api/favorecidos', favorecidosRoutes);
+  app.use('/api/knowledge-base', knowledgeBaseRoutes);
+  app.use('/api/internal-forms', internalFormsRoutes);
+  app.use('/api/email-config', emailConfigRoutes1);
+  app.use('/api/projects', projectRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

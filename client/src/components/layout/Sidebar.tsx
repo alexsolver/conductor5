@@ -38,7 +38,8 @@ import {
   Award,
   UserCheck,
   FileText,
-  Mail
+  Mail,
+  FolderOpen
 } from "lucide-react";
 
 // Base navigation without dynamic badges
