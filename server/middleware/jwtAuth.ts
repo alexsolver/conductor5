@@ -9,6 +9,7 @@ export interface AuthenticatedRequest extends Request {
     role: string;
     tenantId: string | null;
   };
+  tenant?: any; // Add tenant property for compatibility
 }
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

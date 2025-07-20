@@ -202,6 +202,10 @@ export class SchemaManager {
   }
 
   // Get database connection for a specific tenant - OPTIMIZED
+  async getTenantDatabase(tenantId: string): Promise<{ db: ReturnType<typeof drizzle>; schema: any }> {
+    return this.getTenantDb(tenantId);
+  }
+
   async getTenantDb(tenantId: string): Promise<{ db: ReturnType<typeof drizzle>; schema: any }> {
     const schemaName = this.getSchemaName(tenantId);
 

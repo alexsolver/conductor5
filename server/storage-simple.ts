@@ -19,6 +19,7 @@ export interface IStorage {
   // Tenant Management  
   createTenant(tenantData: any): Promise<any>;
   getTenantUsers(tenantId: string, options?: { limit?: number; offset?: number }): Promise<User[]>;
+  initializeTenantSchema(tenantId: string): Promise<void>;
 
   // Customer Management
   getCustomers(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
@@ -580,7 +581,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName).knowledge_base_articles} 
+        INSERT INTO ${sql.identifier(schemaName)}.knowledge_base_articles 
         (title, excerpt, content, category, tags, author, status, tenant_id, created_at, updated_at)
         VALUES (
           ${article.title},
@@ -891,7 +892,7 @@ export class DatabaseStorage implements IStorage {
         WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
       `);
 
-      const deleted = result.rowCount && result.rowCount > 0;
+      const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
         logInfo('Ticket template deleted successfully', { tenantId: validatedTenantId, templateId });
       }
@@ -943,9 +944,9 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.ticket_templates
         WHERE tenant_id = ${validatedTenantId} AND id IN (${sql.raw(placeholders)})
-      `, [validatedTenantId, ...templateIds]);
+      `);
 
-      const deleted = result.rowCount && result.rowCount > 0;
+      const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
         logInfo('Ticket templates bulk deleted successfully', { 
           tenantId: validatedTenantId, 
@@ -1365,7 +1366,7 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
 
-      const tenantId = publicResult.rows[0].tenant_id;
+      const tenantId = String(publicResult.rows[0].tenant_id);
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
@@ -1375,7 +1376,7 @@ export class DatabaseStorage implements IStorage {
         WHERE id = ${relationshipId} AND tenant_id = ${validatedTenantId}
       `);
 
-      const deleted = result.rowCount && result.rowCount > 0;
+      const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
         logInfo('Ticket relationship deleted successfully', { tenantId: validatedTenantId, relationshipId });
       }
@@ -1538,7 +1539,7 @@ export class DatabaseStorage implements IStorage {
         WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
       `);
 
-      const deleted = result.rowCount && result.rowCount > 0;
+      const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
         logInfo('Email template deleted successfully', { tenantId: validatedTenantId, templateId });
       }
@@ -1546,6 +1547,17 @@ export class DatabaseStorage implements IStorage {
       return deleted;
     } catch (error) {
       logError('Error deleting email template', error, { tenantId, templateId });
+      throw error;
+    }
+  }
+
+  // Implement the missing initializeTenantSchema method
+  async initializeTenantSchema(tenantId: string): Promise<void> {
+    try {
+      await schemaManager.createTenantSchema(tenantId);
+      logInfo('Tenant schema initialized successfully', { tenantId });
+    } catch (error) {
+      logError('Error initializing tenant schema', error, { tenantId });
       throw error;
     }
   }

@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { featureFlagService } = await import('./services/featureFlagService');
       const context = {
         userId: req.user?.id,
-        tenantId: req.user?.tenantId,
+        tenantId: req.user?.tenantId || undefined,
         userAttributes: req.user,
         tenantAttributes: req.tenant
       };
@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { featureFlagService } = await import('./services/featureFlagService');
       const context = {
         userId: req.user?.id,
-        tenantId: req.user?.tenantId,
+        tenantId: req.user?.tenantId || undefined,
         userAttributes: req.user,
         tenantAttributes: req.tenant
       };
@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/rbac/user-permissions/:userId', jwtAuth, requirePermission('platform', 'manage_users'), async (req: AuthenticatedRequest, res) => {
     try {
       const { rbacService } = await import('./middleware/rbacMiddleware');
-      const permissions = await rbacService.getUserPermissions(req.params.userId, req.user?.tenantId);
+      const permissions = await rbacService.getUserPermissions(req.params.userId, req.user?.tenantId || undefined);
       res.json({ permissions });
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch user permissions' });

@@ -97,8 +97,8 @@ export const favorecidos = pgTable("favorecidos", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Simplified tickets table - Modern person management system
-export const tickets = pgTable("tickets", {
+// Simplified tickets table - Modern person management system  
+export const tickets: any = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").references(() => tenants.id),
   number: varchar("number", { length: 50 }), // Ticket number for display
