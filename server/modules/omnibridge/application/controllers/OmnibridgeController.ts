@@ -92,77 +92,38 @@ export class OmnibridgeController {
         healthStatus 
       } = req.query;
 
-      // Get real integrations from database - no more hardcoded data
-      const allTenantIntegrations = await this.repository.getTenantIntegrations(tenantId);
+      // Query integrations directly from database using SQL
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       
-      // Add the real Gmail integration with the correct channel ID mapping
-      const tenantIntegrations = [
-        {
-          id: 'gmail-oauth2',
-          name: 'Gmail OAuth2', 
-          description: 'Integração com Gmail via OAuth2',
-          category: 'Comunicação',
-          isConnected: true,
-          status: 'connected',
-          configured: true,
-          config: { emailAddress: 'alexsolver@gmail.com' },
-          realId: '729bfa95-f6ff-4847-b87e-f369338336df' // Real channel ID where messages are stored
-        },
-        {
-          id: 'outlook-oauth2', 
-          name: 'Outlook OAuth2',
-          description: 'Integração com Outlook via OAuth2',
-          category: 'Comunicação',
-          isConnected: false,
-          status: 'disconnected',
-          connectionSettings: { configured: false }
-        },
-        {
-          id: 'email-smtp',
-          name: 'Email SMTP',
-          description: 'Servidor SMTP genérico',
-          category: 'Comunicação', 
-          isConnected: false,
-          status: 'disconnected',
-          connectionSettings: { configured: false }
-        },
-        {
-          id: 'whatsapp-business',
-          name: 'WhatsApp Business',
-          description: 'WhatsApp Business API',
-          category: 'Comunicação',
-          isConnected: false,
-          status: 'disconnected', 
-          connectionSettings: { configured: false }
-        },
-        {
-          id: 'slack',
-          name: 'Slack',
-          description: 'Integração com Slack',
-          category: 'Comunicação',
-          isConnected: false,
-          status: 'disconnected',
-          connectionSettings: { configured: false }
-        },
-        {
-          id: 'telegram-bot',
-          name: 'Telegram Bot',
-          description: 'Bot do Telegram',
-          category: 'Comunicação',
-          isConnected: false, 
-          status: 'disconnected',
-          connectionSettings: { configured: false }
-        },
-        {
-          id: 'twilio-sms',
-          name: 'Twilio SMS',
-          description: 'SMS via Twilio',
-          category: 'Comunicação',
-          isConnected: false,
-          status: 'disconnected',
-          connectionSettings: { configured: false }
-        }
-      ];
+      const integrationsResult = await tenantDb.execute(sql`
+        SELECT id, name, description, category, icon, status, config, features
+        FROM integrations
+        WHERE category = 'Comunicação' OR category = 'Communication'
+        ORDER BY created_at DESC
+      `);
+      
+      console.log(`🔍 Debug: Fetched integrations for tenant ${tenantId}:`, {
+        totalCount: integrationsResult.rows.length,
+        integrations: integrationsResult.rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          category: row.category,
+          status: row.status
+        }))
+      });
+
+      // Convert database results to integration objects
+      const tenantIntegrations = integrationsResult.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        category: row.category,
+        status: row.status,
+        config: row.config,
+        configured: row.status === 'connected',
+        realId: row.id === 'gmail-oauth2' ? '729bfa95-f6ff-4847-b87e-f369338336df' : row.id
+      }));
+
       
       console.log(`🔍 Debug: Fetched integrations for tenant ${tenantId}:`, {
         totalCount: tenantIntegrations.length,
