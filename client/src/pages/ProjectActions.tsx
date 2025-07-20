@@ -27,7 +27,8 @@ import {
   Settings,
   Flag,
   ArrowRight,
-  Link2
+  Link2,
+  Zap
 } from 'lucide-react';
 
 // Types for project actions
