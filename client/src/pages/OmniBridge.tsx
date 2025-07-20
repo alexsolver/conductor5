@@ -94,9 +94,55 @@ export default function OmniBridge() {
     ]);
   };
 
+  const refreshTokenIfNeeded = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      // Verificar se o token atual ainda é válido
+      const testResponse = await fetch('/api/auth/user', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (testResponse.ok) {
+        return token; // Token ainda válido
+      }
+
+      // Token expirado, tentar renovar
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        // Redirecionar para login se não houver refresh token
+        window.location.href = '/login';
+        return null;
+      }
+
+      const refreshResponse = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken })
+      });
+
+      if (refreshResponse.ok) {
+        const { accessToken } = await refreshResponse.json();
+        localStorage.setItem('token', accessToken);
+        return accessToken;
+      } else {
+        // Refresh token também expirado
+        window.location.href = '/login';
+        return null;
+      }
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      window.location.href = '/login';
+      return null;
+    }
+  };
+
   const loadChannels = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = await refreshTokenIfNeeded();
+      if (!token) return;
+
       console.log('📋 TENTANDO BUSCAR CANAIS...', {
         hasToken: !!token,
         tokenLength: token?.length,
@@ -104,197 +150,212 @@ export default function OmniBridge() {
       });
 
       const response = await fetch('/api/omni-bridge/channels', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (!response.ok) {
-        console.error(`❌ Channels API Error: ${response.status} ${response.statusText}`);
-        setChannels([]);
-        return;
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('❌ Channels API returned non-JSON response');
-        setChannels([]);
-        return;
-      }
-
       const data = await response.json();
-      console.log('📋 Channels API Response:', data);
 
-      if (data.success) {
-        setChannels(data.channels || []);
-      } else {
-        console.error('Channels API returned error:', data.message);
-        setChannels([]);
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token ainda inválido após refresh, redirecionar para login
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(data.message || `HTTP ${response.status}`);
       }
+
+      setChannels(data.data || []);
+      console.log('📋 Canais carregados:', data.data?.length || 0);
     } catch (error) {
       console.error('Error loading channels:', error);
-      setChannels([]);
+      toast({
+        title: "Erro ao carregar canais",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
     }
   };
 
   const loadInbox = async () => {
     try {
-      const params = new URLSearchParams({
-        limit: '100',
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(channelFilter !== 'all' && { channelType: channelFilter })
-      });
+      const token = await refreshTokenIfNeeded();
+      if (!token) return;
 
       console.log('📧 TENTANDO BUSCAR INBOX MESSAGES...');
-      const response = await fetch(`/api/omni-bridge/inbox?${params}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+
+      const response = await fetch('/api/omni-bridge/inbox', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       console.log('📧 Response Status:', response.status, response.statusText);
 
-      if (!response.ok) {
-        console.error(`❌ Inbox API Error: ${response.status} ${response.statusText}`);
-        setMessages([]);
-        return;
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('❌ Inbox API returned non-JSON response');
-        setMessages([]);
-        return;
-      }
-
       const data = await response.json();
       console.log('📧 Inbox API Response RAW:', data);
 
-      if (data.success) {
-        // A API pode retornar os dados diretamente ou em data.data
-        const messagesData = data.messages || data.data || [];
-        console.log('📧 Data length:', messagesData.length);
-
-        if (messagesData.length > 0) {
-          console.log('📧 First message:', messagesData[0]);
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
         }
-
-        setMessages(messagesData);
-      } else {
-        console.error('Inbox API returned error:', data.message);
-        setMessages([]);
+        throw new Error(data.message || `HTTP ${response.status}`);
       }
+
+      const messagesArray = data.data || [];
+      console.log('📧 Data length:', messagesArray.length);
+      if (messagesArray.length > 0) {
+        console.log('📧 First message:', messagesArray[0]);
+      }
+
+      setMessages(messagesArray);
     } catch (error) {
-      console.error('Error loading inbox:', error);
-      setMessages([]);
+      console.error('❌ Inbox API Error:', error.message);
+      toast({
+        title: "Erro ao carregar mensagens",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
     }
   };
 
   const loadMonitoring = async () => {
     try {
       console.log('📊 VERIFICANDO STATUS DO MONITORAMENTO...');
+      const token = await refreshTokenIfNeeded();
+      if (!token) return;
+
       const response = await fetch('/api/omni-bridge/monitoring', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       console.log('📊 Monitoring Response Status:', response.status, response.statusText);
 
-      if (!response.ok) {
-        console.error(`❌ Monitoring API Error: ${response.status} ${response.statusText}`);
-        setMonitoring(null);
-        return;
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('❌ Monitoring API returned non-JSON response');
-        setMonitoring(null);
-        return;
-      }
-
       const data = await response.json();
       console.log('📊 Monitoring Status Response RAW:', data);
 
-      if (data.success) {
-        // A API retorna diferentes estruturas dependendo do endpoint
-        const monitoringData = data.monitoring || data.data || {
-          totalChannels: 0,
-          activeChannels: 0,
-          connectedChannels: 0,
-          healthyChannels: 0,
-          unreadMessages: 0,
-          messagesByChannel: {},
-          systemStatus: 'unknown',
-          lastSync: new Date().toISOString()
-        };
-
-        // Se for estrutura de monitoramento diferente, adaptar
-        if (data.data && data.data.isMonitoring !== undefined) {
-          const adaptedData = {
-            totalChannels: data.data.activeIntegrations?.length || 0,
-            activeChannels: data.data.connectionCount || 0,
-            connectedChannels: data.data.connectionCount || 0,
-            healthyChannels: data.data.isMonitoring ? data.data.connectionCount || 0 : 0,
-            unreadMessages: 0, // Will be updated by inbox
-            messagesByChannel: {},
-            systemStatus: data.data.isMonitoring ? 'healthy' : 'degraded',
-            lastSync: new Date().toISOString()
-          };
-          setMonitoring(adaptedData);
-        } else {
-          setMonitoring(monitoringData);
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
         }
-
-        console.log('📊 Is Monitoring:', data.data?.isMonitoring);
-        console.log('📊 Connection Count:', data.data?.connectionCount);
-        console.log('📊 Active Integrations:', data.data?.activeIntegrations);
-      } else {
-        console.error('Monitoring API returned error:', data.message);
-        setMonitoring(null);
+        throw new Error(data.message || `HTTP ${response.status}`);
       }
+
+      const monitoringData = data.data;
+      console.log('📊 Is Monitoring:', monitoringData?.isMonitoring);
+      console.log('📊 Connection Count:', monitoringData?.connectionCount);
+      console.log('📊 Active Integrations:', monitoringData?.activeIntegrations);
+
+      setMonitoring({
+        totalChannels: 1,
+        activeChannels: monitoringData?.isMonitoring ? 1 : 0,
+        connectedChannels: monitoringData?.connectionCount || 0,
+        healthyChannels: monitoringData?.isMonitoring ? 1 : 0,
+        unreadMessages: messages.filter(m => !m.isRead).length,
+        messagesByChannel: { 'email': messages.length },
+        systemStatus: monitoringData?.isMonitoring ? 'healthy' : 'degraded',
+        lastSync: new Date().toISOString()
+      });
     } catch (error) {
-      console.error('Error loading monitoring:', error);
-      setMonitoring(null);
+      console.error('❌ Monitoring API Error:', error.message);
+      toast({
+        title: "Erro ao carregar status de monitoramento",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
     }
   };
 
   const syncChannels = async () => {
     setLoading(true);
     try {
+      const token = await refreshTokenIfNeeded();
+      if (!token) return;
+
       const response = await fetch('/api/omni-bridge/channels/sync', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+
       const data = await response.json();
-      if (data.success) {
-        toast({ title: 'Sucesso', description: data.message });
-        await loadChannels();
-      } else {
-        toast({ title: 'Erro', description: data.message, variant: 'destructive' });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(data.message || `HTTP ${response.status}`);
       }
+
+      toast({
+        title: "Canais sincronizados",
+        description: "Sincronização de canais concluída com sucesso",
+      });
+
+      await loadData();
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao sincronizar canais', variant: 'destructive' });
+      console.error('Error syncing channels:', error);
+      toast({
+        title: "Erro na sincronização",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const processMessages = async () => {
     setLoading(true);
     try {
+      const token = await refreshTokenIfNeeded();
+      if (!token) return;
+
       const response = await fetch('/api/omni-bridge/process', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+
       const data = await response.json();
-      if (data.success) {
-        toast({ 
-          title: 'Processamento Concluído', 
-          description: `${data.result.processedCount} mensagens processadas, ${data.result.ticketsCreated} tickets criados`
-        });
-        await loadInbox();
-      } else {
-        toast({ title: 'Erro', description: data.message, variant: 'destructive' });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(data.message || `HTTP ${response.status}`);
       }
+
+      toast({
+        title: "Processamento concluído",
+        description: `${data.processed || 0} mensagens processadas`,
+      });
+
+      await loadData();
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao processar mensagens', variant: 'destructive' });
+      console.error('Error processing messages:', error);
+      toast({
+        title: "Erro no processamento",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const markAsRead = async (messageId: string) => {

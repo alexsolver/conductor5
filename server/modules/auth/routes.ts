@@ -1,5 +1,5 @@
 // Authentication Routes - Clean Architecture
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { DependencyContainer } from "../../application/services/DependencyContainer";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { createRateLimitMiddleware, recordLoginAttempt } from "../../middleware/rateLimitMiddleware";
@@ -16,8 +16,42 @@ const authRateLimit = createRateLimitMiddleware({
   blockDurationMs: 30 * 60 * 1000 // 30 minutes
 });
 
+// Refresh Token Endpoint
+authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ message: 'Refresh token required' });
+    }
+
+    const tokenService = container.tokenService;
+    const userRepository = container.userRepository;
+
+    // Verify refresh token
+    const payload = tokenService.verifyRefreshToken(refreshToken);
+    if (!payload) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
+
+    // Check if user exists and is active
+    const user = await userRepository.findById(payload.userId);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'User not found or inactive' });
+    }
+
+    // Generate new access token
+    const accessToken = tokenService.generateAccessToken(user.id, user.email);
+
+    res.json({ accessToken });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(401).json({ message: 'Token refresh failed' });
+  }
+});
+
 // Login endpoint
-authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req, res) => {
+authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const loginSchema = z.object({
       email: z.string().email(),
@@ -25,7 +59,7 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req, res) =>
     });
 
     const { email, password } = loginSchema.parse(req.body);
-    
+
     const loginUseCase = container.loginUseCase;
     const result = await loginUseCase.execute({ email, password });
 
@@ -64,11 +98,11 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
     });
 
     const userData = registerSchema.parse(req.body);
-    
+
     // If company name and workspace are provided, create tenant first
     if (userData.companyName && userData.workspaceName) {
       const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
-      
+
       // Create tenant
       const tenantResult = await tenantAutoProvisioningService.provisionTenant({
         name: userData.companyName,
@@ -94,10 +128,10 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
         const { db } = await import('../../db');
         const { tenants } = await import('@shared/schema');
         const { eq } = await import('drizzle-orm');
-        
+
         // Check if default tenant exists
         let defaultTenant = await db.select().from(tenants).where(eq(tenants.subdomain, 'default')).limit(1);
-        
+
         if (defaultTenant.length === 0) {
           // Create default tenant
           [defaultTenant[0]] = await db.insert(tenants).values({
@@ -107,12 +141,12 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
             isActive: true
           }).returning();
         }
-        
+
         userData.tenantId = defaultTenant[0].id;
         userData.role = userData.role || 'admin'; // Default role for standalone users
       }
     }
-    
+
     const registerUseCase = container.registerUseCase;
     const result = await registerUseCase.execute(userData);
 
@@ -141,62 +175,7 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
   }
 });
 
-// Refresh token endpoint
-authRouter.post('/refresh', async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken;
-    
-    if (!refreshToken) {
-      return res.status(401).json({ message: 'Refresh token required' });
-    }
 
-    const tokenService = container.tokenService;
-    const payload = tokenService.verifyRefreshToken(refreshToken);
-    
-    if (!payload) {
-      return res.status(401).json({ message: 'Invalid refresh token' });
-    }
-
-    // Get user and generate new tokens
-    const userRepository = container.userRepository;
-    const user = await userRepository.findById(payload.userId);
-    
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'User not found or inactive' });
-    }
-
-    const newAccessToken = tokenService.generateAccessToken(user);
-    const newRefreshToken = tokenService.generateRefreshToken(user);
-
-    // Set new refresh token as httpOnly cookie
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
-    res.json({
-      accessToken: newAccessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        tenantId: user.tenantId,
-        profileImageUrl: user.profileImageUrl,
-        isActive: user.isActive,
-        lastLoginAt: user.lastLoginAt,
-        createdAt: user.createdAt
-      }
-    });
-  } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    logError('Refresh token error', error);
-    res.status(401).json({ message: 'Token refresh failed' });
-  }
-});
 
 // Logout endpoint
 authRouter.post('/logout', async (req, res) => {
@@ -221,7 +200,7 @@ authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Get full user details
     const userRepository = container.userRepository;
     const user = await userRepository.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -259,10 +238,10 @@ authRouter.put('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
     });
 
     const updates = updateSchema.parse(req.body);
-    
+
     const userRepository = container.userRepository;
     const user = await userRepository.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
