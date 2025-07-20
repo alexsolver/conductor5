@@ -366,6 +366,29 @@ export class EmailProcessingService {
     return '550e8400-e29b-41d4-a716-446655440001';
   }
 
+  // Public method to save emails directly from IMAP import
+  async saveInboxMessage(tenantId: string, emailInfo: any): Promise<string> {
+    return await this.emailConfigRepo.saveInboxMessage(tenantId, {
+      messageId: emailInfo.messageId,
+      threadId: emailInfo.threadId,
+      fromEmail: emailInfo.fromEmail,
+      fromName: emailInfo.fromName,
+      toEmail: emailInfo.toEmail,
+      ccEmails: JSON.parse(emailInfo.ccEmails || '[]'),
+      bccEmails: JSON.parse(emailInfo.bccEmails || '[]'),
+      subject: emailInfo.subject,
+      bodyText: emailInfo.bodyText,
+      bodyHtml: emailInfo.bodyHtml,
+      hasAttachments: emailInfo.hasAttachments,
+      attachmentCount: emailInfo.attachmentCount,
+      attachmentDetails: emailInfo.attachmentDetails,
+      emailHeaders: JSON.parse(emailInfo.emailHeaders || '{}'),
+      priority: emailInfo.priority,
+      emailDate: new Date(emailInfo.emailDate),
+      receivedAt: new Date(emailInfo.receivedAt)
+    });
+  }
+
   private async saveEmailToInbox(tenantId: string, email: IncomingEmail): Promise<string> {
     // Extract priority from subject/content
     const priority = this.determinePriority(email.subject, email.body);

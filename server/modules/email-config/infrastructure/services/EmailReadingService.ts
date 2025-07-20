@@ -533,7 +533,7 @@ export class EmailReadingService {
                 
                 // Save to database using EmailProcessingService
                 const emailProcessingService = new EmailProcessingService();
-                await emailProcessingService.processAndSaveInbox(tenantId, emailInfo);
+                await emailProcessingService.saveInboxMessage(tenantId, emailInfo);
                 
                 emailsProcessed++;
                 if (emailsProcessed === latest5.length) {
