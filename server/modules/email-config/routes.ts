@@ -83,4 +83,23 @@ router.put('/inbox/:messageId/read', (req, res) => emailConfigController.markInb
 // POST /api/email-config/inbox/:messageId/create-rule - Create rule from message
 router.post('/inbox/:messageId/create-rule', (req, res) => emailConfigController.createRuleFromInboxMessage(req, res));
 
+// ========== EMAIL PROCESSING LOGS ROUTES ==========
+
+// GET /api/email-config/logs - Get processing logs
+router.get('/logs', (req, res) => emailConfigController.getProcessingLogs(req, res));
+
+// ========== EMAIL SIGNATURES ROUTES ==========
+
+// GET /api/email-config/signatures - Get email signatures
+router.get('/signatures', (req, res) => emailConfigController.getEmailSignatures(req, res));
+
+// POST /api/email-config/signatures - Create email signature
+router.post('/signatures', (req, res) => emailConfigController.createEmailSignature(req, res));
+
+// PUT /api/email-config/signatures/:signatureId - Update email signature
+router.put('/signatures/:signatureId', (req, res) => emailConfigController.updateEmailSignature(req, res));
+
+// DELETE /api/email-config/signatures/:signatureId - Delete email signature
+router.delete('/signatures/:signatureId', (req, res) => emailConfigController.deleteEmailSignature(req, res));
+
 export default router;

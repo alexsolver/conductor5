@@ -77,6 +77,24 @@ const emailTemplateSchema = z.object({
   trackClicks: z.boolean().default(false),
 });
 
+const emailSignatureSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  supportGroup: z.string().min(1, 'Grupo de atendimento é obrigatório'),
+  signatureHtml: z.string().optional(),
+  signatureText: z.string().optional(),
+  isDefault: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  contactName: z.string().optional(),
+  contactTitle: z.string().optional(),
+  contactPhone: z.string().optional(),
+  contactEmail: z.string().optional(),
+  companyName: z.string().optional(),
+  companyWebsite: z.string().optional(),
+  companyAddress: z.string().optional(),
+  logoUrl: z.string().optional(),
+});
+
 interface EmailRule {
   id: string;
   name: string;
@@ -141,13 +159,54 @@ interface InboxMessage {
   processedAt?: string;
 }
 
+interface ProcessingLog {
+  id: string;
+  tenantId: string;
+  messageId?: string;
+  emailFrom?: string;
+  emailSubject?: string;
+  processedAt?: string;
+  ruleId?: string;
+  actionTaken?: string;
+  ticketId?: string;
+  processingStatus: string;
+  errorMessage?: string;
+  processingTimeMs?: number;
+  metadata: Record<string, any>;
+}
+
+interface EmailSignature {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  supportGroup: string;
+  signatureHtml?: string;
+  signatureText?: string;
+  isDefault: boolean;
+  isActive: boolean;
+  contactName?: string;
+  contactTitle?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  companyAddress?: string;
+  logoUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function EmailConfiguration() {
   const [activeTab, setActiveTab] = useState('inbox');
   const [selectedRule, setSelectedRule] = useState<EmailRule | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [selectedInboxMessage, setSelectedInboxMessage] = useState<InboxMessage | null>(null);
+  const [selectedSignature, setSelectedSignature] = useState<EmailSignature | null>(null);
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
+  const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
   const [isCreateRuleFromMessageDialogOpen, setIsCreateRuleFromMessageDialogOpen] = useState(false);
   const [testEmail, setTestEmail] = useState({
@@ -204,6 +263,27 @@ export default function EmailConfiguration() {
     }
   });
 
+  const signatureForm = useForm({
+    resolver: zodResolver(emailSignatureSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      supportGroup: '',
+      signatureHtml: '',
+      signatureText: '',
+      isDefault: false,
+      isActive: true,
+      contactName: '',
+      contactTitle: '',
+      contactPhone: '',
+      contactEmail: '',
+      companyName: '',
+      companyWebsite: '',
+      companyAddress: '',
+      logoUrl: '',
+    }
+  });
+
   // Queries
   const { data: inboxMessages = [], isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
     queryKey: ['/api/email-config/inbox'],
@@ -250,6 +330,25 @@ export default function EmailConfiguration() {
       return data.data || null;
     },
     refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
+  const { data: processingLogs = [], isLoading: logsLoading } = useQuery({
+    queryKey: ['/api/email-config/logs'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/email-config/logs?limit=100');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: showLogsDialog
+  });
+
+  const { data: emailSignatures = [], isLoading: signaturesLoading } = useQuery({
+    queryKey: ['/api/email-config/signatures'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/email-config/signatures');
+      const data = await response.json();
+      return data.data || [];
+    }
   });
 
   // Mutations
@@ -419,6 +518,52 @@ export default function EmailConfiguration() {
     }
   });
 
+  const createSignatureMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/email-config/signatures', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Assinatura criada com sucesso' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/signatures'] });
+      setIsSignatureDialogOpen(false);
+      signatureForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const updateSignatureMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest('PUT', `/api/email-config/signatures/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Assinatura atualizada com sucesso' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/signatures'] });
+      setIsSignatureDialogOpen(false);
+      setSelectedSignature(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const deleteSignatureMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/email-config/signatures/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Assinatura excluída com sucesso' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/signatures'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
   // Handlers
   const handleCreateRule = () => {
     setSelectedRule(null);
@@ -506,6 +651,26 @@ export default function EmailConfiguration() {
     });
   };
 
+  const handleCreateSignature = () => {
+    setSelectedSignature(null);
+    signatureForm.reset();
+    setIsSignatureDialogOpen(true);
+  };
+
+  const handleEditSignature = (signature: EmailSignature) => {
+    setSelectedSignature(signature);
+    signatureForm.reset(signature);
+    setIsSignatureDialogOpen(true);
+  };
+
+  const onSubmitSignature = (data: any) => {
+    if (selectedSignature) {
+      updateSignatureMutation.mutate({ id: selectedSignature.id, data });
+    } else {
+      createSignatureMutation.mutate(data);
+    }
+  };
+
   const actionTypeOptions = [
     { value: 'create_ticket', label: 'Criar Ticket' },
     { value: 'update_ticket', label: 'Atualizar Ticket' },
@@ -527,6 +692,17 @@ export default function EmailConfiguration() {
     { value: 'medium', label: 'Média' },
     { value: 'high', label: 'Alta' },
     { value: 'urgent', label: 'Urgente' }
+  ];
+
+  const supportGroupOptions = [
+    { value: 'suporte_tecnico', label: 'Suporte Técnico' },
+    { value: 'atendimento_geral', label: 'Atendimento Geral' },
+    { value: 'comercial', label: 'Comercial' },
+    { value: 'financeiro', label: 'Financeiro' },
+    { value: 'recursos_humanos', label: 'Recursos Humanos' },
+    { value: 'diretoria', label: 'Diretoria' },
+    { value: 'marketing', label: 'Marketing' },
+    { value: 'produto', label: 'Produto' }
   ];
 
   return (
@@ -754,10 +930,16 @@ export default function EmailConfiguration() {
         <TabsContent value="rules" className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">Regras de Processamento de Email</h2>
-            <Button onClick={handleCreateRule}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Regra
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowLogsDialog(true)}>
+                <Eye className="w-4 h-4 mr-2" />
+                Ver Logs de Processamento
+              </Button>
+              <Button onClick={handleCreateRule}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Regra
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-4">
@@ -882,13 +1064,122 @@ export default function EmailConfiguration() {
         <TabsContent value="templates" className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">Templates de Resposta</h2>
-            <Button onClick={handleCreateTemplate}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Template
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleCreateSignature}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Assinatura
+              </Button>
+              <Button onClick={handleCreateTemplate}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Template
+              </Button>
+            </div>
           </div>
 
-          <div className="grid gap-4">
+          {/* Email Signatures Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Assinaturas de Email por Grupo de Atendimento</h3>
+            {signaturesLoading ? (
+              <div className="text-center py-4">Carregando assinaturas...</div>
+            ) : emailSignatures.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-6">
+                    <Edit className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <h4 className="font-medium mb-2">Nenhuma assinatura configurada</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Configure assinaturas específicas para cada grupo de atendimento
+                    </p>
+                    <Button onClick={handleCreateSignature}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar Primeira Assinatura
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-3">
+                {emailSignatures.map((signature: EmailSignature) => (
+                  <Card key={signature.id}>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center gap-2 text-base">
+                            {signature.name}
+                            <Badge variant={signature.isActive ? 'default' : 'secondary'}>
+                              {signature.isActive ? 'Ativa' : 'Inativa'}
+                            </Badge>
+                            {signature.isDefault && (
+                              <Badge variant="destructive">Padrão</Badge>
+                            )}
+                            <Badge variant="outline">
+                              {supportGroupOptions.find(g => g.value === signature.supportGroup)?.label || signature.supportGroup}
+                            </Badge>
+                          </CardTitle>
+                          {signature.description && (
+                            <CardDescription className="text-sm">{signature.description}</CardDescription>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditSignature(signature)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteSignatureMutation.mutate(signature.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="font-medium">Contato:</span>
+                          <p className="text-muted-foreground">{signature.contactName || 'Não definido'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Cargo:</span>
+                          <p className="text-muted-foreground">{signature.contactTitle || 'Não definido'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Email:</span>
+                          <p className="text-muted-foreground">{signature.contactEmail || 'Não definido'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Telefone:</span>
+                          <p className="text-muted-foreground">{signature.contactPhone || 'Não definido'}</p>
+                        </div>
+                      </div>
+                      {signature.signatureText && (
+                        <div className="mt-3 pt-3 border-t">
+                          <span className="font-medium text-sm">Prévia da Assinatura:</span>
+                          <div className="mt-2 p-2 bg-muted rounded-md text-xs">
+                            <pre className="whitespace-pre-wrap">
+                              {signature.signatureText.substring(0, 150)}
+                              {signature.signatureText.length > 150 && '...'}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Templates Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Templates de Resposta Automática</h3>
+            <div className="grid gap-4">
+            
             {templatesLoading ? (
               <div className="text-center py-8">Carregando templates...</div>
             ) : emailTemplates.length === 0 ? (
@@ -1000,6 +1291,7 @@ export default function EmailConfiguration() {
                 ))}
               </div>
             )}
+          </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -1980,6 +2272,310 @@ export default function EmailConfiguration() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Signature Dialog */}
+      <Dialog open={isSignatureDialogOpen} onOpenChange={setIsSignatureDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedSignature ? 'Editar Assinatura' : 'Nova Assinatura de Email'}
+            </DialogTitle>
+            <DialogDescription>
+              Configure assinaturas específicas para grupos de atendimento
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...signatureForm}>
+            <form onSubmit={signatureForm.handleSubmit(onSubmitSignature)} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={signatureForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Assinatura</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Assinatura Suporte Técnico" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signatureForm.control}
+                  name="supportGroup"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo de Atendimento</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o grupo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {supportGroupOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={signatureForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Descrição opcional da assinatura"
+                        rows={2}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={signatureForm.control}
+                  name="contactName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Contato</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: João Silva" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signatureForm.control}
+                  name="contactTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cargo/Função</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Analista de Suporte" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signatureForm.control}
+                  name="contactEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: joao@empresa.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signatureForm.control}
+                  name="contactPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: (11) 99999-9999" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={signatureForm.control}
+                name="signatureText"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assinatura em Texto</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Atenciosamente,&#10;João Silva&#10;Analista de Suporte&#10;joao@empresa.com&#10;(11) 99999-9999"
+                        rows={6}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Versão em texto simples da assinatura para emails não-HTML
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={signatureForm.control}
+                  name="isDefault"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Assinatura Padrão</FormLabel>
+                        <FormDescription>
+                          Usar como padrão para o grupo
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signatureForm.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Ativa</FormLabel>
+                        <FormDescription>
+                          Assinatura disponível para uso
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsSignatureDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createSignatureMutation.isPending || updateSignatureMutation.isPending}
+                >
+                  {selectedSignature ? 'Atualizar' : 'Criar'} Assinatura
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Processing Logs Dialog */}
+      <Dialog open={showLogsDialog} onOpenChange={setShowLogsDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Logs de Processamento de Email</DialogTitle>
+            <DialogDescription>
+              Visualize o histórico de processamento das regras de email
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {logsLoading ? (
+              <div className="text-center py-8">Carregando logs...</div>
+            ) : processingLogs.length === 0 ? (
+              <div className="text-center py-8">
+                <Eye className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">Nenhum log encontrado</h3>
+                <p className="text-muted-foreground">
+                  Os logs aparecerão aqui quando as regras processarem emails
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {processingLogs.map((log: any, index: number) => (
+                  <Card key={index}>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center gap-2 text-base">
+                            {log.subject || 'Sem assunto'}
+                            <Badge variant={log.success ? 'default' : 'destructive'}>
+                              {log.success ? 'Sucesso' : 'Falha'}
+                            </Badge>
+                            {log.ruleMatched && (
+                              <Badge variant="outline">
+                                Regra: {log.ruleMatched}
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          <CardDescription className="text-sm">
+                            De: {log.fromEmail} | {new Date(log.processedAt).toLocaleString('pt-BR')}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="font-medium">Ação Executada:</span>
+                          <p className="text-muted-foreground">{log.actionTaken || 'Nenhuma'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Tempo de Processamento:</span>
+                          <p className="text-muted-foreground">{log.processingTime || '0'}ms</p>
+                        </div>
+                      </div>
+                      {log.error && (
+                        <div className="mt-3 pt-3 border-t">
+                          <span className="font-medium text-sm text-red-600">Erro:</span>
+                          <div className="mt-2 p-2 bg-red-50 rounded-md text-xs text-red-800">
+                            {log.error}
+                          </div>
+                        </div>
+                      )}
+                      {log.ticketCreated && (
+                        <div className="mt-3 pt-3 border-t">
+                          <span className="font-medium text-sm text-green-600">Ticket Criado:</span>
+                          <p className="text-sm text-green-700">{log.ticketCreated}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLogsDialog(false)}
+            >
+              Fechar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -67,6 +67,10 @@ export const emailResponseTemplates = pgTable("email_response_templates", {
   languageCode: varchar("language_code", { length: 10 }).default('en'),
   variableMapping: jsonb("variable_mapping").default({}), 
   
+  // Email signature settings
+  signatureId: uuid("signature_id"),
+  includeSignature: boolean("include_signature").default(true),
+  
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -112,6 +116,44 @@ export const emailInboxMessages = pgTable("email_inbox_messages", {
   emailDate: timestamp("email_date"),
   receivedAt: timestamp("received_at").defaultNow(),
   processedAt: timestamp("processed_at"),
+});
+
+// Email Signatures - Store signatures for different support groups
+export const emailSignatures = pgTable("email_signatures", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Signature identification
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  supportGroup: varchar("support_group", { length: 100 }).notNull(),
+  
+  // Signature content
+  signatureHtml: text("signature_html"),
+  signatureText: text("signature_text"),
+  
+  // Settings
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  
+  // Contact information
+  contactName: varchar("contact_name", { length: 255 }),
+  contactTitle: varchar("contact_title", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 50 }),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  
+  // Company information
+  companyName: varchar("company_name", { length: 255 }),
+  companyWebsite: varchar("company_website", { length: 255 }),
+  companyAddress: text("company_address"),
+  
+  // Branding
+  logoUrl: varchar("logo_url", { length: 500 }),
+  brandColors: jsonb("brand_colors").default({}),
+  socialLinks: jsonb("social_links").default({}),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Email Processing Logs - Track processed emails for debugging  
@@ -168,6 +210,14 @@ export const insertEmailInboxMessageSchema = createInsertSchema(emailInboxMessag
 
 export const updateEmailInboxMessageSchema = insertEmailInboxMessageSchema.partial();
 
+export const insertEmailSignatureSchema = createInsertSchema(emailSignatures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateEmailSignatureSchema = insertEmailSignatureSchema.partial();
+
 // TypeScript types
 export type EmailProcessingRule = typeof emailProcessingRules.$inferSelect;
 export type InsertEmailProcessingRule = z.infer<typeof insertEmailProcessingRuleSchema>;
@@ -181,12 +231,12 @@ export type EmailResponseTemplate = typeof emailResponseTemplates.$inferSelect;
 export type InsertEmailResponseTemplate = z.infer<typeof insertEmailResponseTemplateSchema>;
 export type UpdateEmailResponseTemplate = z.infer<typeof updateEmailResponseTemplateSchema>;
 
-export type EmailResponseTemplate = typeof emailResponseTemplates.$inferSelect;
-export type InsertEmailResponseTemplate = z.infer<typeof insertEmailResponseTemplateSchema>;
-export type UpdateEmailResponseTemplate = z.infer<typeof updateEmailResponseTemplateSchema>;
-
 export type EmailProcessingLog = typeof emailProcessingLogs.$inferSelect;
 export type InsertEmailProcessingLog = z.infer<typeof insertEmailProcessingLogSchema>;
+
+export type EmailSignature = typeof emailSignatures.$inferSelect;
+export type InsertEmailSignature = z.infer<typeof insertEmailSignatureSchema>;
+export type UpdateEmailSignature = z.infer<typeof updateEmailSignatureSchema>;
 
 // Enums for validation
 export const actionTypes = [

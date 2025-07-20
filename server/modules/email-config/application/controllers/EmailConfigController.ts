@@ -709,4 +709,138 @@ export class EmailConfigController {
       });
     }
   }
+
+  // ========== EMAIL SIGNATURES ==========
+
+  async getEmailSignatures(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const { supportGroup, active } = req.query;
+
+      const options = {
+        supportGroup: supportGroup as string,
+        active: active === 'true' ? true : active === 'false' ? false : undefined
+      };
+
+      const repository = new DrizzleEmailConfigRepository();
+      const signatures = await repository.getEmailSignatures(tenantId, options);
+
+      res.json({ success: true, data: signatures });
+
+    } catch (error) {
+      console.error('Error fetching email signatures:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch email signatures',
+        error: error.message 
+      });
+    }
+  }
+
+  async createEmailSignature(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const signatureData = {
+        ...req.body,
+        tenantId
+      };
+
+      if (!signatureData.name || !signatureData.supportGroup) {
+        res.status(400).json({ message: 'name and supportGroup are required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const signature = await repository.createEmailSignature(tenantId, signatureData);
+
+      res.status(201).json({ 
+        success: true, 
+        data: signature,
+        message: 'Email signature created successfully'
+      });
+
+    } catch (error) {
+      console.error('Error creating email signature:', error);
+      res.status(500).json({ 
+        message: 'Failed to create email signature',
+        error: error.message 
+      });
+    }
+  }
+
+  async updateEmailSignature(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { signatureId } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const signature = await repository.updateEmailSignature(tenantId, signatureId, req.body);
+
+      if (!signature) {
+        res.status(404).json({ message: 'Email signature not found' });
+        return;
+      }
+
+      res.json({ 
+        success: true, 
+        data: signature,
+        message: 'Email signature updated successfully'
+      });
+
+    } catch (error) {
+      console.error('Error updating email signature:', error);
+      res.status(500).json({ 
+        message: 'Failed to update email signature',
+        error: error.message 
+      });
+    }
+  }
+
+  async deleteEmailSignature(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { signatureId } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const deleted = await repository.deleteEmailSignature(tenantId, signatureId);
+
+      if (!deleted) {
+        res.status(404).json({ message: 'Email signature not found' });
+        return;
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Email signature deleted successfully'
+      });
+
+    } catch (error) {
+      console.error('Error deleting email signature:', error);
+      res.status(500).json({ 
+        message: 'Failed to delete email signature',
+        error: error.message 
+      });
+    }
+  }
 }

@@ -5,7 +5,8 @@ import {
   emailProcessingRules,
   emailResponseTemplates,
   emailProcessingLogs,
-  emailInboxMessages
+  emailInboxMessages,
+  emailSignatures
 } from '../../../../../shared/schema/email-config';
 import { schemaManager } from '../../../../db';
 
@@ -389,6 +390,202 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       UPDATE email_inbox_messages 
       SET is_read = true 
       WHERE tenant_id = ${tenantId} AND id = ${messageId}
+    `);
+    
+    return result.rowCount > 0;
+  }
+
+  // Email Processing Logs Methods
+  async getProcessingLogs(tenantId: string, options?: { 
+    limit?: number; 
+    offset?: number; 
+    ruleId?: string;
+    status?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }): Promise<any[]> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      SELECT 
+        epl.*,
+        epr.name as rule_name
+      FROM email_processing_logs epl
+      LEFT JOIN email_processing_rules epr ON epl.rule_id = epr.id
+      WHERE epl.tenant_id = ${tenantId}
+      ${options?.ruleId ? sql`AND epl.rule_id = ${options.ruleId}` : sql``}
+      ${options?.status ? sql`AND epl.processing_status = ${options.status}` : sql``}
+      ${options?.dateFrom ? sql`AND epl.processed_at >= ${options.dateFrom.toISOString()}` : sql``}
+      ${options?.dateTo ? sql`AND epl.processed_at <= ${options.dateTo.toISOString()}` : sql``}
+      ORDER BY epl.processed_at DESC
+      ${options?.limit ? sql`LIMIT ${options.limit}` : sql``}
+      ${options?.offset ? sql`OFFSET ${options.offset}` : sql``}
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      messageId: row.message_id,
+      emailFrom: row.email_from,
+      emailSubject: row.email_subject,
+      processedAt: row.processed_at,
+      ruleId: row.rule_id,
+      ruleName: row.rule_name,
+      actionTaken: row.action_taken,
+      ticketId: row.ticket_id,
+      processingStatus: row.processing_status,
+      errorMessage: row.error_message,
+      processingTimeMs: row.processing_time_ms,
+      metadata: row.metadata || {}
+    }));
+  }
+
+  async createProcessingLog(tenantId: string, logData: any): Promise<any> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      INSERT INTO email_processing_logs 
+      (tenant_id, message_id, email_from, email_subject, processed_at, rule_id, action_taken, ticket_id, processing_status, error_message, processing_time_ms, metadata)
+      VALUES (${tenantId}, ${logData.messageId}, ${logData.emailFrom}, ${logData.emailSubject}, ${logData.processedAt || new Date().toISOString()}, 
+              ${logData.ruleId}, ${logData.actionTaken}, ${logData.ticketId}, ${logData.processingStatus || 'processed'}, 
+              ${logData.errorMessage}, ${logData.processingTimeMs}, ${JSON.stringify(logData.metadata || {})})
+      RETURNING *
+    `);
+    
+    return result.rows[0];
+  }
+
+  // Email Signatures Methods
+  async getEmailSignatures(tenantId: string, options?: { 
+    supportGroup?: string; 
+    active?: boolean;
+  }): Promise<any[]> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      SELECT * FROM email_signatures 
+      WHERE tenant_id = ${tenantId}
+      ${options?.supportGroup ? sql`AND support_group = ${options.supportGroup}` : sql``}
+      ${options?.active !== undefined ? sql`AND is_active = ${options.active}` : sql``}
+      ORDER BY support_group, is_default DESC, name
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      name: row.name,
+      description: row.description,
+      supportGroup: row.support_group,
+      signatureHtml: row.signature_html,
+      signatureText: row.signature_text,
+      isDefault: row.is_default,
+      isActive: row.is_active,
+      contactName: row.contact_name,
+      contactTitle: row.contact_title,
+      contactPhone: row.contact_phone,
+      contactEmail: row.contact_email,
+      companyName: row.company_name,
+      companyWebsite: row.company_website,
+      companyAddress: row.company_address,
+      logoUrl: row.logo_url,
+      brandColors: row.brand_colors || {},
+      socialLinks: row.social_links || {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+  }
+
+  async createEmailSignature(tenantId: string, signatureData: any): Promise<any> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      INSERT INTO email_signatures 
+      (tenant_id, name, description, support_group, signature_html, signature_text, is_default, is_active,
+       contact_name, contact_title, contact_phone, contact_email, company_name, company_website, 
+       company_address, logo_url, brand_colors, social_links)
+      VALUES (${tenantId}, ${signatureData.name}, ${signatureData.description}, ${signatureData.supportGroup},
+              ${signatureData.signatureHtml}, ${signatureData.signatureText}, ${signatureData.isDefault || false}, 
+              ${signatureData.isActive !== false}, ${signatureData.contactName}, ${signatureData.contactTitle},
+              ${signatureData.contactPhone}, ${signatureData.contactEmail}, ${signatureData.companyName},
+              ${signatureData.companyWebsite}, ${signatureData.companyAddress}, ${signatureData.logoUrl},
+              ${JSON.stringify(signatureData.brandColors || {})}, ${JSON.stringify(signatureData.socialLinks || {})})
+      RETURNING *
+    `);
+    
+    return result.rows[0];
+  }
+
+  async updateEmailSignature(tenantId: string, signatureId: string, signatureData: any): Promise<any> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const setParts = [];
+    const values = [];
+    
+    if (signatureData.name !== undefined) {
+      setParts.push('name = $' + (values.length + 1));
+      values.push(signatureData.name);
+    }
+    if (signatureData.description !== undefined) {
+      setParts.push('description = $' + (values.length + 1));
+      values.push(signatureData.description);
+    }
+    if (signatureData.supportGroup !== undefined) {
+      setParts.push('support_group = $' + (values.length + 1));
+      values.push(signatureData.supportGroup);
+    }
+    if (signatureData.signatureHtml !== undefined) {
+      setParts.push('signature_html = $' + (values.length + 1));
+      values.push(signatureData.signatureHtml);
+    }
+    if (signatureData.signatureText !== undefined) {
+      setParts.push('signature_text = $' + (values.length + 1));
+      values.push(signatureData.signatureText);
+    }
+    if (signatureData.isDefault !== undefined) {
+      setParts.push('is_default = $' + (values.length + 1));
+      values.push(signatureData.isDefault);
+    }
+    if (signatureData.isActive !== undefined) {
+      setParts.push('is_active = $' + (values.length + 1));
+      values.push(signatureData.isActive);
+    }
+    
+    setParts.push('updated_at = NOW()');
+    
+    const result = await tenantDb.execute(sql`
+      UPDATE email_signatures 
+      SET ${sql.raw(setParts.join(', '))}
+      WHERE tenant_id = ${tenantId} AND id = ${signatureId}
+      RETURNING *
+    `);
+    
+    return result.rows[0];
+  }
+
+  async deleteEmailSignature(tenantId: string, signatureId: string): Promise<boolean> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      DELETE FROM email_signatures 
+      WHERE tenant_id = ${tenantId} AND id = ${signatureId}
     `);
     
     return result.rowCount > 0;

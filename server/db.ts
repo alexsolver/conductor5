@@ -458,6 +458,73 @@ export class SchemaManager {
         CREATE INDEX IF NOT EXISTS email_logs_tenant_received_idx ON ${schemaId}.email_processing_logs (tenant_id, received_at DESC)
       `);
 
+      // Create email signatures table
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_signatures (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          support_group VARCHAR(100) NOT NULL,
+          signature_html TEXT,
+          signature_text TEXT,
+          is_default BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          contact_name VARCHAR(255),
+          contact_title VARCHAR(255),
+          contact_phone VARCHAR(50),
+          contact_email VARCHAR(255),
+          company_name VARCHAR(255),
+          company_website VARCHAR(255),
+          company_address TEXT,
+          logo_url VARCHAR(500),
+          brand_colors JSONB DEFAULT '{}',
+          social_links JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_signatures_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      // Create email inbox messages table
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_inbox_messages (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          message_id VARCHAR(255) UNIQUE,
+          thread_id VARCHAR(255),
+          from_email VARCHAR(255) NOT NULL,
+          from_name VARCHAR(255),
+          to_email VARCHAR(255),
+          cc_emails TEXT,
+          bcc_emails TEXT,
+          subject TEXT,
+          body_text TEXT,
+          body_html TEXT,
+          has_attachments BOOLEAN DEFAULT false,
+          attachment_count INTEGER DEFAULT 0,
+          attachment_details JSONB DEFAULT '[]',
+          email_headers JSONB DEFAULT '{}',
+          priority VARCHAR(20) DEFAULT 'normal',
+          is_read BOOLEAN DEFAULT false,
+          is_processed BOOLEAN DEFAULT false,
+          rule_matched UUID,
+          ticket_created UUID,
+          email_date TIMESTAMP,
+          received_at TIMESTAMP DEFAULT NOW(),
+          processed_at TIMESTAMP,
+          CONSTRAINT email_inbox_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      // Add indexes for new tables
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_signatures_tenant_group_idx ON ${schemaId}.email_signatures (tenant_id, support_group)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_inbox_tenant_received_idx ON ${schemaId}.email_inbox_messages (tenant_id, received_at DESC)
+      `);
+
       const { logInfo } = await import('./utils/logger');
       logInfo(`Email configuration tables created for schema ${schemaName}`);
     } catch (error) {
