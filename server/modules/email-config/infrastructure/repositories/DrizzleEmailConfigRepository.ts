@@ -43,11 +43,16 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     }
 
     console.log('DEBUG: About to execute Drizzle query...');
-    return tenantDb
+    const result = await tenantDb
       .select()
       .from(emailProcessingRules)
       .where(and(...conditions))
       .orderBy(desc(emailProcessingRules.priority));
+    
+    console.log('DEBUG: Query executed, result count:', result.length);
+    console.log('DEBUG: Query result sample:', result.slice(0, 1));
+    
+    return result;
   }
 
   async getEmailRuleById(tenantId: string, ruleId: string): Promise<EmailProcessingRule | null> {
