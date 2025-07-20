@@ -34,7 +34,7 @@ import {
   MessageCircleMore,
   Clock
 } from 'lucide-react';
-import type { OmnibridgeChannel, OmnibridgeMessage, ProcessingRule } from '@/types/omnibridge';
+import type { OmnibridgeChannel, OmnibridgeInboxMessage as OmnibridgeMessage, OmnibridgeProcessingRule as ProcessingRule } from '@shared/schema';
 
 const getChannelIcon = (channelType: string) => {
   switch (channelType) {
@@ -373,10 +373,10 @@ export default function OmniBridgeConfiguration() {
 
       {/* Dialog de Edição de Assinaturas */}
       <Dialog open={isSignatureDialogOpen} onOpenChange={setIsSignatureDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px]" aria-describedby="signature-dialog-description">
           <DialogHeader>
             <DialogTitle>Editar Assinaturas de Grupos</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="signature-dialog-description">
               Configure as assinaturas personalizadas para cada grupo de atendimento.
             </DialogDescription>
           </DialogHeader>

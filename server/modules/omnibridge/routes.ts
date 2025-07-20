@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import { OmnibridgeController } from './application/controllers/OmnibridgeController';
 import { EmailMonitoringService } from './services/EmailMonitoringService';
-import { jwtAuth } from '../../middleware/jwtAuth';
 
 const router = Router();
 const omnibridgeController = new OmnibridgeController();
 const emailMonitoringService = new EmailMonitoringService();
 
-// Apply authentication to all routes
-router.use(jwtAuth);
+// Authentication handled by main router in server/routes.ts - no need to double apply
 
 // =====================================================
 // EMAIL MONITORING
