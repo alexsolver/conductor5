@@ -72,6 +72,17 @@ export const tickets = pgTable("tickets", {
   beneficiaryType: varchar("beneficiary_type", { length: 20 }), // 'customer' or 'user'
   callerType: varchar("caller_type", { length: 20 }), // 'customer' or 'user'
   
+  // Integration with Project Actions System
+  relatedProjectId: uuid("related_project_id"), // Link to project if ticket came from action
+  relatedActionId: uuid("related_action_id"), // Link to specific action that generated this ticket
+  actionConversionData: jsonb("action_conversion_data").$type<{
+    originalActionType?: string;
+    projectName?: string;
+    actionTitle?: string;
+    convertedAt?: string;
+    convertedBy?: string;
+  }>().default({}),
+  
   // Ticket hierarchy and linking
   parentTicketId: uuid("parent_ticket_id").references(() => tickets.id), // For ticket hierarchy
   relatedTicketIds: jsonb("related_ticket_ids").default([]), // For linked tickets

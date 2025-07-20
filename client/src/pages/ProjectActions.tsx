@@ -59,6 +59,17 @@ interface ProjectAction {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  
+  // Integration with Tickets System
+  relatedTicketId?: string;
+  canConvertToTicket?: string;
+  ticketConversionRules?: {
+    autoConvert?: boolean;
+    triggerOnStatus?: string[];
+    assignToSameUser?: boolean;
+    inheritPriority?: boolean;
+    copyAttachments?: boolean;
+  };
 }
 
 interface Project {
@@ -189,12 +200,46 @@ export default function ProjectActions() {
     }
   });
 
+  // Convert action to ticket mutation
+  const convertToTicketMutation = useMutation({
+    mutationFn: async (actionId: string) => {
+      return apiRequest(`/api/project-actions/${actionId}/convert-to-ticket`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/actions'] });
+      toast({
+        title: "Sucesso",
+        description: `Ação convertida para ticket ${data.ticketId} com sucesso`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao converter ação para ticket",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Get integration suggestions query
+  const { data: integrationSuggestions } = useQuery({
+    queryKey: ['/api/project-actions/integration-suggestions'],
+    queryFn: () => apiRequest('/api/project-actions/integration-suggestions'),
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
   const handleCreateAction = (data: CreateActionFormData) => {
     createActionMutation.mutate(data);
   };
 
   const handleStatusUpdate = (actionId: string, status: string) => {
     updateActionStatusMutation.mutate({ actionId, status });
+  };
+
+  const handleConvertToTicket = (actionId: string) => {
+    convertToTicketMutation.mutate(actionId);
   };
 
   // Filter actions
@@ -240,7 +285,19 @@ export default function ProjectActions() {
           </p>
         </div>
         
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <div className="flex gap-3">
+          {/* Integration Suggestions Button */}
+          {integrationSuggestions && (
+            <Button
+              variant="outline"
+              className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 hover:from-orange-100 hover:to-orange-200"
+            >
+              <Zap className="h-4 w-4 mr-2 text-orange-600" />
+              Sugestões ({integrationSuggestions.summary.autoConvertCandidates + integrationSuggestions.summary.blockedActions})
+            </Button>
+          )}
+          
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -433,7 +490,69 @@ export default function ProjectActions() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Integration Statistics */}
+      {integrationSuggestions && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-700 text-sm font-medium">Conversão Automática</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {integrationSuggestions.summary.autoConvertCandidates}
+                  </p>
+                </div>
+                <ArrowRight className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-red-700 text-sm font-medium">Ações Bloqueadas</p>
+                  <p className="text-2xl font-bold text-red-900">
+                    {integrationSuggestions.summary.blockedActions}
+                  </p>
+                </div>
+                <AlertCircle className="h-8 w-8 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-yellow-700 text-sm font-medium">Ações Atrasadas</p>
+                  <p className="text-2xl font-bold text-yellow-900">
+                    {integrationSuggestions.summary.overdueActions}
+                  </p>
+                </div>
+                <Clock className="h-8 w-8 text-yellow-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-700 text-sm font-medium">Tickets Ligados</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {actions.filter(a => a.relatedTicketId).length}
+                  </p>
+                </div>
+                <Link2 className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -581,6 +700,26 @@ export default function ProjectActions() {
                           >
                             Concluir
                           </Button>
+                        )}
+                        
+                        {/* Integration with Tickets */}
+                        {!action.relatedTicketId && action.canConvertToTicket !== 'false' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                            onClick={() => handleConvertToTicket(action.id)}
+                          >
+                            <ArrowRight className="w-3 h-3 mr-1" />
+                            Ticket
+                          </Button>
+                        )}
+                        
+                        {action.relatedTicketId && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Link2 className="w-3 h-3 mr-1" />
+                            Ticket: #{action.relatedTicketId.slice(-6)}
+                          </Badge>
                         )}
                       </div>
                     </CardContent>

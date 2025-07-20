@@ -120,6 +120,17 @@ export const projectActions = pgTable('project_actions', {
   attachments: jsonb('attachments').$type<string[]>().notNull().default([]),
   notes: text('notes'),
   
+  // Integration with Tickets System
+  relatedTicketId: uuid('related_ticket_id'), // Link to ticket if action becomes operational
+  canConvertToTicket: varchar('can_convert_to_ticket', { length: 10 }).notNull().default('true'), // true/false
+  ticketConversionRules: jsonb('ticket_conversion_rules').$type<{
+    autoConvert?: boolean;
+    triggerOnStatus?: string[];
+    assignToSameUser?: boolean;
+    inheritPriority?: boolean;
+    copyAttachments?: boolean;
+  }>().default({}),
+  
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   createdBy: uuid('created_by').notNull(),

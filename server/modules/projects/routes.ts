@@ -1,10 +1,12 @@
 
 import { Router } from 'express';
 import { ProjectController } from './application/controllers/ProjectController';
+import { ProjectActionIntegrationController } from './application/controllers/ProjectActionIntegrationController';
 import { jwtAuth } from '../../middleware/jwtAuth';
 
 const router = Router();
 const projectController = new ProjectController();
+const integrationController = new ProjectActionIntegrationController();
 
 // Projects
 router.post('/projects', jwtAuth, (req, res) => projectController.createProject(req, res));
@@ -23,5 +25,13 @@ router.get('/actions/:id', jwtAuth, (req, res) => projectController.getAction(re
 router.put('/actions/:id', jwtAuth, (req, res) => projectController.updateAction(req, res));
 router.delete('/actions/:id', jwtAuth, (req, res) => projectController.deleteAction(req, res));
 router.get('/actions/:id/dependencies', jwtAuth, (req, res) => projectController.getActionDependencies(req, res));
+
+// Project Action - Ticket Integration Routes
+router.get('/project-actions/convertible', jwtAuth, (req, res) => integrationController.getConvertibleActions(req, res));
+router.post('/project-actions/:actionId/convert-to-ticket', jwtAuth, (req, res) => integrationController.convertActionToTicket(req, res));
+router.get('/project-actions/integration-suggestions', jwtAuth, (req, res) => integrationController.getIntegrationSuggestions(req, res));
+router.put('/project-actions/:actionId/conversion-rules', jwtAuth, (req, res) => integrationController.updateConversionRules(req, res));
+router.get('/project-actions/linked-tickets', jwtAuth, (req, res) => integrationController.getLinkedTickets(req, res));
+router.post('/project-actions/bulk-convert', jwtAuth, (req, res) => integrationController.bulkConvertActions(req, res));
 
 export default router;
