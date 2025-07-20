@@ -52,6 +52,7 @@ const baseNavigation = [
     icon: Folder,
     children: [
       { name: "Gestão de Projetos", href: "/projects", icon: FolderOpen },
+      { name: "Ações de Projeto", href: "/project-actions", icon: Activity },
       { name: "Roadmap", href: "/roadmap", icon: Map },
     ]
   },

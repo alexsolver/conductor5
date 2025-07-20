@@ -49,6 +49,7 @@ import TicketTemplates from "./pages/TicketTemplates";
 import EmailConfiguration from "./pages/EmailConfiguration";
 // Removed: ExternalContactsManagement - functionality eliminated
 import Projects from "./pages/Projects"; // Import the Projects component
+import ProjectActions from "./pages/ProjectActions"; // Import the Project Actions component
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -119,6 +120,7 @@ function AppRouter() {
         <Route path="/layouts" component={TemplateSelector} />
         <Route path="/internal-forms" component={InternalForms} />
         <Route path="/projects" component={Projects} />
+        <Route path="/project-actions" component={ProjectActions} />
         <Route path="/email-config" component={EmailConfiguration} />
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />

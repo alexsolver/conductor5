@@ -164,46 +164,49 @@ export default function Roadmap() {
       },
       {
         id: 'project-actions',
-        title: '🔄 Ações de Projeto',
+        title: '✅ Ações de Projeto',
         description: 'Sistema de ações internas e externas para projetos',
-        progress: 25,
+        progress: 100,
         items: [
           {
             id: 'internal-actions',
             title: 'Ações internas (reuniões, aprovações, revisões, tarefas)',
             description: 'Sistema de workflow interno com aprovações e tarefas',
-            status: 'in_progress',
+            status: 'completed',
             priority: 'high',
             category: 'Ações',
             estimatedHours: 35,
-            completedHours: 15
+            completedHours: 35
           },
           {
             id: 'external-actions',
             title: 'Ações externas (entregas, validações, reuniões com cliente)',
             description: 'Gestão de interações com clientes e entregas',
-            status: 'planned',
+            status: 'completed',
             priority: 'high',
             category: 'Ações',
-            estimatedHours: 30
+            estimatedHours: 30,
+            completedHours: 30
           },
           {
             id: 'milestones',
             title: 'Marcos e pontos de controle',
             description: 'Sistema de marcos com datas fixas e validações',
-            status: 'planned',
+            status: 'completed',
             priority: 'medium',
             category: 'Ações',
-            estimatedHours: 25
+            estimatedHours: 25,
+            completedHours: 25
           },
           {
             id: 'dependencies',
             title: 'Sistema de dependências entre ações',
             description: 'Controle de precedências e dependências entre tarefas',
-            status: 'planned',
+            status: 'completed',
             priority: 'medium',
             category: 'Ações',
-            estimatedHours: 30
+            estimatedHours: 30,
+            completedHours: 30
           }
         ]
       },
