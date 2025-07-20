@@ -1,4 +1,3 @@
-
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { IEmailConfigRepository } from '../../domain/repositories/IEmailConfigRepository';
 import { EmailProcessingRule, EmailResponseTemplate } from '../../domain/entities/EmailProcessingRule';
@@ -13,9 +12,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   
   async createEmailRule(tenantId: string, rule: Omit<EmailProcessingRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<EmailProcessingRule> {
     const storage = await getStorage();
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const insertedRule = await storage.db.insert(emailProcessingRules).values({
+    const insertedRule = await tenantDb.insert(emailProcessingRules).values({
       ...rule,
       tenantId,
     }).returning();
@@ -25,6 +24,7 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async getEmailRules(tenantId: string, options?: { active?: boolean }): Promise<EmailProcessingRule[]> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
     let conditions = [eq(emailProcessingRules.tenantId, tenantId)];
     
@@ -32,7 +32,7 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       conditions.push(eq(emailProcessingRules.isActive, options.active));
     }
 
-    return storage.db
+    return tenantDb
       .select()
       .from(emailProcessingRules)
       .where(and(...conditions))
@@ -41,8 +41,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async getEmailRuleById(tenantId: string, ruleId: string): Promise<EmailProcessingRule | null> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const result = await storage.db
+    const result = await tenantDb
       .select()
       .from(emailProcessingRules)
       .where(
@@ -57,8 +58,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async updateEmailRule(tenantId: string, ruleId: string, updates: Partial<EmailProcessingRule>): Promise<EmailProcessingRule | null> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const result = await storage.db
+    const result = await tenantDb
       .update(emailProcessingRules)
       .set({
         ...updates,
@@ -77,8 +79,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async deleteEmailRule(tenantId: string, ruleId: string): Promise<boolean> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const result = await storage.db
+    const result = await tenantDb
       .delete(emailProcessingRules)
       .where(
         and(
@@ -92,8 +95,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async createResponseTemplate(tenantId: string, template: Omit<EmailResponseTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<EmailResponseTemplate> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const insertedTemplate = await storage.db.insert(emailResponseTemplates).values({
+    const insertedTemplate = await tenantDb.insert(emailResponseTemplates).values({
       ...template,
       tenantId,
     }).returning();
@@ -103,6 +107,7 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async getResponseTemplates(tenantId: string, options?: { type?: string; active?: boolean }): Promise<EmailResponseTemplate[]> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
     let conditions = [eq(emailResponseTemplates.tenantId, tenantId)];
     
@@ -114,7 +119,7 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       conditions.push(eq(emailResponseTemplates.isActive, options.active));
     }
 
-    return storage.db
+    return tenantDb
       .select()
       .from(emailResponseTemplates)
       .where(and(...conditions))
@@ -123,8 +128,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async getResponseTemplateById(tenantId: string, templateId: string): Promise<EmailResponseTemplate | null> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const result = await storage.db
+    const result = await tenantDb
       .select()
       .from(emailResponseTemplates)
       .where(
@@ -139,8 +145,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async updateResponseTemplate(tenantId: string, templateId: string, updates: Partial<EmailResponseTemplate>): Promise<EmailResponseTemplate | null> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const result = await storage.db
+    const result = await tenantDb
       .update(emailResponseTemplates)
       .set({
         ...updates,
@@ -159,8 +166,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
 
   async deleteResponseTemplate(tenantId: string, templateId: string): Promise<boolean> {
     const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
-    const result = await storage.db
+    const result = await tenantDb
       .delete(emailResponseTemplates)
       .where(
         and(
@@ -172,23 +180,9 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     return result.rowCount > 0;
   }
 
-  async logEmailProcessing(tenantId: string, log: any): Promise<void> {
+  async getProcessingLogs(tenantId: string, options?: { limit?: number; offset?: number; status?: string; dateFrom?: Date; dateTo?: Date }): Promise<any[]> {
     const storage = await getStorage();
-    
-    await storage.db.insert(emailProcessingLogs).values({
-      ...log,
-      tenantId,
-    });
-  }
-
-  async getProcessingLogs(tenantId: string, options?: {
-    limit?: number;
-    offset?: number;
-    status?: string;
-    dateFrom?: Date;
-    dateTo?: Date;
-  }): Promise<any[]> {
-    const storage = await getStorage();
+    const { db: tenantDb } = await storage.getTenantDb(tenantId);
     
     let conditions = [eq(emailProcessingLogs.tenantId, tenantId)];
     
@@ -197,19 +191,27 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     }
     
     if (options?.dateFrom) {
-      conditions.push(sql`${emailProcessingLogs.receivedAt} >= ${options.dateFrom}`);
+      conditions.push(sql`${emailProcessingLogs.processedAt} >= ${options.dateFrom}`);
     }
     
     if (options?.dateTo) {
-      conditions.push(sql`${emailProcessingLogs.receivedAt} <= ${options.dateTo}`);
+      conditions.push(sql`${emailProcessingLogs.processedAt} <= ${options.dateTo}`);
     }
 
-    return storage.db
+    let query = tenantDb
       .select()
       .from(emailProcessingLogs)
       .where(and(...conditions))
-      .orderBy(desc(emailProcessingLogs.receivedAt))
-      .limit(options?.limit || 50)
-      .offset(options?.offset || 0);
+      .orderBy(desc(emailProcessingLogs.processedAt));
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+    
+    if (options?.offset) {
+      query = query.offset(options.offset);
+    }
+
+    return query;
   }
 }

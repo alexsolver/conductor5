@@ -1254,7 +1254,7 @@ export default function EmailConfiguration() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Use variáveis como {{ticket_number}}, {{customer_name}}, etc.
+                      Use variáveis como {`{{ticket_number}}, {{customer_name}}, etc.`}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
