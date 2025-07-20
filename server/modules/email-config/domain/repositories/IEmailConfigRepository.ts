@@ -41,4 +41,33 @@ export interface IEmailConfigRepository {
     dateFrom?: Date;
     dateTo?: Date;
   }): Promise<any[]>;
+  
+  // Email Inbox Management
+  saveInboxMessage(tenantId: string, message: {
+    messageId: string;
+    threadId?: string;
+    fromEmail: string;
+    fromName?: string;
+    toEmail: string;
+    ccEmails?: string[];
+    bccEmails?: string[];
+    subject: string;
+    bodyText: string;
+    bodyHtml?: string;
+    hasAttachments?: boolean;
+    attachmentCount?: number;
+    attachmentDetails?: any[];
+    emailHeaders?: Record<string, any>;
+    priority?: string;
+    emailDate: Date;
+    receivedAt: Date;
+  }): Promise<string>;
+  
+  getInboxMessages(tenantId: string, options?: {
+    limit?: number;
+    offset?: number;
+    unreadOnly?: boolean;
+    fromDate?: Date;
+    toDate?: Date;
+  }): Promise<any[]>;
 }

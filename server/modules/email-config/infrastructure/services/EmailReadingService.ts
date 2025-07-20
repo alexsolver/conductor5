@@ -29,11 +29,15 @@ export class EmailReadingService {
   private repository = new DrizzleEmailConfigRepository();
   private isMonitoring = false;
   private monitoringInterval: NodeJS.Timeout | null = null;
+  private currentTenantId: string | null = null;
 
   async startMonitoring(tenantId: string): Promise<void> {
     console.log(`🚀 Starting real email monitoring for tenant: ${tenantId}`);
 
     try {
+      // Import monitoring persistence
+      const { EmailMonitoringPersistence } = await import('./EmailMonitoringPersistence');
+
       // Get email integrations for this tenant
       const integrations = await this.repository.getEmailIntegrations(tenantId);
       const emailIntegrations = integrations.filter(i => 
@@ -54,6 +58,16 @@ export class EmailReadingService {
       }
 
       this.isMonitoring = true;
+      this.currentTenantId = tenantId;
+
+      // Save monitoring state to persistence
+      await EmailMonitoringPersistence.saveMonitoringState(tenantId, {
+        tenantId,
+        isActive: true,
+        startedAt: new Date().toISOString(),
+        startedBy: 'system',
+        integrations: emailIntegrations.map(i => i.name)
+      });
 
       // Set up periodic check for new emails (every 2 minutes for real monitoring)
       this.monitoringInterval = setInterval(async () => {
@@ -75,25 +89,90 @@ export class EmailReadingService {
   async stopMonitoring(): Promise<void> {
     console.log('⏹️ Stopping email monitoring...');
 
-    this.isMonitoring = false;
+    try {
+      // Import monitoring persistence
+      const { EmailMonitoringPersistence } = await import('./EmailMonitoringPersistence');
 
-    if (this.monitoringInterval) {
-      clearInterval(this.monitoringInterval);
-      this.monitoringInterval = null;
-    }
-
-    // Close all IMAP connections
-    for (const [integrationId, imap] of this.activeConnections) {
-      try {
-        imap.end();
-        console.log(`🔌 Closed IMAP connection for integration: ${integrationId}`);
-      } catch (error) {
-        console.error(`❌ Error closing IMAP connection for ${integrationId}:`, error);
+      // Clear monitoring state from persistence
+      if (this.currentTenantId) {
+        await EmailMonitoringPersistence.clearMonitoringState(this.currentTenantId);
       }
-    }
 
-    this.activeConnections.clear();
-    console.log('✅ Email monitoring stopped successfully');
+      this.isMonitoring = false;
+      this.currentTenantId = null;
+
+      if (this.monitoringInterval) {
+        clearInterval(this.monitoringInterval);
+        this.monitoringInterval = null;
+      }
+
+      // Close all IMAP connections
+      for (const [integrationId, imap] of this.activeConnections) {
+        try {
+          imap.end();
+          console.log(`🔌 Closed IMAP connection for integration: ${integrationId}`);
+        } catch (error) {
+          console.error(`❌ Error closing IMAP connection for ${integrationId}:`, error);
+        }
+      }
+
+      this.activeConnections.clear();
+      console.log('✅ Email monitoring stopped successfully');
+    } catch (error) {
+      console.error('❌ Error stopping email monitoring:', error);
+    }
+  }
+
+  // Auto-restore monitoring for tenants that had monitoring active before server restart
+  async restoreActiveMonitoring(): Promise<void> {
+    try {
+      const { EmailMonitoringPersistence } = await import('./EmailMonitoringPersistence');
+      const activeStates = await EmailMonitoringPersistence.getAllActiveMonitoringStates();
+      
+      console.log(`🔄 Restoring monitoring for ${activeStates.length} tenant(s)`);
+      
+      for (const state of activeStates) {
+        try {
+          console.log(`🚀 Auto-restoring monitoring for tenant: ${state.tenantId}`);
+          await this.startMonitoring(state.tenantId);
+        } catch (error) {
+          console.error(`❌ Failed to restore monitoring for tenant ${state.tenantId}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error restoring active monitoring:', error);
+    }
+  }
+
+  // Force refresh all connections and processing
+  async forceRefresh(tenantId: string): Promise<void> {
+    console.log(`🔄 Force refreshing email monitoring for tenant: ${tenantId}`);
+    
+    try {
+      // Close all existing connections
+      for (const [integrationId, imap] of this.activeConnections) {
+        try {
+          imap.end();
+        } catch (error) {
+          console.error(`Error closing connection ${integrationId}:`, error);
+        }
+      }
+      this.activeConnections.clear();
+
+      // Restart monitoring if it was active
+      if (this.isMonitoring && this.currentTenantId === tenantId) {
+        await this.stopMonitoring();
+        await this.startMonitoring(tenantId);
+      }
+      
+      // Force immediate email check
+      await this.checkForNewEmails(tenantId);
+      
+      console.log(`✅ Force refresh completed for tenant: ${tenantId}`);
+    } catch (error) {
+      console.error(`❌ Error during force refresh:`, error);
+      throw error;
+    }
   }
 
   private async connectToEmailAccount(tenantId: string, integration: any): Promise<void> {
@@ -381,41 +460,80 @@ export class EmailReadingService {
       // Get active email processing rules
       const rules = await this.repository.getEmailRules(tenantId, { active: true });
 
-      console.log(`🔍 Checking ${rules.length} active rules for email: ${email.subject}`);
+      console.log(`🔍 Checking ${rules.length} active rules for email: "${email.subject}" from ${email.from}`);
+
+      if (rules.length === 0) {
+        console.log(`⚠️  No active rules configured for tenant ${tenantId}`);
+        return;
+      }
+
+      let ruleMatched = false;
 
       for (const rule of rules) {
+        console.log(`🔧 Testing rule: "${rule.name}" (priority: ${rule.priority})`);
+        console.log(`   - From pattern: "${rule.fromEmailPattern || 'any'}"`);
+        console.log(`   - Subject pattern: "${rule.subjectPattern || 'any'}"`);
+        console.log(`   - Body pattern: "${rule.bodyPattern || 'any'}"`);
+        console.log(`   - Attachment required: ${rule.attachmentRequired}`);
+
         if (this.emailMatchesRule(email, rule)) {
-          console.log(`✅ Email matches rule: ${rule.name}`);
+          console.log(`✅ Email matches rule: "${rule.name}"`);
           await this.executeRuleAction(tenantId, email, rule);
+          ruleMatched = true;
           break; // Process only the first matching rule
+        } else {
+          console.log(`❌ Email does not match rule: "${rule.name}"`);
         }
       }
+
+      if (!ruleMatched) {
+        console.log(`⚠️  Email "${email.subject}" did not match any active rules`);
+      }
+
     } catch (error) {
       console.error('❌ Error applying email rules:', error);
     }
   }
 
   private emailMatchesRule(email: ProcessedEmail, rule: any): boolean {
+    console.log(`   📧 Email data: from="${email.from}", subject="${email.subject}"`);
+    console.log(`   📧 Body preview: "${email.bodyText.substring(0, 100)}..."`);
+    console.log(`   📧 Attachments: ${email.attachments.length}`);
+
     // Check from email pattern
-    if (rule.fromEmailPattern && !this.matchesPattern(email.from, rule.fromEmailPattern)) {
-      return false;
+    if (rule.fromEmailPattern && rule.fromEmailPattern.trim() !== '') {
+      const matches = this.matchesPattern(email.from, rule.fromEmailPattern);
+      console.log(`   🔍 From pattern "${rule.fromEmailPattern}" vs "${email.from}" = ${matches}`);
+      if (!matches) {
+        return false;
+      }
     }
 
     // Check subject pattern
-    if (rule.subjectPattern && !this.matchesPattern(email.subject, rule.subjectPattern)) {
-      return false;
+    if (rule.subjectPattern && rule.subjectPattern.trim() !== '') {
+      const matches = this.matchesPattern(email.subject, rule.subjectPattern);
+      console.log(`   🔍 Subject pattern "${rule.subjectPattern}" vs "${email.subject}" = ${matches}`);
+      if (!matches) {
+        return false;
+      }
     }
 
     // Check body pattern
-    if (rule.bodyPattern && !this.matchesPattern(email.bodyText, rule.bodyPattern)) {
-      return false;
+    if (rule.bodyPattern && rule.bodyPattern.trim() !== '') {
+      const matches = this.matchesPattern(email.bodyText, rule.bodyPattern);
+      console.log(`   🔍 Body pattern "${rule.bodyPattern}" vs body text = ${matches}`);
+      if (!matches) {
+        return false;
+      }
     }
 
     // Check attachment requirement
     if (rule.attachmentRequired && email.attachments.length === 0) {
+      console.log(`   📎 Attachment required but none found`);
       return false;
     }
 
+    console.log(`   ✅ All conditions met for rule "${rule.name}"`);
     return true;
   }
 

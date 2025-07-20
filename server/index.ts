@@ -95,6 +95,16 @@ app.use((req, res, next) => {
   // Initialize production systems
   await productionInitializer.initialize();
 
+  // CRÍTICO: Restaurar monitoramento de emails ativo antes do restart do servidor
+  try {
+    console.log('🔄 Restaurando monitoramento de emails ativos...');
+    const { emailReadingService } = await import('./modules/email-config/infrastructure/services/EmailReadingService');
+    await emailReadingService.restoreActiveMonitoring();
+    console.log('✅ Restauração de monitoramento concluída');
+  } catch (error) {
+    console.error('❌ Erro ao restaurar monitoramento de emails:', error);
+  }
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";

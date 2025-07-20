@@ -244,6 +244,38 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     return result.rowCount > 0;
   }
 
+  // Email Processing Logs Methods
+  async logEmailProcessing(tenantId: string, log: {
+    messageId: string;
+    fromEmail: string;
+    toEmail: string;
+    subject?: string;
+    receivedAt: Date;
+    ruleId?: string;
+    actionTaken: string;
+    ticketId?: string;
+    responseTemplateId?: string;
+    processingStatus?: string;
+    errorMessage?: string;
+    processingTime?: number;
+    emailContent?: any;
+    extractedData?: any;
+  }): Promise<void> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    await tenantDb.insert(emailProcessingLogs).values({
+      ...log,
+      tenantId,
+      processedAt: new Date(),
+      emailContent: log.emailContent ? JSON.stringify(log.emailContent) : null,
+      extractedData: log.extractedData ? JSON.stringify(log.extractedData) : null,
+    });
+  }
+
   async getProcessingLogs(tenantId: string, options?: { limit?: number; offset?: number; status?: string; dateFrom?: Date; dateTo?: Date }): Promise<any[]> {
     
     const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
@@ -651,5 +683,47 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       console.error('Error fetching email integrations:', error);
       throw error;
     }
+  }
+
+  async saveInboxMessage(tenantId: string, message: {
+    messageId: string;
+    threadId?: string;
+    fromEmail: string;
+    fromName?: string;
+    toEmail: string;
+    ccEmails?: string[];
+    bccEmails?: string[];
+    subject: string;
+    bodyText: string;
+    bodyHtml?: string;
+    hasAttachments?: boolean;
+    attachmentCount?: number;
+    attachmentDetails?: any[];
+    emailHeaders?: Record<string, any>;
+    priority?: string;
+    emailDate: Date;
+    receivedAt: Date;
+  }): Promise<string> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      INSERT INTO email_inbox_messages 
+      (tenant_id, message_id, thread_id, from_email, from_name, to_email, cc_emails, bcc_emails,
+       subject, body_text, body_html, has_attachments, attachment_count, attachment_details,
+       email_headers, priority, email_date, received_at, is_read, is_processed)
+      VALUES (${tenantId}, ${message.messageId}, ${message.threadId || null}, ${message.fromEmail}, 
+              ${message.fromName || null}, ${message.toEmail}, ${JSON.stringify(message.ccEmails || [])}, 
+              ${JSON.stringify(message.bccEmails || [])}, ${message.subject}, ${message.bodyText}, 
+              ${message.bodyHtml || null}, ${message.hasAttachments || false}, ${message.attachmentCount || 0}, 
+              ${JSON.stringify(message.attachmentDetails || [])}, ${JSON.stringify(message.emailHeaders || {})}, 
+              ${message.priority || 'medium'}, ${message.emailDate.toISOString()}, ${message.receivedAt.toISOString()}, 
+              false, false)
+      RETURNING id
+    `);
+    
+    return result.rows[0].id;
   }
 }

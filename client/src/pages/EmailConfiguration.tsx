@@ -497,6 +497,21 @@ export default function EmailConfiguration() {
     }
   });
 
+  const refreshMonitoringMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/email-config/monitoring/refresh');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Status de monitoramento atualizado' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
   const markAsReadMutation = useMutation({
     mutationFn: async (messageId: string) => {
       const response = await apiRequest('PUT', `/api/email-config/inbox/${messageId}/read`);
@@ -1124,11 +1139,12 @@ export default function EmailConfiguration() {
                     <Button 
                       variant="outline"
                       onClick={() => {
-                        queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+                        refreshMonitoringMutation.mutate();
                       }}
+                      disabled={refreshMonitoringMutation.isPending}
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Atualizar Status
+                      {refreshMonitoringMutation.isPending ? 'Atualizando...' : 'Atualizar Status'}
                     </Button>
                   </div>
 

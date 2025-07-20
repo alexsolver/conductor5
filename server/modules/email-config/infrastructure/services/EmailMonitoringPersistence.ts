@@ -39,6 +39,20 @@ export class EmailMonitoringPersistence {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
 
+      // Check if system_settings table exists first
+      const tableCheck = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName}
+          AND table_name = 'system_settings'
+        )
+      `);
+
+      if (!tableCheck.rows[0].exists) {
+        console.log(`DEBUG: system_settings table does not exist in schema ${schemaName}`);
+        return null;
+      }
+
       const result = await tenantDb.execute(sql`
         SELECT setting_value FROM system_settings 
         WHERE tenant_id = ${tenantId} AND setting_key = ${this.MONITORING_KEY}

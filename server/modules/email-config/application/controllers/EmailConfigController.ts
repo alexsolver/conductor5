@@ -947,4 +947,79 @@ export class EmailConfigController {
       });
     }
   }
+
+  async forceRefreshMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      // Import email reading service
+      const { emailReadingService } = await import('../../infrastructure/services/EmailReadingService');
+
+      console.log('🔄 Force refreshing email monitoring connections...');
+
+      // Get current monitoring state
+      const wasActive = emailReadingService.isCurrentlyMonitoring();
+      
+      if (wasActive) {
+        // Stop current monitoring
+        await emailReadingService.stopMonitoring();
+        console.log('⏹️  Stopped current monitoring');
+      }
+
+      // Get email integrations and restart monitoring
+      const repository = new DrizzleEmailConfigRepository();
+      const integrations = await repository.getEmailIntegrations(tenantId);
+      const configuredIntegrations = integrations.filter(i => 
+        i.category === 'Comunicação' && 
+        i.isConfigured && 
+        (i.name === 'IMAP Email' || i.name === 'Gmail OAuth2' || i.name === 'Outlook OAuth2')
+      );
+
+      if (configuredIntegrations.length > 0) {
+        await emailReadingService.startMonitoring(tenantId, configuredIntegrations);
+        
+        // Save monitoring state
+        await EmailMonitoringPersistence.saveMonitoringState(tenantId, {
+          tenantId,
+          isActive: true,
+          startedAt: new Date().toISOString(),
+          startedBy: req.user?.email || 'system',
+          integrations: configuredIntegrations.map(i => i.id)
+        });
+
+        console.log(`✅ Restarted monitoring for ${configuredIntegrations.length} integrations`);
+      } else {
+        console.log('⚠️  No configured integrations found to monitor');
+      }
+
+      // Get updated status
+      const connectionStatus = emailReadingService.getConnectionStatus();
+      const refreshedStatus = {
+        isActive: emailReadingService.isCurrentlyMonitoring(),
+        totalIntegrations: configuredIntegrations.length,
+        activeConnections: emailReadingService.getActiveConnectionsCount(),
+        connectionStatus,
+        refreshedAt: new Date().toISOString(),
+        refreshedBy: req.user?.email
+      };
+
+      res.json({ 
+        success: true, 
+        message: 'Email monitoring refreshed successfully',
+        data: refreshedStatus
+      });
+
+    } catch (error) {
+      console.error('Error force refreshing email monitoring:', error);
+      res.status(500).json({ 
+        message: 'Failed to refresh email monitoring',
+        error: error.message 
+      });
+    }
+  }
 }

@@ -48,6 +48,9 @@ router.post('/monitoring/stop', (req, res) => emailConfigController.stopEmailMon
 // GET /api/email-config/monitoring/status - Get monitoring status
 router.get('/monitoring/status', (req, res) => emailConfigController.getEmailMonitoringStatus(req, res));
 
+// POST /api/email-config/monitoring/refresh - Force refresh monitoring
+router.post('/monitoring/refresh', (req, res) => emailConfigController.forceRefreshMonitoring(req, res));
+
 // GET /api/email-config/monitoring/logs - Get processing logs
 router.get('/monitoring/logs', (req, res) => emailConfigController.getProcessingLogs(req, res));
 

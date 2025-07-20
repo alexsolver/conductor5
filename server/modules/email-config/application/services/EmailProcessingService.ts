@@ -38,6 +38,9 @@ export class EmailProcessingService {
     const startTime = Date.now();
     
     try {
+      // First, save the email to the inbox
+      await this.saveEmailToInbox(tenantId, email);
+      
       // Get active email rules sorted by priority
       const rules = await this.emailConfigRepo.getEmailRules(tenantId, { active: true });
       
@@ -68,6 +71,13 @@ export class EmailProcessingService {
 
     } catch (error) {
       console.error('Error processing email:', error);
+      
+      // Still try to save the email to inbox even if processing fails
+      try {
+        await this.saveEmailToInbox(tenantId, email);
+      } catch (inboxError) {
+        console.error('Error saving failed email to inbox:', inboxError);
+      }
       
       await this.logProcessing(
         tenantId, 
@@ -346,13 +356,57 @@ export class EmailProcessingService {
 
   private async findOrCreateCustomer(tenantId: string, email: string): Promise<string> {
     // Implementation would depend on your customer management system
-    // For now, return a placeholder
-    return 'customer-id-placeholder';
+    // For now, return a valid UUID placeholder
+    return '550e8400-e29b-41d4-a716-446655440000';
   }
 
   private async createTicketRecord(tenantId: string, ticketData: any): Promise<string> {
     // Implementation would call your ticket creation service
-    return 'ticket-id-placeholder';
+    // For now, return a valid UUID placeholder
+    return '550e8400-e29b-41d4-a716-446655440001';
+  }
+
+  private async saveEmailToInbox(tenantId: string, email: IncomingEmail): Promise<string> {
+    // Extract priority from subject/content
+    const priority = this.determinePriority(email.subject, email.body);
+    
+    // Generate message ID if not provided
+    const messageId = email.messageId || `test-${Date.now()}`;
+    
+    // Extract from name if provided
+    const fromName = email.fromName || email.from.split('@')[0];
+    
+    return await this.emailConfigRepo.saveInboxMessage(tenantId, {
+      messageId,
+      threadId: undefined,
+      fromEmail: email.from,
+      fromName,
+      toEmail: email.to || 'suporte@conductor.com',
+      ccEmails: [],
+      bccEmails: [],
+      subject: email.subject,
+      bodyText: email.body,
+      bodyHtml: `<p>${email.body.replace(/\n/g, '<br>')}</p>`,
+      hasAttachments: email.attachments && email.attachments.length > 0,
+      attachmentCount: email.attachments ? email.attachments.length : 0,
+      attachmentDetails: email.attachments || [],
+      emailHeaders: {},
+      priority,
+      emailDate: new Date(),
+      receivedAt: email.receivedAt || new Date()
+    });
+  }
+
+  private determinePriority(subject: string, body: string): string {
+    const text = (subject + ' ' + body).toLowerCase();
+    
+    if (text.includes('urgente') || text.includes('crítico') || text.includes('emergency')) {
+      return 'high';
+    } else if (text.includes('orçamento') || text.includes('comercial') || text.includes('vendas')) {
+      return 'medium';
+    } else {
+      return 'low';
+    }
   }
 
   private async attachEmailAttachments(tenantId: string, ticketId: string, attachments: any[]): Promise<void> {
