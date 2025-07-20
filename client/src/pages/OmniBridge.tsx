@@ -102,7 +102,16 @@ export default function OmniBridge() {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.error(`❌ Channels API Error: ${response.status} ${response.statusText}`);
+        setChannels([]);
+        return;
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('❌ Channels API returned non-JSON response');
+        setChannels([]);
+        return;
       }
       
       const data = await response.json();
@@ -136,7 +145,16 @@ export default function OmniBridge() {
       console.log('📧 Response Status:', response.status, response.statusText);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.error(`❌ Inbox API Error: ${response.status} ${response.statusText}`);
+        setMessages([]);
+        return;
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('❌ Inbox API returned non-JSON response');
+        setMessages([]);
+        return;
       }
       
       const data = await response.json();
@@ -172,7 +190,16 @@ export default function OmniBridge() {
       console.log('📊 Monitoring Response Status:', response.status, response.statusText);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.error(`❌ Monitoring API Error: ${response.status} ${response.statusText}`);
+        setMonitoring(null);
+        return;
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('❌ Monitoring API returned non-JSON response');
+        setMonitoring(null);
+        return;
       }
       
       const data = await response.json();
