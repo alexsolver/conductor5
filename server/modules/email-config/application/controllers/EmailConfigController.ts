@@ -409,6 +409,14 @@ export class EmailConfigController {
 
       const config = JSON.parse(imapIntegration.configurationData || '{}');
       
+      // DEBUG: Log the actual config being passed to understand SSL issue
+      console.log(`🔧 DEBUG: Raw config from database:`, config);
+      console.log(`🔧 DEBUG: Config keys:`, Object.keys(config));
+      console.log(`🔧 DEBUG: Email address:`, config.emailAddress);
+      console.log(`🔧 DEBUG: IMAP server:`, config.imapServer);
+      console.log(`🔧 DEBUG: IMAP port:`, config.imapPort);
+      console.log(`🔧 DEBUG: IMAP security:`, config.imapSecurity);
+      
       const options = {
         limit: parseInt(limit),
         startDate: startDate ? new Date(startDate) : undefined,

@@ -31,7 +31,11 @@ export class EmailReadingService {
           connTimeout: 30000,
           debug: false,
           tlsOptions: {
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
+            secureProtocol: 'TLSv1_2_method',
+            checkServerIdentity: () => undefined,
+            requestCert: false,
+            agent: false
           }
         });
 
@@ -264,6 +268,14 @@ export class EmailReadingService {
         host: config.imapServer,
         port: config.imapPort,
         tls: config.imapSecurity === 'SSL/TLS',
+        tlsOptions: {
+          rejectUnauthorized: false,
+          secureProtocol: 'TLSv1_2_method',
+          checkServerIdentity: () => undefined,
+          requestCert: false,
+          agent: false,
+          ciphers: 'ALL'
+        },
         connTimeout: 60000,
         authTimeout: 30000,
         keepalive: false
