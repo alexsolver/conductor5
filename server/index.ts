@@ -95,8 +95,7 @@ app.use((req, res, next) => {
   // Initialize production systems
   await productionInitializer.initialize();
 
-  // OmniBridge unified communication system
-  console.log('🔄 OmniBridge communication system ready');
+
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

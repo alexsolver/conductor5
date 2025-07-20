@@ -100,7 +100,7 @@ const adminNavigation = [
       { name: "Gestão de Solicitantes", href: "/tenant-admin/solicitantes", icon: Users },
       { name: "Gestão de Favorecidos", href: "/tenant-admin/favorecidos", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
-      { name: "OmniBridge", href: "/omnibridge", icon: Mail },
+
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
