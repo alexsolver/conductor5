@@ -134,8 +134,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
     
     const { db } = await schemaManager.getTenantDb(action.tenantId);
     
-    // Prepare data with proper array handling for PostgreSQL JSONB
-    const insertData = {
+    const [created] = await db.insert(projectActions).values({
       id,
       tenantId: action.tenantId,
       projectId: action.projectId,
@@ -149,36 +148,24 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
       estimatedHours: action.estimatedHours,
       actualHours: action.actualHours,
       assignedToId: action.assignedToId,
-      // Convert arrays to proper JSONB format
-      responsibleIds: JSON.stringify(action.responsibleIds || []),
+      // Use arrays directly - Drizzle handles JSONB conversion
+      responsibleIds: action.responsibleIds || [],
       clientContactId: action.clientContactId,
       externalReference: action.externalReference,
       deliveryMethod: action.deliveryMethod,
-      dependsOnActionIds: JSON.stringify(action.dependsOnActionIds || []),
-      blockedByActionIds: JSON.stringify(action.blockedByActionIds || []),
+      dependsOnActionIds: action.dependsOnActionIds || [],
+      blockedByActionIds: action.blockedByActionIds || [],
       priority: action.priority,
-      tags: JSON.stringify(action.tags || []),
-      attachments: JSON.stringify(action.attachments || []),
+      tags: action.tags || [],
+      attachments: action.attachments || [],
       notes: action.notes,
       createdAt: now,
       updatedAt: now,
       createdBy: action.createdBy,
       updatedBy: action.updatedBy
-    };
-
-    console.log('Insert data prepared:', JSON.stringify(insertData, null, 2));
-
-    const [created] = await db.insert(projectActions).values(insertData).returning();
+    }).returning();
     
-    // Parse arrays back from JSONB strings for response
-    return {
-      ...created,
-      responsibleIds: JSON.parse(created.responsibleIds as string || '[]'),
-      dependsOnActionIds: JSON.parse(created.dependsOnActionIds as string || '[]'),
-      blockedByActionIds: JSON.parse(created.blockedByActionIds as string || '[]'),
-      tags: JSON.parse(created.tags as string || '[]'),
-      attachments: JSON.parse(created.attachments as string || '[]')
-    };
+    return created;
   }
 
   async findById(id: string, tenantId: string): Promise<ProjectAction | null> {
