@@ -17,7 +17,7 @@ async function forceCreateIntegrationsInAllTenants() {
   for (const { schema, tenantId } of tenantSchemas) {
     try {
       console.log(`Creating integrations table in ${schema}...`);
-      
+
       await client.query(`
         CREATE TABLE IF NOT EXISTS "${schema}".integrations (
           id VARCHAR(255) PRIMARY KEY,
@@ -44,6 +44,42 @@ async function forceCreateIntegrationsInAllTenants() {
       `);
 
       console.log(`✓ Integrations table created in ${schema}`);
+
+      // Create IMAP integration
+      console.log(`Creating IMAP integration in ${schema}...`);
+      const integrationId = 'imap-email-integration'; // You might want to generate a UUID here
+      try {
+        await client.query(`
+          INSERT INTO "${schema}".integrations (id, tenant_id, name, description, category, icon, status, config, features, created_at, updated_at)
+          VALUES (
+            '${integrationId}',
+            '${tenantId}',
+            'IMAP Email',
+            'Integration for IMAP email',
+            'communication',
+            'email-icon',
+            'connected',
+            '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true}',
+            '{"emails", "calendar"}',
+            NOW(),
+            NOW()
+          ) ON CONFLICT (id) DO UPDATE SET
+            tenant_id = '${tenantId}',
+            name = 'IMAP Email',
+            description = 'Integration for IMAP email',
+            category = 'communication',
+            icon = 'email-icon',
+            status = 'connected',
+            config = '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true}',
+            features = '{"emails", "calendar"}',
+            updated_at = NOW();
+        `);
+        console.log(`✓ IMAP integration created in ${schema}`);
+      } catch (error) {
+        console.error(`✗ Failed to create/update IMAP integration in ${schema}:`, error.message);
+      }
+
+
     } catch (error) {
       console.error(`✗ Failed to create integrations table in ${schema}:`, error.message);
     }

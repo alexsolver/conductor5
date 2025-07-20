@@ -13,22 +13,27 @@ export class DrizzleChannelRepository implements IChannelRepository {
       // Get channels from integrations
       const integrations = await storage.getTenantIntegrations(tenantId);
 
-      return integrations.map(integration => new Channel(
-        integration.id,
-        tenantId,
-        this.mapIntegrationType(integration.id),
-        integration.name,
-        integration.isActive || false,
-        integration.status === 'connected',
-        integration.config || {},
-        100, // default rate limit
-        integration.lastSync ? new Date(integration.lastSync) : null,
-        0, // message count - could be retrieved from email_inbox_messages
-        0, // error count
-        integration.errorMessage || null,
-        new Date(integration.createdAt),
-        new Date(integration.updatedAt)
-      )).filter(channel => channel.type !== null);
+      return integrations.map(integration => {
+        const isConnected = integration.status === 'connected';
+        const isActive = integration.isActive !== false && isConnected; // Ativo se não for explicitamente false E estiver conectado
+        
+        return new Channel(
+          integration.id,
+          tenantId,
+          this.mapIntegrationType(integration.id),
+          integration.name,
+          isActive,
+          isConnected,
+          integration.config || {},
+          100, // default rate limit
+          integration.lastSync ? new Date(integration.lastSync) : null,
+          0, // message count - could be retrieved from email_inbox_messages
+          0, // error count
+          integration.errorMessage || null,
+          new Date(integration.createdAt),
+          new Date(integration.updatedAt)
+        );
+      }).filter(channel => channel.type !== null);
     } catch (error) {
       console.error('Error finding channels:', error);
       return [];
@@ -85,16 +90,17 @@ export class DrizzleChannelRepository implements IChannelRepository {
   }
 
   private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' {
-    if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
+    const id = integrationId.toLowerCase();
+    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap')) {
       return 'email';
     }
-    if (integrationId.includes('whatsapp')) {
+    if (id.includes('whatsapp')) {
       return 'whatsapp';
     }
-    if (integrationId.includes('telegram')) {
+    if (id.includes('telegram')) {
       return 'telegram';
     }
-    if (integrationId.includes('sms') || integrationId.includes('twilio')) {
+    if (id.includes('sms') || id.includes('twilio')) {
       return 'sms';
     }
     return 'email'; // default
