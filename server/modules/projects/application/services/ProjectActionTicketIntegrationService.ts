@@ -240,6 +240,7 @@ export class ProjectActionTicketIntegrationService {
       'internal_approval': 'Aprovação Interna', 
       'internal_review': 'Revisão Interna',
       'internal_task': 'Tarefa Interna',
+      'task': 'Tarefa',
       'external_delivery': 'Entrega Externa',
       'external_validation': 'Validação Externa',
       'external_meeting': 'Reunião com Cliente',
@@ -248,7 +249,7 @@ export class ProjectActionTicketIntegrationService {
       'checkpoint': 'Ponto de Controle'
     };
 
-    return `[${typeLabels[action.type]}] ${action.title}`;
+    return `[${typeLabels[action.type] || action.type}] ${action.title}`;
   }
 
   private generateTicketDescription(action: ProjectAction, projectName: string): string {

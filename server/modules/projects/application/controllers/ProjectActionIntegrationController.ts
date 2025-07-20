@@ -53,6 +53,8 @@ export class ProjectActionIntegrationController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
+      console.log('🚀 [CONVERT ACTION START]', { actionId, tenantId, userId });
+
       if (!tenantId || !userId) {
         return res.status(401).json({ error: 'Authentication required' });
       }

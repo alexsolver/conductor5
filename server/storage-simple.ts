@@ -425,8 +425,8 @@ export class DatabaseStorage implements IStorage {
       const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName), "tickets"} 
-        (number, subject, description, status, priority, customer_id, tenant_id, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.tickets 
+        (number, subject, description, status, priority, solicitante_id, tenant_id, created_at, updated_at)
         VALUES (
           ${ticketNumber},
           ${ticketData.subject},
