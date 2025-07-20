@@ -208,6 +208,15 @@ export class SchemaManager {
     // Use existing connection if available - avoid recreation overhead
     if (this.tenantConnections.has(tenantId)) {
       const existing = this.tenantConnections.get(tenantId)!;
+      
+      // Ensure search path is set correctly for reused connections
+      try {
+        await existing.db.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+        console.log(`DEBUG: Reset search path for reused tenant ${tenantId} connection`);
+      } catch (error) {
+        console.error(`Failed to set search path for reused connection:`, error);
+      }
+      
       return existing; // Reuse existing connection
     }
 
@@ -221,7 +230,7 @@ export class SchemaManager {
       // Safely append search_path parameter using URL constructor - schema name is pre-sanitized
       const connectionUrl = new URL(baseConnectionString);
       // schemaName is already sanitized by getSchemaName() method - safe from SQL injection
-      connectionUrl.searchParams.set('search_path', `${schemaName},public`);
+      connectionUrl.searchParams.set('search_path', `"${schemaName}",public`);
 
       const tenantPool = new Pool({ 
         connectionString: connectionUrl.toString(),
@@ -242,8 +251,11 @@ export class SchemaManager {
         client: tenantPool
       });
 
-      // Test connection and verify schema access
+      // Set search path explicitly after connection - URL parameter approach didn't work with Neon
       try {
+        await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+        console.log(`DEBUG: Set search path for tenant ${tenantId} to ${schemaName},public`);
+        
         // Test if we can access the schema directly - but only log occasionally to reduce I/O
         const testResult = await tenantDb.execute(
           sql`SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = ${schemaName}`
@@ -363,6 +375,98 @@ export class SchemaManager {
     }
   }
 
+  // CRITICAL: Create email configuration tables for tenant schema
+  private async createEmailConfigTables(schemaName: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    try {
+      // CRITICAL FIX: Email Configuration tables with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_processing_rules (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          conditions JSONB DEFAULT '{}',
+          actions JSONB DEFAULT '{}',
+          priority INTEGER DEFAULT 1,
+          is_active BOOLEAN DEFAULT true,
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_rules_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_response_templates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          template_type VARCHAR(50) NOT NULL DEFAULT 'auto_response',
+          subject VARCHAR(500) NOT NULL,
+          body_html TEXT,
+          body_text TEXT,
+          available_variables JSONB DEFAULT '[]',
+          conditional_logic JSONB DEFAULT '{}',
+          is_default BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          requires_approval BOOLEAN DEFAULT false,
+          send_delay INTEGER DEFAULT 0,
+          business_hours_only BOOLEAN DEFAULT false,
+          track_opens BOOLEAN DEFAULT false,
+          track_clicks BOOLEAN DEFAULT false,
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_templates_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_processing_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          message_id VARCHAR(255) NOT NULL,
+          from_email VARCHAR(255) NOT NULL,
+          to_email VARCHAR(255) NOT NULL,
+          subject VARCHAR(500),
+          received_at TIMESTAMP NOT NULL,
+          rule_id UUID,
+          action_taken VARCHAR(50) NOT NULL,
+          ticket_id UUID,
+          response_template_id UUID,
+          processing_status VARCHAR(50) NOT NULL DEFAULT 'processed',
+          error_message TEXT,
+          processing_time INTEGER,
+          email_content JSONB DEFAULT '{}',
+          extracted_data JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_logs_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for email config tables
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_rules_tenant_active_idx ON ${schemaId}.email_processing_rules (tenant_id, is_active)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_templates_tenant_type_idx ON ${schemaId}.email_response_templates (tenant_id, template_type)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_logs_tenant_received_idx ON ${schemaId}.email_processing_logs (tenant_id, received_at DESC)
+      `);
+
+      const { logInfo } = await import('./utils/logger');
+      logInfo(`Email configuration tables created for schema ${schemaName}`);
+    } catch (error) {
+      const { logError } = await import('./utils/logger');
+      logError(`Failed to create email configuration tables for schema ${schemaName}`, error);
+      throw error;
+    }
+  }
+
   // CRITICAL: Insert sample favorecidos data
   private async insertSampleFavorecidos(schemaName: string, tenantId: string): Promise<void> {
     const schemaId = sql.identifier(schemaName);
@@ -421,6 +525,14 @@ export class SchemaManager {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
+  // Clear cached tenant connection to force new connection creation
+  clearTenantConnection(tenantId: string): void {
+    if (this.tenantConnections.has(tenantId)) {
+      console.log(`DEBUG: Clearing cached connection for tenant ${tenantId}`);
+      this.tenantConnections.delete(tenantId);
+    }
+  }
+
   // Check if tables exist in schema
   private async tablesExist(schemaName: string): Promise<boolean> {
     try {
@@ -428,12 +540,12 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations')
+        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations', 'email_processing_rules', 'email_response_templates', 'email_processing_logs')
       `);
 
-      // CORREÇÃO: Deve ter PELO MENOS 14 tabelas - validação flexível para evolução
+      // CORREÇÃO: Deve ter PELO MENOS 17 tabelas (incluindo 3 tabelas de email config) - validação flexível para evolução
       const tableCount = result.rows[0]?.table_count as number;
-      const minimumTableCount = 14;
+      const minimumTableCount = 17;
       
       if (tableCount < minimumTableCount) {
         console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas, mínimo: ${minimumTableCount}`);
@@ -1033,6 +1145,84 @@ export class SchemaManager {
         CREATE INDEX IF NOT EXISTS integrations_tenant_status_idx ON ${schemaId}.integrations (tenant_id, status)
       `);
 
+      // CRITICAL FIX: Email Configuration tables with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_processing_rules (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          conditions JSONB DEFAULT '{}',
+          actions JSONB DEFAULT '{}',
+          priority INTEGER DEFAULT 1,
+          is_active BOOLEAN DEFAULT true,
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_rules_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_response_templates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          template_type VARCHAR(50) NOT NULL DEFAULT 'auto_response',
+          subject VARCHAR(500) NOT NULL,
+          body_html TEXT,
+          body_text TEXT,
+          available_variables JSONB DEFAULT '[]',
+          conditional_logic JSONB DEFAULT '{}',
+          is_default BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          requires_approval BOOLEAN DEFAULT false,
+          send_delay INTEGER DEFAULT 0,
+          business_hours_only BOOLEAN DEFAULT false,
+          track_opens BOOLEAN DEFAULT false,
+          track_clicks BOOLEAN DEFAULT false,
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_templates_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.email_processing_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          message_id VARCHAR(255) NOT NULL,
+          from_email VARCHAR(255) NOT NULL,
+          to_email VARCHAR(255) NOT NULL,
+          subject VARCHAR(500),
+          received_at TIMESTAMP NOT NULL,
+          rule_id UUID,
+          action_taken VARCHAR(50) NOT NULL,
+          ticket_id UUID,
+          response_template_id UUID,
+          processing_status VARCHAR(50) NOT NULL DEFAULT 'processed',
+          error_message TEXT,
+          processing_time INTEGER,
+          email_content JSONB DEFAULT '{}',
+          extracted_data JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT email_logs_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for email config tables
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_rules_tenant_active_idx ON ${schemaId}.email_processing_rules (tenant_id, is_active)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_templates_tenant_type_idx ON ${schemaId}.email_response_templates (tenant_id, template_type)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS email_logs_tenant_received_idx ON ${schemaId}.email_processing_logs (tenant_id, received_at DESC)
+      `);
+
       // CRITICAL FIX: Favorecido locations table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.favorecido_locations (
@@ -1478,6 +1668,11 @@ export class SchemaManager {
             break;
           case 'integrations':
             await this.createIntegrationsTable(schemaName);
+            break;
+          case 'email_processing_rules':
+          case 'email_response_templates':
+          case 'email_processing_logs':
+            await this.createEmailConfigTables(schemaName);
             break;
           case 'favorecido_locations':
             await db.execute(sql`

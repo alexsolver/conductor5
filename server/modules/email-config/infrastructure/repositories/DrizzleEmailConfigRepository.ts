@@ -1,4 +1,4 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, gte, lte } from 'drizzle-orm';
 import { IEmailConfigRepository } from '../../domain/repositories/IEmailConfigRepository';
 import { EmailProcessingRule, EmailResponseTemplate } from '../../domain/entities/EmailProcessingRule';
 import { 
@@ -6,13 +6,12 @@ import {
   emailResponseTemplates,
   emailProcessingLogs
 } from '../../../../../shared/schema/email-config';
-import { getStorage } from '../../../../storage-simple';
+import { schemaManager } from '../../../../db';
 
 export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   
   async createEmailRule(tenantId: string, rule: Omit<EmailProcessingRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<EmailProcessingRule> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
     
     const insertedRule = await tenantDb.insert(emailProcessingRules).values({
       ...rule,
@@ -23,8 +22,19 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async getEmailRules(tenantId: string, options?: { active?: boolean }): Promise<EmailProcessingRule[]> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    console.log('DEBUG: DrizzleEmailConfigRepository.getEmailRules called with tenantId:', tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    console.log('DEBUG: Got tenant database connection');
+    
+    // Set search path explicitly before any operations
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    console.log('DEBUG: Explicitly set search path to:', schemaName);
+    
+    // Verify search path was set correctly
+    const verifyPath = await tenantDb.execute(sql`SHOW search_path`);
+    console.log('DEBUG: Verified search path:', verifyPath);
     
     let conditions = [eq(emailProcessingRules.tenantId, tenantId)];
     
@@ -32,6 +42,7 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       conditions.push(eq(emailProcessingRules.isActive, options.active));
     }
 
+    console.log('DEBUG: About to execute Drizzle query...');
     return tenantDb
       .select()
       .from(emailProcessingRules)
@@ -40,8 +51,8 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async getEmailRuleById(tenantId: string, ruleId: string): Promise<EmailProcessingRule | null> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
     
     const result = await tenantDb
       .select()
@@ -57,8 +68,12 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async updateEmailRule(tenantId: string, ruleId: string, updates: Partial<EmailProcessingRule>): Promise<EmailProcessingRule | null> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
     
     const result = await tenantDb
       .update(emailProcessingRules)
@@ -78,8 +93,12 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async deleteEmailRule(tenantId: string, ruleId: string): Promise<boolean> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
     
     const result = await tenantDb
       .delete(emailProcessingRules)
@@ -94,8 +113,12 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async createResponseTemplate(tenantId: string, template: Omit<EmailResponseTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<EmailResponseTemplate> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
     
     const insertedTemplate = await tenantDb.insert(emailResponseTemplates).values({
       ...template,
@@ -106,8 +129,12 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async getResponseTemplates(tenantId: string, options?: { type?: string; active?: boolean }): Promise<EmailResponseTemplate[]> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
     
     let conditions = [eq(emailResponseTemplates.tenantId, tenantId)];
     
@@ -127,8 +154,12 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async getResponseTemplateById(tenantId: string, templateId: string): Promise<EmailResponseTemplate | null> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
     
     const result = await tenantDb
       .select()
@@ -144,8 +175,8 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async updateResponseTemplate(tenantId: string, templateId: string, updates: Partial<EmailResponseTemplate>): Promise<EmailResponseTemplate | null> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
     
     const result = await tenantDb
       .update(emailResponseTemplates)
@@ -165,8 +196,8 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async deleteResponseTemplate(tenantId: string, templateId: string): Promise<boolean> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
     
     const result = await tenantDb
       .delete(emailResponseTemplates)
@@ -181,8 +212,12 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   }
 
   async getProcessingLogs(tenantId: string, options?: { limit?: number; offset?: number; status?: string; dateFrom?: Date; dateTo?: Date }): Promise<any[]> {
-    const storage = await getStorage();
-    const { db: tenantDb } = await storage.getTenantDb(tenantId);
+    
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
     
     let conditions = [eq(emailProcessingLogs.tenantId, tenantId)];
     
@@ -191,11 +226,11 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     }
     
     if (options?.dateFrom) {
-      conditions.push(sql`${emailProcessingLogs.processedAt} >= ${options.dateFrom}`);
+      conditions.push(gte(emailProcessingLogs.processedAt, options.dateFrom));
     }
     
     if (options?.dateTo) {
-      conditions.push(sql`${emailProcessingLogs.processedAt} <= ${options.dateTo}`);
+      conditions.push(lte(emailProcessingLogs.processedAt, options.dateTo));
     }
 
     let query = tenantDb

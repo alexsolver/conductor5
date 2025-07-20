@@ -43,19 +43,13 @@ export interface EmailResponseTemplate {
   name: string;
   description?: string;
   templateType: string;
-  subject: string;
-  bodyHtml?: string;
-  bodyText?: string;
-  availableVariables: string[];
-  conditionalLogic: Record<string, any>;
-  isDefault: boolean;
+  subjectTemplate: string;
+  bodyTemplateHtml?: string;
+  bodyTemplateText?: string;
+  priority: number;
+  languageCode: string;
+  variableMapping: Record<string, any>;
   isActive: boolean;
-  requiresApproval: boolean;
-  sendDelay: number;
-  businessHoursOnly: boolean;
-  trackOpens: boolean;
-  trackClicks: boolean;
-  createdBy: string;
   createdAt: Date;
   updatedAt: Date;
 }

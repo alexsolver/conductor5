@@ -36,7 +36,10 @@ export class EmailConfigController {
         return;
       }
 
-      const validatedData = insertEmailProcessingRuleSchema.parse(req.body);
+      const validatedData = insertEmailProcessingRuleSchema.parse({
+        ...req.body,
+        tenantId
+      });
       const rule = await this.emailRulesUseCase.createRule(tenantId, userId, validatedData);
       
       res.status(201).json({ success: true, data: rule });
