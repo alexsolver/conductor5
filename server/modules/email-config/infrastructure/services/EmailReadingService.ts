@@ -415,4 +415,49 @@ export class EmailReadingService {
       return false;
     }
   }
+
+  private getImapConfig(emailAddress: string, config: any): any {
+    const domain = emailAddress.split('@')[1]?.toLowerCase() || '';
+
+    // Auto-detect IMAP settings based on email provider
+    let host = config.imapServer || config.serverHost || 'imap.gmail.com';
+    let port = config.imapPort || config.serverPort || 993;
+    let tls = true;
+
+    if (domain.includes('gmail.com')) {
+      host = 'imap.gmail.com';
+      port = 993;
+      tls = true;
+    } else if (domain.includes('outlook.com') || domain.includes('hotmail.com') || domain.includes('live.com')) {
+      host = 'outlook.office365.com';
+      port = 993;
+      tls = true;
+    } else if (domain.includes('yahoo.com')) {
+      host = 'imap.mail.yahoo.com';
+      port = 993;
+      tls = true;
+    } else if (domain.includes('icloud.com')) {
+      host = 'imap.mail.me.com';
+      port = 993;
+      tls = true;
+    }
+
+    return {
+      user: config.emailAddress || emailAddress,
+      password: config.password,
+      host: host,
+      port: port,
+      tls: tls,
+      authTimeout: 30000,
+      connTimeout: 30000,
+      debug: false,
+      tlsOptions: {
+        rejectUnauthorized: false,
+        secureProtocol: 'TLSv1_2_method',
+        checkServerIdentity: () => undefined,
+        requestCert: false,
+        agent: false
+      }
+    };
+  }
 }
