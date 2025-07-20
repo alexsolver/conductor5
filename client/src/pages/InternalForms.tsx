@@ -22,12 +22,18 @@ export default function InternalForms() {
 
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['internal-forms'],
-    queryFn: () => apiRequest(`/api/internal-forms/forms`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/internal-forms/forms');
+      return response.json();
+    }
   });
 
   const { data: categories = [] } = useQuery({
     queryKey: ['form-categories'],
-    queryFn: () => apiRequest(`/api/internal-forms/categories`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/internal-forms/categories');
+      return response.json();
+    }
   });
 
   const filteredForms = forms.filter((form: any) => {
