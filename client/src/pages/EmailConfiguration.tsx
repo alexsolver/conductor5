@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -322,7 +321,7 @@ export default function EmailConfiguration() {
     }
   });
 
-  const { data: monitoringStatus = null } = useQuery({
+  const { data: monitoringStatus = null, refetch: refetchMonitoringStatus } = useQuery({
     queryKey: ['/api/email-config/monitoring/status'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/email-config/monitoring/status');
@@ -653,7 +652,7 @@ export default function EmailConfiguration() {
 
   const runRuleTest = () => {
     if (!selectedRule) return;
-    
+
     testRuleMutation.mutate({
       ruleId: selectedRule.id,
       emailData: testEmail
@@ -723,7 +722,7 @@ export default function EmailConfiguration() {
             Gerencie regras de processamento de email e templates de resposta
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           {monitoringStatus && (
             <div className="flex items-center gap-2">
@@ -733,7 +732,7 @@ export default function EmailConfiguration() {
               </span>
             </div>
           )}
-          
+
           {monitoringStatus?.isActive ? (
             <Button 
               variant="outline"
@@ -790,7 +789,7 @@ export default function EmailConfiguration() {
                 <p className="text-xs text-muted-foreground">Falhas (24h)</p>
               </div>
             </div>
-            
+
             {monitoringStatus.lastProcessedEmail && (
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm font-medium">Último Email Processado:</p>
@@ -921,7 +920,7 @@ export default function EmailConfiguration() {
                         <div className="bg-muted p-3 rounded-md">
                           <p className="text-sm whitespace-pre-wrap">{message.bodyText || 'Sem conteúdo de texto'}</p>
                         </div>
-                        
+
                         {message.isProcessed && (
                           <div className="flex items-center gap-2 text-sm text-green-600">
                             <CheckCircle className="w-4 h-4" />
@@ -1014,7 +1013,7 @@ export default function EmailConfiguration() {
                           )}
                         </div>
                       )}
-                      
+
                       {integration.features && integration.features.length > 0 && (
                         <div className="mt-4 pt-4 border-t">
                           <h4 className="font-medium mb-2">Recursos Disponíveis:</h4>
@@ -1131,20 +1130,30 @@ export default function EmailConfiguration() {
                     <div>
                       <h4 className="font-medium mb-3">Integrações Monitoradas:</h4>
                       <div className="grid gap-3">
-                        {monitoringStatus.integrations.map((integration: any) => (
-                          <div key={integration.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-3 h-3 rounded-full ${integration.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                              <div>
-                                <p className="font-medium">{integration.name}</p>
-                                <p className="text-sm text-muted-foreground">{integration.emailAddress}</p>
+                        {monitoringStatus.integrations.map((integration: any) => {
+                          const isConfigured = integration.emailAddress && integration.emailAddress !== 'Not configured';
+                          const statusColor = integration.isConnected && isConfigured ? 'bg-green-500' : 'bg-red-500';
+                          const statusText = integration.isConnected && isConfigured ? 'Conectado' : 
+                                           !isConfigured ? 'Não Configurado' : 'Desconectado';
+                          const statusVariant = integration.isConnected && isConfigured ? 'default' : 'destructive';
+
+                          return (
+                            <div key={integration.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${statusColor}`} />
+                                <div>
+                                  <p className="font-medium">{integration.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {isConfigured ? integration.emailAddress : 'Email não configurado'}
+                                  </p>
+                                </div>
                               </div>
+                              <Badge variant={statusVariant}>
+                                {statusText}
+                              </Badge>
                             </div>
-                            <Badge variant={integration.isConnected ? 'default' : 'destructive'}>
-                              {integration.isConnected ? 'Conectado' : 'Desconectado'}
-                            </Badge>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1469,7 +1478,7 @@ export default function EmailConfiguration() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Templates de Resposta Automática</h3>
             <div className="grid gap-4">
-            
+
             {templatesLoading ? (
               <div className="text-center py-8">Carregando templates...</div>
             ) : emailTemplates.length === 0 ? (
@@ -1658,7 +1667,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Critérios de Correspondência</h3>
-                
+
                 <FormField
                   control={ruleForm.control}
                   name="fromEmailPattern"
@@ -1743,7 +1752,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Ação a Realizar</h3>
-                
+
                 <FormField
                   control={ruleForm.control}
                   name="actionType"
@@ -1813,7 +1822,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Resposta Automática</h3>
-                
+
                 <FormField
                   control={ruleForm.control}
                   name="autoResponseEnabled"
@@ -1860,7 +1869,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Configurações Avançadas</h3>
-                
+
                 <div className="space-y-4">
                   <FormField
                     control={ruleForm.control}
@@ -2111,7 +2120,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Configurações de Envio</h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={templateForm.control}
@@ -2163,10 +2172,74 @@ export default function EmailConfiguration() {
                     name="isDefault"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Template Padrão</FormLabel>
+                        <FormDescription>
+                          Usar como template padrão para este tipo
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={templateForm.control}
+                  name="requiresApproval"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Requer Aprovação</FormLabel>
+                        <FormDescription>
+                          Email deve ser aprovado antes do envio
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={templateForm.control}
+                  name="businessHoursOnly"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Apenas Horário Comercial</FormLabel>
+                        <FormDescription>
+                          Enviar apenas durante horário comercial
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={templateForm.control}
+                    name="trackOpens"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Template Padrão</FormLabel>
+                          <FormLabel className="text-base">Rastrear Aberturas</FormLabel>
                           <FormDescription>
-                            Usar como template padrão para este tipo
+                            Monitorar se o email foi aberto
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -2181,13 +2254,13 @@ export default function EmailConfiguration() {
 
                   <FormField
                     control={templateForm.control}
-                    name="requiresApproval"
+                    name="trackClicks"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Requer Aprovação</FormLabel>
+                          <FormLabel className="text-base">Rastrear Cliques</FormLabel>
                           <FormDescription>
-                            Email deve ser aprovado antes do envio
+                            Monitorar cliques em links
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -2199,92 +2272,27 @@ export default function EmailConfiguration() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={templateForm.control}
-                    name="businessHoursOnly"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Apenas Horário Comercial</FormLabel>
-                          <FormDescription>
-                            Enviar apenas durante horário comercial
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={templateForm.control}
-                      name="trackOpens"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Rastrear Aberturas</FormLabel>
-                            <FormDescription>
-                              Monitorar se o email foi aberto
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={templateForm.control}
-                      name="trackClicks"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Rastrear Cliques</FormLabel>
-                            <FormDescription>
-                              Monitorar cliques em links
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="flex justify-end gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsTemplateDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
-                >
-                  {selectedTemplate ? 'Atualizar' : 'Criar'} Template
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
+            <div className="flex justify-end gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsTemplateDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+              >
+                {selectedTemplate ? 'Atualizar' : 'Criar'} Template
+              </Button>
+            </div>
+          </form>
+        </FormContent>
       </Dialog>
 
       {/* Test Rule Dialog */}
@@ -2429,7 +2437,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Critérios de Correspondência</h3>
-                
+
                 <FormField
                   control={ruleForm.control}
                   name="fromEmailPattern"
@@ -2494,7 +2502,7 @@ export default function EmailConfiguration() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Ações do Ticket</h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={ruleForm.control}
@@ -2794,7 +2802,7 @@ export default function EmailConfiguration() {
           <div className="space-y-4">
             {logsLoading ? (
               <div className="text-center py-8">Carregando logs...</div>
-            ) : processingLogs.length === 0 ? (
+                        ) : processingLogs.length === 0 ? (
               <div className="text-center py-8">
                 <Eye className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">Nenhum log encontrado</h3>

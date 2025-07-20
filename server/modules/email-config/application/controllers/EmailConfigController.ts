@@ -502,12 +502,26 @@ export class EmailConfigController {
           failed: recentLogs.filter(log => log.processingStatus === 'error').length
         },
         lastProcessedEmail: recentLogs[0] || null,
-        integrations: emailIntegrations.map(i => ({
-          id: i.id,
-          name: i.name,
-          emailAddress: JSON.parse(i.configurationData || '{}').emailAddress || 'Not configured',
-          isConnected: connectionStatus[i.id] || false
-        }))
+        integrations: emailIntegrations.map(i => {
+          const configData = i.configurationData ? JSON.parse(i.configurationData) : (i.config || {});
+          const emailAddress = configData.emailAddress || configData.username || configData.email || i.emailAddress || '';
+          const isConnected = connectionStatus[i.id] || false;
+          
+          console.log(`📊 Integration status for ${i.name}:`, {
+            emailAddress: emailAddress || 'Not configured',
+            isConnected,
+            isConfigured: i.isConfigured,
+            hasConfig: !!configData,
+            configKeys: Object.keys(configData)
+          });
+          
+          return {
+            id: i.id,
+            name: i.name,
+            emailAddress: emailAddress || 'Not configured',
+            isConnected: isConnected
+          };
+        })
       };
 
       res.json({ success: true, data: status });

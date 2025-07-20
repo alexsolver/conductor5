@@ -112,6 +112,14 @@ export class EmailReadingService {
         const emailAddress = config.emailAddress || config.username || config.email || '';
         const password = config.password || config.pass || '';
         
+        console.log(`🔍 Checking credentials for ${integration.name}:`, {
+          emailAddress: emailAddress || 'missing',
+          hasPassword: !!password,
+          configKeys: Object.keys(config),
+          integrationStatus: integration.status,
+          isConfigured: integration.isConfigured
+        });
+        
         if (!emailAddress || !password) {
           console.log(`⚠️ Integration ${integration.name} missing email credentials, skipping. Email: ${emailAddress}, Password: ${password ? '***' : 'missing'}`);
           resolve();

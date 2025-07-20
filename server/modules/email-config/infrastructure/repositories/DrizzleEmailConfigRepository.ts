@@ -613,24 +613,40 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
           name
       `);
       
-      return result.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        category: row.category,
-        icon: row.icon,
-        status: row.status,
-        config: row.config || {},
-        features: row.features || [],
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        isConfigured: row.status === 'connected',
-        emailAddress: row.config?.emailAddress || row.config?.username || '',
-        serverHost: row.config?.imapServer || row.config?.serverHost || '',
-        serverPort: row.config?.imapPort || row.config?.serverPort || null,
-        useSSL: row.config?.useSSL || row.config?.imapSecurity === 'SSL/TLS',
-        lastSync: row.config?.lastUpdated ? new Date(row.config.lastUpdated) : null
-      }));
+      return result.rows.map(row => {
+        const config = row.config || {};
+        const emailAddress = config.emailAddress || config.username || config.email || '';
+        const hasPassword = !!(config.password || config.pass);
+        const isConfigured = row.status === 'connected' && emailAddress && hasPassword;
+        
+        console.log(`📧 Integration ${row.name}:`, {
+          status: row.status,
+          emailAddress: emailAddress || 'missing',
+          hasPassword,
+          isConfigured,
+          configKeys: Object.keys(config)
+        });
+        
+        return {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          category: row.category,
+          icon: row.icon,
+          status: row.status,
+          config: config,
+          configurationData: JSON.stringify(config), // Add this for compatibility
+          features: row.features || [],
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          isConfigured: isConfigured,
+          emailAddress: emailAddress,
+          serverHost: config.imapServer || config.serverHost || 'imap.gmail.com',
+          serverPort: config.imapPort || config.serverPort || 993,
+          useSSL: config.useSSL !== false,
+          lastSync: config.lastUpdated ? new Date(config.lastUpdated) : null
+        };
+      });
     } catch (error) {
       console.error('Error fetching email integrations:', error);
       throw error;
