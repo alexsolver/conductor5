@@ -175,10 +175,7 @@ export default function ProjectActions() {
   const createActionMutation = useMutation({
     mutationFn: async (data: CreateActionFormData) => {
       const { projectId, ...actionData } = data;
-      return apiRequest(`/api/projects/${projectId}/actions`, {
-        method: 'POST',
-        body: JSON.stringify(actionData)
-      });
+      return apiRequest('POST', `/api/projects/${projectId}/actions`, actionData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/actions'] });
@@ -191,10 +188,7 @@ export default function ProjectActions() {
   // Update action status mutation
   const updateActionStatusMutation = useMutation({
     mutationFn: async ({ actionId, status }: { actionId: string; status: string }) => {
-      return apiRequest(`/api/actions/${actionId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ status })
-      });
+      return apiRequest('PUT', `/api/actions/${actionId}`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/actions'] });

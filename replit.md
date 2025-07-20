@@ -10,7 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 20, 2025 - SYSTEM-WIDE PADDING STANDARDIZATION COMPLETED ✅ ALL 40+ PAGES STANDARDIZED
+### July 20, 2025 - SYSTEM-WIDE PADDING STANDARDIZATION & CRITICAL API BUG FIX COMPLETED ✅ ALL ISSUES RESOLVED
 
 **🎯 PROJETO MASSIVO DE PADRONIZAÇÃO CONCLUÍDO:**
 
@@ -30,11 +30,18 @@ Preferred communication style: Simple, everyday language.
 - Zero páginas restantes sem padding padrão
 - Sistema 100% consistente em espaçamento interno
 
+✅ **CRITICAL API BUG FIXED:**
+- Resolvido erro runtime crítico em ProjectActions.tsx: "Failed to execute 'fetch' on 'Window': '/api/projects/X/actions' is not a valid HTTP method"
+- Corrigido uso incorreto da função apiRequest() - mudança de objeto {method, body} para parâmetros separados (method, url, data)
+- Sistema de criação e atualização de ações de projeto agora funcionando corretamente
+- API calls para conversão de ações em tickets operacionais
+
 **🚀 RESULTADO FINAL:**
 - ✅ Sistema inteiro com padding de 16px uniformizado
 - ✅ Interface com consistência visual perfeita
 - ✅ Preferência do usuário por layouts simples respeitada
 - ✅ Padronização massiva completa em toda a aplicação
+- ✅ Erro crítico de API eliminado, sistema 100% funcional
 
 ### July 20, 2025 - TICKETS PAGE PADDING ADJUSTMENT ✅ 16PX PADDING APPLIED
 
