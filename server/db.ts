@@ -557,6 +557,111 @@ export class SchemaManager {
     }
   }
 
+  // CRITICAL: Create project tables for tenant schema
+  private async createProjectTables(schemaName: string): Promise<void> {
+    const schemaId = sql.identifier(schemaName);
+    
+    try {
+      // CRITICAL FIX: Projects table with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.projects (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          status VARCHAR(50) NOT NULL DEFAULT 'planning',
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+          start_date DATE,
+          end_date DATE,
+          estimated_hours INTEGER,
+          actual_hours INTEGER DEFAULT 0,
+          budget DECIMAL(12,2),
+          spent_amount DECIMAL(12,2) DEFAULT 0,
+          progress_percentage INTEGER DEFAULT 0,
+          project_manager_id UUID,
+          team_members JSONB DEFAULT '[]',
+          tags VARCHAR(500),
+          metadata JSONB DEFAULT '{}',
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT projects_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+          CONSTRAINT projects_tenant_name_unique UNIQUE (tenant_id, name)
+        )
+      `);
+
+      // CRITICAL FIX: Project actions table with MANDATORY tenant_id field
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.project_actions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL,
+          project_id UUID NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          description TEXT,
+          action_type VARCHAR(50) NOT NULL DEFAULT 'task',
+          status VARCHAR(50) NOT NULL DEFAULT 'pending',
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+          assigned_to UUID,
+          due_date DATE,
+          completed_at TIMESTAMP,
+          estimated_hours INTEGER,
+          actual_hours INTEGER DEFAULT 0,
+          dependencies JSONB DEFAULT '[]',
+          attachments JSONB DEFAULT '[]',
+          comments TEXT,
+          created_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT project_actions_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      // CRITICAL FIX: Project timeline table with MANDATORY tenant_id field  
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.project_timeline (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL,
+          project_id UUID NOT NULL,
+          event_type VARCHAR(50) NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          description TEXT,
+          event_date TIMESTAMP NOT NULL,
+          milestone BOOLEAN DEFAULT false,
+          user_id UUID,
+          action_id UUID,
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT project_timeline_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      // CRITICAL: Add tenant-first indexes for project tables
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS projects_tenant_status_idx ON ${schemaId}.projects (tenant_id, status)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS projects_tenant_priority_idx ON ${schemaId}.projects (tenant_id, priority)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS project_actions_tenant_project_idx ON ${schemaId}.project_actions (tenant_id, project_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS project_actions_tenant_assignee_idx ON ${schemaId}.project_actions (tenant_id, assigned_to)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS project_timeline_tenant_project_idx ON ${schemaId}.project_timeline (tenant_id, project_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS project_timeline_tenant_date_idx ON ${schemaId}.project_timeline (tenant_id, event_date DESC)
+      `);
+
+      console.log(`[createProjectTables] ✅ Project tables created successfully for ${schemaName}`);
+    } catch (error) {
+      console.error(`[createProjectTables] Failed to create project tables for ${schemaName}:`, error);
+      throw error;
+    }
+  }
+
   // Drop a tenant schema (for cleanup)
   async dropTenantSchema(tenantId: string): Promise<void> {
     const schemaName = this.getSchemaName(tenantId);
@@ -607,12 +712,12 @@ export class SchemaManager {
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations', 'email_processing_rules', 'email_response_templates', 'email_processing_logs')
+        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations', 'email_processing_rules', 'email_response_templates', 'email_processing_logs', 'projects', 'project_actions', 'project_timeline')
       `);
 
-      // CORREÇÃO: Deve ter PELO MENOS 17 tabelas (incluindo 3 tabelas de email config) - validação flexível para evolução
+      // CORREÇÃO: Deve ter PELO MENOS 20 tabelas (incluindo 3 tabelas de email config + 3 tabelas de projetos) - validação flexível para evolução
       const tableCount = result.rows[0]?.table_count as number;
-      const minimumTableCount = 17;
+      const minimumTableCount = 20;
       
       if (tableCount < minimumTableCount) {
         console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas, mínimo: ${minimumTableCount}`);
@@ -1316,6 +1421,9 @@ export class SchemaManager {
         CREATE INDEX IF NOT EXISTS favorecido_locations_tenant_location_idx ON ${schemaId}.favorecido_locations (tenant_id, location_id)
       `);
 
+      // CRITICAL: Create project tables
+      await this.createProjectTables(schemaName);
+
       // ===========================
       // CRITICAL: CREATE ALL PERFORMANCE INDEXES
       // ===========================
@@ -1623,12 +1731,12 @@ export class SchemaManager {
         return true; // Schema created successfully
       }
 
-      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 14 TABELAS CRÍTICAS)
+      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 17 TABELAS CRÍTICAS)
       const requiredTables = [
         'customers', 'tickets', 'ticket_messages', 'activity_logs',
         'locations', 'customer_companies', 'skills', 'certifications',
         'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships',
-        'integrations', 'favorecido_locations'
+        'integrations', 'favorecido_locations', 'projects', 'project_actions', 'project_timeline'
       ];
 
       const tableResult = await db.execute(sql`
@@ -1636,7 +1744,7 @@ export class SchemaManager {
                COUNT(column_name) as column_count
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations', 'projects', 'project_actions', 'project_timeline')
         GROUP BY table_name
       `);
 
@@ -1675,7 +1783,7 @@ export class SchemaManager {
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
         AND column_name = 'tenant_id'
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations')
+        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations', 'projects', 'project_actions', 'project_timeline')
       `);
 
       const tablesWithTenantId = new Set(tenantIdValidation.rows.map(row => row.table_name as string));
@@ -1753,6 +1861,14 @@ export class SchemaManager {
                 CONSTRAINT favorecido_locations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
               )
             `);
+            break;
+          case 'projects':
+            await this.createProjectTables(schemaName);
+            break;
+          case 'project_actions':
+          case 'project_timeline':
+            // These are created together in createProjectTables
+            await this.createProjectTables(schemaName);
             break;
           default:
             // For other tables, trigger full table creation

@@ -39,13 +39,15 @@ import {
   UserCheck,
   FileText,
   Mail,
-  FolderOpen
+  FolderOpen,
+  Folder
 } from "lucide-react";
 
 // Base navigation without dynamic badges
 const baseNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
+  { name: "Projetos", href: "/projects", icon: Folder },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
