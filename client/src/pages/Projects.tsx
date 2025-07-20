@@ -314,7 +314,7 @@ export default function Projects() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ml-[20px] mr-[20px]">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Gestão de Projetos
@@ -692,7 +692,6 @@ export default function Projects() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -739,7 +738,6 @@ export default function Projects() {
           </Card>
         </div>
       )}
-
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
@@ -787,7 +785,6 @@ export default function Projects() {
           </div>
         </CardContent>
       </Card>
-
       {/* Projects List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredProjects.map((project) => (
@@ -865,7 +862,6 @@ export default function Projects() {
           </Card>
         ))}
       </div>
-
       {filteredProjects.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-500">Nenhum projeto encontrado</div>

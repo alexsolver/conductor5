@@ -276,7 +276,7 @@ export default function ProjectActions() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ml-[20px] mr-[20px]">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Ações de Projeto
@@ -493,7 +493,6 @@ export default function ProjectActions() {
         </Dialog>
         </div>
       </div>
-
       {/* Integration Statistics */}
       {integrationSuggestions && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -554,7 +553,6 @@ export default function ProjectActions() {
           </Card>
         </div>
       )}
-
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
         <div>
@@ -571,7 +569,6 @@ export default function ProjectActions() {
           </select>
         </div>
       </div>
-
       {/* Tabs for action categories */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
         <TabsList className="grid w-full grid-cols-7">
