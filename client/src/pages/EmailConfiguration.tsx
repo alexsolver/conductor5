@@ -885,14 +885,23 @@ export default function EmailConfiguration() {
               </Badge>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  refetchInbox();
-                  queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+                onClick={async () => {
+                  try {
+                    // Force refresh monitoring first
+                    await refreshMonitoringMutation.mutateAsync();
+                    // Then refetch inbox
+                    await refetchInbox();
+                    // Invalidate all related queries
+                    queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+                  } catch (error) {
+                    console.error('Error refreshing inbox:', error);
+                  }
                 }}
-                disabled={inboxLoading}
+                disabled={inboxLoading || refreshMonitoringMutation.isPending}
               >
                 <Download className="w-4 h-4 mr-2" />
-                {inboxLoading ? 'Atualizando...' : 'Atualizar'}
+                {inboxLoading || refreshMonitoringMutation.isPending ? 'Atualizando...' : 'Atualizar'}
               </Button>
               <Button 
                 onClick={() => setIsImportDialogOpen(true)}

@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { ManageEmailRulesUseCase } from '../use-cases/ManageEmailRulesUseCase';
@@ -17,6 +16,8 @@ export class EmailConfigController {
   private emailRulesUseCase: ManageEmailRulesUseCase;
   private emailTemplatesUseCase: ManageEmailTemplatesUseCase;
   private emailProcessingService: EmailProcessingService;
+  private static emailReadingService: EmailReadingService | null = null;
+  private static monitoringStatus = new Map<string, { isActive: boolean, service: EmailReadingService }>>();
 
   constructor() {
     const repository = new DrizzleEmailConfigRepository();
@@ -31,7 +32,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId || !userId) {
         res.status(400).json({ message: 'Tenant ID and User ID are required' });
         return;
@@ -42,7 +43,7 @@ export class EmailConfigController {
         tenantId
       });
       const rule = await this.emailRulesUseCase.createRule(tenantId, userId, validatedData);
-      
+
       res.status(201).json({ success: true, data: rule });
     } catch (error) {
       console.error('Error creating email rule:', error);
@@ -56,7 +57,7 @@ export class EmailConfigController {
   async getEmailRules(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -64,7 +65,7 @@ export class EmailConfigController {
 
       const activeOnly = req.query.active === 'true';
       const rules = await this.emailRulesUseCase.getRules(tenantId, activeOnly);
-      
+
       res.json({ success: true, data: rules });
     } catch (error) {
       console.error('Error fetching email rules:', error);
@@ -79,19 +80,19 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { ruleId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
       const rule = await this.emailRulesUseCase.getRule(tenantId, ruleId);
-      
+
       if (!rule) {
         res.status(404).json({ message: 'Email rule not found' });
         return;
       }
-      
+
       res.json({ success: true, data: rule });
     } catch (error) {
       console.error('Error fetching email rule:', error);
@@ -106,7 +107,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { ruleId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -114,12 +115,12 @@ export class EmailConfigController {
 
       const validatedData = updateEmailProcessingRuleSchema.parse(req.body);
       const rule = await this.emailRulesUseCase.updateRule(tenantId, ruleId, validatedData);
-      
+
       if (!rule) {
         res.status(404).json({ message: 'Email rule not found' });
         return;
       }
-      
+
       res.json({ success: true, data: rule });
     } catch (error) {
       console.error('Error updating email rule:', error);
@@ -134,19 +135,19 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { ruleId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
       const deleted = await this.emailRulesUseCase.deleteRule(tenantId, ruleId);
-      
+
       if (!deleted) {
         res.status(404).json({ message: 'Email rule not found' });
         return;
       }
-      
+
       res.json({ success: true, message: 'Email rule deleted successfully' });
     } catch (error) {
       console.error('Error deleting email rule:', error);
@@ -162,7 +163,7 @@ export class EmailConfigController {
       const tenantId = req.user?.tenantId;
       const { ruleId } = req.params;
       const { from, subject, body, hasAttachment } = req.body;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -174,7 +175,7 @@ export class EmailConfigController {
         body,
         hasAttachment: hasAttachment || false
       });
-      
+
       res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error testing email rule:', error);
@@ -191,7 +192,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId || !userId) {
         res.status(400).json({ message: 'Tenant ID and User ID are required' });
         return;
@@ -199,7 +200,7 @@ export class EmailConfigController {
 
       const validatedData = insertEmailResponseTemplateSchema.parse(req.body);
       const template = await this.emailTemplatesUseCase.createTemplate(tenantId, userId, validatedData);
-      
+
       res.status(201).json({ success: true, data: template });
     } catch (error) {
       console.error('Error creating email template:', error);
@@ -213,7 +214,7 @@ export class EmailConfigController {
   async getEmailTemplates(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -222,7 +223,7 @@ export class EmailConfigController {
       const type = req.query.type as string;
       const activeOnly = req.query.active === 'true';
       const templates = await this.emailTemplatesUseCase.getTemplates(tenantId, type, activeOnly);
-      
+
       res.json({ success: true, data: templates });
     } catch (error) {
       console.error('Error fetching email templates:', error);
@@ -237,19 +238,19 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { templateId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
       const template = await this.emailTemplatesUseCase.getTemplate(tenantId, templateId);
-      
+
       if (!template) {
         res.status(404).json({ message: 'Email template not found' });
         return;
       }
-      
+
       res.json({ success: true, data: template });
     } catch (error) {
       console.error('Error fetching email template:', error);
@@ -264,7 +265,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { templateId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -272,12 +273,12 @@ export class EmailConfigController {
 
       const validatedData = updateEmailResponseTemplateSchema.parse(req.body);
       const template = await this.emailTemplatesUseCase.updateTemplate(tenantId, templateId, validatedData);
-      
+
       if (!template) {
         res.status(404).json({ message: 'Email template not found' });
         return;
       }
-      
+
       res.json({ success: true, data: template });
     } catch (error) {
       console.error('Error updating email template:', error);
@@ -292,19 +293,19 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { templateId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
       const deleted = await this.emailTemplatesUseCase.deleteTemplate(tenantId, templateId);
-      
+
       if (!deleted) {
         res.status(404).json({ message: 'Email template not found' });
         return;
       }
-      
+
       res.json({ success: true, message: 'Email template deleted successfully' });
     } catch (error) {
       console.error('Error deleting email template:', error);
@@ -318,17 +319,17 @@ export class EmailConfigController {
   async sendTestEmail(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
       const repository = new DrizzleEmailConfigRepository();
-      
+
       // Create a test email message that will appear in the inbox
       const testMessageId = `external-test-${Date.now()}`;
-      
+
       const testEmail = {
         messageId: testMessageId,
         fromEmail: 'teste.externo@exemplo.com',
@@ -348,7 +349,7 @@ export class EmailConfigController {
 
       // Save directly to inbox to simulate external email capture
       await repository.saveInboxMessage(tenantId, testEmail);
-      
+
       res.json({ 
         success: true, 
         message: 'Email de teste criado com sucesso!',
@@ -372,7 +373,7 @@ export class EmailConfigController {
   async importHistoricalEmails(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -388,7 +389,7 @@ export class EmailConfigController {
       // Import email reading service
       const { EmailReadingService } = await import('../../infrastructure/services/EmailReadingService.js');
       const emailReadingService = new EmailReadingService();
-      
+
       console.log('🚀 Starting historical email import...');
 
       // Get the integration configuration
@@ -408,7 +409,7 @@ export class EmailConfigController {
       }
 
       const config = JSON.parse(imapIntegration.configurationData || '{}');
-      
+
       // DEBUG: Log the actual config being passed to understand SSL issue
       console.log(`🔧 DEBUG: Raw config from database:`, config);
       console.log(`🔧 DEBUG: Config keys:`, Object.keys(config));
@@ -416,7 +417,7 @@ export class EmailConfigController {
       console.log(`🔧 DEBUG: IMAP server:`, config.imapServer);
       console.log(`🔧 DEBUG: IMAP port:`, config.imapPort);
       console.log(`🔧 DEBUG: IMAP security:`, config.imapSecurity);
-      
+
       const options = {
         limit: parseInt(limit),
         startDate: startDate ? new Date(startDate) : undefined,
@@ -458,14 +459,14 @@ export class EmailConfigController {
       const tenantId = req.user?.tenantId;
       const { templateId } = req.params;
       const variables = req.body.variables || {};
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
       const rendered = await this.emailTemplatesUseCase.renderTemplate(tenantId, templateId, variables);
-      
+
       res.json({ success: true, data: rendered });
     } catch (error) {
       console.error('Error rendering email template:', error);
@@ -489,22 +490,26 @@ export class EmailConfigController {
     }
   }
 
-  // ========== EMAIL MONITORING CONTROL ==========
-
   async startEmailMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
-      // Import and create email reading service
-      const { EmailReadingService } = await import('../../infrastructure/services/EmailReadingService.js');
-      const emailReadingService = new EmailReadingService();
-      
       console.log('🚀 Starting email monitoring service...');
+
+      // Check if monitoring is already active for this tenant
+      const existingStatus = EmailConfigController.monitoringStatus.get(tenantId);
+      if (existingStatus?.isActive) {
+        res.json({ 
+          message: 'Email monitoring is already active',
+          success: true,
+          data: existingStatus.service.getMonitoringStatus()
+        });
+        return;
+      }
 
       // Check if there are configured email integrations
       const repository = new DrizzleEmailConfigRepository();
@@ -514,7 +519,7 @@ export class EmailConfigController {
         i.isConfigured && 
         (i.name === 'IMAP Email' || i.name === 'Gmail OAuth2' || i.name === 'Outlook OAuth2')
       );
-      
+
       if (emailIntegrations.length === 0) {
         res.status(400).json({ 
           message: 'No configured email integrations found. Please configure at least one email integration in Workspace Admin → Integrações.' 
@@ -522,55 +527,30 @@ export class EmailConfigController {
         return;
       }
 
-      // Get integration config and start monitoring
-      for (const integration of emailIntegrations) {
-        try {
-          const config = await repository.getIntegrationConfig(tenantId, integration.id);
-          if (config && config.emailAddress && config.password) {
-            const imapConfig = {
-              name: integration.name,
-              emailAddress: config.emailAddress,
-              password: config.password,
-              imapServer: config.imapServer || 'imap.gmail.com',
-              imapPort: parseInt(config.imapPort) || 993,
-              imapSecurity: config.imapSecurity || 'SSL/TLS'
-            };
-            
-            await emailReadingService.startMonitoring(tenantId, integration.id, imapConfig);
-            console.log(`✅ Started monitoring for ${integration.name}: ${config.emailAddress}`);
-          }
-        } catch (error) {
-          console.error(`❌ Failed to start monitoring for ${integration.name}:`, error);
-        }
+      // Create new service for this tenant
+      const emailService = new EmailReadingService();
+      await emailService.startMonitoring(tenantId);
+
+      // Store the service in our monitoring status map
+      EmailConfigController.monitoringStatus.set(tenantId, {
+        isActive: true,
+        service: emailService
+      });
+
+      // Also keep global reference for backward compatibility
+      if (!EmailConfigController.emailReadingService) {
+        EmailConfigController.emailReadingService = emailService;
       }
 
-      const monitoringConfig = {
-        isActive: true,
-        totalIntegrations: emailIntegrations.length,
-        activeConnections: emailReadingService.getActiveConnectionsCount(),
-        startedAt: new Date().toISOString(),
-        startedBy: req.user?.email,
-        integrations: emailIntegrations.map(i => ({
-          name: i.name,
-          emailAddress: JSON.parse(i.configurationData || '{}').emailAddress || 'Not configured'
-        }))
-      };
-
-      // Save monitoring state
-      await EmailMonitoringPersistence.saveMonitoringState(tenantId, {
-        tenantId,
-        isActive: true,
-        startedAt: new Date().toISOString(),
-        startedBy: req.user?.email || 'unknown',
-        integrations: emailIntegrations.map(i => i.id)
+      res.json({
+        message: 'Email monitoring started successfully',
+        success: true,
+        data: {
+          isActive: true,
+          integrations: emailIntegrations.length,
+          status: emailService.getMonitoringStatus()
+        }
       });
-
-      res.json({ 
-        success: true, 
-        message: 'Email monitoring started successfully. The system will now check for new emails every 5 minutes.',
-        data: monitoringConfig
-      });
-
     } catch (error) {
       console.error('Error starting email monitoring:', error);
       res.status(500).json({ 
@@ -583,39 +563,28 @@ export class EmailConfigController {
   async stopEmailMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
-      // Import email reading service
-      const { emailReadingService } = await import('../../infrastructure/services/EmailReadingService');
-
-      // Check if monitoring is active
-      if (!emailReadingService || !emailReadingService.isCurrentlyMonitoring()) {
-        res.status(400).json({ 
-          message: 'Email monitoring is not currently active' 
-        });
-        return;
+      const tenantStatus = EmailConfigController.monitoringStatus.get(tenantId);
+      if (tenantStatus?.service) {
+        await tenantStatus.service.stopMonitoring();
+        EmailConfigController.monitoringStatus.delete(tenantId);
       }
 
-      // Stop email monitoring service
-      await emailReadingService.stopMonitoring();
+      // Also stop global service if it exists
+      if (EmailConfigController.emailReadingService) {
+        await EmailConfigController.emailReadingService.stopMonitoring();
+        EmailConfigController.emailReadingService = null;
+      }
 
-      const monitoringConfig = {
-        isActive: false,
-        activeConnections: 0,
-        stoppedAt: new Date().toISOString(),
-        stoppedBy: req.user?.email
-      };
-
-      res.json({ 
-        success: true, 
+      res.json({
         message: 'Email monitoring stopped successfully',
-        data: monitoringConfig
+        success: true,
+        data: { isActive: false }
       });
-
     } catch (error) {
       console.error('Error stopping email monitoring:', error);
       res.status(500).json({ 
@@ -628,87 +597,98 @@ export class EmailConfigController {
   async getEmailMonitoringStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
       }
 
-      // Import email reading service
-      const { emailReadingService } = await import('../../infrastructure/services/EmailReadingService');
-
-      // Get monitoring status and statistics
       const repository = new DrizzleEmailConfigRepository();
+
+      // Get configured integrations
       const integrations = await repository.getEmailIntegrations(tenantId);
+      console.log(`📊 Integration status for IMAP Email:`, {
+        emailAddress: integrations.find(i => i.name === 'IMAP Email')?.emailAddress || 'not configured',
+        isConnected: integrations.some(i => i.name === 'IMAP Email' && i.isConfigured),
+        isConfigured: integrations.some(i => i.name === 'IMAP Email' && i.isConfigured),
+        hasConfig: integrations.length > 0,
+        hasValidConfig: integrations.some(i => i.name === 'IMAP Email' && i.isConfigured && i.emailAddress && i.emailAddress !== 'missing'),
+        status: integrations.find(i => i.name === 'IMAP Email')?.status || 'unknown',
+        configKeys: integrations.find(i => i.name === 'IMAP Email')?.configKeys || []
+      });
+
       const emailIntegrations = integrations.filter(i => 
         i.category === 'Comunicação' && 
-        i.isConfigured && 
         (i.name === 'IMAP Email' || i.name === 'Gmail OAuth2' || i.name === 'Outlook OAuth2')
       );
 
+      // Get monitoring status from tenant-specific service
+      let monitoringStatus = null;
+      const tenantMonitoring = EmailConfigController.monitoringStatus.get(tenantId);
+      if (tenantMonitoring?.service) {
+        monitoringStatus = tenantMonitoring.service.getMonitoringStatus();
+      } else if (EmailConfigController.emailReadingService) {
+        monitoringStatus = EmailConfigController.emailReadingService.getMonitoringStatus();
+      }
+
+      // Get basic rule statistics
+      const rules = await repository.getEmailRules(tenantId);
+      const activeRules = rules.filter(r => r.isActive);
+
+      // Get recent processing logs for statistics
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
       const recentLogs = await repository.getProcessingLogs(tenantId, {
-        limit: 10,
-        dateFrom: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+        limit: 100,
+        dateFrom: yesterday
       });
 
-      const connectionStatus = emailReadingService?.getConnectionStatus() || {};
+      const successful = recentLogs.filter(log => 
+        log.processingStatus === 'processed' || log.processingStatus === 'success'
+      ).length;
 
-      const status = {
-        isActive: (emailReadingService && emailReadingService.isCurrentlyMonitoring) ? emailReadingService.isCurrentlyMonitoring() : false,
+      const failed = recentLogs.filter(log => 
+        log.processingStatus === 'error' || log.processingStatus === 'failed'
+      ).length;
+
+      // Get last processed email
+      const lastProcessed = recentLogs.length > 0 ? recentLogs[0] : null;
+
+      const response = {
+        isActive: tenantMonitoring?.isActive || monitoringStatus?.isActive || false,
         totalIntegrations: emailIntegrations.length,
-        activeConnections: emailReadingService?.getActiveConnectionsCount() || 0,
-        connectionStatus,
+        activeConnections: monitoringStatus?.activeConnections || 0,
+        totalRules: rules.length,
+        activeRules: activeRules.length,
         recentProcessing: {
-          last24Hours: recentLogs.length,
-          successful: recentLogs.filter(log => log.processingStatus === 'success').length,
-          failed: recentLogs.filter(log => log.processingStatus === 'error').length
+          successful,
+          failed
         },
-        lastProcessedEmail: recentLogs[0] || null,
-        integrations: emailIntegrations.map(i => {
-          // Get configuration from either configurationData or config field
-          let configData = {};
-          try {
-            if (i.configurationData && typeof i.configurationData === 'string') {
-              configData = JSON.parse(i.configurationData);
-            } else if (i.config) {
-              configData = typeof i.config === 'string' ? JSON.parse(i.config) : i.config;
-            }
-          } catch (error) {
-            console.error('Error parsing config data:', error);
-            configData = {};
-          }
-          
-          const emailAddress = configData.emailAddress || configData.username || configData.email || i.emailAddress || '';
-          // Check if integration is connected based on database status AND has valid configuration
-          const hasValidConfig = !!(configData.emailAddress && configData.password);
-          const isConnected = i.status === 'connected' && hasValidConfig;
-          
-          console.log(`📊 Integration status for ${i.name}:`, {
-            emailAddress: emailAddress || 'Not configured',
-            isConnected,
-            isConfigured: i.isConfigured,
-            hasConfig: !!configData,
-            hasValidConfig,
-            status: i.status,
-            configKeys: Object.keys(configData)
-          });
-          
-          return {
-            id: i.id,
-            name: i.name,
-            emailAddress: emailAddress || 'Not configured',
-            isConnected: isConnected
-          };
-        })
+        lastProcessedEmail: lastProcessed ? {
+          fromEmail: lastProcessed.emailFrom,
+          subject: lastProcessed.emailSubject,
+          actionTaken: lastProcessed.actionTaken,
+          processedAt: lastProcessed.processedAt
+        } : null,
+        integrations: emailIntegrations.map(i => ({
+          id: i.id,
+          name: i.name,
+          emailAddress: i.emailAddress,
+          status: i.status,
+          hasPassword: !!(i.config?.password || i.config?.pass),
+          isConfigured: i.isConfigured
+        }))
       };
 
-      res.json({ success: true, data: status });
-
+      res.json({
+        success: true,
+        data: response
+      });
     } catch (error) {
-      console.error('Error getting email monitoring status:', error);
-      res.status(500).json({ 
-        message: 'Failed to get email monitoring status',
-        error: error.message 
+      console.error('Error getting monitoring status:', error);
+      res.status(500).json({
+        message: 'Failed to get monitoring status',
+        error: error.message
       });
     }
   }
@@ -716,7 +696,7 @@ export class EmailConfigController {
   async getProcessingLogs(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -755,7 +735,7 @@ export class EmailConfigController {
   async processTestEmail(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -801,7 +781,7 @@ export class EmailConfigController {
   async getInboxMessages(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -841,7 +821,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { messageId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -870,7 +850,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { messageId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -900,7 +880,7 @@ export class EmailConfigController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
       const { messageId } = req.params;
-      
+
       if (!tenantId || !userId) {
         res.status(400).json({ message: 'Tenant ID and User ID are required' });
         return;
@@ -939,9 +919,10 @@ export class EmailConfigController {
 
       const validatedData = insertEmailProcessingRuleSchema.parse(ruleData);
       const rule = await this.emailRulesUseCase.createRule(tenantId, userId, validatedData);
-      
+
       res.status(201).json({ 
         success: true, 
+        ```text
         data: rule,
         message: 'Email rule created successfully from inbox message'
       });
@@ -960,7 +941,7 @@ export class EmailConfigController {
   async getEmailSignatures(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -990,7 +971,7 @@ export class EmailConfigController {
   async createEmailSignature(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -1028,7 +1009,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { signatureId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -1061,7 +1042,7 @@ export class EmailConfigController {
     try {
       const tenantId = req.user?.tenantId;
       const { signatureId } = req.params;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -1092,7 +1073,7 @@ export class EmailConfigController {
   async getEmailIntegrations(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -1119,7 +1100,7 @@ export class EmailConfigController {
   async forceRefreshMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ message: 'Tenant ID is required' });
         return;
@@ -1133,7 +1114,7 @@ export class EmailConfigController {
 
       // Get current monitoring state - skip for now to avoid errors
       const wasActive = false; // emailReadingService.isCurrentlyMonitoring();
-      
+
       if (wasActive) {
         // Stop current monitoring
         emailReadingService.stopAllMonitoring();
@@ -1151,7 +1132,7 @@ export class EmailConfigController {
 
       if (configuredIntegrations.length > 0) {
         await emailReadingService.startMonitoring(tenantId, configuredIntegrations);
-        
+
         // Save monitoring state
         await EmailMonitoringPersistence.saveMonitoringState(tenantId, {
           tenantId,
