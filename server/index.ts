@@ -95,21 +95,8 @@ app.use((req, res, next) => {
   // Initialize production systems
   await productionInitializer.initialize();
 
-  // CRÍTICO: Sistema de monitoramento de emails com auto-restart
-  try {
-    console.log('🔄 Inicializando sistema de monitoramento de emails...');
-    
-    const { EmailMonitoringAutoRestart } = await import('./modules/email-config/infrastructure/services/EmailMonitoringAutoRestart.js');
-    const autoRestart = EmailMonitoringAutoRestart.getInstance();
-    
-    // Restaurar estado de monitoramento ativo após restart do servidor
-    await autoRestart.initializeOnServerStart();
-    
-    console.log('✅ EmailReadingService disponível para ativação automática');
-    console.log('📧 Sistema pronto para capturar emails do alexsolver@gmail.com');
-  } catch (error) {
-    console.error('❌ Erro ao inicializar monitoramento de emails:', error);
-  }
+  // OmniBridge unified communication system
+  console.log('🔄 OmniBridge communication system ready');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

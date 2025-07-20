@@ -12,6 +12,7 @@ export * from "./tenant-specific";
 export * from "./user-management";
 export * from "./technical-skills";
 export * from "./ticket-templates";
+export * from "./omnibridge";
 
 // SCHEMA CONSOLIDATION: Unified type exports to eliminate duplication
 
@@ -226,6 +227,6 @@ export * from './security';
 export * from './tenant-constraints';
 export * from './tenant-specific';
 export * from './internal-forms';
-export * from './email-config';
+export * from './omnibridge';
 export * from './projects';
 export * from './projects-db';
