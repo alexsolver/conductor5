@@ -4,6 +4,7 @@ import { users, tenants, type User, type InsertUser } from "@shared/schema";
 import { logInfo, logError } from "./utils/logger";
 import { poolManager } from "./database/ConnectionPoolManager";
 import { TenantValidator } from "./database/TenantValidator";
+import { randomUUID } from "crypto";
 
 // ===========================
 // INTERFACES & TYPES
@@ -69,6 +70,12 @@ export interface IStorage {
 
   // Template Bulk Operations
   bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
+
+  // Email Templates Management
+  getEmailTemplates(tenantId: string): Promise<any[]>;
+  createEmailTemplate(tenantId: string, templateData: any): Promise<any>;
+  updateEmailTemplate(tenantId: string, templateId: string, templateData: any): Promise<any | undefined>;
+  deleteEmailTemplate(tenantId: string, templateId: string): Promise<boolean>;
 }
 
 // ===========================
@@ -1425,6 +1432,120 @@ export class DatabaseStorage implements IStorage {
       return result.rows || [];
     } catch (error) {
       logError('Error fetching ticket hierarchy', error, { tenantId, ticketId });
+      throw error;
+    }
+  }
+
+  // ===========================
+  // EMAIL TEMPLATES MANAGEMENT
+  // ===========================
+
+  async getEmailTemplates(tenantId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        SELECT 
+          id,
+          name,
+          subject,
+          content,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM ${sql.identifier(schemaName)}.email_templates
+        WHERE tenant_id = ${validatedTenantId}
+        ORDER BY name
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching email templates', error, { tenantId });
+      throw error;
+    }
+  }
+
+  async createEmailTemplate(tenantId: string, templateData: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const templateId = randomUUID();
+      const now = new Date().toISOString();
+
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.email_templates (
+          id, tenant_id, name, subject, content, created_at, updated_at
+        ) VALUES (
+          ${templateId}, ${validatedTenantId}, ${templateData.name}, 
+          ${templateData.subject}, ${templateData.content}, ${now}, ${now}
+        ) RETURNING *
+      `);
+
+      const template = result.rows?.[0];
+      if (template) {
+        logInfo('Email template created successfully', { tenantId: validatedTenantId, templateId });
+      }
+
+      return template;
+    } catch (error) {
+      logError('Error creating email template', error, { tenantId, templateData });
+      throw error;
+    }
+  }
+
+  async updateEmailTemplate(tenantId: string, templateId: string, templateData: any): Promise<any | undefined> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const now = new Date().toISOString();
+
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.email_templates 
+        SET 
+          name = ${templateData.name},
+          subject = ${templateData.subject},
+          content = ${templateData.content},
+          updated_at = ${now}
+        WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
+        RETURNING *
+      `);
+
+      const template = result.rows?.[0];
+      if (template) {
+        logInfo('Email template updated successfully', { tenantId: validatedTenantId, templateId });
+      }
+
+      return template;
+    } catch (error) {
+      logError('Error updating email template', error, { tenantId, templateId, templateData });
+      throw error;
+    }
+  }
+
+  async deleteEmailTemplate(tenantId: string, templateId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.email_templates
+        WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      const deleted = result.rowCount && result.rowCount > 0;
+      if (deleted) {
+        logInfo('Email template deleted successfully', { tenantId: validatedTenantId, templateId });
+      }
+
+      return deleted;
+    } catch (error) {
+      logError('Error deleting email template', error, { tenantId, templateId });
       throw error;
     }
   }

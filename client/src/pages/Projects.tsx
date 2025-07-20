@@ -80,7 +80,20 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [newProject, setNewProject] = useState({
+    name: '',
+    description: '',
+    status: 'planning' as const,
+    priority: 'medium' as const,
+    startDate: '',
+    endDate: '',
+    estimatedHours: '',
+    budget: ''
+  });
+  const [editProject, setEditProject] = useState({
     name: '',
     description: '',
     status: 'planning' as const,
@@ -185,6 +198,100 @@ export default function Projects() {
         variant: 'destructive'
       });
     }
+  };
+
+  const handleEditProject = async () => {
+    try {
+      if (!selectedProject) return;
+      
+      const token = localStorage.getItem('accessToken');
+      
+      const projectData = {
+        ...editProject,
+        estimatedHours: editProject.estimatedHours ? parseInt(editProject.estimatedHours) : undefined,
+        budget: editProject.budget ? parseFloat(editProject.budget) : undefined,
+        startDate: editProject.startDate || undefined,
+        endDate: editProject.endDate || undefined
+      };
+
+      const response = await fetch(`/api/projects/${selectedProject.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(projectData)
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: 'Projeto atualizado com sucesso!'
+        });
+        setShowEditDialog(false);
+        setSelectedProject(null);
+        fetchProjects();
+        fetchStats();
+      } else {
+        throw new Error('Erro ao atualizar projeto');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar projeto',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: 'Projeto excluído com sucesso!'
+        });
+        fetchProjects();
+        fetchStats();
+      } else {
+        throw new Error('Erro ao excluir projeto');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao excluir projeto',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const openEditDialog = (project: Project) => {
+    setSelectedProject(project);
+    setEditProject({
+      name: project.name,
+      description: project.description || '',
+      status: project.status,
+      priority: project.priority,
+      startDate: project.startDate ? project.startDate.split('T')[0] : '',
+      endDate: project.endDate ? project.endDate.split('T')[0] : '',
+      estimatedHours: project.estimatedHours?.toString() || '',
+      budget: project.budget?.toString() || ''
+    });
+    setShowEditDialog(true);
+  };
+
+  const openViewDialog = (project: Project) => {
+    setSelectedProject(project);
+    setShowViewDialog(true);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -336,6 +443,254 @@ export default function Projects() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Project Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Editar Projeto</DialogTitle>
+              <DialogDescription>
+                Atualize as informações do projeto
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label htmlFor="edit-name">Nome do Projeto</Label>
+                <Input
+                  id="edit-name"
+                  value={editProject.name}
+                  onChange={(e) => setEditProject({ ...editProject, name: e.target.value })}
+                  placeholder="Digite o nome do projeto"
+                />
+              </div>
+              
+              <div className="col-span-2">
+                <Label htmlFor="edit-description">Descrição</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editProject.description}
+                  onChange={(e) => setEditProject({ ...editProject, description: e.target.value })}
+                  placeholder="Descreva o projeto"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-status">Status</Label>
+                <Select value={editProject.status} onValueChange={(value) => setEditProject({ ...editProject, status: value as any })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planning">Planejamento</SelectItem>
+                    <SelectItem value="approved">Aprovado</SelectItem>
+                    <SelectItem value="in_progress">Em Execução</SelectItem>
+                    <SelectItem value="on_hold">Em Espera</SelectItem>
+                    <SelectItem value="review">Em Revisão</SelectItem>
+                    <SelectItem value="completed">Concluído</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-priority">Prioridade</Label>
+                <Select value={editProject.priority} onValueChange={(value) => setEditProject({ ...editProject, priority: value as any })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Baixa</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="critical">Crítica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-startDate">Data de Início</Label>
+                <Input
+                  id="edit-startDate"
+                  type="date"
+                  value={editProject.startDate}
+                  onChange={(e) => setEditProject({ ...editProject, startDate: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-endDate">Data de Término</Label>
+                <Input
+                  id="edit-endDate"
+                  type="date"
+                  value={editProject.endDate}
+                  onChange={(e) => setEditProject({ ...editProject, endDate: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-estimatedHours">Horas Estimadas</Label>
+                <Input
+                  id="edit-estimatedHours"
+                  type="number"
+                  value={editProject.estimatedHours}
+                  onChange={(e) => setEditProject({ ...editProject, estimatedHours: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-budget">Orçamento (R$)</Label>
+                <Input
+                  id="edit-budget"
+                  type="number"
+                  step="0.01"
+                  value={editProject.budget}
+                  onChange={(e) => setEditProject({ ...editProject, budget: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleEditProject}>
+                Salvar Alterações
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Project Dialog */}
+        <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Projeto</DialogTitle>
+              <DialogDescription>
+                Visualize as informações completas do projeto
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedProject && (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Nome do Projeto</Label>
+                  <p className="text-sm text-gray-900 mt-1">{selectedProject.name}</p>
+                </div>
+                
+                {selectedProject.description && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Descrição</Label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedProject.description}</p>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Status</Label>
+                    <div className="mt-1">
+                      <Badge className={statusColors[selectedProject.status]}>
+                        {statusLabels[selectedProject.status]}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Prioridade</Label>
+                    <div className="mt-1">
+                      <Badge className={priorityColors[selectedProject.priority]}>
+                        {priorityLabels[selectedProject.priority]}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                {(selectedProject.startDate || selectedProject.endDate) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedProject.startDate && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Data de Início</Label>
+                        <p className="text-sm text-gray-900 mt-1">
+                          {new Date(selectedProject.startDate).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedProject.endDate && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Data de Término</Label>
+                        <p className="text-sm text-gray-900 mt-1">
+                          {new Date(selectedProject.endDate).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedProject.estimatedHours && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Horas Estimadas</Label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedProject.estimatedHours}h</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Horas Realizadas</Label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedProject.actualHours}h</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedProject.budget && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Orçamento</Label>
+                      <p className="text-sm text-gray-900 mt-1">
+                        R$ {selectedProject.budget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Custo Atual</Label>
+                    <p className="text-sm text-gray-900 mt-1">
+                      R$ {selectedProject.actualCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+                
+                {selectedProject.tags.length > 0 && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Tags</Label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {selectedProject.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Data de Criação</Label>
+                  <p className="text-sm text-gray-900 mt-1">
+                    {new Date(selectedProject.createdAt).toLocaleDateString('pt-BR')} às{' '}
+                    {new Date(selectedProject.createdAt).toLocaleTimeString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end pt-4">
+              <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                Fechar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Cards */}
@@ -441,13 +796,13 @@ export default function Projects() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{project.name}</CardTitle>
                 <div className="flex space-x-1">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => openViewDialog(project)}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => openEditDialog(project)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteProject(project.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
