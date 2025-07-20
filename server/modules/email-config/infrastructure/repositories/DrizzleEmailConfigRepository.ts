@@ -773,4 +773,69 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       throw error;
     }
   }
+
+  // Save monitoring state to persist across server restarts
+  async saveMonitoringState(tenantId: string, integrationId: string, isActive: boolean): Promise<void> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly 
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    // Update monitoring state in integrations table
+    await tenantDb.execute(sql`
+      UPDATE integrations 
+      SET is_currently_monitoring = ${isActive},
+          updated_at = NOW()
+      WHERE id = ${integrationId} 
+        AND tenant_id = ${tenantId}
+    `);
+    
+    console.log(`📊 Monitoring state saved: ${integrationId} = ${isActive}`);
+  }
+
+  // Get monitoring state to restore after server restart  
+  async getMonitoringState(tenantId: string, integrationId: string): Promise<boolean> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly 
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    // Get monitoring state from integrations table
+    const result = await tenantDb.execute(sql`
+      SELECT is_currently_monitoring FROM integrations 
+      WHERE id = ${integrationId} 
+        AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+    
+    if (result.rows.length === 0) {
+      return false;
+    }
+    
+    return result.rows[0].is_currently_monitoring || false;
+  }
+
+  // Get all active monitoring integrations for auto-restart
+  async getActiveMonitoringIntegrations(tenantId: string): Promise<Array<{id: string, name: string}>> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly 
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    // Get all integrations that were actively monitoring
+    const result = await tenantDb.execute(sql`
+      SELECT id, name FROM integrations 
+      WHERE tenant_id = ${tenantId}
+        AND is_currently_monitoring = true
+        AND status = 'connected'
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.name
+    }));
+  }
 }

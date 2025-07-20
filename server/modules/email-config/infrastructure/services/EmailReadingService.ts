@@ -244,9 +244,9 @@ export class EmailReadingService {
                 const emailInfo = {
                   messageId: headers['message-id'] || `imap-${integrationId}-${seqno}`,
                   fromEmail: this.extractEmail(headers.from || ''),
-                  fromName: this.extractName(headers.from || ''),
+                  fromName: this.fixUTF8Encoding(this.extractName(headers.from || '')),
                   toEmail: this.extractEmail(headers.to || ''),
-                  subject: headers.subject || 'No Subject',
+                  subject: this.fixUTF8Encoding(this.decodeRFC2047(headers.subject || 'No Subject')),
                   bodyText: this.extractTextFromBody(bodySection),
                   bodyHtml: this.extractHtmlFromBody(bodySection),
                   hasAttachments: false,
@@ -321,6 +321,171 @@ export class EmailReadingService {
     });
   }
 
+  // Enhanced MIME content processing with improved quoted-printable and base64 decoding
+  private extractTextFromBody(bodySection: string): string {
+    try {
+      // Check if this is a multipart message
+      if (bodySection.includes('Content-Type: multipart/')) {
+        return this.extractFromMultipart(bodySection, 'text/plain');
+      }
+      
+      // Single part message
+      return this.decodeMessageContent(bodySection);
+    } catch (error) {
+      console.error('Error extracting text from body:', error);
+      return bodySection.substring(0, 1000); // Fallback to first 1000 chars
+    }
+  }
+
+  private extractHtmlFromBody(bodySection: string): string {
+    try {
+      // Check if this is a multipart message
+      if (bodySection.includes('Content-Type: multipart/')) {
+        return this.extractFromMultipart(bodySection, 'text/html');
+      }
+      
+      // Check if single part is HTML
+      if (bodySection.includes('Content-Type: text/html')) {
+        return this.decodeMessageContent(bodySection);
+      }
+      
+      return '';
+    } catch (error) {
+      console.error('Error extracting HTML from body:', error);
+      return '';
+    }
+  }
+
+  private extractFromMultipart(bodySection: string, contentType: string): string {
+    try {
+      // Find boundary
+      const boundaryMatch = bodySection.match(/boundary[=\s]*["']?([^"'\s;]+)["']?/i);
+      if (!boundaryMatch) {
+        console.log('No boundary found in multipart message');
+        return this.decodeMessageContent(bodySection);
+      }
+
+      const boundary = boundaryMatch[1];
+      console.log(`📧 Found boundary: ${boundary}`);
+
+      // Split by boundary
+      const parts = bodySection.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g'));
+      
+      for (const part of parts) {
+        if (part.includes(`Content-Type: ${contentType}`)) {
+          console.log(`📧 Found ${contentType} part`);
+          return this.decodeMessageContent(part);
+        }
+      }
+
+      // Fallback: try to find any text content
+      for (const part of parts) {
+        if (part.includes('Content-Type: text/')) {
+          console.log(`📧 Found text/* part as fallback`);
+          return this.decodeMessageContent(part);
+        }
+      }
+
+      return '';
+    } catch (error) {
+      console.error('Error extracting from multipart:', error);
+      return '';
+    }
+  }
+
+  private decodeMessageContent(content: string): string {
+    try {
+      // Find the actual content after headers
+      const contentParts = content.split(/\r?\n\r?\n/);
+      if (contentParts.length < 2) {
+        return content.trim();
+      }
+
+      const headers = contentParts[0];
+      const body = contentParts.slice(1).join('\n\n');
+
+      // Check for Content-Transfer-Encoding
+      const encodingMatch = headers.match(/Content-Transfer-Encoding:\s*([^\r\n]+)/i);
+      const encoding = encodingMatch ? encodingMatch[1].trim().toLowerCase() : '';
+
+      console.log(`📧 Content encoding: ${encoding}`);
+
+      if (encoding === 'quoted-printable') {
+        return this.decodeQuotedPrintable(body);
+      } else if (encoding === 'base64') {
+        return this.decodeBase64(body);
+      } else {
+        return body.trim();
+      }
+    } catch (error) {
+      console.error('Error decoding message content:', error);
+      return content.substring(0, 1000);
+    }
+  }
+
+  private decodeQuotedPrintable(text: string): string {
+    try {
+      let decoded = text
+        // Handle soft line breaks (= at end of line)
+        .replace(/=\r?\n/g, '')
+        // Handle hex-encoded characters
+        .replace(/=([0-9A-F]{2})/gi, (match, hex) => {
+          return String.fromCharCode(parseInt(hex, 16));
+        })
+        // Clean up extra whitespace
+        .trim();
+
+      // Additional UTF-8 character fixes for common Brazilian Portuguese characters
+      decoded = this.fixUTF8Encoding(decoded);
+      
+      return decoded;
+    } catch (error) {
+      console.error('Error decoding quoted-printable:', error);
+      return text;
+    }
+  }
+
+  private fixUTF8Encoding(text: string): string {
+    try {
+      // Fix common UTF-8 encoding issues for Portuguese characters
+      const fixes = {
+        'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+        'Ã ': 'à', 'Ã¨': 'è', 'Ã¬': 'ì', 'Ã²': 'ò', 'Ã¹': 'ù',
+        'Ã¢': 'â', 'Ãª': 'ê', 'Ã®': 'î', 'Ã´': 'ô', 'Ã»': 'û',
+        'Ã£': 'ã', 'Ã±': 'ñ', 'Ã§': 'ç', 'Ã½': 'ý',
+        'Ã': 'Á', 'Ã‰': 'É', 'Ã': 'Í', 'Ã"': 'Ó', 'Ãš': 'Ú',
+        'Ã€': 'À', 'Ãˆ': 'È', 'ÃŒ': 'Ì', 'Ã'': 'Ò', 'Ã™': 'Ù',
+        'Ã‚': 'Â', 'ÃŠ': 'Ê', 'ÃŽ': 'Î', 'Ã"': 'Ô', 'Ã›': 'Û',
+        'Ãƒ': 'Ã', 'Ã'': 'Ñ', 'Ã‡': 'Ç', 'Ã': 'Ý',
+        'Â°': '°', 'Â´': '´', 'Â¨': '¨', 'Â¸': '¸', 'Â¿': '¿', 'Â¡': '¡'
+      };
+
+      let fixed = text;
+      for (const [wrong, correct] of Object.entries(fixes)) {
+        fixed = fixed.replace(new RegExp(wrong, 'g'), correct);
+      }
+
+      return fixed;
+    } catch (error) {
+      console.error('Error fixing UTF-8 encoding:', error);
+      return text;
+    }
+  }
+
+  private decodeBase64(text: string): string {
+    try {
+      // Remove whitespace and line breaks
+      const cleanBase64 = text.replace(/\s+/g, '');
+      
+      // Decode base64
+      const buffer = Buffer.from(cleanBase64, 'base64');
+      return buffer.toString('utf8');
+    } catch (error) {
+      console.error('Error decoding base64:', error);
+      return text;
+    }
+  }
+
   // RFC 2047 header decoding for encoded subject lines
   private decodeRFC2047(text: string): string {
     if (!text) return '';
@@ -347,33 +512,74 @@ export class EmailReadingService {
 
   // Parse MIME multipart content
   private parseMimeContent(body: string): { text: string; html?: string } {
-    // Extract boundary from content-type header if present
+    // Check if this is multipart content
     const boundaryMatch = body.match(/boundary[="']?([^"'\s;]+)/i);
-    if (!boundaryMatch) {
-      // Not multipart, treat as plain text
-      return { text: this.cleanQuotedPrintable(body) };
-    }
-
-    const boundary = boundaryMatch[1];
-    const parts = body.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
     
-    let textPart = '';
-    let htmlPart = '';
+    if (boundaryMatch) {
+      const boundary = boundaryMatch[1];
+      const parts = body.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+      
+      let textPart = '';
+      let htmlPart = '';
 
-    for (const part of parts) {
-      if (part.includes('Content-Type: text/plain')) {
-        const content = part.split(/\r?\n\r?\n/).slice(1).join('\n\n');
-        textPart = this.cleanQuotedPrintable(content);
-      } else if (part.includes('Content-Type: text/html')) {
-        const content = part.split(/\r?\n\r?\n/).slice(1).join('\n\n');
-        htmlPart = this.cleanQuotedPrintable(content);
+      for (const part of parts) {
+        if (part.includes('Content-Type: text/plain')) {
+          // Extract content after headers
+          const headerEndMatch = part.match(/\r?\n\r?\n([\s\S]*)/);
+          if (headerEndMatch) {
+            textPart = this.cleanQuotedPrintable(headerEndMatch[1]);
+          }
+        } else if (part.includes('Content-Type: text/html')) {
+          // Extract content after headers
+          const headerEndMatch = part.match(/\r?\n\r?\n([\s\S]*)/);
+          if (headerEndMatch) {
+            htmlPart = this.cleanQuotedPrintable(headerEndMatch[1]);
+          }
+        }
       }
+
+      return {
+        text: textPart || this.extractCleanText(body),
+        html: htmlPart || undefined
+      };
     }
 
-    return {
-      text: textPart || this.extractTextFromBody(body),
-      html: htmlPart || undefined
-    };
+    // Single part message - check for quoted-printable encoding
+    if (body.includes('Content-Transfer-Encoding: quoted-printable')) {
+      const cleanContent = this.extractCleanText(body);
+      return { text: cleanContent };
+    }
+
+    // Plain text message
+    return { text: this.extractCleanText(body) };
+  }
+
+  // Extract clean text content from email body
+  private extractCleanText(body: string): string {
+    // Remove MIME headers and boundaries
+    let cleanText = body;
+    
+    // Remove MIME boundary markers
+    cleanText = cleanText.replace(/--[a-zA-Z0-9]+/g, '');
+    
+    // Remove Content-Type, Content-Transfer-Encoding headers
+    cleanText = cleanText.replace(/Content-Type:[^\r\n]*/gi, '');
+    cleanText = cleanText.replace(/Content-Transfer-Encoding:[^\r\n]*/gi, '');
+    cleanText = cleanText.replace(/Mime-Version:[^\r\n]*/gi, '');
+    
+    // Clean quoted-printable encoding
+    cleanText = this.cleanQuotedPrintable(cleanText);
+    
+    // Remove HTML tags if present
+    cleanText = cleanText.replace(/<[^>]*>/g, ' ');
+    
+    // Clean up whitespace and truncate
+    cleanText = cleanText
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 1000); // Reasonable length for preview
+    
+    return cleanText;
   }
 
   // Clean quoted-printable encoding
