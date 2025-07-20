@@ -133,14 +133,52 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
     const id = crypto.randomUUID();
     
     const { db } = await schemaManager.getTenantDb(action.tenantId);
-    const [created] = await db.insert(projectActions).values({
-      id,
-      ...action,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
     
-    return created;
+    // Prepare data with proper array handling for PostgreSQL JSONB
+    const insertData = {
+      id,
+      tenantId: action.tenantId,
+      projectId: action.projectId,
+      title: action.title,
+      description: action.description,
+      type: action.type,
+      status: action.status,
+      scheduledDate: action.scheduledDate,
+      dueDate: action.dueDate,
+      completedDate: action.completedDate,
+      estimatedHours: action.estimatedHours,
+      actualHours: action.actualHours,
+      assignedToId: action.assignedToId,
+      // Convert arrays to proper JSONB format
+      responsibleIds: JSON.stringify(action.responsibleIds || []),
+      clientContactId: action.clientContactId,
+      externalReference: action.externalReference,
+      deliveryMethod: action.deliveryMethod,
+      dependsOnActionIds: JSON.stringify(action.dependsOnActionIds || []),
+      blockedByActionIds: JSON.stringify(action.blockedByActionIds || []),
+      priority: action.priority,
+      tags: JSON.stringify(action.tags || []),
+      attachments: JSON.stringify(action.attachments || []),
+      notes: action.notes,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: action.createdBy,
+      updatedBy: action.updatedBy
+    };
+
+    console.log('Insert data prepared:', JSON.stringify(insertData, null, 2));
+
+    const [created] = await db.insert(projectActions).values(insertData).returning();
+    
+    // Parse arrays back from JSONB strings for response
+    return {
+      ...created,
+      responsibleIds: JSON.parse(created.responsibleIds as string || '[]'),
+      dependsOnActionIds: JSON.parse(created.dependsOnActionIds as string || '[]'),
+      blockedByActionIds: JSON.parse(created.blockedByActionIds as string || '[]'),
+      tags: JSON.parse(created.tags as string || '[]'),
+      attachments: JSON.parse(created.attachments as string || '[]')
+    };
   }
 
   async findById(id: string, tenantId: string): Promise<ProjectAction | null> {
