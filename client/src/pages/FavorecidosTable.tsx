@@ -546,7 +546,7 @@ export default function FavorecidosTable() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">

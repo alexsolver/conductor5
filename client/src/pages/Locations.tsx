@@ -205,7 +205,7 @@ export default function Locations() {
   const stats = statsData || {};
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between ml-[20px] mr-[20px]">
         <div>

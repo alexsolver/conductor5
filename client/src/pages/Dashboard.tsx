@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
@@ -71,7 +71,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>

@@ -491,7 +491,7 @@ export function TemplateSelector() {
   const allTemplates = [...templates, ...customTemplates];
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
