@@ -207,7 +207,7 @@ export default function Locations() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ml-[20px] mr-[20px]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Locais</h1>
           <p className="text-muted-foreground">
@@ -614,7 +614,6 @@ export default function Locations() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -656,7 +655,6 @@ export default function Locations() {
           </CardContent>
         </Card>
       </div>
-
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -710,7 +708,6 @@ export default function Locations() {
           </div>
         </CardContent>
       </Card>
-
       {/* Locations Table */}
       <Card>
         <CardHeader>

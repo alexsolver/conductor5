@@ -559,7 +559,7 @@ export default function CustomersTable() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center ml-[20px] mr-[20px]">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Solicitantes</h1>
           <p className="text-gray-600 dark:text-gray-400">Gerencie informações e perfis de solicitantes</p>
@@ -579,7 +579,6 @@ export default function CustomersTable() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Search */}
       <Card>
         <CardContent className="pt-6">
@@ -594,7 +593,6 @@ export default function CustomersTable() {
           </div>
         </CardContent>
       </Card>
-
       {/* Customers Table */}
       <Card>
         <CardHeader>
@@ -736,7 +734,6 @@ export default function CustomersTable() {
           </div>
         </CardContent>
       </Card>
-
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
@@ -746,7 +743,6 @@ export default function CustomersTable() {
           <CustomerForm />
         </DialogContent>
       </Dialog>
-
       {/* Location Manager Dialog */}
       <CustomerLocationManager
         customerId={selectedCustomerIdForLocations}
@@ -760,7 +756,6 @@ export default function CustomersTable() {
           setIsLocationModalOpen(true);
         }}
       />
-
       {/* Location Modal */}
       <LocationModal
         isOpen={isLocationModalOpen}

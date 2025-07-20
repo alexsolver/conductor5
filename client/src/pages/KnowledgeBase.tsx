@@ -173,152 +173,150 @@ export default function KnowledgeBase() {
 
   return (
     <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Base de Conhecimento
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Encontre respostas, guias e documentação para usar a plataforma
-          </p>
-        </div>
-
-        {/* Search */}
-        <Card>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquisar na base de conhecimento..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button type="submit">Pesquisar</Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="categories">Categorias</TabsTrigger>
-            <TabsTrigger value="articles">Artigos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="categories" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => (
-                <Card 
-                  key={category.id} 
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => {
-                    setSelectedCategory(category.id);
-                    // Switch to articles tab
-                    document.querySelector('[value="articles"]')?.click();
-                  }}
-                >
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 text-white">
-                        {getCategoryIcon(category.icon)}
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{category.name}</CardTitle>
-                        <CardDescription>{category.articleCount} artigos</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{category.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+      <div className="ml-[20px] mr-[20px]">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          Base de Conhecimento
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Encontre respostas, guias e documentação para usar a plataforma
+        </p>
+      </div>
+      {/* Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar na base de conhecimento..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </TabsContent>
+            <Button type="submit">Pesquisar</Button>
+          </form>
+        </CardContent>
+      </Card>
+      <Tabs defaultValue="categories" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="articles">Artigos</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="articles" className="space-y-6">
-            {selectedCategory && (
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary">{categories.find(c => c.id === selectedCategory)?.name}</Badge>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  Limpar filtro
-                </Button>
-              </div>
-            )}
-
-            <div className="grid gap-6">
-              {articles.map((article) => (
-                <Card 
-                  key={article.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => setSelectedArticle(article)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <CardTitle className="text-xl">{article.title}</CardTitle>
-                        <CardDescription>
-                          {article.excerpt || article.content?.substring(0, 200) + '...'}
-                        </CardDescription>
-                      </div>
-                      <Badge variant="outline">
-                        {categories.find(c => c.id === article.category)?.name}
-                      </Badge>
+        <TabsContent value="categories" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((category) => (
+              <Card 
+                key={category.id} 
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => {
+                  setSelectedCategory(category.id);
+                  // Switch to articles tab
+                  document.querySelector('[value="articles"]')?.click();
+                }}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 text-white">
+                      {getCategoryIcon(category.icon)}
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center gap-4">
-                        <span>Por {article.author}</span>
-                        <span>•</span>
-                        <span>{formatDate(article.createdAt)}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-4 w-4" />
-                          <span>{article.views}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <ThumbsUp className="h-4 w-4" />
-                          <span>{article.helpful}</span>
-                        </div>
-                      </div>
+                    <div>
+                      <CardTitle className="text-lg">{category.name}</CardTitle>
+                      <CardDescription>{category.articleCount} artigos</CardDescription>
                     </div>
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {article.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {articles.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Nenhum artigo encontrado</h3>
-                  <p className="text-muted-foreground">
-                    {searchQuery 
-                      ? `Não encontramos artigos para "${searchQuery}"`
-                      : selectedCategory 
-                      ? "Esta categoria não possui artigos ainda"
-                      : "Carregando artigos..."
-                    }
-                  </p>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{category.description}</p>
                 </CardContent>
               </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="articles" className="space-y-6">
+          {selectedCategory && (
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant="secondary">{categories.find(c => c.id === selectedCategory)?.name}</Badge>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+              >
+                Limpar filtro
+              </Button>
+            </div>
+          )}
+
+          <div className="grid gap-6">
+            {articles.map((article) => (
+              <Card 
+                key={article.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => setSelectedArticle(article)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <CardTitle className="text-xl">{article.title}</CardTitle>
+                      <CardDescription>
+                        {article.excerpt || article.content?.substring(0, 200) + '...'}
+                      </CardDescription>
+                    </div>
+                    <Badge variant="outline">
+                      {categories.find(c => c.id === article.category)?.name}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                      <span>Por {article.author}</span>
+                      <span>•</span>
+                      <span>{formatDate(article.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        <span>{article.views}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <ThumbsUp className="h-4 w-4" />
+                        <span>{article.helpful}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {article.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {articles.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhum artigo encontrado</h3>
+                <p className="text-muted-foreground">
+                  {searchQuery 
+                    ? `Não encontramos artigos para "${searchQuery}"`
+                    : selectedCategory 
+                    ? "Esta categoria não possui artigos ainda"
+                    : "Carregando artigos..."
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

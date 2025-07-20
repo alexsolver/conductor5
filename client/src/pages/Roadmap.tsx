@@ -614,7 +614,7 @@ export default function Roadmap() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
+      <div className="ml-[20px] mr-[20px]">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Roadmap de Projetos
         </h1>
@@ -622,7 +622,6 @@ export default function Roadmap() {
           Planejamento e evolução das funcionalidades de gestão de projetos
         </p>
       </div>
-
       {/* Progress Overview */}
       <Card>
         <CardHeader>
@@ -646,7 +645,6 @@ export default function Roadmap() {
           </div>
         </CardContent>
       </Card>
-
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
         <div>
@@ -676,7 +674,6 @@ export default function Roadmap() {
           </select>
         </div>
       </div>
-
       {/* Roadmap Phases */}
       <div className="space-y-6">
         {filteredData.map((phase) => (
