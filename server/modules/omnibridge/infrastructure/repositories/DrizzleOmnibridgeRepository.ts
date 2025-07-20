@@ -176,14 +176,10 @@ export class DrizzleOmnibridgeRepository implements IOmnibridgeRepository {
 
   async getIntegrationByName(tenantId: string, name: string): Promise<any | null> {
     try {
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier('integrations')} 
-        WHERE name = ${name} LIMIT 1
-      `);
-      
-      return result.rows[0] || null;
+      const { getStorage } = await import('../../../storage');
+      const storage = getStorage();
+      const integrations = await storage.getTenantIntegrations(tenantId);
+      return integrations.find(i => i.name === name) || null;
     } catch (error) {
       console.error(`Error getting integration by name:`, error);
       return null;

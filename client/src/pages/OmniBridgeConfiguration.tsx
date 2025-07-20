@@ -196,7 +196,7 @@ export default function OmniBridgeConfiguration() {
   const toggleMonitoringMutation = useMutation({
     mutationFn: async ({ channelId, enable }: { channelId: string; enable: boolean }) => {
       setMonitoringChannelIds(prev => [...prev, channelId]);
-      const response = await apiRequest('PUT', `/api/omnibridge/channels/${channelId}/monitoring`, { enable });
+      const response = await apiRequest('POST', `/api/omnibridge/channels/${channelId}/monitoring`, { enable });
       return response;
     },
     onSuccess: (data, { channelId }) => {

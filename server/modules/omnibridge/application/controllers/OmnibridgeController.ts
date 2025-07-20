@@ -60,6 +60,12 @@ export class OmnibridgeController {
     if (!isConfigured) return 0;
     
     try {
+      // Only count for channels with valid UUID channelId to prevent database errors
+      if (!channelId || channelId.length < 30 || !channelId.includes('-')) {
+        // This is likely a non-configured channel (like 'imap-email'), return 0
+        return 0;
+      }
+      
       // Get real count from database for the specific channel
       const messages = await this.repository.getInboxMessages(tenantId, { 
         channelId,
@@ -299,8 +305,11 @@ export class OmnibridgeController {
       if (channelId.includes('imap-email') || channelId.includes('ch-imap-email')) {
         console.log(`📧 Testing real Gmail IMAP connection for tenant: ${tenantId}`);
         
-        // Get IMAP Email integration credentials from database using repository
-        const integration = await this.omnibridgeRepository.getIntegrationByName(tenantId, 'IMAP Email');
+        // Get IMAP Email integration credentials from database using legacy storage
+        const { getStorage } = await import('../../../storage');
+        const storage = getStorage();
+        const integrations = await storage.getTenantIntegrations(tenantId);
+        const integration = integrations.find(i => i.name === 'IMAP Email');
         
         if (!integration) {
           res.status(404).json({
