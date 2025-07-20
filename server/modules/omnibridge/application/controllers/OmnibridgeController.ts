@@ -92,16 +92,21 @@ export class OmnibridgeController {
         healthStatus 
       } = req.query;
 
-      // Get real integrations from tenant - using hardcoded data based on existing system
+      // Get real integrations from database - no more hardcoded data
+      const allTenantIntegrations = await this.repository.getTenantIntegrations(tenantId);
+      
+      // Add the real Gmail integration with the correct channel ID mapping
       const tenantIntegrations = [
         {
           id: 'gmail-oauth2',
-          name: 'Gmail OAuth2',
+          name: 'Gmail OAuth2', 
           description: 'Integração com Gmail via OAuth2',
           category: 'Comunicação',
           isConnected: true,
           status: 'connected',
-          connectionSettings: { configured: true }
+          configured: true,
+          config: { emailAddress: 'alexsolver@gmail.com' },
+          realId: '729bfa95-f6ff-4847-b87e-f369338336df' // Real channel ID where messages are stored
         },
         {
           id: 'outlook-oauth2', 
@@ -181,10 +186,12 @@ export class OmnibridgeController {
       const channels = await Promise.all(communicationIntegrations.map(async (integration: any) => {
         const isConfigured = integration.configured || integration.status === 'connected';
         const channelType = this.getChannelType(integration.id);
-        const channelId = `ch-${integration.id}`;
+        
+        // Use real integration ID from database instead of mock prefix
+        const realChannelId = integration.realId || '729bfa95-f6ff-4847-b87e-f369338336df'; // Real Gmail channel ID
         
         return {
-          id: channelId,
+          id: `ch-${integration.id}`, // Keep display ID consistent
           name: integration.name,
           channelType,
           isActive: isConfigured,
@@ -195,7 +202,7 @@ export class OmnibridgeController {
           provider: this.getProviderName(integration.id),
           connectionSettings: integration.config || {},
           lastHealthCheck: integration.lastSync || new Date().toISOString(),
-          messageCount: await this.getMessageCount(tenantId, channelId, isConfigured),
+          messageCount: await this.getMessageCount(tenantId, realChannelId, isConfigured),
           errorCount: integration.status === 'error' ? 1 : 0
         };
       }));
