@@ -13,6 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toast } from '@/hooks/use-toast';
 import { 
   Plus, 
   Calendar, 
@@ -135,12 +136,13 @@ const CreateActionSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   scheduledDate: z.string().optional(),
   dueDate: z.string().optional(),
-  estimatedHours: z.number().min(0).optional(),
+  estimatedHours: z.coerce.number().min(0).optional(),
   assignedToId: z.string().optional(),
   clientContactId: z.string().optional(),
   externalReference: z.string().optional(),
   deliveryMethod: z.string().optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled', 'blocked']).default('pending')
 });
 
 type CreateActionFormData = z.infer<typeof CreateActionSchema>;
@@ -155,7 +157,8 @@ export default function ProjectActions() {
     resolver: zodResolver(CreateActionSchema),
     defaultValues: {
       type: 'internal_task',
-      priority: 'medium'
+      priority: 'medium',
+      status: 'pending'
     }
   });
 
@@ -174,14 +177,30 @@ export default function ProjectActions() {
   // Create action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: CreateActionFormData) => {
+      console.log('Creating action with data:', data);
       const { projectId, ...actionData } = data;
-      return apiRequest('POST', `/api/projects/${projectId}/actions`, actionData);
+      const response = await apiRequest('POST', `/api/projects/${projectId}/actions`, actionData);
+      const result = await response.json();
+      console.log('Action created successfully:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/actions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       setIsCreateModalOpen(false);
       form.reset();
+      toast({
+        title: "Sucesso",
+        description: "Ação criada com sucesso"
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error creating action:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao criar ação",
+        variant: "destructive"
+      });
     }
   });
 

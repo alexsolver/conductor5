@@ -179,16 +179,21 @@ export class ProjectController {
         });
       }
 
-      const action = await this.actionsUseCase.createAction({
+      // Ensure arrays are properly initialized
+      const actionData = {
         ...validation.data,
         tenantId,
         actualHours: 0,
-        responsibleIds: validation.data.responsibleIds || [],
-        dependsOnActionIds: validation.data.dependsOnActionIds || [],
-        blockedByActionIds: validation.data.blockedByActionIds || [],
-        tags: validation.data.tags || [],
-        attachments: validation.data.attachments || []
-      }, userId);
+        // Convert string arrays or undefined to proper arrays
+        responsibleIds: Array.isArray(validation.data.responsibleIds) ? validation.data.responsibleIds : [],
+        dependsOnActionIds: Array.isArray(validation.data.dependsOnActionIds) ? validation.data.dependsOnActionIds : [],
+        blockedByActionIds: Array.isArray(validation.data.blockedByActionIds) ? validation.data.blockedByActionIds : [],
+        tags: Array.isArray(validation.data.tags) ? validation.data.tags : [],
+        attachments: Array.isArray(validation.data.attachments) ? validation.data.attachments : []
+      };
+
+      console.log('Action data prepared for creation:', JSON.stringify(actionData, null, 2));
+      const action = await this.actionsUseCase.createAction(actionData, userId);
 
       res.status(201).json(action);
     } catch (error) {
