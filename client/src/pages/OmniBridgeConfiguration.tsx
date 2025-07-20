@@ -717,22 +717,246 @@ export default function OmniBridgeConfiguration() {
 
       {/* Dialog de Configuração de Canal */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Configurar Canal: {selectedChannel?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedChannel && getChannelIcon(selectedChannel.channelType)}
+              Configurar Canal: {selectedChannel?.name}
+            </DialogTitle>
             <DialogDescription>
-              Configure as definições avançadas deste canal de comunicação.
+              Configure as credenciais e parâmetros específicos para este canal de comunicação.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="text-center py-8 text-muted-foreground">
-              <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Configurações específicas do canal em desenvolvimento</p>
-              <p className="text-sm">Canal ID: {selectedChannel?.id}</p>
-            </div>
+          <div className="grid gap-6 py-4">
+            {/* Gmail OAuth2 Configuration */}
+            {selectedChannel?.id === 'ch-gmail-oauth2' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="gmail-client-id">Client ID do Google</Label>
+                    <Input id="gmail-client-id" placeholder="Cole o Client ID aqui" />
+                  </div>
+                  <div>
+                    <Label htmlFor="gmail-client-secret">Client Secret</Label>
+                    <Input id="gmail-client-secret" type="password" placeholder="Cole o Client Secret aqui" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="gmail-redirect-uri">Redirect URI</Label>
+                  <Input id="gmail-redirect-uri" defaultValue="http://localhost:5000/api/auth/gmail/callback" />
+                </div>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Como obter as credenciais</AlertTitle>
+                  <AlertDescription>
+                    1. Acesse o Google Cloud Console<br/>
+                    2. Crie um novo projeto ou selecione um existente<br/>
+                    3. Ative a Gmail API<br/>
+                    4. Crie credenciais OAuth 2.0
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+
+            {/* WhatsApp Business Configuration */}
+            {selectedChannel?.id === 'ch-whatsapp-business-api' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="whatsapp-app-id">App ID</Label>
+                    <Input id="whatsapp-app-id" placeholder="ID da aplicação WhatsApp" />
+                  </div>
+                  <div>
+                    <Label htmlFor="whatsapp-app-secret">App Secret</Label>
+                    <Input id="whatsapp-app-secret" type="password" placeholder="Secret da aplicação" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="whatsapp-phone-id">Phone Number ID</Label>
+                    <Input id="whatsapp-phone-id" placeholder="ID do número de telefone" />
+                  </div>
+                  <div>
+                    <Label htmlFor="whatsapp-access-token">Access Token</Label>
+                    <Input id="whatsapp-access-token" type="password" placeholder="Token de acesso" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="whatsapp-webhook">Webhook URL</Label>
+                  <Input id="whatsapp-webhook" placeholder="URL para receber mensagens" />
+                </div>
+              </div>
+            )}
+
+            {/* Telegram Bot Configuration */}
+            {selectedChannel?.id === 'ch-telegram-business-bot' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="telegram-bot-token">Bot Token</Label>
+                  <Input id="telegram-bot-token" type="password" placeholder="Token do bot obtido do @BotFather" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="telegram-chat-id">Chat ID</Label>
+                    <Input id="telegram-chat-id" placeholder="ID do chat ou grupo" />
+                  </div>
+                  <div>
+                    <Label htmlFor="telegram-parse-mode">Parse Mode</Label>
+                    <Select defaultValue="HTML">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="HTML">HTML</SelectItem>
+                        <SelectItem value="Markdown">Markdown</SelectItem>
+                        <SelectItem value="MarkdownV2">Markdown V2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="telegram-webhook">Webhook URL</Label>
+                  <Input id="telegram-webhook" placeholder="URL para receber atualizações" />
+                </div>
+              </div>
+            )}
+
+            {/* Microsoft Teams Configuration */}
+            {selectedChannel?.id === 'ch-microsoft-teams' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="teams-client-id">Client ID</Label>
+                    <Input id="teams-client-id" placeholder="Client ID do Azure AD" />
+                  </div>
+                  <div>
+                    <Label htmlFor="teams-tenant-id">Tenant ID</Label>
+                    <Input id="teams-tenant-id" placeholder="ID do tenant Azure" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="teams-client-secret">Client Secret</Label>
+                  <Input id="teams-client-secret" type="password" placeholder="Secret da aplicação" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="teams-channel-id">Channel ID</Label>
+                    <Input id="teams-channel-id" placeholder="ID do canal Teams" />
+                  </div>
+                  <div>
+                    <Label htmlFor="teams-webhook">Webhook URL</Label>
+                    <Input id="teams-webhook" placeholder="URL do webhook Teams" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Email SMTP Configuration */}
+            {selectedChannel?.id === 'ch-email-smtp' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="smtp-host">Servidor SMTP</Label>
+                    <Input id="smtp-host" placeholder="smtp.gmail.com" />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-port">Porta</Label>
+                    <Input id="smtp-port" type="number" placeholder="587" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="smtp-user">Usuário</Label>
+                    <Input id="smtp-user" placeholder="seu-email@dominio.com" />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-pass">Senha</Label>
+                    <Input id="smtp-pass" type="password" placeholder="Senha ou senha de app" />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="smtp-secure" />
+                  <Label htmlFor="smtp-secure">Usar conexão segura (TLS/SSL)</Label>
+                </div>
+              </div>
+            )}
+
+            {/* IMAP Email Configuration */}
+            {selectedChannel?.id === 'ch-imap-email' && (
+              <div className="space-y-4">
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Canal Configurado</AlertTitle>
+                  <AlertDescription>
+                    Este canal já está configurado e conectado com alexsolver@gmail.com
+                  </AlertDescription>
+                </Alert>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Email</Label>
+                    <Input value="alexsolver@gmail.com" disabled />
+                  </div>
+                  <div>
+                    <Label>Servidor IMAP</Label>
+                    <Input value="imap.gmail.com:993" disabled />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Segurança</Label>
+                    <Input value="SSL/TLS" disabled />
+                  </div>
+                  <div>
+                    <Label>Status</Label>
+                    <Badge variant="outline" className="w-fit">Conectado</Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Slack Configuration */}
+            {selectedChannel?.id === 'ch-slack' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="slack-webhook">Webhook URL</Label>
+                  <Input id="slack-webhook" placeholder="https://hooks.slack.com/services/..." />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="slack-channel">Canal</Label>
+                    <Input id="slack-channel" placeholder="#general" />
+                  </div>
+                  <div>
+                    <Label htmlFor="slack-bot-token">Bot Token</Label>
+                    <Input id="slack-bot-token" type="password" placeholder="xoxb-..." />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Default Configuration */}
+            {!['ch-gmail-oauth2', 'ch-whatsapp-business-api', 'ch-telegram-business-bot', 'ch-microsoft-teams', 'ch-email-smtp', 'ch-imap-email', 'ch-slack'].includes(selectedChannel?.id || '') && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Formulário de configuração específico em desenvolvimento</p>
+                <p className="text-sm">Canal: {selectedChannel?.name}</p>
+                <p className="text-sm">ID: {selectedChannel?.id}</p>
+              </div>
+            )}
           </div>
-          <DialogFooter>
-            <Button onClick={() => setIsConfigDialogOpen(false)}>Fechar</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                // TODO: Implement save configuration
+                console.log('Salvando configurações do canal:', selectedChannel?.id);
+                setIsConfigDialogOpen(false);
+              }}
+            >
+              Salvar Configurações
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
