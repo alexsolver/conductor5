@@ -236,4 +236,32 @@ export class EmailReadingService {
     
     this.activeConnections.clear();
   }
+
+  isCurrentlyMonitoring(): boolean {
+    return this.activeConnections.size > 0;
+  }
+
+  getActiveConnectionsCount(): number {
+    return this.activeConnections.size;
+  }
+
+  async startMultipleMonitoring(tenantId: string, integrations: any[]): Promise<void> {
+    console.log(`🚀 Starting email monitoring for tenant: ${tenantId}`);
+    
+    if (!integrations || integrations.length === 0) {
+      console.log('⚠️ No integrations provided for monitoring');
+      return;
+    }
+
+    for (const integration of integrations) {
+      try {
+        if (integration.isConfigured && integration.config) {
+          await this.startMonitoring(tenantId, integration.id, integration.config);
+          console.log(`✅ Started monitoring for integration: ${integration.name}`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to start monitoring for integration ${integration.name}:`, error);
+      }
+    }
+  }
 }

@@ -726,4 +726,35 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     
     return result.rows[0].id;
   }
+
+  async getIntegrationConfig(tenantId: string, integrationId: string): Promise<any> {
+    console.log(`⚙️ Getting integration config for tenant ${tenantId}, integration ${integrationId}`);
+    
+    try {
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      // Set search path explicitly before any operations
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT config FROM integrations 
+        WHERE tenant_id = ${tenantId} AND id = ${integrationId}
+        LIMIT 1
+      `);
+
+      if (result.rows.length === 0) {
+        console.log(`⚠️ No integration config found for ${integrationId}`);
+        return null;
+      }
+
+      const config = result.rows[0].config ? JSON.parse(result.rows[0].config) : {};
+      
+      console.log(`✅ Found integration config: ${config.emailAddress || 'no email'}`);
+      return config;
+    } catch (error) {
+      console.error(`❌ Error getting integration config:`, error);
+      throw error;
+    }
+  }
 }
