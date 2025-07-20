@@ -209,6 +209,8 @@ export default function ProjectActions() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/actions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
       toast({
         title: "Sucesso",
         description: `Ação convertida para ticket ${data.ticketId} com sucesso`
@@ -685,7 +687,10 @@ export default function ProjectActions() {
                             size="sm"
                             variant="outline"
                             className="flex-1 text-xs"
-                            onClick={() => handleStatusUpdate(action.id, 'in_progress')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusUpdate(action.id, 'in_progress');
+                            }}
                           >
                             Iniciar
                           </Button>
@@ -695,7 +700,10 @@ export default function ProjectActions() {
                             size="sm"
                             variant="outline"
                             className="flex-1 text-xs"
-                            onClick={() => handleStatusUpdate(action.id, 'completed')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusUpdate(action.id, 'completed');
+                            }}
                           >
                             Concluir
                           </Button>
@@ -707,7 +715,10 @@ export default function ProjectActions() {
                             size="sm"
                             variant="ghost"
                             className="text-xs text-blue-600 hover:text-blue-800"
-                            onClick={() => handleConvertToTicket(action.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConvertToTicket(action.id);
+                            }}
                           >
                             <ArrowRight className="w-3 h-3 mr-1" />
                             Ticket

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { ProjectActionTicketIntegrationService } from '../services/ProjectActionTicketIntegrationService';
 import { DrizzleProjectRepository, DrizzleProjectActionRepository } from '../../infrastructure/repositories/DrizzleProjectRepository';
+import { storage } from '../../../../storage-simple';
+import crypto from 'crypto';
 
 export class ProjectActionIntegrationController {
   private integrationService: ProjectActionTicketIntegrationService;
@@ -74,17 +76,57 @@ export class ProjectActionIntegrationController {
         project.name
       );
 
-      // TODO: Criar o ticket usando o ticket service
-      // Por enquanto, retornamos os dados que seriam usados
-      const mockTicketId = crypto.randomUUID();
+      // Criar o ticket real usando o sistema de storage
+      // storage já está importado como singleton
+      
+      // Buscar primeiro customer disponível para tickets convertidos de actions
+      const customers = await storage.getCustomers(tenantId, { limit: 1 });
+      const defaultCustomerId = customers.length > 0 ? customers[0].id : 'c1ab5232-3e1c-4277-b4e7-1fcfa6b379d8';
 
-      // Linkar action ao ticket
-      await this.integrationService.linkActionToTicket(actionId, tenantId, mockTicketId);
+      // Preparar dados do ticket baseados na conversão
+      const ticketCreateData = {
+        subject: ticketData.subject,
+        description: ticketData.description,
+        priority: ticketData.priority,
+        urgency: ticketData.urgency,
+        category: ticketData.category,
+        status: 'open',
+        customerId: defaultCustomerId, // Customer ID necessário para o sistema
+        assignedToId: ticketData.assignedToId,
+        callerId: userId, // Usuário que converteu como solicitante
+        callerType: 'user',
+        // Metadados de integração com projeto
+        metadata: {
+          sourceType: 'project_action',
+          relatedProjectId: ticketData.relatedProjectId,
+          relatedActionId: ticketData.relatedActionId,
+          actionConversionData: ticketData.actionConversionData
+        }
+      };
+
+      // Debug: verificar dados sendo passados
+      console.log('📝 [TICKET CREATION DEBUG]', {
+        tenantId,
+        subject: ticketCreateData.subject,
+        customerId: ticketCreateData.customerId,
+        hasCustomerId: !!ticketCreateData.customerId,
+        fullTicketData: JSON.stringify(ticketCreateData, null, 2)
+      });
+
+      const createdTicket = await storage.createTicket(tenantId, ticketCreateData);
+
+      // Linkar action ao ticket criado
+      await this.integrationService.linkActionToTicket(actionId, tenantId, createdTicket.id);
 
       res.json({
         success: true,
-        ticketId: mockTicketId,
-        ticketData,
+        ticketId: createdTicket.id,
+        ticketNumber: createdTicket.number,
+        ticketData: {
+          ...ticketData,
+          id: createdTicket.id,
+          number: createdTicket.number
+        },
         message: 'Action successfully converted to ticket'
       });
     } catch (error) {
