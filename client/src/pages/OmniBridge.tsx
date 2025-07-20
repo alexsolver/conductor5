@@ -100,12 +100,23 @@ export default function OmniBridge() {
       const response = await fetch('/api/omni-bridge/channels', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('📋 Channels API Response:', data);
+      
       if (data.success) {
-        setChannels(data.channels);
+        setChannels(data.channels || []);
+      } else {
+        console.error('Channels API returned error:', data.message);
+        setChannels([]);
       }
     } catch (error) {
       console.error('Error loading channels:', error);
+      setChannels([]);
     }
   };
 
@@ -117,29 +128,96 @@ export default function OmniBridge() {
         ...(channelFilter !== 'all' && { channelType: channelFilter })
       });
 
+      console.log('📧 TENTANDO BUSCAR INBOX MESSAGES...');
       const response = await fetch(`/api/omni-bridge/inbox?${params}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      
+      console.log('📧 Response Status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('📧 Inbox API Response RAW:', data);
+      
       if (data.success) {
-        setMessages(data.messages);
+        // A API pode retornar os dados diretamente ou em data.data
+        const messagesData = data.messages || data.data || [];
+        console.log('📧 Data length:', messagesData.length);
+        
+        if (messagesData.length > 0) {
+          console.log('📧 First message:', messagesData[0]);
+        }
+        
+        setMessages(messagesData);
+      } else {
+        console.error('Inbox API returned error:', data.message);
+        setMessages([]);
       }
     } catch (error) {
       console.error('Error loading inbox:', error);
+      setMessages([]);
     }
   };
 
   const loadMonitoring = async () => {
     try {
+      console.log('📊 VERIFICANDO STATUS DO MONITORAMENTO...');
       const response = await fetch('/api/omni-bridge/monitoring', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      
+      console.log('📊 Monitoring Response Status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('📊 Monitoring Status Response RAW:', data);
+      
       if (data.success) {
-        setMonitoring(data.monitoring);
+        // A API retorna diferentes estruturas dependendo do endpoint
+        const monitoringData = data.monitoring || data.data || {
+          totalChannels: 0,
+          activeChannels: 0,
+          connectedChannels: 0,
+          healthyChannels: 0,
+          unreadMessages: 0,
+          messagesByChannel: {},
+          systemStatus: 'unknown',
+          lastSync: new Date().toISOString()
+        };
+        
+        // Se for estrutura de monitoramento diferente, adaptar
+        if (data.data && data.data.isMonitoring !== undefined) {
+          const adaptedData = {
+            totalChannels: data.data.activeIntegrations?.length || 0,
+            activeChannels: data.data.connectionCount || 0,
+            connectedChannels: data.data.connectionCount || 0,
+            healthyChannels: data.data.isMonitoring ? data.data.connectionCount || 0 : 0,
+            unreadMessages: 0, // Will be updated by inbox
+            messagesByChannel: {},
+            systemStatus: data.data.isMonitoring ? 'healthy' : 'degraded',
+            lastSync: new Date().toISOString()
+          };
+          setMonitoring(adaptedData);
+        } else {
+          setMonitoring(monitoringData);
+        }
+        
+        console.log('📊 Is Monitoring:', data.data?.isMonitoring);
+        console.log('📊 Connection Count:', data.data?.connectionCount);
+        console.log('📊 Active Integrations:', data.data?.activeIntegrations);
+      } else {
+        console.error('Monitoring API returned error:', data.message);
+        setMonitoring(null);
       }
     } catch (error) {
       console.error('Error loading monitoring:', error);
+      setMonitoring(null);
     }
   };
 

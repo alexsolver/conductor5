@@ -27,11 +27,23 @@ export class OmniBridgeController {
         return;
       }
 
+      console.log(`📋 Fetching channels for tenant: ${tenantId}`);
       const channels = await this.channelRepository.findAll(tenantId);
-      res.json({ success: true, channels });
+      console.log(`📋 Found ${channels.length} channels`);
+      
+      res.json({ 
+        success: true, 
+        channels: channels || [],
+        count: channels.length 
+      });
     } catch (error) {
-      console.error('Error fetching channels:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch channels' });
+      console.error('❌ Error fetching channels:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch channels',
+        channels: [],
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 
@@ -90,13 +102,17 @@ export class OmniBridgeController {
         priority: priority as string
       };
 
+      console.log(`📧 Fetching inbox for tenant: ${tenantId}`);
       const messages = await this.messageRepository.findAll(tenantId, options);
       const unreadCount = await this.messageRepository.getUnreadCount(tenantId);
       const countByChannel = await this.messageRepository.getCountByChannel(tenantId);
 
+      console.log(`📧 Found ${messages.length} messages, ${unreadCount} unread`);
+
       res.json({ 
         success: true, 
-        messages,
+        data: messages || [],
+        messages: messages || [], // Compatibilidade
         unreadCount,
         countByChannel,
         pagination: {
@@ -106,8 +122,14 @@ export class OmniBridgeController {
         }
       });
     } catch (error) {
-      console.error('Error fetching inbox:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch inbox' });
+      console.error('❌ Error fetching inbox:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch inbox',
+        data: [],
+        messages: [],
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 
