@@ -102,4 +102,9 @@ router.put('/signatures/:signatureId', (req, res) => emailConfigController.updat
 // DELETE /api/email-config/signatures/:signatureId - Delete email signature
 router.delete('/signatures/:signatureId', (req, res) => emailConfigController.deleteEmailSignature(req, res));
 
+// ========== EMAIL INTEGRATIONS ROUTES ==========
+
+// GET /api/email-config/integrations - Get email integrations
+router.get('/integrations', (req, res) => emailConfigController.getEmailIntegrations(req, res));
+
 export default router;

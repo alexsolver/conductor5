@@ -351,6 +351,15 @@ export default function EmailConfiguration() {
     }
   });
 
+  const { data: emailIntegrations = [], isLoading: integrationsLoading } = useQuery({
+    queryKey: ['/api/email-config/integrations'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/email-config/integrations');
+      const data = await response.json();
+      return data.data || [];
+    }
+  });
+
   // Mutations
   const createRuleMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -797,13 +806,17 @@ export default function EmailConfiguration() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="inbox">
             <Mail className="w-4 h-4 mr-2" />
             Caixa de Entrada
           </TabsTrigger>
-          <TabsTrigger value="rules">
+          <TabsTrigger value="integrations">
             <Settings className="w-4 h-4 mr-2" />
+            Integrações de Email
+          </TabsTrigger>
+          <TabsTrigger value="rules">
+            <Filter className="w-4 h-4 mr-2" />
             Regras de Processamento
           </TabsTrigger>
           <TabsTrigger value="templates">
@@ -918,6 +931,107 @@ export default function EmailConfiguration() {
                           </div>
                         )}
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Email Integrations Tab */}
+        <TabsContent value="integrations" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold">Integrações de Email Configuradas</h2>
+            <Badge variant="outline">
+              {emailIntegrations.filter((i: any) => i.isConfigured).length} conectadas
+            </Badge>
+          </div>
+
+          <div className="grid gap-4">
+            {integrationsLoading ? (
+              <div className="text-center py-8">Carregando integrações...</div>
+            ) : emailIntegrations.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <Settings className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">Nenhuma integração configurada</h3>
+                    <p className="text-muted-foreground">
+                      Configure suas integrações de email no Workspace Admin
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {emailIntegrations.map((integration: any) => (
+                  <Card key={integration.id} className={`transition-all hover:shadow-md ${integration.isConfigured ? 'border-l-4 border-l-green-500' : ''}`}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            <Mail className="w-5 h-5" />
+                            {integration.name}
+                            <Badge variant={integration.isConfigured ? 'default' : 'secondary'}>
+                              {integration.isConfigured ? 'Conectado' : 'Desconectado'}
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription>{integration.description}</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {integration.category}
+                          </Badge>
+                          <div className={`w-3 h-3 rounded-full ${integration.isConfigured ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {integration.isConfigured && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          {integration.emailAddress && (
+                            <div>
+                              <span className="font-medium">Email:</span>
+                              <p className="text-muted-foreground">{integration.emailAddress}</p>
+                            </div>
+                          )}
+                          {integration.serverHost && (
+                            <div>
+                              <span className="font-medium">Servidor:</span>
+                              <p className="text-muted-foreground">{integration.serverHost}:{integration.serverPort}</p>
+                            </div>
+                          )}
+                          {integration.useSSL !== undefined && (
+                            <div>
+                              <span className="font-medium">Segurança:</span>
+                              <p className="text-muted-foreground">{integration.useSSL ? 'SSL/TLS' : 'Sem criptografia'}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {integration.features && integration.features.length > 0 && (
+                        <div className="mt-4 pt-4 border-t">
+                          <h4 className="font-medium mb-2">Recursos Disponíveis:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {integration.features.map((feature: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {feature}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {integration.lastSync && (
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            Última sincronização: {new Date(integration.lastSync).toLocaleString('pt-BR')}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

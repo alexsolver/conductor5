@@ -843,4 +843,31 @@ export class EmailConfigController {
       });
     }
   }
+
+  async getEmailIntegrations(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const integrations = await repository.getEmailIntegrations(tenantId);
+
+      res.json({ 
+        success: true, 
+        data: integrations,
+        message: 'Email integrations retrieved successfully'
+      });
+
+    } catch (error) {
+      console.error('Error fetching email integrations:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch email integrations',
+        error: error.message 
+      });
+    }
+  }
 }

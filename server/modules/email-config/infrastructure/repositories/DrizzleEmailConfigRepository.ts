@@ -590,4 +590,50 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     
     return result.rowCount > 0;
   }
+
+  // Email Integrations Methods
+  async getEmailIntegrations(tenantId: string): Promise<any[]> {
+    try {
+      console.debug('DrizzleEmailConfigRepository.getEmailIntegrations called with tenantId:', tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT id, name, description, category, icon, status, config, features, created_at, updated_at
+        FROM integrations 
+        WHERE tenant_id = ${tenantId}
+        AND (category = 'Comunicação' OR name ILIKE '%email%' OR name ILIKE '%smtp%' OR name ILIKE '%imap%')
+        ORDER BY 
+          CASE 
+            WHEN status = 'connected' THEN 0 
+            ELSE 1 
+          END,
+          name
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        category: row.category,
+        icon: row.icon,
+        status: row.status,
+        config: row.config || {},
+        features: row.features || [],
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        isConfigured: row.status === 'connected',
+        emailAddress: row.config?.emailAddress || row.config?.username || '',
+        serverHost: row.config?.imapServer || row.config?.serverHost || '',
+        serverPort: row.config?.imapPort || row.config?.serverPort || null,
+        useSSL: row.config?.useSSL || row.config?.imapSecurity === 'SSL/TLS',
+        lastSync: row.config?.lastUpdated ? new Date(row.config.lastUpdated) : null
+      }));
+    } catch (error) {
+      console.error('Error fetching email integrations:', error);
+      throw error;
+    }
+  }
 }
