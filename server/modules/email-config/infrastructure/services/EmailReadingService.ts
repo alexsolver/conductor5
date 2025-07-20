@@ -1,7 +1,6 @@
 import { schemaManager } from '../../../../db';
 import { DrizzleEmailConfigRepository } from '../repositories/DrizzleEmailConfigRepository';
 import { EmailProcessingService } from '../../application/services/EmailProcessingService';
-import * as Imap from 'imap';
 
 export class EmailReadingService {
   private activeConnections = new Map<string, any>();
@@ -117,6 +116,15 @@ export class EmailReadingService {
       tls: imapConfig.tls
     });
 
+    // Use require for IMAP as it's a CommonJS module
+    let Imap: any;
+    try {
+      Imap = require('imap');
+    } catch (error) {
+      console.error('❌ Failed to load IMAP module:', error);
+      throw new Error('IMAP module not available');
+    }
+    
     const imap = new Imap(imapConfig);
 
     return new Promise((resolve, reject) => {
