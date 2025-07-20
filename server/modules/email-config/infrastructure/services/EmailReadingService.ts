@@ -302,12 +302,14 @@ export class EmailReadingService {
 
         console.log(`📫 Opened INBOX for integration ${integrationId}, ${box.messages.total} total messages`);
 
-        // Get emails from last 2 days to ensure we catch recent emails
-        const twoDaysAgo = new Date();
-        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+        // Get emails from last 1 hour for immediate testing
+        const oneHourAgo = new Date();
+        oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+        
+        console.log(`🔍 Searching for emails since: ${oneHourAgo.toISOString()}`);
 
-        // Search for recent emails (including read ones for testing)
-        imap.search([['SINCE', twoDaysAgo]], (searchError, results) => {
+        // Search for very recent emails to catch external emails
+        imap.search([['SINCE', oneHourAgo]], (searchError, results) => {
           if (searchError) {
             console.error(`❌ Error searching emails for integration ${integrationId}:`, searchError);
             resolve();
