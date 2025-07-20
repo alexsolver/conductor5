@@ -96,19 +96,29 @@ export class EmailReadingService {
   private async connectToEmailAccount(tenantId: string, integration: any): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const config = JSON.parse(integration.configurationData || '{}');
+        // Parse configuration from database
+        let config = {};
+        if (integration.configurationData) {
+          config = JSON.parse(integration.configurationData);
+        } else if (integration.config) {
+          config = typeof integration.config === 'string' ? JSON.parse(integration.config) : integration.config;
+        }
         
-        if (!config.emailAddress || !config.password) {
-          console.log(`Integration ${integration.name} missing email credentials, skipping`);
+        // Check for email credentials - try multiple field names
+        const emailAddress = config.emailAddress || config.username || '';
+        const password = config.password || '';
+        
+        if (!emailAddress || !password) {
+          console.log(`Integration ${integration.name} missing email credentials, skipping. Email: ${emailAddress}, Password: ${password ? '***' : 'missing'}`);
           resolve();
           return;
         }
 
         const imapConfig = {
-          user: config.emailAddress,
-          password: config.password,
-          host: config.serverHost || 'imap.gmail.com',
-          port: config.serverPort || 993,
+          user: emailAddress,
+          password: password,
+          host: config.serverHost || config.imapServer || 'imap.gmail.com',
+          port: config.serverPort || config.imapPort || 993,
           tls: config.useSSL !== false,
           tlsOptions: { rejectUnauthorized: false }
         };
