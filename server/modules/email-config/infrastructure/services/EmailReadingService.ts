@@ -1,76 +1,6 @@
-// REAL IMAP CONNECTION IMPLEMENTATION
-// Using a functional approach with real email connectivity
-// The IMAP module had import issues, so implementing with direct email reading
 
 import { simpleParser, ParsedMail } from 'mailparser';
-
-// Create a working IMAP-like class that can connect to real email servers
-class WorkingImapConnection {
-  private config: any;
-  private eventHandlers: Map<string, Function> = new Map();
-  private isConnected = false;
-
-  constructor(config: any) {
-    this.config = config;
-  }
-
-  once(event: string, callback: Function) {
-    this.eventHandlers.set(event, callback);
-    return this;
-  }
-
-  connect() {
-    console.log(`🔗 Attempting real IMAP connection to ${this.config.host}:${this.config.port}`);
-    console.log(`📧 Email: ${this.config.user}`);
-    console.log(`🔐 Password: ${this.config.password ? '***configured***' : 'missing'}`);
-    
-    // Simulate connection process - in real implementation this would connect to actual IMAP
-    setTimeout(() => {
-      try {
-        // This is where real IMAP connection would happen
-        // For now, simulate successful connection with real credentials
-        this.isConnected = true;
-        console.log(`✅ IMAP connection established for ${this.config.user} at ${this.config.host}`);
-        
-        const readyCallback = this.eventHandlers.get('ready');
-        if (readyCallback) {
-          readyCallback();
-        }
-      } catch (error) {
-        console.error(`❌ IMAP connection failed:`, error);
-        const errorCallback = this.eventHandlers.get('error');
-        if (errorCallback) {
-          errorCallback(error);
-        }
-      }
-    }, 100);
-  }
-
-  end() {
-    this.isConnected = false;
-    console.log(`🔌 IMAP connection ended for ${this.config.user}`);
-    const endCallback = this.eventHandlers.get('end');
-    if (endCallback) {
-      endCallback();
-    }
-  }
-
-  // Method to simulate reading emails from server (would be real IMAP calls)
-  async fetchEmails(): Promise<any[]> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to IMAP server');
-    }
-    
-    console.log(`📬 Fetching emails from ${this.config.user}...`);
-    
-    // This would be real IMAP email fetching
-    // For now, return empty array since we're connecting to real server
-    // but haven't implemented the full IMAP protocol yet
-    return [];
-  }
-}
-
-const Imap = WorkingImapConnection;
+import Imap from 'imap';
 import { DrizzleEmailConfigRepository } from '../repositories/DrizzleEmailConfigRepository';
 
 export interface EmailConnection {
@@ -102,7 +32,7 @@ export class EmailReadingService {
   private monitoringInterval: NodeJS.Timeout | null = null;
 
   async startMonitoring(tenantId: string): Promise<void> {
-    console.log(`Starting email monitoring for tenant: ${tenantId}`);
+    console.log(`🚀 Starting real email monitoring for tenant: ${tenantId}`);
     
     try {
       // Get email integrations for this tenant
@@ -117,6 +47,8 @@ export class EmailReadingService {
         throw new Error('No configured email integrations found');
       }
 
+      console.log(`📧 Found ${emailIntegrations.length} email integrations to monitor`);
+
       // Start monitoring for each configured integration
       for (const integration of emailIntegrations) {
         await this.connectToEmailAccount(tenantId, integration);
@@ -124,24 +56,25 @@ export class EmailReadingService {
 
       this.isMonitoring = true;
       
-      // Set up periodic check for new emails (every 5 minutes)
+      // Set up periodic check for new emails (every 2 minutes for real monitoring)
       this.monitoringInterval = setInterval(async () => {
         try {
+          console.log(`🔄 Periodic email check for tenant: ${tenantId}`);
           await this.checkForNewEmails(tenantId);
         } catch (error) {
-          console.error('Error during periodic email check:', error);
+          console.error('❌ Error during periodic email check:', error);
         }
-      }, 5 * 60 * 1000); // 5 minutes
+      }, 2 * 60 * 1000); // 2 minutes
 
-      console.log(`Email monitoring started successfully for tenant: ${tenantId}`);
+      console.log(`✅ Email monitoring started successfully for tenant: ${tenantId}`);
     } catch (error) {
-      console.error('Error starting email monitoring:', error);
+      console.error('❌ Error starting email monitoring:', error);
       throw error;
     }
   }
 
   async stopMonitoring(): Promise<void> {
-    console.log('Stopping email monitoring...');
+    console.log('⏹️ Stopping email monitoring...');
     
     this.isMonitoring = false;
     
@@ -154,14 +87,14 @@ export class EmailReadingService {
     for (const [integrationId, imap] of this.activeConnections) {
       try {
         imap.end();
-        console.log(`Closed IMAP connection for integration: ${integrationId}`);
+        console.log(`🔌 Closed IMAP connection for integration: ${integrationId}`);
       } catch (error) {
-        console.error(`Error closing IMAP connection for ${integrationId}:`, error);
+        console.error(`❌ Error closing IMAP connection for ${integrationId}:`, error);
       }
     }
     
     this.activeConnections.clear();
-    console.log('Email monitoring stopped successfully');
+    console.log('✅ Email monitoring stopped successfully');
   }
 
   private async connectToEmailAccount(tenantId: string, integration: any): Promise<void> {
@@ -176,61 +109,98 @@ export class EmailReadingService {
         }
         
         // Check for email credentials - try multiple field names
-        const emailAddress = config.emailAddress || config.username || '';
-        const password = config.password || '';
+        const emailAddress = config.emailAddress || config.username || config.email || '';
+        const password = config.password || config.pass || '';
         
         if (!emailAddress || !password) {
-          console.log(`Integration ${integration.name} missing email credentials, skipping. Email: ${emailAddress}, Password: ${password ? '***' : 'missing'}`);
+          console.log(`⚠️ Integration ${integration.name} missing email credentials, skipping. Email: ${emailAddress}, Password: ${password ? '***' : 'missing'}`);
           resolve();
           return;
         }
 
-        const imapConfig = {
-          user: emailAddress,
-          password: password,
-          host: config.serverHost || config.imapServer || 'imap.gmail.com',
-          port: config.serverPort || config.imapPort || 993,
-          tls: config.useSSL !== false,
-          tlsOptions: { rejectUnauthorized: false }
-        };
-
-        console.log(`Connecting to IMAP for ${integration.name}: ${imapConfig.host}:${imapConfig.port}`);
+        // Determine IMAP server settings based on email provider
+        const imapConfig = this.getImapConfig(emailAddress, config);
+        
+        console.log(`🔗 Connecting to IMAP for ${integration.name}: ${imapConfig.host}:${imapConfig.port}`);
+        console.log(`📧 Email: ${emailAddress}`);
 
         const imap = new Imap(imapConfig);
 
         imap.once('ready', () => {
-          console.log(`IMAP connection ready for ${integration.name}`);
+          console.log(`✅ IMAP connection ready for ${integration.name} (${emailAddress})`);
           this.activeConnections.set(integration.id, imap);
           resolve();
         });
 
         imap.once('error', (error) => {
-          console.error(`IMAP connection error for ${integration.name}:`, error.message);
-          reject(error);
+          console.error(`❌ IMAP connection error for ${integration.name}:`, error.message);
+          // Don't reject on connection error, just log and continue
+          resolve();
         });
 
         imap.once('end', () => {
-          console.log(`IMAP connection ended for ${integration.name}`);
+          console.log(`🔌 IMAP connection ended for ${integration.name}`);
           this.activeConnections.delete(integration.id);
         });
 
         imap.connect();
 
       } catch (error) {
-        console.error(`Error setting up IMAP connection for ${integration.name}:`, error);
-        reject(error);
+        console.error(`❌ Error setting up IMAP connection for ${integration.name}:`, error);
+        resolve(); // Don't fail the entire process for one integration
       }
     });
   }
 
+  private getImapConfig(emailAddress: string, config: any) {
+    const domain = emailAddress.split('@')[1]?.toLowerCase() || '';
+    
+    // Auto-detect IMAP settings based on email provider
+    let host = config.serverHost || config.imapServer || 'imap.gmail.com';
+    let port = config.serverPort || config.imapPort || 993;
+    
+    if (domain.includes('gmail.com')) {
+      host = 'imap.gmail.com';
+      port = 993;
+    } else if (domain.includes('outlook.com') || domain.includes('hotmail.com') || domain.includes('live.com')) {
+      host = 'outlook.office365.com';
+      port = 993;
+    } else if (domain.includes('yahoo.com')) {
+      host = 'imap.mail.yahoo.com';
+      port = 993;
+    } else if (domain.includes('icloud.com')) {
+      host = 'imap.mail.me.com';
+      port = 993;
+    }
+
+    return {
+      user: emailAddress,
+      password: config.password || config.pass,
+      host: host,
+      port: port,
+      tls: config.useSSL !== false,
+      tlsOptions: { 
+        rejectUnauthorized: false,
+        servername: host
+      },
+      authTimeout: 30000,
+      connTimeout: 30000,
+      keepalive: true
+    };
+  }
+
   private async checkForNewEmails(tenantId: string): Promise<void> {
-    console.log(`Checking for new emails for tenant: ${tenantId}`);
+    console.log(`📬 Checking for new emails for tenant: ${tenantId} (${this.activeConnections.size} connections)`);
 
     for (const [integrationId, imap] of this.activeConnections) {
       try {
-        await this.readEmailsFromConnection(tenantId, integrationId, imap);
+        if (imap.state === 'authenticated') {
+          await this.readEmailsFromConnection(tenantId, integrationId, imap);
+        } else {
+          console.log(`⚠️ IMAP connection not authenticated for integration ${integrationId}, state: ${imap.state}`);
+        }
       } catch (error) {
-        console.error(`Error reading emails from integration ${integrationId}:`, error);
+        console.error(`❌ Error reading emails from integration ${integrationId}:`, error);
       }
     }
   }
@@ -239,31 +209,38 @@ export class EmailReadingService {
     return new Promise((resolve, reject) => {
       imap.openBox('INBOX', false, (error, box) => {
         if (error) {
-          console.error(`Error opening INBOX for integration ${integrationId}:`, error);
-          reject(error);
+          console.error(`❌ Error opening INBOX for integration ${integrationId}:`, error);
+          resolve(); // Don't reject, just log and continue
           return;
         }
 
-        // Get emails from last 24 hours
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        console.log(`📫 Opened INBOX for integration ${integrationId}, ${box.messages.total} total messages`);
 
-        imap.search(['UNSEEN', ['SINCE', yesterday]], (searchError, results) => {
+        // Get emails from last 2 days to ensure we catch recent emails
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+        imap.search(['UNSEEN', ['SINCE', twoDaysAgo]], (searchError, results) => {
           if (searchError) {
-            console.error(`Error searching emails for integration ${integrationId}:`, searchError);
-            reject(searchError);
-            return;
-          }
-
-          if (!results || results.length === 0) {
-            console.log(`No new emails found for integration ${integrationId}`);
+            console.error(`❌ Error searching emails for integration ${integrationId}:`, searchError);
             resolve();
             return;
           }
 
-          console.log(`Found ${results.length} new emails for integration ${integrationId}`);
+          if (!results || results.length === 0) {
+            console.log(`📭 No new emails found for integration ${integrationId}`);
+            resolve();
+            return;
+          }
 
-          const fetch = imap.fetch(results, { bodies: '' });
+          console.log(`📬 Found ${results.length} new emails for integration ${integrationId}`);
+
+          const fetch = imap.fetch(results, { 
+            bodies: '',
+            markSeen: false,
+            struct: true 
+          });
+          
           let emailsProcessed = 0;
 
           fetch.on('message', (msg, seqno) => {
@@ -280,11 +257,13 @@ export class EmailReadingService {
                   await this.processEmail(tenantId, integrationId, parsedEmail);
                   emailsProcessed++;
 
+                  console.log(`✅ Processed email ${emailsProcessed}/${results.length}: ${parsedEmail.subject}`);
+
                   if (emailsProcessed === results.length) {
                     resolve();
                   }
                 } catch (parseError) {
-                  console.error(`Error processing email ${seqno}:`, parseError);
+                  console.error(`❌ Error processing email ${seqno}:`, parseError);
                   emailsProcessed++;
                   if (emailsProcessed === results.length) {
                     resolve();
@@ -294,17 +273,18 @@ export class EmailReadingService {
             });
 
             msg.once('attributes', (attrs) => {
-              console.log(`Processing email ${seqno} with UID ${attrs.uid}`);
+              console.log(`📧 Processing email ${seqno} with UID ${attrs.uid}`);
             });
           });
 
           fetch.once('error', (fetchError) => {
-            console.error(`Error fetching emails for integration ${integrationId}:`, fetchError);
-            reject(fetchError);
+            console.error(`❌ Error fetching emails for integration ${integrationId}:`, fetchError);
+            resolve();
           });
 
           fetch.once('end', () => {
             if (emailsProcessed === 0) {
+              console.log(`✅ Finished processing emails for integration ${integrationId}`);
               resolve();
             }
           });
@@ -327,16 +307,18 @@ export class EmailReadingService {
         priority: this.determinePriority(parsedEmail)
       };
 
+      console.log(`📨 Processing email: "${processedEmail.subject}" from ${processedEmail.from}`);
+
       // Save to inbox
       await this.saveEmailToInbox(tenantId, processedEmail, integrationId);
 
       // Apply email processing rules
       await this.applyEmailRules(tenantId, processedEmail);
 
-      console.log(`Successfully processed email: ${processedEmail.subject} from ${processedEmail.from}`);
+      console.log(`✅ Successfully processed email: ${processedEmail.subject} from ${processedEmail.from}`);
 
     } catch (error) {
-      console.error('Error processing email:', error);
+      console.error('❌ Error processing email:', error);
       throw error;
     }
   }
@@ -380,9 +362,9 @@ export class EmailReadingService {
         integrationId
       });
 
-      console.log(`Saved email to inbox: ${email.subject}`);
+      console.log(`💾 Saved email to inbox: ${email.subject}`);
     } catch (error) {
-      console.error('Error saving email to inbox:', error);
+      console.error('❌ Error saving email to inbox:', error);
       throw error;
     }
   }
@@ -392,15 +374,17 @@ export class EmailReadingService {
       // Get active email processing rules
       const rules = await this.repository.getEmailRules(tenantId, { active: true });
 
+      console.log(`🔍 Checking ${rules.length} active rules for email: ${email.subject}`);
+
       for (const rule of rules) {
         if (this.emailMatchesRule(email, rule)) {
-          console.log(`Email matches rule: ${rule.name}`);
+          console.log(`✅ Email matches rule: ${rule.name}`);
           await this.executeRuleAction(tenantId, email, rule);
           break; // Process only the first matching rule
         }
       }
     } catch (error) {
-      console.error('Error applying email rules:', error);
+      console.error('❌ Error applying email rules:', error);
     }
   }
 
@@ -440,9 +424,11 @@ export class EmailReadingService {
 
   private async executeRuleAction(tenantId: string, email: ProcessedEmail, rule: any): Promise<void> {
     try {
+      console.log(`🎯 Executing rule action: ${rule.actionType} for email: ${email.subject}`);
+
       if (rule.actionType === 'create_ticket') {
         // Here you would integrate with your ticket creation system
-        console.log(`Would create ticket for email: ${email.subject}`);
+        console.log(`🎫 Would create ticket for email: ${email.subject}`);
         
         // Log the processing
         await this.repository.createProcessingLog(tenantId, {
@@ -463,11 +449,11 @@ export class EmailReadingService {
 
       // Send auto-response if enabled
       if (rule.autoResponseEnabled && rule.autoResponseTemplateId) {
-        console.log(`Would send auto-response for email: ${email.subject}`);
+        console.log(`📧 Would send auto-response for email: ${email.subject}`);
       }
 
     } catch (error) {
-      console.error('Error executing rule action:', error);
+      console.error('❌ Error executing rule action:', error);
       
       // Log the error
       await this.repository.createProcessingLog(tenantId, {
