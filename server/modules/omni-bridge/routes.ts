@@ -47,8 +47,8 @@ router.use((req, res, next) => {
     return res.status(401).json({ success: false, message: 'Authentication required' });
   }
   
-  // Permitir acesso para admin, tenant_admin e workspace_admin
-  const allowedRoles = ['admin', 'tenant_admin', 'workspace_admin'];
+  // Permitir acesso para saas_admin, tenant_admin e agent
+  const allowedRoles = ['saas_admin', 'tenant_admin', 'agent'];
   if (!allowedRoles.includes(user.role)) {
     console.log('🚫 OmniBridge Access Denied:', { userRole: user.role, allowedRoles });
     return res.status(403).json({ success: false, message: 'Insufficient permissions for OmniBridge' });
