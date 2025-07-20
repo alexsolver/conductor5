@@ -43,8 +43,19 @@ import {
   Folder
 } from "lucide-react";
 
-// Base navigation without dynamic badges
-const baseNavigation = [
+// Base navigation with proper types
+const baseNavigation: Array<{
+  name: string;
+  href?: string;
+  icon: any;
+  current?: boolean;
+  badge?: string;
+  children?: Array<{
+    name: string;
+    href: string;
+    icon: any;
+  }>;
+}> = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { 
@@ -137,7 +148,7 @@ export function Sidebar() {
     staleTime: 300000, // Cache for 5 minutes
   });
 
-  const activeTicketsCount = ticketsData?.tickets?.length || 0;
+  const activeTicketsCount = Array.isArray(ticketsData) ? ticketsData.length : 0;
 
   // Create navigation with dynamic badges
   const navigation = baseNavigation.map(item => {
@@ -248,6 +259,7 @@ export function Sidebar() {
             }
             
             // If item has no children, render as simple link
+            if (!item.href) return null; // Skip items without href
             const isActive = location === item.href;
             return (
               <Link key={item.name} href={item.href}>
@@ -406,348 +418,3 @@ export function Sidebar() {
     </div>
   );
 }
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import {
-  LayoutDashboard,
-  Ticket,
-  Users,
-  Building2,
-  MapPin,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  UserCheck,
-  Shield,
-  FileText,
-  BookOpen,
-  BarChart3,
-  Zap,
-  MessageSquare,
-  Briefcase,
-  Globe,
-  Tools,
-  UserCog,
-  Workflow,
-  Palette,
-  Target,
-  Users2,
-  Database,
-  Activity,
-  Wrench,
-  CheckSquare,
-  MessageCircle
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-
-const Sidebar = () => {
-  const location = useLocation();
-  const { user } = useAuth();
-  const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>({
-    workspace: true,
-    system: false
-  });
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const navigationItems = [
-    {
-      label: 'Dashboard',
-      path: '/dashboard',
-      icon: LayoutDashboard,
-      roles: ['customer', 'agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Tickets',
-      path: '/tickets',
-      icon: Ticket,
-      roles: ['customer', 'agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Solicitantes',
-      path: '/customers',
-      icon: Users,
-      roles: ['agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Empresas',
-      path: '/customer-companies',
-      icon: Building2,
-      roles: ['agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Localizações',
-      path: '/locations',
-      icon: MapPin,
-      roles: ['agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Projetos',
-      path: '/projects',
-      icon: Briefcase,
-      roles: ['agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Base de Conhecimento',
-      path: '/knowledge-base',
-      icon: BookOpen,
-      roles: ['agent', 'admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Analytics',
-      path: '/analytics',
-      icon: BarChart3,
-      roles: ['admin', 'tenant_admin', 'saas_admin']
-    }
-  ];
-
-  const workspaceAdminItems = [
-    {
-      label: 'Gestão de Usuários',
-      path: '/user-management',
-      icon: UserCog,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Equipe',
-      path: '/tenant-admin/team',
-      icon: Users2,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Integrações',
-      path: '/tenant-admin/integrations',
-      icon: Zap,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'OmniBridge',
-      path: '/omni-bridge',
-      icon: MessageCircle,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Workflows',
-      path: '/tenant-admin/workflows',
-      icon: Workflow,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'SLAs',
-      path: '/tenant-admin/slas',
-      icon: Target,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Branding',
-      path: '/tenant-admin/branding',
-      icon: Palette,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Templates de Tickets',
-      path: '/ticket-templates',
-      icon: FileText,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Configuração de Tickets',
-      path: '/ticket-configuration',
-      icon: Settings,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Formulários Internos',
-      path: '/internal-forms',
-      icon: CheckSquare,
-      roles: ['tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Habilidades Técnicas',
-      path: '/technical-skills',
-      icon: Tools,
-      roles: ['tenant_admin', 'saas_admin']
-    }
-  ];
-
-  const systemAdminItems = [
-    {
-      label: 'SaaS Admin',
-      path: '/saas-admin',
-      icon: Shield,
-      roles: ['saas_admin']
-    },
-    {
-      label: 'Provisionamento',
-      path: '/tenant-provisioning',
-      icon: Database,
-      roles: ['saas_admin']
-    },
-    {
-      label: 'Integridade do Sistema',
-      path: '/module-integrity-control',
-      icon: Activity,
-      roles: ['saas_admin']
-    },
-    {
-      label: 'Configurações',
-      path: '/settings',
-      icon: Settings,
-      roles: ['admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Segurança',
-      path: '/security-settings',
-      icon: Shield,
-      roles: ['admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Conformidade',
-      path: '/compliance',
-      icon: UserCheck,
-      roles: ['admin', 'tenant_admin', 'saas_admin']
-    },
-    {
-      label: 'Traduções',
-      path: '/translation-manager',
-      icon: Globe,
-      roles: ['saas_admin']
-    },
-    {
-      label: 'Roadmap',
-      path: '/roadmap',
-      icon: Wrench,
-      roles: ['saas_admin']
-    }
-  ];
-
-  const hasRole = (requiredRoles: string[]) => {
-    return user?.role && requiredRoles.includes(user.role);
-  };
-
-  const filteredNavItems = navigationItems.filter(item => hasRole(item.roles));
-  const filteredWorkspaceItems = workspaceAdminItems.filter(item => hasRole(item.roles));
-  const filteredSystemItems = systemAdminItems.filter(item => hasRole(item.roles));
-
-  return (
-    <div className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
-      <div className="p-4">
-        <h2 className="text-xl font-bold text-gray-800">Conductor</h2>
-      </div>
-      
-      <nav className="mt-4">
-        {/* Main Navigation */}
-        <div className="px-4">
-          <ul className="space-y-2">
-            {filteredNavItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={cn(
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                    isActive(item.path)
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  )}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Workspace Admin Section */}
-        {filteredWorkspaceItems.length > 0 && (
-          <div className="mt-6">
-            <button
-              onClick={() => toggleSection('workspace')}
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              <span>Workspace Admin</span>
-              {expandedSections.workspace ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-            
-            {expandedSections.workspace && (
-              <div className="px-4 mt-2">
-                <ul className="space-y-2">
-                  {filteredWorkspaceItems.map((item) => (
-                    <li key={item.path}>
-                      <Link
-                        to={item.path}
-                        className={cn(
-                          'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
-                          isActive(item.path)
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        )}
-                      >
-                        <item.icon className="mr-3 h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* System Admin Section */}
-        {filteredSystemItems.length > 0 && (
-          <div className="mt-6">
-            <button
-              onClick={() => toggleSection('system')}
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              <span>System Admin</span>
-              {expandedSections.system ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-            
-            {expandedSections.system && (
-              <div className="px-4 mt-2">
-                <ul className="space-y-2">
-                  {filteredSystemItems.map((item) => (
-                    <li key={item.path}>
-                      <Link
-                        to={item.path}
-                        className={cn(
-                          'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
-                          isActive(item.path)
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        )}
-                      >
-                        <item.icon className="mr-3 h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-      </nav>
-    </div>
-  );
-};
-
-export default Sidebar;
