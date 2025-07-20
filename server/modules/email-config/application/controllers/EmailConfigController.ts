@@ -581,16 +581,31 @@ export class EmailConfigController {
         },
         lastProcessedEmail: recentLogs[0] || null,
         integrations: emailIntegrations.map(i => {
-          const configData = i.configurationData ? JSON.parse(i.configurationData) : (i.config || {});
+          // Get configuration from either configurationData or config field
+          let configData = {};
+          try {
+            if (i.configurationData && typeof i.configurationData === 'string') {
+              configData = JSON.parse(i.configurationData);
+            } else if (i.config) {
+              configData = typeof i.config === 'string' ? JSON.parse(i.config) : i.config;
+            }
+          } catch (error) {
+            console.error('Error parsing config data:', error);
+            configData = {};
+          }
+          
           const emailAddress = configData.emailAddress || configData.username || configData.email || i.emailAddress || '';
-          // Check if integration is connected (database status) AND actively monitoring (service status)
-          const isConnected = (i.status === 'connected' && emailReadingService?.isCurrentlyMonitoring(i.id)) || connectionStatus[i.id] || false;
+          // Check if integration is connected based on database status AND has valid configuration
+          const hasValidConfig = !!(configData.emailAddress && configData.password);
+          const isConnected = i.status === 'connected' && hasValidConfig;
           
           console.log(`📊 Integration status for ${i.name}:`, {
             emailAddress: emailAddress || 'Not configured',
             isConnected,
             isConfigured: i.isConfigured,
             hasConfig: !!configData,
+            hasValidConfig,
+            status: i.status,
             configKeys: Object.keys(configData)
           });
           

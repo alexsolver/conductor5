@@ -998,8 +998,8 @@ export default function EmailConfiguration() {
                           <CardTitle className="flex items-center gap-2 text-lg">
                             <Mail className="w-5 h-5" />
                             {integration.name}
-                            <Badge variant={integration.isConfigured ? 'default' : 'secondary'}>
-                              {integration.isConfigured ? 'Conectado' : 'Desconectado'}
+                            <Badge variant={integration.isConfigured && integration.emailAddress && integration.emailAddress !== 'missing' ? 'default' : 'secondary'}>
+                              {integration.isConfigured && integration.emailAddress && integration.emailAddress !== 'missing' ? 'Conectado' : 'Desconectado'}
                             </Badge>
                           </CardTitle>
                           <CardDescription>{integration.description}</CardDescription>
@@ -1008,12 +1008,12 @@ export default function EmailConfiguration() {
                           <Badge variant="outline" className="text-xs">
                             {integration.category}
                           </Badge>
-                          <div className={`w-3 h-3 rounded-full ${integration.isConfigured ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          <div className={`w-3 h-3 rounded-full ${integration.isConfigured && integration.emailAddress && integration.emailAddress !== 'missing' ? 'bg-green-500' : 'bg-gray-400'}`} />
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      {integration.isConfigured && (
+                      {integration.isConfigured && integration.emailAddress && integration.emailAddress !== 'missing' && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           {integration.emailAddress && (
                             <div>
@@ -1154,11 +1154,13 @@ export default function EmailConfiguration() {
                       <h4 className="font-medium mb-3">Integrações Monitoradas:</h4>
                       <div className="grid gap-3">
                         {monitoringStatus.integrations.map((integration: any) => {
-                          const isConfigured = integration.emailAddress && integration.emailAddress !== 'Not configured';
-                          const statusColor = integration.isConnected && isConfigured ? 'bg-green-500' : 'bg-red-500';
-                          const statusText = integration.isConnected && isConfigured ? 'Conectado' : 
+                          const isConfigured = integration.emailAddress && integration.emailAddress !== 'Not configured' && integration.emailAddress !== 'missing';
+                          // Consider connected if has valid configuration and database status is connected
+                          const isConnected = isConfigured && integration.hasPassword && integration.status === 'connected';
+                          const statusColor = isConnected ? 'bg-green-500' : 'bg-red-500';
+                          const statusText = isConnected ? 'Conectado' : 
                                            !isConfigured ? 'Não Configurado' : 'Desconectado';
-                          const statusVariant = integration.isConnected && isConfigured ? 'default' : 'destructive';
+                          const statusVariant = isConnected ? 'default' : 'destructive';
 
                           return (
                             <div key={integration.id} className="flex items-center justify-between p-3 border rounded-lg">
