@@ -1,6 +1,6 @@
 
 import { sql } from 'drizzle-orm';
-import { schemaManager } from '../../../db';
+import { schemaManager, db } from '../../../../db';
 
 interface MonitoringState {
   tenantId: string;
@@ -76,7 +76,6 @@ export class EmailMonitoringPersistence {
       const states: MonitoringState[] = [];
       
       // Get all tenants from main database
-      const { db } = await schemaManager.getMainDb();
       const tenantsResult = await db.execute(sql`
         SELECT id FROM tenants WHERE status = 'active'
       `);
