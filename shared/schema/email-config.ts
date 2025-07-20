@@ -72,6 +72,48 @@ export const emailResponseTemplates = pgTable("email_response_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Email Inbox Messages - Store all received emails for rule creation
+export const emailInboxMessages = pgTable("email_inbox_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Email identification
+  messageId: varchar("message_id", { length: 255 }).unique(),
+  threadId: varchar("thread_id", { length: 255 }),
+  
+  // Email details
+  fromEmail: varchar("from_email", { length: 255 }).notNull(),
+  fromName: varchar("from_name", { length: 255 }),
+  toEmail: varchar("to_email", { length: 255 }),
+  ccEmails: text("cc_emails"),
+  bccEmails: text("bcc_emails"),
+  
+  // Content
+  subject: text("subject"),
+  bodyText: text("body_text"),
+  bodyHtml: text("body_html"),
+  
+  // Attachments and metadata
+  hasAttachments: boolean("has_attachments").default(false),
+  attachmentCount: integer("attachment_count").default(0),
+  attachmentDetails: jsonb("attachment_details").default([]),
+  
+  // Email headers and metadata
+  emailHeaders: jsonb("email_headers").default({}),
+  priority: varchar("priority", { length: 20 }).default("normal"),
+  
+  // Processing status
+  isRead: boolean("is_read").default(false),
+  isProcessed: boolean("is_processed").default(false),
+  ruleMatched: uuid("rule_matched"),
+  ticketCreated: uuid("ticket_created"),
+  
+  // Timestamps
+  emailDate: timestamp("email_date"),
+  receivedAt: timestamp("received_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+});
+
 // Email Processing Logs - Track processed emails for debugging  
 export const emailProcessingLogs = pgTable("email_processing_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -119,10 +161,25 @@ export const insertEmailProcessingLogSchema = createInsertSchema(emailProcessing
   createdAt: true,
 });
 
+export const insertEmailInboxMessageSchema = createInsertSchema(emailInboxMessages).omit({
+  id: true,
+  receivedAt: true,
+});
+
+export const updateEmailInboxMessageSchema = insertEmailInboxMessageSchema.partial();
+
 // TypeScript types
 export type EmailProcessingRule = typeof emailProcessingRules.$inferSelect;
 export type InsertEmailProcessingRule = z.infer<typeof insertEmailProcessingRuleSchema>;
 export type UpdateEmailProcessingRule = z.infer<typeof updateEmailProcessingRuleSchema>;
+
+export type EmailInboxMessage = typeof emailInboxMessages.$inferSelect;
+export type InsertEmailInboxMessage = z.infer<typeof insertEmailInboxMessageSchema>;
+export type UpdateEmailInboxMessage = z.infer<typeof updateEmailInboxMessageSchema>;
+
+export type EmailResponseTemplate = typeof emailResponseTemplates.$inferSelect;
+export type InsertEmailResponseTemplate = z.infer<typeof insertEmailResponseTemplateSchema>;
+export type UpdateEmailResponseTemplate = z.infer<typeof updateEmailResponseTemplateSchema>;
 
 export type EmailResponseTemplate = typeof emailResponseTemplates.$inferSelect;
 export type InsertEmailResponseTemplate = z.infer<typeof insertEmailResponseTemplateSchema>;

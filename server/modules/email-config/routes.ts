@@ -69,4 +69,18 @@ router.post('/templates/:templateId/render', (req, res) => emailConfigController
 // GET /api/email-config/variables - Get available template variables
 router.get('/variables', (req, res) => emailConfigController.getAvailableVariables(req, res));
 
+// ========== EMAIL INBOX MESSAGES ROUTES ==========
+
+// GET /api/email-config/inbox - Get inbox messages
+router.get('/inbox', (req, res) => emailConfigController.getInboxMessages(req, res));
+
+// GET /api/email-config/inbox/:messageId - Get specific inbox message
+router.get('/inbox/:messageId', (req, res) => emailConfigController.getInboxMessage(req, res));
+
+// PUT /api/email-config/inbox/:messageId/read - Mark message as read
+router.put('/inbox/:messageId/read', (req, res) => emailConfigController.markInboxMessageAsRead(req, res));
+
+// POST /api/email-config/inbox/:messageId/create-rule - Create rule from message
+router.post('/inbox/:messageId/create-rule', (req, res) => emailConfigController.createRuleFromInboxMessage(req, res));
+
 export default router;

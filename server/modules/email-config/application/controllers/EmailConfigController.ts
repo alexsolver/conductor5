@@ -550,4 +550,163 @@ export class EmailConfigController {
       });
     }
   }
+
+  // ========== EMAIL INBOX MESSAGES ==========
+
+  async getInboxMessages(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const { 
+        limit = 20, 
+        offset = 0, 
+        unreadOnly, 
+        processed,
+        priority 
+      } = req.query;
+
+      const options = {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        unreadOnly: unreadOnly === 'true',
+        processed: processed === 'true' ? true : processed === 'false' ? false : undefined,
+        priority: priority as string
+      };
+
+      const repository = new DrizzleEmailConfigRepository();
+      const messages = await repository.getInboxMessages(tenantId, options);
+
+      res.json({ success: true, data: messages });
+
+    } catch (error) {
+      console.error('Error fetching inbox messages:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch inbox messages',
+        error: error.message 
+      });
+    }
+  }
+
+  async getInboxMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { messageId } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const message = await repository.getInboxMessageById(tenantId, messageId);
+
+      if (!message) {
+        res.status(404).json({ message: 'Inbox message not found' });
+        return;
+      }
+
+      res.json({ success: true, data: message });
+
+    } catch (error) {
+      console.error('Error fetching inbox message:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch inbox message',
+        error: error.message 
+      });
+    }
+  }
+
+  async markInboxMessageAsRead(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { messageId } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const updated = await repository.markInboxMessageAsRead(tenantId, messageId);
+
+      if (!updated) {
+        res.status(404).json({ message: 'Inbox message not found' });
+        return;
+      }
+
+      res.json({ success: true, message: 'Message marked as read' });
+
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+      res.status(500).json({ 
+        message: 'Failed to mark message as read',
+        error: error.message 
+      });
+    }
+  }
+
+  async createRuleFromInboxMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      const { messageId } = req.params;
+      
+      if (!tenantId || !userId) {
+        res.status(400).json({ message: 'Tenant ID and User ID are required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      const message = await repository.getInboxMessageById(tenantId, messageId);
+
+      if (!message) {
+        res.status(404).json({ message: 'Inbox message not found' });
+        return;
+      }
+
+      // Create rule from message data with customizations
+      const ruleData = {
+        ...req.body, // Allow customizations from frontend
+        tenantId,
+        name: req.body.name || `Rule for ${message.fromEmail}`,
+        description: req.body.description || `Auto-created from email: ${message.subject}`,
+        fromEmailPattern: req.body.fromEmailPattern || message.fromEmail,
+        subjectPattern: req.body.subjectPattern || message.subject,
+        bodyPattern: req.body.bodyPattern || (message.bodyText ? message.bodyText.substring(0, 100) : ''),
+        priority: req.body.priority || parseInt(message.priority === 'high' ? '10' : message.priority === 'medium' ? '5' : '1'),
+        attachmentRequired: req.body.attachmentRequired !== undefined ? req.body.attachmentRequired : message.hasAttachments,
+        actionType: req.body.actionType || 'create_ticket',
+        defaultCategory: req.body.defaultCategory || '',
+        defaultPriority: req.body.defaultPriority || message.priority === 'high' ? 'high' : message.priority === 'low' ? 'low' : 'medium',
+        defaultUrgency: req.body.defaultUrgency || message.priority === 'high' ? 'high' : 'medium',
+        defaultStatus: req.body.defaultStatus || 'open',
+        autoResponseEnabled: req.body.autoResponseEnabled || false,
+        extractTicketNumber: req.body.extractTicketNumber !== undefined ? req.body.extractTicketNumber : true,
+        createDuplicateTickets: req.body.createDuplicateTickets !== undefined ? req.body.createDuplicateTickets : false,
+        notifyAssignee: req.body.notifyAssignee !== undefined ? req.body.notifyAssignee : true,
+        isActive: req.body.isActive !== undefined ? req.body.isActive : true
+      };
+
+      const validatedData = insertEmailProcessingRuleSchema.parse(ruleData);
+      const rule = await this.emailRulesUseCase.createRule(tenantId, userId, validatedData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: rule,
+        message: 'Email rule created successfully from inbox message'
+      });
+
+    } catch (error) {
+      console.error('Error creating rule from inbox message:', error);
+      res.status(500).json({ 
+        message: 'Failed to create rule from inbox message',
+        error: error.message 
+      });
+    }
+  }
 }

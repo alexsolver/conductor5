@@ -4,7 +4,8 @@ import { EmailProcessingRule, EmailResponseTemplate } from '../../domain/entitie
 import { 
   emailProcessingRules,
   emailResponseTemplates,
-  emailProcessingLogs
+  emailProcessingLogs,
+  emailInboxMessages
 } from '../../../../../shared/schema/email-config';
 import { schemaManager } from '../../../../db';
 
@@ -42,17 +43,43 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
       conditions.push(eq(emailProcessingRules.isActive, options.active));
     }
 
-    console.log('DEBUG: About to execute Drizzle query...');
-    const result = await tenantDb
-      .select()
-      .from(emailProcessingRules)
-      .where(and(...conditions))
-      .orderBy(desc(emailProcessingRules.priority));
+    // Use direct SQL for better compatibility with search_path
+    const result = await tenantDb.execute(sql`
+      SELECT * FROM email_processing_rules 
+      WHERE tenant_id = ${tenantId}
+      ${options?.active !== undefined ? sql`AND is_active = ${options.active}` : sql``}
+      ORDER BY priority DESC
+    `);
     
-    console.log('DEBUG: Query executed, result count:', result.length);
-    console.log('DEBUG: Query result sample:', result.slice(0, 1));
-    
-    return result;
+    // Convert SQL results to proper TypeScript format
+    return result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      name: row.name,
+      description: row.description,
+      priority: row.priority,
+      isActive: row.is_active,
+      fromEmailPattern: row.from_email_pattern,
+      subjectPattern: row.subject_pattern,
+      bodyPattern: row.body_pattern,
+      attachmentRequired: row.attachment_required,
+      actionType: row.action_type,
+      defaultCategory: row.default_category,
+      defaultPriority: row.default_priority,
+      defaultUrgency: row.default_urgency,
+      defaultStatus: row.default_status,
+      defaultAssigneeId: row.default_assignee_id,
+      defaultAssignmentGroup: row.default_assignment_group,
+      autoResponseEnabled: row.auto_response_enabled,
+      autoResponseTemplateId: row.auto_response_template_id,
+      autoResponseDelay: row.auto_response_delay,
+      extractTicketNumber: row.extract_ticket_number,
+      createDuplicateTickets: row.create_duplicate_tickets,
+      notifyAssignee: row.notify_assignee,
+      metadata: row.metadata || {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 
   async getEmailRuleById(tenantId: string, ruleId: string): Promise<EmailProcessingRule | null> {
@@ -253,5 +280,117 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     }
 
     return query;
+  }
+
+  // Inbox Messages Methods
+  async getInboxMessages(tenantId: string, options?: { 
+    limit?: number; 
+    offset?: number; 
+    unreadOnly?: boolean; 
+    processed?: boolean;
+    priority?: string;
+  }): Promise<any[]> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      SELECT * FROM email_inbox_messages 
+      WHERE tenant_id = ${tenantId}
+      ${options?.unreadOnly ? sql`AND is_read = false` : sql``}
+      ${options?.processed !== undefined ? sql`AND is_processed = ${options.processed}` : sql``}
+      ${options?.priority ? sql`AND priority = ${options.priority}` : sql``}
+      ORDER BY received_at DESC
+      ${options?.limit ? sql`LIMIT ${options.limit}` : sql``}
+      ${options?.offset ? sql`OFFSET ${options.offset}` : sql``}
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      messageId: row.message_id,
+      threadId: row.thread_id,
+      fromEmail: row.from_email,
+      fromName: row.from_name,
+      toEmail: row.to_email,
+      ccEmails: row.cc_emails,
+      bccEmails: row.bcc_emails,
+      subject: row.subject,
+      bodyText: row.body_text,
+      bodyHtml: row.body_html,
+      hasAttachments: row.has_attachments,
+      attachmentCount: row.attachment_count,
+      attachmentDetails: row.attachment_details || [],
+      emailHeaders: row.email_headers || {},
+      priority: row.priority,
+      isRead: row.is_read,
+      isProcessed: row.is_processed,
+      ruleMatched: row.rule_matched,
+      ticketCreated: row.ticket_created,
+      emailDate: row.email_date,
+      receivedAt: row.received_at,
+      processedAt: row.processed_at
+    }));
+  }
+
+  async getInboxMessageById(tenantId: string, messageId: string): Promise<any | null> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      SELECT * FROM email_inbox_messages 
+      WHERE tenant_id = ${tenantId} AND id = ${messageId}
+    `);
+    
+    if (result.rows.length === 0) return null;
+    
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      messageId: row.message_id,
+      threadId: row.thread_id,
+      fromEmail: row.from_email,
+      fromName: row.from_name,
+      toEmail: row.to_email,
+      ccEmails: row.cc_emails,
+      bccEmails: row.bcc_emails,
+      subject: row.subject,
+      bodyText: row.body_text,
+      bodyHtml: row.body_html,
+      hasAttachments: row.has_attachments,
+      attachmentCount: row.attachment_count,
+      attachmentDetails: row.attachment_details || [],
+      emailHeaders: row.email_headers || {},
+      priority: row.priority,
+      isRead: row.is_read,
+      isProcessed: row.is_processed,
+      ruleMatched: row.rule_matched,
+      ticketCreated: row.ticket_created,
+      emailDate: row.email_date,
+      receivedAt: row.received_at,
+      processedAt: row.processed_at
+    };
+  }
+
+  async markInboxMessageAsRead(tenantId: string, messageId: string): Promise<boolean> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      UPDATE email_inbox_messages 
+      SET is_read = true 
+      WHERE tenant_id = ${tenantId} AND id = ${messageId}
+    `);
+    
+    return result.rowCount > 0;
   }
 }
