@@ -60,6 +60,9 @@ router.post('/monitoring/test', (req, res) => emailConfigController.processTestE
 // POST /api/email-config/monitoring/send-test - Send test email to inbox
 router.post('/monitoring/send-test', (req, res) => emailConfigController.sendTestEmail(req, res));
 
+// POST /api/email-config/monitoring/import-historical - Import historical emails from IMAP
+router.post('/monitoring/import-historical', (req, res) => emailConfigController.importHistoricalEmails(req, res));
+
 // GET /api/email-config/templates/:templateId - Get specific email template
 router.get('/templates/:templateId', (req, res) => emailConfigController.getEmailTemplate(req, res));
 

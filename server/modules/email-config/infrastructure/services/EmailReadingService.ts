@@ -245,6 +245,190 @@ export class EmailReadingService {
     return this.activeConnections.size;
   }
 
+  async importHistoricalEmails(tenantId: string, integrationId: string, config: any, options: {
+    limit?: number;
+    startDate?: Date;
+    endDate?: Date;
+  } = {}): Promise<{ imported: number; errors: number }> {
+    const { limit = 100, startDate, endDate } = options;
+    let imported = 0;
+    let errors = 0;
+
+    try {
+      console.log(`📧 Starting historical email import for tenant: ${tenantId}`);
+      console.log(`📊 Import settings: limit=${limit}, startDate=${startDate?.toISOString()}, endDate=${endDate?.toISOString()}`);
+      
+      const imap = new Imap({
+        user: config.emailAddress,
+        password: config.password,
+        host: config.imapServer,
+        port: config.imapPort,
+        tls: config.imapSecurity === 'SSL/TLS',
+        connTimeout: 60000,
+        authTimeout: 30000,
+        keepalive: false
+      });
+
+      return new Promise((resolve, reject) => {
+        imap.once('ready', () => {
+          console.log(`✅ IMAP connection ready for historical import: ${config.emailAddress}`);
+          
+          imap.openBox('INBOX', true, (err, box) => {
+            if (err) {
+              console.error('❌ Error opening INBOX for historical import:', err);
+              return reject(err);
+            }
+
+            console.log(`📫 Opened INBOX for historical import, ${box.messages.total} total messages`);
+
+            // Build search criteria for historical emails
+            let searchCriteria: any[] = ['ALL'];
+            
+            if (startDate) {
+              searchCriteria.push(['SINCE', startDate.toDateString()]);
+            }
+            if (endDate) {
+              searchCriteria.push(['BEFORE', endDate.toDateString()]);
+            }
+
+            console.log(`🔍 Searching for historical emails with criteria:`, searchCriteria);
+
+            imap.search(searchCriteria, (err, results) => {
+              if (err) {
+                console.error('❌ Error searching historical emails:', err);
+                return reject(err);
+              }
+
+              if (!results || results.length === 0) {
+                console.log('📭 No historical emails found matching criteria');
+                imap.end();
+                return resolve({ imported: 0, errors: 0 });
+              }
+
+              // Limit results if specified
+              const emailsToFetch = limit ? results.slice(-limit) : results;
+              console.log(`📧 Found ${results.length} historical emails, importing ${emailsToFetch.length}`);
+
+              const fetch = imap.fetch(emailsToFetch, { 
+                bodies: ['HEADER.FIELDS (FROM TO CC BCC SUBJECT DATE MESSAGE-ID IN-REPLY-TO)', 'TEXT'],
+                struct: true,
+                markSeen: false
+              });
+
+              let processedCount = 0;
+              const totalEmails = emailsToFetch.length;
+
+              fetch.on('message', (msg, seqno) => {
+                let emailData: any = {};
+                
+                msg.on('body', (stream, info) => {
+                  let buffer = '';
+                  stream.on('data', (chunk) => {
+                    buffer += chunk.toString('utf8');
+                  });
+                  
+                  stream.once('end', () => {
+                    if (info.which === 'TEXT') {
+                      emailData.bodyText = buffer;
+                    } else {
+                      // Parse headers
+                      const parsed = Imap.parseHeader(buffer);
+                      emailData.headers = parsed;
+                    }
+                  });
+                });
+
+                msg.once('attributes', (attrs) => {
+                  emailData.date = attrs.date;
+                  emailData.uid = attrs.uid;
+                });
+
+                msg.once('end', async () => {
+                  try {
+                    // Process and save this historical email
+                    const processedEmail = {
+                      messageId: emailData.headers?.['message-id']?.[0] || `historical-${emailData.uid}-${Date.now()}`,
+                      threadId: emailData.headers?.['in-reply-to']?.[0] || null,
+                      fromEmail: this.parseEmailAddress(emailData.headers?.from?.[0] || ''),
+                      fromName: this.parseEmailName(emailData.headers?.from?.[0] || ''),
+                      toEmail: this.parseEmailAddress(emailData.headers?.to?.[0] || ''),
+                      ccEmails: JSON.stringify(emailData.headers?.cc?.map(this.parseEmailAddress) || []),
+                      bccEmails: JSON.stringify(emailData.headers?.bcc?.map(this.parseEmailAddress) || []),
+                      subject: emailData.headers?.subject?.[0] || 'No Subject',
+                      bodyText: emailData.bodyText || '',
+                      bodyHtml: '',
+                      hasAttachments: false,
+                      attachmentCount: 0,
+                      attachmentDetails: JSON.stringify([]),
+                      emailHeaders: JSON.stringify(emailData.headers || {}),
+                      emailDate: emailData.date?.toISOString() || new Date().toISOString(),
+                      priority: this.determinePriority(emailData.headers?.subject?.[0] || '', emailData.bodyText || '')
+                    };
+
+                    await this.emailProcessingService.processAndSaveInbox(tenantId, processedEmail);
+                    imported++;
+                    
+                    processedCount++;
+                    if (processedCount % 10 === 0) {
+                      console.log(`📧 Historical import progress: ${processedCount}/${totalEmails} emails processed`);
+                    }
+                    
+                  } catch (error) {
+                    console.error(`❌ Error processing historical email ${emailData.uid}:`, error);
+                    errors++;
+                  }
+
+                  // Check if all emails processed
+                  if (processedCount === totalEmails) {
+                    imap.end();
+                    console.log(`✅ Historical email import completed: ${imported} imported, ${errors} errors`);
+                    resolve({ imported, errors });
+                  }
+                });
+              });
+
+              fetch.once('error', (err) => {
+                console.error('❌ Error fetching historical emails:', err);
+                reject(err);
+              });
+
+              fetch.once('end', () => {
+                console.log('📧 Fetch completed for historical emails');
+              });
+            });
+          });
+        });
+
+        imap.once('error', (err) => {
+          console.error('❌ IMAP error during historical import:', err);
+          reject(err);
+        });
+
+        imap.once('end', () => {
+          console.log('🔌 IMAP connection ended for historical import');
+        });
+
+        imap.connect();
+      });
+
+    } catch (error) {
+      console.error('❌ Error in historical email import:', error);
+      throw error;
+    }
+  }
+
+  private parseEmailAddress(emailString: string): string {
+    if (!emailString) return '';
+    const match = emailString.match(/<([^>]+)>/);
+    return match ? match[1] : emailString.trim();
+  }
+
+  private parseEmailName(emailString: string): string {
+    if (!emailString) return '';
+    const match = emailString.match(/^([^<]+)</);
+    return match ? match[1].trim().replace(/^"(.*)"$/, '$1') : '';
+  }
+
   async startMultipleMonitoring(tenantId: string, integrations: any[]): Promise<void> {
     console.log(`🚀 Starting email monitoring for tenant: ${tenantId}`);
     

@@ -369,6 +369,82 @@ export class EmailConfigController {
     }
   }
 
+  async importHistoricalEmails(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const { 
+        limit = 100, 
+        startDate, 
+        endDate,
+        integrationId = 'imap-email' 
+      } = req.body;
+
+      // Import email reading service
+      const { EmailReadingService } = await import('../../infrastructure/services/EmailReadingService.js');
+      const emailReadingService = new EmailReadingService();
+      
+      console.log('🚀 Starting historical email import...');
+
+      // Get the integration configuration
+      const repository = new DrizzleEmailConfigRepository();
+      const integrations = await repository.getEmailIntegrations(tenantId);
+      const imapIntegration = integrations.find(i => 
+        i.category === 'Comunicação' && 
+        i.name === 'IMAP Email' &&
+        i.isConfigured
+      );
+
+      if (!imapIntegration) {
+        res.status(400).json({ 
+          message: 'IMAP Email integration not found or not configured' 
+        });
+        return;
+      }
+
+      const config = JSON.parse(imapIntegration.configurationData || '{}');
+      
+      const options = {
+        limit: parseInt(limit),
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined
+      };
+
+      console.log(`📧 Starting import with options:`, options);
+
+      // Start the historical import
+      const result = await emailReadingService.importHistoricalEmails(
+        tenantId, 
+        integrationId, 
+        config, 
+        options
+      );
+
+      res.json({ 
+        success: true, 
+        message: `Historical email import completed successfully`,
+        data: {
+          imported: result.imported,
+          errors: result.errors,
+          total: result.imported + result.errors,
+          settings: options
+        }
+      });
+
+    } catch (error) {
+      console.error('Error importing historical emails:', error);
+      res.status(500).json({ 
+        message: 'Failed to import historical emails',
+        error: error.message 
+      });
+    }
+  }
+
   async renderEmailTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;

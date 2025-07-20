@@ -18,7 +18,10 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Play
+  Play,
+  Info,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -208,6 +211,7 @@ export default function EmailConfiguration() {
   const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
   const [isCreateRuleFromMessageDialogOpen, setIsCreateRuleFromMessageDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [testEmail, setTestEmail] = useState({
     from: '',
     subject: '',
@@ -592,6 +596,29 @@ export default function EmailConfiguration() {
     }
   });
 
+  const importHistoricalMutation = useMutation({
+    mutationFn: async (importData: { limit: number; startDate?: string; endDate?: string }) => {
+      const response = await apiRequest('POST', '/api/email-config/monitoring/import-historical', importData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Importação histórica concluída",
+        description: `${data.data.imported} emails importados com sucesso. ${data.data.errors} erros.`,
+      });
+      setIsImportDialogOpen(false);
+      refetchInbox();
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro na importação histórica",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Handlers
   const handleCreateRule = () => {
     setSelectedRule(null);
@@ -866,6 +893,13 @@ export default function EmailConfiguration() {
               >
                 <Download className="w-4 h-4 mr-2" />
                 {inboxLoading ? 'Atualizando...' : 'Atualizar'}
+              </Button>
+              <Button 
+                onClick={() => setIsImportDialogOpen(true)}
+                disabled={inboxLoading}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Importar Emails Históricos
               </Button>
             </div>
           </div>
@@ -2903,6 +2937,144 @@ export default function EmailConfiguration() {
               onClick={() => setShowLogsDialog(false)}
             >
               Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Historical Import Dialog */}
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Importar Emails Históricos</DialogTitle>
+            <DialogDescription>
+              Importe emails existentes da sua caixa de entrada IMAP para o sistema.
+              Isso permitirá que você veja e processe emails antigos.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900">Informações da Importação</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    O sistema detectou <strong>2.258 emails</strong> na sua caixa IMAP (alexsolver@gmail.com).
+                    Configure os parâmetros abaixo para importar os emails históricos.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Quantidade de Emails
+                </label>
+                <Select 
+                  defaultValue="100"
+                  onValueChange={(value) => {
+                    const input = document.querySelector('[name="import-limit"]') as HTMLInputElement;
+                    if (input) input.value = value;
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a quantidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="50">50 emails mais recentes</SelectItem>
+                    <SelectItem value="100">100 emails mais recentes</SelectItem>
+                    <SelectItem value="250">250 emails mais recentes</SelectItem>
+                    <SelectItem value="500">500 emails mais recentes</SelectItem>
+                    <SelectItem value="1000">1000 emails mais recentes</SelectItem>
+                    <SelectItem value="2258">Todos os emails (2.258)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <input type="hidden" name="import-limit" defaultValue="100" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Data Inicial (opcional)
+                  </label>
+                  <Input 
+                    type="date" 
+                    name="start-date"
+                    placeholder="Ex: 2024-01-01"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Deixe vazio para importar desde o início
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Data Final (opcional)
+                  </label>
+                  <Input 
+                    type="date" 
+                    name="end-date"
+                    placeholder="Ex: 2024-12-31"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Deixe vazio para importar até hoje
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-yellow-900">Importante</h4>
+                  <ul className="text-sm text-yellow-700 mt-1 space-y-1">
+                    <li>• A importação pode demorar alguns minutos dependendo da quantidade</li>
+                    <li>• Emails duplicados não serão importados novamente</li>
+                    <li>• As regras de processamento serão aplicadas aos emails importados</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsImportDialogOpen(false)}
+              disabled={importHistoricalMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                const limitInput = document.querySelector('[name="import-limit"]') as HTMLInputElement;
+                const startInput = document.querySelector('[name="start-date"]') as HTMLInputElement;
+                const endInput = document.querySelector('[name="end-date"]') as HTMLInputElement;
+                
+                const importData = {
+                  limit: parseInt(limitInput?.value || '100'),
+                  startDate: startInput?.value || undefined,
+                  endDate: endInput?.value || undefined
+                };
+                
+                importHistoricalMutation.mutate(importData);
+              }}
+              disabled={importHistoricalMutation.isPending}
+            >
+              {importHistoricalMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Importando...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Iniciar Importação
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>
