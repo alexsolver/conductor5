@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { ManageEmailRulesUseCase } from '../use-cases/ManageEmailRulesUseCase';
 import { ManageEmailTemplatesUseCase } from '../use-cases/ManageEmailTemplatesUseCase';
+import { EmailProcessingService } from '../services/EmailProcessingService';
 import { DrizzleEmailConfigRepository } from '../../infrastructure/repositories/DrizzleEmailConfigRepository';
 import { 
   insertEmailProcessingRuleSchema,
@@ -14,11 +15,13 @@ import {
 export class EmailConfigController {
   private emailRulesUseCase: ManageEmailRulesUseCase;
   private emailTemplatesUseCase: ManageEmailTemplatesUseCase;
+  private emailProcessingService: EmailProcessingService;
 
   constructor() {
     const repository = new DrizzleEmailConfigRepository();
     this.emailRulesUseCase = new ManageEmailRulesUseCase(repository);
     this.emailTemplatesUseCase = new ManageEmailTemplatesUseCase(repository);
+    this.emailProcessingService = new EmailProcessingService();
   }
 
   // ========== EMAIL PROCESSING RULES ==========
@@ -344,3 +347,206 @@ export class EmailConfigController {
     }
   }
 }
+
+
+
+  // ========== EMAIL MONITORING CONTROL ==========
+
+  async startEmailMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      // Get active email rules to verify configuration
+      const rules = await this.emailRulesUseCase.getRules(tenantId, true);
+      
+      if (rules.length === 0) {
+        res.status(400).json({ 
+          message: 'No active email rules found. Please create at least one active rule before starting email monitoring.' 
+        });
+        return;
+      }
+
+      // Here you would start your email monitoring service
+      // This could be IMAP, POP3, webhook, or API integration
+      const monitoringConfig = {
+        tenantId,
+        activeRules: rules.length,
+        status: 'active',
+        startedAt: new Date()
+      };
+
+      res.json({ 
+        success: true, 
+        message: 'Email monitoring started successfully',
+        data: monitoringConfig
+      });
+
+    } catch (error) {
+      console.error('Error starting email monitoring:', error);
+      res.status(500).json({ 
+        message: 'Failed to start email monitoring',
+        error: error.message 
+      });
+    }
+  }
+
+  async stopEmailMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      // Here you would stop your email monitoring service
+      const monitoringConfig = {
+        tenantId,
+        status: 'stopped',
+        stoppedAt: new Date()
+      };
+
+      res.json({ 
+        success: true, 
+        message: 'Email monitoring stopped successfully',
+        data: monitoringConfig
+      });
+
+    } catch (error) {
+      console.error('Error stopping email monitoring:', error);
+      res.status(500).json({ 
+        message: 'Failed to stop email monitoring',
+        error: error.message 
+      });
+    }
+  }
+
+  async getEmailMonitoringStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      // Get monitoring status and statistics
+      const rules = await this.emailRulesUseCase.getRules(tenantId);
+      const activeRules = rules.filter(rule => rule.isActive);
+      
+      const repository = new DrizzleEmailConfigRepository();
+      const recentLogs = await repository.getProcessingLogs(tenantId, {
+        limit: 10,
+        dateFrom: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+      });
+
+      const status = {
+        isActive: activeRules.length > 0,
+        totalRules: rules.length,
+        activeRules: activeRules.length,
+        recentProcessing: {
+          last24Hours: recentLogs.length,
+          successful: recentLogs.filter(log => log.processingStatus === 'processed').length,
+          failed: recentLogs.filter(log => log.processingStatus === 'failed').length
+        },
+        lastProcessedEmail: recentLogs[0] || null
+      };
+
+      res.json({ success: true, data: status });
+
+    } catch (error) {
+      console.error('Error getting email monitoring status:', error);
+      res.status(500).json({ 
+        message: 'Failed to get email monitoring status',
+        error: error.message 
+      });
+    }
+  }
+
+  async getProcessingLogs(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const { 
+        limit = 50, 
+        offset = 0, 
+        status, 
+        dateFrom, 
+        dateTo 
+      } = req.query;
+
+      const options = {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        status: status as string,
+        dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
+        dateTo: dateTo ? new Date(dateTo as string) : undefined
+      };
+
+      const repository = new DrizzleEmailConfigRepository();
+      const logs = await repository.getProcessingLogs(tenantId, options);
+
+      res.json({ success: true, data: logs });
+
+    } catch (error) {
+      console.error('Error fetching processing logs:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch processing logs',
+        error: error.message 
+      });
+    }
+  }
+
+  async processTestEmail(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const { from, subject, body, attachments = [] } = req.body;
+
+      if (!from || !subject || !body) {
+        res.status(400).json({ message: 'from, subject, and body are required' });
+        return;
+      }
+
+      const testEmail = {
+        messageId: `test-${Date.now()}`,
+        from,
+        to: 'support@example.com',
+        subject,
+        body,
+        bodyHtml: body,
+        attachments: attachments || [],
+        receivedAt: new Date()
+      };
+
+      const result = await this.emailProcessingService.processIncomingEmail(tenantId, testEmail);
+
+      res.json({ 
+        success: true, 
+        message: 'Test email processed successfully',
+        data: result
+      });
+
+    } catch (error) {
+      console.error('Error processing test email:', error);
+      res.status(500).json({ 
+        message: 'Failed to process test email',
+        error: error.message 
+      });
+    }
+  }

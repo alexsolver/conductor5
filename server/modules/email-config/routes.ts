@@ -37,6 +37,23 @@ router.get('/templates', (req, res) => emailConfigController.getEmailTemplates(r
 // POST /api/email-config/templates - Create new email template
 router.post('/templates', (req, res) => emailConfigController.createEmailTemplate(req, res));
 
+// ========== EMAIL MONITORING CONTROL ROUTES ==========
+
+// POST /api/email-config/monitoring/start - Start email monitoring
+router.post('/monitoring/start', (req, res) => emailConfigController.startEmailMonitoring(req, res));
+
+// POST /api/email-config/monitoring/stop - Stop email monitoring
+router.post('/monitoring/stop', (req, res) => emailConfigController.stopEmailMonitoring(req, res));
+
+// GET /api/email-config/monitoring/status - Get monitoring status
+router.get('/monitoring/status', (req, res) => emailConfigController.getEmailMonitoringStatus(req, res));
+
+// GET /api/email-config/monitoring/logs - Get processing logs
+router.get('/monitoring/logs', (req, res) => emailConfigController.getProcessingLogs(req, res));
+
+// POST /api/email-config/monitoring/test - Process test email
+router.post('/monitoring/test', (req, res) => emailConfigController.processTestEmail(req, res));
+
 // GET /api/email-config/templates/:templateId - Get specific email template
 router.get('/templates/:templateId', (req, res) => emailConfigController.getEmailTemplate(req, res));
 

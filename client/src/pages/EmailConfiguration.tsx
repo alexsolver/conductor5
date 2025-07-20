@@ -203,6 +203,16 @@ export default function EmailConfiguration() {
     }
   });
 
+  const { data: monitoringStatus = null } = useQuery({
+    queryKey: ['/api/email-config/monitoring/status'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/email-config/monitoring/status');
+      const data = await response.json();
+      return data.data || null;
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
   // Mutations
   const createRuleMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -313,6 +323,34 @@ export default function EmailConfiguration() {
     }
   });
 
+  const startMonitoringMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/email-config/monitoring/start');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Monitoramento de email iniciado' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const stopMonitoringMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/email-config/monitoring/stop');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Monitoramento de email parado' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
   // Handlers
   const handleCreateRule = () => {
     setSelectedRule(null);
@@ -400,7 +438,87 @@ export default function EmailConfiguration() {
             Gerencie regras de processamento de email e templates de resposta
           </p>
         </div>
+        
+        <div className="flex items-center gap-4">
+          {monitoringStatus && (
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${monitoringStatus.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-sm font-medium">
+                {monitoringStatus.isActive ? 'Monitoramento Ativo' : 'Monitoramento Inativo'}
+              </span>
+            </div>
+          )}
+          
+          {monitoringStatus?.isActive ? (
+            <Button 
+              variant="outline"
+              onClick={() => stopMonitoringMutation.mutate()}
+              disabled={stopMonitoringMutation.isPending}
+            >
+              <div className="w-4 h-4 mr-2 bg-red-500 rounded-full" />
+              Parar Monitoramento
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => startMonitoringMutation.mutate()}
+              disabled={startMonitoringMutation.isPending || emailRules.filter(r => r.isActive).length === 0}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Iniciar Monitoramento
+            </Button>
+          )}
+        </div>
       </div>
+
+      {monitoringStatus && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${monitoringStatus.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+              Status do Monitoramento de Email
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <div className="text-2xl font-bold">
+                  {monitoringStatus.totalRules}
+                </div>
+                <p className="text-xs text-muted-foreground">Total de Regras</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">
+                  {monitoringStatus.activeRules}
+                </div>
+                <p className="text-xs text-muted-foreground">Regras Ativas</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">
+                  {monitoringStatus.recentProcessing?.successful || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">Sucessos (24h)</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">
+                  {monitoringStatus.recentProcessing?.failed || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">Falhas (24h)</p>
+              </div>
+            </div>
+            
+            {monitoringStatus.lastProcessedEmail && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm font-medium">Último Email Processado:</p>
+                <p className="text-sm text-muted-foreground">
+                  De: {monitoringStatus.lastProcessedEmail.fromEmail} | 
+                  Assunto: {monitoringStatus.lastProcessedEmail.subject} |
+                  Ação: {monitoringStatus.lastProcessedEmail.actionTaken}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">

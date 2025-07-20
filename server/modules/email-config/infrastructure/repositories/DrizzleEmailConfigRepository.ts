@@ -26,21 +26,17 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
   async getEmailRules(tenantId: string, options?: { active?: boolean }): Promise<EmailProcessingRule[]> {
     const storage = await getStorage();
     
-    let query = storage.db
-      .select()
-      .from(emailProcessingRules)
-      .where(eq(emailProcessingRules.tenantId, tenantId));
-
+    let conditions = [eq(emailProcessingRules.tenantId, tenantId)];
+    
     if (options?.active !== undefined) {
-      query = query.where(
-        and(
-          eq(emailProcessingRules.tenantId, tenantId),
-          eq(emailProcessingRules.isActive, options.active)
-        )
-      );
+      conditions.push(eq(emailProcessingRules.isActive, options.active));
     }
 
-    return query.orderBy(desc(emailProcessingRules.priority));
+    return storage.db
+      .select()
+      .from(emailProcessingRules)
+      .where(and(...conditions))
+      .orderBy(desc(emailProcessingRules.priority));
   }
 
   async getEmailRuleById(tenantId: string, ruleId: string): Promise<EmailProcessingRule | null> {
