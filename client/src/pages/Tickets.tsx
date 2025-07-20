@@ -124,43 +124,73 @@ export default function Tickets() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
+      <div>
+        <div className="py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header skeleton */}
+            <Card className="gradient-card mb-6 animate-pulse">
               <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-64"></div>
+                  </div>
+                  <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+                    <div className="h-10 bg-gray-200 rounded w-20"></div>
+                    <div className="h-10 bg-gray-200 rounded w-28"></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+            
+            {/* Tickets list skeleton */}
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="space-y-3">
+                      <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                New Ticket
-              </Button>
-            </DialogTrigger>
+    <div>
+      <div className="py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Page Header */}
+          <Card className="gradient-card mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Support Tickets
+                  </h1>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Manage and track customer support requests
+                  </p>
+                </div>
+                <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+                  <Button variant="outline">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filter
+                  </Button>
+                  <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="gradient-primary text-white">
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Ticket
+                      </Button>
+                    </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                   <DialogTitle>Create New Ticket</DialogTitle>
@@ -296,57 +326,62 @@ export default function Tickets() {
               </Form>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {tickets?.tickets?.map((ticket: any) => (
-          <Card key={ticket.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      #{ticket.id} - {ticket.subject}
-                    </h3>
-                    <Badge className={getPriorityColor(ticket.priority)}>
-                      {ticket.priority}
-                    </Badge>
-                    <Badge className={getStatusColor(ticket.status)}>
-                      {ticket.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-3">
-                    {ticket.description?.substring(0, 150)}...
-                  </p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>Customer: {ticket.customer?.firstName} {ticket.customer?.lastName}</span>
-                    <span>•</span>
-                    <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                    {ticket.assignedTo && (
-                      <>
-                        <span>•</span>
-                        <span>Assigned to: {ticket.assignedTo.firstName}</span>
-                      </>
-                    )}
-                  </div>
                 </div>
-                <Button variant="outline" size="sm">
-                  View Details
-                </Button>
               </div>
             </CardContent>
           </Card>
-        )) || (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="text-gray-500">
-                <div className="text-lg font-medium mb-2">No tickets found</div>
-                <p className="text-sm">Create your first support ticket to get started.</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
+          {/* Tickets List */}
+          <div className="space-y-4">
+            {tickets?.tickets?.map((ticket: any) => (
+              <Card key={ticket.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          #{ticket.id} - {ticket.subject}
+                        </h3>
+                        <Badge className={getPriorityColor(ticket.priority)}>
+                          {ticket.priority}
+                        </Badge>
+                        <Badge className={getStatusColor(ticket.status)}>
+                          {ticket.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 mb-3">
+                        {ticket.description?.substring(0, 150)}...
+                      </p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>Customer: {ticket.customer?.firstName} {ticket.customer?.lastName}</span>
+                        <span>•</span>
+                        <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
+                        {ticket.assignedTo && (
+                          <>
+                            <span>•</span>
+                            <span>Assigned to: {ticket.assignedTo.firstName}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )) || (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <div className="text-gray-500">
+                    <div className="text-lg font-medium mb-2">No tickets found</div>
+                    <p className="text-sm">Create your first support ticket to get started.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
