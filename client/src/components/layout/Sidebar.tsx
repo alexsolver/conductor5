@@ -47,12 +47,18 @@ import {
 const baseNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
-  { name: "Projetos", href: "/projects", icon: Folder },
+  { 
+    name: "Projetos", 
+    icon: Folder,
+    children: [
+      { name: "Gestão de Projetos", href: "/projects", icon: FolderOpen },
+      { name: "Roadmap", href: "/roadmap", icon: Map },
+    ]
+  },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
-  { name: "Roadmap", href: "/roadmap", icon: Map },
   { name: "Compliance", href: "/compliance", icon: Shield },
 ];
 
@@ -184,6 +190,63 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="mt-6 flex-1 px-2 space-y-1">
           {navigation.map((item) => {
+            // If item has children, render as collapsible menu
+            if (item.children) {
+              const isOpen = openMenus[item.name] || false;
+              const hasActiveChild = item.children.some(child => location === child.href);
+              
+              return (
+                <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
+                  <CollapsibleTrigger className="w-full">
+                    <div className={cn(
+                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                      hasActiveChild
+                        ? "text-white"
+                        : "text-white hover:bg-white hover:bg-opacity-10"
+                    )} style={hasActiveChild ? {
+                      backgroundColor: 'var(--accent)',
+                      color: 'white'
+                    } : {}}>
+                      <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                      {item.name}
+                      {item.badge && (
+                        <Badge variant="destructive" className="ml-2">
+                          {item.badge}
+                        </Badge>
+                      )}
+                      {isOpen ? (
+                        <ChevronDown className="ml-auto h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="ml-auto h-4 w-4" />
+                      )}
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                    {item.children.map((child) => {
+                      const isActive = location === child.href;
+                      return (
+                        <Link key={child.name} href={child.href}>
+                          <div className={cn(
+                            "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                            isActive
+                              ? "text-white"
+                              : "text-white hover:bg-white hover:bg-opacity-10"
+                          )} style={isActive ? {
+                            backgroundColor: 'var(--accent)',
+                            color: 'white'
+                          } : {}}>
+                            <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                            {child.name}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            }
+            
+            // If item has no children, render as simple link
             const isActive = location === item.href;
             return (
               <Link key={item.name} href={item.href}>
