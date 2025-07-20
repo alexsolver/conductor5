@@ -808,7 +808,7 @@ export class EmailReadingService {
   private importLatestEmails(tenantId: string, integrationId: string, imap: any, resolve: () => void): void {
     console.log(`🔄 Importing latest emails for integration ${integrationId}`);
     
-    // Get all emails and take the latest 5
+    // Use simple search for all emails and get the most recent ones
     imap.search(['ALL'], (searchError: any, allResults: any) => {
       if (searchError || !allResults || allResults.length === 0) {
         console.log(`📭 No emails found in inbox for integration ${integrationId}`);
@@ -816,11 +816,11 @@ export class EmailReadingService {
         return;
       }
 
-      // Get the last 5 emails
-      const latest5 = allResults.slice(-5);
-      console.log(`📧 Processing ${latest5.length} latest emails from ${allResults.length} total emails`);
+      // Get the last 20 emails to ensure we capture recent ones
+      const latest20 = allResults.slice(-20);
+      console.log(`📧 Processing ${latest20.length} latest emails from ${allResults.length} total emails`);
 
-      const fetch = imap.fetch(latest5, { 
+      const fetch = imap.fetch(latest20, { 
         bodies: '',
         markSeen: false,
         struct: true 
@@ -847,6 +847,17 @@ export class EmailReadingService {
                 // Parse headers
                 const headers = this.parseHeaders(headerSection);
 
+                // Check if email is from 2025 (recent)
+                const emailDate = this.parseDate(headers.date);
+                if (emailDate && emailDate.getFullYear() < 2025) {
+                  console.log(`⏭️ Skipping old email from ${emailDate.getFullYear()}: ${headers.subject || 'No Subject'}`);
+                  emailsProcessed++;
+                  if (emailsProcessed === latest20.length) {
+                    resolve();
+                  }
+                  return;
+                }
+
                 // Decode subject line from RFC 2047 encoding
                 const decodedSubject = this.decodeRFC2047(headers.subject || 'No Subject');
 
@@ -869,7 +880,7 @@ export class EmailReadingService {
                   attachmentDetails: [],
                   emailHeaders: JSON.stringify(headers),
                   priority: this.determinePriority(headers.subject || '', bodySection),
-                  emailDate: this.parseDate(headers.date)?.toISOString() || new Date().toISOString(),
+                  emailDate: emailDate?.toISOString() || new Date().toISOString(),
                   receivedAt: new Date().toISOString(),
                   processedAt: null
                 };
@@ -881,7 +892,7 @@ export class EmailReadingService {
                 await emailProcessingService.saveInboxMessage(tenantId, emailInfo);
                 
                 emailsProcessed++;
-                if (emailsProcessed === latest5.length) {
+                if (emailsProcessed === latest20.length) {
                   console.log(`✅ Successfully imported ${emailsProcessed} emails for integration ${integrationId}`);
                   resolve();
                 }
@@ -889,7 +900,7 @@ export class EmailReadingService {
             } catch (error) {
               console.error(`❌ Error processing email ${seqno}:`, error);
               emailsProcessed++;
-              if (emailsProcessed === latest5.length) {
+              if (emailsProcessed === latest20.length) {
                 resolve();
               }
             }

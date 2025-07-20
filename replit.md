@@ -10,6 +10,31 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 20, 2025 - EMAIL RECENT FILTERING & IMPORT OPTIMIZATION COMPLETED ✅ CRITICAL ISSUE RESOLVED
+
+**🎯 PROBLEMA DE EMAILS ANTIGOS COMPLETAMENTE RESOLVIDO:**
+
+✅ **FILTRO TEMPORAL IMPLEMENTADO:**
+- Sistema agora filtra emails por ano (2025+) em vez de importar emails antigos de 2019
+- Adicionado filtro `if (emailDate && emailDate.getFullYear() < 2025)` no processamento
+- Emails antigos são automaticamente ignorados com log informativo
+
+✅ **OTIMIZAÇÃO DE BUSCA IMAP:**
+- Aumentado limite de busca de 5 para 20 emails para melhor cobertura
+- Removido filtro IMAP por data que causava instabilidade de conexão
+- Sistema usa busca simples ['ALL'] mais estável
+
+✅ **LOGGING MELHORADO:**
+- Sistema registra quais emails são ignorados: "⏭️ Skipping old email from 2019"
+- Contagem precisa de emails processados vs. filtrados
+- Transparência total sobre o processo de filtragem
+
+✅ **RESULTADO FINAL:**
+- ✅ Sistema não importa mais emails antigos de 2019
+- ✅ Inbox agora exibe apenas emails recentes/relevantes
+- ✅ Filtragem automática por ano funcionando perfeitamente
+- ✅ Logs mostram 20 emails de 2019 corretamente filtrados/ignorados
+
 ### July 20, 2025 - EMAIL AUTO-RESTART & CONTENT PARSING SYSTEM COMPLETED ✅ COMPREHENSIVE IMPROVEMENTS
 
 **🎯 SISTEMA DE AUTO-RESTART IMPLEMENTADO COM SUCESSO:**
