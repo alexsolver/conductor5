@@ -321,6 +321,72 @@ export class EmailReadingService {
     });
   }
 
+  // RFC 2047 header decoding for encoded subject lines
+  private decodeRFC2047(text: string): string {
+    if (!text) return '';
+    
+    // Match =?charset?encoding?encoded-text?=
+    return text.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (match, charset, encoding, encodedText) => {
+      try {
+        if (encoding.toUpperCase() === 'B') {
+          // Base64 decode
+          const decoded = Buffer.from(encodedText, 'base64').toString('utf8');
+          return decoded;
+        } else if (encoding.toUpperCase() === 'Q') {
+          // Quoted-printable decode
+          return encodedText.replace(/_/g, ' ').replace(/=([A-F0-9]{2})/g, (_, hex) => {
+            return String.fromCharCode(parseInt(hex, 16));
+          });
+        }
+      } catch (error) {
+        console.warn('Error decoding RFC2047 text:', error);
+      }
+      return match; // Return original if decoding fails
+    });
+  }
+
+  // Parse MIME multipart content
+  private parseMimeContent(body: string): { text: string; html?: string } {
+    // Extract boundary from content-type header if present
+    const boundaryMatch = body.match(/boundary[="']?([^"'\s;]+)/i);
+    if (!boundaryMatch) {
+      // Not multipart, treat as plain text
+      return { text: this.cleanQuotedPrintable(body) };
+    }
+
+    const boundary = boundaryMatch[1];
+    const parts = body.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    
+    let textPart = '';
+    let htmlPart = '';
+
+    for (const part of parts) {
+      if (part.includes('Content-Type: text/plain')) {
+        const content = part.split(/\r?\n\r?\n/).slice(1).join('\n\n');
+        textPart = this.cleanQuotedPrintable(content);
+      } else if (part.includes('Content-Type: text/html')) {
+        const content = part.split(/\r?\n\r?\n/).slice(1).join('\n\n');
+        htmlPart = this.cleanQuotedPrintable(content);
+      }
+    }
+
+    return {
+      text: textPart || this.extractTextFromBody(body),
+      html: htmlPart || undefined
+    };
+  }
+
+  // Clean quoted-printable encoding
+  private cleanQuotedPrintable(text: string): string {
+    return text
+      .replace(/=([A-F0-9]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/=\r?\n/g, '') // Remove soft line breaks
+      .replace(/\r?\n/g, ' ') // Convert line breaks to spaces
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim()
+      .substring(0, 2000); // Limit length
+  }
+
   private parseHeaders(headerSection: string): any {
     const headers: any = {};
     const lines = headerSection.split(/\r?\n/);
@@ -508,6 +574,12 @@ export class EmailReadingService {
                 // Parse headers
                 const headers = this.parseHeaders(headerSection);
 
+                // Decode subject line from RFC 2047 encoding
+                const decodedSubject = this.decodeRFC2047(headers.subject || 'No Subject');
+
+                // Parse MIME content for proper text/html extraction
+                const mimeContent = this.parseMimeContent(bodySection);
+
                 const emailInfo = {
                   messageId: headers['message-id'] || `imap-${integrationId}-${seqno}`,
                   threadId: headers['in-reply-to'] || null,
@@ -516,9 +588,9 @@ export class EmailReadingService {
                   toEmail: this.extractEmail(headers.to || ''),
                   ccEmails: JSON.stringify([]),
                   bccEmails: JSON.stringify([]),
-                  subject: headers.subject || 'No Subject',
-                  bodyText: this.extractTextFromBody(bodySection),
-                  bodyHtml: this.extractHtmlFromBody(bodySection),
+                  subject: decodedSubject,
+                  bodyText: mimeContent.text,
+                  bodyHtml: mimeContent.html || this.extractHtmlFromBody(bodySection),
                   hasAttachments: false,
                   attachmentCount: 0,
                   attachmentDetails: [],
