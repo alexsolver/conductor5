@@ -553,12 +553,12 @@ export class EmailConfigController {
         dateFrom: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
       });
 
-      const connectionStatus = emailReadingService.getConnectionStatus();
+      const connectionStatus = emailReadingService?.getConnectionStatus() || {};
 
       const status = {
-        isActive: emailReadingService.isCurrentlyMonitoring(),
+        isActive: emailReadingService?.isCurrentlyMonitoring() || false,
         totalIntegrations: emailIntegrations.length,
-        activeConnections: emailReadingService.getActiveConnectionsCount(),
+        activeConnections: emailReadingService?.getActiveConnectionsCount() || 0,
         connectionStatus,
         recentProcessing: {
           last24Hours: recentLogs.length,
