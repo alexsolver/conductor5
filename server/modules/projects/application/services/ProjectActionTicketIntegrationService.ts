@@ -85,25 +85,68 @@ export class ProjectActionTicketIntegrationService {
   async shouldAutoConvert(action: ProjectAction): Promise<boolean> {
     const rules = action.ticketConversionRules as ConversionRules;
     
+    console.log(`[shouldAutoConvert] Action ${action.id}: rules=`, rules);
+    
     if (!rules?.autoConvert) {
+      console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert is false or undefined`);
       return false;
     }
 
+    console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert is true, checking triggers`);
+
     // Verifica se o status atual está na lista de triggers
     if (rules.triggerOnStatus && rules.triggerOnStatus.length > 0) {
-      return rules.triggerOnStatus.includes(action.status);
+      const shouldTrigger = rules.triggerOnStatus.includes(action.status);
+      console.log(`[shouldAutoConvert] Action ${action.id}: trigger on status check - current: ${action.status}, triggers: ${JSON.stringify(rules.triggerOnStatus)}, result: ${shouldTrigger}`);
+      return shouldTrigger;
     }
 
     // Conversão automática para ações críticas que ficam bloqueadas
     if (action.priority === 'critical' && action.status === 'blocked') {
+      console.log(`[shouldAutoConvert] Action ${action.id}: critical blocked action`);
+      return true;
+    }
+
+    // Conversão automática para entregas com autoConvert ativado (qualquer status)
+    if (action.type === 'delivery' && rules.autoConvert) {
+      console.log(`[shouldAutoConvert] Action ${action.id}: delivery with auto-convert enabled`);
+      return true;
+    }
+
+    // Conversão automática para ações bloqueadas com autoConvert ativado
+    if (action.status === 'blocked' && rules.autoConvert) {
+      console.log(`[shouldAutoConvert] Action ${action.id}: blocked action with auto-convert enabled`);
       return true;
     }
 
     // Conversão automática para entregas externas em progresso
     if (action.type === 'external_delivery' && action.status === 'in_progress') {
+      console.log(`[shouldAutoConvert] Action ${action.id}: external delivery in progress`);
       return true;
     }
 
+    // Conversão automática para reuniões externas em progresso
+    if (action.type === 'external_meeting' && action.status === 'in_progress' && rules.autoConvert) {
+      console.log(`[shouldAutoConvert] Action ${action.id}: external meeting in progress with auto-convert`);
+      return true;
+    }
+    
+    console.log(`[shouldAutoConvert] Action ${action.id}: type=${action.type}, delivery check=${action.type === 'delivery'}`);
+    console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert=${rules.autoConvert}, delivery autoConvert=${action.type === 'delivery' && rules.autoConvert}`);
+
+    // Conversão automática para validações externas
+    if (action.type === 'external_validation' && rules.autoConvert) {
+      console.log(`[shouldAutoConvert] Action ${action.id}: external validation with auto-convert enabled`);
+      return true;
+    }
+
+    // Conversão automática para reuniões internas com autoConvert ativado
+    if (action.type === 'internal_meeting' && rules.autoConvert) {
+      console.log(`[shouldAutoConvert] Action ${action.id}: internal meeting with auto-convert enabled`);
+      return true;
+    }
+
+    console.log(`[shouldAutoConvert] Action ${action.id}: no auto-convert conditions met`);
     return false;
   }
 
@@ -117,7 +160,7 @@ export class ProjectActionTicketIntegrationService {
   ): Promise<void> {
     await this.actionRepository.update(actionId, tenantId, {
       relatedTicketId: ticketId,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date()
     });
 
     console.log('Action linked to ticket:', {
@@ -151,26 +194,38 @@ export class ProjectActionTicketIntegrationService {
     const allActions = await this.actionRepository.findAll(tenantId);
     const now = new Date();
 
+    console.log(`[Integration Suggestions] Processing ${allActions.length} actions for tenant ${tenantId}`);
+    console.log(`[Integration Suggestions] Current time: ${now.toISOString()}`);
+
     const autoConvertCandidates = [];
     const blockedActions = [];
     const overdueActions = [];
 
     for (const action of allActions) {
+      console.log(`[Integration Suggestions] Processing action: ${action.id} - ${action.title}`);
+      console.log(`[Integration Suggestions] Status: ${action.status}, DueDate: ${action.dueDate}, CanConvert: ${action.canConvertToTicket}`);
+      
       // Candidatos para conversão automática
       if (await this.shouldAutoConvert(action)) {
+        console.log(`[Integration Suggestions] Action ${action.id} marked as auto-convert candidate`);
         autoConvertCandidates.push(action);
       }
 
       // Actions bloqueadas
       if (action.status === 'blocked') {
+        console.log(`[Integration Suggestions] Action ${action.id} is blocked`);
         blockedActions.push(action);
       }
 
       // Actions atrasadas
       if (action.dueDate && new Date(action.dueDate) < now && action.status !== 'completed') {
+        const dueDateObj = new Date(action.dueDate);
+        console.log(`[Integration Suggestions] Action ${action.id} is overdue: ${dueDateObj.toISOString()} < ${now.toISOString()}`);
         overdueActions.push(action);
       }
     }
+
+    console.log(`[Integration Suggestions] Results: ${autoConvertCandidates.length} auto-convert, ${blockedActions.length} blocked, ${overdueActions.length} overdue`);
 
     return {
       autoConvertCandidates,

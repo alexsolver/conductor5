@@ -1,14 +1,16 @@
 import { Request, Response } from 'express';
 import { ProjectActionTicketIntegrationService } from '../services/ProjectActionTicketIntegrationService';
-import { DrizzleProjectRepository } from '../../infrastructure/repositories/DrizzleProjectRepository';
+import { DrizzleProjectRepository, DrizzleProjectActionRepository } from '../../infrastructure/repositories/DrizzleProjectRepository';
 
 export class ProjectActionIntegrationController {
   private integrationService: ProjectActionTicketIntegrationService;
   private projectRepository: DrizzleProjectRepository;
+  private actionRepository: DrizzleProjectActionRepository;
 
   constructor() {
     this.projectRepository = new DrizzleProjectRepository();
-    this.integrationService = new ProjectActionTicketIntegrationService(this.projectRepository);
+    this.actionRepository = new DrizzleProjectActionRepository();
+    this.integrationService = new ProjectActionTicketIntegrationService(this.actionRepository);
   }
 
   /**
@@ -54,7 +56,7 @@ export class ProjectActionIntegrationController {
       }
 
       // Buscar informações do projeto para o ticket
-      const action = await this.projectRepository.findById(actionId, tenantId);
+      const action = await this.actionRepository.findById(actionId, tenantId);
       if (!action) {
         return res.status(404).json({ error: 'Action not found' });
       }
@@ -74,7 +76,7 @@ export class ProjectActionIntegrationController {
 
       // TODO: Criar o ticket usando o ticket service
       // Por enquanto, retornamos os dados que seriam usados
-      const mockTicketId = `ticket_${Date.now()}`;
+      const mockTicketId = crypto.randomUUID();
 
       // Linkar action ao ticket
       await this.integrationService.linkActionToTicket(actionId, tenantId, mockTicketId);
@@ -133,9 +135,9 @@ export class ProjectActionIntegrationController {
         return res.status(401).json({ error: 'Tenant ID required' });
       }
 
-      const updatedAction = await this.projectRepository.update(actionId, tenantId, {
+      const updatedAction = await this.actionRepository.update(actionId, tenantId, {
         ticketConversionRules: conversionRules,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date()
       });
 
       if (!updatedAction) {
@@ -167,7 +169,7 @@ export class ProjectActionIntegrationController {
       }
 
       const filters = projectId ? { projectId: projectId as string } : {};
-      const allActions = await this.projectRepository.findAll(tenantId, filters);
+      const allActions = await this.actionRepository.findAll(tenantId, filters);
       
       const linkedActions = allActions.filter(action => action.relatedTicketId);
 
@@ -205,7 +207,7 @@ export class ProjectActionIntegrationController {
 
       for (const actionId of actionIds) {
         try {
-          const action = await this.projectRepository.findById(actionId, tenantId);
+          const action = await this.actionRepository.findById(actionId, tenantId);
           if (!action) {
             errors.push({ actionId, error: 'Action not found' });
             continue;

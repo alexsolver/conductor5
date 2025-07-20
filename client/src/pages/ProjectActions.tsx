@@ -203,9 +203,8 @@ export default function ProjectActions() {
   // Convert action to ticket mutation
   const convertToTicketMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      return apiRequest(`/api/project-actions/${actionId}/convert-to-ticket`, {
-        method: 'POST'
-      });
+      const response = await apiRequest('POST', `/api/project-actions/${actionId}/convert-to-ticket`);
+      return await response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/actions'] });
@@ -226,7 +225,6 @@ export default function ProjectActions() {
   // Get integration suggestions query
   const { data: integrationSuggestions } = useQuery({
     queryKey: ['/api/project-actions/integration-suggestions'],
-    queryFn: () => apiRequest('/api/project-actions/integration-suggestions'),
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 

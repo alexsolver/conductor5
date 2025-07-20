@@ -78,7 +78,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
     const { db } = await schemaManager.getTenantDb(tenantId);
     const [updated] = await db
       .update(projects)
-      .set({ ...data, updatedAt: new Date().toISOString() })
+      .set({ ...data, updatedAt: new Date() })
       .where(and(eq(projects.id, id), eq(projects.tenantId, tenantId)))
       .returning();
     
@@ -129,7 +129,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
 
 export class DrizzleProjectActionRepository implements IProjectActionRepository {
   async create(action: Omit<ProjectAction, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProjectAction> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = crypto.randomUUID();
     
     const { db } = await schemaManager.getTenantDb(action.tenantId);
@@ -231,7 +231,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
     const { db } = await schemaManager.getTenantDb(tenantId);
     const [updated] = await db
       .update(projectActions)
-      .set({ ...data, updatedAt: new Date().toISOString() })
+      .set({ ...data, updatedAt: new Date() })
       .where(and(eq(projectActions.id, id), eq(projectActions.tenantId, tenantId)))
       .returning();
     

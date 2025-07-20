@@ -166,8 +166,12 @@ export class ProjectController {
   async createAction(req: AuthenticatedRequest, res: Response) {
     try {
       const { tenantId, userId } = req.user!;
+      const { projectId } = req.params;
       
-      const validation = CreateProjectActionSchema.safeParse(req.body);
+      const validation = CreateProjectActionSchema.safeParse({
+        ...req.body,
+        projectId
+      });
       if (!validation.success) {
         return res.status(400).json({ 
           message: 'Dados inválidos', 
