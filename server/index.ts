@@ -95,11 +95,18 @@ app.use((req, res, next) => {
   // Initialize production systems
   await productionInitializer.initialize();
 
-  // CRÍTICO: Sistema de monitoramento de emails inicializado
+  // CRÍTICO: Sistema de monitoramento de emails com auto-restart
   try {
     console.log('🔄 Inicializando sistema de monitoramento de emails...');
+    
+    const { EmailMonitoringAutoRestart } = await import('./modules/email-config/infrastructure/services/EmailMonitoringAutoRestart.js');
+    const autoRestart = new EmailMonitoringAutoRestart();
+    
+    // Restaurar estado de monitoramento ativo após restart do servidor
+    await autoRestart.restoreMonitoringState();
+    
     console.log('✅ EmailReadingService disponível para ativação automática');
-    console.log('📧 Sistema pronto para capturar emails do nicbenedito@gmail.com');
+    console.log('📧 Sistema pronto para capturar emails do alexsolver@gmail.com');
   } catch (error) {
     console.error('❌ Erro ao inicializar monitoramento de emails:', error);
   }
@@ -143,7 +150,7 @@ app.use((req, res, next) => {
     socket.setNoDelay(true);
 
     // Handle socket errors gracefully
-    socket.on('error', (err) => {
+    socket.on('error', (err: any) => {
       if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
         console.warn('[Socket Warning]', err.message);
       }
@@ -151,7 +158,7 @@ app.use((req, res, next) => {
   });
 
   // CRITICAL: Enhanced error handling for server stability
-  server.on('error', (err) => {
+  server.on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${port} is already in use`);
       process.exit(1);

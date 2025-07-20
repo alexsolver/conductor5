@@ -774,68 +774,50 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     }
   }
 
-  // Save monitoring state to persist across server restarts
+  // ========== MONITORING STATE PERSISTENCE ==========
+
   async saveMonitoringState(tenantId: string, integrationId: string, isActive: boolean): Promise<void> {
-    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-    
-    // Set search path explicitly 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
-    
-    // Update monitoring state in integrations table
-    await tenantDb.execute(sql`
-      UPDATE integrations 
-      SET is_currently_monitoring = ${isActive},
-          updated_at = NOW()
-      WHERE id = ${integrationId} 
-        AND tenant_id = ${tenantId}
-    `);
-    
-    console.log(`📊 Monitoring state saved: ${integrationId} = ${isActive}`);
-  }
-
-  // Get monitoring state to restore after server restart  
-  async getMonitoringState(tenantId: string, integrationId: string): Promise<boolean> {
-    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-    
-    // Set search path explicitly 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
-    
-    // Get monitoring state from integrations table
-    const result = await tenantDb.execute(sql`
-      SELECT is_currently_monitoring FROM integrations 
-      WHERE id = ${integrationId} 
-        AND tenant_id = ${tenantId}
-      LIMIT 1
-    `);
-    
-    if (result.rows.length === 0) {
-      return false;
+    try {
+      // For now, we'll skip saving monitoring state since the column doesn't exist
+      // This could be implemented later with a proper migration
+      console.log(`📊 Monitoring state would be saved for ${integrationId}: ${isActive ? 'active' : 'inactive'}`);
+    } catch (error) {
+      console.error('Error saving monitoring state:', error);
+      throw error;
     }
-    
-    return result.rows[0].is_currently_monitoring || false;
   }
 
-  // Get all active monitoring integrations for auto-restart
-  async getActiveMonitoringIntegrations(tenantId: string): Promise<Array<{id: string, name: string}>> {
-    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-    
-    // Set search path explicitly 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
-    
-    // Get all integrations that were actively monitoring
-    const result = await tenantDb.execute(sql`
-      SELECT id, name FROM integrations 
-      WHERE tenant_id = ${tenantId}
-        AND is_currently_monitoring = true
+  async getActiveMonitoringIntegrations(tenantId: string): Promise<any[]> {
+    try {
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM integrations
+        WHERE tenant_id = ${tenantId}
         AND status = 'connected'
-    `);
-    
-    return result.rows.map(row => ({
-      id: row.id,
-      name: row.name
-    }));
+        AND category = 'Comunicação'
+        AND (name = 'IMAP Email' OR name = 'Gmail OAuth2' OR name = 'Outlook OAuth2')
+      `);
+
+      console.log(`🔍 Found ${result.rows.length} active monitoring integrations`);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting active monitoring integrations:', error);
+      return [];
+    }
+  }
+
+  async clearAllMonitoringStates(tenantId: string): Promise<void> {
+    try {
+      // For now, we'll skip clearing monitoring states since the column doesn't exist
+      // This could be implemented later with a proper migration
+      console.log(`🧹 Would clear all monitoring states for tenant: ${tenantId}`);
+    } catch (error) {
+      console.error('Error clearing monitoring states:', error);
+      throw error;
+    }
   }
 }
