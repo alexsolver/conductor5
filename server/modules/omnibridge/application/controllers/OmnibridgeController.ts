@@ -7,7 +7,7 @@ import { Request, Response } from 'express';
 import { DrizzleOmnibridgeRepository } from '../../infrastructure/repositories/DrizzleOmnibridgeRepository';
 import { schemaManager } from '../../../../db';
 import { desc, eq, and, sql } from 'drizzle-orm';
-import { GmailService } from '../../../../services/integrations/gmail/GmailService';
+import { GmailRealService } from '../../../../services/GmailRealService';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -347,17 +347,11 @@ export class OmnibridgeController {
         }
 
         const config = JSON.parse(integrationResult.rows[0].config as string);
-        const gmailService = GmailService.getInstance();
+        const gmailService = GmailRealService.getInstance();
 
         try {
           // Test real Gmail connection using saved credentials
-          const testResult = await gmailService.testConnection({
-            user: config.emailAddress || config.username,
-            password: config.password,
-            host: config.imapServer || config.serverHost,
-            port: config.imapPort || config.serverPort,
-            tls: config.imapSecurity === 'SSL/TLS' || config.useSSL
-          });
+          const testResult = await gmailService.testGmailConnection(tenantId);
 
           if (testResult.success) {
             res.json({ 
@@ -440,16 +434,15 @@ export class OmnibridgeController {
       // Check if this is a Gmail/IMAP Email channel
       if (channelId.includes('gmail-oauth2') || channelId.includes('ch-gmail-oauth2') || 
           channelId.includes('imap-email') || channelId.includes('ch-imap-email')) {
-        const gmailService = GmailService.getInstance();
+        const gmailService = GmailRealService.getInstance();
         
         if (enable) {
           console.log(`📧 Starting Gmail monitoring for tenant: ${tenantId}`);
           
           // Start Gmail monitoring and create sample messages
-          const result = await gmailService.startEmailMonitoring(tenantId, channelId);
+          const result = await gmailService.startGmailMonitoring(tenantId, channelId);
           
-          // Also create some sample inbox messages for immediate display
-          await this.createSampleInboxMessages(tenantId, channelId);
+          // Remove sample message creation - use only real emails
           
           if (result.success) {
             res.json({ 
@@ -471,7 +464,7 @@ export class OmnibridgeController {
           }
         } else {
           console.log(`📪 Stopping Gmail monitoring for tenant: ${tenantId}`);
-          await gmailService.stopEmailMonitoring(tenantId);
+          await gmailService.stopGmailMonitoring(tenantId);
           
           res.json({ 
             success: true, 
