@@ -114,13 +114,42 @@ interface EmailTemplate {
   updatedAt: string;
 }
 
+interface InboxMessage {
+  id: string;
+  tenantId: string;
+  messageId: string;
+  threadId?: string;
+  fromEmail: string;
+  fromName?: string;
+  toEmail: string;
+  ccEmails?: string;
+  bccEmails?: string;
+  subject: string;
+  bodyText?: string;
+  bodyHtml?: string;
+  hasAttachments: boolean;
+  attachmentCount: number;
+  attachmentDetails: any[];
+  emailHeaders: Record<string, any>;
+  priority: string;
+  isRead: boolean;
+  isProcessed: boolean;
+  ruleMatched?: string;
+  ticketCreated?: string;
+  emailDate: string;
+  receivedAt: string;
+  processedAt?: string;
+}
+
 export default function EmailConfiguration() {
-  const [activeTab, setActiveTab] = useState('rules');
+  const [activeTab, setActiveTab] = useState('inbox');
   const [selectedRule, setSelectedRule] = useState<EmailRule | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
+  const [selectedInboxMessage, setSelectedInboxMessage] = useState<InboxMessage | null>(null);
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
+  const [isCreateRuleFromMessageDialogOpen, setIsCreateRuleFromMessageDialogOpen] = useState(false);
   const [testEmail, setTestEmail] = useState({
     from: '',
     subject: '',
@@ -176,6 +205,16 @@ export default function EmailConfiguration() {
   });
 
   // Queries
+  const { data: inboxMessages = [], isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
+    queryKey: ['/api/email-config/inbox'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/email-config/inbox?limit=50');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: activeTab === 'inbox'
+  });
+
   const { data: emailRules = [], isLoading: rulesLoading } = useQuery({
     queryKey: ['/api/email-config/rules'],
     queryFn: async () => {
@@ -351,6 +390,35 @@ export default function EmailConfiguration() {
     }
   });
 
+  const markAsReadMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      const response = await apiRequest('PUT', `/api/email-config/inbox/${messageId}`, { isRead: true });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const createRuleFromMessageMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/email-config/rules', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Regra criada a partir da mensagem com sucesso' });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/rules'] });
+      setIsCreateRuleFromMessageDialogOpen(false);
+      setSelectedInboxMessage(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  });
+
   // Handlers
   const handleCreateRule = () => {
     setSelectedRule(null);
@@ -374,6 +442,38 @@ export default function EmailConfiguration() {
     setSelectedTemplate(template);
     templateForm.reset(template);
     setIsTemplateDialogOpen(true);
+  };
+
+  const handleCreateRuleFromMessage = (message: InboxMessage) => {
+    setSelectedInboxMessage(message);
+    // Pre-populate rule form with message data
+    ruleForm.reset({
+      name: `Regra para: ${message.subject}`,
+      description: `Regra criada automaticamente baseada no email de ${message.fromEmail}`,
+      priority: 0,
+      isActive: true,
+      fromEmailPattern: message.fromEmail,
+      subjectPattern: message.subject.includes('urgente') || message.subject.includes('critical') ? '(urgente|crítico|critical)' : '',
+      bodyPattern: '',
+      attachmentRequired: message.hasAttachments,
+      actionType: 'create_ticket',
+      defaultCategory: message.priority === 'high' ? 'Crítico' : 'Geral',
+      defaultPriority: message.priority,
+      defaultUrgency: message.priority,
+      defaultStatus: 'open',
+      autoResponseEnabled: false,
+      autoResponseDelay: 0,
+      extractTicketNumber: true,
+      createDuplicateTickets: false,
+      notifyAssignee: true,
+    });
+    setIsCreateRuleFromMessageDialogOpen(true);
+  };
+
+  const handleMarkAsRead = (message: InboxMessage) => {
+    if (!message.isRead) {
+      markAsReadMutation.mutate(message.id);
+    }
   };
 
   const onSubmitRule = (data: any) => {
@@ -521,16 +621,134 @@ export default function EmailConfiguration() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="inbox">
+            <Mail className="w-4 h-4 mr-2" />
+            Caixa de Entrada
+          </TabsTrigger>
           <TabsTrigger value="rules">
             <Settings className="w-4 h-4 mr-2" />
             Regras de Processamento
           </TabsTrigger>
           <TabsTrigger value="templates">
-            <Mail className="w-4 h-4 mr-2" />
+            <Edit className="w-4 h-4 mr-2" />
             Templates de Resposta
           </TabsTrigger>
         </TabsList>
+
+        {/* Inbox Tab */}
+        <TabsContent value="inbox" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold">Caixa de Entrada</h2>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                {inboxMessages.filter((m: InboxMessage) => !m.isRead).length} não lidas
+              </Badge>
+              <Button variant="outline" onClick={() => refetchInbox()}>
+                <Download className="w-4 h-4 mr-2" />
+                Atualizar
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {inboxLoading ? (
+              <div className="text-center py-8">Carregando mensagens...</div>
+            ) : inboxMessages.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <Mail className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">Nenhuma mensagem</h3>
+                    <p className="text-muted-foreground">
+                      Não há mensagens de email recebidas ainda.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {inboxMessages.map((message: InboxMessage) => (
+                  <Card key={message.id} className={`transition-all hover:shadow-md ${!message.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            {!message.isRead && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                            )}
+                            {message.subject}
+                            <Badge variant={
+                              message.priority === 'high' ? 'destructive' :
+                              message.priority === 'medium' ? 'default' : 
+                              'secondary'
+                            }>
+                              {message.priority === 'high' ? 'Alta' : 
+                               message.priority === 'medium' ? 'Média' : 'Baixa'}
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription>
+                            <div className="flex items-center gap-4 text-sm">
+                              <span><strong>De:</strong> {message.fromName || message.fromEmail}</span>
+                              <span><strong>Para:</strong> {message.toEmail}</span>
+                              <span><strong>Data:</strong> {new Date(message.emailDate).toLocaleString('pt-BR')}</span>
+                              {message.hasAttachments && (
+                                <Badge variant="outline">
+                                  📎 {message.attachmentCount} anexo(s)
+                                </Badge>
+                              )}
+                            </div>
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!message.isRead && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleMarkAsRead(message)}
+                              disabled={markAsReadMutation.isPending}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Marcar como Lida
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleCreateRuleFromMessage(message)}
+                          >
+                            <Filter className="w-4 h-4 mr-1" />
+                            Criar Regra
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="bg-muted p-3 rounded-md">
+                          <p className="text-sm whitespace-pre-wrap">{message.bodyText || 'Sem conteúdo de texto'}</p>
+                        </div>
+                        
+                        {message.isProcessed && (
+                          <div className="flex items-center gap-2 text-sm text-green-600">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Processado</span>
+                            {message.ruleMatched && (
+                              <Badge variant="outline">Regra: {message.ruleMatched}</Badge>
+                            )}
+                            {message.ticketCreated && (
+                              <Badge variant="outline">Ticket: {message.ticketCreated}</Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
 
         {/* Email Rules Tab */}
         <TabsContent value="rules" className="space-y-6">
@@ -1550,6 +1768,218 @@ export default function EmailConfiguration() {
               Executar Teste
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Rule from Message Dialog */}
+      <Dialog open={isCreateRuleFromMessageDialogOpen} onOpenChange={setIsCreateRuleFromMessageDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Regra a partir da Mensagem</DialogTitle>
+            <DialogDescription>
+              Configure uma regra de processamento baseada na mensagem: "{selectedInboxMessage?.subject}"
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedInboxMessage && (
+            <div className="mb-6 p-4 bg-muted rounded-lg">
+              <h4 className="font-semibold mb-2">Informações da Mensagem</h4>
+              <div className="text-sm space-y-1">
+                <p><strong>De:</strong> {selectedInboxMessage.fromName || selectedInboxMessage.fromEmail}</p>
+                <p><strong>Assunto:</strong> {selectedInboxMessage.subject}</p>
+                <p><strong>Prioridade:</strong> {selectedInboxMessage.priority}</p>
+                <p><strong>Tem anexos:</strong> {selectedInboxMessage.hasAttachments ? 'Sim' : 'Não'}</p>
+              </div>
+            </div>
+          )}
+
+          <Form {...ruleForm}>
+            <form onSubmit={ruleForm.handleSubmit((data) => createRuleFromMessageMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={ruleForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Regra</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Suporte Urgente" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={ruleForm.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prioridade</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          max="100" 
+                          {...field} 
+                          onChange={e => field.onChange(parseInt(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={ruleForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Descrição da regra..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Critérios de Correspondência</h3>
+                
+                <FormField
+                  control={ruleForm.control}
+                  name="fromEmailPattern"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Padrão do Email Remetente</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder=".*@example\.com$"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Expressão regular para corresponder ao email do remetente (pré-preenchido com email da mensagem)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={ruleForm.control}
+                  name="subjectPattern"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Padrão do Assunto</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="(urgente|crítico|critical)"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Expressão regular para corresponder ao assunto do email
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={ruleForm.control}
+                  name="attachmentRequired"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Requer Anexos</FormLabel>
+                        <FormDescription>
+                          Esta regra só se aplica a emails com anexos
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Ações do Ticket</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={ruleForm.control}
+                    name="defaultCategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria Padrão</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a categoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Crítico">Crítico</SelectItem>
+                            <SelectItem value="Geral">Geral</SelectItem>
+                            <SelectItem value="Suporte">Suporte</SelectItem>
+                            <SelectItem value="Manutenção">Manutenção</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={ruleForm.control}
+                    name="defaultPriority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prioridade do Ticket</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a prioridade" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsCreateRuleFromMessageDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createRuleFromMessageMutation.isPending}
+                >
+                  Criar Regra
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
