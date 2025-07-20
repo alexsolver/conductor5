@@ -99,4 +99,4 @@ router.get('/logs', omnibridgeController.getProcessingLogs.bind(omnibridgeContro
 // GET /api/omnibridge/health - Perform health check
 router.get('/health', omnibridgeController.performHealthCheck.bind(omnibridgeController));
 
-export { router as omnibridgeRoutes };
+export default router;

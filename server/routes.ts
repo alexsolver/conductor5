@@ -351,8 +351,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/internal-forms', internalFormsRoutes);
 
   // OmniBridge Communication Module
-  const { omnibridgeRoutes } = await import('./modules/omnibridge/routes');
-  app.use('/api/omnibridge', omnibridgeRoutes);
+  const omnibridgeRoutes = (await import('./modules/omnibridge/routes')).default;
+  app.use('/api/omnibridge', jwtAuth, omnibridgeRoutes);
 
   app.use('/api/locations', locationRoutes);
 

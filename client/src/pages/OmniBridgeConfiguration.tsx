@@ -4,10 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, CheckCircle2, Clock, Settings, Mail, BarChart3, Target, MessageSquare, Users, Globe, Phone, Zap } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Settings, Mail, BarChart3, Target, MessageSquare, Users, Globe, Phone, Zap, Plus } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
 
 interface OmnibridgeChannel {
   id: string;
@@ -102,6 +108,13 @@ const getPriorityColor = (priority: string) => {
 export default function OmniBridgeConfiguration() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newChannel, setNewChannel] = useState({
+    name: '',
+    channelType: '',
+    description: '',
+    provider: ''
+  });
 
   // Fetch communication channels
   const { data: channelsData, isLoading: loadingChannels } = useQuery<{ data: OmnibridgeChannel[] }>({
@@ -266,7 +279,87 @@ export default function OmniBridgeConfiguration() {
                     <div className="text-center py-8 text-muted-foreground">
                       <Globe className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhum canal configurado</p>
-                      <Button className="mt-4">Adicionar Canal</Button>
+                      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="mt-4">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Adicionar Canal
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Adicionar Novo Canal</DialogTitle>
+                            <DialogDescription>
+                              Configure um novo canal de comunicação para sua plataforma.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="name" className="text-right">
+                                Nome
+                              </Label>
+                              <Input
+                                id="name"
+                                value={newChannel.name}
+                                onChange={(e) => setNewChannel(prev => ({ ...prev, name: e.target.value }))}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="type" className="text-right">
+                                Tipo
+                              </Label>
+                              <Select
+                                value={newChannel.channelType}
+                                onValueChange={(value) => setNewChannel(prev => ({ ...prev, channelType: value }))}
+                              >
+                                <SelectTrigger className="col-span-3">
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="email">Email</SelectItem>
+                                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                  <SelectItem value="telegram">Telegram</SelectItem>
+                                  <SelectItem value="sms">SMS</SelectItem>
+                                  <SelectItem value="chatbot">Chatbot</SelectItem>
+                                  <SelectItem value="voice">Voz</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="description" className="text-right">
+                                Descrição
+                              </Label>
+                              <Textarea
+                                id="description"
+                                value={newChannel.description}
+                                onChange={(e) => setNewChannel(prev => ({ ...prev, description: e.target.value }))}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="provider" className="text-right">
+                                Provedor
+                              </Label>
+                              <Input
+                                id="provider"
+                                value={newChannel.provider}
+                                onChange={(e) => setNewChannel(prev => ({ ...prev, provider: e.target.value }))}
+                                className="col-span-3"
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button type="submit" onClick={() => {
+                              console.log('Criando canal:', newChannel);
+                              setIsDialogOpen(false);
+                              setNewChannel({ name: '', channelType: '', description: '', provider: '' });
+                            }}>
+                              Criar Canal
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   ) : (
                     channels.map((channel) => (
