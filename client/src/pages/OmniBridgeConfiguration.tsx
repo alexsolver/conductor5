@@ -173,21 +173,31 @@ export default function OmniBridgeConfiguration() {
     }
   });
 
+  // Estados para controlar loading individual de cada canal
+  const [testingChannelIds, setTestingChannelIds] = useState<string[]>([]);
+  const [monitoringChannelIds, setMonitoringChannelIds] = useState<string[]>([]);
+
   const testConnectionMutation = useMutation({
     mutationFn: async (channelId: string) => {
+      setTestingChannelIds(prev => [...prev, channelId]);
       const response = await fetch(`/api/omnibridge/channels/${channelId}/test`, {
         method: 'POST'
       });
       if (!response.ok) throw new Error('Connection test failed');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, channelId) => {
+      setTestingChannelIds(prev => prev.filter(id => id !== channelId));
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/channels'] });
+    },
+    onError: (error, channelId) => {
+      setTestingChannelIds(prev => prev.filter(id => id !== channelId));
     }
   });
 
   const toggleMonitoringMutation = useMutation({
     mutationFn: async ({ channelId, enable }: { channelId: string; enable: boolean }) => {
+      setMonitoringChannelIds(prev => [...prev, channelId]);
       const response = await fetch(`/api/omnibridge/channels/${channelId}/monitoring`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -196,8 +206,12 @@ export default function OmniBridgeConfiguration() {
       if (!response.ok) throw new Error('Failed to toggle monitoring');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, { channelId }) => {
+      setMonitoringChannelIds(prev => prev.filter(id => id !== channelId));
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/channels'] });
+    },
+    onError: (error, { channelId }) => {
+      setMonitoringChannelIds(prev => prev.filter(id => id !== channelId));
     }
   });
 
@@ -461,9 +475,9 @@ export default function OmniBridgeConfiguration() {
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => testConnectionMutation.mutate(channel.id)}
-                                disabled={testConnectionMutation.isPending}
+                                disabled={testingChannelIds.includes(channel.id)}
                               >
-                                {testConnectionMutation.isPending ? 'Testando...' : 'Testar'}
+                                {testingChannelIds.includes(channel.id) ? 'Testando...' : 'Testar'}
                               </Button>
                               <Button 
                                 variant={channel.isMonitoring ? "secondary" : "default"} 
@@ -472,9 +486,11 @@ export default function OmniBridgeConfiguration() {
                                   channelId: channel.id,
                                   enable: !channel.isMonitoring
                                 })}
-                                disabled={toggleMonitoringMutation.isPending}
+                                disabled={monitoringChannelIds.includes(channel.id)}
                               >
-                                {channel.isMonitoring ? 'Pausar' : 'Monitorar'}
+                                {monitoringChannelIds.includes(channel.id) 
+                                  ? 'Processando...' 
+                                  : channel.isMonitoring ? 'Pausar' : 'Monitorar'}
                               </Button>
                             </div>
                           </div>
