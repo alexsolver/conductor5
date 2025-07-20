@@ -346,9 +346,6 @@ export class EmailConfigController {
       });
     }
   }
-}
-
-
 
   // ========== EMAIL MONITORING CONTROL ==========
 
@@ -550,3 +547,4 @@ export class EmailConfigController {
       });
     }
   }
+}
