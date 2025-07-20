@@ -6,7 +6,7 @@ async function testImapCapture() {
   
   const imap = new Imap({
     user: 'alexsolver@gmail.com',
-    password: 'kyzv ggbz tqdx wgfz',
+    password: 'cyyj vare pmjh scur',
     host: 'imap.gmail.com',
     port: 993,
     tls: true,

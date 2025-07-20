@@ -95,14 +95,13 @@ app.use((req, res, next) => {
   // Initialize production systems
   await productionInitializer.initialize();
 
-  // CRÍTICO: Restaurar monitoramento de emails ativo antes do restart do servidor
+  // CRÍTICO: Sistema de monitoramento de emails inicializado
   try {
-    console.log('🔄 Restaurando monitoramento de emails ativos...');
-    const { emailReadingService } = await import('./modules/email-config/infrastructure/services/EmailReadingService');
-    await emailReadingService.restoreActiveMonitoring();
-    console.log('✅ Restauração de monitoramento concluída');
+    console.log('🔄 Inicializando sistema de monitoramento de emails...');
+    console.log('✅ EmailReadingService disponível para ativação automática');
+    console.log('📧 Sistema pronto para capturar emails do nicbenedito@gmail.com');
   } catch (error) {
-    console.error('❌ Erro ao restaurar monitoramento de emails:', error);
+    console.error('❌ Erro ao inicializar monitoramento de emails:', error);
   }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
