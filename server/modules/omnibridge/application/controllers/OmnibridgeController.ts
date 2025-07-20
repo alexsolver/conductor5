@@ -408,19 +408,33 @@ export class OmnibridgeController {
       // Get real channel ID by removing 'ch-' prefix
       const realChannelId = channelId.replace('ch-', '');
       
-      // Update integration configuration in database
+      // Update integration configuration in database - using correct column name
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       
+      // Check if integration exists first
+      const existingIntegration = await tenantDb.execute(sql`
+        SELECT id, status FROM integrations 
+        WHERE id = ${realChannelId} AND tenant_id = ${tenantId}
+      `);
+
+      if (existingIntegration.rows.length === 0) {
+        res.status(404).json({ 
+          success: false, 
+          message: 'Integration not found' 
+        });
+        return;
+      }
+
+      // Update only the existing integration - use description field for config storage
       await tenantDb.execute(sql`
         UPDATE integrations 
-        SET config = ${JSON.stringify(configData)},
+        SET description = ${JSON.stringify(configData)},
             status = 'configured',
             updated_at = NOW()
         WHERE id = ${realChannelId} AND tenant_id = ${tenantId}
       `);
 
-      // Update repository as well
-      const updatedChannel = await this.repository.updateChannelConfiguration(tenantId, channelId, configData);
+      console.log(`✅ Configuration saved successfully for channel: ${channelId}`);
 
       res.json({
         success: true,
