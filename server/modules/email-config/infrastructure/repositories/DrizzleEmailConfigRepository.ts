@@ -748,7 +748,23 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
         return null;
       }
 
-      const config = result.rows[0].config ? JSON.parse(result.rows[0].config) : {};
+      const configData = result.rows[0].config;
+      let config = {};
+      
+      if (configData) {
+        try {
+          // Handle case where config might already be an object
+          if (typeof configData === 'string') {
+            config = JSON.parse(configData);
+          } else if (typeof configData === 'object') {
+            config = configData;
+          }
+        } catch (error) {
+          console.error(`❌ Failed to parse config data:`, error);
+          console.log(`Raw config data:`, configData);
+          config = {};
+        }
+      }
       
       console.log(`✅ Found integration config: ${config.emailAddress || 'no email'}`);
       return config;
