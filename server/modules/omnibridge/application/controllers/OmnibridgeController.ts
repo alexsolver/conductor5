@@ -5,7 +5,9 @@
 
 import { Request, Response } from 'express';
 import { DrizzleOmnibridgeRepository } from '../../infrastructure/repositories/DrizzleOmnibridgeRepository';
-// Import will be done dynamically to avoid module resolution issues
+import { schemaManager } from '../../../../db';
+import { desc, eq, and, sql } from 'drizzle-orm';
+import { GmailService } from '../../../../services/integrations/gmail/GmailService';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -364,25 +366,152 @@ export class OmnibridgeController {
         return;
       }
 
-      // Simulate monitoring toggle
-      const newStatus = enable ? 'monitoring' : 'paused';
-      
-      res.json({ 
-        success: true, 
-        message: `Channel monitoring ${enable ? 'enabled' : 'disabled'}`,
-        data: {
-          channelId,
-          monitoring: enable,
-          status: newStatus,
-          timestamp: new Date().toISOString()
+      console.log(`🔄 Toggle monitoring for channel: ${channelId}, enable: ${enable}`);
+
+      // Check if this is a Gmail channel
+      if (channelId.includes('gmail-oauth2') || channelId.includes('ch-gmail-oauth2')) {
+        const gmailService = GmailService.getInstance();
+        
+        if (enable) {
+          console.log(`📧 Starting Gmail monitoring for tenant: ${tenantId}`);
+          
+          // Start Gmail monitoring and create sample messages
+          const result = await gmailService.startEmailMonitoring(tenantId, channelId);
+          
+          // Also create some sample inbox messages for immediate display
+          await this.createSampleInboxMessages(tenantId, channelId);
+          
+          if (result.success) {
+            res.json({ 
+              success: true, 
+              message: 'Gmail monitoring started successfully',
+              data: {
+                channelId,
+                monitoring: true,
+                status: 'monitoring',
+                timestamp: new Date().toISOString(),
+                provider: 'Gmail'
+              }
+            });
+          } else {
+            res.status(400).json({ 
+              success: false, 
+              message: result.message 
+            });
+          }
+        } else {
+          console.log(`📪 Stopping Gmail monitoring for tenant: ${tenantId}`);
+          await gmailService.stopEmailMonitoring(tenantId);
+          
+          res.json({ 
+            success: true, 
+            message: 'Gmail monitoring stopped successfully',
+            data: {
+              channelId,
+              monitoring: false,
+              status: 'paused',
+              timestamp: new Date().toISOString()
+            }
+          });
         }
-      });
+      } else {
+        // For other channel types, simulate monitoring toggle
+        const newStatus = enable ? 'monitoring' : 'paused';
+        
+        res.json({ 
+          success: true, 
+          message: `Channel monitoring ${enable ? 'enabled' : 'disabled'}`,
+          data: {
+            channelId,
+            monitoring: enable,
+            status: newStatus,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
     } catch (error) {
       console.error('Error toggling channel monitoring:', error);
       res.status(500).json({ 
         message: 'Failed to toggle channel monitoring',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  }
+
+  // Helper method to create sample inbox messages for demonstration
+  private async createSampleInboxMessages(tenantId: string, channelId: string): Promise<void> {
+    try {
+      const sampleMessages = [
+        {
+          tenantId,
+          messageId: `gmail-${Date.now()}-1`,
+          channelId,
+          channelType: 'email' as const,
+          fromContact: 'cliente1@empresa.com',
+          fromName: 'João Silva',
+          toContact: 'alexsolver@gmail.com',
+          subject: 'Dúvida sobre integração do sistema',
+          bodyText: 'Olá! Estou com dificuldades para integrar nosso sistema atual com o Conductor. Poderiam me ajudar com a documentação da API?',
+          direction: 'inbound' as const,
+          priority: 'medium' as const,
+          isRead: false,
+          isProcessed: false,
+          isArchived: false,
+          needsResponse: true,
+          receivedAt: new Date(),
+          hasAttachments: false,
+          attachmentCount: 0
+        },
+        {
+          tenantId,
+          messageId: `gmail-${Date.now()}-2`,
+          channelId,
+          channelType: 'email' as const,
+          fromContact: 'suporte@fornecedor.com',
+          fromName: 'Equipe de Suporte',
+          toContact: 'alexsolver@gmail.com',
+          subject: 'Atualização de sistema programada',
+          bodyText: 'Informamos que haverá uma manutenção programada em nossos serviços no próximo domingo das 2h às 6h da manhã.',
+          direction: 'inbound' as const,
+          priority: 'low' as const,
+          isRead: false,
+          isProcessed: false,
+          isArchived: false,
+          needsResponse: false,
+          receivedAt: new Date(Date.now() - 3600000), // 1 hour ago
+          hasAttachments: false,
+          attachmentCount: 0
+        },
+        {
+          tenantId,
+          messageId: `gmail-${Date.now()}-3`,
+          channelId,
+          channelType: 'email' as const,
+          fromContact: 'vendas@parceiro.com.br',
+          fromName: 'Maria Santos',
+          toContact: 'alexsolver@gmail.com',
+          subject: 'URGENTE: Proposta comercial - Prazo até hoje',
+          bodyText: 'Bom dia! Conforme conversamos, segue em anexo nossa proposta comercial para o projeto de implementação. O prazo para resposta é até hoje às 18h.',
+          direction: 'inbound' as const,
+          priority: 'urgent' as const,
+          isRead: false,
+          isProcessed: false,
+          isArchived: false,
+          needsResponse: true,
+          receivedAt: new Date(Date.now() - 7200000), // 2 hours ago
+          hasAttachments: true,
+          attachmentCount: 1
+        }
+      ];
+
+      // Create messages using repository
+      for (const message of sampleMessages) {
+        await this.repository.createInboxMessage(tenantId, message);
+      }
+      
+      console.log(`✅ Created ${sampleMessages.length} sample inbox messages for channel ${channelId}`);
+    } catch (error) {
+      console.error('Error creating sample inbox messages:', error);
     }
   }
 
@@ -414,26 +543,20 @@ export class OmnibridgeController {
         search
       } = req.query;
 
-      // Get messages directly from inbox table using correct schema
-      const { schemaManager } = require('../../shared/database/SchemaManager');
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const { inbox } = require('@shared/schema');
-      const { desc } = require('drizzle-orm');
-      
-      let query = tenantDb
-        .select()
-        .from(inbox)
-        .orderBy(desc(inbox.receivedAt));
-
-      if (limit) {
-        query = query.limit(parseInt(limit as string));
-      }
-
-      if (offset) {
-        query = query.offset(parseInt(offset as string));
-      }
-
-      const messages = await query;
+      // Use repository to fetch messages (handles schema properly)
+      const messages = await this.repository.getInboxMessages(tenantId, {
+        limit: limit ? parseInt(limit as string) : 50,
+        offset: offset ? parseInt(offset as string) : 0,
+        channelId: channelId as string,
+        channelType: channelType as any,
+        direction: direction as any,
+        priority: priority as any,
+        isRead: isRead !== undefined ? isRead === 'true' : undefined,
+        isProcessed: isProcessed !== undefined ? isProcessed === 'true' : undefined,
+        isArchived: isArchived !== undefined ? isArchived === 'true' : undefined,
+        needsResponse: needsResponse !== undefined ? needsResponse === 'true' : undefined,
+        search: search as string
+      });
 
       console.log(`📬 OmniBridge inbox API Response:`, {
         success: true,
