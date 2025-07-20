@@ -5,9 +5,20 @@
 
 import { Router } from 'express';
 import { OmnibridgeController } from './application/controllers/OmnibridgeController';
+import { createMemoryRateLimitMiddleware } from '../../services/redisRateLimitService';
 
 const router = Router();
 const omnibridgeController = new OmnibridgeController();
+
+// More permissive rate limiting for OmniBridge real-time features
+const omnibridgeRateLimit = createMemoryRateLimitMiddleware({
+  windowMs: 60 * 1000, // 1 minute window
+  maxRequests: 120, // 120 requests per minute (2 per second)
+  keyGenerator: (req) => `omnibridge:${req.ip}`
+});
+
+// Apply rate limiting to all OmniBridge routes
+router.use(omnibridgeRateLimit);
 
 // =====================================================
 // COMMUNICATION CHANNELS ROUTES
@@ -27,6 +38,12 @@ router.put('/channels/:channelId', omnibridgeController.updateChannel.bind(omnib
 
 // DELETE /api/omnibridge/channels/:channelId - Delete channel
 router.delete('/channels/:channelId', omnibridgeController.deleteChannel.bind(omnibridgeController));
+
+// POST /api/omnibridge/channels/:channelId/test - Test channel connection
+router.post('/channels/:channelId/test', omnibridgeController.testChannelConnection.bind(omnibridgeController));
+
+// PUT /api/omnibridge/channels/:channelId/monitoring - Toggle channel monitoring
+router.put('/channels/:channelId/monitoring', omnibridgeController.toggleChannelMonitoring.bind(omnibridgeController));
 
 // =====================================================
 // UNIFIED INBOX ROUTES

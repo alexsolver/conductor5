@@ -109,11 +109,19 @@ export default function OmniBridgeConfiguration() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<OmnibridgeChannel | null>(null);
   const [newChannel, setNewChannel] = useState({
     name: '',
     channelType: '',
     description: '',
     provider: ''
+  });
+  const [groupSignatures, setGroupSignatures] = useState({
+    support: 'Atenciosamente,\nEquipe de Suporte\nConductor Platform',
+    sales: 'Atenciosamente,\nEquipe de Vendas\nConductor Platform',
+    billing: 'Atenciosamente,\nDepartamento Financeiro\nConductor Platform'
   });
 
   // Fetch communication channels
@@ -146,6 +154,52 @@ export default function OmniBridgeConfiguration() {
   const inbox = inboxData?.data || [];
   const rules = rulesData?.data || [];
   const unreadCount = unreadData?.data?.unreadCount || 0;
+
+  // Mutations
+  const createChannelMutation = useMutation({
+    mutationFn: async (channelData: any) => {
+      const response = await fetch('/api/omnibridge/channels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(channelData)
+      });
+      if (!response.ok) throw new Error('Failed to create channel');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/channels'] });
+      setIsDialogOpen(false);
+      setNewChannel({ name: '', channelType: '', description: '', provider: '' });
+    }
+  });
+
+  const testConnectionMutation = useMutation({
+    mutationFn: async (channelId: string) => {
+      const response = await fetch(`/api/omnibridge/channels/${channelId}/test`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw new Error('Connection test failed');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/channels'] });
+    }
+  });
+
+  const toggleMonitoringMutation = useMutation({
+    mutationFn: async ({ channelId, enable }: { channelId: string; enable: boolean }) => {
+      const response = await fetch(`/api/omnibridge/channels/${channelId}/monitoring`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enable })
+      });
+      if (!response.ok) throw new Error('Failed to toggle monitoring');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/channels'] });
+    }
+  });
 
   const formatDateTime = (dateString: string) => {
     try {
@@ -350,12 +404,12 @@ export default function OmniBridgeConfiguration() {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button type="submit" onClick={() => {
-                              console.log('Criando canal:', newChannel);
-                              setIsDialogOpen(false);
-                              setNewChannel({ name: '', channelType: '', description: '', provider: '' });
-                            }}>
-                              Criar Canal
+                            <Button 
+                              type="submit" 
+                              onClick={() => createChannelMutation.mutate(newChannel)}
+                              disabled={createChannelMutation.isPending}
+                            >
+                              {createChannelMutation.isPending ? 'Criando...' : 'Criar Canal'}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
@@ -393,7 +447,35 @@ export default function OmniBridgeConfiguration() {
                             </div>
                             <div className="flex items-center gap-2">
                               <div className={`w-3 h-3 rounded-full ${getHealthStatusColor(channel.healthStatus)}`}></div>
-                              <Button variant="outline" size="sm">Configurar</Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedChannel(channel);
+                                  setIsConfigDialogOpen(true);
+                                }}
+                              >
+                                Configurar
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => testConnectionMutation.mutate(channel.id)}
+                                disabled={testConnectionMutation.isPending}
+                              >
+                                {testConnectionMutation.isPending ? 'Testando...' : 'Testar'}
+                              </Button>
+                              <Button 
+                                variant={channel.isMonitoring ? "secondary" : "default"} 
+                                size="sm"
+                                onClick={() => toggleMonitoringMutation.mutate({
+                                  channelId: channel.id,
+                                  enable: !channel.isMonitoring
+                                })}
+                                disabled={toggleMonitoringMutation.isPending}
+                              >
+                                {channel.isMonitoring ? 'Pausar' : 'Monitorar'}
+                              </Button>
                             </div>
                           </div>
                         </CardContent>
@@ -552,19 +634,51 @@ export default function OmniBridgeConfiguration() {
         <TabsContent value="templates" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                Templates de Resposta
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Assinaturas de Grupos
+                </div>
+                <Button 
+                  onClick={() => setIsSignatureDialogOpen(true)}
+                  className="ml-auto"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Editar Assinaturas
+                </Button>
               </CardTitle>
               <CardDescription>
-                Gerencie templates para respostas automáticas e padronizadas
+                Configure assinaturas personalizadas para diferentes grupos de atendimento
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Templates em desenvolvimento</p>
-                <Button className="mt-4">Criar Template</Button>
+              <div className="space-y-4">
+                <Card className="border-l-4 border-l-blue-500">
+                  <CardContent className="pt-4">
+                    <h3 className="font-semibold mb-2">Grupo Suporte</h3>
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
+                      {groupSignatures.support}
+                    </pre>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-l-4 border-l-green-500">
+                  <CardContent className="pt-4">
+                    <h3 className="font-semibold mb-2">Grupo Vendas</h3>
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
+                      {groupSignatures.sales}
+                    </pre>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-l-4 border-l-purple-500">
+                  <CardContent className="pt-4">
+                    <h3 className="font-semibold mb-2">Grupo Financeiro</h3>
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
+                      {groupSignatures.billing}
+                    </pre>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
           </Card>
@@ -591,6 +705,81 @@ export default function OmniBridgeConfiguration() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de Configuração de Canal */}
+      <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Configurar Canal: {selectedChannel?.name}</DialogTitle>
+            <DialogDescription>
+              Configure as definições avançadas deste canal de comunicação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="text-center py-8 text-muted-foreground">
+              <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Configurações específicas do canal em desenvolvimento</p>
+              <p className="text-sm">Canal ID: {selectedChannel?.id}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsConfigDialogOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Edição de Assinaturas */}
+      <Dialog open={isSignatureDialogOpen} onOpenChange={setIsSignatureDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Editar Assinaturas de Grupos</DialogTitle>
+            <DialogDescription>
+              Configure as assinaturas personalizadas para cada grupo de atendimento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="support-signature">Assinatura - Grupo Suporte</Label>
+              <Textarea
+                id="support-signature"
+                value={groupSignatures.support}
+                onChange={(e) => setGroupSignatures(prev => ({ ...prev, support: e.target.value }))}
+                className="min-h-[80px]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="sales-signature">Assinatura - Grupo Vendas</Label>
+              <Textarea
+                id="sales-signature"
+                value={groupSignatures.sales}
+                onChange={(e) => setGroupSignatures(prev => ({ ...prev, sales: e.target.value }))}
+                className="min-h-[80px]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="billing-signature">Assinatura - Grupo Financeiro</Label>
+              <Textarea
+                id="billing-signature"
+                value={groupSignatures.billing}
+                onChange={(e) => setGroupSignatures(prev => ({ ...prev, billing: e.target.value }))}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSignatureDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={() => {
+              // Aqui salvaria as assinaturas no backend
+              console.log('Salvando assinaturas:', groupSignatures);
+              setIsSignatureDialogOpen(false);
+            }}>
+              Salvar Assinaturas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
