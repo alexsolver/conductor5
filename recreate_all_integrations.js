@@ -149,16 +149,16 @@ async function recreateAllIntegrations() {
       console.log(`📂 Schema: ${schemaName}`);
 
       // Limpar integrações existentes
-      await db.query(`DELETE FROM ${schemaName}.tenant_integrations WHERE tenant_id = $1`, [tenantId]);
+      await db.query(`DELETE FROM ${schemaName}.integrations WHERE tenant_id = $1`, [tenantId]);
       console.log(`🗑️ Limpou integrações existentes`);
 
       // Inserir todas as 14 integrações
       for (const integration of integrations) {
         const insertQuery = `
-          INSERT INTO ${schemaName}.tenant_integrations 
+          INSERT INTO ${schemaName}.integrations 
           (id, name, description, category, icon, status, config, features, tenant_id, created_at, updated_at)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-          ON CONFLICT (id, tenant_id) DO UPDATE SET
+          ON CONFLICT (id) DO UPDATE SET
             name = EXCLUDED.name,
             description = EXCLUDED.description,
             category = EXCLUDED.category,
