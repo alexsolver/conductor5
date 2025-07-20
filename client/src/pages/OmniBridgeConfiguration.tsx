@@ -180,11 +180,8 @@ export default function OmniBridgeConfiguration() {
   const testConnectionMutation = useMutation({
     mutationFn: async (channelId: string) => {
       setTestingChannelIds(prev => [...prev, channelId]);
-      const response = await fetch(`/api/omnibridge/channels/${channelId}/test`, {
-        method: 'POST'
-      });
-      if (!response.ok) throw new Error('Connection test failed');
-      return response.json();
+      const response = await apiRequest('POST', `/api/omnibridge/channels/${channelId}/test`, {});
+      return response;
     },
     onSuccess: (data, channelId) => {
       setTestingChannelIds(prev => prev.filter(id => id !== channelId));
@@ -198,13 +195,8 @@ export default function OmniBridgeConfiguration() {
   const toggleMonitoringMutation = useMutation({
     mutationFn: async ({ channelId, enable }: { channelId: string; enable: boolean }) => {
       setMonitoringChannelIds(prev => [...prev, channelId]);
-      const response = await fetch(`/api/omnibridge/channels/${channelId}/monitoring`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enable })
-      });
-      if (!response.ok) throw new Error('Failed to toggle monitoring');
-      return response.json();
+      const response = await apiRequest('PUT', `/api/omnibridge/channels/${channelId}/monitoring`, { enable });
+      return response;
     },
     onSuccess: (data, { channelId }) => {
       setMonitoringChannelIds(prev => prev.filter(id => id !== channelId));
