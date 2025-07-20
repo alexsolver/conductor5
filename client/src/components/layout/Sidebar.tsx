@@ -68,6 +68,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
+  { name: "OmniBridge", href: "/omnibridge", icon: Mail },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },

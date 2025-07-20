@@ -50,6 +50,7 @@ import TicketTemplates from "./pages/TicketTemplates";
 // Removed: ExternalContactsManagement - functionality eliminated
 import Projects from "./pages/Projects"; // Import the Projects component
 import ProjectActions from "./pages/ProjectActions"; // Import the Project Actions component
+import OmniBridge from "./pages/OmniBridge";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -121,6 +122,7 @@ function AppRouter() {
         <Route path="/internal-forms" component={InternalForms} />
         <Route path="/projects" component={Projects} />
         <Route path="/project-actions" component={ProjectActions} />
+        <Route path="/omnibridge" component={OmniBridge} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />
