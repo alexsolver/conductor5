@@ -28,6 +28,90 @@ export class GmailService {
     return GmailService.instance;
   }
 
+  async testConnection(config: GmailConfig): Promise<{ success: boolean; error?: string; latency?: number }> {
+    const startTime = Date.now();
+    
+    try {
+      console.log(`🔍 Testing Gmail IMAP connection to ${config.host}:${config.port}`);
+      
+      const imap = new Imap({
+        user: config.user,
+        password: config.password,
+        host: config.host,
+        port: config.port,
+        tls: config.tls,
+        authTimeout: 5000,
+        connTimeout: 10000,
+        keepalive: false
+      });
+
+      return new Promise((resolve) => {
+        let resolved = false;
+
+        imap.once('ready', () => {
+          if (!resolved) {
+            resolved = true;
+            const latency = Date.now() - startTime;
+            console.log(`✅ Gmail IMAP test successful in ${latency}ms`);
+            
+            // Close the connection immediately after test
+            imap.end();
+            
+            resolve({
+              success: true,
+              latency
+            });
+          }
+        });
+
+        imap.once('error', (err: any) => {
+          if (!resolved) {
+            resolved = true;
+            console.error(`❌ Gmail IMAP test failed:`, err.message);
+            resolve({
+              success: false,
+              error: err.message || 'Connection failed'
+            });
+          }
+        });
+
+        imap.once('end', () => {
+          console.log(`📪 Gmail IMAP test connection closed`);
+        });
+
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            console.error(`⏰ Gmail IMAP test timeout after 10 seconds`);
+            imap.end();
+            resolve({
+              success: false,
+              error: 'Connection timeout'
+            });
+          }
+        }, 10000);
+
+        try {
+          imap.connect();
+        } catch (error) {
+          if (!resolved) {
+            resolved = true;
+            resolve({
+              success: false,
+              error: error instanceof Error ? error.message : 'Connection failed'
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in Gmail test connection:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Connection setup failed'
+      };
+    }
+  }
+
   async connectToGmail(tenantId: string, config: GmailConfig): Promise<boolean> {
     try {
       console.log(`🔄 Connecting to Gmail for tenant: ${tenantId}`);
@@ -80,6 +164,74 @@ export class GmailService {
     } catch (error) {
       console.error('Error setting up Gmail connection:', error);
       return false;
+    }
+  }
+
+  async startEmailMonitoring(tenantId: string, channelId: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      console.log(`📧 Starting Gmail monitoring for tenant: ${tenantId}, channel: ${channelId}`);
+      
+      // Get IMAP Email integration credentials from database
+      const db = await schemaManager.getTenantDb(tenantId);
+      const integrationResult = await db.execute(`
+        SELECT config FROM integrations WHERE id = 'imap-email' LIMIT 1
+      `);
+      
+      if (integrationResult.rows.length === 0) {
+        return {
+          success: false,
+          message: 'IMAP Email integration not found'
+        };
+      }
+
+      const config = JSON.parse(integrationResult.rows[0].config as string);
+      
+      // Connect to Gmail
+      const connected = await this.connectToGmail(tenantId, {
+        user: config.emailAddress || config.username,
+        password: config.password,
+        host: config.imapServer || config.serverHost,
+        port: config.imapPort || config.serverPort,
+        tls: config.imapSecurity === 'SSL/TLS' || config.useSSL
+      });
+
+      if (!connected) {
+        return {
+          success: false,
+          message: 'Failed to connect to Gmail IMAP'
+        };
+      }
+
+      // Start fetching emails
+      await this.fetchRecentEmails(tenantId, channelId);
+
+      return {
+        success: true,
+        message: 'Gmail monitoring started successfully'
+      };
+    } catch (error) {
+      console.error('Error starting Gmail monitoring:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to start monitoring'
+      };
+    }
+  }
+
+  async stopEmailMonitoring(tenantId: string): Promise<void> {
+    try {
+      console.log(`📪 Stopping Gmail monitoring for tenant: ${tenantId}`);
+      
+      const connection = this.imapConnections.get(tenantId);
+      if (connection) {
+        connection.end();
+        this.imapConnections.delete(tenantId);
+        console.log(`✅ Gmail monitoring stopped for tenant: ${tenantId}`);
+      } else {
+        console.log(`⚠️  No active Gmail connection found for tenant: ${tenantId}`);
+      }
+    } catch (error) {
+      console.error('Error stopping Gmail monitoring:', error);
     }
   }
 

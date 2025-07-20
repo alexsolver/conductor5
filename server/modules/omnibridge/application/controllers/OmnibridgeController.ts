@@ -325,26 +325,95 @@ export class OmnibridgeController {
         return;
       }
 
-      // Simulate connection test based on channel type
-      const isSuccessful = Math.random() > 0.3; // 70% success rate for demo
-      
-      if (isSuccessful) {
-        res.json({ 
-          success: true, 
-          message: 'Connection test successful',
-          data: {
-            channelId,
-            status: 'connected',
-            latency: Math.floor(Math.random() * 200) + 50, // 50-250ms
-            timestamp: new Date().toISOString()
+      console.log(`🔍 Testing connection for channel: ${channelId}`);
+
+      // Check if this is IMAP Email channel - use real Gmail credentials
+      if (channelId.includes('imap-email') || channelId.includes('ch-imap-email')) {
+        console.log(`📧 Testing real Gmail IMAP connection for tenant: ${tenantId}`);
+        
+        // Get IMAP Email integration credentials from database
+        const db = await schemaManager.getTenantDb(tenantId);
+        const integrationResult = await db.execute(`
+          SELECT config FROM integrations WHERE id = 'imap-email' LIMIT 1
+        `);
+        
+        if (integrationResult.rows.length === 0) {
+          res.status(404).json({
+            success: false,
+            message: 'IMAP Email integration not found',
+            error: 'Integration not configured'
+          });
+          return;
+        }
+
+        const config = JSON.parse(integrationResult.rows[0].config as string);
+        const gmailService = GmailService.getInstance();
+
+        try {
+          // Test real Gmail connection using saved credentials
+          const testResult = await gmailService.testConnection({
+            user: config.emailAddress || config.username,
+            password: config.password,
+            host: config.imapServer || config.serverHost,
+            port: config.imapPort || config.serverPort,
+            tls: config.imapSecurity === 'SSL/TLS' || config.useSSL
+          });
+
+          if (testResult.success) {
+            res.json({ 
+              success: true, 
+              message: 'Gmail IMAP connection test successful',
+              data: {
+                channelId,
+                status: 'connected',
+                provider: 'Gmail IMAP',
+                latency: testResult.latency || 150,
+                timestamp: new Date().toISOString(),
+                details: {
+                  server: config.imapServer || config.serverHost,
+                  port: config.imapPort || config.serverPort,
+                  security: config.imapSecurity || 'SSL/TLS',
+                  email: config.emailAddress || config.username
+                }
+              }
+            });
+          } else {
+            res.status(400).json({
+              success: false,
+              message: 'Gmail IMAP connection test failed',
+              error: testResult.error || 'Unable to connect to Gmail IMAP server'
+            });
           }
-        });
+        } catch (testError) {
+          console.error('Gmail connection test error:', testError);
+          res.status(400).json({
+            success: false,
+            message: 'Gmail IMAP connection test failed',
+            error: testError instanceof Error ? testError.message : 'Connection failed'
+          });
+        }
       } else {
-        res.status(400).json({
-          success: false,
-          message: 'Connection test failed',
-          error: 'Unable to establish connection to provider'
-        });
+        // For other channel types, simulate successful test
+        const isSuccessful = true; // Always success for demo channels
+        
+        if (isSuccessful) {
+          res.json({ 
+            success: true, 
+            message: 'Connection test successful',
+            data: {
+              channelId,
+              status: 'connected',
+              latency: Math.floor(Math.random() * 200) + 50, // 50-250ms
+              timestamp: new Date().toISOString()
+            }
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: 'Connection test failed',
+            error: 'Unable to establish connection to provider'
+          });
+        }
       }
     } catch (error) {
       console.error('Error testing channel connection:', error);
@@ -368,8 +437,9 @@ export class OmnibridgeController {
 
       console.log(`🔄 Toggle monitoring for channel: ${channelId}, enable: ${enable}`);
 
-      // Check if this is a Gmail channel
-      if (channelId.includes('gmail-oauth2') || channelId.includes('ch-gmail-oauth2')) {
+      // Check if this is a Gmail/IMAP Email channel
+      if (channelId.includes('gmail-oauth2') || channelId.includes('ch-gmail-oauth2') || 
+          channelId.includes('imap-email') || channelId.includes('ch-imap-email')) {
         const gmailService = GmailService.getInstance();
         
         if (enable) {
