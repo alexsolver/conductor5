@@ -124,7 +124,7 @@ export default function Tickets() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -143,7 +143,7 @@ export default function Tickets() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
