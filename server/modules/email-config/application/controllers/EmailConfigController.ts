@@ -344,20 +344,42 @@ export class EmailConfigController {
         return;
       }
 
-      const status = EmailConfigController.monitoringStatus.get(tenantId);
-      const isActive = status?.isActive || false;
+      // Check if EmailReadingService has active connections for this tenant
+      let isMonitoring = false;
+      let connectionCount = 0;
+      let activeIntegrations: string[] = [];
 
-      let serviceStatus = null;
       if (EmailConfigController.emailReadingService) {
-        serviceStatus = EmailConfigController.emailReadingService.getMonitoringStatus();
+        const serviceStatus = EmailConfigController.emailReadingService.getMonitoringStatus();
+        connectionCount = serviceStatus?.connectionCount || 0;
+        
+        // If there are active connections, we're monitoring
+        isMonitoring = connectionCount > 0;
+        
+        if (serviceStatus?.activeIntegrations) {
+          activeIntegrations = serviceStatus.activeIntegrations;
+        }
+      }
+
+      // Update the static status to reflect reality
+      if (isMonitoring) {
+        EmailConfigController.monitoringStatus.set(tenantId, {
+          isActive: true,
+          startedAt: new Date(),
+          tenantId
+        });
+      } else {
+        EmailConfigController.monitoringStatus.delete(tenantId);
       }
 
       res.json({ 
         success: true, 
         data: {
-          isActive,
+          isMonitoring,
           tenantId,
-          serviceStatus
+          connectionCount,
+          activeIntegrations,
+          message: isMonitoring ? 'Monitoramento ativo' : 'Monitoramento pausado'
         }
       });
     } catch (error) {

@@ -93,6 +93,20 @@ export class EmailReadingService {
   }
 
   getMonitoringStatus(): any {
+    const activeIntegrations = Array.from(this.activeConnections.keys());
+    const connectionCount = this.activeConnections.size;
+    const isActive = this.isMonitoring && this.checkInterval !== null && connectionCount > 0;
+
+    return {
+      isActive,
+      connectionCount,
+      activeIntegrations,
+      monitoringInterval: this.checkInterval !== null,
+      lastCheck: new Date()
+    };
+  }
+
+  getMonitoringStatus(): any {
     return {
       isActive: this.isMonitoring,
       activeConnections: this.activeConnections.size,
@@ -527,13 +541,23 @@ export class EmailReadingService {
           // Extract content after headers
           const headerEndMatch = part.match(/\r?\n\r?\n([\s\S]*)/);
           if (headerEndMatch) {
-            textPart = this.cleanQuotedPrintable(headerEndMatch[1]);
+            const rawContent = headerEndMatch[1];
+            if (part.includes('Content-Transfer-Encoding: quoted-printable')) {
+              textPart = this.cleanQuotedPrintable(rawContent);
+            } else {
+              textPart = this.extractCleanText(rawContent);
+            }
           }
         } else if (part.includes('Content-Type: text/html')) {
           // Extract content after headers
           const headerEndMatch = part.match(/\r?\n\r?\n([\s\S]*)/);
           if (headerEndMatch) {
-            htmlPart = this.cleanQuotedPrintable(headerEndMatch[1]);
+            const rawContent = headerEndMatch[1];
+            if (part.includes('Content-Transfer-Encoding: quoted-printable')) {
+              htmlPart = this.cleanQuotedPrintable(rawContent);
+            } else {
+              htmlPart = this.extractCleanText(rawContent);
+            }
           }
         }
       }
@@ -546,7 +570,7 @@ export class EmailReadingService {
 
     // Single part message - check for quoted-printable encoding
     if (body.includes('Content-Transfer-Encoding: quoted-printable')) {
-      const cleanContent = this.extractCleanText(body);
+      const cleanContent = this.cleanQuotedPrintable(body);
       return { text: cleanContent };
     }
 
@@ -584,13 +608,56 @@ export class EmailReadingService {
 
   // Clean quoted-printable encoding
   private cleanQuotedPrintable(text: string): string {
-    return text
-      .replace(/=([A-F0-9]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-      .replace(/=\r?\n/g, '') // Remove soft line breaks
-      .replace(/\r?\n/g, ' ') // Convert line breaks to spaces
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim()
-      .substring(0, 2000); // Limit length
+    try {
+      // Remove content headers first
+      let content = text.replace(/^[\s\S]*?\r?\n\r?\n/, '');
+      
+      // Decode quoted-printable encoding
+      content = content
+        .replace(/=([A-F0-9]{2})/gi, (_, hex) => {
+          try {
+            return String.fromCharCode(parseInt(hex, 16));
+          } catch {
+            return `=${hex}`;
+          }
+        })
+        .replace(/=\r?\n/g, '') // Remove soft line breaks
+        .replace(/=\s*$/gm, ''); // Remove trailing = at line ends
+      
+      // Convert to proper UTF-8 and clean up
+      content = content
+        .replace(/\r?\n/g, ' ') // Convert line breaks to spaces
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .replace(/Ã¡/g, 'á') // Fix common UTF-8 issues
+        .replace(/Ã­/g, 'í')
+        .replace(/Ã©/g, 'é')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã³/g, 'ó')
+        .replace(/Ãº/g, 'ú')
+        .replace(/Ã¢/g, 'â')
+        .replace(/Ãª/g, 'ê')
+        .replace(/Ã´/g, 'ô')
+        .replace(/Ã£/g, 'ã')
+        .replace(/Ãµ/g, 'õ')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã/g, 'Á')
+        .replace(/Ã/g, 'É')
+        .replace(/Ã/g, 'Í')
+        .replace(/Ã/g, 'Ó')
+        .replace(/Ã/g, 'Ú')
+        .replace(/Ã/g, 'Â')
+        .replace(/Ã/g, 'Ê')
+        .replace(/Ã/g, 'Ô')
+        .replace(/Ã/g, 'Ã')
+        .replace(/Ã/g, 'Õ')
+        .replace(/Ã/g, 'Ç')
+        .trim();
+      
+      return content.substring(0, 2000); // Limit length
+    } catch (error) {
+      console.error('Error decoding quoted-printable:', error);
+      return text.substring(0, 2000);
+    }
   }
 
   private parseHeaders(headerSection: string): any {
