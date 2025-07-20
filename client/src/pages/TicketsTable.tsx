@@ -768,30 +768,19 @@ export default function TicketsTable() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="gradient-card mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Tickets
-              </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Manage and track customer support requests
-              </p>
-            </div>
-            <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-              <Button variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gradient-primary text-white">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Ticket
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+        </div>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              New Ticket
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader className="flex flex-row items-center justify-between">
               <DialogTitle className="text-2xl font-semibold">Create New Ticket</DialogTitle>
               <Button
@@ -811,10 +800,7 @@ export default function TicketsTable() {
             </div>
           </DialogContent>
         </Dialog>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Filters */}
       <Card>
