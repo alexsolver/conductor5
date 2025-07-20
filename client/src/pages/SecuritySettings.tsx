@@ -235,7 +235,7 @@ export default function SecuritySettings() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold gradient-text mb-2">Security Settings</h1>
           <p className="text-gray-600">Manage your account security and authentication methods</p>

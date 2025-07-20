@@ -224,7 +224,7 @@ export default function Compliance() {
   const multitenancyCategories = groupByCategory(multitenancyItems);
 
   return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl p-6 text-white">
           <h1 className="text-3xl font-bold mb-2">Compliance</h1>

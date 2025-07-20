@@ -108,7 +108,7 @@ export default function KnowledgeBase() {
 
   if (selectedArticle && fullArticle) {
     return (
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <Button 
@@ -172,7 +172,7 @@ export default function KnowledgeBase() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6">
       <div className="ml-[20px] mr-[20px]">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
           Base de Conhecimento
