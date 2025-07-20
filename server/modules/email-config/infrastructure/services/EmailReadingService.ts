@@ -306,7 +306,8 @@ export class EmailReadingService {
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-        imap.search(['UNSEEN', ['SINCE', twoDaysAgo]], (searchError, results) => {
+        // Search for recent emails (including read ones for testing)
+        imap.search([['SINCE', twoDaysAgo]], (searchError, results) => {
           if (searchError) {
             console.error(`❌ Error searching emails for integration ${integrationId}:`, searchError);
             resolve();
