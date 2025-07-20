@@ -288,19 +288,35 @@ export default function EmailConfiguration() {
   });
 
   // Queries
-  const { data: inboxMessages = [], isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
+  const { data: inboxMessages = [], isLoading: inboxLoading, refetch: refetchInbox, error: inboxError } = useQuery({
     queryKey: ['/api/email-config/inbox'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/email-config/inbox?limit=50');
-      const data = await response.json();
-      console.log('📧 Inbox API Response:', { 
-        success: data.success, 
-        dataLength: data.data?.length, 
-        firstMessage: data.data?.[0] 
-      });
-      return data.data || [];
+      try {
+        console.log('📧 TENTANDO BUSCAR INBOX MESSAGES...');
+        const response = await apiRequest('GET', '/api/email-config/inbox?limit=50');
+        console.log('📧 Response Status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📧 Inbox API Response RAW:', data);
+        console.log('📧 Data length:', data.data?.length);
+        console.log('📧 First message:', data.data?.[0]);
+        
+        if (!data.success) {
+          throw new Error(data.message || 'API returned error');
+        }
+        
+        return data.data || [];
+      } catch (error) {
+        console.error('📧 ERRO NA INBOX QUERY:', error);
+        throw error;
+      }
     },
-    enabled: activeTab === 'inbox'
+    refetchInterval: 10000, // Refetch every 10 seconds
+    staleTime: 5000 // Consider data stale after 5 seconds
   });
 
   const { data: emailRules = [], isLoading: rulesLoading } = useQuery({
@@ -330,14 +346,35 @@ export default function EmailConfiguration() {
     }
   });
 
-  const { data: monitoringStatus = null, refetch: refetchMonitoringStatus } = useQuery({
+  const { data: monitoringStatus = null, refetch: refetchMonitoringStatus, error: monitoringError } = useQuery({
     queryKey: ['/api/email-config/monitoring/status'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/email-config/monitoring/status');
-      const data = await response.json();
-      return data.data || null;
+      try {
+        console.log('📊 VERIFICANDO STATUS DO MONITORAMENTO...');
+        const response = await apiRequest('GET', '/api/email-config/monitoring/status');
+        console.log('📊 Monitoring Response Status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📊 Monitoring Status Response RAW:', data);
+        console.log('📊 Is Monitoring:', data.data?.isMonitoring);
+        console.log('📊 Connection Count:', data.data?.connectionCount);
+        console.log('📊 Active Integrations:', data.data?.activeIntegrations);
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Monitoring API returned error');
+        }
+        
+        return data.data || null;
+      } catch (error) {
+        console.error('📊 ERRO NO MONITORING STATUS:', error);
+        throw error;
+      }
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 10000 // Refresh every 10 seconds for real-time updates
   });
 
   const { data: processingLogs = [], isLoading: logsLoading } = useQuery({
@@ -914,6 +951,15 @@ export default function EmailConfiguration() {
           </div>
 
           <div className="grid gap-4">
+            {/* Debug information */}
+            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm">
+              <p><strong>Debug Info:</strong></p>
+              <p>Loading: {inboxLoading ? 'true' : 'false'}</p>
+              <p>Messages length: {inboxMessages?.length || 0}</p>
+              <p>Messages array: {JSON.stringify(inboxMessages)}</p>
+              <p>Error: {inboxError ? JSON.stringify(inboxError) : 'none'}</p>
+            </div>
+            
             {inboxLoading ? (
               <div className="text-center py-8">Carregando mensagens...</div>
             ) : inboxMessages.length === 0 ? (
