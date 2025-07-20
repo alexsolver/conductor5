@@ -1,0 +1,89 @@
+Gestão Básica de Projetos
+Criação, edição e exclusão de projetos
+Status do projeto (planejamento, aprovado, em execução, em espera, revisão, concluído, cancelado)
+Prioridades (baixa, média, alta, crítica)
+Campos básicos (nome, descrição, datas, orçamento, horas)
+Sistema de tags
+Campos customizáveis
+Ações de Projeto
+Ações internas (reuniões, aprovações, revisões, tarefas)
+Ações externas (entregas, validações, reuniões com cliente, feedback)
+Marcos e pontos de controle
+Sistema de dependências entre ações
+Controle de horas estimadas vs reais
+Interface e Visualização
+Dashboard com estatísticas
+Listagem de projetos com filtros
+Busca por nome e descrição
+Cards visuais para cada projeto
+Modais para criação e edição
+Backend e Arquitetura
+Clean Architecture implementada
+Controllers, Use Cases e Repositories
+Timeline de eventos do projeto
+Validação de dados com Zod
+API RESTful completa
+RECURSOS QUE DEVERIAM TER ❌
+Gestão de Equipe e Recursos
+Gerente de projeto designado
+Membros da equipe com papéis
+Controle de capacidade e disponibilidade
+Calendário de recursos
+Distribuição automática de carga
+Cliente e Stakeholders
+Gestão de clientes vinculados
+Contatos externos por projeto
+Portal do cliente para acompanhamento
+Comunicação direta com stakeholders
+Gestão Financeira Avançada
+Controle de custos detalhado
+Faturamento por projeto
+Análise de rentabilidade
+Relatórios financeiros
+Aprovações de orçamento
+Planejamento e Cronograma
+Gráfico de Gantt
+Cronograma visual
+Marcos com datas fixas
+Caminho crítico do projeto
+Baseline do projeto
+Gestão de Riscos
+Identificação de riscos
+Matriz de probabilidade x impacto
+Planos de mitigação
+Monitoramento de riscos
+Documentação e Arquivos
+Repositório de documentos
+Versionamento de arquivos
+Templates de documentos
+Biblioteca de conhecimento
+Relatórios e Analytics
+Dashboard executivo
+Relatórios de performance
+Análise de tendências
+KPIs personalizáveis
+Exportação de dados
+Automação e Workflows
+Workflows personalizados
+Aprovações automáticas
+Notificações inteligentes
+Triggers baseados em eventos
+Integração com outros módulos
+Colaboração Avançada
+Chat do projeto
+Comentários em tarefas
+@mentions em discussões
+Histórico de comunicações
+Reuniões virtuais integradas
+Gestão de Qualidade
+Critérios de aceitação
+Checklists de qualidade
+Revisões por pares
+Controle de versões
+Testes e validações
+Integrações
+Sincronização com calendários
+Integração com CRM
+APIs para sistemas externos
+Webhooks para eventos
+Ferramentas de desenvolvimento

@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, Circle, Clock, AlertTriangle, Star, Target, Users, Settings, Shield, BarChart3, Code2, Database, Globe } from 'lucide-react';
@@ -63,320 +62,484 @@ export default function Roadmap() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   useEffect(() => {
-    // Initialize roadmap data with comprehensive functionality list
+    // Initialize roadmap data with project management functionality list
     const phases: RoadmapPhase[] = [
       {
-        id: 'phase1',
-        title: 'Fase 1: Estrutura Inicial',
-        description: 'Arquitetura base e fundações do sistema',
-        progress: 85,
+        id: 'implemented',
+        title: '✅ Recursos Implementados',
+        description: 'Funcionalidades já desenvolvidas e operacionais',
+        progress: 100,
         items: [
           {
-            id: 'arch-review',
-            title: 'Revisar Arquitetura Atual',
-            description: 'Analisar estrutura existente de tenants e customers para identificar integrações',
+            id: 'project-crud',
+            title: 'Criação, edição e exclusão de projetos',
+            description: 'Sistema completo de CRUD para gestão de projetos',
             status: 'completed',
             priority: 'high',
-            category: 'Arquitetura',
-            estimatedHours: 16,
-            completedHours: 16
+            category: 'Gestão Básica',
+            estimatedHours: 20,
+            completedHours: 25
           },
           {
-            id: 'clean-arch',
-            title: 'Clean Architecture Implementada',
-            description: 'Repository, Service, Controller e Routes layers implementadas',
+            id: 'project-status',
+            title: 'Status do projeto (planejamento, aprovado, em execução, etc.)',
+            description: 'Sistema de status completo com workflow de aprovação',
             status: 'completed',
-            priority: 'critical',
-            category: 'Arquitetura',
-            estimatedHours: 40,
-            completedHours: 40
-          },
-          {
-            id: 'multitenancy',
-            title: 'Sistema Multi-tenant',
-            description: 'Isolamento completo de dados por tenant com PostgreSQL schemas',
-            status: 'completed',
-            priority: 'critical',
-            category: 'Arquitetura',
-            estimatedHours: 60,
-            completedHours: 60
-          },
-          {
-            id: 'auth-system',
-            title: 'Sistema de Autenticação Local',
-            description: 'JWT tokens, sessões persistentes e middleware de autenticação',
-            status: 'completed',
-            priority: 'critical',
-            category: 'Segurança',
-            estimatedHours: 32,
-            completedHours: 32
-          },
-          {
-            id: 'customer-entities',
-            title: 'Entidades CustomerCompany e UserGroup',
-            description: 'Implementar relacionamentos entre clientes e organizações',
-            status: 'in_progress',
             priority: 'high',
-            category: 'Backend',
-            estimatedHours: 24,
+            category: 'Gestão Básica',
+            estimatedHours: 15,
             completedHours: 18
-          }
-        ]
-      },
-      {
-        id: 'phase2',
-        title: 'Fase 2: Funcionalidades Core',
-        description: 'Implementação das funcionalidades principais do sistema',
-        progress: 70,
-        items: [
-          {
-            id: 'dashboard-monitoring',
-            title: 'Dashboard de Monitoramento',
-            description: 'Visualização em tempo real do status de todos os módulos com score de saúde',
-            status: 'completed',
-            priority: 'high',
-            category: 'Dashboard',
-            estimatedHours: 32,
-            completedHours: 32
           },
           {
-            id: 'ticket-system',
-            title: 'Sistema de Tickets Completo',
-            description: 'CRUD completo, relacionamentos, templates e visibilidade por grupos',
-            status: 'completed',
-            priority: 'critical',
-            category: 'Core',
-            estimatedHours: 80,
-            completedHours: 80
-          },
-          {
-            id: 'email-integration',
-            title: 'Integração de Email IMAP',
-            description: 'Monitoramento em tempo real de emails com alexsolver@gmail.com',
-            status: 'completed',
-            priority: 'high',
-            category: 'Integrações',
-            estimatedHours: 48,
-            completedHours: 48
-          },
-          {
-            id: 'project-management',
-            title: 'Gestão de Projetos',
-            description: 'CRUD completo de projetos com ações, timeline e relatórios',
+            id: 'project-priorities',
+            title: 'Prioridades (baixa, média, alta, crítica)',
+            description: 'Sistema de priorização com indicadores visuais',
             status: 'completed',
             priority: 'medium',
-            category: 'Projetos',
-            estimatedHours: 40,
-            completedHours: 40
+            category: 'Gestão Básica',
+            estimatedHours: 10,
+            completedHours: 12
           },
           {
-            id: 'user-groups',
-            title: 'Gerenciamento de Grupos de Usuários',
-            description: 'Lógica para atribuição automática de tickets e análise de desempenho',
-            status: 'in_progress',
+            id: 'project-fields',
+            title: 'Campos básicos (nome, descrição, datas, orçamento, horas)',
+            description: 'Estrutura completa de dados do projeto com validação',
+            status: 'completed',
             priority: 'high',
-            category: 'Usuários',
-            estimatedHours: 36,
-            completedHours: 24
+            category: 'Gestão Básica',
+            estimatedHours: 25,
+            completedHours: 30
           },
           {
-            id: 'company-management',
-            title: 'Gestão de Empresas Clientes',
-            description: 'Adaptar cadastro de clientes para incluir estrutura CustomerCompany',
-            status: 'in_progress',
+            id: 'project-tags',
+            title: 'Sistema de tags',
+            description: 'Classificação flexível de projetos por tags customizáveis',
+            status: 'completed',
+            priority: 'medium',
+            category: 'Gestão Básica',
+            estimatedHours: 15,
+            completedHours: 18
+          },
+          {
+            id: 'project-dashboard',
+            title: 'Dashboard com estatísticas',
+            description: 'Visão geral com métricas e indicadores de performance',
+            status: 'completed',
             priority: 'high',
-            category: 'Clientes',
-            estimatedHours: 28,
+            category: 'Interface',
+            estimatedHours: 20,
+            completedHours: 22
+          },
+          {
+            id: 'project-listing',
+            title: 'Listagem de projetos com filtros',
+            description: 'Interface de busca e filtragem avançada',
+            status: 'completed',
+            priority: 'high',
+            category: 'Interface',
+            estimatedHours: 18,
             completedHours: 20
-          }
-        ]
-      },
-      {
-        id: 'phase3',
-        title: 'Fase 3: Interfaces e UX',
-        description: 'Desenvolvimento das interfaces de usuário e experiência',
-        progress: 60,
-        items: [
-          {
-            id: 'customer-interface',
-            title: 'Interface de Gestão de Empresas',
-            description: 'Componentes para administração das empresas clientes',
-            status: 'planned',
-            priority: 'medium',
-            category: 'Frontend',
-            estimatedHours: 32
           },
           {
-            id: 'user-groups-ui',
-            title: 'Interface de Grupos de Usuários',
-            description: 'Expandir interface para incluir funcionalidades de User Groups',
-            status: 'planned',
-            priority: 'medium',
-            category: 'Frontend',
-            estimatedHours: 28
-          },
-          {
-            id: 'ticket-visibility',
-            title: 'Dashboard de Visibilidade de Tickets',
-            description: 'Visualizações para relatórios e visibilidade de tickets por grupos',
-            status: 'planned',
-            priority: 'high',
-            category: 'Dashboard',
-            estimatedHours: 40
-          },
-          {
-            id: 'skills-management',
-            title: 'Gestão de Habilidades Técnicas',
-            description: 'Interface completa para certificações e competências',
+            id: 'project-search',
+            title: 'Busca por nome e descrição',
+            description: 'Sistema de busca textual em tempo real',
             status: 'completed',
             priority: 'medium',
-            category: 'Recursos Humanos',
-            estimatedHours: 36,
-            completedHours: 36
-          }
-        ]
-      },
-      {
-        id: 'phase4',
-        title: 'Fase 4: Qualidade e Validação',
-        description: 'Testes, validação e garantia de qualidade',
-        progress: 40,
-        items: [
+            category: 'Interface',
+            estimatedHours: 12,
+            completedHours: 10
+          },
           {
-            id: 'integrity-check',
-            title: 'Verificação Automática de Integridade',
-            description: 'Escaneamento de arquivos críticos e validação de sintaxe',
+            id: 'project-cards',
+            title: 'Cards visuais para cada projeto',
+            description: 'Interface visual com cards informativos e ações rápidas',
             status: 'completed',
-            priority: 'high',
-            category: 'Qualidade',
-            estimatedHours: 48,
-            completedHours: 48
-          },
-          {
-            id: 'integration-tests',
-            title: 'Testes de Integração',
-            description: 'Validar interações entre Customer Companies e User Groups',
-            status: 'planned',
-            priority: 'high',
-            category: 'Testes',
-            estimatedHours: 60
-          },
-          {
-            id: 'performance-tests',
-            title: 'Testes de Performance',
-            description: 'Medir performance da nova estrutura e operações de banco',
-            status: 'planned',
             priority: 'medium',
-            category: 'Testes',
-            estimatedHours: 40
-          },
-          {
-            id: 'validation-system',
-            title: 'Sistema de Validação de Mudanças',
-            description: 'Pré-validação, pós-validação e rollback automático',
-            status: 'backlog',
-            priority: 'medium',
-            category: 'Qualidade',
-            estimatedHours: 56
+            category: 'Interface',
+            estimatedHours: 15,
+            completedHours: 10
           }
         ]
       },
       {
-        id: 'phase5',
-        title: 'Fase 5: Avançado e Otimização',
-        description: 'Funcionalidades avançadas e otimizações',
+        id: 'project-actions',
+        title: '🔄 Ações de Projeto',
+        description: 'Sistema de ações internas e externas para projetos',
         progress: 25,
         items: [
           {
-            id: 'oauth2-integrations',
-            title: 'Integrações OAuth2',
-            description: 'Gmail OAuth2, Outlook OAuth2 e outras integrações',
-            status: 'completed',
-            priority: 'medium',
-            category: 'Integrações',
-            estimatedHours: 32,
-            completedHours: 32
+            id: 'internal-actions',
+            title: 'Ações internas (reuniões, aprovações, revisões, tarefas)',
+            description: 'Sistema de workflow interno com aprovações e tarefas',
+            status: 'in_progress',
+            priority: 'high',
+            category: 'Ações',
+            estimatedHours: 35,
+            completedHours: 15
           },
           {
-            id: 'advanced-auth',
-            title: 'Autenticação Avançada',
-            description: 'OAuth2, Magic Link, 2FA e proteção contra brute-force',
+            id: 'external-actions',
+            title: 'Ações externas (entregas, validações, reuniões com cliente)',
+            description: 'Gestão de interações com clientes e entregas',
             status: 'planned',
             priority: 'high',
-            category: 'Segurança',
-            estimatedHours: 72
+            category: 'Ações',
+            estimatedHours: 30
           },
           {
-            id: 'feature-flags',
-            title: 'Feature Flags por Tenant',
-            description: 'Controle por tenant, rollout gradual e A/B testing',
-            status: 'completed',
-            priority: 'medium',
-            category: 'Sistema',
-            estimatedHours: 28,
-            completedHours: 28
-          },
-          {
-            id: 'cache-optimization',
-            title: 'Cache e Performance',
-            description: 'Redis para sessões, cache de queries e invalidação inteligente',
+            id: 'milestones',
+            title: 'Marcos e pontos de controle',
+            description: 'Sistema de marcos com datas fixas e validações',
             status: 'planned',
             priority: 'medium',
-            category: 'Performance',
-            estimatedHours: 48
+            category: 'Ações',
+            estimatedHours: 25
           },
           {
-            id: 'ci-cd',
-            title: 'CI/CD Completo',
-            description: 'Pipeline automatizada, testes e Blue/Green Deployment',
-            status: 'backlog',
-            priority: 'low',
-            category: 'DevOps',
-            estimatedHours: 80
+            id: 'dependencies',
+            title: 'Sistema de dependências entre ações',
+            description: 'Controle de precedências e dependências entre tarefas',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Ações',
+            estimatedHours: 30
           }
         ]
       },
       {
-        id: 'phase6',
-        title: 'Fase 6: Documentação e Entrega',
-        description: 'Finalização, documentação e entrega',
-        progress: 30,
+        id: 'team-management',
+        title: '👥 Gestão de Equipe e Recursos',
+        description: 'Gerenciamento completo de equipes e recursos',
+        progress: 0,
         items: [
           {
-            id: 'api-documentation',
-            title: 'Documentação Automática OpenAPI',
-            description: 'Swagger para todas as APIs com exemplos e validação',
+            id: 'project-manager',
+            title: 'Gerente de projeto designado',
+            description: 'Atribuição e gestão de gerentes de projeto',
             status: 'planned',
-            priority: 'medium',
-            category: 'Documentação',
-            estimatedHours: 32
+            priority: 'high',
+            category: 'Equipe',
+            estimatedHours: 25
           },
           {
-            id: 'user-documentation',
-            title: 'Documentação de Usuário',
-            description: 'Guias de uso, tutorials e FAQ',
+            id: 'team-members',
+            title: 'Membros da equipe com papéis',
+            description: 'Sistema de papéis e responsabilidades da equipe',
             status: 'planned',
-            priority: 'medium',
-            category: 'Documentação',
-            estimatedHours: 48
+            priority: 'high',
+            category: 'Equipe',
+            estimatedHours: 40
           },
           {
-            id: 'onboarding',
-            title: 'Onboarding Wizard',
-            description: 'Cadastro público, criação automática de tenant e emails de boas-vindas',
+            id: 'capacity-control',
+            title: 'Controle de capacidade e disponibilidade',
+            description: 'Monitoramento de carga de trabalho e disponibilidade',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Recursos',
+            estimatedHours: 45
+          },
+          {
+            id: 'resource-calendar',
+            title: 'Calendário de recursos',
+            description: 'Visualização temporal de alocação de recursos',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Recursos',
+            estimatedHours: 35
+          },
+          {
+            id: 'workload-distribution',
+            title: 'Distribuição automática de carga',
+            description: 'Sistema inteligente de distribuição de tarefas',
+            status: 'planned',
+            priority: 'low',
+            category: 'Automação',
+            estimatedHours: 35
+          }
+        ]
+      },
+      {
+        id: 'client-stakeholders',
+        title: '💼 Cliente e Stakeholders',
+        description: 'Gestão de relacionamento com clientes e stakeholders',
+        progress: 0,
+        items: [
+          {
+            id: 'client-management',
+            title: 'Gestão de clientes vinculados',
+            description: 'Associação e gestão de clientes por projeto',
+            status: 'planned',
+            priority: 'high',
+            category: 'Clientes',
+            estimatedHours: 30
+          },
+          {
+            id: 'external-contacts',
+            title: 'Contatos externos por projeto',
+            description: 'Base de contatos específicos para cada projeto',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Clientes',
+            estimatedHours: 25
+          },
+          {
+            id: 'client-portal',
+            title: 'Portal do cliente para acompanhamento',
+            description: 'Interface dedicada para acompanhamento de projetos',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Portal',
+            estimatedHours: 50
+          },
+          {
+            id: 'stakeholder-communication',
+            title: 'Comunicação direta com stakeholders',
+            description: 'Sistema de comunicação integrada com stakeholders',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Comunicação',
+            estimatedHours: 35
+          }
+        ]
+      },
+      {
+        id: 'financial-management',
+        title: '💰 Gestão Financeira Avançada',
+        description: 'Controle financeiro completo de projetos',
+        progress: 0,
+        items: [
+          {
+            id: 'cost-control',
+            title: 'Controle de custos detalhado',
+            description: 'Monitoramento detalhado de custos por categoria',
+            status: 'planned',
+            priority: 'high',
+            category: 'Financeiro',
+            estimatedHours: 35
+          },
+          {
+            id: 'project-billing',
+            title: 'Faturamento por projeto',
+            description: 'Sistema de faturamento baseado em projetos',
+            status: 'planned',
+            priority: 'high',
+            category: 'Financeiro',
+            estimatedHours: 40
+          },
+          {
+            id: 'profitability-analysis',
+            title: 'Análise de rentabilidade',
+            description: 'Relatórios de lucratividade e ROI por projeto',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Analytics',
+            estimatedHours: 30
+          },
+          {
+            id: 'financial-reports',
+            title: 'Relatórios financeiros',
+            description: 'Dashboards e relatórios financeiros detalhados',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Relatórios',
+            estimatedHours: 35
+          },
+          {
+            id: 'budget-approvals',
+            title: 'Aprovações de orçamento',
+            description: 'Workflow de aprovação de orçamentos e gastos',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Aprovações',
+            estimatedHours: 20
+          }
+        ]
+      },
+      {
+        id: 'planning-analytics',
+        title: '📊 Planejamento e Analytics',
+        description: 'Ferramentas avançadas de planejamento e análise',
+        progress: 0,
+        items: [
+          {
+            id: 'gantt-chart',
+            title: 'Gráfico de Gantt',
+            description: 'Visualização temporal avançada de projetos',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Planejamento',
+            estimatedHours: 50
+          },
+          {
+            id: 'visual-timeline',
+            title: 'Cronograma visual',
+            description: 'Interface visual para planejamento temporal',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Planejamento',
+            estimatedHours: 40
+          },
+          {
+            id: 'executive-dashboard',
+            title: 'Dashboard executivo',
+            description: 'Visão estratégica para gestores e executivos',
+            status: 'planned',
+            priority: 'high',
+            category: 'Dashboard',
+            estimatedHours: 35
+          },
+          {
+            id: 'performance-reports',
+            title: 'Relatórios de performance',
+            description: 'Análise detalhada de performance de projetos',
+            status: 'planned',
+            priority: 'medium',
+            category: 'Relatórios',
+            estimatedHours: 30
+          },
+          {
+            id: 'custom-kpis',
+            title: 'KPIs personalizáveis',
+            description: 'Sistema de indicadores customizáveis por usuário',
+            status: 'planned',
+            priority: 'low',
+            category: 'Analytics',
+            estimatedHours: 25
+          },
+          {
+            id: 'trend-analysis',
+            title: 'Análise de tendências',
+            description: 'Identificação de padrões e tendências em projetos',
+            status: 'planned',
+            priority: 'low',
+            category: 'Analytics',
+            estimatedHours: 20
+          }
+        ]
+      },
+      {
+        id: 'automation-integrations',
+        title: '🔧 Automação e Integrações',
+        description: 'Automação de processos e integrações externas',
+        progress: 0,
+        items: [
+          {
+            id: 'custom-workflows',
+            title: 'Workflows personalizados',
+            description: 'Sistema de workflow customizável por projeto',
             status: 'backlog',
             priority: 'medium',
-            category: 'UX',
-            estimatedHours: 56
+            category: 'Automação',
+            estimatedHours: 45
           },
           {
-            id: 'billing-system',
-            title: 'Sistema de Billing',
-            description: 'Integração com Stripe e billing self-service',
+            id: 'automatic-approvals',
+            title: 'Aprovações automáticas',
+            description: 'Sistema inteligente de aprovações baseado em regras',
+            status: 'backlog',
+            priority: 'medium',
+            category: 'Automação',
+            estimatedHours: 35
+          },
+          {
+            id: 'smart-notifications',
+            title: 'Notificações inteligentes',
+            description: 'Sistema avançado de notificações contextuais',
             status: 'backlog',
             priority: 'low',
-            category: 'Financeiro',
-            estimatedHours: 72
+            category: 'Notificações',
+            estimatedHours: 30
+          },
+          {
+            id: 'calendar-sync',
+            title: 'Sincronização com calendários',
+            description: 'Integração com Google Calendar, Outlook e outros',
+            status: 'backlog',
+            priority: 'low',
+            category: 'Integrações',
+            estimatedHours: 25
+          },
+          {
+            id: 'crm-integration',
+            title: 'Integração com CRM',
+            description: 'Sincronização com sistemas CRM externos',
+            status: 'backlog',
+            priority: 'medium',
+            category: 'Integrações',
+            estimatedHours: 30
+          },
+          {
+            id: 'external-apis',
+            title: 'APIs para sistemas externos',
+            description: 'APIs RESTful para integração com terceiros',
+            status: 'backlog',
+            priority: 'low',
+            category: 'APIs',
+            estimatedHours: 15
+          }
+        ]
+      },
+      {
+        id: 'documentation-quality',
+        title: '📚 Documentação e Qualidade',
+        description: 'Gestão de documentos e controle de qualidade',
+        progress: 0,
+        items: [
+          {
+            id: 'document-repository',
+            title: 'Repositório de documentos',
+            description: 'Sistema centralizado de gestão de documentos',
+            status: 'backlog',
+            priority: 'medium',
+            category: 'Documentação',
+            estimatedHours: 30
+          },
+          {
+            id: 'file-versioning',
+            title: 'Versionamento de arquivos',
+            description: 'Controle de versões para documentos e arquivos',
+            status: 'backlog',
+            priority: 'medium',
+            category: 'Documentação',
+            estimatedHours: 25
+          },
+          {
+            id: 'document-templates',
+            title: 'Templates de documentos',
+            description: 'Biblioteca de templates para documentos padrão',
+            status: 'backlog',
+            priority: 'low',
+            category: 'Templates',
+            estimatedHours: 20
+          },
+          {
+            id: 'acceptance-criteria',
+            title: 'Critérios de aceitação',
+            description: 'Sistema de definição e validação de critérios',
+            status: 'backlog',
+            priority: 'medium',
+            category: 'Qualidade',
+            estimatedHours: 15
+          },
+          {
+            id: 'quality-checklists',
+            title: 'Checklists de qualidade',
+            description: 'Listas de verificação para controle de qualidade',
+            status: 'backlog',
+            priority: 'medium',
+            category: 'Qualidade',
+            estimatedHours: 15
+          },
+          {
+            id: 'risk-management',
+            title: 'Gestão de riscos',
+            description: 'Identificação, análise e mitigação de riscos',
+            status: 'backlog',
+            priority: 'low',
+            category: 'Riscos',
+            estimatedHours: 15
           }
         ]
       }
@@ -385,14 +548,7 @@ export default function Roadmap() {
     setRoadmapData(phases);
   }, []);
 
-  const categories = [
-    'all', 'Arquitetura', 'Backend', 'Frontend', 'Dashboard', 'Core', 
-    'Integrações', 'Segurança', 'Usuários', 'Clientes', 'Projetos',
-    'Qualidade', 'Testes', 'Performance', 'Sistema', 'DevOps',
-    'Documentação', 'UX', 'Financeiro', 'Recursos Humanos'
-  ];
-
-  const filteredPhases = roadmapData.map(phase => ({
+  const filteredData = roadmapData.map(phase => ({
     ...phase,
     items: phase.items.filter(item => {
       const categoryMatch = selectedCategory === 'all' || item.category === selectedCategory;
@@ -401,6 +557,14 @@ export default function Roadmap() {
     })
   }));
 
+  const totalItems = roadmapData.reduce((acc, phase) => acc + phase.items.length, 0);
+  const completedItems = roadmapData.reduce((acc, phase) => 
+    acc + phase.items.filter(item => item.status === 'completed').length, 0
+  );
+  const overallProgress = Math.round((completedItems / totalItems) * 100);
+
+  const categories = Array.from(new Set(roadmapData.flatMap(phase => phase.items.map(item => item.category))));
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -408,327 +572,179 @@ export default function Roadmap() {
       case 'in_progress':
         return <Clock className="h-4 w-4 text-blue-500" />;
       case 'planned':
-        return <Target className="h-4 w-4 text-yellow-500" />;
+        return <Circle className="h-4 w-4 text-yellow-500" />;
+      case 'backlog':
+        return <AlertTriangle className="h-4 w-4 text-gray-400" />;
       default:
-        return <Circle className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'critical':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'high':
-        return <Star className="h-4 w-4 text-orange-500" />;
-      default:
-        return null;
+        return <Circle className="h-4 w-4" />;
     }
   };
 
   const getCategoryIcon = (category: string) => {
-    const iconMap: { [key: string]: any } = {
-      'Arquitetura': Code2,
-      'Backend': Database,
-      'Frontend': Globe,
-      'Dashboard': BarChart3,
-      'Segurança': Shield,
-      'Usuários': Users,
-      'Sistema': Settings
+    const iconMap: Record<string, React.ReactNode> = {
+      'Gestão Básica': <Target className="h-4 w-4" />,
+      'Interface': <Globe className="h-4 w-4" />,
+      'Ações': <Settings className="h-4 w-4" />,
+      'Equipe': <Users className="h-4 w-4" />,
+      'Recursos': <BarChart3 className="h-4 w-4" />,
+      'Automação': <Code2 className="h-4 w-4" />,
+      'Clientes': <Users className="h-4 w-4" />,
+      'Portal': <Globe className="h-4 w-4" />,
+      'Comunicação': <Settings className="h-4 w-4" />,
+      'Financeiro': <BarChart3 className="h-4 w-4" />,
+      'Analytics': <BarChart3 className="h-4 w-4" />,
+      'Relatórios': <BarChart3 className="h-4 w-4" />,
+      'Aprovações': <CheckCircle className="h-4 w-4" />,
+      'Planejamento': <Target className="h-4 w-4" />,
+      'Dashboard': <BarChart3 className="h-4 w-4" />,
+      'Notificações': <Settings className="h-4 w-4" />,
+      'Integrações': <Code2 className="h-4 w-4" />,
+      'APIs': <Database className="h-4 w-4" />,
+      'Documentação': <Database className="h-4 w-4" />,
+      'Templates': <Database className="h-4 w-4" />,
+      'Qualidade': <Shield className="h-4 w-4" />,
+      'Riscos': <AlertTriangle className="h-4 w-4" />
     };
-    const Icon = iconMap[category];
-    return Icon ? <Icon className="h-4 w-4" /> : null;
+    return iconMap[category] || <Settings className="h-4 w-4" />;
   };
-
-  const overallProgress = Math.round(
-    roadmapData.reduce((sum, phase) => sum + phase.progress, 0) / roadmapData.length
-  );
-
-  const totalItems = roadmapData.reduce((sum, phase) => sum + phase.items.length, 0);
-  const completedItems = roadmapData.reduce(
-    (sum, phase) => sum + phase.items.filter(item => item.status === 'completed').length, 
-    0
-  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Roadmap de Desenvolvimento</h1>
-          <p className="text-muted-foreground">
-            Acompanhe o progresso de implementação das funcionalidades do sistema
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-primary">{overallProgress}%</div>
-          <div className="text-sm text-muted-foreground">Progresso Geral</div>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Roadmap de Projetos
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Planejamento e evolução das funcionalidades de gestão de projetos
+        </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-8 w-8 text-green-500" />
-              <div>
-                <div className="text-2xl font-bold text-green-600">{completedItems}</div>
-                <div className="text-sm text-muted-foreground">Concluídos</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-8 w-8 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {roadmapData.reduce((sum, phase) => 
-                    sum + phase.items.filter(item => item.status === 'in_progress').length, 0
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground">Em Progresso</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Target className="h-8 w-8 text-yellow-500" />
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {roadmapData.reduce((sum, phase) => 
-                    sum + phase.items.filter(item => item.status === 'planned').length, 0
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground">Planejados</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Circle className="h-8 w-8 text-gray-400" />
-              <div>
-                <div className="text-2xl font-bold text-gray-600">
-                  {roadmapData.reduce((sum, phase) => 
-                    sum + phase.items.filter(item => item.status === 'backlog').length, 0
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground">Backlog</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Progress Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Progresso Geral
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm text-gray-600">
+              {completedItems} de {totalItems} funcionalidades implementadas
+            </span>
+            <span className="text-2xl font-bold text-green-600">{overallProgress}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div
+              className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+              style={{ width: `${overallProgress}%` }}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
-        <div className="flex flex-wrap gap-2">
-          <span className="text-sm font-medium">Categoria:</span>
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category === 'all' ? 'Todas' : category}
-            </Button>
-          ))}
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <span className="text-sm font-medium">Status:</span>
-          {Object.entries(statusLabels).map(([status, label]) => (
-            <Button
-              key={status}
-              variant={selectedStatus === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedStatus(status)}
-            >
-              {label}
-            </Button>
-          ))}
-          <Button
-            variant={selectedStatus === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedStatus('all')}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 bg-white"
           >
-            Todos
-          </Button>
+            <option value="all">Todas as Categorias</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 bg-white"
+          >
+            <option value="all">Todos os Status</option>
+            {Object.entries(statusLabels).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
       {/* Roadmap Phases */}
-      <Tabs defaultValue="timeline" className="w-full">
-        <TabsList>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="kanban">Kanban</TabsTrigger>
-          <TabsTrigger value="progress">Progresso</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="timeline" className="space-y-6">
-          {filteredPhases.map((phase) => (
-            <Card key={phase.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl">{phase.title}</CardTitle>
-                    <CardDescription>{phase.description}</CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-semibold">{phase.progress}%</div>
-                    <Progress value={phase.progress} className="w-24" />
+      <div className="space-y-6">
+        {filteredData.map((phase) => (
+          <Card key={phase.id} className="overflow-hidden">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl">{phase.title}</CardTitle>
+                  <CardDescription>{phase.description}</CardDescription>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-600">{phase.progress}%</div>
+                  <div className="text-sm text-gray-500">
+                    {phase.items.filter(item => item.status === 'completed').length} de {phase.items.length} concluídas
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {phase.items.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-4 p-4 rounded-lg border">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(item.status)}
-                        {getPriorityIcon(item.priority)}
-                        {getCategoryIcon(item.category)}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-medium">{item.title}</h4>
-                          <Badge variant="outline" className={priorityColors[item.priority]}>
-                            {priorityLabels[item.priority]}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${phase.progress}%` }}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {phase.items.map((item) => (
+                  <Card key={item.id} className="border-l-4 border-l-blue-500">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(item.status)}
+                          <Badge variant="outline" className={statusColors[item.status]}>
+                            <div className={`w-2 h-2 rounded-full ${statusColors[item.status]} mr-2`} />
+                            {statusLabels[item.status]}
                           </Badge>
-                          <Badge variant="secondary">{item.category}</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
-                        
-                        {(item.estimatedHours || item.completedHours) && (
-                          <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
-                            {item.estimatedHours && (
-                              <span>Estimado: {item.estimatedHours}h</span>
-                            )}
-                            {item.completedHours && (
-                              <span>Realizado: {item.completedHours}h</span>
-                            )}
-                            {item.estimatedHours && item.completedHours && (
-                              <Progress 
-                                value={(item.completedHours / item.estimatedHours) * 100} 
-                                className="w-20 h-2"
-                              />
-                            )}
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${priorityColors[item.priority]} border-2`}
+                        >
+                          {priorityLabels[item.priority]}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-sm font-semibold leading-tight">
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                        {item.description}
+                      </p>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1 text-gray-500">
+                          {getCategoryIcon(item.category)}
+                          <span>{item.category}</span>
+                        </div>
+                        {item.estimatedHours && (
+                          <div className="text-gray-500">
+                            {item.completedHours ? `${item.completedHours}/` : ''}{item.estimatedHours}h
                           </div>
                         )}
                       </div>
-                      
-                      <Badge className={statusColors[item.status]}>
-                        {statusLabels[item.status]}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="kanban">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {Object.entries(statusLabels).map(([status, label]) => (
-              <Card key={status}>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    {getStatusIcon(status)}
-                    <span>{label}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {roadmapData.flatMap(phase => 
-                    phase.items
-                      .filter(item => item.status === status)
-                      .filter(item => {
-                        const categoryMatch = selectedCategory === 'all' || item.category === selectedCategory;
-                        return categoryMatch;
-                      })
-                      .map(item => (
-                        <Card key={item.id} className="p-3">
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <h5 className="font-medium text-sm">{item.title}</h5>
-                              {getPriorityIcon(item.priority)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                            <div className="flex justify-between items-center">
-                              <Badge variant="outline" size="sm">{item.category}</Badge>
-                              <Badge size="sm" className={priorityColors[item.priority]}>
-                                {priorityLabels[item.priority]}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Card>
-                      ))
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="progress">
-          <div className="space-y-6">
-            {roadmapData.map((phase) => (
-              <Card key={phase.id}>
-                <CardHeader>
-                  <CardTitle>{phase.title}</CardTitle>
-                  <CardDescription>{phase.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Progresso da Fase</span>
-                      <span className="text-sm font-medium">{phase.progress}%</span>
-                    </div>
-                    <Progress value={phase.progress} />
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-green-600">
-                          {phase.items.filter(item => item.status === 'completed').length}
-                        </div>
-                        <div className="text-muted-foreground">Concluídos</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">
-                          {phase.items.filter(item => item.status === 'in_progress').length}
-                        </div>
-                        <div className="text-muted-foreground">Em Progresso</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-yellow-600">
-                          {phase.items.filter(item => item.status === 'planned').length}
-                        </div>
-                        <div className="text-muted-foreground">Planejados</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-gray-600">
-                          {phase.items.filter(item => item.status === 'backlog').length}
-                        </div>
-                        <div className="text-muted-foreground">Backlog</div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
