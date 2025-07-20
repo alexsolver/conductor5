@@ -918,51 +918,33 @@ export default function EmailConfiguration() {
             <h2 className="text-2xl font-semibold">Caixa de Entrada</h2>
             <div className="flex items-center gap-2">
               <Badge variant="outline">
-                {inboxMessages.filter((m: InboxMessage) => !m.isRead).length} não lidas
+                {Array.isArray(inboxMessages) ? inboxMessages.filter((m: any) => !m.isRead).length : 0} não lidas
               </Badge>
               <Button 
                 variant="outline" 
                 onClick={async () => {
                   try {
-                    // Force refresh monitoring first
-                    await refreshMonitoringMutation.mutateAsync();
-                    // Then refetch inbox
                     await refetchInbox();
-                    // Invalidate all related queries
                     queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
                   } catch (error) {
                     console.error('Error refreshing inbox:', error);
                   }
                 }}
-                disabled={inboxLoading || refreshMonitoringMutation.isPending}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {inboxLoading || refreshMonitoringMutation.isPending ? 'Atualizando...' : 'Atualizar'}
-              </Button>
-              <Button 
-                onClick={() => setIsImportDialogOpen(true)}
                 disabled={inboxLoading}
               >
-                <Mail className="w-4 h-4 mr-2" />
-                Importar Emails Históricos
+                <Download className="w-4 h-4 mr-2" />
+                {inboxLoading ? 'Atualizando...' : 'Atualizar'}
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-4">
-            {/* Debug information */}
-            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm">
-              <p><strong>Debug Info:</strong></p>
-              <p>Loading: {inboxLoading ? 'true' : 'false'}</p>
-              <p>Messages length: {inboxMessages?.length || 0}</p>
-              <p>Messages array: {JSON.stringify(inboxMessages)}</p>
-              <p>Error: {inboxError ? JSON.stringify(inboxError) : 'none'}</p>
-            </div>
-            
+          <div className="space-y-4">
             {inboxLoading ? (
-              <div className="text-center py-8">Carregando mensagens...</div>
-            ) : inboxMessages.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Carregando mensagens...</p>
+              </div>
+            ) : !Array.isArray(inboxMessages) || inboxMessages.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center py-8">
@@ -975,56 +957,38 @@ export default function EmailConfiguration() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
-                {inboxMessages.map((message: InboxMessage) => (
-                  <Card key={message.id} className={`transition-all hover:shadow-md ${!message.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}>
+              <>
+                <p className="text-sm text-muted-foreground">
+                  {inboxMessages.length} mensagem(ns) encontrada(s)
+                </p>
+                {inboxMessages.map((message: any) => (
+                  <Card key={message.id} className={`border-l-4 ${!message.isRead ? 'border-l-blue-500 bg-blue-50/20' : 'border-l-gray-300'}`}>
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <CardTitle className="flex items-center gap-2 text-lg">
-                            {!message.isRead && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                            )}
-                            {message.subject}
-                            <Badge variant={
-                              message.priority === 'high' ? 'destructive' :
-                              message.priority === 'medium' ? 'default' : 
-                              'secondary'
-                            }>
-                              {message.priority === 'high' ? 'Alta' : 
-                               message.priority === 'medium' ? 'Média' : 'Baixa'}
+                            {!message.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                            {message.subject || 'Sem assunto'}
+                            <Badge variant={message.priority === 'high' ? 'destructive' : 'default'}>
+                              {message.priority === 'high' ? 'ALTA' : message.priority || 'normal'}
                             </Badge>
                           </CardTitle>
-                          <CardDescription>
-                            <div className="flex items-center gap-4 text-sm">
-                              <span><strong>De:</strong> {message.fromName || message.fromEmail}</span>
-                              <span><strong>Para:</strong> {message.toEmail}</span>
-                              <span><strong>Data:</strong> {new Date(message.emailDate).toLocaleString('pt-BR')}</span>
-                              {message.hasAttachments && (
-                                <Badge variant="outline">
-                                  📎 {message.attachmentCount} anexo(s)
-                                </Badge>
-                              )}
+                          <CardDescription className="mt-2">
+                            <div className="space-y-1 text-sm">
+                              <div><strong>De:</strong> {message.fromName || message.fromEmail}</div>
+                              <div><strong>Para:</strong> {message.toEmail}</div>
+                              <div><strong>Recebido em:</strong> {new Date(message.receivedAt).toLocaleString('pt-BR')}</div>
                             </div>
                           </CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex gap-2">
                           {!message.isRead && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleMarkAsRead(message)}
-                              disabled={markAsReadMutation.isPending}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handleMarkAsRead(message)}>
                               <Eye className="w-4 h-4 mr-1" />
                               Marcar como Lida
                             </Button>
                           )}
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleCreateRuleFromMessage(message)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleCreateRuleFromMessage(message)}>
                             <Filter className="w-4 h-4 mr-1" />
                             Criar Regra
                           </Button>
@@ -1032,28 +996,21 @@ export default function EmailConfiguration() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        <div className="bg-muted p-3 rounded-md">
-                          <p className="text-sm whitespace-pre-wrap">{message.bodyText || 'Sem conteúdo de texto'}</p>
-                        </div>
-
-                        {message.isProcessed && (
-                          <div className="flex items-center gap-2 text-sm text-green-600">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Processado</span>
-                            {message.ruleMatched && (
-                              <Badge variant="outline">Regra: {message.ruleMatched}</Badge>
-                            )}
-                            {message.ticketCreated && (
-                              <Badge variant="outline">Ticket: {message.ticketCreated}</Badge>
-                            )}
-                          </div>
-                        )}
+                      <div className="bg-muted p-3 rounded-md">
+                        <p className="text-sm whitespace-pre-wrap">
+                          {message.bodyText || message.bodyHtml || 'Sem conteúdo disponível'}
+                        </p>
                       </div>
+                      {message.isProcessed && (
+                        <div className="mt-3 flex items-center gap-2 text-sm text-green-600">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Processado</span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
-              </div>
+              </>
             )}
           </div>
         </TabsContent>
