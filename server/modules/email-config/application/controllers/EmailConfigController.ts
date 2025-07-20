@@ -583,7 +583,8 @@ export class EmailConfigController {
         integrations: emailIntegrations.map(i => {
           const configData = i.configurationData ? JSON.parse(i.configurationData) : (i.config || {});
           const emailAddress = configData.emailAddress || configData.username || configData.email || i.emailAddress || '';
-          const isConnected = connectionStatus[i.id] || false;
+          // Check if integration is connected (database status) AND actively monitoring (service status)
+          const isConnected = (i.status === 'connected' && emailReadingService?.isCurrentlyMonitoring(i.id)) || connectionStatus[i.id] || false;
           
           console.log(`📊 Integration status for ${i.name}:`, {
             emailAddress: emailAddress || 'Not configured',
