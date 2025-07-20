@@ -55,23 +55,22 @@ export class OmnibridgeController {
     return providerMapping[integrationId] || 'Unknown Provider';
   }
 
-  private getMessageCount(integrationId: string, isConfigured: boolean): number {
-    // Return realistic message counts based on integration type and status
+  private async getMessageCount(tenantId: string, channelId: string, isConfigured: boolean): Promise<number> {
+    // Return real message counts from database instead of mock data
     if (!isConfigured) return 0;
     
-    const baseCount: Record<string, number> = {
-      'gmail-oauth2': 42,
-      'outlook-oauth2': 28,
-      'email-smtp': 15,
-      'whatsapp-business': 67,
-      'slack': 89,
-      'telegram-bot': 23,
-      'sms': 12,
-      'chatbot': 156,
-      'voice': 8
-    };
-    
-    return baseCount[integrationId] || Math.floor(Math.random() * 50);
+    try {
+      // Get real count from database for the specific channel
+      const messages = await this.repository.getInboxMessages(tenantId, { 
+        channelId,
+        limit: 1000 // Get all messages to count them accurately
+      });
+      console.log(`📊 Real message count for channel ${channelId}: ${messages.length}`);
+      return messages.length;
+    } catch (error) {
+      console.error('Error getting message count from database:', error);
+      return 0;
+    }
   }
 
   // =====================================================
@@ -172,33 +171,34 @@ export class OmnibridgeController {
       });
 
       // Convert integrations to OmniBridge channels format
-      const channels = tenantIntegrations
-        .filter((integration: any) => {
-          // Filter only communication integrations
-          return integration.category === 'Comunicação' || 
-                 integration.category === 'Communication' ||
-                 ['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'whatsapp-business', 'slack', 'telegram-bot'].includes(integration.id);
-        })
-        .map((integration: any) => {
-          const isConfigured = integration.configured || integration.status === 'connected';
-          const channelType = this.getChannelType(integration.id);
-          
-          return {
-            id: `ch-${integration.id}`,
-            name: integration.name,
-            channelType,
-            isActive: isConfigured,
-            isMonitoring: isConfigured && integration.status === 'connected',
-            healthStatus: integration.status === 'connected' ? 'healthy' : 
-                         integration.status === 'error' ? 'error' : 'warning',
-            description: integration.description,
-            provider: this.getProviderName(integration.id),
-            connectionSettings: integration.config || {},
-            lastHealthCheck: integration.lastSync || new Date().toISOString(),
-            messageCount: this.getMessageCount(integration.id, isConfigured),
-            errorCount: integration.status === 'error' ? 1 : 0
-          };
-        });
+      const communicationIntegrations = tenantIntegrations.filter((integration: any) => {
+        // Filter only communication integrations
+        return integration.category === 'Comunicação' || 
+               integration.category === 'Communication' ||
+               ['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'whatsapp-business', 'slack', 'telegram-bot'].includes(integration.id);
+      });
+
+      const channels = await Promise.all(communicationIntegrations.map(async (integration: any) => {
+        const isConfigured = integration.configured || integration.status === 'connected';
+        const channelType = this.getChannelType(integration.id);
+        const channelId = `ch-${integration.id}`;
+        
+        return {
+          id: channelId,
+          name: integration.name,
+          channelType,
+          isActive: isConfigured,
+          isMonitoring: isConfigured && integration.status === 'connected',
+          healthStatus: integration.status === 'connected' ? 'healthy' : 
+                       integration.status === 'error' ? 'error' : 'warning',
+          description: integration.description,
+          provider: this.getProviderName(integration.id),
+          connectionSettings: integration.config || {},
+          lastHealthCheck: integration.lastSync || new Date().toISOString(),
+          messageCount: await this.getMessageCount(tenantId, channelId, isConfigured),
+          errorCount: integration.status === 'error' ? 1 : 0
+        };
+      }));
 
       console.log(`📡 OmniBridge channels API Response (from real integrations):`, {
         success: true,
