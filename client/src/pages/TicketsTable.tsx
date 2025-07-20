@@ -768,7 +768,7 @@ export default function TicketsTable() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center ml-[9px] mr-[9px]">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
@@ -801,7 +801,6 @@ export default function TicketsTable() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -852,7 +851,6 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
-
       {/* Tickets Table */}
       <Card>
         <CardHeader>
@@ -1016,7 +1014,6 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
-
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1151,7 +1148,6 @@ export default function TicketsTable() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Ticket Linking Modal */}
       {editingTicket && (
         <TicketLinkingModal
