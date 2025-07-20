@@ -1,6 +1,6 @@
 
 import { eq, and, sql, desc, asc, like, inArray, gte, lte } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { schemaManager } from '../../../../db';
 import { projects, projectActions, projectTimeline } from '../../../../../shared/schema';
 import { Project, ProjectAction, ProjectTimeline } from '../../domain/entities/Project';
 import { IProjectRepository, IProjectActionRepository, IProjectTimelineRepository, ProjectFilters, ProjectActionFilters } from '../../domain/repositories/IProjectRepository';
@@ -10,6 +10,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
     
+    const { db } = await schemaManager.getTenantDb(project.tenantId);
     const [created] = await db.insert(projects).values({
       id,
       ...project,
@@ -21,6 +22,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<Project | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [project] = await db
       .select()
       .from(projects)
@@ -30,6 +32,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
   }
 
   async findAll(tenantId: string, filters?: ProjectFilters): Promise<Project[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     let query = db.select().from(projects).where(eq(projects.tenantId, tenantId));
     
     if (filters) {
@@ -72,6 +75,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
   }
 
   async update(id: string, tenantId: string, data: Partial<Project>): Promise<Project | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [updated] = await db
       .update(projects)
       .set({ ...data, updatedAt: new Date().toISOString() })
@@ -82,6 +86,7 @@ export class DrizzleProjectRepository implements IProjectRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const result = await db
       .delete(projects)
       .where(and(eq(projects.id, id), eq(projects.tenantId, tenantId)));
@@ -127,6 +132,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
     
+    const { db } = await schemaManager.getTenantDb(action.tenantId);
     const [created] = await db.insert(projectActions).values({
       id,
       ...action,
@@ -138,6 +144,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
   }
 
   async findById(id: string, tenantId: string): Promise<ProjectAction | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [action] = await db
       .select()
       .from(projectActions)
@@ -147,6 +154,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
   }
 
   async findByProject(projectId: string, tenantId: string, filters?: ProjectActionFilters): Promise<ProjectAction[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     let query = db.select().from(projectActions)
       .where(and(eq(projectActions.projectId, projectId), eq(projectActions.tenantId, tenantId)));
     
@@ -185,6 +193,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
   }
 
   async findAll(tenantId: string, filters?: ProjectActionFilters): Promise<ProjectAction[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     let query = db.select().from(projectActions).where(eq(projectActions.tenantId, tenantId));
     
     if (filters) {
@@ -219,6 +228,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
   }
 
   async update(id: string, tenantId: string, data: Partial<ProjectAction>): Promise<ProjectAction | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [updated] = await db
       .update(projectActions)
       .set({ ...data, updatedAt: new Date().toISOString() })
@@ -229,6 +239,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const result = await db
       .delete(projectActions)
       .where(and(eq(projectActions.id, id), eq(projectActions.tenantId, tenantId)));
@@ -240,6 +251,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
     const action = await this.findById(actionId, tenantId);
     if (!action || action.dependsOnActionIds.length === 0) return [];
     
+    const { db } = await schemaManager.getTenantDb(tenantId);
     return await db
       .select()
       .from(projectActions)
@@ -250,6 +262,7 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
   }
 
   async getBlockedActions(actionId: string, tenantId: string): Promise<ProjectAction[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     return await db
       .select()
       .from(projectActions)

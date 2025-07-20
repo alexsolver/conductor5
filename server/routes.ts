@@ -369,11 +369,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Location routes
 
-  // All routes now handled by dedicated microservices
-  const { default: projectRoutes } = await import('./modules/projects/routes');
-
-  // Additional routes (duplicates removed)
-  app.use('/api/projects', projectRoutes);
+  // Import Project routes BEFORE other routes to ensure proper registration
+  const projectRoutes = (await import('./modules/projects/routes')).default;
+  app.use('/api', projectRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
