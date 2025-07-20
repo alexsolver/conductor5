@@ -341,9 +341,9 @@ export default function EmailConfiguration() {
   });
 
   const { data: processingLogs = [], isLoading: logsLoading } = useQuery({
-    queryKey: ['/api/email-config/logs'],
+    queryKey: ['/api/email-config/monitoring/logs'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/email-config/logs?limit=100');
+      const response = await apiRequest('GET', '/api/email-config/monitoring/logs?limit=100');
       const data = await response.json();
       return data.data || [];
     },

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { AuthenticatedRequest } from '../../../middleware/auth';
 import { DrizzleEmailConfigRepository } from '../../infrastructure/repositories/DrizzleEmailConfigRepository';
 import { EmailReadingService } from '../../infrastructure/services/EmailReadingService';
 
@@ -365,8 +365,7 @@ export class EmailConfigController {
       if (isMonitoring) {
         EmailConfigController.monitoringStatus.set(tenantId, {
           isActive: true,
-          startedAt: new Date(),
-          tenantId
+          service: EmailConfigController.emailReadingService
         });
       } else {
         EmailConfigController.monitoringStatus.delete(tenantId);
@@ -716,8 +715,16 @@ export class EmailConfigController {
         return;
       }
 
-      console.log('📧 Getting email integrations for tenant:', tenantId);
+      console.log(`📧 Email integrations API called for tenant: ${tenantId}`);
+
+      // Get email integrations from repository
       const integrations = await this.repository.getEmailIntegrations(tenantId);
+      
+      console.log(`📧 Email integrations API Response:`, {
+        success: true,
+        dataLength: integrations.length,
+        firstIntegration: integrations[0] || null
+      });
 
       res.json({ success: true, data: integrations });
     } catch (error) {
