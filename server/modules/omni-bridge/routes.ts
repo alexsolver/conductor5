@@ -9,21 +9,23 @@ import { requirePermission } from '../../middleware/rbacMiddleware';
 import { OmniBridgeController } from './application/controllers/OmniBridgeController';
 import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository';
 import { DrizzleUnifiedMessageRepository } from './infrastructure/repositories/DrizzleUnifiedMessageRepository';
+import { DrizzleProcessingRuleRepository } from './infrastructure/repositories/DrizzleProcessingRuleRepository';
+import { DrizzleMessageTemplateRepository } from './infrastructure/repositories/DrizzleMessageTemplateRepository';
 
 const router = Router();
 
 // Initialize repositories
 const channelRepository = new DrizzleChannelRepository();
 const messageRepository = new DrizzleUnifiedMessageRepository();
-const ruleRepository = null; // TODO: Implement
-const templateRepository = null; // TODO: Implement
+const ruleRepository = new DrizzleProcessingRuleRepository();
+const templateRepository = new DrizzleMessageTemplateRepository();
 
 // Initialize controller
 const omniBridgeController = new OmniBridgeController(
   channelRepository,
   messageRepository,
-  ruleRepository as any,
-  templateRepository as any
+  ruleRepository,
+  templateRepository
 );
 
 // Apply authentication middleware

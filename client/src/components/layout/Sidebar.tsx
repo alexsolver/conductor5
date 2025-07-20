@@ -68,7 +68,6 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
-  { name: "OmniBridge", href: "/omnibridge", icon: Mail },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
@@ -114,6 +113,7 @@ const adminNavigation = [
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
 
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
+      { name: "OmniBridge", href: "/omnibridge", icon: Mail },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
     ]

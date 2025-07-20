@@ -1,4 +1,3 @@
-
 /**
  * Drizzle UnifiedMessage Repository
  * Clean Architecture - Infrastructure Layer
@@ -10,13 +9,13 @@ export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepositor
   async findAll(tenantId: string, options?: MessageSearchOptions): Promise<UnifiedMessage[]> {
     try {
       const { storage } = await import('../../../../storage-simple');
-      
+
       // Get email messages from inbox
       const emailMessages = await storage.getEmailInboxMessages(tenantId, {
         limit: options?.limit || 50,
         offset: options?.offset || 0
       });
-      
+
       return emailMessages.map(msg => new UnifiedMessage(
         msg.id,
         msg.tenantId,
@@ -138,11 +137,11 @@ export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepositor
     try {
       const messages = await this.findAll(tenantId);
       const counts: Record<string, number> = {};
-      
+
       for (const message of messages) {
         counts[message.channelId] = (counts[message.channelId] || 0) + 1;
       }
-      
+
       return counts;
     } catch (error) {
       console.error('Error getting count by channel:', error);

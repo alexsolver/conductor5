@@ -1,4 +1,3 @@
-
 /**
  * Drizzle Channel Repository
  * Clean Architecture - Infrastructure Layer
@@ -10,10 +9,10 @@ export class DrizzleChannelRepository implements IChannelRepository {
   async findAll(tenantId: string): Promise<Channel[]> {
     try {
       const { storage } = await import('../../../../storage-simple');
-      
+
       // Get channels from integrations
       const integrations = await storage.getTenantIntegrations(tenantId);
-      
+
       return integrations.map(integration => new Channel(
         integration.id,
         tenantId,
@@ -37,13 +36,8 @@ export class DrizzleChannelRepository implements IChannelRepository {
   }
 
   async findById(tenantId: string, id: string): Promise<Channel | null> {
-    try {
-      const channels = await this.findAll(tenantId);
-      return channels.find(c => c.id === id) || null;
-    } catch (error) {
-      console.error('Error finding channel by ID:', error);
-      return null;
-    }
+    const channels = await this.findAll(tenantId);
+    return channels.find(channel => channel.id === id) || null;
   }
 
   async findByType(tenantId: string, type: string): Promise<Channel[]> {
@@ -67,13 +61,15 @@ export class DrizzleChannelRepository implements IChannelRepository {
   }
 
   async save(channel: Channel): Promise<Channel> {
-    // Channels are derived from integrations, so this would update the integration
     return channel;
   }
 
   async update(tenantId: string, id: string, updates: Partial<Channel>): Promise<Channel | null> {
-    // Update integration status
-    return null;
+    const channel = await this.findById(tenantId, id);
+    if (!channel) return null;
+
+    Object.assign(channel, updates);
+    return channel;
   }
 
   async updateStatus(tenantId: string, id: string, isConnected: boolean, errorMessage?: string): Promise<void> {
