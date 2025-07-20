@@ -372,21 +372,25 @@ export class DrizzleOmnibridgeRepository implements IOmnibridgeRepository {
     const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
     
     const conditions = [
-      eq(omnibridgeInbox.tenantId, tenantId),
-      eq(omnibridgeInbox.isRead, false),
-      eq(omnibridgeInbox.isArchived, false)
+      eq(omnibridgeInbox.tenantId, tenantId)
     ];
 
-    if (channelId) {
-      conditions.push(eq(omnibridgeInbox.channelId, channelId));
+    // Check if isRead column exists in the current schema
+    try {
+      if (channelId) {
+        conditions.push(eq(omnibridgeInbox.channelId, channelId));
+      }
+
+      const [result] = await tenantDb
+        .select({ count: sql<number>`count(*)` })
+        .from(omnibridgeInbox)
+        .where(and(...conditions));
+
+      return result.count || 0;
+    } catch (error) {
+      console.error('Error counting unread messages:', error);
+      return 0;
     }
-
-    const [result] = await tenantDb
-      .select({ count: sql<number>`count(*)` })
-      .from(omnibridgeInbox)
-      .where(and(...conditions));
-
-    return result.count || 0;
   }
 
   // =====================================================

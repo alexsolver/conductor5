@@ -414,69 +414,30 @@ export class OmnibridgeController {
         search
       } = req.query;
 
-      // Sample inbox messages for demonstration
-      const sampleMessages = [
-        {
-          id: 'msg-001',
-          channelId: 'ch-email-001',
-          channelType: 'email',
-          direction: 'inbound',
-          fromContact: 'cliente@empresa.com',
-          fromName: 'João Silva',
-          toContact: 'alexsolver@gmail.com',
-          subject: 'Solicitação de Suporte Urgente',
-          bodyText: 'Preciso de ajuda urgente com meu sistema. O login não está funcionando há 2 horas.',
-          priority: 'high',
-          isRead: false,
-          isProcessed: false,
-          isArchived: false,
-          needsResponse: true,
-          receivedAt: new Date(Date.now() - 1800000).toISOString(),
-        },
-        {
-          id: 'msg-002',
-          channelId: 'ch-email-001',
-          channelType: 'email',
-          direction: 'inbound',
-          fromContact: 'maria@exemplo.com',
-          fromName: 'Maria Santos',
-          toContact: 'alexsolver@gmail.com',
-          subject: 'Dúvida sobre faturamento',
-          bodyText: 'Gostaria de entender melhor os valores cobrados este mês.',
-          priority: 'medium',
-          isRead: true,
-          isProcessed: true,
-          isArchived: false,
-          needsResponse: false,
-          ticketId: 'ticket-12345',
-          receivedAt: new Date(Date.now() - 7200000).toISOString(),
-          processedAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: 'msg-003',
-          channelId: 'ch-whatsapp-001',
-          channelType: 'whatsapp',
-          direction: 'inbound',
-          fromContact: '+5511999888777',
-          fromName: 'Carlos Oliveira',
-          toContact: '+5511999999999',
-          bodyText: 'Olá! Quando posso esperar a entrega do meu pedido?',
-          priority: 'low',
-          isRead: false,
-          isProcessed: false,
-          isArchived: false,
-          needsResponse: true,
-          receivedAt: new Date(Date.now() - 900000).toISOString()
-        }
-      ];
+      // Use repository to get real messages
+      const messages = await this.repository.getInboxMessages(tenantId, {
+        channelId: channelId as string,
+        channelType: channelType as any,
+        direction: direction as any,
+        priority: priority as any,
+        isRead: isRead === 'true' ? true : isRead === 'false' ? false : undefined,
+        isProcessed: isProcessed === 'true' ? true : isProcessed === 'false' ? false : undefined,
+        isArchived: isArchived === 'true' ? true : isArchived === 'false' ? false : undefined,
+        needsResponse: needsResponse === 'true' ? true : needsResponse === 'false' ? false : undefined,
+        fromDate: fromDate ? new Date(fromDate as string) : undefined,
+        toDate: toDate ? new Date(toDate as string) : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+        search: search as string
+      });
 
       console.log(`📬 OmniBridge inbox API Response:`, {
         success: true,
-        dataLength: sampleMessages.length,
-        firstMessage: sampleMessages[0] || null
+        dataLength: messages.length,
+        firstMessage: messages[0] || null
       });
 
-      res.json({ success: true, data: sampleMessages });
+      res.json({ success: true, data: messages });
     } catch (error) {
       console.error('Error fetching inbox messages:', error);
       res.status(500).json({ 
@@ -596,8 +557,7 @@ export class OmnibridgeController {
       }
 
       const { channelId } = req.query;
-      // Sample unread count - count unread messages from sample data
-      const unreadCount = 2; // Based on sample data: 2 unread messages
+      const unreadCount = await this.repository.getUnreadMessagesCount(tenantId, channelId as string);
 
       res.json({ success: true, data: { unreadCount } });
     } catch (error) {
