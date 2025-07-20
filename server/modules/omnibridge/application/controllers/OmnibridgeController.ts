@@ -299,13 +299,10 @@ export class OmnibridgeController {
       if (channelId.includes('imap-email') || channelId.includes('ch-imap-email')) {
         console.log(`📧 Testing real Gmail IMAP connection for tenant: ${tenantId}`);
         
-        // Get IMAP Email integration credentials from database
-        const db = await schemaManager.getTenantDb(tenantId);
-        const integrationResult = await db.execute(`
-          SELECT config FROM integrations WHERE id = 'imap-email' LIMIT 1
-        `);
+        // Get IMAP Email integration credentials from database using repository
+        const integration = await this.omnibridgeRepository.getIntegrationByName(tenantId, 'IMAP Email');
         
-        if (integrationResult.rows.length === 0) {
+        if (!integration) {
           res.status(404).json({
             success: false,
             message: 'IMAP Email integration not found',
@@ -314,7 +311,7 @@ export class OmnibridgeController {
           return;
         }
 
-        const config = JSON.parse(integrationResult.rows[0].config as string);
+        const config = integration.config || {};
         const gmailService = GmailRealService.getInstance();
 
         try {
@@ -381,6 +378,42 @@ export class OmnibridgeController {
       console.error('Error testing channel connection:', error);
       res.status(500).json({ 
         message: 'Failed to test channel connection',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async saveChannelConfiguration(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { channelId } = req.params;
+      const configData = req.body;
+
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      console.log(`💾 Saving configuration for channel: ${channelId}`, configData);
+
+      const updatedChannel = await this.omnibridgeRepository.updateChannelConfiguration(tenantId, channelId, configData);
+
+      if (updatedChannel) {
+        res.json({
+          success: true,
+          message: 'Configuration saved successfully',
+          data: updatedChannel
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Channel not found'
+        });
+      }
+    } catch (error) {
+      console.error('Error saving channel configuration:', error);
+      res.status(500).json({
+        message: 'Failed to save configuration',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

@@ -174,6 +174,68 @@ export class DrizzleOmnibridgeRepository implements IOmnibridgeRepository {
     return this.getChannels(tenantId, { isActive: true });
   }
 
+  async getIntegrationByName(tenantId: string, name: string): Promise<any | null> {
+    try {
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier('integrations')} 
+        WHERE name = ${name} LIMIT 1
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error(`Error getting integration by name:`, error);
+      return null;
+    }
+  }
+
+  async updateChannelConfiguration(tenantId: string, channelId: string, config: Record<string, any>): Promise<OmnibridgeChannel | null> {
+    try {
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      const [updated] = await tenantDb
+        .update(omnibridgeChannels)
+        .set({ 
+          connectionSettings: config,
+          lastHealthCheck: new Date().toISOString()
+        })
+        .where(and(
+          eq(omnibridgeChannels.tenantId, tenantId),
+          eq(omnibridgeChannels.id, channelId)
+        ))
+        .returning();
+      
+      return updated || null;
+    } catch (error) {
+      console.error(`Error updating channel configuration:`, error);
+      return null;
+    }
+  }
+
+  async toggleChannelMonitoring(tenantId: string, channelId: string, isMonitoring: boolean): Promise<OmnibridgeChannel | null> {
+    try {
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      const [updated] = await tenantDb
+        .update(omnibridgeChannels)
+        .set({ 
+          isMonitoring,
+          lastHealthCheck: new Date().toISOString()
+        })
+        .where(and(
+          eq(omnibridgeChannels.tenantId, tenantId),
+          eq(omnibridgeChannels.id, channelId)
+        ))
+        .returning();
+      
+      return updated || null;
+    } catch (error) {
+      console.error(`Error toggling channel monitoring:`, error);
+      return null;
+    }
+  }
+
   // =====================================================
   // INBOX MESSAGES - Core implementation for unified message management
   // =====================================================
