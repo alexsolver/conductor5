@@ -190,11 +190,13 @@ export class DrizzleOmnibridgeRepository implements IOmnibridgeRepository {
     try {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       
+      // Try to update existing channel
       const [updated] = await tenantDb
         .update(omnibridgeChannels)
         .set({ 
-          connectionSettings: config,
-          lastHealthCheck: new Date().toISOString()
+          config: config,
+          lastHealthCheck: new Date(),
+          healthStatus: 'configured'
         })
         .where(and(
           eq(omnibridgeChannels.tenantId, tenantId),
@@ -202,7 +204,28 @@ export class DrizzleOmnibridgeRepository implements IOmnibridgeRepository {
         ))
         .returning();
       
-      return updated || null;
+      if (updated) {
+        return updated;
+      }
+
+      // If channel doesn't exist, create it
+      const [created] = await tenantDb
+        .insert(omnibridgeChannels)
+        .values({
+          id: channelId,
+          tenantId: tenantId,
+          name: `Channel ${channelId}`,
+          channelType: 'email',
+          provider: 'Gmail',
+          config: config,
+          isActive: true,
+          isMonitoring: false,
+          healthStatus: 'configured',
+          lastHealthCheck: new Date()
+        })
+        .returning();
+      
+      return created || null;
     } catch (error) {
       console.error(`Error updating channel configuration:`, error);
       return null;

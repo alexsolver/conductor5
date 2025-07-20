@@ -882,34 +882,56 @@ export default function OmniBridgeConfiguration() {
             )}
 
             {/* IMAP Email Configuration */}
-            {selectedChannel?.id === 'ch-imap-email' && (
+            {(selectedChannel?.id === 'ch-imap-email' || selectedChannel?.id?.includes('gmail')) && (
               <div className="space-y-4">
                 <Alert>
                   <CheckCircle2 className="h-4 w-4" />
-                  <AlertTitle>Canal Configurado</AlertTitle>
+                  <AlertTitle>Configuração Gmail/IMAP</AlertTitle>
                   <AlertDescription>
-                    Este canal já está configurado e conectado com alexsolver@gmail.com
+                    Configure as credenciais para sincronização com Gmail
                   </AlertDescription>
                 </Alert>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Email</Label>
-                    <Input value="alexsolver@gmail.com" disabled />
+                    <Label htmlFor="gmail-email">Email</Label>
+                    <Input 
+                      id="gmail-email" 
+                      type="email"
+                      defaultValue="alexsolver@gmail.com"
+                      placeholder="seu-email@gmail.com"
+                    />
                   </div>
                   <div>
-                    <Label>Servidor IMAP</Label>
-                    <Input value="imap.gmail.com:993" disabled />
+                    <Label htmlFor="gmail-password">Senha de App</Label>
+                    <Input 
+                      id="gmail-password" 
+                      type="password"
+                      placeholder="Senha específica do app Gmail"
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Segurança</Label>
-                    <Input value="SSL/TLS" disabled />
+                    <Label htmlFor="gmail-server">Servidor IMAP</Label>
+                    <Input 
+                      id="gmail-server"
+                      defaultValue="imap.gmail.com"
+                      placeholder="imap.gmail.com"
+                    />
                   </div>
                   <div>
-                    <Label>Status</Label>
-                    <Badge variant="outline" className="w-fit">Conectado</Badge>
+                    <Label htmlFor="gmail-port">Porta</Label>
+                    <Input 
+                      id="gmail-port"
+                      type="number"
+                      defaultValue="993"
+                      placeholder="993"
+                    />
                   </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="gmail-ssl" defaultChecked disabled />
+                  <Label htmlFor="gmail-ssl">Usar SSL/TLS (recomendado)</Label>
                 </div>
               </div>
             )}
@@ -951,14 +973,31 @@ export default function OmniBridgeConfiguration() {
             <Button 
               onClick={async () => {
                 if (selectedChannel?.id) {
-                  console.log('Salvando configurações do canal:', selectedChannel.id);
+                  console.log('💾 Salvando configurações do canal:', selectedChannel.id);
                   
                   try {
-                    const response = await apiRequest('PUT', `/api/omnibridge/channels/${selectedChannel.id}/configuration`, {
-                      // Mock configuration data - in real implementation, collect from form
-                      configData: 'updated',
-                      timestamp: new Date().toISOString()
-                    });
+                    // Collect real configuration data from form fields
+                    const configData: Record<string, any> = {};
+                    
+                    // Gmail/IMAP configuration
+                    if (selectedChannel.id.includes('gmail') || selectedChannel.id.includes('imap')) {
+                      const emailInput = document.getElementById('gmail-email') as HTMLInputElement;
+                      const passwordInput = document.getElementById('gmail-password') as HTMLInputElement;
+                      const serverInput = document.getElementById('gmail-server') as HTMLInputElement;
+                      const portInput = document.getElementById('gmail-port') as HTMLInputElement;
+                      
+                      configData.emailAddress = emailInput?.value || 'alexsolver@gmail.com';
+                      configData.password = passwordInput?.value || process.env.GMAIL_APP_PASSWORD;
+                      configData.imapServer = serverInput?.value || 'imap.gmail.com';
+                      configData.imapPort = parseInt(portInput?.value || '993');
+                      configData.imapSecurity = 'SSL/TLS';
+                      configData.useSSL = true;
+                    }
+                    
+                    configData.lastConfigured = new Date().toISOString();
+                    configData.configuredBy = 'admin';
+                    
+                    const response = await apiRequest('PUT', `/api/omnibridge/channels/${selectedChannel.id}/configuration`, configData);
                     
                     if (response.success) {
                       console.log('✅ Configuração salva com sucesso');

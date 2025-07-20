@@ -405,20 +405,32 @@ export class OmnibridgeController {
 
       console.log(`💾 Saving configuration for channel: ${channelId}`, configData);
 
-      const updatedChannel = await this.omnibridgeRepository.updateChannelConfiguration(tenantId, channelId, configData);
+      // Get real channel ID by removing 'ch-' prefix
+      const realChannelId = channelId.replace('ch-', '');
+      
+      // Update integration configuration in database
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      
+      await tenantDb.execute(sql`
+        UPDATE integrations 
+        SET config = ${JSON.stringify(configData)},
+            status = 'configured',
+            updated_at = NOW()
+        WHERE id = ${realChannelId} AND tenant_id = ${tenantId}
+      `);
 
-      if (updatedChannel) {
-        res.json({
-          success: true,
-          message: 'Configuration saved successfully',
-          data: updatedChannel
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: 'Channel not found'
-        });
-      }
+      // Update repository as well
+      const updatedChannel = await this.repository.updateChannelConfiguration(tenantId, channelId, configData);
+
+      res.json({
+        success: true,
+        message: 'Configuration saved successfully',
+        data: {
+          channelId,
+          configData,
+          timestamp: new Date().toISOString()
+        }
+      });
     } catch (error) {
       console.error('Error saving channel configuration:', error);
       res.status(500).json({
