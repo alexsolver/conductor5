@@ -2292,7 +2292,8 @@ export default function EmailConfiguration() {
               </Button>
             </div>
           </form>
-        </FormContent>
+          </Form>
+        </DialogContent>
       </Dialog>
 
       {/* Test Rule Dialog */}
