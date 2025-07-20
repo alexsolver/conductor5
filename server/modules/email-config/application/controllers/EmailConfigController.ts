@@ -315,6 +315,60 @@ export class EmailConfigController {
     }
   }
 
+  async sendTestEmail(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ message: 'Tenant ID is required' });
+        return;
+      }
+
+      const repository = new DrizzleEmailConfigRepository();
+      
+      // Create a test email message that will appear in the inbox
+      const testMessageId = `external-test-${Date.now()}`;
+      
+      const testEmail = {
+        messageId: testMessageId,
+        fromEmail: 'teste.externo@exemplo.com',
+        fromName: 'Teste Externo',
+        toEmail: 'alexsolver@gmail.com',
+        subject: 'Teste de Email Externo - Sistema Funcionando',
+        bodyText: 'Este é um email de teste enviado para verificar se o sistema está capturando emails externos corretamente. Se você vê esta mensagem na caixa de entrada, o sistema está funcionando!',
+        bodyHtml: '<p>Este é um email de teste enviado para verificar se o sistema está capturando emails externos corretamente.</p><p><strong>Se você vê esta mensagem na caixa de entrada, o sistema está funcionando!</strong></p>',
+        hasAttachments: false,
+        attachmentCount: 0,
+        attachmentDetails: [],
+        emailHeaders: {},
+        priority: 'medium',
+        emailDate: new Date(),
+        receivedAt: new Date()
+      };
+
+      // Save directly to inbox to simulate external email capture
+      await repository.saveInboxMessage(tenantId, testEmail);
+      
+      res.json({ 
+        success: true, 
+        message: 'Email de teste criado com sucesso!',
+        messageId: testMessageId,
+        data: {
+          from: testEmail.fromEmail,
+          to: testEmail.toEmail,
+          subject: testEmail.subject,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      res.status(500).json({ 
+        message: 'Failed to send test email',
+        error: error.message 
+      });
+    }
+  }
+
   async renderEmailTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;

@@ -57,6 +57,9 @@ router.get('/monitoring/logs', (req, res) => emailConfigController.getProcessing
 // POST /api/email-config/monitoring/test - Process test email
 router.post('/monitoring/test', (req, res) => emailConfigController.processTestEmail(req, res));
 
+// POST /api/email-config/monitoring/send-test - Send test email to inbox
+router.post('/monitoring/send-test', (req, res) => emailConfigController.sendTestEmail(req, res));
+
 // GET /api/email-config/templates/:templateId - Get specific email template
 router.get('/templates/:templateId', (req, res) => emailConfigController.getEmailTemplate(req, res));
 
