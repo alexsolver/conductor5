@@ -43,17 +43,26 @@ export class OmniBridgeController {
         return;
       }
 
+      console.log(`🔄 Starting channel sync for tenant: ${tenantId}`);
+      
       const syncUseCase = new SyncChannelsUseCase(this.channelRepository);
       const channels = await syncUseCase.execute(tenantId);
+      
+      console.log(`✅ Synchronized ${channels.length} channels successfully`);
       
       res.json({ 
         success: true, 
         message: `Synchronized ${channels.length} channels`,
-        channels 
+        channels,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error syncing channels:', error);
-      res.status(500).json({ success: false, message: 'Failed to sync channels' });
+      console.error('❌ Error syncing channels:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to sync channels',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 

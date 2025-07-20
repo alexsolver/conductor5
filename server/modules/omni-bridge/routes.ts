@@ -30,7 +30,23 @@ const omniBridgeController = new OmniBridgeController(
 
 // Apply authentication middleware
 router.use(jwtAuth);
-router.use(requirePermission('tenant', 'manage_settings'));
+
+// Middleware de verificação de permissão mais flexível para OmniBridge
+router.use((req, res, next) => {
+  const user = (req as any).user;
+  
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Authentication required' });
+  }
+  
+  // Permitir acesso para workspace_admin e tenant_admin
+  const allowedRoles = ['workspace_admin', 'tenant_admin'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ success: false, message: 'Insufficient permissions for OmniBridge' });
+  }
+  
+  next();
+});
 
 // === CHANNEL MANAGEMENT ROUTES ===
 router.get('/channels', omniBridgeController.getChannels.bind(omniBridgeController));

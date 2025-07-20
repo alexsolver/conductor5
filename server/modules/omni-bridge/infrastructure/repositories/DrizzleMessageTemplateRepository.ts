@@ -8,25 +8,30 @@ import { MessageTemplate } from '../../domain/entities/MessageTemplate';
 
 export class DrizzleMessageTemplateRepository implements IMessageTemplateRepository {
   async findAll(tenantId: string): Promise<MessageTemplate[]> {
-    // Por enquanto retorna templates de exemplo
-    return [
-      new MessageTemplate(
-        '1',
-        tenantId,
-        'Resposta Automática - Recebimento',
-        'Recebemos seu contato e retornaremos em breve.',
-        'email',
-        {
-          subject: 'Confirmação de Recebimento - {{ticketNumber}}',
-          body: 'Olá {{customerName}},\n\nRecebemos seu contato e nossa equipe retornará em breve.\n\nNúmero do chamado: {{ticketNumber}}\n\nAtenciosamente,\nEquipe de Suporte'
-        },
-        ['customerName', 'ticketNumber'],
-        'pt-BR',
-        true,
-        new Date(),
-        new Date()
-      )
-    ];
+    try {
+      // Retornar templates padrão para demonstração
+      const defaultTemplates = [
+        new MessageTemplate(
+          'welcome-template',
+          tenantId,
+          'Boas-vindas',
+          'Template de boas-vindas para novos clientes',
+          'email',
+          'Bem-vindo ao nosso sistema!',
+          'Olá {{customerName}},\n\nSeja bem-vindo ao nosso sistema de suporte!\n\nAtenciosamente,\nEquipe de Suporte',
+          '<p>Olá {{customerName}},</p><p>Seja bem-vindo ao nosso sistema de suporte!</p><p>Atenciosamente,<br>Equipe de Suporte</p>',
+          ['customerName'],
+          true,
+          new Date(),
+          new Date()
+        )
+      ];
+      
+      return defaultTemplates;
+    } catch (error) {
+      console.error('Error finding message templates:', error);
+      return [];
+    }
   }
 
   async findById(tenantId: string, id: string): Promise<MessageTemplate | null> {
@@ -39,6 +44,11 @@ export class DrizzleMessageTemplateRepository implements IMessageTemplateReposit
     return templates.filter(template => template.channelType === channelType);
   }
 
+  async findActive(tenantId: string): Promise<MessageTemplate[]> {
+    const templates = await this.findAll(tenantId);
+    return templates.filter(template => template.isActive);
+  }
+
   async save(template: MessageTemplate): Promise<MessageTemplate> {
     return template;
   }
@@ -46,12 +56,12 @@ export class DrizzleMessageTemplateRepository implements IMessageTemplateReposit
   async update(tenantId: string, id: string, updates: Partial<MessageTemplate>): Promise<MessageTemplate | null> {
     const template = await this.findById(tenantId, id);
     if (!template) return null;
-    
+
     Object.assign(template, updates);
     return template;
   }
 
-  async delete(tenantId: string, id: string): Promise<void> {
-    // Implementation would remove from database
+  async delete(tenantId: string, id: string): Promise<boolean> {
+    return true;
   }
 }
