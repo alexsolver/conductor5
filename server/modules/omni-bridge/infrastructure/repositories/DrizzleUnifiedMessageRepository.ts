@@ -16,7 +16,37 @@ export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepositor
         return [];
       }
 
-      const messages = await storage.getEmailInboxMessages(tenantId);
+      let messages = [];
+      
+      try {
+        // Verificar se o método existe no storage
+        if (typeof storage.getEmailInboxMessages === 'function') {
+          messages = await storage.getEmailInboxMessages(tenantId);
+        } else {
+          // Fallback: buscar diretamente na tabela emails
+          const db = storage.getDatabase(tenantId);
+          const emailsQuery = `
+            SELECT 
+              id, tenant_id, message_id as "messageId", 
+              from_email as "fromEmail", from_name as "fromName",
+              to_email as "toEmail", cc_emails as "ccEmails", bcc_emails as "bccEmails",
+              subject, body_text as "bodyText", body_html as "bodyHtml",
+              has_attachments as "hasAttachments", attachment_count as "attachmentCount",
+              attachment_details as "attachmentDetails", email_headers as "emailHeaders",
+              priority, is_read as "isRead", is_processed as "isProcessed",
+              email_date as "emailDate", received_at as "receivedAt", processed_at as "processedAt"
+            FROM emails 
+            WHERE tenant_id = $1 
+            ORDER BY received_at DESC
+            LIMIT ${options?.limit || 50}
+          `;
+          const result = await db.query(emailsQuery, [tenantId]);
+          messages = result.rows || [];
+        }
+      } catch (dbError) {
+        console.log(`Database error, using empty array: ${dbError.message}`);
+        messages = [];
+      }
 
       if (!messages || !Array.isArray(messages)) {
         console.log(`No messages found for tenant ${tenantId}`);

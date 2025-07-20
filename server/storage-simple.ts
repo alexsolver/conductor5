@@ -77,6 +77,9 @@ export interface IStorage {
   createEmailTemplate(tenantId: string, templateData: any): Promise<any>;
   updateEmailTemplate(tenantId: string, templateId: string, templateData: any): Promise<any | undefined>;
   deleteEmailTemplate(tenantId: string, templateId: string): Promise<boolean>;
+
+  // Email Management
+  getEmailInboxMessages(tenantId: string): Promise<any[]>;
 }
 
 // ===========================
@@ -838,7 +841,7 @@ export class DatabaseStorage implements IStorage {
       return result.rows?.[0];
     } catch (error) {
       logError('Error creating ticket template', error, { tenantId, templateData });
-      throw error;
+      throw error.
     }
   }
 
@@ -1409,9 +1412,9 @@ export class DatabaseStorage implements IStorage {
             0 as "hierarchyLevel"
           FROM ${sql.identifier(schemaName)}.tickets t
           WHERE t.id = ${ticketId} AND t.tenant_id = ${validatedTenantId}
-          
+
           UNION ALL
-          
+
           -- Recursive case: find children
           SELECT 
             t.id,
@@ -1548,6 +1551,35 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logError('Error deleting email template', error, { tenantId, templateId });
       throw error;
+    }
+  }
+
+  async getEmailInboxMessages(tenantId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          id, message_id as "messageId", 
+          from_email as "fromEmail", from_name as "fromName",
+          to_email as "toEmail", cc_emails as "ccEmails", bcc_emails as "bccEmails",
+          subject, body_text as "bodyText", body_html as "bodyHtml",
+          has_attachments as "hasAttachments", attachment_count as "attachmentCount",
+          attachment_details as "attachmentDetails", email_headers as "emailHeaders",
+          priority, is_read as "isRead", is_processed as "isProcessed",
+          email_date as "emailDate", received_at as "receivedAt", processed_at as "processedAt"
+        FROM ${sql.identifier(schemaName)}.emails 
+        WHERE tenant_id = ${validatedTenantId}
+        ORDER BY received_at DESC
+        LIMIT 100
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching email inbox messages', error, { tenantId });
+      return [];
     }
   }
 

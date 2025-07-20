@@ -10,30 +10,87 @@ export class DrizzleChannelRepository implements IChannelRepository {
     try {
       const { storage } = await import('../../../../storage-simple');
 
-      // Get channels from integrations
+      // Buscar integrações do tenant
       const integrations = await storage.getTenantIntegrations(tenantId);
 
-      return integrations.map(integration => {
-        const isConnected = integration.status === 'connected';
-        const isActive = integration.isActive !== false && isConnected; // Ativo se não for explicitamente false E estiver conectado
-        
-        return new Channel(
-          integration.id,
-          tenantId,
-          this.mapIntegrationType(integration.id),
-          integration.name,
-          isActive,
-          isConnected,
-          integration.config || {},
-          100, // default rate limit
-          integration.lastSync ? new Date(integration.lastSync) : null,
-          0, // message count - could be retrieved from email_inbox_messages
-          0, // error count
-          integration.errorMessage || null,
-          new Date(integration.createdAt),
-          new Date(integration.updatedAt)
+      if (!integrations || !Array.isArray(integrations)) {
+        console.log(`No integrations found for tenant ${tenantId}`);
+        return [];
+      }
+
+      const channels: Channel[] = [];
+
+      for (const integration of integrations) {
+        let isConnected = false;
+        let isActive = false;
+        let messageCount = 0;
+        let lastSync = null;
+        let lastError = null;
+        let errorCount = 0;
+
+        // Verificar status específico por tipo de integração
+        if (integration.id === 'imap-email') {
+          // Verificar se há configuração IMAP válida
+          const config = integration.config;
+          if (config && config.emailAddress && config.password && config.imapServer) {
+            // Verificar status da integração na base de dados
+            isConnected = integration.status === 'connected';
+            isActive = integration.status === 'connected';
+
+            // Se estiver conectado, verificar mensagens
+            if (isConnected) {
+              try {
+                // Verificar se existe método getEmailInboxMessages
+                if (typeof storage.getEmailInboxMessages === 'function') {
+                  const messages = await storage.getEmailInboxMessages(tenantId);
+                  messageCount = messages ? messages.length : 0;
+                } else {
+                  // Fallback: buscar diretamente na tabela emails
+                  const db = storage.getDatabase(tenantId);
+                  const emailsQuery = `SELECT COUNT(*) as count FROM emails WHERE tenant_id = $1`;
+                  const result = await db.query(emailsQuery, [tenantId]);
+                  messageCount = result.rows[0]?.count || 0;
+                }
+                lastSync = new Date().toISOString();
+              } catch (error) {
+                console.log(`Error fetching messages for IMAP: ${error.message}`);
+                errorCount = 1;
+                lastError = error.message;
+                // Manter como conectado mesmo com erro de mensagens
+                isConnected = true;
+                isActive = true;
+              }
+            }
+          } else {
+            // Configuração incompleta
+            isConnected = false;
+            isActive = false;
+            lastError = 'Configuração IMAP incompleta';
+            errorCount = 1;
+          }
+        }
+
+        channels.push(
+          new Channel(
+            integration.id,
+            tenantId,
+            this.mapIntegrationType(integration.id),
+            integration.name,
+            isActive,
+            isConnected,
+            integration.config || {},
+            100, // default rate limit
+            integration.lastSync ? new Date(integration.lastSync) : null,
+            messageCount, // message count - could be retrieved from email_inbox_messages
+            errorCount, // error count
+            lastError || integration.errorMessage || null,
+            new Date(integration.createdAt),
+            new Date(integration.updatedAt)
+          )
         );
-      }).filter(channel => channel.type !== null);
+      }
+
+      return channels.filter(channel => channel.type !== null);
     } catch (error) {
       console.error('Error finding channels:', error);
       return [];
