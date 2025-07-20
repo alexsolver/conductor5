@@ -54,7 +54,8 @@ export class OmniBridgeController {
       
       res.json({ 
         success: true, 
-        channels: channels || [],
+        data: channels || [],
+        channels: channels || [], // compatibilidade
         count: channels.length 
       });
     } catch (error) {
@@ -85,8 +86,10 @@ export class OmniBridgeController {
       
       res.json({ 
         success: true, 
+        data: channels,
         message: `Synchronized ${channels.length} channels`,
-        channels,
+        channels, // compatibilidade
+        processed: channels.length,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -234,8 +237,10 @@ export class OmniBridgeController {
       
       res.json({ 
         success: true, 
+        data: result,
         message: 'Messages processed successfully',
-        result 
+        processed: result?.processedCount || 0,
+        result // compatibilidade
       });
     } catch (error) {
       console.error('Error processing messages:', error);

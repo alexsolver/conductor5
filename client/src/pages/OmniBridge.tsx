@@ -167,8 +167,9 @@ export default function OmniBridge() {
         throw new Error(data.message || `HTTP ${response.status}`);
       }
 
-      setChannels(data.data || []);
-      console.log('📋 Canais carregados:', data.data?.length || 0);
+      const channelsData = data.data || data.channels || [];
+      setChannels(channelsData);
+      console.log('📋 Canais carregados:', channelsData.length);
     } catch (error) {
       console.error('Error loading channels:', error);
       toast({
@@ -275,6 +276,7 @@ export default function OmniBridge() {
   };
 
   const syncChannels = async () => {
+    console.log('🔄 Iniciando sincronização de canais...');
     setLoading(true);
     try {
       const token = await refreshTokenIfNeeded();
@@ -298,9 +300,10 @@ export default function OmniBridge() {
         throw new Error(data.message || `HTTP ${response.status}`);
       }
 
+      const processedCount = data.processed || data.channels?.length || 0;
       toast({
         title: "Canais sincronizados",
-        description: "Sincronização de canais concluída com sucesso",
+        description: `${processedCount} canais sincronizados com sucesso`,
       });
 
       await loadData();
@@ -317,6 +320,7 @@ export default function OmniBridge() {
   };
 
   const processMessages = async () => {
+    console.log('⚡ Iniciando processamento de mensagens...');
     setLoading(true);
     try {
       const token = await refreshTokenIfNeeded();
@@ -340,9 +344,10 @@ export default function OmniBridge() {
         throw new Error(data.message || `HTTP ${response.status}`);
       }
 
+      const processedCount = data.processed || data.result?.processedCount || 0;
       toast({
         title: "Processamento concluído",
-        description: `${data.processed || 0} mensagens processadas`,
+        description: `${processedCount} mensagens processadas com sucesso`,
       });
 
       await loadData();
