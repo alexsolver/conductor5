@@ -200,8 +200,9 @@ export class EmailReadingService {
         }
 
         if (!results || results.length === 0) {
-          console.log(`📭 No recent emails found for integration ${integrationId}`);
-          resolve();
+          console.log(`📭 No recent emails found for integration ${integrationId}, trying to get latest emails`);
+          // If no recent emails, get the latest 5 emails from the inbox
+          this.importLatestEmails(tenantId, integrationId, imap, resolve);
           return;
         }
 
@@ -463,5 +464,109 @@ export class EmailReadingService {
         agent: false
       }
     };
+  }
+
+  private importLatestEmails(tenantId: string, integrationId: string, imap: any, resolve: () => void): void {
+    console.log(`🔄 Importing latest emails for integration ${integrationId}`);
+    
+    // Get all emails and take the latest 5
+    imap.search(['ALL'], (searchError: any, allResults: any) => {
+      if (searchError || !allResults || allResults.length === 0) {
+        console.log(`📭 No emails found in inbox for integration ${integrationId}`);
+        resolve();
+        return;
+      }
+
+      // Get the last 5 emails
+      const latest5 = allResults.slice(-5);
+      console.log(`📧 Processing ${latest5.length} latest emails from ${allResults.length} total emails`);
+
+      const fetch = imap.fetch(latest5, { 
+        bodies: '',
+        markSeen: false,
+        struct: true 
+      });
+
+      let emailsProcessed = 0;
+
+      fetch.on('message', (msg: any, seqno: number) => {
+        let emailData = '';
+
+        msg.on('body', (stream: any, info: any) => {
+          stream.on('data', (chunk: any) => {
+            emailData += chunk.toString('utf8');
+          });
+
+          stream.once('end', async () => {
+            try {
+              // Parse email headers
+              const headerMatch = emailData.match(/^([\s\S]*?)\r?\n\r?\n([\s\S]*)$/);
+              if (headerMatch) {
+                const headerSection = headerMatch[1];
+                const bodySection = headerMatch[2];
+
+                // Parse headers
+                const headers = this.parseHeaders(headerSection);
+
+                const emailInfo = {
+                  messageId: headers['message-id'] || `imap-${integrationId}-${seqno}`,
+                  threadId: headers['in-reply-to'] || null,
+                  fromEmail: this.extractEmail(headers.from || ''),
+                  fromName: this.extractName(headers.from || ''),
+                  toEmail: this.extractEmail(headers.to || ''),
+                  ccEmails: JSON.stringify([]),
+                  bccEmails: JSON.stringify([]),
+                  subject: headers.subject || 'No Subject',
+                  bodyText: this.extractTextFromBody(bodySection),
+                  bodyHtml: this.extractHtmlFromBody(bodySection),
+                  hasAttachments: false,
+                  attachmentCount: 0,
+                  attachmentDetails: [],
+                  emailHeaders: JSON.stringify(headers),
+                  priority: this.determinePriority(headers.subject || '', bodySection),
+                  emailDate: this.parseDate(headers.date)?.toISOString() || new Date().toISOString(),
+                  receivedAt: new Date().toISOString(),
+                  processedAt: null
+                };
+
+                console.log(`📨 Importing email: ${emailInfo.fromEmail} -> ${emailInfo.subject}`);
+                
+                // Save to database using EmailProcessingService
+                const emailProcessingService = new EmailProcessingService();
+                await emailProcessingService.processAndSaveInbox(tenantId, emailInfo);
+                
+                emailsProcessed++;
+                if (emailsProcessed === latest5.length) {
+                  console.log(`✅ Successfully imported ${emailsProcessed} emails for integration ${integrationId}`);
+                  resolve();
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Error processing email ${seqno}:`, error);
+              emailsProcessed++;
+              if (emailsProcessed === latest5.length) {
+                resolve();
+              }
+            }
+          });
+        });
+
+        msg.once('attributes', (attrs: any) => {
+          console.log(`📧 Processing email ${seqno} with UID ${attrs.uid}`);
+        });
+      });
+
+      fetch.once('error', (fetchError: any) => {
+        console.error(`❌ Error fetching emails for integration ${integrationId}:`, fetchError);
+        resolve();
+      });
+
+      fetch.once('end', () => {
+        if (emailsProcessed === 0) {
+          console.log(`✅ Finished importing emails for integration ${integrationId}`);
+          resolve();
+        }
+      });
+    });
   }
 }
