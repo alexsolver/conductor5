@@ -500,7 +500,7 @@ export default function EmailConfiguration() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (messageId: string) => {
-      const response = await apiRequest('PUT', `/api/email-config/inbox/${messageId}`, { isRead: true });
+      const response = await apiRequest('PUT', `/api/email-config/inbox/${messageId}/read`);
       return response.json();
     },
     onSuccess: () => {
