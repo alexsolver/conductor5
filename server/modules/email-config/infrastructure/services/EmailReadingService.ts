@@ -1,14 +1,12 @@
-import { schemaManager } from '../../../../db';
-import { DrizzleEmailConfigRepository } from '../repositories/DrizzleEmailConfigRepository';
-import { EmailProcessingService } from '../../application/services/EmailProcessingService';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
+import { DrizzleEmailConfigRepository } from '../repositories/DrizzleEmailConfigRepository.js';
+import { EmailProcessingService } from '../../application/services/EmailProcessingService.js';
 
 export class EmailReadingService {
-  private activeConnections = new Map<string, any>();
   private isMonitoring = false;
   private checkInterval: NodeJS.Timeout | null = null;
+  private activeConnections = new Map<string, any>();
+  private repository = new DrizzleEmailConfigRepository();
+  private processingService = new EmailProcessingService();
 
   async startMonitoring(tenantId: string): Promise<void> {
     if (this.isMonitoring) {
@@ -16,49 +14,33 @@ export class EmailReadingService {
       return;
     }
 
-    console.log('📧 Starting email monitoring service...');
-
+    console.log('📧 Starting email monitoring...');
+    
     try {
-      const repository = new DrizzleEmailConfigRepository();
-      const integrations = await repository.getEmailIntegrations(tenantId);
+      // Get connected integrations
+      const integrations = await this.repository.getConnectedIntegrations(tenantId);
+      console.log(`🔍 Found ${integrations.length} connected integrations`);
 
-      const emailIntegrations = integrations.filter(i => 
-        i.category === 'Comunicação' && 
-        i.isConfigured && 
-        (i.name === 'IMAP Email' || i.name === 'Gmail OAuth2' || i.name === 'Outlook OAuth2')
-      );
-
-      if (emailIntegrations.length === 0) {
-        console.log('⚠️ No configured email integrations found');
+      if (integrations.length === 0) {
+        console.log('⚠️ No connected integrations found');
         return;
       }
 
-      console.log(`📧 Found ${emailIntegrations.length} configured email integrations`);
-
-      // Connect to each email integration
-      for (const integration of emailIntegrations) {
+      // Connect to each integration
+      for (const integration of integrations) {
         try {
           await this.connectToEmailIntegration(tenantId, integration);
         } catch (error) {
-          console.error(`❌ Failed to connect to integration ${integration.name}:`, error);
+          console.error(`❌ Failed to connect to ${integration.name}:`, error);
         }
       }
 
       this.isMonitoring = true;
 
-      // Start periodic email checking
-      this.checkInterval = setInterval(async () => {
-        if (this.isMonitoring) {
-          await this.checkForNewEmails(tenantId);
-        }
-      }, 5 * 60 * 1000); // Check every 5 minutes
-
-      // Do an immediate check
-      setTimeout(() => {
-        if (this.isMonitoring) {
-          this.checkForNewEmails(tenantId);
-        }
-      }, 2000);
+      // Start checking for emails every 2 minutes
+      this.checkInterval = setInterval(() => {
+        this.checkAllEmails(tenantId);
+      }, 2 * 60 * 1000);
 
       console.log('✅ Email monitoring started successfully');
     } catch (error) {
@@ -95,30 +77,32 @@ export class EmailReadingService {
   getMonitoringStatus(): any {
     const activeIntegrations = Array.from(this.activeConnections.keys());
     const connectionCount = this.activeConnections.size;
-    const isActive = this.isMonitoring && this.checkInterval !== null && connectionCount > 0;
+    
+    // Check if connections are actually authenticated
+    let authenticatedConnections = 0;
+    for (const [integrationId, imap] of this.activeConnections) {
+      if (imap && imap.state === 'authenticated') {
+        authenticatedConnections++;
+      }
+    }
+
+    const isActive = this.isMonitoring && this.checkInterval !== null && authenticatedConnections > 0;
 
     return {
       isActive,
       connectionCount,
+      authenticatedConnections,
       activeIntegrations,
       monitoringInterval: this.checkInterval !== null,
-      lastCheck: new Date()
-    };
-  }
-
-  getMonitoringStatus(): any {
-    return {
-      isActive: this.isMonitoring,
-      activeConnections: this.activeConnections.size,
-      integrations: Array.from(this.activeConnections.keys())
+      lastCheck: new Date().toISOString(),
+      status: isActive ? 'Monitoramento ativo' : 'Monitoramento pausado'
     };
   }
 
   private async connectToEmailIntegration(tenantId: string, integration: any): Promise<void> {
     console.log(`🔌 Connecting to integration: ${integration.name} (${integration.emailAddress})`);
 
-    const repository = new DrizzleEmailConfigRepository();
-    const config = await repository.getIntegrationConfig(tenantId, integration.id);
+    const config = await this.repository.getIntegrationConfig(tenantId, integration.id);
 
     if (!config || !config.emailAddress || !config.password) {
       console.error(`❌ Invalid config for integration ${integration.name}`);
@@ -163,16 +147,39 @@ export class EmailReadingService {
     });
   }
 
-  private async checkForNewEmails(tenantId: string): Promise<void> {
-    console.log(`📬 Checking for new emails for tenant: ${tenantId} (${this.activeConnections.size} connections)`);
+  private getImapConfig(emailAddress: string, config: any) {
+    // Gmail configuration
+    if (emailAddress.includes('@gmail.com')) {
+      return {
+        user: config.emailAddress,
+        password: config.password,
+        host: 'imap.gmail.com',
+        port: 993,
+        tls: true,
+        tlsOptions: { rejectUnauthorized: false }
+      };
+    }
+
+    // Default configuration
+    return {
+      user: config.emailAddress,
+      password: config.password,
+      host: config.imapHost || 'imap.gmail.com',
+      port: parseInt(config.imapPort) || 993,
+      tls: config.imapSecurity === 'SSL/TLS'
+    };
+  }
+
+  private async checkAllEmails(tenantId: string): Promise<void> {
+    console.log(`📧 Checking emails for ${this.activeConnections.size} connections...`);
 
     const promises = [];
     for (const [integrationId, imap] of this.activeConnections) {
       try {
-        if (imap.state === 'authenticated') {
+        if (imap && imap.state === 'authenticated') {
           promises.push(this.readEmailsFromConnection(tenantId, integrationId, imap));
         } else {
-          console.log(`⚠️ IMAP connection not authenticated for integration ${integrationId}, state: ${imap.state}`);
+          console.log(`⚠️ IMAP connection not authenticated for integration ${integrationId}, state: ${imap?.state}`);
         }
       } catch (error) {
         console.error(`❌ Error reading emails from integration ${integrationId}:`, error);
@@ -199,730 +206,253 @@ export class EmailReadingService {
       }
 
       console.log(`📫 Opened INBOX for integration ${integrationId}, ${box.messages.total} total messages`);
+      this.importLatestEmails(tenantId, integrationId, imap, resolve);
+    });
+  }
 
-      // Search for emails from the last 24 hours to catch more emails
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+  private importLatestEmails(tenantId: string, integrationId: string, imap: any, resolve: () => void): void {
+    // Get the last 20 emails from the inbox
+    const totalMessages = imap.seq.total;
+    if (totalMessages === 0) {
+      console.log(`📭 No emails in inbox for integration ${integrationId}`);
+      resolve();
+      return;
+    }
 
-      console.log(`🔍 Searching for emails since: ${yesterday.toISOString()}`);
+    const startSeq = Math.max(1, totalMessages - 19); // Get last 20 emails
+    const endSeq = totalMessages;
 
-      imap.search([['SINCE', yesterday]], (searchError: any, results: any) => {
-        if (searchError) {
-          console.error(`❌ Error searching emails for integration ${integrationId}:`, searchError);
-          resolve();
-          return;
-        }
+    console.log(`📧 Fetching emails ${startSeq} to ${endSeq} (last 20) for integration ${integrationId}`);
 
-        if (!results || results.length === 0) {
-          console.log(`📭 No recent emails found for integration ${integrationId}, trying to get latest emails`);
-          // If no recent emails, get the latest 5 emails from the inbox
-          this.importLatestEmails(tenantId, integrationId, imap, resolve);
-          return;
-        }
+    const fetch = imap.seq.fetch(`${startSeq}:${endSeq}`, {
+      bodies: '',
+      markSeen: false,
+      struct: true
+    });
 
-        console.log(`📬 Found ${results.length} recent emails for integration ${integrationId}`);
+    let emailsProcessed = 0;
+    const emailsToSave: any[] = [];
 
-        // Take last 10 emails to avoid overwhelming the system
-        const emailsToProcess = results.slice(-10);
-        console.log(`📧 Processing ${emailsToProcess.length} most recent emails`);
+    fetch.on('message', (msg: any, seqno: number) => {
+      let emailData = '';
 
-        const fetch = imap.fetch(emailsToProcess, { 
-          bodies: '',
-          markSeen: false,
-          struct: true 
+      msg.on('body', (stream: any) => {
+        stream.on('data', (chunk: any) => {
+          emailData += chunk.toString('utf8');
         });
 
-        let emailsProcessed = 0;
-        const emailsToSave = [];
-
-        fetch.on('message', (msg: any, seqno: number) => {
-          let emailData = '';
-          let emailHeaders: any = {};
-
-          msg.on('body', (stream: any, info: any) => {
-            stream.on('data', (chunk: any) => {
-              emailData += chunk.toString('utf8');
-            });
-
-            stream.once('end', () => {
-              // Parse email headers
-              const headerMatch = emailData.match(/^([\s\S]*?)\r?\n\r?\n([\s\S]*)$/);
-              if (headerMatch) {
-                const headerSection = headerMatch[1];
-                const bodySection = headerMatch[2];
-
-                // Parse headers
-                const headers = this.parseHeaders(headerSection);
-                emailHeaders = headers;
-
-                const emailInfo = {
-                  messageId: headers['message-id'] || `imap-${integrationId}-${seqno}`,
-                  fromEmail: this.extractEmail(headers.from || ''),
-                  fromName: this.fixUTF8Encoding(this.extractName(headers.from || '')),
-                  toEmail: this.extractEmail(headers.to || ''),
-                  subject: this.fixUTF8Encoding(this.decodeRFC2047(headers.subject || 'No Subject')),
-                  bodyText: this.extractTextFromBody(bodySection),
-                  bodyHtml: this.extractHtmlFromBody(bodySection),
-                  hasAttachments: false,
-                  attachmentCount: 0,
-                  attachmentDetails: [],
-                  emailHeaders: headers,
-                  priority: this.determinePriority(headers.subject || '', bodySection),
-                  emailDate: this.parseDate(headers.date) || new Date(),
-                  receivedAt: new Date()
-                };
-
-                emailsToSave.push(emailInfo);
-                console.log(`📨 Parsed email: ${emailInfo.fromEmail} -> ${emailInfo.subject}`);
-              }
-            });
-          });
-
-          msg.once('attributes', (attrs: any) => {
-            console.log(`📧 Email ${seqno} attributes:`, {
-              uid: attrs.uid,
-              flags: attrs.flags,
-              date: attrs.date
-            });
-          });
-        });
-
-        fetch.once('error', (err: Error) => {
-          console.error(`❌ Fetch error for integration ${integrationId}:`, err);
-          resolve();
-        });
-
-        fetch.once('end', async () => {
-          emailsProcessed = emailsToSave.length;
-          console.log(`📧 Finished fetching ${emailsProcessed} emails for integration ${integrationId}`);
-
-          // Save and process emails
-          if (emailsToSave.length > 0) {
-            try {
-              const repository = new DrizzleEmailConfigRepository();
-              const emailProcessingService = new EmailProcessingService();
-
-              for (const emailInfo of emailsToSave) {
-                try {
-                  // Check if email already exists to avoid duplicates
-                  const existingEmail = await this.checkEmailExists(tenantId, emailInfo.messageId);
-                  if (existingEmail) {
-                    console.log(`📧 Email already exists: ${emailInfo.messageId}`);
-                    continue;
-                  }
-
-                  // Save to inbox first
-                  const savedId = await repository.saveInboxMessage(tenantId, emailInfo);
-                  console.log(`💾 Saved email to inbox: ${savedId}`);
-
-                  // Process with rules
-                  await emailProcessingService.processIncomingEmail(tenantId, emailInfo);
-                  console.log(`⚡ Processed email with rules: ${emailInfo.subject}`);
-
-                } catch (error) {
-                  console.error(`❌ Error saving/processing email:`, error);
-                  // Continue with next email
-                }
-              }
-            } catch (error) {
-              console.error(`❌ Error in email processing batch:`, error);
+        stream.once('end', () => {
+          try {
+            const emailInfo = this.parseEmailData(emailData, integrationId, seqno);
+            if (emailInfo) {
+              emailsToSave.push(emailInfo);
+              console.log(`📨 Parsed email ${emailsProcessed + 1}: ${emailInfo.fromEmail} -> ${emailInfo.subject}`);
             }
+          } catch (error) {
+            console.error(`❌ Error parsing email ${seqno}:`, error);
           }
-
-          resolve();
         });
       });
+
+      msg.on('end', () => {
+        emailsProcessed++;
+      });
+    });
+
+    fetch.once('error', (fetchError: any) => {
+      console.error(`❌ Error fetching emails for integration ${integrationId}:`, fetchError);
+      resolve();
+    });
+
+    fetch.once('end', async () => {
+      console.log(`📧 Finished fetching ${emailsProcessed} emails for integration ${integrationId}`);
+      
+      if (emailsToSave.length > 0) {
+        await this.processAndSaveEmails(tenantId, emailsToSave);
+      }
+      
+      resolve();
     });
   }
 
-  // Enhanced MIME content processing with improved quoted-printable and base64 decoding
-  private extractTextFromBody(bodySection: string): string {
+  private parseEmailData(emailData: string, integrationId: string, seqno: number): any | null {
     try {
-      // Check if this is a multipart message
-      if (bodySection.includes('Content-Type: multipart/')) {
-        return this.extractFromMultipart(bodySection, 'text/plain');
+      const headerMatch = emailData.match(/^([\s\S]*?)\r?\n\r?\n([\s\S]*)$/);
+      if (!headerMatch) {
+        console.error(`❌ Could not parse email headers for seqno ${seqno}`);
+        return null;
       }
+
+      const headerSection = headerMatch[1];
+      const bodySection = headerMatch[2];
+      const headers = this.parseHeaders(headerSection);
+
+      const emailDate = this.parseDate(headers.date);
       
-      // Single part message
-      return this.decodeMessageContent(bodySection);
-    } catch (error) {
-      console.error('Error extracting text from body:', error);
-      return bodySection.substring(0, 1000); // Fallback to first 1000 chars
-    }
-  }
-
-  private extractHtmlFromBody(bodySection: string): string {
-    try {
-      // Check if this is a multipart message
-      if (bodySection.includes('Content-Type: multipart/')) {
-        return this.extractFromMultipart(bodySection, 'text/html');
-      }
-      
-      // Check if single part is HTML
-      if (bodySection.includes('Content-Type: text/html')) {
-        return this.decodeMessageContent(bodySection);
-      }
-      
-      return '';
-    } catch (error) {
-      console.error('Error extracting HTML from body:', error);
-      return '';
-    }
-  }
-
-  private extractFromMultipart(bodySection: string, contentType: string): string {
-    try {
-      // Find boundary
-      const boundaryMatch = bodySection.match(/boundary[=\s]*["']?([^"'\s;]+)["']?/i);
-      if (!boundaryMatch) {
-        console.log('No boundary found in multipart message');
-        return this.decodeMessageContent(bodySection);
-      }
-
-      const boundary = boundaryMatch[1];
-      console.log(`📧 Found boundary: ${boundary}`);
-
-      // Split by boundary
-      const parts = bodySection.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g'));
-      
-      for (const part of parts) {
-        if (part.includes(`Content-Type: ${contentType}`)) {
-          console.log(`📧 Found ${contentType} part`);
-          return this.decodeMessageContent(part);
-        }
-      }
-
-      // Fallback: try to find any text content
-      for (const part of parts) {
-        if (part.includes('Content-Type: text/')) {
-          console.log(`📧 Found text/* part as fallback`);
-          return this.decodeMessageContent(part);
-        }
-      }
-
-      return '';
-    } catch (error) {
-      console.error('Error extracting from multipart:', error);
-      return '';
-    }
-  }
-
-  private decodeMessageContent(content: string): string {
-    try {
-      // Find the actual content after headers
-      const contentParts = content.split(/\r?\n\r?\n/);
-      if (contentParts.length < 2) {
-        return content.trim();
-      }
-
-      const headers = contentParts[0];
-      const body = contentParts.slice(1).join('\n\n');
-
-      // Check for Content-Transfer-Encoding
-      const encodingMatch = headers.match(/Content-Transfer-Encoding:\s*([^\r\n]+)/i);
-      const encoding = encodingMatch ? encodingMatch[1].trim().toLowerCase() : '';
-
-      console.log(`📧 Content encoding: ${encoding}`);
-
-      if (encoding === 'quoted-printable') {
-        return this.decodeQuotedPrintable(body);
-      } else if (encoding === 'base64') {
-        return this.decodeBase64(body);
-      } else {
-        return body.trim();
-      }
-    } catch (error) {
-      console.error('Error decoding message content:', error);
-      return content.substring(0, 1000);
-    }
-  }
-
-  private decodeQuotedPrintable(text: string): string {
-    try {
-      let decoded = text
-        // Handle soft line breaks (= at end of line)
-        .replace(/=\r?\n/g, '')
-        // Handle hex-encoded characters
-        .replace(/=([0-9A-F]{2})/gi, (match, hex) => {
-          return String.fromCharCode(parseInt(hex, 16));
-        })
-        // Clean up extra whitespace
-        .trim();
-
-      // Additional UTF-8 character fixes for common Brazilian Portuguese characters
-      decoded = this.fixUTF8Encoding(decoded);
-      
-      return decoded;
-    } catch (error) {
-      console.error('Error decoding quoted-printable:', error);
-      return text;
-    }
-  }
-
-  private fixUTF8Encoding(text: string): string {
-    try {
-      // Fix common UTF-8 encoding issues for Portuguese characters
-      const fixes = {
-        'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
-        'Ã ': 'à', 'Ã¨': 'è', 'Ã¬': 'ì', 'Ã²': 'ò', 'Ã¹': 'ù',
-        'Ã¢': 'â', 'Ãª': 'ê', 'Ã®': 'î', 'Ã´': 'ô', 'Ã»': 'û',
-        'Ã£': 'ã', 'Ã±': 'ñ', 'Ã§': 'ç', 'Ã½': 'ý',
-        'Á': 'Á', 'É': 'É', 'Í': 'Í', 'Ó': 'Ó', 'Ú': 'Ú',
-        'À': 'À', 'È': 'È', 'Ì': 'Ì', 'Ò': 'Ò', 'Ù': 'Ù',
-        'Â': 'Â', 'Ê': 'Ê', 'Î': 'Î', 'Ô': 'Ô', 'Û': 'Û',
-        'Ã': 'Ã', 'Ñ': 'Ñ', 'Ç': 'Ç', 'Ý': 'Ý',
-        'Â°': '°', 'Â´': '´', 'Â¨': '¨', 'Â¸': '¸', 'Â¿': '¿', 'Â¡': '¡'
-      };
-
-      let fixed = text;
-      for (const [wrong, correct] of Object.entries(fixes)) {
-        fixed = fixed.replace(new RegExp(wrong, 'g'), correct);
-      }
-
-      return fixed;
-    } catch (error) {
-      console.error('Error fixing UTF-8 encoding:', error);
-      return text;
-    }
-  }
-
-  private decodeBase64(text: string): string {
-    try {
-      // Remove whitespace and line breaks
-      const cleanBase64 = text.replace(/\s+/g, '');
-      
-      // Decode base64
-      const buffer = Buffer.from(cleanBase64, 'base64');
-      return buffer.toString('utf8');
-    } catch (error) {
-      console.error('Error decoding base64:', error);
-      return text;
-    }
-  }
-
-  // RFC 2047 header decoding for encoded subject lines
-  private decodeRFC2047(text: string): string {
-    if (!text) return '';
-    
-    // Match =?charset?encoding?encoded-text?=
-    return text.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (match, charset, encoding, encodedText) => {
-      try {
-        if (encoding.toUpperCase() === 'B') {
-          // Base64 decode
-          const decoded = Buffer.from(encodedText, 'base64').toString('utf8');
-          return decoded;
-        } else if (encoding.toUpperCase() === 'Q') {
-          // Quoted-printable decode
-          return encodedText.replace(/_/g, ' ').replace(/=([A-F0-9]{2})/g, (_, hex) => {
-            return String.fromCharCode(parseInt(hex, 16));
-          });
-        }
-      } catch (error) {
-        console.warn('Error decoding RFC2047 text:', error);
-      }
-      return match; // Return original if decoding fails
-    });
-  }
-
-  // Parse MIME multipart content
-  private parseMimeContent(body: string): { text: string; html?: string } {
-    // Check if this is multipart content
-    const boundaryMatch = body.match(/boundary[="']?([^"'\s;]+)/i);
-    
-    if (boundaryMatch) {
-      const boundary = boundaryMatch[1];
-      const parts = body.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-      
-      let textPart = '';
-      let htmlPart = '';
-
-      for (const part of parts) {
-        if (part.includes('Content-Type: text/plain')) {
-          // Extract content after headers
-          const headerEndMatch = part.match(/\r?\n\r?\n([\s\S]*)/);
-          if (headerEndMatch) {
-            const rawContent = headerEndMatch[1];
-            if (part.includes('Content-Transfer-Encoding: quoted-printable')) {
-              textPart = this.cleanQuotedPrintable(rawContent);
-            } else {
-              textPart = this.extractCleanText(rawContent);
-            }
-          }
-        } else if (part.includes('Content-Type: text/html')) {
-          // Extract content after headers
-          const headerEndMatch = part.match(/\r?\n\r?\n([\s\S]*)/);
-          if (headerEndMatch) {
-            const rawContent = headerEndMatch[1];
-            if (part.includes('Content-Transfer-Encoding: quoted-printable')) {
-              htmlPart = this.cleanQuotedPrintable(rawContent);
-            } else {
-              htmlPart = this.extractCleanText(rawContent);
-            }
-          }
-        }
+      // Filter emails by year (only 2025 and later)
+      if (emailDate && emailDate.getFullYear() < 2025) {
+        console.log(`⏭️ Skipping old email from ${emailDate.getFullYear()}: ${headers.subject || 'No Subject'}`);
+        return null;
       }
 
       return {
-        text: textPart || this.extractCleanText(body),
-        html: htmlPart || undefined
+        messageId: headers['message-id'] || `imap-${integrationId}-${seqno}`,
+        fromEmail: this.extractEmail(headers.from || ''),
+        fromName: this.cleanQuotedPrintable(this.extractName(headers.from || '')),
+        toEmail: this.extractEmail(headers.to || ''),
+        subject: this.cleanQuotedPrintable(headers.subject || 'No Subject'),
+        bodyText: this.extractTextFromBody(bodySection),
+        bodyHtml: this.extractHtmlFromBody(bodySection),
+        hasAttachments: false,
+        attachmentCount: 0,
+        attachmentDetails: [],
+        emailHeaders: headers,
+        priority: this.determinePriority(headers.subject || '', bodySection),
+        emailDate: emailDate || new Date(),
+        receivedAt: new Date()
       };
-    }
-
-    // Single part message - check for quoted-printable encoding
-    if (body.includes('Content-Transfer-Encoding: quoted-printable')) {
-      const cleanContent = this.cleanQuotedPrintable(body);
-      return { text: cleanContent };
-    }
-
-    // Plain text message
-    return { text: this.extractCleanText(body) };
-  }
-
-  // Extract clean text content from email body
-  private extractCleanText(body: string): string {
-    // Remove MIME headers and boundaries
-    let cleanText = body;
-    
-    // Remove MIME boundary markers
-    cleanText = cleanText.replace(/--[a-zA-Z0-9]+/g, '');
-    
-    // Remove Content-Type, Content-Transfer-Encoding headers
-    cleanText = cleanText.replace(/Content-Type:[^\r\n]*/gi, '');
-    cleanText = cleanText.replace(/Content-Transfer-Encoding:[^\r\n]*/gi, '');
-    cleanText = cleanText.replace(/Mime-Version:[^\r\n]*/gi, '');
-    
-    // Clean quoted-printable encoding
-    cleanText = this.cleanQuotedPrintable(cleanText);
-    
-    // Remove HTML tags if present
-    cleanText = cleanText.replace(/<[^>]*>/g, ' ');
-    
-    // Clean up whitespace and truncate
-    cleanText = cleanText
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 1000); // Reasonable length for preview
-    
-    return cleanText;
-  }
-
-  // Clean quoted-printable encoding
-  private cleanQuotedPrintable(text: string): string {
-    try {
-      // Remove content headers first
-      let content = text.replace(/^[\s\S]*?\r?\n\r?\n/, '');
-      
-      // Decode quoted-printable encoding
-      content = content
-        .replace(/=([A-F0-9]{2})/gi, (_, hex) => {
-          try {
-            return String.fromCharCode(parseInt(hex, 16));
-          } catch {
-            return `=${hex}`;
-          }
-        })
-        .replace(/=\r?\n/g, '') // Remove soft line breaks
-        .replace(/=\s*$/gm, ''); // Remove trailing = at line ends
-      
-      // Convert to proper UTF-8 and clean up
-      content = content
-        .replace(/\r?\n/g, ' ') // Convert line breaks to spaces
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .replace(/Ã¡/g, 'á') // Fix common UTF-8 issues
-        .replace(/Ã­/g, 'í')
-        .replace(/Ã©/g, 'é')
-        .replace(/Ã§/g, 'ç')
-        .replace(/Ã³/g, 'ó')
-        .replace(/Ãº/g, 'ú')
-        .replace(/Ã¢/g, 'â')
-        .replace(/Ãª/g, 'ê')
-        .replace(/Ã´/g, 'ô')
-        .replace(/Ã£/g, 'ã')
-        .replace(/Ãµ/g, 'õ')
-        .replace(/Ã§/g, 'ç')
-        .replace(/Ã/g, 'Á')
-        .replace(/Ã/g, 'É')
-        .replace(/Ã/g, 'Í')
-        .replace(/Ã/g, 'Ó')
-        .replace(/Ã/g, 'Ú')
-        .replace(/Ã/g, 'Â')
-        .replace(/Ã/g, 'Ê')
-        .replace(/Ã/g, 'Ô')
-        .replace(/Ã/g, 'Ã')
-        .replace(/Ã/g, 'Õ')
-        .replace(/Ã/g, 'Ç')
-        .trim();
-      
-      return content.substring(0, 2000); // Limit length
     } catch (error) {
-      console.error('Error decoding quoted-printable:', error);
-      return text.substring(0, 2000);
+      console.error(`❌ Error parsing email data for seqno ${seqno}:`, error);
+      return null;
     }
   }
 
   private parseHeaders(headerSection: string): any {
     const headers: any = {};
-    const lines = headerSection.split(/\r?\n/);
-    let currentHeader = '';
-    let currentValue = '';
-
-    for (const line of lines) {
-      if (line.match(/^\s/) && currentHeader) {
-        // Continuation of previous header
-        currentValue += ' ' + line.trim();
-      } else {
-        // Save previous header
-        if (currentHeader) {
-          headers[currentHeader.toLowerCase()] = currentValue.trim();
+    const lines = headerSection.split('\n');
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const match = line.match(/^([^:]+):\s*(.*)/);
+      
+      if (match) {
+        const key = match[1].toLowerCase();
+        let value = match[2];
+        
+        // Handle multi-line headers
+        while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
+          i++;
+          value += ' ' + lines[i].trim();
         }
         
-        // Parse new header
-        const match = line.match(/^([^:]+):\s*(.*)$/);
-        if (match) {
-          currentHeader = match[1];
-          currentValue = match[2];
-        }
+        headers[key] = value;
       }
     }
-
-    // Don't forget the last header
-    if (currentHeader) {
-      headers[currentHeader.toLowerCase()] = currentValue.trim();
-    }
-
+    
     return headers;
   }
 
-  private extractEmail(fromField: string): string {
-    const emailMatch = fromField.match(/<([^>]+)>/);
-    if (emailMatch) {
-      return emailMatch[1];
-    }
-    // If no angle brackets, assume the whole thing is an email
-    const directMatch = fromField.match(/\S+@\S+\.\S+/);
-    return directMatch ? directMatch[0] : fromField.trim();
+  private extractEmail(field: string): string {
+    const match = field.match(/<([^>]+)>/);
+    return match ? match[1] : field.trim();
   }
 
-  private extractName(fromField: string): string | undefined {
-    const nameMatch = fromField.match(/^([^<]+)<[^>]+>$/);
-    if (nameMatch) {
-      return nameMatch[1].replace(/["']/g, '').trim();
+  private extractName(field: string): string {
+    const match = field.match(/^([^<]+)</);
+    return match ? match[1].trim().replace(/"/g, '') : '';
+  }
+
+  private cleanQuotedPrintable(text: string): string {
+    if (!text) return '';
+    
+    // Handle UTF-8 quoted-printable encoding
+    return text
+      .replace(/=C3=A1/g, 'á')
+      .replace(/=C3=A9/g, 'é')
+      .replace(/=C3=AD/g, 'í')
+      .replace(/=C3=B3/g, 'ó')
+      .replace(/=C3=BA/g, 'ú')
+      .replace(/=C3=A7/g, 'ç')
+      .replace(/=C3=A3/g, 'ã')
+      .replace(/=C3=B5/g, 'õ')
+      .replace(/Ã¡/g, 'á')
+      .replace(/Ã©/g, 'é')
+      .replace(/Ã­/g, 'í')
+      .replace(/Ã³/g, 'ó')
+      .replace(/Ãº/g, 'ú')
+      .replace(/Ã§/g, 'ç')
+      .replace(/Ã£/g, 'ã')
+      .replace(/Ãµ/g, 'õ');
+  }
+
+  private parseDate(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    
+    try {
+      return new Date(dateStr);
+    } catch (error) {
+      console.error('Error parsing date:', dateStr, error);
+      return null;
     }
-    return undefined;
   }
 
   private extractTextFromBody(body: string): string {
-    // Simple text extraction - remove HTML tags and clean up
-    return body
-      .replace(/<[^>]*>/g, '')
-      .replace(/&[a-zA-Z0-9#]+;/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 2000); // Limit length
+    // Simple text extraction - remove HTML tags if present
+    return body.replace(/<[^>]*>/g, '').trim();
   }
 
-  private extractHtmlFromBody(body: string): string | undefined {
-    if (body.includes('<html') || body.includes('<HTML')) {
-      return body.substring(0, 5000); // Limit length
-    }
-    return undefined;
+  private extractHtmlFromBody(body: string): string {
+    // Return body as-is for HTML content
+    return body.trim();
   }
 
   private determinePriority(subject: string, body: string): string {
     const text = (subject + ' ' + body).toLowerCase();
     
-    if (text.match(/urgente|urgent|critical|crítico|emergency|emergência|immediate/i)) {
+    if (text.includes('urgente') || text.includes('urgent') || text.includes('crítico') || text.includes('emergency')) {
       return 'high';
-    } else if (text.match(/importante|important|priority|prioridade|asap/i)) {
+    }
+    
+    if (text.includes('importante') || text.includes('important') || text.includes('prioridade')) {
       return 'medium';
     }
     
     return 'low';
   }
 
-  private parseDate(dateString: string | undefined): Date | null {
-    if (!dateString) return null;
-    try {
-      return new Date(dateString);
-    } catch {
-      return null;
-    }
-  }
-
-  private async checkEmailExists(tenantId: string, messageId: string): Promise<boolean> {
-    try {
-      const repository = new DrizzleEmailConfigRepository();
-      const messages = await repository.getInboxMessages(tenantId, { limit: 1 });
-      return messages.some(m => m.messageId === messageId);
-    } catch (error) {
-      console.error('Error checking if email exists:', error);
-      return false;
-    }
-  }
-
-  private getImapConfig(emailAddress: string, config: any): any {
-    const domain = emailAddress.split('@')[1]?.toLowerCase() || '';
-
-    // Auto-detect IMAP settings based on email provider
-    let host = config.imapServer || config.serverHost || 'imap.gmail.com';
-    let port = config.imapPort || config.serverPort || 993;
-    let tls = true;
-
-    if (domain.includes('gmail.com')) {
-      host = 'imap.gmail.com';
-      port = 993;
-      tls = true;
-    } else if (domain.includes('outlook.com') || domain.includes('hotmail.com') || domain.includes('live.com')) {
-      host = 'outlook.office365.com';
-      port = 993;
-      tls = true;
-    } else if (domain.includes('yahoo.com')) {
-      host = 'imap.mail.yahoo.com';
-      port = 993;
-      tls = true;
-    } else if (domain.includes('icloud.com')) {
-      host = 'imap.mail.me.com';
-      port = 993;
-      tls = true;
-    }
-
-    return {
-      user: config.emailAddress || emailAddress,
-      password: config.password,
-      host: host,
-      port: port,
-      tls: tls,
-      authTimeout: 30000,
-      connTimeout: 30000,
-      debug: false,
-      tlsOptions: {
-        rejectUnauthorized: false,
-        secureProtocol: 'TLSv1_2_method',
-        checkServerIdentity: () => undefined,
-        requestCert: false,
-        agent: false
-      }
-    };
-  }
-
-  private importLatestEmails(tenantId: string, integrationId: string, imap: any, resolve: () => void): void {
-    console.log(`🔄 Importing latest emails for integration ${integrationId}`);
+  private async processAndSaveEmails(tenantId: string, emails: any[]): Promise<void> {
+    console.log(`💾 Processing and saving ${emails.length} emails...`);
     
-    // Use simple search for all emails and get the most recent ones
-    imap.search(['ALL'], (searchError: any, allResults: any) => {
-      if (searchError || !allResults || allResults.length === 0) {
-        console.log(`📭 No emails found in inbox for integration ${integrationId}`);
-        resolve();
-        return;
+    for (const email of emails) {
+      try {
+        // Save to inbox
+        await this.repository.saveInboxMessage(tenantId, email);
+        
+        // Process with rules (create tickets if applicable)
+        await this.processingService.processEmail(tenantId, email);
+        
+        console.log(`✅ Processed email: ${email.subject}`);
+      } catch (error) {
+        console.error(`❌ Error processing email ${email.subject}:`, error);
       }
+    }
+  }
 
-      // Get the last 20 emails to ensure we capture recent ones
-      const latest20 = allResults.slice(-20);
-      console.log(`📧 Processing ${latest20.length} latest emails from ${allResults.length} total emails`);
+  async refreshConnections(tenantId: string): Promise<void> {
+    console.log('🔄 Refreshing email connections...');
+    
+    // Stop current monitoring
+    await this.stopMonitoring();
+    
+    // Wait a moment
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Restart monitoring
+    await this.startMonitoring(tenantId);
+    
+    console.log('✅ Email connections refreshed');
+  }
 
-      const fetch = imap.fetch(latest20, { 
-        bodies: '',
-        markSeen: false,
-        struct: true 
-      });
-
-      let emailsProcessed = 0;
-
-      fetch.on('message', (msg: any, seqno: number) => {
-        let emailData = '';
-
-        msg.on('body', (stream: any, info: any) => {
-          stream.on('data', (chunk: any) => {
-            emailData += chunk.toString('utf8');
-          });
-
-          stream.once('end', async () => {
-            try {
-              // Parse email headers
-              const headerMatch = emailData.match(/^([\s\S]*?)\r?\n\r?\n([\s\S]*)$/);
-              if (headerMatch) {
-                const headerSection = headerMatch[1];
-                const bodySection = headerMatch[2];
-
-                // Parse headers
-                const headers = this.parseHeaders(headerSection);
-
-                // Check if email is from 2025 (recent)
-                const emailDate = this.parseDate(headers.date);
-                if (emailDate && emailDate.getFullYear() < 2025) {
-                  console.log(`⏭️ Skipping old email from ${emailDate.getFullYear()}: ${headers.subject || 'No Subject'}`);
-                  emailsProcessed++;
-                  if (emailsProcessed === latest20.length) {
-                    resolve();
-                  }
-                  return;
-                }
-
-                // Decode subject line from RFC 2047 encoding
-                const decodedSubject = this.decodeRFC2047(headers.subject || 'No Subject');
-
-                // Parse MIME content for proper text/html extraction
-                const mimeContent = this.parseMimeContent(bodySection);
-
-                const emailInfo = {
-                  messageId: headers['message-id'] || `imap-${integrationId}-${seqno}`,
-                  threadId: headers['in-reply-to'] || null,
-                  fromEmail: this.extractEmail(headers.from || ''),
-                  fromName: this.extractName(headers.from || ''),
-                  toEmail: this.extractEmail(headers.to || ''),
-                  ccEmails: JSON.stringify([]),
-                  bccEmails: JSON.stringify([]),
-                  subject: decodedSubject,
-                  bodyText: mimeContent.text,
-                  bodyHtml: mimeContent.html || this.extractHtmlFromBody(bodySection),
-                  hasAttachments: false,
-                  attachmentCount: 0,
-                  attachmentDetails: [],
-                  emailHeaders: JSON.stringify(headers),
-                  priority: this.determinePriority(headers.subject || '', bodySection),
-                  emailDate: emailDate?.toISOString() || new Date().toISOString(),
-                  receivedAt: new Date().toISOString(),
-                  processedAt: null
-                };
-
-                console.log(`📨 Importing email: ${emailInfo.fromEmail} -> ${emailInfo.subject}`);
-                
-                // Save to database using EmailProcessingService
-                const emailProcessingService = new EmailProcessingService();
-                await emailProcessingService.saveInboxMessage(tenantId, emailInfo);
-                
-                emailsProcessed++;
-                if (emailsProcessed === latest20.length) {
-                  console.log(`✅ Successfully imported ${emailsProcessed} emails for integration ${integrationId}`);
-                  resolve();
-                }
-              }
-            } catch (error) {
-              console.error(`❌ Error processing email ${seqno}:`, error);
-              emailsProcessed++;
-              if (emailsProcessed === latest20.length) {
-                resolve();
-              }
-            }
-          });
-        });
-
-        msg.once('attributes', (attrs: any) => {
-          console.log(`📧 Processing email ${seqno} with UID ${attrs.uid}`);
-        });
-      });
-
-      fetch.once('error', (fetchError: any) => {
-        console.error(`❌ Error fetching emails for integration ${integrationId}:`, fetchError);
-        resolve();
-      });
-
-      fetch.once('end', () => {
-        if (emailsProcessed === 0) {
-          console.log(`✅ Finished importing emails for integration ${integrationId}`);
-          resolve();
-        }
-      });
-    });
+  async importHistoricalEmails(tenantId: string): Promise<void> {
+    console.log('📥 Starting historical email import...');
+    
+    for (const [integrationId, imap] of this.activeConnections) {
+      if (imap && imap.state === 'authenticated') {
+        console.log(`📥 Importing historical emails for integration ${integrationId}`);
+        await this.readEmailsFromConnection(tenantId, integrationId, imap);
+      }
+    }
+    
+    console.log('✅ Historical email import completed');
   }
 }

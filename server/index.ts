@@ -100,10 +100,10 @@ app.use((req, res, next) => {
     console.log('🔄 Inicializando sistema de monitoramento de emails...');
     
     const { EmailMonitoringAutoRestart } = await import('./modules/email-config/infrastructure/services/EmailMonitoringAutoRestart.js');
-    const autoRestart = new EmailMonitoringAutoRestart();
+    const autoRestart = EmailMonitoringAutoRestart.getInstance();
     
     // Restaurar estado de monitoramento ativo após restart do servidor
-    await autoRestart.restoreMonitoringState();
+    await autoRestart.initializeOnServerStart();
     
     console.log('✅ EmailReadingService disponível para ativação automática');
     console.log('📧 Sistema pronto para capturar emails do alexsolver@gmail.com');

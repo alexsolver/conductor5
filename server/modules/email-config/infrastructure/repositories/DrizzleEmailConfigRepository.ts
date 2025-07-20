@@ -244,6 +244,34 @@ export class DrizzleEmailConfigRepository implements IEmailConfigRepository {
     return result.rowCount > 0;
   }
 
+  // Integration Management Methods
+  async getConnectedIntegrations(tenantId: string): Promise<any[]> {
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    
+    // Set search path explicitly for this tenant
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await tenantDb.execute(sql`SET search_path TO ${sql.identifier(schemaName)}, public`);
+    
+    const result = await tenantDb.execute(sql`
+      SELECT * FROM integrations 
+      WHERE tenant_id = ${tenantId} 
+      AND status = 'connected'
+      ORDER BY created_at DESC
+    `);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      category: row.category,
+      emailAddress: row.email_address,
+      status: row.status,
+      configuration: row.configuration ? JSON.parse(row.configuration) : {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+  }
+
   // Email Processing Logs Methods
   async logEmailProcessing(tenantId: string, log: {
     messageId: string;

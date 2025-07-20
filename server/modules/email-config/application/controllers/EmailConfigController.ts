@@ -417,7 +417,18 @@ export class EmailConfigController {
         return;
       }
 
-      res.json({ success: true, data: [] });
+      console.log(`📧 Processing logs API called for tenant: ${tenantId}`);
+
+      // Get processing logs from repository
+      const logs = await this.repository.getProcessingLogs(tenantId);
+      
+      console.log(`📧 Processing logs API Response:`, {
+        success: true,
+        dataLength: logs.length,
+        firstLog: logs[0] || null
+      });
+
+      res.json({ success: true, data: logs });
     } catch (error) {
       console.error('Error fetching processing logs:', error);
       res.status(500).json({ 
