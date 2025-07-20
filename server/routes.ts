@@ -374,3 +374,393 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage-simple";
+import { schemaManager } from "./db";
+import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
+import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
+import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
+import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
+import { createFeatureFlagMiddleware } from "./services/featureFlagService";
+import cookieParser from "cookie-parser";
+import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema-simple";
+import { eq, and } from "drizzle-orm";
+import { z } from "zod";
+import ticketConfigRoutes from "./routes/ticketConfigRoutes";
+import userManagementRoutes from "./routes/userManagementRoutes";
+import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
+import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
+import systemScanRoutes from './routes/systemScanRoutes';
+import { technicalSkillsRoutes } from './modules/technical-skills/routes';
+import internalFormsRoutes from './modules/internal-forms/routes';
+import locationRoutes from './routes/locationRoutes';
+import ticketRelationshipsRoutes from './routes/ticketRelationships';
+import { omniBridgeRoutes } from './modules/omni-bridge/routes';
+
+export function setupRoutes(app: Express): Server {
+  // Apply global security middleware
+  app.use(createCSPMiddleware({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+    reportOnly: false,
+    reportUri: '/api/csp-report'
+  }));
+
+  // CSP Management Routes
+  createCSPManagementRoutes(app);
+  createCSPReportingEndpoint(app);
+
+  // Global middleware
+  app.use(cookieParser());
+
+  // Apply rate limiting to sensitive endpoints
+  app.use("/api/auth", createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.auth));
+  app.use("/api/admin", createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.admin));
+
+  // Feature flag middleware for experimental features
+  app.use(createFeatureFlagMiddleware({
+    experimentalWorkflows: false,
+    advancedAnalytics: true,
+    realTimeNotifications: true
+  }));
+
+  // ============= AUTHENTICATION ROUTES =============
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const result = await storage.authenticateUser(req.body.email, req.body.password);
+      
+      if (result.success && result.user) {
+        // Create JWT token
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+          { 
+            userId: result.user.id, 
+            email: result.user.email,
+            role: result.user.role,
+            tenantId: result.user.tenantId,
+            permissions: result.user.permissions || []
+          },
+          process.env.JWT_SECRET || 'fallback-secret',
+          { expiresIn: '24h' }
+        );
+
+        res.json({
+          success: true,
+          message: result.message,
+          user: {
+            id: result.user.id,
+            email: result.user.email,
+            firstName: result.user.firstName,
+            lastName: result.user.lastName,
+            role: result.user.role,
+            tenantId: result.user.tenantId,
+            permissions: result.user.permissions || []
+          },
+          token
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+          message: result.message || "Authentication failed"
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error during authentication"
+      });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const result = await storage.registerUser(req.body);
+      res.status(result.success ? 201 : 400).json(result);
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Registration failed"
+      });
+    }
+  });
+
+  // ============= HEALTH CHECK ROUTES =============
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Quick health check
+      const dbStatus = await storage.healthCheck();
+      res.json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        database: dbStatus ? "connected" : "disconnected",
+        uptime: process.uptime()
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // ============= TENANT ROUTES =============
+  app.get("/api/tenants/:tenantId", jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { tenantId } = req.params;
+      const tenant = await storage.getTenant(tenantId);
+      
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+      
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error fetching tenant:", error);
+      res.status(500).json({ message: "Failed to fetch tenant" });
+    }
+  });
+
+  // ============= DASHBOARD ROUTES =============
+  app.get("/api/dashboard/stats", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const stats = await storage.getDashboardStats(tenantId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // ============= CUSTOMER ROUTES =============
+  app.get("/api/customers", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const customers = await storage.getCustomers(tenantId, limit, offset);
+      res.json({ customers });
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+
+  app.post("/api/customers", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      
+      // Validate input
+      const validatedData = insertCustomerSchema.parse({
+        ...req.body,
+        tenantId
+      });
+
+      const customer = await storage.createCustomer(tenantId, validatedData);
+      res.status(201).json({ customer });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Validation error",
+          errors: error.errors
+        });
+      }
+      console.error("Error creating customer:", error);
+      res.status(500).json({ message: "Failed to create customer" });
+    }
+  });
+
+  // ============= TICKET ROUTES =============
+  app.get("/api/tickets", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const tickets = await storage.getTickets(tenantId, limit, offset);
+      res.json({ tickets });
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      res.status(500).json({ message: "Failed to fetch tickets" });
+    }
+  });
+
+  app.post("/api/tickets", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      
+      // Validate input
+      const validatedData = insertTicketSchema.parse({
+        ...req.body,
+        tenantId
+      });
+
+      const ticket = await storage.createTicket(tenantId, validatedData);
+      res.status(201).json({ ticket });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Validation error",
+          errors: error.errors
+        });
+      }
+      console.error("Error creating ticket:", error);
+      res.status(500).json({ message: "Failed to create ticket" });
+    }
+  });
+
+  app.post("/api/tickets/:ticketId/messages", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const { ticketId } = req.params;
+
+      // Validate input
+      const validatedData = insertTicketMessageSchema.parse({
+        ...req.body,
+        tenantId,
+        ticketId
+      });
+
+      const message = await storage.createTicketMessage(tenantId, validatedData);
+      res.status(201).json({ message });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Validation error",
+          errors: error.errors
+        });
+      }
+      console.error("Error creating ticket message:", error);
+      res.status(500).json({ message: "Failed to create ticket message" });
+    }
+  });
+
+  // ============= LOCALIZATION ROUTES =============
+  app.get("/api/localization/languages", (req, res) => {
+    const languages = [
+      { code: "en", name: "English", nativeName: "English" },
+      { code: "pt-BR", name: "Portuguese (Brazil)", nativeName: "Português (Brasil)" },
+      { code: "es", name: "Spanish", nativeName: "Español" },
+      { code: "fr", name: "French", nativeName: "Français" },
+      { code: "de", name: "German", nativeName: "Deutsch" }
+    ];
+    res.json({ languages });
+  });
+
+  app.get("/api/localization/currencies", (req, res) => {
+    const currencies = [
+      { code: "USD", name: "US Dollar", symbol: "$" },
+      { code: "BRL", name: "Brazilian Real", symbol: "R$" },
+      { code: "EUR", name: "Euro", symbol: "€" },
+      { code: "GBP", name: "British Pound", symbol: "£" }
+    ];
+    res.json({ currencies });
+  });
+
+  app.get("/api/localization/timezones", (req, res) => {
+    const timezones = {
+      "Global": [
+        { code: "UTC", name: "Coordinated Universal Time", offset: "+00:00" }
+      ],
+      "Americas": [
+        { code: "America/New_York", name: "Eastern Time", offset: "-05:00" },
+        { code: "America/Chicago", name: "Central Time", offset: "-06:00" },
+        { code: "America/Denver", name: "Mountain Time", offset: "-07:00" },
+        { code: "America/Los_Angeles", name: "Pacific Time", offset: "-08:00" },
+        { code: "America/Sao_Paulo", name: "Brasília Time", offset: "-03:00" }
+      ],
+      "Europe": [
+        { code: "Europe/London", name: "Greenwich Mean Time", offset: "+00:00" },
+        { code: "Europe/Paris", name: "Central European Time", offset: "+01:00" },
+        { code: "Europe/Berlin", name: "Central European Time", offset: "+01:00" }
+      ]
+    };
+    res.json({ timezones });
+  });
+
+  // ============= MODULE ROUTES =============
+  
+  // Technical Skills Module
+  app.use('/api/technical-skills', technicalSkillsRoutes);
+  
+  // Internal Forms Module  
+  app.use('/api/internal-forms', internalFormsRoutes);
+
+  // OmniBridge Module
+  app.use('/api/omni-bridge', omniBridgeRoutes);
+
+  // Other routes
+  app.use('/api/ticket-config', ticketConfigRoutes);
+  app.use('/api/user-management', userManagementRoutes);
+  app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
+  app.use('/api/integrity', integrityRoutes);
+  app.use('/api/system-scan', systemScanRoutes);
+  app.use('/api/locations', locationRoutes);
+  app.use('/api/ticket-relationships', ticketRelationshipsRoutes);
+
+  // ============= EMAIL INBOX ROUTES =============
+  app.get("/api/email/inbox", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const messages = await storage.getEmailInboxMessages(tenantId);
+      
+      res.json({
+        success: true,
+        data: messages
+      });
+    } catch (error) {
+      console.error("Error fetching email inbox:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch email inbox"
+      });
+    }
+  });
+
+  app.get("/api/email/monitoring/status", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      
+      // Check if monitoring is active
+      const isMonitoring = true; // This would come from actual monitoring service
+      const connectionCount = 1; // Number of active IMAP connections
+      const activeIntegrations = ['imap-email']; // List of active integrations
+      
+      res.json({
+        success: true,
+        data: {
+          isMonitoring,
+          tenantId,
+          connectionCount,
+          activeIntegrations,
+          message: isMonitoring ? "Monitoramento ativo" : "Monitoramento inativo"
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching monitoring status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch monitoring status"
+      });
+    }
+  });
+
+  // Create HTTP server
+  const server = createServer(app);
+
+  return server;
+}

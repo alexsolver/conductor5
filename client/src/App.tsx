@@ -143,3 +143,373 @@ function App() {
 }
 
 export default App;
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+
+// Import pages
+import Landing from '@/pages/Landing';
+import AuthPage from '@/pages/AuthPage';
+import Dashboard from '@/pages/Dashboard';
+import Tickets from '@/pages/Tickets';
+import Customers from '@/pages/Customers';
+import CustomerCompanies from '@/pages/CustomerCompanies';
+import Locations from '@/pages/Locations';
+import Projects from '@/pages/Projects';
+import KnowledgeBase from '@/pages/KnowledgeBase';
+import Analytics from '@/pages/Analytics';
+import UserManagement from '@/pages/UserManagement';
+import TenantAdminTeam from '@/pages/TenantAdminTeam';
+import TenantAdminIntegrations from '@/pages/TenantAdminIntegrations';
+import OmniBridge from '@/pages/OmniBridge';
+import TenantAdminWorkflows from '@/pages/TenantAdminWorkflows';
+import TenantAdminSLAs from '@/pages/TenantAdminSLAs';
+import TenantAdminBranding from '@/pages/TenantAdminBranding';
+import TicketTemplates from '@/pages/TicketTemplates';
+import TicketConfiguration from '@/pages/TicketConfiguration';
+import InternalForms from '@/pages/InternalForms';
+import TechnicalSkills from '@/pages/TechnicalSkills';
+import SaasAdmin from '@/pages/SaasAdmin';
+import TenantProvisioning from '@/pages/TenantProvisioning';
+import ModuleIntegrityControl from '@/pages/ModuleIntegrityControl';
+import Settings from '@/pages/Settings';
+import SecuritySettings from '@/pages/SecuritySettings';
+import Compliance from '@/pages/Compliance';
+import TranslationManager from '@/pages/TranslationManager';
+import Roadmap from '@/pages/Roadmap';
+import NotFound from '@/pages/not-found';
+import AppShell from '@/components/layout/AppShell';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Role-based Route Component
+function RoleBasedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) {
+  const { user } = useAuth();
+
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<AuthPage />} />
+
+              {/* Protected routes with AppShell */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Dashboard />
+                  </AppShell>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tickets" element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Tickets />
+                  </AppShell>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/customers" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['agent', 'admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <Customers />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/customer-companies" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['agent', 'admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <CustomerCompanies />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/locations" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['agent', 'admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <Locations />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/projects" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['agent', 'admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <Projects />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/knowledge-base" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['agent', 'admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <KnowledgeBase />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <Analytics />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              {/* Workspace Admin Routes */}
+              <Route path="/user-management" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <UserManagement />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tenant-admin/team" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TenantAdminTeam />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tenant-admin/integrations" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TenantAdminIntegrations />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/omni-bridge" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <OmniBridge />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tenant-admin/workflows" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TenantAdminWorkflows />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tenant-admin/slas" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TenantAdminSLAs />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tenant-admin/branding" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TenantAdminBranding />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/ticket-templates" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TicketTemplates />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/ticket-configuration" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TicketConfiguration />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/internal-forms" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <InternalForms />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/technical-skills" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <TechnicalSkills />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              {/* System Admin Routes */}
+              <Route path="/saas-admin" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['saas_admin']}>
+                    <AppShell>
+                      <SaasAdmin />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/tenant-provisioning" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['saas_admin']}>
+                    <AppShell>
+                      <TenantProvisioning />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/module-integrity-control" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['saas_admin']}>
+                    <AppShell>
+                      <ModuleIntegrityControl />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <Settings />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/security-settings" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <SecuritySettings />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/compliance" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin', 'tenant_admin', 'saas_admin']}>
+                    <AppShell>
+                      <Compliance />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/translation-manager" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['saas_admin']}>
+                    <AppShell>
+                      <TranslationManager />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/roadmap" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['saas_admin']}>
+                    <AppShell>
+                      <Roadmap />
+                    </AppShell>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+          <Toaster />
+        </Router>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
