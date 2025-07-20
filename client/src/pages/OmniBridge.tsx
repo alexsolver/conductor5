@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -97,26 +96,33 @@ export default function OmniBridge() {
 
   const loadChannels = async () => {
     try {
-      const response = await fetch('/api/omni-bridge/channels', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const token = localStorage.getItem('token');
+      console.log('📋 TENTANDO BUSCAR CANAIS...', {
+        hasToken: !!token,
+        tokenLength: token?.length,
+        tokenStart: token?.substring(0, 20) + '...'
       });
-      
+
+      const response = await fetch('/api/omni-bridge/channels', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
       if (!response.ok) {
         console.error(`❌ Channels API Error: ${response.status} ${response.statusText}`);
         setChannels([]);
         return;
       }
-      
+
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         console.error('❌ Channels API returned non-JSON response');
         setChannels([]);
         return;
       }
-      
+
       const data = await response.json();
       console.log('📋 Channels API Response:', data);
-      
+
       if (data.success) {
         setChannels(data.channels || []);
       } else {
@@ -141,34 +147,34 @@ export default function OmniBridge() {
       const response = await fetch(`/api/omni-bridge/inbox?${params}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      
+
       console.log('📧 Response Status:', response.status, response.statusText);
-      
+
       if (!response.ok) {
         console.error(`❌ Inbox API Error: ${response.status} ${response.statusText}`);
         setMessages([]);
         return;
       }
-      
+
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         console.error('❌ Inbox API returned non-JSON response');
         setMessages([]);
         return;
       }
-      
+
       const data = await response.json();
       console.log('📧 Inbox API Response RAW:', data);
-      
+
       if (data.success) {
         // A API pode retornar os dados diretamente ou em data.data
         const messagesData = data.messages || data.data || [];
         console.log('📧 Data length:', messagesData.length);
-        
+
         if (messagesData.length > 0) {
           console.log('📧 First message:', messagesData[0]);
         }
-        
+
         setMessages(messagesData);
       } else {
         console.error('Inbox API returned error:', data.message);
@@ -186,25 +192,25 @@ export default function OmniBridge() {
       const response = await fetch('/api/omni-bridge/monitoring', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      
+
       console.log('📊 Monitoring Response Status:', response.status, response.statusText);
-      
+
       if (!response.ok) {
         console.error(`❌ Monitoring API Error: ${response.status} ${response.statusText}`);
         setMonitoring(null);
         return;
       }
-      
+
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         console.error('❌ Monitoring API returned non-JSON response');
         setMonitoring(null);
         return;
       }
-      
+
       const data = await response.json();
       console.log('📊 Monitoring Status Response RAW:', data);
-      
+
       if (data.success) {
         // A API retorna diferentes estruturas dependendo do endpoint
         const monitoringData = data.monitoring || data.data || {
@@ -217,7 +223,7 @@ export default function OmniBridge() {
           systemStatus: 'unknown',
           lastSync: new Date().toISOString()
         };
-        
+
         // Se for estrutura de monitoramento diferente, adaptar
         if (data.data && data.data.isMonitoring !== undefined) {
           const adaptedData = {
@@ -234,7 +240,7 @@ export default function OmniBridge() {
         } else {
           setMonitoring(monitoringData);
         }
-        
+
         console.log('📊 Is Monitoring:', data.data?.isMonitoring);
         console.log('📊 Connection Count:', data.data?.connectionCount);
         console.log('📊 Active Integrations:', data.data?.activeIntegrations);
@@ -357,10 +363,10 @@ export default function OmniBridge() {
       message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.fromAddress.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || message.status === statusFilter;
     const matchesChannel = channelFilter === 'all' || message.channelType === channelFilter;
-    
+
     return matchesSearch && matchesStatus && matchesChannel;
   });
 

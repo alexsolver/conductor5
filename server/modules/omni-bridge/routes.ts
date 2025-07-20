@@ -35,16 +35,26 @@ router.use(jwtAuth);
 router.use((req, res, next) => {
   const user = (req as any).user;
   
+  console.log('🔐 OmniBridge Auth Debug:', {
+    hasUser: !!user,
+    userRole: user?.role,
+    userId: user?.id,
+    tenantId: user?.tenantId,
+    authHeader: req.headers.authorization ? 'Present' : 'Missing'
+  });
+  
   if (!user) {
     return res.status(401).json({ success: false, message: 'Authentication required' });
   }
   
-  // Permitir acesso para workspace_admin e tenant_admin
-  const allowedRoles = ['workspace_admin', 'tenant_admin'];
+  // Permitir acesso para admin, tenant_admin e workspace_admin
+  const allowedRoles = ['admin', 'tenant_admin', 'workspace_admin'];
   if (!allowedRoles.includes(user.role)) {
+    console.log('🚫 OmniBridge Access Denied:', { userRole: user.role, allowedRoles });
     return res.status(403).json({ success: false, message: 'Insufficient permissions for OmniBridge' });
   }
   
+  console.log('✅ OmniBridge Access Granted for:', user.role);
   next();
 });
 
