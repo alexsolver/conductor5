@@ -124,74 +124,43 @@ export default function Tickets() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        {/* Header skeleton */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl p-6">
-          <div className="h-8 bg-white/20 rounded w-48 animate-pulse mb-2"></div>
-          <div className="h-4 bg-white/10 rounded w-64 animate-pulse"></div>
-        </div>
-        
-        {/* Statistics skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
                 <div className="space-y-3">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-        
-        {/* Tickets list skeleton */}
-        <Card className="animate-pulse">
-          <CardHeader>
-            <div className="h-6 bg-gray-200 rounded w-32"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="border rounded-lg p-4">
-                  <div className="space-y-3">
-                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl p-6 text-white">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Support Tickets</h1>
-            <p className="text-blue-100">
-              Manage and track customer support requests
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-white text-purple-600 hover:bg-gray-100">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Ticket
-                </Button>
-              </DialogTrigger>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                New Ticket
+              </Button>
+            </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                   <DialogTitle>Create New Ticket</DialogTitle>
@@ -327,120 +296,58 @@ export default function Tickets() {
               </Form>
             </DialogContent>
           </Dialog>
-          </div>
         </div>
       </div>
 
-      {/* Statistics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tickets</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{tickets?.tickets?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              All support requests
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tickets?.tickets?.filter((t: any) => t.status === 'open').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Waiting for response
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tickets?.tickets?.filter((t: any) => t.status === 'in_progress').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Being worked on
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tickets?.tickets?.filter((t: any) => t.status === 'resolved').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Successfully completed
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tickets List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Support Tickets</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {tickets?.tickets?.map((ticket: any) => (
-              <div key={ticket.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        #{ticket.id?.slice(-6)} - {ticket.subject}
-                      </h3>
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority}
-                      </Badge>
-                      <Badge className={getStatusColor(ticket.status)}>
-                        {ticket.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-3">
-                      {ticket.description?.substring(0, 150)}...
-                    </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Customer: {ticket.customer?.firstName} {ticket.customer?.lastName}</span>
-                      <span>•</span>
-                      <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                      {ticket.assignedTo && (
-                        <>
-                          <span>•</span>
-                          <span>Assigned to: {ticket.assignedTo.firstName}</span>
-                        </>
-                      )}
-                    </div>
+      <div className="space-y-4">
+        {tickets?.tickets?.map((ticket: any) => (
+          <Card key={ticket.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      #{ticket.id} - {ticket.subject}
+                    </h3>
+                    <Badge className={getPriorityColor(ticket.priority)}>
+                      {ticket.priority}
+                    </Badge>
+                    <Badge className={getStatusColor(ticket.status)}>
+                      {ticket.status.replace('_', ' ')}
+                    </Badge>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
+                  <p className="text-gray-600 dark:text-gray-400 mb-3">
+                    {ticket.description?.substring(0, 150)}...
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <span>Customer: {ticket.customer?.firstName} {ticket.customer?.lastName}</span>
+                    <span>•</span>
+                    <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
+                    {ticket.assignedTo && (
+                      <>
+                        <span>•</span>
+                        <span>Assigned to: {ticket.assignedTo.firstName}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
+                <Button variant="outline" size="sm">
+                  View Details
+                </Button>
               </div>
-            )) || (
-              <div className="p-12 text-center">
-                <div className="text-gray-500">
-                  <div className="text-lg font-medium mb-2">No tickets found</div>
-                  <p className="text-sm">Create your first support ticket to get started.</p>
-                </div>
+            </CardContent>
+          </Card>
+        )) || (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="text-gray-500">
+                <div className="text-lg font-medium mb-2">No tickets found</div>
+                <p className="text-sm">Create your first support ticket to get started.</p>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
