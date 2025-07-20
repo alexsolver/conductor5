@@ -51,16 +51,14 @@ router.get('/monitoring/status', async (req: any, res) => {
 });
 
 // =====================================================
-// COMMUNICATION CHANNELS
+// COMMUNICATION CHANNELS (READ-ONLY FROM INTEGRATIONS)
 // =====================================================
 router.get('/channels', omnibridgeController.getChannels.bind(omnibridgeController));
-router.post('/channels', omnibridgeController.createChannel.bind(omnibridgeController));
-router.get('/channels/:channelId', omnibridgeController.getChannelById.bind(omnibridgeController));
-router.put('/channels/:channelId', omnibridgeController.updateChannel.bind(omnibridgeController));
-router.delete('/channels/:channelId', omnibridgeController.deleteChannel.bind(omnibridgeController));
-router.post('/channels/:channelId/test', omnibridgeController.testChannelConnection.bind(omnibridgeController));
-router.post('/channels/:channelId/monitoring', omnibridgeController.toggleChannelMonitoring.bind(omnibridgeController));
-router.put('/channels/:channelId/configuration', omnibridgeController.saveChannelConfiguration.bind(omnibridgeController));
+// REMOVED: Direct channel creation/modification - only workspace admin integrations
+// router.post('/channels', ...) - Users must configure in workspace admin integrations
+// router.put('/channels/:channelId', ...) - Users must configure in workspace admin integrations
+// router.delete('/channels/:channelId', ...) - Users must configure in workspace admin integrations
+// router.put('/channels/:channelId/configuration', ...) - Users must configure in workspace admin integrations
 
 // =====================================================
 // UNIFIED INBOX

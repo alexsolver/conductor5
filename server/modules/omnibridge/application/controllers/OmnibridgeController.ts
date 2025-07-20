@@ -306,10 +306,10 @@ export class OmnibridgeController {
         console.log(`📧 Testing real Gmail IMAP connection for tenant: ${tenantId}`);
         
         // Get IMAP Email integration credentials from database using legacy storage
-        const { getStorage } = await import('../../../storage');
+        const { getStorage } = await import('../../../../storage');
         const storage = getStorage();
         const integrations = await storage.getTenantIntegrations(tenantId);
-        const integration = integrations.find(i => i.name === 'IMAP Email');
+        const integration = integrations.find((i: any) => i.name === 'IMAP Email');
         
         if (!integration) {
           res.status(404).json({
@@ -605,7 +605,7 @@ export class OmnibridgeController {
 
       // Create messages using repository
       for (const message of sampleMessages) {
-        await this.repository.createInboxMessage(tenantId, message);
+        await this.repository.saveInboxMessage(tenantId, message);
       }
       
       console.log(`✅ Created ${sampleMessages.length} sample inbox messages for channel ${channelId}`);
