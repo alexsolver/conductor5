@@ -359,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ticket Templates routes
   const ticketTemplatesRoutes = (await import('./routes/ticketTemplates')).default;
   app.use('/api/templates', ticketTemplatesRoutes);
-  app.use('/api/auth', authRoutes);
+  // Auth routes already mounted above, removing duplicate
 
   // Email Templates routes  
   const { emailTemplatesRouter } = await import('./routes/emailTemplates');

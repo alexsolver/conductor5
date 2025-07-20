@@ -1,62 +1,51 @@
-
-export interface FormSubmissionData {
-  [fieldName: string]: any;
-}
-
-export interface FormSubmissionApproval {
-  level: number;
-  approver: string;
-  status: 'pending' | 'approved' | 'rejected';
-  comment?: string;
-  approvedAt?: Date;
-}
-
 export class FormSubmission {
   constructor(
     public readonly id: string,
     public readonly formId: string,
     public readonly tenantId: string,
-    public data: FormSubmissionData,
-    public submittedBy: string,
-    public status: 'draft' | 'submitted' | 'in_approval' | 'approved' | 'rejected' | 'completed' = 'submitted',
-    public approvals: FormSubmissionApproval[] = [],
+    public readonly data: Record<string, any>,
+    public readonly submittedBy: string,
+    public status: string = 'submitted',
+    public approvals?: Record<string, any>,
     public readonly submittedAt: Date = new Date(),
     public completedAt?: Date
   ) {}
 
-  public approve(level: number, approver: string, comment?: string): void {
-    const approval = this.approvals.find(a => a.level === level);
-    if (approval) {
-      approval.status = 'approved';
-      approval.approver = approver;
-      approval.comment = comment;
-      approval.approvedAt = new Date();
-    }
-    
-    this.checkApprovalComplete();
+  isCompleted(): boolean {
+    return this.status === 'completed' || this.status === 'approved';
   }
 
-  public reject(level: number, approver: string, comment: string): void {
-    const approval = this.approvals.find(a => a.level === level);
-    if (approval) {
-      approval.status = 'rejected';
-      approval.approver = approver;
-      approval.comment = comment;
-      approval.approvedAt = new Date();
-    }
-    
-    this.status = 'rejected';
+  isPending(): boolean {
+    return this.status === 'pending' || this.status === 'submitted';
   }
 
-  private checkApprovalComplete(): void {
-    const allApproved = this.approvals.every(a => a.status === 'approved');
-    if (allApproved) {
-      this.status = 'approved';
-    }
-  }
-
-  public complete(): void {
-    this.status = 'completed';
+  approve(approverEmail: string, comments?: string): void {
+    this.status = 'approved';
     this.completedAt = new Date();
+    
+    if (!this.approvals) {
+      this.approvals = {};
+    }
+    
+    this.approvals[approverEmail] = {
+      status: 'approved',
+      timestamp: new Date(),
+      comments
+    };
+  }
+
+  reject(approverEmail: string, reason: string): void {
+    this.status = 'rejected';
+    this.completedAt = new Date();
+    
+    if (!this.approvals) {
+      this.approvals = {};
+    }
+    
+    this.approvals[approverEmail] = {
+      status: 'rejected',
+      timestamp: new Date(),
+      reason
+    };
   }
 }

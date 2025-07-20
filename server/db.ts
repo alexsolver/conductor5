@@ -24,12 +24,12 @@ export const pool = new Pool({
   min: 8, // PERFORMANCE: Mais conexões sempre prontas
   idleTimeoutMillis: 360000, // LIFECYCLE: 6 minutos - otimizado
   connectionTimeoutMillis: 45000, // TIMEOUT: Aumentado para Neon hibernation recovery
-  acquireTimeoutMillis: 60000, // ACQUIRE: 60s timeout para operações complexas
+  // acquireTimeoutMillis: 60000, // REMOVED: This property doesn't exist in PoolConfig
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000, // HIBERNATION: Configuração anti-hibernation
   maxUses: 750, // OPTIMIZATION: Aumentado para melhor reuso
   allowExitOnIdle: false,
-  maxLifetimeSeconds: 3600 // LIFECYCLE: 1 hora max - previne conexões órfãs
+  // maxLifetimeSeconds: 3600 // REMOVED: This property doesn't exist in PoolConfig
 });
 
 // Main database instance for tenant management and shared resources
@@ -64,7 +64,7 @@ export class SchemaManager {
     }
 
     // Clean expired validation cache entries
-    for (const [tenantId, cached] of this.schemaValidationCache.entries()) {
+    for (const [tenantId, cached] of Array.from(this.schemaValidationCache.entries())) {
       if (now - cached.timestamp > this.CACHE_TTL) {
         this.schemaValidationCache.delete(tenantId);
       }
@@ -120,7 +120,7 @@ export class SchemaManager {
         WHERE table_schema = ${schemaName}
       `);
       
-      return (result.rows[0]?.table_count || 0) > 0;
+      return (Number(result.rows[0]?.table_count) || 0) > 0;
     } catch (error) {
       console.error(`Table validation failed for ${schemaName}:`, error);
       return false;
@@ -182,7 +182,7 @@ export class SchemaManager {
       } catch (migrationError) {
         // Log migration error but don't fail schema creation
         const { logWarn } = await import('./utils/logger');
-        logWarn(`Schema migration failed for ${schemaName}, creating fresh schema`, migrationError);
+        logWarn(`Schema migration failed for ${schemaName}, creating fresh schema`, migrationError as Record<string, any>);
         // Continue with fresh schema creation
       }
 
@@ -229,7 +229,7 @@ export class SchemaManager {
         min: 1, // Keep connection alive
         idleTimeoutMillis: 20000, // Balanced timeout
         connectionTimeoutMillis: 6000, // Quick connection establishment
-        acquireTimeoutMillis: 10000, // Reasonable acquire timeout
+        // acquireTimeoutMillis: 10000, // REMOVED: This property doesn't exist in PoolConfig
         maxUses: 1500, // Regular connection recycling
         keepAlive: true
       });
@@ -483,7 +483,7 @@ export class SchemaManager {
     }
 
     // Import performance indexes
-    const { OptimizedIndexes } = await import('./database/OptimizedIndexes');
+    const { OptimizedIndexStrategy } = await import('./database/OptimizedIndexes');
 
     try {
       // Use sql.identifier for safe schema references - prevents SQL injection

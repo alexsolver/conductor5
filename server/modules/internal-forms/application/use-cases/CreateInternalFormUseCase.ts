@@ -1,15 +1,15 @@
-
 import { InternalForm } from '../../domain/entities/InternalForm';
 import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository';
+import * as crypto from 'crypto';
 
-export interface CreateInternalFormRequest {
+interface CreateInternalFormRequest {
+  tenantId: string;
   name: string;
-  description: string;
+  description?: string;
   category: string;
   fields: any[];
   actions: any[];
   approvalFlow?: any[];
-  tenantId: string;
   createdBy: string;
 }
 

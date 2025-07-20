@@ -458,7 +458,7 @@ export default function EmailConfiguration() {
                             <Badge variant="outline">
                               Prioridade: {rule.priority}
                             </Badge>
-                          </div>
+                          </CardTitle>
                           {rule.description && (
                             <CardDescription>{rule.description}</CardDescription>
                           )}
@@ -589,7 +589,7 @@ export default function EmailConfiguration() {
                             <Badge variant="outline">
                               {template.templateType}
                             </Badge>
-                          </div>
+                          </CardTitle>
                           {template.description && (
                             <CardDescription>{template.description}</CardDescription>
                           )}

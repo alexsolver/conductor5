@@ -1,14 +1,15 @@
-
+import { InternalForm } from '../../domain/entities/InternalForm';
 import { FormSubmission } from '../../domain/entities/FormSubmission';
-import { IFormSubmissionRepository } from '../../domain/repositories/IFormSubmissionRepository';
 import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository';
+import { IFormSubmissionRepository } from '../../domain/repositories/IFormSubmissionRepository';
 import { InternalFormActionsService } from '../services/InternalFormActionsService';
+import * as crypto from 'crypto';
 
-export interface SubmitFormRequest {
+interface SubmitFormRequest {
   formId: string;
+  tenantId: string;
   data: Record<string, any>;
   submittedBy: string;
-  tenantId: string;
 }
 
 export class SubmitFormUseCase {
@@ -39,7 +40,7 @@ export class SubmitFormUseCase {
 
     // Set up approvals if needed
     if (form.approvalFlow?.length) {
-      submission.approvals = form.approvalFlow.map(approval => ({
+      submission.approvals = form.approvalFlow.map((approval: any) => ({
         level: approval.level,
         approver: '',
         status: 'pending' as const
