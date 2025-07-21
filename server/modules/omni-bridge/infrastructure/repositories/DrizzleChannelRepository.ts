@@ -29,6 +29,17 @@ export class DrizzleChannelRepository implements IChannelRepository {
         }
       }
 
+      // Get actual message count for email integrations
+      let actualEmailCount = 0;
+      if (emailsTableExists) {
+        try {
+          const emails = await storage.getEmailInboxMessages(tenantId);
+          actualEmailCount = emails.length;
+        } catch (error) {
+          console.log('Error getting email count:', error.message);
+        }
+      }
+
       const channels: Channel[] = integrations.map(integration => {
         let isActive = false;
         let isConnected = false;
@@ -44,12 +55,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
         
         // Special handling for IMAP Email integration
         if (integration.id === 'imap-email') {
-          if (integration.status === 'connected' && hasConfig) {
+          if (integration.status === 'connected' && hasConfig && emailsTableExists) {
             isActive = true;
             isConnected = true;
             errorCount = 0;
             lastError = null;
-            messageCount = 1; // Show some activity for connected IMAP
+            messageCount = actualEmailCount; // Use actual count from database
           } else if (!emailsTableExists) {
             isActive = false;
             isConnected = false;
@@ -60,6 +71,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
             isConnected = false;
             errorCount = 1;
             lastError = 'Configuração IMAP necessária';
+          } else if (integration.status === 'disconnected') {
+            isActive = true; // Keep as active but show disconnected
+            isConnected = false;
+            errorCount = 0;
+            lastError = null;
+            messageCount = actualEmailCount;
           }
         } else {
           // For other integrations

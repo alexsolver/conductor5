@@ -1,94 +1,131 @@
-const { neon } = await import('@neondatabase/serverless');
 
-const sql = neon(process.env.DATABASE_URL);
+const { neon } = require('@neondatabase/serverless');
 
-async function addEmailsTableToTenants() {
+async function createEmailsTable() {
+  const sql = neon(process.env.DATABASE_URL);
+  
+  console.log('🔗 Conectado ao PostgreSQL');
+  
   try {
-    console.log('🔧 Adding emails table to all tenant schemas...');
-
     // Get all tenants
     const tenants = await sql`
-      SELECT id, subdomain FROM public.tenants 
-      WHERE id IS NOT NULL AND LENGTH(id) = 36
+      SELECT id, name FROM public.tenants 
+      WHERE status = 'active'
     `;
-
-    console.log(`📋 Found ${tenants.length} tenants to update`);
-
+    
+    console.log(`📊 Encontrados ${tenants.length} tenants ativos`);
+    
     for (const tenant of tenants) {
       const schemaName = `tenant_${tenant.id.replace(/-/g, '_')}`;
-
+      console.log(`\n📋 Processando tenant: ${tenant.id}`);
+      console.log(`📂 Schema: ${schemaName}`);
+      
       try {
-        console.log(`📧 Adding emails table to ${schemaName}...`);
-
-        // Create emails table with proper UUID generation
+        // Check if emails table exists
+        const tableExists = await sql`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = ${schemaName} 
+            AND table_name = 'emails'
+          )
+        `;
+        
+        if (tableExists[0].exists) {
+          console.log(`✅ Tabela emails já existe no schema ${schemaName}`);
+          continue;
+        }
+        
+        // Create emails table
         await sql`
-          CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.emails (
-            id VARCHAR(36) PRIMARY KEY DEFAULT encode(gen_random_uuid()::bytea, 'hex'),
-            tenant_id VARCHAR(36) NOT NULL,
-            message_id VARCHAR(255) NOT NULL,
-            thread_id VARCHAR(255),
-            from_email VARCHAR(255) NOT NULL,
-            from_name VARCHAR(255),
-            to_email VARCHAR(255) NOT NULL,
+          CREATE TABLE IF NOT EXISTS ${sql(schemaName)}.emails (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID NOT NULL REFERENCES public.tenants(id),
+            message_id TEXT UNIQUE NOT NULL,
+            thread_id TEXT,
+            from_email TEXT NOT NULL,
+            from_name TEXT,
+            to_email TEXT NOT NULL,
             cc_emails TEXT DEFAULT '[]',
             bcc_emails TEXT DEFAULT '[]',
-            subject VARCHAR(998),
+            subject TEXT NOT NULL,
             body_text TEXT,
             body_html TEXT,
-            has_attachments BOOLEAN DEFAULT false,
+            has_attachments BOOLEAN DEFAULT FALSE,
             attachment_count INTEGER DEFAULT 0,
-            attachment_details TEXT DEFAULT '[]',
-            email_headers TEXT DEFAULT '{}',
-            priority VARCHAR(20) DEFAULT 'medium',
-            is_read BOOLEAN DEFAULT false,
-            is_processed BOOLEAN DEFAULT false,
-            rule_matched VARCHAR(255),
-            ticket_created VARCHAR(36),
+            attachment_details JSONB DEFAULT '[]',
+            email_headers JSONB DEFAULT '{}',
+            priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+            is_read BOOLEAN DEFAULT FALSE,
+            is_processed BOOLEAN DEFAULT FALSE,
+            rule_matched TEXT,
+            ticket_created UUID,
             email_date TIMESTAMP,
-            received_at TIMESTAMP DEFAULT NOW(),
-            processed_at TIMESTAMP
-          );
+            received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            processed_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
         `;
-
+        
         // Create indexes
         await sql`
-          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx 
-          ON ${sql.identifier(schemaName)}.emails (tenant_id, received_at DESC);
+          CREATE INDEX IF NOT EXISTS idx_${sql(schemaName)}_emails_tenant_id ON ${sql(schemaName)}.emails(tenant_id)
         `;
-
+        
         await sql`
-          CREATE INDEX IF NOT EXISTS emails_tenant_processed_idx 
-          ON ${sql.identifier(schemaName)}.emails (tenant_id, is_processed);
+          CREATE INDEX IF NOT EXISTS idx_${sql(schemaName)}_emails_message_id ON ${sql(schemaName)}.emails(message_id)
         `;
-
-        // Add some sample email data
-        await sql.raw(`
-          INSERT INTO ${schemaName}.emails 
-          (id, tenant_id, message_id, from_email, from_name, to_email, subject, body_text, body_html, priority, email_date)
-          VALUES 
-          (gen_random_uuid()::text, '${tenant.id}', 'test-2025-email-001', 'cliente@empresa.com', 'João Cliente', 'alexsolver@gmail.com', 'Urgente: Problema no sistema de vendas', 'Olá, estamos enfrentando um problema crítico no sistema de vendas. Preciso de ajuda urgente.', '<p>Olá,</p><p>Estamos enfrentando um problema crítico no sistema de vendas. Preciso de ajuda urgente.</p>', 'high', '2025-07-20 18:00:00')
-          ON CONFLICT (id) DO NOTHING;
-        `);
-
-        console.log(`✅ Successfully added emails table to ${schemaName}`);
+        
+        await sql`
+          CREATE INDEX IF NOT EXISTS idx_${sql(schemaName)}_emails_is_read ON ${sql(schemaName)}.emails(is_read)
+        `;
+        
+        await sql`
+          CREATE INDEX IF NOT EXISTS idx_${sql(schemaName)}_emails_received_at ON ${sql(schemaName)}.emails(received_at DESC)
+        `;
+        
+        // Insert sample email data for testing
+        await sql`
+          INSERT INTO ${sql(schemaName)}.emails (
+            tenant_id, message_id, from_email, from_name, to_email, subject,
+            body_text, body_html, priority, is_read, email_date
+          ) VALUES (
+            ${tenant.id},
+            'test-2025-email-001',
+            'cliente@empresa.com',
+            'João Cliente',
+            'alexsolver@gmail.com',
+            'Urgente: Problema no sistema de vendas',
+            'Olá, estamos enfrentando um problema crítico no sistema de vendas. Preciso de ajuda urgente.',
+            '<p>Olá,</p><p>Estamos enfrentando um problema crítico no sistema de vendas. Preciso de ajuda urgente.</p>',
+            'high',
+            false,
+            '2025-07-20 18:00:00'
+          ) ON CONFLICT (message_id) DO NOTHING
+        `;
+        
+        console.log(`✅ Tabela emails criada com sucesso no schema ${schemaName}`);
+        
       } catch (error) {
-        console.error(`❌ Error adding emails table to ${schemaName}:`, error);
+        console.error(`❌ Erro ao processar tenant ${tenant.id}:`, error.message);
       }
     }
-
-    console.log('🎉 Successfully updated all tenant schemas with emails table');
+    
+    console.log('\n🎉 SUCESSO! Tabelas de emails criadas/verificadas para todos os tenants');
+    
   } catch (error) {
-    console.error('❌ Error in addEmailsTableToTenants:', error);
+    console.error('❌ Erro geral:', error);
+    throw error;
   }
 }
 
 // Execute the function
-addEmailsTableToTenants()
+createEmailsTable()
   .then(() => {
-    console.log('✅ Email table migration completed successfully');
+    console.log('✅ Script executado com sucesso!');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('❌ Migration failed:', error);
+    console.error('❌ Script falhou:', error);
     process.exit(1);
   });

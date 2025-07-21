@@ -1,87 +1,126 @@
 /**
- * Drizzle UnifiedMessage Repository
+ * Drizzle Unified Message Repository
  * Clean Architecture - Infrastructure Layer
  */
-import { IUnifiedMessageRepository, MessageSearchOptions, MessageFilters } from '../../domain/repositories/IUnifiedMessageRepository';
+import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository';
 import { UnifiedMessage } from '../../domain/entities/UnifiedMessage';
 
+interface FindAllOptions {
+  limit?: number;
+  offset?: number;
+  status?: string;
+  channelType?: string;
+  priority?: string;
+}
+
 export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepository {
-  async findAll(tenantId: string, options?: any): Promise<UnifiedMessage[]> {
+  async findAll(tenantId: string, options: FindAllOptions = {}): Promise<UnifiedMessage[]> {
     try {
       const { storage } = await import('../../../../storage-simple');
 
-      // Verificar se o tenant existe e tem schema inicializado
-      if (!tenantId) {
-        console.error('Tenant ID is required for finding messages');
+      // Get emails from the database
+      const emails = await storage.getEmailInboxMessages(tenantId);
+
+      if (!emails || emails.length === 0) {
+        console.log('📧 No emails found in database');
         return [];
       }
 
-      let messages = [];
-      
-      try {
-        // Verificar se o método existe no storage
-        if (typeof storage.getEmailInboxMessages === 'function') {
-          messages = await storage.getEmailInboxMessages(tenantId);
-        } else {
-          // Fallback: buscar diretamente na tabela emails
-          const db = storage.getDatabase(tenantId);
-          const emailsQuery = `
-            SELECT 
-              id, tenant_id, message_id as "messageId", 
-              from_email as "fromEmail", from_name as "fromName",
-              to_email as "toEmail", cc_emails as "ccEmails", bcc_emails as "bccEmails",
-              subject, body_text as "bodyText", body_html as "bodyHtml",
-              has_attachments as "hasAttachments", attachment_count as "attachmentCount",
-              attachment_details as "attachmentDetails", email_headers as "emailHeaders",
-              priority, is_read as "isRead", is_processed as "isProcessed",
-              email_date as "emailDate", received_at as "receivedAt", processed_at as "processedAt"
-            FROM emails 
-            WHERE tenant_id = $1 
-            ORDER BY received_at DESC
-            LIMIT ${options?.limit || 50}
-          `;
-          const result = await db.query(emailsQuery, [tenantId]);
-          messages = result.rows || [];
-        }
-      } catch (dbError) {
-        console.log(`Database error, using empty array: ${dbError.message}`);
-        messages = [];
+      // Convert email data to UnifiedMessage format
+      const messages: UnifiedMessage[] = emails.map(email => ({
+        id: email.id,
+        channelType: 'email',
+        fromAddress: email.fromEmail || email.from_email,
+        fromName: email.fromName || email.from_name,
+        subject: email.subject,
+        content: email.bodyText || email.body_text || email.bodyHtml || email.body_html || '',
+        priority: (email.priority || 'medium') as 'low' | 'medium' | 'high' | 'urgent',
+        status: email.isRead || email.is_read ? 'read' : 'unread' as 'unread' | 'read' | 'archived' | 'processed',
+        hasAttachments: email.hasAttachments || email.has_attachments || false,
+        receivedAt: email.receivedAt || email.received_at || email.createdAt || email.created_at || new Date().toISOString(),
+        ticketId: email.ticketCreated || email.ticket_created || null,
+        isRead: email.isRead || email.is_read || false
+      }));
+
+      // Apply filters
+      let filteredMessages = messages;
+
+      if (options.status && options.status !== 'all') {
+        filteredMessages = filteredMessages.filter(m => m.status === options.status);
       }
 
-      if (!messages || !Array.isArray(messages)) {
-        console.log(`No messages found for tenant ${tenantId}`);
-        return [];
+      if (options.channelType && options.channelType !== 'all') {
+        filteredMessages = filteredMessages.filter(m => m.channelType === options.channelType);
       }
 
-      return messages.map(msg => new UnifiedMessage(
-        msg.id,
-        tenantId,
-        msg.messageId || 'unknown',
-        null, // threadId
-        'email', // channelType
-        msg.fromEmail || '',
-        msg.fromName || '',
-        [msg.toEmail || ''],
-        msg.ccEmails ? JSON.parse(msg.ccEmails) : [],
-        msg.bccEmails ? JSON.parse(msg.bccEmails) : [],
-        msg.subject || '',
-        msg.bodyText || '',
-        msg.bodyHtml || '',
-        msg.hasAttachments || false,
-        msg.attachmentDetails ? JSON.parse(msg.attachmentDetails) : [],
-        msg.emailHeaders ? JSON.parse(msg.emailHeaders) : {},
-        msg.priority as 'low' | 'medium' | 'high' | 'urgent' || 'medium',
-        msg.isRead || false,
-        msg.isProcessed || false,
-        null, // ruleMatched
-        null, // ticketCreated
-        new Date(msg.emailDate || msg.receivedAt),
-        new Date(msg.receivedAt),
-        msg.processedAt ? new Date(msg.processedAt) : null
-      ));
+      if (options.priority && options.priority !== 'all') {
+        filteredMessages = filteredMessages.filter(m => m.priority === options.priority);
+      }
+
+      // Apply pagination
+      const limit = options.limit || 50;
+      const offset = options.offset || 0;
+
+      const paginatedMessages = filteredMessages
+        .sort((a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime())
+        .slice(offset, offset + limit);
+
+      console.log(`📧 DrizzleUnifiedMessageRepository: Found ${paginatedMessages.length} messages (filtered from ${messages.length})`);
+      return paginatedMessages;
+
     } catch (error) {
-      console.error('Error finding unified messages:', error);
+      console.error('❌ Error in DrizzleUnifiedMessageRepository.findAll:', error);
       return [];
+    }
+  }
+
+  async getUnreadCount(tenantId: string): Promise<number> {
+    try {
+      const messages = await this.findAll(tenantId);
+      const unreadCount = messages.filter(m => !m.isRead).length;
+      console.log(`📧 Unread count for tenant ${tenantId}: ${unreadCount}`);
+      return unreadCount;
+    } catch (error) {
+      console.error('❌ Error getting unread count:', error);
+      return 0;
+    }
+  }
+
+  async getCountByChannel(tenantId: string): Promise<Record<string, number>> {
+    try {
+      const messages = await this.findAll(tenantId);
+      const countByChannel = messages.reduce((acc, message) => {
+        acc[message.channelType] = (acc[message.channelType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      console.log(`📧 Count by channel for tenant ${tenantId}:`, countByChannel);
+      return countByChannel;
+    } catch (error) {
+      console.error('❌ Error getting count by channel:', error);
+      return {};
+    }
+  }
+
+  async markAsRead(tenantId: string, messageId: string): Promise<void> {
+    try {
+      const { storage } = await import('../../../../storage-simple');
+      await storage.markEmailAsRead(tenantId, messageId);
+      console.log(`📧 Message ${messageId} marked as read for tenant ${tenantId}`);
+    } catch (error) {
+      console.error('❌ Error marking message as read:', error);
+      throw error;
+    }
+  }
+
+  async archive(tenantId: string, messageId: string): Promise<void> {
+    try {
+      const { storage } = await import('../../../../storage-simple');
+      await storage.archiveEmail(tenantId, messageId);
+      console.log(`📧 Message ${messageId} archived for tenant ${tenantId}`);
+    } catch (error) {
+      console.error('❌ Error archiving message:', error);
+      throw error;
     }
   }
 
@@ -90,115 +129,33 @@ export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepositor
       const messages = await this.findAll(tenantId);
       return messages.find(m => m.id === id) || null;
     } catch (error) {
-      console.error('Error finding message by ID:', error);
+      console.error('❌ Error finding message by id:', error);
       return null;
     }
   }
 
-  async findByChannel(tenantId: string, channelId: string, limit?: number): Promise<UnifiedMessage[]> {
-    try {
-      const messages = await this.findAll(tenantId, { limit });
-      return messages.filter(m => m.channelId === channelId);
-    } catch (error) {
-      console.error('Error finding messages by channel:', error);
-      return [];
-    }
-  }
-
-  async findUnread(tenantId: string): Promise<UnifiedMessage[]> {
-    try {
-      const messages = await this.findAll(tenantId);
-      return messages.filter(m => m.status === 'unread');
-    } catch (error) {
-      console.error('Error finding unread messages:', error);
-      return [];
-    }
-  }
-
-  async findByThread(tenantId: string, threadId: string): Promise<UnifiedMessage[]> {
-    try {
-      const messages = await this.findAll(tenantId);
-      return messages.filter(m => m.threadId === threadId);
-    } catch (error) {
-      console.error('Error finding messages by thread:', error);
-      return [];
-    }
-  }
-
-  async search(tenantId: string, query: string, filters?: MessageFilters): Promise<UnifiedMessage[]> {
-    try {
-      const messages = await this.findAll(tenantId);
-      return messages.filter(m => 
-        m.content.toLowerCase().includes(query.toLowerCase()) ||
-        (m.subject && m.subject.toLowerCase().includes(query.toLowerCase())) ||
-        m.fromAddress.toLowerCase().includes(query.toLowerCase())
-      );
-    } catch (error) {
-      console.error('Error searching messages:', error);
-      return [];
-    }
-  }
-
   async save(message: UnifiedMessage): Promise<UnifiedMessage> {
-    // Save unified message
+    // For now, return the message as-is since we're primarily reading
     return message;
   }
 
-  async markAsProcessed(tenantId: string, id: string, ticketId?: string): Promise<void> {
-    try {
-      const { storage } = await import('../../../../storage-simple');
-      await storage.markEmailAsProcessed(tenantId, id, ticketId);
-    } catch (error) {
-      console.error('Error marking message as processed:', error);
-    }
+  async update(tenantId: string, id: string, updates: Partial<UnifiedMessage>): Promise<UnifiedMessage | null> {
+    // Implementation would update the email record in the database
+    const message = await this.findById(tenantId, id);
+    if (!message) return null;
+
+    Object.assign(message, updates);
+    return message;
   }
 
   async delete(tenantId: string, id: string): Promise<boolean> {
-    return false; // Messages are derived from emails
-  }
-
-  async getUnreadCount(tenantId: string): Promise<number> {
     try {
-      const messages = await this.findAll(tenantId);
-      return messages.filter(msg => !msg.isRead).length;
+      const { storage } = await import('../../../../storage-simple');
+      await storage.deleteEmail(tenantId, id);
+      return true;
     } catch (error) {
-      console.error('Error getting unread count:', error);
-      return 0;
-    }
-  }
-
-  async getCountByChannel(tenantId: string): Promise<Record<string, number>> {
-    try {
-      const messages = await this.findAll(tenantId);
-      const counts: Record<string, number> = {};
-
-      messages.forEach(msg => {
-        const channel = msg.channelType;
-        counts[channel] = (counts[channel] || 0) + 1;
-      });
-
-      return counts;
-    } catch (error) {
-      console.error('Error getting count by channel:', error);
-      return {};
-    }
-  }
-
-  async markAsRead(tenantId: string, messageId: string): Promise<void> {
-    try {
-      // Implementation would mark message as read in database
-      console.log(`Marking message ${messageId} as read for tenant ${tenantId}`);
-    } catch (error) {
-      console.error('Error marking message as read:', error);
-    }
-  }
-
-  async archive(tenantId: string, messageId: string): Promise<void> {
-    try {
-      // Implementation would archive message in database
-      console.log(`Archiving message ${messageId} for tenant ${tenantId}`);
-    } catch (error) {
-      console.error('Error archiving message:', error);
+      console.error('❌ Error deleting message:', error);
+      return false;
     }
   }
 }

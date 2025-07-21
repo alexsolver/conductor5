@@ -1576,7 +1576,7 @@ export class DatabaseStorage implements IStorage {
         LIMIT 100
       `);
 
-      return result.rows || [];
+       return result.rows || [];
     } catch (error) {
       logError('Error fetching email inbox messages', error, { tenantId });
       return [];
