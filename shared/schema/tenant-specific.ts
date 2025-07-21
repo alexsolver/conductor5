@@ -30,25 +30,25 @@ export function getTenantSpecificSchema(schemaName: string) {
     company: varchar("company", { length: 255 }),
     tags: varchar("tags", { length: 500 }), // Optimized: VARCHAR for simple tag lists
     metadata: text("metadata"), // Optimized: TEXT for optional complex data
-    
+
     // Status fields
     verified: boolean("verified").default(false),
     active: boolean("active").default(true),
     suspended: boolean("suspended").default(false),
     lastLogin: timestamp("last_login"),
-    
+
     // Localization fields
     timezone: varchar("timezone", { length: 50 }).default("UTC"),
     locale: varchar("locale", { length: 10 }).default("en-US"),
     language: varchar("language", { length: 5 }).default("en"),
-    
+
     // Professional fields
     externalId: varchar("external_id", { length: 255 }),
     role: varchar("role", { length: 100 }),
     notes: varchar("notes", { length: 1000 }),
     avatar: varchar("avatar", { length: 500 }),
     signature: varchar("signature", { length: 500 }),
-    
+
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName }, (table) => ({
@@ -123,13 +123,13 @@ export function getTenantSpecificSchema(schemaName: string) {
   const tenantTickets = pgTable("tickets", {
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: varchar("tenant_id", { length: 36 }).notNull(), // CRITICAL: Explicit tenant isolation
-    
+
     // Legacy fields
     subject: varchar("subject", { length: 500 }).notNull(),
     description: text("description"),
     status: varchar("status", { length: 50 }).default("open"),
     priority: varchar("priority", { length: 20 }).default("medium"),
-    
+
     // ServiceNow standard fields
     number: varchar("number", { length: 40 }),
     shortDescription: varchar("short_description", { length: 160 }),
@@ -138,7 +138,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     impact: varchar("impact", { length: 20 }).default("medium"),
     urgency: varchar("urgency", { length: 20 }).default("medium"),
     state: varchar("state", { length: 20 }).default("new"),
-    
+
     // Assignment fields
     customerId: uuid("customer_id").references(() => tenantCustomers.id),
     assignedToId: varchar("assigned_to_id"), // References public.users
@@ -146,41 +146,41 @@ export function getTenantSpecificSchema(schemaName: string) {
     openedById: uuid("opened_by_id"), // References public.users
     assignmentGroup: varchar("assignment_group", { length: 100 }),
     location: varchar("location", { length: 100 }),
-    
+
     // Time tracking
     openedAt: timestamp("opened_at").defaultNow(),
     resolvedAt: timestamp("resolved_at"),
     closedAt: timestamp("closed_at"),
-    
+
     // Resolution fields
     resolutionCode: varchar("resolution_code", { length: 50 }),
     resolutionNotes: text("resolution_notes"),
     workNotes: text("work_notes"), // Optimized: TEXT for work notes
-    
+
     // CI/CMDB fields
     configurationItem: varchar("configuration_item", { length: 100 }),
     businessService: varchar("business_service", { length: 100 }),
-    
+
     // Communication fields
     contactType: varchar("contact_type", { length: 20 }).default("email"),
     notify: varchar("notify", { length: 20 }).default("do_not_notify"),
     closeNotes: text("close_notes"),
-    
+
     // Business impact fields
     businessImpact: varchar("business_impact", { length: 50 }),
     symptoms: text("symptoms"),
     rootCause: text("root_cause"),
     workaround: text("workaround"),
-    
+
     // Flexible person references
     beneficiaryId: uuid("beneficiary_id"),
     beneficiaryType: varchar("beneficiary_type", { length: 20 }),
     callerType: varchar("caller_type", { length: 20 }),
-    
+
     // Metadata - OPTIMIZED
     tags: varchar("tags", { length: 500 }), // VARCHAR for simple tag lists
     metadata: text("metadata"), // TEXT for optional metadata
-    
+
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName }, (table) => ({
@@ -238,7 +238,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     name: varchar("name", { length: 255 }).notNull(),
     type: varchar("type", { length: 50 }).default("office"),
     status: varchar("status", { length: 50 }).default("active"),
-    
+
     // Address fields
     address: varchar("address", { length: 500 }),
     number: varchar("number", { length: 20 }),
@@ -248,29 +248,29 @@ export function getTenantSpecificSchema(schemaName: string) {
     state: varchar("state", { length: 50 }),
     zipCode: varchar("zip_code", { length: 20 }),
     country: varchar("country", { length: 50 }).default("Brasil"),
-    
+
     // Geolocation
     latitude: varchar("latitude", { length: 20 }),
     longitude: varchar("longitude", { length: 20 }),
-    
+
     // Business hours and timezone - OPTIMIZED
     businessHours: text("business_hours"), // TEXT for business hours
     specialHours: text("special_hours"), // TEXT for special hours
     timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo"),
-    
+
     // SLA and access
     slaId: uuid("sla_id"),
     accessInstructions: text("access_instructions"),
     requiresAuthorization: boolean("requires_authorization").default(false),
-    
+
     // Security and emergency - OPTIMIZED
     securityEquipment: text("security_equipment"), // TEXT for security equipment
     emergencyContacts: text("emergency_contacts"), // TEXT for emergency contacts
-    
+
     // Metadata - FINAL OPTIMIZATION
     metadata: text("metadata"), // TEXT for metadata
     tags: varchar("tags", { length: 500 }), // VARCHAR for tags
-    
+
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   }, { schema: schemaName });
@@ -382,6 +382,56 @@ export function getTenantSpecificSchema(schemaName: string) {
     tenantEmailIndex: index("external_contacts_tenant_email_idx").on(table.tenantId, table.email),
   }));
 
+  export const ticketTemplates = pgTable('ticket_templates', {
+    id: varchar('id', { length: 36 }).primaryKey(),
+    tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    category: varchar('category', { length: 100 }).default('Geral'),
+    priority: varchar('priority', { length: 20 }).default('medium'),
+    urgency: varchar('urgency', { length: 20 }).default('medium'),
+    impact: varchar('impact', { length: 20 }).default('medium'),
+    defaultTitle: varchar('default_title', { length: 500 }),
+    defaultDescription: text('default_description'),
+    defaultTags: text('default_tags'),
+    estimatedHours: integer('estimated_hours').default(0),
+    requiresApproval: boolean('requires_approval').default(false),
+    autoAssign: boolean('auto_assign').default(false),
+    defaultAssigneeRole: varchar('default_assignee_role', { length: 100 }),
+    isActive: boolean('is_active').default(true),
+    createdBy: varchar('created_by', { length: 36 }),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  });
+
+  // Email inbox table for IMAP integration
+  export const emails = pgTable('emails', {
+    id: varchar('id', { length: 36 }).primaryKey(),
+    tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+    messageId: varchar('message_id', { length: 255 }).notNull(),
+    threadId: varchar('thread_id', { length: 255 }),
+    fromEmail: varchar('from_email', { length: 255 }).notNull(),
+    fromName: varchar('from_name', { length: 255 }),
+    toEmail: varchar('to_email', { length: 255 }).notNull(),
+    ccEmails: text('cc_emails').default('[]'),
+    bccEmails: text('bcc_emails').default('[]'),
+    subject: varchar('subject', { length: 998 }),
+    bodyText: text('body_text'),
+    bodyHtml: text('body_html'),
+    hasAttachments: boolean('has_attachments').default(false),
+    attachmentCount: integer('attachment_count').default(0),
+    attachmentDetails: text('attachment_details').default('[]'),
+    emailHeaders: text('email_headers').default('{}'),
+    priority: varchar('priority', { length: 20 }).default('medium'),
+    isRead: boolean('is_read').default(false),
+    isProcessed: boolean('is_processed').default(false),
+    ruleMatched: varchar('rule_matched', { length: 255 }),
+    ticketCreated: varchar('ticket_created', { length: 36 }),
+    emailDate: timestamp('email_date'),
+    receivedAt: timestamp('received_at').defaultNow(),
+    processedAt: timestamp('processed_at'),
+  });
+
   // Return schema object compatible with Drizzle (without relations to avoid ExtraConfigBuilder error)
   return {
     customers: tenantCustomers,
@@ -396,5 +446,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     userSkills: tenantUserSkills,
     certifications: tenantCertifications,
     externalContacts: tenantExternalContacts,
+    ticketTemplates: ticketTemplates,
+    emails: emails,
   };
 }
