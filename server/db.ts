@@ -43,6 +43,7 @@ export const schemaManager = {
       
             // Verificar tabelas TENANT-SPECIFIC obrigatórias (12 tabelas conforme schema-master.ts)
       // NOTA: sessions, tenants, users são PUBLIC SCHEMA e validadas separadamente
+      // CORREÇÃO: Removidas tabelas inexistentes email_processing_* que causavam falhas de validação
       const requiredTables = [
         'customers', 
         'tickets', 

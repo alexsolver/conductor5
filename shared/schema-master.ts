@@ -103,7 +103,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
 ]);
 
-// Ticket Messages table - Audit fields completed
+// Ticket Messages table - Critical indexes added for performance
 export const ticketMessages = pgTable("ticket_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -114,7 +114,12 @@ export const ticketMessages = pgTable("ticket_messages", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),  // Fixed: audit field added
-});
+}, (table) => [
+  index("ticket_messages_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_messages_tenant_sender_idx").on(table.tenantId, table.senderType),
+  index("ticket_messages_tenant_time_idx").on(table.tenantId, table.createdAt),
+  index("ticket_messages_ticket_time_idx").on(table.ticketId, table.createdAt),
+]);
 
 // Activity Logs table - Critical indexes added, audit fields completed
 export const activityLogs = pgTable("activity_logs", {
@@ -133,7 +138,7 @@ export const activityLogs = pgTable("activity_logs", {
   index("activity_logs_tenant_time_idx").on(table.tenantId, table.createdAt),
 ]);
 
-// Locations table
+// Locations table - Geolocation and search indexes added
 export const locations = pgTable("locations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -145,9 +150,14 @@ export const locations = pgTable("locations", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("locations_tenant_name_idx").on(table.tenantId, table.name),
+  index("locations_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("locations_tenant_geo_idx").on(table.tenantId, table.latitude, table.longitude),
+  index("locations_geo_proximity_idx").on(table.latitude, table.longitude),
+]);
 
-// Customer Companies table
+// Customer Companies table - Enterprise search and filtering indexes
 export const customerCompanies = pgTable("customer_companies", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -161,9 +171,14 @@ export const customerCompanies = pgTable("customer_companies", {
   updatedBy: varchar("updated_by", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("customer_companies_tenant_name_idx").on(table.tenantId, table.name),
+  index("customer_companies_tenant_status_idx").on(table.tenantId, table.status),
+  index("customer_companies_tenant_tier_idx").on(table.tenantId, table.subscriptionTier),
+  index("customer_companies_tenant_size_idx").on(table.tenantId, table.size),
+]);
 
-// Skills table
+// Skills table - Search and categorization indexes
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -173,9 +188,14 @@ export const skills = pgTable("skills", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("skills_tenant_name_idx").on(table.tenantId, table.name),
+  index("skills_tenant_category_idx").on(table.tenantId, table.category),
+  index("skills_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("skills_category_active_idx").on(table.category, table.isActive),
+]);
 
-// Certifications table
+// Certifications table - Issuer and validity indexes
 export const certifications = pgTable("certifications", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -186,9 +206,14 @@ export const certifications = pgTable("certifications", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("certifications_tenant_name_idx").on(table.tenantId, table.name),
+  index("certifications_tenant_issuer_idx").on(table.tenantId, table.issuer),
+  index("certifications_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("certifications_validity_idx").on(table.validityPeriodMonths),
+]);
 
-// User Skills table
+// User Skills table - Composite indexes for skill matching
 export const userSkills = pgTable("user_skills", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -201,7 +226,13 @@ export const userSkills = pgTable("user_skills", {
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("user_skills_tenant_user_idx").on(table.tenantId, table.userId),
+  index("user_skills_tenant_skill_idx").on(table.tenantId, table.skillId),
+  index("user_skills_skill_level_idx").on(table.skillId, table.level),
+  index("user_skills_tenant_verified_idx").on(table.tenantId, table.isVerified),
+  index("user_skills_experience_idx").on(table.yearsOfExperience),
+]);
 
 // Favorecidos table (Brazilian beneficiaries) - Nomenclature standardized and constraints added
 export const favorecidos = pgTable("favorecidos", {
@@ -282,9 +313,17 @@ export const projectActions = pgTable("project_actions", {
   canConvertToTicket: boolean("can_convert_to_ticket").default(false),
   ticketConversionRules: jsonb("ticket_conversion_rules"),
   completedAt: timestamp("completed_at"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("project_actions_tenant_project_idx").on(table.tenantId, table.projectId),
+  index("project_actions_tenant_status_idx").on(table.tenantId, table.status),
+  index("project_actions_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
+  index("project_actions_project_status_idx").on(table.projectId, table.status),
+  index("project_actions_type_priority_idx").on(table.type, table.priority),
+  index("project_actions_scheduled_idx").on(table.scheduledDate),
+]);
 
 // ========================================
 // ZOD SCHEMAS FOR VALIDATION

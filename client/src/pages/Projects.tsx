@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Calendar, Users, DollarSign, BarChart3, Filter, Search, Eye, Edit, Trash2, Gantt } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -127,7 +127,11 @@ export default function Projects() {
 
       if (response.ok) {
         const data = await response.json();
-        setProjects(data);
+        // SAFE: Validate array response
+        const safeProjects = Array.isArray(data) ? data : Array.isArray(data.projects) ? data.projects : [];
+        setProjects(safeProjects);
+      } else {
+        setProjects([]); // SAFE: Default empty array on error
       }
     } catch (error) {
       console.error('Erro ao buscar projetos:', error);
@@ -297,14 +301,18 @@ export default function Projects() {
     setShowViewDialog(true);
   };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (project.description?.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || project.priority === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  // SAFE ARRAY FILTERING WITH VALIDATION
+  const filteredProjects = useMemo(() => {
+    const safeProjects = Array.isArray(projects) ? projects : [];
+    return safeProjects.filter((project) => {
+      const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (project.description?.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+      const matchesPriority = priorityFilter === 'all' || project.priority === priorityFilter;
+      
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [projects, searchTerm, statusFilter, priorityFilter]);
 
   if (loading) {
     return (
@@ -664,11 +672,11 @@ export default function Projects() {
                   </div>
                 </div>
                 
-                {selectedProject.tags.length > 0 && (
+                {Array.isArray(selectedProject?.tags) && selectedProject.tags.length > 0 && (
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Tags</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {selectedProject.tags.map((tag, index) => (
+                      {(Array.isArray(selectedProject?.tags) ? selectedProject.tags : []).map((tag, index) => (
                         <Badge key={index} variant="secondary">
                           {tag}
                         </Badge>
@@ -810,7 +818,8 @@ export default function Projects() {
 
       {/* Projects List */}
       <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ${activeTab !== 'grid' ? 'hidden' : ''}`}>
-        {filteredProjects.map((project) => (
+        {Array.isArray(filteredProjects) && filteredProjects.length > 0 ? (
+          (Array.isArray(filteredProjects) ? filteredProjects : []).map((project) => (
           <Card key={project.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -868,7 +877,7 @@ export default function Projects() {
                 
                 {project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {project.tags.slice(0, 3).map((tag, index) => (
+                    {(Array.isArray(project.tags) ? project.tags.slice(0, 3) : []).map((tag, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {tag}
                       </Badge>
@@ -883,13 +892,13 @@ export default function Projects() {
               </div>
             </CardContent>
           </Card>
-        ))}
+        ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <div className="text-gray-500">Nenhum projeto encontrado</div>
+          </div>
+        )}
       </div>
-      {filteredProjects.length === 0 && activeTab === 'grid' && (
-        <div className="text-center py-12">
-          <div className="text-gray-500">Nenhum projeto encontrado</div>
-        </div>
-      )}
     </div>
   );
 }
