@@ -264,6 +264,79 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   }
 
   // ========================================
+  // OMNIBRIDGE EMAIL OPERATIONS
+  // ========================================
+  
+  async getEmailInboxMessages(tenantId: string): Promise<any[]> {
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get inbox messages from tenant-specific schema
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.email_inbox
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC
+      `);
+      
+      return result.rows || [];
+    } catch (error) {
+      console.error('Error fetching inbox messages:', error);
+      return [];
+    }
+  }
+
+  async getIntegrationByType(tenantId: string, typeName: string): Promise<any | undefined> {
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get integration by name from tenant-specific integrations table
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        WHERE name = ${typeName} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `);
+      
+      return result.rows?.[0] || undefined;
+    } catch (error) {
+      console.error('Error fetching integration by type:', error);
+      return undefined;
+    }
+  }
+
+  async getTenantIntegrations(tenantId: string): Promise<any[]> {
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get all integrations from tenant-specific schema
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC
+      `);
+      
+      return result.rows || [];
+    } catch (error) {
+      console.error('Error fetching tenant integrations:', error);
+      return [];
+    }
+  }
+
+  async updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void> {
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
+        SET status = ${status}, updated_at = NOW()
+        WHERE id = ${integrationId} AND tenant_id = ${tenantId}
+      `);
+    } catch (error) {
+      console.error('Error updating integration status:', error);
+      throw error;
+    }
+  }
+
+  // ========================================
   // TENANT SCHEMA MANAGEMENT
   // ========================================
   

@@ -68,6 +68,7 @@ export interface IStorage {
   getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined>;
   saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any>;
   updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void>;
+  getIntegrationByType(tenantId: string, typeName: string): Promise<any | undefined>;
 
   // Template Bulk Operations
   bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
@@ -1071,6 +1072,25 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logError('Error saving integration config', error, { tenantId, integrationId });
       throw error;
+    }
+  }
+
+  async getIntegrationByType(tenantId: string, typeName: string): Promise<any | undefined> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        WHERE name = ${typeName} AND tenant_id = ${validatedTenantId}
+        LIMIT 1
+      `);
+
+      return result.rows?.[0] || undefined;
+    } catch (error) {
+      logError('Error fetching integration by type', error, { tenantId, typeName });
+      return undefined;
     }
   }
 
