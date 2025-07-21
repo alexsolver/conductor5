@@ -872,8 +872,8 @@ export default function OmniBridge() {
                           </div>
 
                           <div className="flex gap-4 mt-3 text-xs text-gray-500">
-                            <span>Disparada {rule.stats.triggered}x</span>
-                            <span>Taxa de sucesso: {rule.stats.successRate}%</span>
+                            <span>Disparada {rule.stats?.triggered || 0}x</span>
+                            <span>Taxa de sucesso: {rule.stats?.successRate || 0}%</span>
                           </div>
                         </div>
 
@@ -1218,17 +1218,17 @@ export default function OmniBridge() {
                             </Badge>
                           </div>
                           <div className="text-sm text-gray-600">
-                            Executada {rule.stats.triggered} vezes
+                            Executada {rule.stats?.triggered || 0} vezes
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-center">
                             <div className="text-lg font-bold text-green-600">
-                              {rule.stats.successRate}%
+                              {rule.stats?.successRate || 0}%
                             </div>
                             <div className="text-xs text-gray-500">Taxa de sucesso</div>
                           </div>
-                          <Progress value={rule.stats.successRate} className="w-20 h-2" />
+                          <Progress value={rule.stats?.successRate || 0} className="w-20 h-2" />
                         </div>
                       </div>
                     ))}
