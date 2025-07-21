@@ -67,7 +67,7 @@ export const users = pgTable("users", {
 // Customers table (Solicitantes - internal system requesters)
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   firstName: varchar("first_name", { length: 255 }),
   lastName: varchar("last_name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull(),
@@ -91,7 +91,7 @@ export const customers = pgTable("customers", {
 // Tickets table
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   subject: varchar("subject", { length: 255 }).notNull(),
   description: text("description").notNull(),
   priority: varchar("priority", { length: 50 }).default("medium").notNull(),
@@ -121,7 +121,7 @@ export const tickets = pgTable("tickets", {
 // Ticket Messages table
 export const ticketMessages = pgTable("ticket_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   ticketId: uuid("ticket_id").notNull(),
   userId: uuid("user_id"),
   message: text("message").notNull(),
@@ -133,7 +133,7 @@ export const ticketMessages = pgTable("ticket_messages", {
 // Activity Logs table
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   entityType: varchar("entity_type", { length: 50 }).notNull(),
   entityId: uuid("entity_id").notNull(),
   action: varchar("action", { length: 100 }).notNull(),
@@ -147,7 +147,7 @@ export const activityLogs = pgTable("activity_logs", {
 // Locations table
 export const locations = pgTable("locations", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   name: varchar("name", { length: 255 }).notNull(),
   address: varchar("address", { length: 500 }),
   city: varchar("city", { length: 100 }),
@@ -165,7 +165,7 @@ export const locations = pgTable("locations", {
 // Customer Companies table
 export const customerCompanies = pgTable("customer_companies", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   name: varchar("name", { length: 255 }).notNull(),
   displayName: varchar("display_name", { length: 255 }),
   description: text("description"),
@@ -181,7 +181,7 @@ export const customerCompanies = pgTable("customer_companies", {
 // Skills table (Technical Skills)
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   description: text("description"),
@@ -194,7 +194,7 @@ export const skills = pgTable("skills", {
 // Certifications table
 export const certifications = pgTable("certifications", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   issuer: varchar("issuer", { length: 255 }),
@@ -208,7 +208,7 @@ export const certifications = pgTable("certifications", {
 // User Skills table (many-to-many relationship)
 export const userSkills = pgTable("user_skills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   skillId: uuid("skill_id").notNull(),
   currentLevel: varchar("current_level", { length: 50 }),
@@ -222,7 +222,7 @@ export const userSkills = pgTable("user_skills", {
 // Favorecidos table (External contacts)
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   firstName: varchar("first_name", { length: 255 }),
   lastName: varchar("last_name", { length: 255 }),
   fullName: varchar("full_name", { length: 500 }),
@@ -245,7 +245,7 @@ export const favorecidos = pgTable("favorecidos", {
 // External Contacts table
 export const externalContacts = pgTable("external_contacts", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 50 }),
@@ -260,7 +260,7 @@ export const externalContacts = pgTable("external_contacts", {
 // Customer Company Memberships table (many-to-many)
 export const customerCompanyMemberships = pgTable("customer_company_memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   customerId: uuid("customer_id").notNull(),
   companyId: uuid("company_id").notNull(),
   role: varchar("role", { length: 100 }),
@@ -274,24 +274,62 @@ export const customerCompanyMemberships = pgTable("customer_company_memberships"
 // PROJECT MANAGEMENT TABLES
 // ========================================
 
-// Projects table
+// Projects table (FIXED to match actual DB structure exactly)
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: DB uses UUID, not VARCHAR
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   status: varchar("status", { length: 50 }).default("planning").notNull(),
-  priority: varchar("priority", { length: 50 }).default("medium").notNull(),
-  budget: decimal("budget", { precision: 10, scale: 2 }),
+  priority: varchar("priority", { length: 20 }).default("medium").notNull(),
+  startDate: timestamp("start_date"), // FIXED: DB uses timestamp, not date
+  endDate: timestamp("end_date"), // FIXED: DB uses timestamp, not date
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours").default(0),
-  startDate: date("start_date"),
-  endDate: date("end_date"),
-  dueDate: date("due_date"),
-  customerId: uuid("customer_id"),
-  assignedUserId: uuid("assigned_user_id"),
-  teamMemberIds: jsonb("team_member_ids").default('[]'),
-  tags: jsonb("tags").default('[]'),
+  budget: decimal("budget"),
+  actualCost: decimal("actual_cost").default("0"), // FIXED: DB field name
+  projectManagerId: uuid("project_manager_id"),
+  clientId: uuid("client_id"), // FIXED: DB field name
+  teamMemberIds: uuid("team_member_ids").array().default('{}'), // FIXED: Array type
+  tags: text("tags").array().default('{}'), // FIXED: Array type
+  customFields: jsonb("custom_fields").default('{}'), // FIXED: DB field name
+  metadata: jsonb("metadata").default('{}'),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by").notNull(),
+  managerId: uuid("manager_id"), // FIXED: Additional DB field
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Project Actions table (FIXED to match actual DB structure exactly)
+export const projectActions = pgTable("project_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: DB uses UUID, not VARCHAR
+  projectId: uuid("project_id").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  type: varchar("type", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // FIXED: Length 20
+  scheduledDate: timestamp("scheduled_date"), // FIXED: DB field name
+  dueDate: timestamp("due_date"),
+  completedDate: timestamp("completed_date"),
+  estimatedHours: integer("estimated_hours"),
+  actualHours: integer("actual_hours").default(0),
+  assignedToId: uuid("assigned_to_id"), // FIXED: DB field name
+  responsibleIds: uuid("responsible_ids").array().default('{}'), // FIXED: Array type
+  clientContactId: uuid("client_contact_id"), // FIXED: DB field
+  externalReference: varchar("external_reference", { length: 255 }), // FIXED: DB field
+  deliveryMethod: varchar("delivery_method", { length: 255 }), // FIXED: DB field
+  dependsOnActionIds: uuid("depends_on_action_ids").array().default('{}'), // FIXED: Array type
+  blockedByActionIds: uuid("blocked_by_action_ids").array().default('{}'), // FIXED: Array type
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  tags: text("tags").array().default('{}'), // FIXED: Array type
+  attachments: text("attachments").array().default('{}'), // FIXED: Array type
+  notes: text("notes"),
+  relatedTicketId: uuid("related_ticket_id"), // FIXED: DB field
+  canConvertToTicket: varchar("can_convert_to_ticket", { length: 10 }).default("true"), // FIXED: DB field
+  ticketConversionRules: jsonb("ticket_conversion_rules").default('{}'), // FIXED: DB field
+  completedAt: timestamp("completed_at"), // FIXED: DB field
   metadata: jsonb("metadata").default('{}'),
   createdBy: uuid("created_by").notNull(),
   updatedBy: uuid("updated_by").notNull(),
@@ -299,35 +337,10 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Project Actions table
-export const projectActions = pgTable("project_actions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
-  projectId: uuid("project_id").notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  actionType: varchar("action_type", { length: 50 }).notNull(), // internal_meeting, approval, external_delivery, etc.
-  category: varchar("category", { length: 50 }).notNull(), // internal, external, milestone, dependency
-  status: varchar("status", { length: 50 }).default("pending").notNull(),
-  priority: varchar("priority", { length: 50 }).default("medium").notNull(),
-  assignedTo: uuid("assigned_to"),
-  dueDate: timestamp("due_date"),
-  completedDate: timestamp("completed_date"),
-  estimatedHours: integer("estimated_hours"),
-  actualHours: integer("actual_hours").default(0),
-  dependencies: jsonb("dependencies").default('[]'), // Array of action IDs this depends on
-  deliverables: jsonb("deliverables").default('[]'),
-  notes: text("notes"),
-  metadata: jsonb("metadata").default('{}'),
-  createdBy: uuid("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 // Project Timeline table
 export const projectTimeline = pgTable("project_timeline", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   projectId: uuid("project_id").notNull(),
   eventType: varchar("event_type", { length: 50 }).notNull(), // milestone, task_completion, phase_change, etc.
   title: varchar("title", { length: 255 }).notNull(),
@@ -347,7 +360,7 @@ export const projectTimeline = pgTable("project_timeline", {
 // Time Records table (Individual clock-in/out records)
 export const timeRecords = pgTable("time_records", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   recordType: varchar("record_type", { length: 20 }).notNull(), // clock_in, clock_out, break_start, break_end
   timestamp: timestamp("timestamp").notNull(),
@@ -365,7 +378,7 @@ export const timeRecords = pgTable("time_records", {
 // Daily Timesheet table (Daily summary of work hours)
 export const dailyTimesheet = pgTable("daily_timesheet", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   workDate: date("work_date").notNull(),
   clockIn: timestamp("clock_in"),
@@ -386,7 +399,7 @@ export const dailyTimesheet = pgTable("daily_timesheet", {
 // Work Schedules table (Employee work patterns)
 export const workSchedules = pgTable("work_schedules", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   scheduleType: varchar("schedule_type", { length: 50 }).notNull(), // fixed, flexible, rotating
@@ -407,7 +420,7 @@ export const workSchedules = pgTable("work_schedules", {
 // Time Bank table (Banco de Horas - Brazilian CLT requirement)
 export const timeBank = pgTable("time_bank", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   referenceMonth: varchar("reference_month", { length: 7 }).notNull(), // "2024-01"
   creditMinutes: integer("credit_minutes").default(0), // Positive balance (worked extra)
@@ -425,7 +438,7 @@ export const timeBank = pgTable("time_bank", {
 // Schedule Templates table (Reusable work patterns)
 export const scheduleTemplates = pgTable("schedule_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 50 }).notNull(), // fixed, rotating, flexible, shift
@@ -442,7 +455,7 @@ export const scheduleTemplates = pgTable("schedule_templates", {
 // Absence Requests table (Vacation, sick leave, etc.)
 export const absenceRequests = pgTable("absence_requests", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   absenceType: varchar("absence_type", { length: 50 }).notNull(), // vacation, sick_leave, maternity, etc.
   startDate: date("start_date").notNull(),
@@ -462,7 +475,7 @@ export const absenceRequests = pgTable("absence_requests", {
 // Compliance Alerts table (CLT violation warnings)
 export const complianceAlerts = pgTable("compliance_alerts", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(), // FIXED: Standardized to UUID type
   userId: uuid("user_id").notNull(),
   alertType: varchar("alert_type", { length: 50 }).notNull(), // overtime_limit, missing_break, etc.
   severity: varchar("severity", { length: 20 }).default("medium"), // low, medium, high, critical
