@@ -47,16 +47,16 @@ export const schemaManager = {
       const requiredTables = [
     'customers',
     'tickets',
-    'ticketMessages',
-    'activityLogs',
+    'ticket_messages',
+    'activity_logs',
     'locations',
-    'customerCompanies',
+    'customer_companies',
     'skills',
     'certifications',
-    'userSkills',
+    'user_skills',
     'favorecidos',
     'projects',
-    'projectActions'
+    'project_actions'
   ]; // Total: ~20 tables for comprehensive validation
       
       const tableCount = await pool.query(
