@@ -118,7 +118,7 @@ export const ticketMessages = pgTable("ticket_messages", {
   index("ticket_messages_tenant_ticket_idx").on(table.tenantId, table.ticketId),
   index("ticket_messages_tenant_sender_idx").on(table.tenantId, table.senderType),
   index("ticket_messages_tenant_time_idx").on(table.tenantId, table.createdAt),
-  index("ticket_messages_ticket_time_idx").on(table.ticketId, table.createdAt),
+  index("ticket_messages_ticket_time_idx").on(table.tenantId, table.ticketId, table.createdAt),
 ]);
 
 // Activity Logs table - Critical indexes added, audit fields completed
@@ -154,7 +154,7 @@ export const locations = pgTable("locations", {
   index("locations_tenant_name_idx").on(table.tenantId, table.name),
   index("locations_tenant_active_idx").on(table.tenantId, table.isActive),
   index("locations_tenant_geo_idx").on(table.tenantId, table.latitude, table.longitude),
-  index("locations_geo_proximity_idx").on(table.latitude, table.longitude),
+  index("locations_geo_proximity_idx").on(table.tenantId, table.latitude, table.longitude),
 ]);
 
 // Customer Companies table - Enterprise search and filtering indexes
@@ -192,7 +192,7 @@ export const skills = pgTable("skills", {
   index("skills_tenant_name_idx").on(table.tenantId, table.name),
   index("skills_tenant_category_idx").on(table.tenantId, table.category),
   index("skills_tenant_active_idx").on(table.tenantId, table.isActive),
-  index("skills_category_active_idx").on(table.category, table.isActive),
+  index("skills_category_active_idx").on(table.tenantId, table.category, table.isActive),
 ]);
 
 // Certifications table - Issuer and validity indexes
@@ -210,7 +210,7 @@ export const certifications = pgTable("certifications", {
   index("certifications_tenant_name_idx").on(table.tenantId, table.name),
   index("certifications_tenant_issuer_idx").on(table.tenantId, table.issuer),
   index("certifications_tenant_active_idx").on(table.tenantId, table.isActive),
-  index("certifications_validity_idx").on(table.validityPeriodMonths),
+  index("certifications_validity_idx").on(table.tenantId, table.validityPeriodMonths),
 ]);
 
 // User Skills table - Composite indexes for skill matching
@@ -229,9 +229,9 @@ export const userSkills = pgTable("user_skills", {
 }, (table) => [
   index("user_skills_tenant_user_idx").on(table.tenantId, table.userId),
   index("user_skills_tenant_skill_idx").on(table.tenantId, table.skillId),
-  index("user_skills_skill_level_idx").on(table.skillId, table.level),
+  index("user_skills_skill_level_idx").on(table.tenantId, table.skillId, table.level),
   index("user_skills_tenant_verified_idx").on(table.tenantId, table.isVerified),
-  index("user_skills_experience_idx").on(table.yearsOfExperience),
+  index("user_skills_experience_idx").on(table.tenantId, table.yearsOfExperience),
 ]);
 
 // Favorecidos table (Brazilian beneficiaries) - Nomenclature standardized and constraints added
@@ -320,9 +320,9 @@ export const projectActions = pgTable("project_actions", {
   index("project_actions_tenant_project_idx").on(table.tenantId, table.projectId),
   index("project_actions_tenant_status_idx").on(table.tenantId, table.status),
   index("project_actions_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
-  index("project_actions_project_status_idx").on(table.projectId, table.status),
-  index("project_actions_type_priority_idx").on(table.type, table.priority),
-  index("project_actions_scheduled_idx").on(table.scheduledDate),
+  index("project_actions_project_status_idx").on(table.tenantId, table.projectId, table.status),
+  index("project_actions_type_priority_idx").on(table.tenantId, table.type, table.priority),
+  index("project_actions_scheduled_idx").on(table.tenantId, table.scheduledDate),
 ]);
 
 // ========================================
