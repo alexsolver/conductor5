@@ -79,7 +79,8 @@ export class DrizzleChannelRepository implements IChannelRepository {
             configKeys: parsedConfig ? Object.keys(parsedConfig) : [],
             parsedConfig: parsedConfig,
             hasValidImapConfig: parsedConfig ? this.hasValidImapConfig(parsedConfig) : undefined,
-            emailsTableExists: this.checkEmailsTableExists()
+            emailsTableExists: this.checkEmailsTableExists(),
+            actualEmailCount: actualEmailCount
           });
 
           const hasValidConfig = parsedConfig && this.hasValidImapConfig(parsedConfig);
@@ -92,7 +93,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
             'email' as any,
             true, // isActive
             isConnected,
-            0, // messageCount
+            actualEmailCount, // messageCount - use real email count from database
             hasValidConfig && emailsTableExists ? 0 : 1, // errorCount
             hasValidConfig && emailsTableExists ? null : 'Configuração IMAP necessária',
             hasValidConfig || false,
