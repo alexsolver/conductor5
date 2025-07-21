@@ -70,6 +70,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
+  { name: "Registro de Ponto", href: "/timecard", icon: Clock },
   { name: "Controle de Jornadas", href: "/journey-control", icon: Route },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
