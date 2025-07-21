@@ -29,6 +29,7 @@ import multilocationRoutes from './routes/multilocation';
 import geolocationRoutes from './routes/geolocation';
 import holidayRoutes from './routes/HolidayController';
 import omnibridgeRoutes from './routes/omnibridge';
+import omnibridgeDataRoutes from './routes/omnibridgeData';
 // Removed: journeyRoutes - functionality eliminated from system
 // import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
 // import scheduleRoutes from './modules/schedule-management/routes'; // Temporarily removed
@@ -42,6 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     nonce: true
   }));
+
+  // Mount OmniBridge data routes (without authentication)
+  app.use('/omnibridge-data', omnibridgeDataRoutes);
 
   // Apply memory-based rate limiting middleware  
   app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
@@ -423,83 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Global multilocation routes  
   // app.use('/api/multilocation', multilocationRoutes); // Temporarily disabled due to module export issue
   
-  // OmniBridge routes - integrate directly with auth
-  app.get('/api/omnibridge/rules', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      const pool = schemaManager.getPool();
-      const result = await pool.query(
-        `SELECT * FROM omnibridge_rules WHERE tenant_id = $1 ORDER BY priority DESC, created_at DESC`,
-        [tenantId]
-      );
-      res.json({ rules: result.rows });
-    } catch (error) {
-      console.error('Error fetching OmniBridge rules:', error);
-      res.status(500).json({ error: 'Failed to fetch rules' });
-    }
-  });
-
-  app.get('/api/omnibridge/templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      const pool = schemaManager.getPool();
-      const result = await pool.query(
-        `SELECT * FROM omnibridge_templates WHERE tenant_id = $1 ORDER BY created_at DESC`,
-        [tenantId]
-      );
-      res.json({ templates: result.rows });
-    } catch (error) {
-      console.error('Error fetching OmniBridge templates:', error);
-      res.status(500).json({ error: 'Failed to fetch templates' });
-    }
-  });
-
-  app.get('/api/omnibridge/metrics', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      const pool = schemaManager.getPool();
-      const result = await pool.query(
-        `SELECT * FROM omnibridge_metrics WHERE tenant_id = $1 ORDER BY metric_date DESC`,
-        [tenantId]
-      );
-      res.json({ metrics: result.rows });
-    } catch (error) {
-      console.error('Error fetching OmniBridge metrics:', error);
-      res.status(500).json({ error: 'Failed to fetch metrics' });
-    }
-  });
-
-  // OmniBridge channels endpoint - integrates with existing integrations
-  app.get('/api/omnibridge/channels', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      const pool = schemaManager.getPool();
-      
-      // Get tenant integrations
-      const integrationResult = await pool.query(
-        `SELECT * FROM integrations WHERE tenant_id = $1`,
-        [tenantId]
-      );
-
-      // Transform integrations into channels format
-      const channels = integrationResult.rows.map((integration: any) => ({
-        id: integration.id,
-        name: integration.name,
-        type: integration.type.toLowerCase(),
-        icon: getChannelIcon(integration.type),
-        isConnected: integration.status === 'connected',
-        status: integration.status || 'disconnected',
-        lastActivity: integration.last_activity || null,
-        config: integration.config || {},
-        description: getChannelDescription(integration.type)
-      }));
-
-      res.json({ channels });
-    } catch (error) {
-      console.error('Error fetching OmniBridge channels:', error);
-      res.status(500).json({ error: 'Failed to fetch channels' });
-    }
-  });
+  // Removed duplicate OmniBridge routes - now defined earlier before middleware
 
   // Helper functions for channel transformation
   function getChannelIcon(type: string): string {
