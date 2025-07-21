@@ -1,3 +1,4 @@
+
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -47,7 +48,8 @@ async function forceCreateIntegrationsInAllTenants() {
 
       // Create IMAP integration
       console.log(`Creating IMAP integration in ${schema}...`);
-      const integrationId = 'imap-email-integration'; // You might want to generate a UUID here
+      const integrationId = 'imap-email-integration';
+      
       try {
         const configData = JSON.stringify({
           emailAddress: "alexsolver@gmail.com",
@@ -65,12 +67,11 @@ async function forceCreateIntegrationsInAllTenants() {
           lastSync: new Date().toISOString()
         });
 
-        const featuresData = JSON.stringify(["emails", "calendar", "contacts"]);
-
+        // Use PostgreSQL array literal format for TEXT[] - NOT JSON string
         await client.query(`
           INSERT INTO "${schema}".integrations (id, tenant_id, name, description, category, icon, status, config, features, created_at, updated_at)
           VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, ARRAY['emails', 'calendar', 'contacts'], NOW(), NOW()
           ) ON CONFLICT (id) DO UPDATE SET
             tenant_id = $2,
             name = $3,
@@ -79,7 +80,7 @@ async function forceCreateIntegrationsInAllTenants() {
             icon = $6,
             status = $7,
             config = $8,
-            features = $9,
+            features = ARRAY['emails', 'calendar', 'contacts'],
             updated_at = NOW()
         `, [
           integrationId,
@@ -89,14 +90,12 @@ async function forceCreateIntegrationsInAllTenants() {
           'communication',
           'email-icon',
           'connected',
-          configData,
-          featuresData
+          configData
         ]);
         console.log(`✓ IMAP integration created in ${schema}`);
       } catch (error) {
         console.error(`✗ Failed to create/update IMAP integration in ${schema}:`, error.message);
       }
-
 
     } catch (error) {
       console.error(`✗ Failed to create integrations table in ${schema}:`, error.message);
