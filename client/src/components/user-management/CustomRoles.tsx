@@ -177,7 +177,7 @@ export function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                       onChange={(e) => setFormData({ ...formData, basedOnRole: e.target.value })}
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     >
-                      <option value="">{t("userManagement.selectBaseRole", "Selecionar papel base")}</option>
+                      <option value="none">{t("userManagement.selectBaseRole", "Selecionar papel base")}</option>
                       {systemRolesData?.roles?.map((role) => (
                         <option key={role.name} value={role.name}>
                           {role.displayName}

@@ -49,19 +49,19 @@ const movementTypeColors = {
 };
 
 export default function HourBank() {
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('default');
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
 
   // Buscar banco de horas
   const { data: hourBank, isLoading: hourBankLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank', selectedUserId, selectedMonth],
-    enabled: !!selectedUserId,
+    enabled: selectedUserId !== 'default',
   });
 
   // Buscar movimentações
   const { data: movements, isLoading: movementsLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank/movements', selectedUserId, selectedMonth],
-    enabled: !!selectedUserId,
+    enabled: selectedUserId !== 'default',
   });
 
   // Buscar usuários
@@ -119,6 +119,7 @@ export default function HourBank() {
                   <SelectValue placeholder="Selecione o funcionário" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="default">Selecione o funcionário</SelectItem>
                   {(users as any)?.customers?.map((user: any) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
@@ -196,7 +197,7 @@ export default function HourBank() {
         </Card>
       </div>
 
-      {selectedUserId ? (
+      {selectedUserId !== 'default' ? (
         <Tabs defaultValue="balance" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="balance">Saldo</TabsTrigger>

@@ -52,7 +52,10 @@ export default function TimecardReports() {
   };
 
   const updateFilters = (key: keyof ReportFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters(prev => ({ 
+      ...prev, 
+      [key]: value === 'all' ? undefined : value 
+    }));
   };
 
   return (
@@ -96,13 +99,13 @@ export default function TimecardReports() {
             </div>
             <div>
               <Label htmlFor="userId">Funcionário</Label>
-              <Select value={filters.userId || ''} onValueChange={(value) => updateFilters('userId', value)}>
+              <Select value={filters.userId || 'all'} onValueChange={(value) => updateFilters('userId', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os funcionários" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {users?.customers?.map((user: any) => (
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(users as any)?.customers?.map((user: any) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>
