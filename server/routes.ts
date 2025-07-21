@@ -25,7 +25,7 @@ import { omniBridgeRoutes } from './modules/omni-bridge/routes';
 import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import dashboardRoutes from './modules/dashboard/routes';
-import journeyRoutes from './modules/journey-management/routes';
+// Removed: journeyRoutes - functionality eliminated from system
 import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/routes';
 
@@ -183,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/saas-admin/integrations', saasAdminIntegrationsRoutes.default);
   app.use('/api/tenant-admin', tenantAdminRoutes.default);
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);
-  app.use('/api/journey', journeyRoutes);
+  // Removed: journey API routes - functionality eliminated from system
   app.use('/api/schedule', scheduleRoutes);
 
   // Tenant endpoint for fetching tenant details

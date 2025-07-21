@@ -72,7 +72,7 @@ const baseNavigation: Array<{
   },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
   {
-    name: "Timecard",
+    name: "Controle de Jornadas",
     icon: Clock,
     children: [
       { name: "Registro de Ponto", href: "/timecard", icon: Clock },
@@ -81,7 +81,6 @@ const baseNavigation: Array<{
       { name: "Relatórios", href: "/timecard-reports", icon: FileText },
     ]
   },
-  { name: "Controle de Jornadas", href: "/journey-control", icon: Route },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },

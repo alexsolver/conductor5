@@ -223,7 +223,7 @@ export * from './ticket-templates';
 export * from './location';
 export * from './user-management';
 export * from './technical-skills';
-export * from './journey';
+// Removed: journey schema - functionality eliminated from system
 export * from './timecard';
 export * from './schedule';
 export * from './security';

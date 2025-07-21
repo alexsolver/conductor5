@@ -143,7 +143,7 @@ export default function Timecard() {
   return (
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Registro de Ponto</h1>
+        <h1 className="text-2xl font-bold">Controle de Jornadas - Registro de Ponto</h1>
         {getStatusBadge(status)}
       </div>
 

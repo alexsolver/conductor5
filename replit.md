@@ -10,6 +10,36 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 21, 2025 - JOURNEY CONTROL REMOVAL & TIMECARD REBRANDING COMPLETED ✅ SYSTEM RESTRUCTURING
+
+**🎯 SISTEMA DE CONTROLE DE JORNADAS COMPLETAMENTE REMOVIDO:**
+
+✅ **FUNCIONALIDADE JOURNEY CONTROL ELIMINADA:**
+- Removido arquivo JourneyControl.tsx e todas as funcionalidades relacionadas
+- Excluído módulo server/modules/journey-management/ completamente
+- Eliminado schema shared/schema/journey.ts e todas as definições de tabela
+- Removidas tabelas journey, journey_checkpoints e journey_metrics do banco PostgreSQL
+- Limpadas todas as referências de rotas /api/journey e imports relacionados
+
+✅ **TIMECARD RENOMEADO PARA "CONTROLE DE JORNADAS":**
+- Menu lateral atualizado: "Timecard" → "Controle de Jornadas"
+- Título da página Timecard.tsx alterado para "Controle de Jornadas - Registro de Ponto"
+- Mantidas todas as funcionalidades de timecard (Registro de Ponto, Escalas, Banco de Horas, Relatórios)
+- Estrutura de navegação simplificada e reorganizada conforme solicitado
+
+✅ **NAVEGAÇÃO E ROUTING ATUALIZADOS:**
+- Removida entrada "Controle de Jornadas" como item separado do menu
+- Consolidado sistema timecard como submenu de "Controle de Jornadas"
+- Eliminadas rotas /journey-control e imports do JourneyControl no App.tsx
+- Sistema de navegação limpo e funcional sem referências antigas
+
+**🚀 RESULTADO FINAL:**
+- ✅ Sistema "Controle de Jornadas" (journey) completamente removido conforme solicitação
+- ✅ Funcionalidade "Timecard" renomeada para "Controle de Jornadas" 
+- ✅ Aplicação rodando estável sem erros após reestruturação
+- ✅ Banco de dados limpo sem tabelas journey relacionadas
+- ✅ Navegação simplificada com hierarquia clara de funcionalidades
+
 ### July 21, 2025 - TIMECARD SYSTEM IMPLEMENTATION COMPLETED ✅ CLT COMPLIANCE ACHIEVED
 
 **🎯 SISTEMA DE REGISTRO DE PONTO CLT IMPLEMENTADO COMPLETAMENTE:**

@@ -54,7 +54,7 @@ import TicketTemplates from "./pages/TicketTemplates";
 import Projects from "./pages/Projects"; // Import the Projects component
 import ProjectActions from "./pages/ProjectActions"; // Import the Project Actions component
 import OmniBridge from "./pages/OmniBridge";
-import JourneyControl from "./pages/JourneyControl"; // Import the Journey Control component
+// Removed: JourneyControl - functionality eliminated from system
 import Timecard from "./pages/Timecard";
 
 // Components
@@ -127,7 +127,7 @@ function AppRouter() {
         <Route path="/internal-forms" component={InternalForms} />
         <Route path="/projects" component={Projects} />
         <Route path="/project-actions" component={ProjectActions} />
-        <Route path="/journey-control" component={JourneyControl} />
+        {/* Removed: journey-control route - functionality eliminated */}
         <Route path="/timecard" component={Timecard} />
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
