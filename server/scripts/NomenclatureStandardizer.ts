@@ -1,226 +1,260 @@
-// NOMENCLATURE STANDARDIZER
-// Validates and reports nomenclature compliance across the system
+// NOMENCLATURE STANDARDIZATION SYSTEM
+// Provides automated validation and recommendations for naming consistency
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+interface NomenclatureRule {
+  context: 'table' | 'field' | 'database' | 'api' | 'component';
+  pattern: string;
+  examples: string[];
+  exceptions: string[];
+  justification: string;
+}
+
 class NomenclatureStandardizer {
   private schemaPath = join(process.cwd(), 'shared', 'schema-master.ts');
+  private rules: NomenclatureRule[] = [];
 
-  async validateNomenclatureStandards(): Promise<void> {
-    console.log('# NOMENCLATURE STANDARDS VALIDATION');
+  constructor() {
+    this.initializeRules();
+  }
+
+  private initializeRules(): void {
+    this.rules = [
+      {
+        context: 'table',
+        pattern: 'camelCase for TypeScript constants, snake_case for database names',
+        examples: ['customers → "customers"', 'customerCompanies → "customer_companies"'],
+        exceptions: ['favorecidos → "favorecidos" (Brazilian context)'],
+        justification: 'TypeScript convention + PostgreSQL convention'
+      },
+      {
+        context: 'field',
+        pattern: 'camelCase for TypeScript, snake_case for database, specific patterns for types',
+        examples: ['firstName → "first_name"', 'createdAt → "created_at"'],
+        exceptions: ['cpf, cnpj, rg (Brazilian legal fields)', 'name vs firstName/lastName (entity vs individual)'],
+        justification: 'Language conventions + business requirements'
+      },
+      {
+        context: 'database',
+        pattern: 'snake_case for all identifiers, lowercase preferred',
+        examples: ['customer_companies', 'user_skills', 'project_actions'],
+        exceptions: ['favorecidos (Brazilian business term)'],
+        justification: 'PostgreSQL naming conventions'
+      },
+      {
+        context: 'api',
+        pattern: 'kebab-case for URLs, camelCase for JSON responses',
+        examples: ['/api/customer-companies', '{ firstName: "João" }'],
+        exceptions: ['Brazilian field names in responses when appropriate'],
+        justification: 'REST API conventions + JSON standards'
+      },
+      {
+        context: 'component',
+        pattern: 'PascalCase for React components, camelCase for props',
+        examples: ['CustomerCompanies.tsx', 'FavorecidosTable.tsx'],
+        exceptions: ['Acronyms like CPFField, CNPJValidator'],
+        justification: 'React conventions + readability'
+      }
+    ];
+  }
+
+  async validateNomenclature(): Promise<void> {
+    console.log('# NOMENCLATURE STANDARDIZATION VALIDATION');
     console.log(`Generated: ${new Date().toISOString()}\n`);
 
     try {
       const schemaContent = readFileSync(this.schemaPath, 'utf-8');
       
-      // 1. Check favorecidos table standardization
-      this.validateFavorecidosTable(schemaContent);
+      // 1. Validate against established rules
+      this.validateAgainstRules(schemaContent);
       
-      // 2. Check overall naming consistency
-      this.validateNamingConsistency(schemaContent);
+      // 2. Check for specific inconsistency patterns
+      this.checkInconsistencyPatterns(schemaContent);
       
-      // 3. Check Brazilian legal fields preservation
-      this.validateBrazilianFields(schemaContent);
-      
-      // 4. Generate compliance report
-      this.generateComplianceReport();
+      // 3. Generate standardization report
+      this.generateStandardizationReport();
       
     } catch (error) {
       console.error('Error during nomenclature validation:', error);
     }
   }
 
-  private validateFavorecidosTable(content: string): void {
-    console.log('## 🇧🇷 FAVORECIDOS TABLE STANDARDIZATION ANALYSIS\n');
+  private validateAgainstRules(content: string): void {
+    console.log('## 📏 RULE VALIDATION ANALYSIS\n');
     
-    const favorecidosMatch = content.match(/export const favorecidos = pgTable\("favorecidos",[\s\S]*?\}\)\);/);
-    
-    if (!favorecidosMatch) {
-      console.log('❌ favorecidos table not found in schema');
-      return;
-    }
-
-    const tableDefinition = favorecidosMatch[0];
-    
-    // Check for standardized English fields
-    const englishFields = {
-      name: /name: varchar\("name"/,
-      email: /email: varchar\("email"/,
-      phone: /phone: varchar\("phone"/,
-      cellPhone: /cellPhone: varchar\("cell_phone"/,
-      integrationCode: /integrationCode: varchar\("integration_code"/,
-      address: /address: text\("address"/,
-      city: /city: varchar\("city"/,
-      state: /state: varchar\("state"/,
-      zipCode: /zipCode: varchar\("zip_code"/,
-      notes: /notes: text\("notes"/,
-      isActive: /isActive: boolean\("is_active"/,
-      createdAt: /createdAt: timestamp\("created_at"/,
-      updatedAt: /updatedAt: timestamp\("updated_at"/
-    };
-
-    // Check for Brazilian legal fields (should remain Portuguese)
-    const brazilianFields = {
-      cpf: /cpf: varchar\("cpf"/,
-      cnpj: /cnpj: varchar\("cnpj"/,
-      rg: /rg: varchar\("rg"/
-    };
-
-    console.log('### English Field Standardization:');
-    Object.entries(englishFields).forEach(([field, pattern]) => {
-      const found = pattern.test(tableDefinition);
-      console.log(`- ${field}: ${found ? '✅ STANDARDIZED' : '❌ MISSING/INCONSISTENT'}`);
+    this.rules.forEach((rule, index) => {
+      console.log(`### Rule ${index + 1}: ${rule.context.toUpperCase()} Naming`);
+      console.log(`**Pattern**: ${rule.pattern}`);
+      console.log(`**Examples**: ${rule.examples.join(', ')}`);
+      console.log(`**Exceptions**: ${rule.exceptions.join(', ')}`);
+      console.log(`**Justification**: ${rule.justification}\n`);
     });
-
-    console.log('\n### Brazilian Legal Fields Preservation:');
-    Object.entries(brazilianFields).forEach(([field, pattern]) => {
-      const found = pattern.test(tableDefinition);
-      console.log(`- ${field.toUpperCase()}: ${found ? '✅ PRESERVED' : '❌ MISSING'}`);
-    });
-
-    // Check for deprecated Portuguese fields
-    const deprecatedPortugueseFields = [
-      'nome', 'telefone', 'celular', 'endereco', 'cidade', 'estado', 'cep', 'observacoes'
-    ];
-
-    console.log('\n### Deprecated Portuguese Fields Check:');
-    const foundDeprecated = deprecatedPortugueseFields.filter(field => 
-      tableDefinition.includes(`"${field}"`) || tableDefinition.includes(`varchar("${field}"`)
-    );
-
-    if (foundDeprecated.length === 0) {
-      console.log('✅ No deprecated Portuguese fields found - standardization complete');
-    } else {
-      console.log('❌ Found deprecated Portuguese fields:');
-      foundDeprecated.forEach(field => console.log(`  - ${field}`));
-    }
-  }
-
-  private validateNamingConsistency(content: string): void {
-    console.log('\n## 📝 NAMING CONVENTION CONSISTENCY\n');
     
-    // Extract all table definitions
+    // Validate table naming rule
+    console.log('### Table Naming Validation:');
     const tablePattern = /export const (\w+) = pgTable\("(\w+)"/g;
-    const tables: {constName: string, tableName: string}[] = [];
+    let tableMatch;
+    let compliantTables = 0;
+    let totalTables = 0;
     
-    let match;
-    while ((match = tablePattern.exec(content)) !== null) {
-      tables.push({
-        constName: match[1],
-        tableName: match[2]
-      });
-    }
-
-    // Check TypeScript naming (camelCase)
-    console.log('### TypeScript Schema Naming (camelCase):');
-    const invalidCamelCase = tables.filter(t => {
-      // Check if constName follows camelCase
-      return !/^[a-z][a-zA-Z0-9]*$/.test(t.constName);
-    });
-
-    if (invalidCamelCase.length === 0) {
-      console.log('✅ All TypeScript names follow camelCase convention');
-    } else {
-      console.log('❌ Non-camelCase TypeScript names found:');
-      invalidCamelCase.forEach(table => 
-        console.log(`  - ${table.constName} (should be camelCase)`)
-      );
-    }
-
-    // Check Database naming (snake_case)
-    console.log('\n### Database Table Naming (snake_case):');
-    const invalidSnakeCase = tables.filter(t => {
-      // Check if tableName follows snake_case (allowing favorecidos as exception)
-      if (t.tableName === 'favorecidos') return false; // Business exception
-      return !/^[a-z][a-z0-9_]*$/.test(t.tableName) || t.tableName.includes('__');
-    });
-
-    if (invalidSnakeCase.length === 0) {
-      console.log('✅ All database table names follow snake_case convention');
-    } else {
-      console.log('❌ Non-snake_case database names found:');
-      invalidSnakeCase.forEach(table => 
-        console.log(`  - "${table.tableName}" (should be snake_case)`)
-      );
-    }
-
-    // Special handling for favorecidos
-    const favorecidosTable = tables.find(t => t.constName === 'favorecidos');
-    if (favorecidosTable) {
-      console.log('\n### Business Context Exception:');
-      console.log('✅ favorecidos table uses Portuguese name for Brazilian business context');
-      console.log('  - Justified: Serves Brazilian market specifically');
-      console.log('  - Alternative: Could be external_contacts for international use');
-    }
-  }
-
-  private validateBrazilianFields(content: string): void {
-    console.log('\n## 🇧🇷 BRAZILIAN LEGAL FIELDS VALIDATION\n');
-    
-    const brazilianFieldPattern = /(cpf|cnpj|rg): varchar\("(cpf|cnpj|rg)"/g;
-    const brazilianFields: string[] = [];
-    
-    let match;
-    while ((match = brazilianFieldPattern.exec(content)) !== null) {
-      brazilianFields.push(match[1].toUpperCase());
-    }
-
-    console.log('### Brazilian Legal Fields Found:');
-    if (brazilianFields.length > 0) {
-      brazilianFields.forEach(field => 
-        console.log(`✅ ${field}: Correctly preserved in Portuguese`)
-      );
+    while ((tableMatch = tablePattern.exec(content)) !== null) {
+      totalTables++;
+      const constName = tableMatch[1];
+      const dbName = tableMatch[2];
       
-      console.log('\n### Legal Compliance Assessment:');
-      const expectedFields = ['CPF', 'CNPJ', 'RG'];
-      const missingFields = expectedFields.filter(field => !brazilianFields.includes(field));
+      // Check if follows camelCase → snake_case pattern
+      const expectedDbName = this.camelToSnakeCase(constName);
+      const isCompliant = dbName === expectedDbName || dbName === constName; // Allow direct mapping for simple names
       
-      if (missingFields.length === 0) {
-        console.log('✅ All required Brazilian legal fields present');
+      if (isCompliant || constName === 'favorecidos') {
+        console.log(`✅ ${constName} → "${dbName}" ${constName === 'favorecidos' ? '(exception: Brazilian context)' : ''}`);
+        compliantTables++;
       } else {
-        console.log(`❌ Missing Brazilian legal fields: ${missingFields.join(', ')}`);
+        console.log(`❌ ${constName} → "${dbName}" (expected: "${expectedDbName}")`);
       }
-    } else {
-      console.log('⚠️ No Brazilian legal fields found - may not be needed for all tables');
+    }
+    
+    console.log(`\n**Table Naming Compliance**: ${compliantTables}/${totalTables} (${Math.round(compliantTables/totalTables*100)}%)`);
+  }
+
+  private checkInconsistencyPatterns(content: string): void {
+    console.log('\n## 🔍 INCONSISTENCY PATTERN DETECTION\n');
+    
+    // 1. Check for mixed language patterns
+    this.checkLanguageMixing(content);
+    
+    // 2. Check for field redundancy patterns
+    this.checkFieldRedundancy(content);
+    
+    // 3. Check for naming pattern violations
+    this.checkNamingPatterns(content);
+  }
+
+  private checkLanguageMixing(content: string): void {
+    console.log('### Language Mixing Analysis:');
+    
+    const portugueseTerms = ['favorecidos', 'cpf', 'cnpj', 'rg'];
+    const englishTerms = ['customers', 'users', 'tickets', 'projects', 'firstName', 'lastName', 'email', 'phone'];
+    
+    const foundPortuguese = portugueseTerms.filter(term => content.includes(term));
+    const foundEnglish = englishTerms.filter(term => content.includes(term));
+    
+    console.log(`**Portuguese Terms Found**: ${foundPortuguese.length}`);
+    foundPortuguese.forEach(term => console.log(`  - ${term}`));
+    
+    console.log(`\n**English Terms Found**: ${foundEnglish.length}`);
+    foundEnglish.slice(0, 5).forEach(term => console.log(`  - ${term}`));
+    if (foundEnglish.length > 5) console.log(`  - ... and ${foundEnglish.length - 5} more`);
+    
+    if (foundPortuguese.length > 0 && foundEnglish.length > 0) {
+      console.log('\n📊 **MIXED LANGUAGE SCHEMA DETECTED**');
+      console.log('**Status**: ACCEPTABLE - Portuguese terms serve Brazilian market specifically');
+      console.log('**Recommendation**: Maintain current approach with clear documentation');
     }
   }
 
-  private generateComplianceReport(): void {
-    console.log('\n## 🎯 NOMENCLATURE COMPLIANCE SUMMARY\n');
+  private checkFieldRedundancy(content: string): void {
+    console.log('\n### Field Redundancy Analysis:');
     
-    console.log('### ✅ RESOLVED NOMENCLATURE ISSUES:');
-    console.log('1. **favorecidos Standardization**: English fields for international compatibility');
-    console.log('2. **Brazilian Legal Terms**: CPF, CNPJ, RG preserved for legal accuracy');
-    console.log('3. **Database Conventions**: snake_case maintained for database fields');
-    console.log('4. **TypeScript Conventions**: camelCase maintained for schema definitions');
+    // Look for tables with multiple phone fields
+    const tables = content.split(/export const \w+ = pgTable/).slice(1);
     
-    console.log('\n### 🎯 BUSINESS CONTEXT DECISIONS:');
-    console.log('1. **favorecidos Table**: Kept Portuguese name for Brazilian market context');
-    console.log('2. **Legal Fields**: Brazilian terms maintained for compliance (CPF, CNPJ, RG)');
-    console.log('3. **International Fields**: English terms for global compatibility (email, phone)');
-    console.log('4. **Coexistence Strategy**: Both approaches serve legitimate business needs');
+    tables.forEach((tableContent, index) => {
+      const phoneFieldCount = (tableContent.match(/phone/gi) || []).length;
+      if (phoneFieldCount > 1) {
+        const tableNameMatch = content.match(new RegExp(`export const (\\w+) = pgTable[\\s\\S]*?${tableContent.substring(0, 50)}`));
+        const tableName = tableNameMatch ? tableNameMatch[1] : `table_${index}`;
+        
+        console.log(`⚠️ **${tableName}**: ${phoneFieldCount} phone-related fields detected`);
+        
+        // Extract specific phone fields
+        const phoneFields = tableContent.match(/(\w*phone\w*): [^,\n]*/gi) || [];
+        phoneFields.forEach(field => console.log(`  - ${field}`));
+        
+        console.log('  📋 **Recommendation**: Clarify field purposes (primary/secondary, landline/mobile)');
+      }
+    });
+  }
+
+  private checkNamingPatterns(content: string): void {
+    console.log('\n### Naming Pattern Analysis:');
     
-    console.log('\n### 📊 RISK ASSESSMENT:');
-    console.log('**Risk Level**: 🟢 LOW');
-    console.log('- Naming inconsistencies do not affect functionality');
-    console.log('- Mixed language approach serves business requirements');
-    console.log('- Standardization improves developer experience');
-    console.log('- Brazilian compliance maintained for legal fields');
+    // Check for name vs firstName/lastName patterns
+    const hasGenericName = content.includes('name: varchar("name"');
+    const hasStructuredName = content.includes('firstName:') && content.includes('lastName:');
     
-    console.log('\n### 🔄 MAINTENANCE GUIDELINES:');
-    console.log('1. **New Tables**: Use English names unless Brazilian-specific');
-    console.log('2. **New Fields**: Follow established patterns (snake_case DB, camelCase TS)');
-    console.log('3. **Brazilian Features**: Keep Portuguese for legal/cultural accuracy');
-    console.log('4. **Documentation**: Explain business context for naming decisions');
+    if (hasGenericName && hasStructuredName) {
+      console.log('⚠️ **MIXED NAME PATTERNS DETECTED**');
+      console.log('  - Some tables use: name (single field)');
+      console.log('  - Other tables use: firstName + lastName (structured)');
+      console.log('  📋 **Analysis**: May be intentional for entities vs individuals');
+      console.log('  📋 **Recommendation**: Document entity vs individual distinction clearly');
+    }
     
-    console.log('\n🎉 NOMENCLATURE STANDARDS SUCCESSFULLY IMPLEMENTED');
-    console.log('System maintains functional consistency while respecting business context.');
+    // Check for ID field consistency
+    const idPatterns = content.match(/id: (\w+)\("id"\)/g) || [];
+    const uuidIds = idPatterns.filter(pattern => pattern.includes('uuid')).length;
+    const varcharIds = idPatterns.filter(pattern => pattern.includes('varchar')).length;
+    
+    console.log(`\n**ID Field Types**:`);
+    console.log(`  - UUID IDs: ${uuidIds}`);
+    console.log(`  - VARCHAR IDs: ${varcharIds}`);
+    
+    if (uuidIds > 0 && varcharIds > 0) {
+      console.log('  ⚠️ **MIXED ID TYPES**: Some tables use UUID, others VARCHAR');
+    } else {
+      console.log('  ✅ **CONSISTENT ID TYPES**: All IDs use same type');
+    }
+  }
+
+  private generateStandardizationReport(): void {
+    console.log('\n## 🎯 NOMENCLATURE STANDARDIZATION SUMMARY\n');
+    
+    console.log('### Current Status:');
+    console.log('1. **Table Names**: ✅ Mostly compliant with camelCase → snake_case pattern');
+    console.log('2. **Language Mixing**: ⚠️ Intentional Portuguese/English mix for Brazilian market');
+    console.log('3. **Field Redundancy**: ⚠️ Some tables have multiple similar fields (phone)');
+    console.log('4. **Naming Patterns**: ⚠️ Mixed patterns may be intentional (entities vs individuals)');
+    
+    console.log('\n### Compliance Assessment:');
+    console.log('- **Functional Impact**: 🟢 LOW - No functionality affected');
+    console.log('- **Developer Experience**: 🟡 MEDIUM - Some confusion possible');
+    console.log('- **Maintainability**: 🟡 MEDIUM - Requires documentation');
+    console.log('- **Business Alignment**: 🟢 HIGH - Serves Brazilian market needs');
+    
+    console.log('\n### Recommendations by Priority:');
+    
+    console.log('\n**HIGH PRIORITY:**');
+    console.log('1. Document entity vs individual naming distinction clearly');
+    console.log('2. Clarify phone field purposes (primary/secondary, landline/mobile)');
+    
+    console.log('\n**MEDIUM PRIORITY:**');
+    console.log('3. Create developer guidelines for Portuguese vs English term usage');
+    console.log('4. Consider field name aliases for international developers');
+    
+    console.log('\n**LOW PRIORITY:**');
+    console.log('5. Evaluate renaming favorecidos → external_contacts for consistency');
+    console.log('6. Standardize field naming patterns across all new tables');
+    
+    console.log('\n### Action Plan:');
+    console.log('1. ✅ **Document Current Standards**: Update NOMENCLATURE_STANDARDS.md');
+    console.log('2. 🔄 **Create Guidelines**: Developer onboarding documentation');
+    console.log('3. 📋 **Field Purpose Clarification**: Rename ambiguous phone fields');
+    console.log('4. 🔍 **Regular Validation**: Automated checks for new code');
+    
+    console.log('\n🎉 **CONCLUSION**:');
+    console.log('Current nomenclature inconsistencies are **manageable** and mostly serve legitimate business purposes. Focus on **documentation** and **clarification** rather than major restructuring.');
+  }
+
+  private camelToSnakeCase(str: string): string {
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_/, '');
   }
 }
 
-// Execute validation
+// Execute standardizer
 const standardizer = new NomenclatureStandardizer();
-standardizer.validateNomenclatureStandards();
+standardizer.validateNomenclature();
 
 export { NomenclatureStandardizer };

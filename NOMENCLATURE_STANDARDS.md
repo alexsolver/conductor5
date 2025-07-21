@@ -124,16 +124,36 @@ lastName: varchar("last_name", { length: 100 })
 
 **Problem**: `favorecidos.name` vs `customers.firstName/lastName`
 
+**Current Inconsistency**:
+```typescript
+// favorecidos table (entities/companies)
+name: varchar("name", { length: 255 })           // Single field
+
+// customers table (individuals) 
+firstName: varchar("first_name", { length: 255 })
+lastName: varchar("last_name", { length: 255 })   // Split fields
+```
+
 **Resolution Options**:
 - **Option A**: Standardize on `firstName/lastName` everywhere
 - **Option B**: Use `name` for entities, `firstName/lastName` for people
 - **Recommended**: Option B - business entities use `name`, individuals use `firstName/lastName`
 
+**Business Justification**: favorecidos often represents companies/entities that have a single business name, while customers are individuals requiring structured name fields.
+
 ### 2. **Phone Field Redundancy**
 
 **Problem**: `phone` and `cellPhone` in same table
 
-**Resolution**:
+**Current Inconsistency**:
+```typescript
+// favorecidos table - REDUNDANT
+phone: varchar("phone", { length: 20 })           // Purpose unclear
+cellPhone: varchar("cell_phone", { length: 20 })  // Mobile specific
+// Both fields serve similar purpose without clear distinction
+```
+
+**Resolution Options**:
 ```typescript
 // ✅ PREFERRED - Clear distinction
 landlinePhone: varchar("landline_phone", { length: 20 })
@@ -143,6 +163,8 @@ mobilePhone: varchar("mobile_phone", { length: 20 })
 primaryPhone: varchar("primary_phone", { length: 20 })
 secondaryPhone: varchar("secondary_phone", { length: 20 })
 ```
+
+**Impact**: Eliminates confusion about which phone field to use and ensures data consistency.
 
 ### 3. **Table Language Mixing**
 

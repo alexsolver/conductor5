@@ -20,6 +20,12 @@ Preferred communication style: Simple, everyday language.
 - Tenant schema: 12 tabelas confirmadas conforme schema-master.ts
 - Eliminadas inconsistências de contagem 15 vs 14 tabelas
 
+✅ **NOMENCLATURE INCONSISTENCIES SYSTEMATICALLY MAPPED:**
+- Identificada tabela favorecidos como única em português vs 12+ tabelas em inglês
+- Mapeadas inconsistências internas: name (genérico) vs firstName/lastName (estruturado)
+- Documentada redundância phone vs cellPhone sem distinção clara de propósito
+- Campos brasileiros CPF/CNPJ/RG justificados por compliance legal
+
 ✅ **CRITICAL FOREIGN KEY TYPE MISMATCH COMPLETELY RESOLVED:**
 - Identificado problema CRÍTICO: users.id varchar vs foreign keys uuid
 - Corrigido users.id: varchar("id") → uuid("id").primaryKey().defaultRandom()
