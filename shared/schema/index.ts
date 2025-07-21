@@ -223,6 +223,8 @@ export * from './ticket-templates';
 export * from './location';
 export * from './user-management';
 export * from './technical-skills';
+export * from './journey';
+export * from './schedule';
 export * from './security';
 export * from './tenant-constraints';
 export * from './tenant-specific';
