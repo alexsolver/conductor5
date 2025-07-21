@@ -58,6 +58,7 @@ import OmniBridge from "./pages/OmniBridge";
 import Timecard from "./pages/Timecard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
+import SchemaConsolidation from "./pages/SchemaConsolidation";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -137,6 +138,7 @@ function AppRouter() {
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/schedule-templates" component={ScheduleTemplates} />
         <Route path="/omnibridge" component={OmniBridge} />
+        <Route path="/schema-consolidation" component={SchemaConsolidation} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />

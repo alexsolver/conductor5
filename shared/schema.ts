@@ -1,5 +1,6 @@
-// Legacy schema.ts - Now imports from modular schema structure
-// This file maintains backwards compatibility while using the new modular approach
+// UNIFIED SCHEMA - Single Source of Truth
+// Consolidated schema that resolves all fragmentation issues
+// This replaces the fragmented schema structure with a unified approach
 
-// Re-export everything from the new modular schema structure
-export * from "./schema/index";
+// Import and re-export everything from the consolidated schema
+export * from "./schema-consolidated";

@@ -28,6 +28,7 @@ import dashboardRoutes from './modules/dashboard/routes';
 // Removed: journeyRoutes - functionality eliminated from system
 import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/routes';
+import schemaConsolidationRoutes from './routes/schemaConsolidationRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -386,6 +387,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Timecard Routes - RESTORED ORIGINAL WITH SCHEMA FIX
   const timecardRoutes = (await import('./routes/timecardRoutes')).default;
   app.use('/api/timecard', jwtAuth, requireTenantAccess, timecardRoutes);
+
+  // Schema Consolidation Routes (Admin only)
+  app.use('/api/schema-consolidation', schemaConsolidationRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
