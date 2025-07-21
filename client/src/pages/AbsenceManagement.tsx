@@ -28,6 +28,28 @@ const absenceFormSchema = z.object({
 
 type AbsenceFormData = z.infer<typeof absenceFormSchema>;
 
+// Types for API responses
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+interface AbsenceRequest {
+  id: string;
+  userId: string;
+  absenceType: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  medicalCertificate?: string;
+  coverUserId?: string;
+  createdAt: string;
+  user?: User;
+}
+
 const absenceTypeLabels = {
   vacation: 'Férias',
   sick_leave: 'Atestado Médico',
@@ -72,12 +94,12 @@ export default function AbsenceManagement() {
   });
 
   // Buscar todas as solicitações de ausência
-  const { data: allRequests = [], isLoading } = useQuery({
+  const { data: allRequests = [], isLoading } = useQuery<AbsenceRequest[]>({
     queryKey: ['/api/timecard/absence-requests/pending'],
   });
 
   // Buscar usuários para seleção
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/tenant-admin/users'],
   });
 
@@ -194,7 +216,7 @@ export default function AbsenceManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {users.map((user: any) => (
+                            {users.map((user) => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.firstName} {user.lastName}
                               </SelectItem>
@@ -311,7 +333,7 @@ export default function AbsenceManagement() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="">Nenhum substituto</SelectItem>
-                          {users.map((user: any) => (
+                          {users.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.firstName} {user.lastName}
                             </SelectItem>
@@ -355,7 +377,7 @@ export default function AbsenceManagement() {
               </div>
             ) : (
               <div className="space-y-4">
-                {allRequests.map((request: any) => (
+                {allRequests.map((request) => (
                   <div key={request.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3">
