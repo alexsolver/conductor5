@@ -482,4 +482,37 @@ router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), 
   }
 });
 
+/**
+ * GET /api/tenant-admin/integrations
+ * Obter integrações do tenant usando dados reais
+ */
+router.get('/integrations', async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    // CORREÇÃO CRÍTICA: Usar importação direta do storage ao invés do container
+    const { storageSimple } = await import('../../storage-simple');
+    
+    console.log(`🔍 Fetching integrations for tenant: ${tenantId}`);
+    const integrations = await storageSimple.getTenantIntegrations(tenantId);
+    console.log(`📊 Found ${integrations.length} integrations`);
+    
+    res.json({
+      integrations: integrations || [],
+      totalCount: integrations?.length || 0
+    });
+  } catch (error) {
+    console.error('Error fetching tenant integrations:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch tenant integrations',
+      integrations: [],
+      totalCount: 0 
+    });
+  }
+});
+
 export default router;

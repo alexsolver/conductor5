@@ -1061,8 +1061,9 @@ export class DatabaseStorage implements IStorage {
 
       // Update existing integration config
       const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
         SET config = ${JSON.stringify(config)}, updated_at = NOW()
-        WHERE id = ${integrationId}
+        WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
         RETURNING *
       `);
 
@@ -1079,6 +1080,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       await tenantDb.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.integrations (
           id VARCHAR(255) PRIMARY KEY,
           tenant_id VARCHAR(36) NOT NULL,
           name VARCHAR(255) NOT NULL,
@@ -1089,7 +1091,7 @@ export class DatabaseStorage implements IStorage {
           config JSONB DEFAULT '{}',
           features TEXT[],
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
         )
       `);
 
@@ -1215,6 +1217,7 @@ export class DatabaseStorage implements IStorage {
 
       // Use raw SQL since Drizzle has issues with TEXT[] arrays - ALL 14 INTEGRATIONS
       const insertQuery = `
+        INSERT INTO ${schemaName}.integrations 
         (id, tenant_id, name, description, category, icon, status, config, features)
         VALUES 
         ('gmail-oauth2', '${tenantId}', 'Gmail OAuth2', 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']),
