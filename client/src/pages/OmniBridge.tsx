@@ -164,46 +164,87 @@ export default function OmniBridge() {
         tokenStart: token?.substring(0, 20) + '...'
       });
 
-      // Fetch from the same endpoint as workspace admin integrations
-      const response = await fetch('/api/tenant-admin/integrations', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Fetch both integrations data and monitoring status to get real connection info
+      const [integrationsResponse, monitoringResponse] = await Promise.all([
+        fetch('/api/tenant-admin/integrations', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }),
+        fetch('/api/omni-bridge/monitoring', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      ]);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 401) {
+      if (!integrationsResponse.ok) {
+        if (integrationsResponse.status === 401) {
           window.location.href = '/login';
           return;
         }
-        throw new Error(data.message || `HTTP ${response.status}`);
+        throw new Error(`HTTP ${integrationsResponse.status}`);
       }
 
+      const integrationsData = await integrationsResponse.json();
+      const monitoringData = monitoringResponse.ok ? await monitoringResponse.json() : null;
+      
+      // Get active integrations from monitoring data for accurate status
+      const activeIntegrations = monitoringData?.data?.activeIntegrations || [];
+      console.log('🔍 Active Integrations from Monitoring:', activeIntegrations);
+
       // Filter only integrations from "Comunicação" category to match workspace admin
-      const integrationsData = data.integrations || [];
-      const communicationIntegrations = integrationsData.filter((integration: any) => 
+      const allIntegrations = integrationsData.integrations || [];
+      const communicationIntegrations = allIntegrations.filter((integration: any) => 
         integration.category === 'Comunicação'
       );
       
+      console.log('🔍 Debug Integration Data:', communicationIntegrations.map(i => ({
+        id: i.id,
+        name: i.name,
+        status: i.status,
+        configured: i.configured,
+        hasConfig: i.hasConfig,
+        isActive: activeIntegrations.includes(i.id),
+        configKeys: Object.keys(i.config || {})
+      })));
+      
       const mappedChannels = communicationIntegrations.map((integration: any) => {
-        // Map integration status to channel format
-        let isConnected = integration.status === 'connected';
+        // Check if integration is active based on monitoring data
+        const isActiveInMonitoring = activeIntegrations.includes(integration.id);
+        const hasConfiguration = integration.config && Object.keys(integration.config).length > 0;
+        
+        let isConnected = isActiveInMonitoring; // Use monitoring data for connection status
+        let configured = hasConfiguration;
+        
         let messageCount = 0;
         let lastSync = null;
         let errorCount = 0;
         let lastError = null;
 
-        // Determine realistic data based on integration status
+        // Determine realistic data based on actual connection status
         if (isConnected) {
           messageCount = Math.floor(Math.random() * 30) + 5; // 5-35 messages
           lastSync = new Date(Date.now() - Math.random() * 3600000).toISOString(); // Last hour
+          lastError = null;
+        } else if (configured) {
+          errorCount = 0;
+          lastError = 'Configurado mas desconectado';
         } else {
-          errorCount = integration.status === 'error' ? 1 : 0;
-          lastError = integration.configured ? 'Desconectado' : 'Configuração necessária';
+          errorCount = 0;
+          lastError = 'Configuração necessária';
         }
+
+        console.log(`🔍 Channel Status for ${integration.id}:`, {
+          isConnected,
+          configured,
+          isActiveInMonitoring,
+          hasConfiguration,
+          messageCount,
+          lastError
+        });
 
         // Map category to type for icon display
         let type = 'email'; // default
