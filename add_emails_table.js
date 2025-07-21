@@ -1,4 +1,3 @@
-
 const { neon } = await import('@neondatabase/serverless');
 
 const sql = neon(process.env.DATABASE_URL);
@@ -17,14 +16,14 @@ async function addEmailsTableToTenants() {
 
     for (const tenant of tenants) {
       const schemaName = `tenant_${tenant.id.replace(/-/g, '_')}`;
-      
+
       try {
         console.log(`📧 Adding emails table to ${schemaName}...`);
 
-        // Create emails table
-        await sql.raw(`
-          CREATE TABLE IF NOT EXISTS ${schemaName}.emails (
-            id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        // Create emails table with proper UUID generation
+        await sql`
+          CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.emails (
+            id VARCHAR(36) PRIMARY KEY DEFAULT encode(gen_random_uuid()::bytea, 'hex'),
             tenant_id VARCHAR(36) NOT NULL,
             message_id VARCHAR(255) NOT NULL,
             thread_id VARCHAR(255),
@@ -49,7 +48,18 @@ async function addEmailsTableToTenants() {
             received_at TIMESTAMP DEFAULT NOW(),
             processed_at TIMESTAMP
           );
-        `);
+        `;
+
+        // Create indexes
+        await sql`
+          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx 
+          ON ${sql.identifier(schemaName)}.emails (tenant_id, received_at DESC);
+        `;
+
+        await sql`
+          CREATE INDEX IF NOT EXISTS emails_tenant_processed_idx 
+          ON ${sql.identifier(schemaName)}.emails (tenant_id, is_processed);
+        `;
 
         // Add some sample email data
         await sql.raw(`

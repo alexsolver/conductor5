@@ -10,63 +10,61 @@ export class DrizzleChannelRepository implements IChannelRepository {
     try {
       const { storage } = await import('../../../../storage-simple');
 
-      if (!tenantId) {
-        console.error('Tenant ID is required for finding channels');
-        return [];
-      }
-
-      let integrations = [];
-
-      try {
-        integrations = await storage.getTenantIntegrations(tenantId);
-      } catch (storageError) {
-        console.log(`Storage error, using empty array: ${storageError.message}`);
-        integrations = [];
-      }
+      // Buscar integrações do tenant
+      const integrations = await storage.getTenantIntegrations(tenantId);
 
       if (!integrations || !Array.isArray(integrations)) {
-        console.log(`No integrations found for tenant ${tenantId}`);
+        console.log('No integrations found, returning empty array');
         return [];
       }
 
-      return integrations.map(integration => {
-        // Check if IMAP email integration has proper configuration
-        let isConnected = integration.status === 'connected' || integration.status === 'active';
-        let isActive = integration.status !== 'disconnected';
+      // Check if emails table exists for IMAP integration
+      let emailsTableExists = false;
+      try {
+        const emails = await storage.getEmailInboxMessages(tenantId);
+        emailsTableExists = true;
+      } catch (error) {
+        if (error.message.includes('does not exist')) {
+          emailsTableExists = false;
+        }
+      }
+
+      const channels: Channel[] = integrations.map(integration => {
+        let isActive = integration.status === 'connected' || integration.status === 'active';
+        let isConnected = integration.configured && integration.status !== 'disconnected';
         let errorCount = 0;
         let lastError = null;
 
+        // Special handling for IMAP Email integration
         if (integration.id === 'imap-email') {
-          const config = integration.config || {};
-          const hasRequiredConfig = config.imapServer && config.emailAddress && config.password;
-
-          if (!hasRequiredConfig) {
-            isConnected = false;
+          if (!emailsTableExists) {
             isActive = false;
+            isConnected = false;
             errorCount = 1;
             lastError = 'Configuração IMAP incompleta';
           } else {
-            // If configuration exists, mark as connected
-            isConnected = true;
             isActive = true;
+            isConnected = true;
             errorCount = 0;
             lastError = null;
           }
         }
 
         return new Channel(
-          `channel-${integration.id}`,
-          tenantId,
-          integration.category?.toLowerCase() || 'unknown',
+          `ch-${integration.id}`,
+          integration.category as 'email' | 'whatsapp' | 'slack' | 'webhook',
           integration.name,
           isActive,
           isConnected,
-          0, // messageCount - will be calculated elsewhere
+          0, // messageCount - will be updated later if needed
           errorCount,
           lastError,
-          new Date().toISOString() // lastSync
+          new Date() // lastSync
         );
       });
+
+      console.log(`DrizzleChannelRepository: Found ${channels.length} channels for tenant ${tenantId}`);
+      return channels;
     } catch (error) {
       console.error('Error finding channels:', error);
       return [];
