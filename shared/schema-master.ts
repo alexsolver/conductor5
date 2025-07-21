@@ -90,7 +90,7 @@ export const tickets = pgTable("tickets", {
   tenantId: uuid("tenant_id").notNull(),
   title: varchar("title", { length: 500 }).notNull(),
   description: text("description"),
-  status: varchar("status", { length: 50 }).default("open"),
+  status: varchar("status", { length: 50 }).default("open"),      // CONTEXTUAL: Support workflow starts "open"
   priority: varchar("priority", { length: 20 }).default("medium"),
   customerId: uuid("customer_id").references(() => customers.id),
   assignedToId: uuid("assigned_to_id").references(() => users.id), // Fixed: string → UUID FK
@@ -166,7 +166,7 @@ export const customerCompanies = pgTable("customer_companies", {
   description: text("description"),
   size: varchar("size", { length: 50 }),
   subscriptionTier: varchar("subscription_tier", { length: 50 }),
-  status: varchar("status", { length: 50 }).default("active"),
+  status: varchar("status", { length: 50 }).default("active"),    // CONTEXTUAL: Companies start operational "active"
   createdBy: varchar("created_by", { length: 255 }),
   updatedBy: varchar("updated_by", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -270,7 +270,7 @@ export const projects = pgTable("projects", {
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  status: varchar("status", { length: 50 }).default("planning"),
+  status: varchar("status", { length: 50 }).default("planning"), // CONTEXTUAL: Project workflow starts "planning"
   priority: varchar("priority", { length: 20 }).default("medium"),
   budget: decimal("budget", { precision: 12, scale: 2 }),
   actualCost: decimal("actual_cost", { precision: 12, scale: 2 }),
@@ -300,7 +300,7 @@ export const projectActions = pgTable("project_actions", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   type: varchar("type", { length: 50 }).notNull(),
-  status: varchar("status", { length: 50 }).default("pending"),
+  status: varchar("status", { length: 50 }).default("pending"),  // CONTEXTUAL: Actions start "pending" execution
   priority: varchar("priority", { length: 20 }).default("medium"),
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours"),
