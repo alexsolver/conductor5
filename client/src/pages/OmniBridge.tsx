@@ -604,44 +604,9 @@ export default function OmniBridge() {
                         <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
                           {channel.lastError}
                         </div>
-                      )}Active ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Status:</span>
-                          <span className={`font-medium ${channel.isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                            {channel.isConnected ? 'Conectado' : 'Desconectado'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Mensagens:</span>
-                          <span className="font-medium">{channel.messageCount}</span>
-                        </div>
-                        {channel.errorCount > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Erros:</span>
-                            <span className="font-medium text-red-600">{channel.errorCount}</span>
-                          </div>
-                        )}
-                        {channel.lastSync && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Última Sync:</span>
-                            <span className="font-medium text-xs">
-                              {new Date(channel.lastSync).toLocaleString()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {channel.lastError && (
-                        <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
-                          {channel.lastError}
-                        </div>
                       )}
-                    </CardContent>
+
+                      </CardContent>
                   </Card>
                 ))}
               </div>
