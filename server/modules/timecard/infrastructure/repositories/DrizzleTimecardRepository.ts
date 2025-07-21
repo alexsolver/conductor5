@@ -51,9 +51,6 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     // Criar log de auditoria
     await this.createAuditLog(tenantId, 'time_record', record.id, 'create', userId, null, recordData);
     
-    // Verificar inconsistências após inserção
-    await this.validateAndCreateAlerts(userId, tenantId, new Date());
-    
     return record as TimeRecord;
   }
 
@@ -686,21 +683,9 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
   }
 
   private async validateAndCreateAlerts(userId: string, tenantId: string, date: Date): Promise<void> {
-    const violations = await this.validateTimeRecords(userId, tenantId, date);
-    
-    for (const violation of violations) {
-      await this.createTimeAlert(tenantId, {
-        tenantId,
-        userId,
-        alertType: this.mapViolationToAlertType(violation),
-        severity: this.mapViolationToSeverity(violation),
-        title: violation,
-        description: `Inconsistência detectada no registro de ponto do dia ${date.toLocaleDateString('pt-BR')}`,
-        relatedDate: date,
-        status: 'active',
-        notifiedHR: violation.includes('excessiva'),
-      });
-    }
+    // Desabilitado temporariamente para evitar loops infinitos
+    // const violations = await this.validateTimeRecords(userId, tenantId, date);
+    // Implementar validação assíncrona separada
   }
 
   private mapViolationToAlertType(violation: string): 'missing_record' | 'duplicate_record' | 'overtime_exceeded' | 'incomplete_shift' | 'hour_bank_limit' | 'legal_violation' {

@@ -383,8 +383,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OmniBridge Module
   app.use('/api/omni-bridge', omniBridgeRoutes);
 
-  // Timecard Routes
-  const timecardRoutes = (await import('./routes/timecardRoutes')).default;
+  // Timecard Routes - DEBUG VERSION TO ISOLATE TIMEOUT ISSUE
+  const timecardRoutes = (await import('./routes/timecardRoutesDebug')).default;
   app.use('/api/timecard', jwtAuth, requireTenantAccess, timecardRoutes);
 
   const httpServer = createServer(app);
