@@ -45,21 +45,18 @@ export const schemaManager = {
       // NOTA: 2 tabelas PUBLIC (tenants, users) validadas separadamente em ensurePublicTables()
       // TENANT SCHEMA: 12 tabelas conforme definições no schema-master.ts
       const requiredTables = [
-    // Core business tables
-    'customers', 'tickets', 'ticket_messages', 'activity_logs',
-    // Location and company data
-    'locations', 'customer_companies', 'customer_company_memberships',
-    // Skills and certifications
-    'skills', 'certifications', 'user_skills',
-    // Brazilian entities and external contacts
-    'favorecidos', 'external_contacts', 'favorecido_locations',
-    // Project management
-    'projects', 'project_actions', 'project_timeline',
-    // Email processing
-    'integrations', 'email_processing_rules', 'email_response_templates', 'email_processing_logs',
-    // Time management (if implemented)
-    'time_records', 'daily_timesheet', 'work_schedules', 'time_bank',
-    'schedule_templates', 'absence_requests', 'compliance_alerts'
+    'customers',
+    'tickets',
+    'ticketMessages',
+    'activityLogs',
+    'locations',
+    'customerCompanies',
+    'skills',
+    'certifications',
+    'userSkills',
+    'favorecidos',
+    'projects',
+    'projectActions'
   ]; // Total: ~20 tables for comprehensive validation
       
       const tableCount = await pool.query(
@@ -110,7 +107,7 @@ export const schemaManager = {
       // Verificar tabelas públicas obrigatórias (2 de 14 tabelas totais do schema-master.ts)
       // PUBLIC SCHEMA: tenants (linha 38-46), users (linha 49-63)
       // NOTA: sessions tabela não existe no schema-master.ts mas é criada pelo express-session
-      const requiredPublicTables = ['tenants', 'users'];
+      const requiredPublicTables = ['sessions', 'tenants', 'users'];
       
       for (const tableName of requiredPublicTables) {
         const tableExists = await pool.query(

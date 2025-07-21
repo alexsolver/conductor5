@@ -1,0 +1,52 @@
+🔍 1. INCONSISTÊNCIAS DE NOMENCLATURA
+❌ Problemas Identificados:
+Tabela favorecidos: Única tabela com nomenclatura em português
+Campos híbridos inconsistentes:
+favorecidos.name vs outros firstName/lastName
+favorecidos.phone + favorecidos.cellPhone (redundância)
+cpf, cnpj, rg (português) coexistem com email, phone (inglês)
+Detalhes Específicos:
+// INCONSISTENTE - Padrão de nomes
+favorecidos: {
+  name: varchar("name", { length: 255 }),        // Genérico
+}
+vs
+customers: {
+  firstName: varchar("first_name", { length: 255 }),  // Estruturado
+  lastName: varchar("last_name", { length: 255 })
+}
+🔢 2. INCONSISTÊNCIAS DE TIPOS DE DADOS
+❌ Status Defaults Inconsistentes:
+tickets.status: default("open")           // Suporte
+projects.status: default("planning")      // Projetos  
+projectActions.status: default("pending") // Ações
+❌ Phone Fields Variações:
+Padronizados para varchar(20) mas com nomenclatura inconsistente
+phone vs cellPhone sem distinção clara de propósito
+🔗 3. VALIDAÇÃO DE SCHEMA INCONSISTENTE
+❌ Problema CRÍTICO Identificado:
+// No schema-master.ts: 14 tabelas definidas
+export const sessions = pgTable(...)     // Pública
+export const tenants = pgTable(...)      // Pública  
+export const users = pgTable(...)        // Pública
+// + 11 tabelas tenant-specific
+// No db.ts: Validação incompleta
+const requiredPublicTables = ['sessions', 'tenants', 'users']; // 3 OK
+const requiredTables = [
+  'customers', 'tickets', 'ticket_messages', 'activity_logs',
+  'locations', 'customer_companies', 'skills', 'certifications', 
+  'user_skills', 'favorecidos', 'projects', 'project_actions'
+]; // 12 tabelas
+GAP: Validação cobre 15 tabelas mas schema define 14 - possível divergência
+
+🏗️ 4. INCONSISTÊNCIAS DE ÍNDICES
+❌ Tenant Isolation Incompleto:
+Alguns índices não incluem tenantId como primeiro campo
+Índices de geolocalização podem estar subotimizados
+Falta de índices compostos para queries multi-tenant
+Exemplo de Inconsistência:
+// BOM - Tenant-first
+index("customers_tenant_email_idx").on(table.tenantId, table.email)
+// SUBÓTIMO - Pode ser melhorado
+index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority)
+// Mas nem todas as tabelas seguem este padrão consistentemente
