@@ -46,15 +46,21 @@ export class ProjectController {
         });
       }
 
-      const project = await this.projectsUseCase.createProject({
+      // Convert date strings to Date objects for Drizzle
+      const projectData = {
         ...validation.data,
         tenantId,
         actualHours: 0,
         actualCost: 0,
         teamMemberIds: validation.data.teamMemberIds || [],
         tags: validation.data.tags || [],
-        customFields: validation.data.customFields || {}
-      }, userId);
+        customFields: validation.data.customFields || {},
+        startDate: validation.data.startDate ? new Date(validation.data.startDate) : undefined,
+        endDate: validation.data.endDate ? new Date(validation.data.endDate) : undefined,
+        dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : undefined
+      };
+
+      const project = await this.projectsUseCase.createProject(projectData, userId);
 
       res.status(201).json(project);
     } catch (error) {
@@ -108,7 +114,15 @@ export class ProjectController {
         });
       }
 
-      const project = await this.projectsUseCase.updateProject(id, tenantId, validation.data, userId);
+      // Convert date strings to Date objects for Drizzle
+      const updateData = {
+        ...validation.data,
+        startDate: validation.data.startDate ? new Date(validation.data.startDate) : undefined,
+        endDate: validation.data.endDate ? new Date(validation.data.endDate) : undefined,
+        dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : undefined
+      };
+
+      const project = await this.projectsUseCase.updateProject(id, tenantId, updateData, userId);
       if (!project) {
         return res.status(404).json({ message: 'Projeto não encontrado' });
       }
