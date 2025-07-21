@@ -40,7 +40,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
         }
       }
 
-      const channels: Channel[] = integrations.map(integration => {
+      // Filter integrations to show only Communication category
+      const communicationIntegrations = integrations.filter(integration => 
+        integration.category === 'Comunicação' || integration.category === 'communication'
+      );
+
+      const channels: Channel[] = communicationIntegrations.map(integration => {
         let isActive = false;
         let isConnected = false;
         let errorCount = 0;
@@ -143,7 +148,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
         return channel;
       });
 
-      console.log(`DrizzleChannelRepository: Found ${channels.length} channels for tenant ${tenantId}`);
+      console.log(`DrizzleChannelRepository: Found ${channels.length} communication channels for tenant ${tenantId} (filtered from ${integrations.length} total integrations)`);
       return channels;
     } catch (error) {
       console.error('Error finding channels:', error);
@@ -211,9 +216,9 @@ export class DrizzleChannelRepository implements IChannelRepository {
     if (id.includes('slack')) {
       return 'slack';
     }
-    if (id.includes('webhook') || id.includes('zapier') || id.includes('sms') || id.includes('twilio')) {
+    if (id.includes('sms') || id.includes('twilio')) {
       return 'webhook';
     }
-    return 'email'; // default
+    return 'email'; // default for communication integrations
   }
 }
