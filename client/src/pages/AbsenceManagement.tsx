@@ -83,13 +83,13 @@ export default function AbsenceManagement() {
   const form = useForm<AbsenceFormData>({
     resolver: zodResolver(absenceFormSchema),
     defaultValues: {
-      userId: ',
+      userId: '',
       absenceType: 'vacation',
-      startDate: ',
-      endDate: ',
-      reason: ',
-      medicalCertificate: ',
-      coverUserId: ',
+      startDate: '',
+      endDate: '',
+      reason: '',
+      medicalCertificate: '',
+      coverUserId: '',
     },
   });
 

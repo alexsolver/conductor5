@@ -1,30 +1,30 @@
-import { sql, eq, or, ilike, isNotNull } from 'drizzle-orm'[,;]
-import { NeonDatabase } from '@neondatabase/serverless'[,;]
-import { Skill } from '../../domain/entities/Skill'[,;]
-import { ISkillRepository } from '../../domain/repositories/ISkillRepository'[,;]
-import { db } from '../../../../db'[,;]
-import { skills, userSkills } from '@shared/schema'[,;]
-import winston from 'winston'[,;]
+import { sql, eq, or, ilike, isNotNull } from 'drizzle-orm';
+import { NeonDatabase } from '@neondatabase/serverless';
+import { Skill } from '../../domain/entities/Skill';
+import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
+import { db } from '../../../../db';
+import { skills, userSkills } from '@shared/schema';
+import winston from 'winston';
 
 export class DrizzleSkillRepository implements ISkillRepository {
-  private db: NeonDatabase';
+  private db: NeonDatabase;
 
   constructor() {
-    this.db = db';
+    this.db = db;
   }
 
   async create(skill: Skill): Promise<Skill> {
     try {
-      const skillData = this.fromDomainEntity(skill)';
+      const skillData = this.fromDomainEntity(skill);
       const result = await this.db
         .insert(skills)
         .values(skillData)
-        .returning()';
+        .returning();
       
-      return this.toDomainEntity(result[0])';
+      return this.toDomainEntity(result[0]);
     } catch (error) {
-      winston.error('Error creating skill', { error, skillData: skill })';
-      throw error';
+      winston.error('Error creating skill', { error, skillData: skill });
+      throw error;
     }
   }
 
@@ -34,67 +34,67 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .select()
         .from(skills)
         .where(eq(skills.id, id))
-        .limit(1)';
+        .limit(1);
       
-      if (result.length === 0) return null';
+      if (result.length === 0) return null;
       
-      return this.toDomainEntity(result[0])';
+      return this.toDomainEntity(result[0]);
     } catch (error) {
-      winston.error('Error finding skill by ID', { error, skillId: id })';
-      return null';
+      winston.error('Error finding skill by ID', { error, skillId: id });
+      return null;
     }
   }
 
   async findAll(filters?: {
-    category?: string';
-    isActive?: boolean';
-    search?: string';
+    category?: string;
+    isActive?: boolean;
+    search?: string;
   }): Promise<Skill[]> {
     try {
-      let query = this.db.select().from(skills)';
+      let query = this.db.select().from(skills);
       
       if (filters?.category) {
-        query = query.where(eq(skills.category, filters.category))';
+        query = query.where(eq(skills.category, filters.category));
       }
       
       if (filters?.search) {
         query = query.where(
           or(
-            ilike(skills.name, `%${filters.search}%`)',
+            ilike(skills.name, `%${filters.search}%`),
             ilike(skills.description, `%${filters.search}%`)
           )
-        )';
+        );
       }
       
-      const results = await query.orderBy(skills.name)';
+      const results = await query.orderBy(skills.name);
       
-      return results.map(skill => this.toDomainEntity(skill))';
+      return results.map(skill => this.toDomainEntity(skill));
     } catch (error) {
-      winston.error('Error finding skills', { error, filters })';
-      return []';
+      winston.error('Error finding skills', { error, filters });
+      return [];
     }
   }
 
   async update(skill: Skill): Promise<Skill> {
     try {
-      const updateData = this.fromDomainEntity(skill)';
+      const updateData = this.fromDomainEntity(skill);
       const result = await this.db
         .update(skills)
         .set({ 
-          ...updateData',
+          ...updateData,
           updatedAt: new Date()
         })
         .where(eq(skills.id, skill.id))
-        .returning()';
+        .returning();
       
       if (result.length === 0) {
-        throw new Error(`Skill with ID ${skill.id} not found`)';
+        throw new Error(`Skill with ID ${skill.id} not found`);
       }
       
-      return this.toDomainEntity(result[0])';
+      return this.toDomainEntity(result[0]);
     } catch (error) {
-      winston.error('Error updating skill', { error, skillId: skill.id })';
-      throw error';
+      winston.error('Error updating skill', { error, skillId: skill.id });
+      throw error;
     }
   }
 
@@ -102,10 +102,10 @@ export class DrizzleSkillRepository implements ISkillRepository {
     try {
       await this.db
         .delete(skills)
-        .where(eq(skills.id, id))';
+        .where(eq(skills.id, id));
     } catch (error) {
-      winston.error('Error deleting skill', { error, skillId: id })';
-      throw error';
+      winston.error('Error deleting skill', { error, skillId: id });
+      throw error;
     }
   }
 
@@ -115,17 +115,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .selectDistinct({ category: skills.category })
         .from(skills)
         .where(isNotNull(skills.category))
-        .orderBy(skills.category)';
+        .orderBy(skills.category);
       
-      return results.map(result => result.category)';
+      return results.map(result => result.category);
     } catch (error) {
-      winston.error('Error getting distinct skill categories', { error })';
-      return []';
+      winston.error('Error getting distinct skill categories', { error });
+      return [];
     }
   }
 
   async getCategories(): Promise<string[]> {
-    return this.getDistinctCategories()';
+    return this.getDistinctCategories();
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
@@ -134,12 +134,12 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .select()
         .from(skills)
         .where(eq(skills.category, category))
-        .orderBy(skills.name)';
+        .orderBy(skills.name);
       
-      return results.map(skill => this.toDomainEntity(skill))';
+      return results.map(skill => this.toDomainEntity(skill));
     } catch (error) {
-      winston.error('Error finding skills by category', { error, category })';
-      return []';
+      winston.error('Error finding skills by category', { error, category });
+      return [];
     }
   }
 
@@ -149,12 +149,12 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .select()
         .from(skills)
         .where(ilike(skills.name, `%${pattern}%`))
-        .orderBy(skills.name)';
+        .orderBy(skills.name);
       
-      return results.map(skill => this.toDomainEntity(skill))';
+      return results.map(skill => this.toDomainEntity(skill));
     } catch (error) {
-      winston.error('Error finding skills by name pattern', { error, pattern })';
-      return []';
+      winston.error('Error finding skills by name pattern', { error, pattern });
+      return [];
     }
   }
 
@@ -162,16 +162,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
     try {
       const results = await this.db
         .select({
-          category: skills.category',
+          category: skills.category,
           count: sql`count(*)`.mapWith(Number)
         })
         .from(skills)
-        .groupBy(skills.category)';
+        .groupBy(skills.category);
       
-      return results';
+      return results;
     } catch (error) {
-      winston.error('Error counting skills by category', { error })';
-      return []';
+      winston.error('Error counting skills by category', { error });
+      return [];
     }
   }
 
@@ -179,54 +179,54 @@ export class DrizzleSkillRepository implements ISkillRepository {
     try {
       const results = await this.db
         .select({
-          skill: skills',
+          skill: skills,
           demandCount: sql`count(${userSkills.skillId})`.mapWith(Number)
         })
         .from(skills)
         .leftJoin(userSkills, eq(skills.id, userSkills.skillId))
         .groupBy(skills.id, skills.name, skills.description, skills.category, skills.level, skills.minLevelRequired, skills.suggestedCertification, skills.validityMonths, skills.observations, skills.createdAt, skills.updatedAt)
         .orderBy(sql`count(${userSkills.skillId}) desc`)
-        .limit(limit)';
+        .limit(limit);
 
       return results.map(result => ({
-        skill: this.toDomainEntity(result.skill)',
+        skill: this.toDomainEntity(result.skill),
         demandCount: result.demandCount
-      }))';
+      }));
     } catch (error) {
-      winston.error('Error getting most demanded skills', { error })';
-      return []';
+      winston.error('Error getting most demanded skills', { error });
+      return [];
     }
   }
 
   private toDomainEntity(skillData: any): Skill {
     return {
-      id: skillData.id',
-      name: skillData.name',
-      description: skillData.description',
-      category: skillData.category',
-      level: skillData.level',
-      minLevelRequired: skillData.minLevelRequired',
-      suggestedCertification: skillData.suggestedCertification',
-      validityMonths: skillData.validityMonths',
-      observations: skillData.observations',
-      createdAt: skillData.createdAt',
+      id: skillData.id,
+      name: skillData.name,
+      description: skillData.description,
+      category: skillData.category,
+      level: skillData.level,
+      minLevelRequired: skillData.minLevelRequired,
+      suggestedCertification: skillData.suggestedCertification,
+      validityMonths: skillData.validityMonths,
+      observations: skillData.observations,
+      createdAt: skillData.createdAt,
       updatedAt: skillData.updatedAt
-    }';
+    };
   }
 
   private fromDomainEntity(skill: Skill): any {
     return {
-      id: skill.id',
-      name: skill.name',
-      description: skill.description',
-      category: skill.category',
-      level: skill.level',
-      minLevelRequired: skill.minLevelRequired',
-      suggestedCertification: skill.suggestedCertification',
-      validityMonths: skill.validityMonths',
-      observations: skill.observations',
-      createdAt: skill.createdAt',
+      id: skill.id,
+      name: skill.name,
+      description: skill.description,
+      category: skill.category,
+      level: skill.level,
+      minLevelRequired: skill.minLevelRequired,
+      suggestedCertification: skill.suggestedCertification,
+      validityMonths: skill.validityMonths,
+      observations: skill.observations,
+      createdAt: skill.createdAt,
       updatedAt: skill.updatedAt
-    }';
+    };
   }
 }

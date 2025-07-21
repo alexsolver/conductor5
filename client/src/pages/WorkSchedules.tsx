@@ -50,10 +50,10 @@ export default function WorkSchedules() {
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
-    userId: ',
+    userId: '',
     scheduleType: '5x2',
-    startDate: ',
-    endDate: ',
+    startDate: '',
+    endDate: '',
     workDays: [1, 2, 3, 4, 5], // Segunda a sexta por padrão
     startTime: '08:00',
     endTime: '18:00',
@@ -99,7 +99,7 @@ export default function WorkSchedules() {
         endTime: formData.endTime,
         breakDurationMinutes: formData.breakDurationMinutes,
         isActive: formData.isActive,
-        userName: users.find(u => u.id === formData.userId)?.name || '
+        userName: users.find(u => u.id === formData.userId)?.name || ''
       };
 
       if (selectedSchedule) {
@@ -119,10 +119,10 @@ export default function WorkSchedules() {
       setIsDialogOpen(false);
       setSelectedSchedule(null);
       setFormData({
-        userId: ',
+        userId: '',
         scheduleType: '5x2',
-        startDate: ',
-        endDate: ',
+        startDate: '',
+        endDate: '',
         workDays: [1, 2, 3, 4, 5],
         startTime: '08:00',
         endTime: '18:00',
@@ -166,7 +166,7 @@ export default function WorkSchedules() {
       userId: schedule.userId,
       scheduleType: schedule.scheduleType,
       startDate: schedule.startDate.split('T')[0],
-      endDate: schedule.endDate ? schedule.endDate.split('T')[0] : ',
+      endDate: schedule.endDate ? schedule.endDate.split('T')[0] : '',
       workDays: schedule.workDays,
       startTime: schedule.startTime,
       endTime: schedule.endTime,
@@ -179,10 +179,10 @@ export default function WorkSchedules() {
   const handleNew = () => {
     setSelectedSchedule(null);
     setFormData({
-      userId: ',
+      userId: '',
       scheduleType: '5x2',
-      startDate: ',
-      endDate: ',
+      startDate: '',
+      endDate: '',
       workDays: [1, 2, 3, 4, 5],
       startTime: '08:00',
       endTime: '18:00',

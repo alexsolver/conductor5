@@ -67,7 +67,7 @@ export default function TicketHierarchyView({
 
     return (
       <div key={ticket.id} className="space-y-2">
-        <Card className={`${ticket.id === ticketId ? 'ring-2 ring-blue-500' : '}`}>
+        <Card className={`${ticket.id === ticketId ? 'ring-2 ring-blue-500' : ''}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">

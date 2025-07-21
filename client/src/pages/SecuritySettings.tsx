@@ -46,9 +46,9 @@ interface AccountStatus {
 
 export default function SecuritySettings() {
   const { toast } = useToast();
-  const [email, setEmail] = useState(');
-  const [password, setPassword] = useState(');
-  const [twoFactorToken, setTwoFactorToken] = useState(');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [twoFactorToken, setTwoFactorToken] = useState('');
   const [setupStep, setSetupStep] = useState<'password' | 'qr' | 'verify'>('password');
 
   // Queries
@@ -137,7 +137,7 @@ export default function SecuritySettings() {
     onSuccess: () => {
       queryClient.invalidateQueries(['/api/auth-security/2fa/status']);
       setSetupStep('password');
-      setTwoFactorToken(');
+      setTwoFactorToken('');
       toast({
         title: "Two-factor authentication enabled",
         description: "Your account is now more secure",
@@ -159,7 +159,7 @@ export default function SecuritySettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['/api/auth-security/2fa/status']);
-      setTwoFactorToken(');
+      setTwoFactorToken('');
       toast({
         title: "Two-factor authentication updated",
         description: "Your security settings have been updated",

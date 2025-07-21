@@ -1,23 +1,23 @@
-import { Skill } from '../entities/Skill'[,;]
+import { Skill } from '../entities/Skill';
 
 export interface ISkillRepository {
   // CRUD básico
-  create(skill: Skill): Promise<Skill>';
-  findById(id: string): Promise<Skill | null>';
+  create(skill: Skill): Promise<Skill>;
+  findById(id: string): Promise<Skill | null>;
   findAll(filters?: {
-    category?: string';
-    isActive?: boolean';
-    search?: string';
-  }): Promise<Skill[]>';
-  update(skill: Skill): Promise<Skill>';
-  delete(id: string): Promise<void>';
+    category?: string;
+    isActive?: boolean;
+    search?: string;
+  }): Promise<Skill[]>;
+  update(skill: Skill): Promise<Skill>;
+  delete(id: string): Promise<void>;
   
   // Operações específicas
-  findByCategory(category: string): Promise<Skill[]>';
-  findByNamePattern(pattern: string): Promise<Skill[]>';
-  getCategories(): Promise<string[]>';
+  findByCategory(category: string): Promise<Skill[]>;
+  findByNamePattern(pattern: string): Promise<Skill[]>;
+  getCategories(): Promise<string[]>;
   
   // Estatísticas
-  countByCategory(): Promise<{ category: string; count: number }[]>';
-  getMostDemandedSkills(limit?: number): Promise<{ skill: Skill; demandCount: number }[]>';
+  countByCategory(): Promise<{ category: string; count: number }[]>;
+  getMostDemandedSkills(limit?: number): Promise<{ skill: Skill; demandCount: number }[]>;
 }

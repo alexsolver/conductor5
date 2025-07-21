@@ -42,7 +42,7 @@ export function CustomerLocationManager({
   onClose, 
   onAddNewLocation 
 }: CustomerLocationManagerProps) {
-  const [selectedLocationId, setSelectedLocationId] = useState<string>(');
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -76,7 +76,7 @@ export function CustomerLocationManager({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
-      setSelectedLocationId(');
+      setSelectedLocationId('');
       toast({
         title: "Localização adicionada",
         description: "A localização foi associada ao cliente com sucesso."

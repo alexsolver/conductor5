@@ -262,7 +262,7 @@ export default function TicketConfiguration() {
   // Category Tree Component
   const CategoryTree = ({ categories, level = 0 }: { categories: TicketCategory[]; level?: number }) => {
     return (
-      <div className={`${level > 0 ? 'ml-6 border-l-2 border-gray-200 pl-4' : '}`}>
+      <div className={`${level > 0 ? 'ml-6 border-l-2 border-gray-200 pl-4' : ''}`}>
         {categories.map((category) => (
           <div key={category.id} className="mb-2">
             <div className="flex items-center justify-between p-3 bg-white border rounded-lg">

@@ -4,17 +4,17 @@
  */
 
 export interface IQuery<TResult = any> {
-  readonly queryName: string';
+  readonly queryName: string;
 }
 
 export interface IQueryHandler<TQuery extends IQuery<TResult>, TResult = any> {
-  handle(query: TQuery): Promise<TResult>';
+  handle(query: TQuery): Promise<TResult>;
 }
 
 export interface IQueryBus {
-  execute<TResult = any>(query: IQuery<TResult>): Promise<TResult>';
+  execute<TResult = any>(query: IQuery<TResult>): Promise<TResult>;
   register<TQuery extends IQuery<TResult>, TResult = any>(
-    queryName: string',
+    queryName: string,
     handler: IQueryHandler<TQuery, TResult>
-  ): void';
+  ): void;
 }

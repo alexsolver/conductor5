@@ -3,17 +3,17 @@
  * React-i18next configuration with enterprise features
  */
 
-import i18n from 'i18next''';
-import { initReactI18next } from 'react-i18next''';
-import LanguageDetector from 'i18next-browser-languagedetector''';
-import Backend from 'i18next-http-backend''';
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import Backend from 'i18next-http-backend';
 
 // Import translation files
-import enTranslations from './locales/en.json''';
-import ptTranslations from './locales/pt-BR.json''';
-import esTranslations from './locales/es.json''';
-import frTranslations from './locales/fr.json''';
-import deTranslations from './locales/de.json''';
+import enTranslations from './locales/en.json';
+import ptTranslations from './locales/pt-BR.json';
+import esTranslations from './locales/es.json';
+import frTranslations from './locales/fr.json';
+import deTranslations from './locales/de.json';
 
 const resources = {
   en: { translation: enTranslations },

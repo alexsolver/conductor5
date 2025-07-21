@@ -1,6 +1,6 @@
-import { sql } from 'drizzle-orm'[,;]
-import { db } from '../db'[,;]
-import { enterpriseMonitoring } from './EnterpriseMonitoring'[,;]
+import { sql } from 'drizzle-orm';
+import { db } from '../db';
+import { enterpriseMonitoring } from './EnterpriseMonitoring';
 
 // ===========================
 // ENTERPRISE QUERY OPTIMIZER
@@ -8,50 +8,50 @@ import { enterpriseMonitoring } from './EnterpriseMonitoring'[,;]
 // ===========================
 
 export class EnterpriseQueryOptimizer {
-  private static instance: EnterpriseQueryOptimizer';
-  private readonly DEFAULT_LIMIT = 25';
-  private readonly MAX_LIMIT = 100';
+  private static instance: EnterpriseQueryOptimizer;
+  private readonly DEFAULT_LIMIT = 25;
+  private readonly MAX_LIMIT = 100;
 
   static getInstance(): EnterpriseQueryOptimizer {
     if (!EnterpriseQueryOptimizer.instance) {
-      EnterpriseQueryOptimizer.instance = new EnterpriseQueryOptimizer()';
+      EnterpriseQueryOptimizer.instance = new EnterpriseQueryOptimizer();
     }
-    return EnterpriseQueryOptimizer.instance';
+    return EnterpriseQueryOptimizer.instance;
   }
 
   // ===========================
   // OPTIMIZED QUERY WRAPPER
   // ===========================
   async executeOptimizedQuery<T>(
-    tenantId: string',
-    queryName: string',
-    queryFunction: () => Promise<T>',
+    tenantId: string,
+    queryName: string,
+    queryFunction: () => Promise<T>,
     options?: { maxTime?: number; enableTracking?: boolean }
   ): Promise<T> {
-    const start = Date.now()';
-    const { maxTime = 10000, enableTracking = true } = options || {}';
+    const start = Date.now();
+    const { maxTime = 10000, enableTracking = true } = options || {};
 
     try {
       // Execute with timeout
-      const result = await Promise.race(['
-        queryFunction()',
+      const result = await Promise.race([
+        queryFunction(),
         new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error(`Query timeout after ${maxTime}ms`)), maxTime)
         )
-      ])';
+      ]);
 
-      const duration = Date.now() - start';
+      const duration = Date.now() - start;
 
       // Track performance if enabled
       if (enableTracking) {
-        await enterpriseMonitoring.trackQueryPerformance(tenantId, queryName, duration)';
+        await enterpriseMonitoring.trackQueryPerformance(tenantId, queryName, duration);
       }
 
-      return result';
+      return result;
     } catch (error) {
-      const duration = Date.now() - start';
-      console.error(`[QueryOptimizer] Query ${queryName} failed for tenant ${tenantId} after ${duration}ms:`, error)';
-      throw error';
+      const duration = Date.now() - start;
+      console.error(`[QueryOptimizer] Query ${queryName} failed for tenant ${tenantId} after ${duration}ms:`, error);
+      throw error;
     }
   }
 
@@ -59,49 +59,49 @@ export class EnterpriseQueryOptimizer {
   // PAGINATED QUERY BUILDER
   // ===========================
   buildPaginatedQuery(
-    baseQuery: any',
+    baseQuery: any,
     options?: { 
       limit?: number; 
       offset?: number; 
-      maxLimit?: number';
-      defaultLimit?: number';
+      maxLimit?: number;
+      defaultLimit?: number;
     }
   ): any {
     const { 
       limit = this.DEFAULT_LIMIT, 
       offset = 0, 
-      maxLimit = this.MAX_LIMIT',
+      maxLimit = this.MAX_LIMIT,
       defaultLimit = this.DEFAULT_LIMIT
-    } = options || {}';
+    } = options || {};
 
     // Enforce maximum limits
-    const safeLimit = Math.min(limit || defaultLimit, maxLimit)';
-    const safeOffset = Math.max(offset || 0, 0)';
+    const safeLimit = Math.min(limit || defaultLimit, maxLimit);
+    const safeOffset = Math.max(offset || 0, 0);
 
     return baseQuery
       .limit(safeLimit)
-      .offset(safeOffset)';
+      .offset(safeOffset);
   }
 
   // ===========================
   // OPTIMIZED CUSTOMER QUERIES
   // ===========================
   async getOptimizedCustomers(
-    tenantId: string',
+    tenantId: string,
     options?: { 
       limit?: number; 
       offset?: number; 
-      search?: string';
-      active?: boolean';
+      search?: string;
+      active?: boolean;
     }
   ): Promise<any[]> {
-    const { limit, offset, search, active } = options || {}';
+    const { limit, offset, search, active } = options || {};
 
     return this.executeOptimizedQuery(
-      tenantId',
-      'getCustomers'[,;]
+      tenantId,
+      'getCustomers',
       async () => {
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`';
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         
         let query = sql`
           SELECT 
@@ -109,19 +109,19 @@ export class EnterpriseQueryOptimizer {
             created_at, updated_at
           FROM ${sql.identifier(schemaName)}.customers
           WHERE tenant_id = ${tenantId}
-        `';
+        `;
 
         // Add search filter
         if (search?.trim()) {
           query = sql`${query} AND (
             name ILIKE ${`%${search}%`} OR 
             email ILIKE ${`%${search}%`}
-          )`';
+          )`;
         }
 
         // Add active filter
         if (active !== undefined) {
-          query = sql`${query} AND active = ${active}`';
+          query = sql`${query} AND active = ${active}`;
         }
 
         // Add ordering and pagination
@@ -129,54 +129,54 @@ export class EnterpriseQueryOptimizer {
           ORDER BY created_at DESC
           LIMIT ${Math.min(limit || this.DEFAULT_LIMIT, this.MAX_LIMIT)}
           OFFSET ${Math.max(offset || 0, 0)}
-        `';
+        `;
 
-        const result = await db.execute(query)';
-        return result.rows';
+        const result = await db.execute(query);
+        return result.rows;
       }
-    )';
+    );
   }
 
   // ===========================
   // OPTIMIZED TICKET QUERIES
   // ===========================
   async getOptimizedTickets(
-    tenantId: string',
+    tenantId: string,
     options?: { 
       limit?: number; 
       offset?: number; 
-      status?: string';
-      priority?: string';
-      assignedToId?: string';
+      status?: string;
+      priority?: string;
+      assignedToId?: string;
     }
   ): Promise<any[]> {
-    const { limit, offset, status, priority, assignedToId } = options || {}';
+    const { limit, offset, status, priority, assignedToId } = options || {};
 
     return this.executeOptimizedQuery(
-      tenantId',
-      'getTickets'[,;]
+      tenantId,
+      'getTickets',
       async () => {
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`';
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         
         let query = sql`
           SELECT 
-            id, tenant_id, title, description, status, priority',
+            id, tenant_id, title, description, status, priority,
             customer_id, assigned_to_id, created_at, updated_at
           FROM ${sql.identifier(schemaName)}.tickets
           WHERE tenant_id = ${tenantId}
-        `';
+        `;
 
         // Add filters
         if (status) {
-          query = sql`${query} AND status = ${status}`';
+          query = sql`${query} AND status = ${status}`;
         }
 
         if (priority) {
-          query = sql`${query} AND priority = ${priority}`';
+          query = sql`${query} AND priority = ${priority}`;
         }
 
         if (assignedToId) {
-          query = sql`${query} AND assigned_to_id = ${assignedToId}`';
+          query = sql`${query} AND assigned_to_id = ${assignedToId}`;
         }
 
         // Add ordering and pagination
@@ -187,16 +187,16 @@ export class EnterpriseQueryOptimizer {
               WHEN 'medium' THEN 2 
               WHEN 'low' THEN 3 
               ELSE 4 
-            END',
+            END,
             created_at DESC
           LIMIT ${Math.min(limit || this.DEFAULT_LIMIT, this.MAX_LIMIT)}
           OFFSET ${Math.max(offset || 0, 0)}
-        `';
+        `;
 
-        const result = await db.execute(query)';
-        return result.rows';
+        const result = await db.execute(query);
+        return result.rows;
       }
-    )';
+    );
   }
 
   // ===========================
@@ -204,30 +204,30 @@ export class EnterpriseQueryOptimizer {
   // ===========================
   async getOptimizedDashboardMetrics(tenantId: string): Promise<any> {
     return this.executeOptimizedQuery(
-      tenantId',
-      'dashboardMetrics'[,;]
+      tenantId,
+      'dashboardMetrics',
       async () => {
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`';
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         
         // Use single optimized query with CTEs
         const query = sql`
           WITH customer_stats AS (
             SELECT 
-              COUNT(*) as total_customers',
+              COUNT(*) as total_customers,
               COUNT(*) FILTER (WHERE active = true) as active_customers
             FROM ${sql.identifier(schemaName)}.customers
             WHERE tenant_id = ${tenantId}
-          )',
+          ),
           ticket_stats AS (
             SELECT 
-              COUNT(*) as total_tickets',
-              COUNT(*) FILTER (WHERE status = 'open') as open_tickets',
-              COUNT(*) FILTER (WHERE status = 'pending') as pending_tickets',
-              COUNT(*) FILTER (WHERE status = 'resolved') as resolved_tickets',
+              COUNT(*) as total_tickets,
+              COUNT(*) FILTER (WHERE status = 'open') as open_tickets,
+              COUNT(*) FILTER (WHERE status = 'pending') as pending_tickets,
+              COUNT(*) FILTER (WHERE status = 'resolved') as resolved_tickets,
               COUNT(*) FILTER (WHERE priority = 'high') as high_priority_tickets
             FROM ${sql.identifier(schemaName)}.tickets
             WHERE tenant_id = ${tenantId}
-          )',
+          ),
           recent_activity AS (
             SELECT COUNT(*) as recent_activities
             FROM ${sql.identifier(schemaName)}.activity_logs
@@ -235,60 +235,60 @@ export class EnterpriseQueryOptimizer {
             AND created_at >= NOW() - INTERVAL '24 hours'
           )
           SELECT 
-            cs.*',
-            ts.*',
+            cs.*,
+            ts.*,
             ra.*
           FROM customer_stats cs
           CROSS JOIN ticket_stats ts
           CROSS JOIN recent_activity ra
-        `';
+        `;
 
-        const result = await db.execute(query)';
-        return result.rows[0] || {}';
-      }',
+        const result = await db.execute(query);
+        return result.rows[0] || {};
+      },
       { maxTime: 5000 } // 5 second timeout for dashboard
-    )';
+    );
   }
 
   // ===========================
   // BULK OPERATIONS OPTIMIZATION
   // ===========================
   async optimizedBulkInsert(
-    tenantId: string',
-    tableName: string',
-    records: any[]',
+    tenantId: string,
+    tableName: string,
+    records: any[],
     batchSize: number = 100
   ): Promise<void> {
-    if (records.length === 0) return';
+    if (records.length === 0) return;
 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`';
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
     // Process in batches to avoid memory issues
     for (let i = 0; i < records.length; i += batchSize) {
-      const batch = records.slice(i, i + batchSize)';
+      const batch = records.slice(i, i + batchSize);
       
       await this.executeOptimizedQuery(
-        tenantId',
-        `bulkInsert_${tableName}`',
+        tenantId,
+        `bulkInsert_${tableName}`,
         async () => {
           // Build batch insert query
-          const columns = Object.keys(batch[0])';
+          const columns = Object.keys(batch[0]);
           const values = batch.map(record => 
             columns.map(col => record[col])
-          )';
+          );
 
           const placeholders = values.map((_, index) => 
             `(${columns.map((_, colIndex) => `$${index * columns.length + colIndex + 1}`).join(', ')})`
-          ).join(', ')';
+          ).join(', ');
 
           const query = `
             INSERT INTO ${schemaName}.${tableName} (${columns.join(', ')})
             VALUES ${placeholders}
-          `';
+          `;
 
-          await db.execute(sql.raw(query, values.flat()))';
+          await db.execute(sql.raw(query, values.flat()));
         }
-      )';
+      );
     }
   }
 
@@ -296,20 +296,20 @@ export class EnterpriseQueryOptimizer {
   // INDEX USAGE ANALYSIS
   // ===========================
   async analyzeIndexUsage(tenantId: string): Promise<any[]> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`';
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
     return this.executeOptimizedQuery(
-      tenantId',
-      'indexAnalysis'[,;]
+      tenantId,
+      'indexAnalysis',
       async () => {
         const result = await db.execute(sql`
           SELECT 
-            schemaname',
-            tablename',
-            indexname',
-            idx_scan',
-            idx_tup_read',
-            idx_tup_fetch',
+            schemaname,
+            tablename,
+            indexname,
+            idx_scan,
+            idx_tup_read,
+            idx_tup_fetch,
             CASE 
               WHEN idx_scan = 0 THEN 'UNUSED'
               WHEN idx_scan < 10 THEN 'LOW_USAGE'
@@ -319,12 +319,12 @@ export class EnterpriseQueryOptimizer {
           FROM pg_stat_user_indexes 
           WHERE schemaname = ${schemaName}
           ORDER BY idx_scan DESC
-        `)';
+        `);
 
-        return result.rows';
+        return result.rows;
       }
-    )';
+    );
   }
 }
 
-export const enterpriseQueryOptimizer = EnterpriseQueryOptimizer.getInstance()';
+export const enterpriseQueryOptimizer = EnterpriseQueryOptimizer.getInstance();

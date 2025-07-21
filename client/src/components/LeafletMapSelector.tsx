@@ -61,11 +61,11 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
 export function LeafletMapSelector({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapSelectorProps) {
   const [selectedLat, setSelectedLat] = useState(initialLat);
   const [selectedLng, setSelectedLng] = useState(initialLng);
-  const [searchQuery, setSearchQuery] = useState(');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([initialLat, initialLng]);
   const [zoomLevel, setZoomLevel] = useState(10);
-  const [searchResult, setSearchResult] = useState<string>(');
+  const [searchResult, setSearchResult] = useState<string>('');
   const mapRef = useRef<L.Map | null>(null);
   const { toast } = useToast();
 
@@ -215,8 +215,8 @@ export function LeafletMapSelector({ initialLat, initialLng, addressData, onLoca
   const resetView = () => {
     setMapCenter([-15.7942, -47.8825]); // Brasília center
     setZoomLevel(6);
-    setSearchResult(');
-    setSearchQuery(');
+    setSearchResult('');
+    setSearchQuery('');
   };
 
   return (

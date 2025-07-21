@@ -40,7 +40,7 @@ interface TimeAlert {
 
 export default function Timecard() {
   const [location, setLocation] = useState<GeolocationPosition | null>(null);
-  const [locationError, setLocationError] = useState<string>(');
+  const [locationError, setLocationError] = useState<string>('');
   const [currentStatus, setCurrentStatus] = useState<CurrentStatus>({
     status: 'not_started',
     todayRecords: [],

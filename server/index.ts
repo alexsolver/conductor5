@@ -174,7 +174,7 @@ app.use((req, res, next) => {
 
   // CRITICAL STABILITY FIX: Enhanced error handling for WebSocket and database connection issues
   process.on('uncaughtException', (error) => {
-    const errorMsg = error.message || 'Unknown error';
+    const errorMsg = error.message || '';
     
     // VITE STABILITY: Ignore WebSocket and HMR related errors
     if (errorMsg.includes('WebSocket') || 

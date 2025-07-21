@@ -88,46 +88,47 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
 
     next();
   } catch (error) {
-    const { logError } = await import('../utils/logger');
-    logError('Optional JWT authentication failed', error, { 
+    // Log but don't fail the request
+    const { logWarn } = await import('../utils/logger');
+    logWarn('Optional JWT authentication warning', { 
+      error: error instanceof Error ? error.message : 'Unknown error',
       method: req.method, 
-      url: req.url
+      url: req.url 
     });
-    next(); // Continue without authentication
+    next();
   }
 };
 
-// Admin role authorization middleware
-export const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Admin access required' });
-  }
-  next();
+// Role-based authorization middleware
+export const requireRole = (...roles: string[]) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    next();
+  };
 };
 
-// Manager role authorization middleware  
-export const requireManager = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.user || !['admin', 'manager].includes(req.user.role)) {
-    return res.status(403).json({ message: 'Manager access required' });
-  }
-  next();
-};
-
-// Tenant-based authorization middleware
-export const requireTenantAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const tenantId = req.params.tenantId || req.query.tenantId;
-  
+// Tenant access middleware
+export const requireTenantAccess = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
-  
+
+  // Admin users can access all tenants
   if (req.user.role === 'admin') {
-    return next(); // Admins have access to all tenants
+    return next();
   }
-  
-  if (req.user.tenantId !== tenantId) {
-    return res.status(403).json({ message: 'Tenant access denied' });
+
+  // Check if user has access to their tenant
+  if (!req.user.tenantId) {
+    return res.status(403).json({ message: 'No tenant access' });
   }
-  
+
   next();
 };

@@ -76,7 +76,7 @@ export default function OmniBridge() {
   const [syncLoading, setSyncLoading] = useState(false);
   const [processLoading, setProcessLoading] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<UnifiedMessage | null>(null);
-  const [searchQuery, setSearchQuery] = useState(');
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
   const { toast } = useToast();
@@ -560,10 +560,10 @@ export default function OmniBridge() {
   const mappedMessages = messages.map(msg => ({
     id: msg.id,
     channelType: 'email', // Since we only have email for now
-    fromAddress: msg.fromEmail || msg.fromAddress || ',
+    fromAddress: msg.fromEmail || msg.fromAddress || '',
     fromName: msg.fromName || null,
     subject: msg.subject || 'Sem assunto',
-    content: msg.bodyText || msg.content || msg.bodyHtml || ',
+    content: msg.bodyText || msg.content || msg.bodyHtml || '',
     priority: msg.priority || 'medium',
     status: msg.isRead ? 'read' : 'unread',
     hasAttachments: msg.hasAttachments || false,
@@ -599,11 +599,11 @@ export default function OmniBridge() {
         </div>
         <div className="flex gap-2">
           <Button onClick={syncChannels} disabled={syncLoading || loading} variant="outline">
-            <RefreshCw className={`h-4 w-4 mr-2 ${syncLoading ? 'animate-spin' : '}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncLoading ? 'animate-spin' : ''}`} />
             {syncLoading ? 'Sincronizando...' : 'Sincronizar Canais'}
           </Button>
           <Button onClick={processMessages} disabled={processLoading || loading}>
-            <Zap className={`h-4 w-4 mr-2 ${processLoading ? 'animate-spin' : '}`} />
+            <Zap className={`h-4 w-4 mr-2 ${processLoading ? 'animate-spin' : ''}`} />
             {processLoading ? 'Processando...' : 'Processar Mensagens'}
           </Button>
         </div>
@@ -688,7 +688,7 @@ export default function OmniBridge() {
                 {channels.map(channel => {
                   const getChannelTypeIcon = (type: string, name: string) => {
                     // Baseado no nome e tipo, retornar ícone específico
-                    const safeName = (name || ').toString().toLowerCase();
+                    const safeName = (name || '').toString().toLowerCase();
                     if (safeName.includes('imap') || safeName.includes('email')) {
                       return <Mail className="h-5 w-5 text-blue-500" />;
                     }
@@ -717,7 +717,7 @@ export default function OmniBridge() {
                   };
 
                   const getChannelTypeBadge = (name: string) => {
-                    const safeName = (name || ').toString().toLowerCase();
+                    const safeName = (name || '').toString().toLowerCase();
                     if (safeName.includes('imap')) return 'IMAP4';
                     if (safeName.includes('whatsapp')) return 'WhatsApp';
                     if (safeName.includes('telegram')) return 'Telegram';
@@ -787,21 +787,21 @@ export default function OmniBridge() {
                           </div>
 
                           {/* Informações técnicas específicas */}
-                          {(channel.name || ').toString().toLowerCase().includes('imap') && (
+                          {(channel.name || '').toString().toLowerCase().includes('imap') && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Protocolo:</span>
                               <span className="font-medium text-blue-600">IMAP4 SSL/TLS</span>
                             </div>
                           )}
 
-                          {(channel.name || ').toString().toLowerCase().includes('oauth2') && (
+                          {(channel.name || '').toString().toLowerCase().includes('oauth2') && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Auth:</span>
                               <span className="font-medium text-green-600">OAuth 2.0</span>
                             </div>
                           )}
 
-                          {(channel.name || ').toString().toLowerCase().includes('webhook') && (
+                          {(channel.name || '').toString().toLowerCase().includes('webhook') && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Método:</span>
                               <span className="font-medium text-orange-600">HTTP Webhook</span>
@@ -812,7 +812,7 @@ export default function OmniBridge() {
                             <div className="flex items-center space-x-2 pt-2 border-t">
                               <AlertTriangle className="w-4 h-4 text-red-500" />
                               <span className="text-xs text-red-600">
-                                {channel.errorCount} erro{channel.errorCount > 1 ? 's' : '} detectado{channel.errorCount > 1 ? 's' : '}
+                                {channel.errorCount} erro{channel.errorCount > 1 ? 's' : ''} detectado{channel.errorCount > 1 ? 's' : ''}
                               </span>
                             </div>
                           )}
@@ -827,7 +827,7 @@ export default function OmniBridge() {
                           </div>
                         )}
 
-                        {channel.isConnected && (channel.name || ').toString().toLowerCase().includes('imap') && (
+                        {channel.isConnected && (channel.name || '').toString().toLowerCase().includes('imap') && (
                           <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
                             <div className="flex items-center space-x-1">
                               <CheckCircle className="w-3 h-3" />
@@ -896,7 +896,7 @@ Fix channel data mapping to use real API data instead of mock values            
                 {filteredMessages.map(message => (
                   <Card 
                     key={message.id} 
-                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${message.status === 'unread' ? 'border-l-4 border-l-blue-500' : '}`}
+                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${message.status === 'unread' ? 'border-l-4 border-l-blue-500' : ''}`}
                     onClick={() => setSelectedMessage(message)}
                   >
                     <CardContent className="p-4">

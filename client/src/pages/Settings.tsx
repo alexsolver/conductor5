@@ -131,7 +131,7 @@ export default function Settings() {
                       <Label htmlFor="firstName">First Name</Label>
                       <Input
                         id="firstName"
-                        defaultValue={user?.firstName || '}
+                        defaultValue={user?.firstName || ''}
                         placeholder="Enter your first name"
                       />
                     </div>
@@ -139,7 +139,7 @@ export default function Settings() {
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input
                         id="lastName"
-                        defaultValue={user?.lastName || '}
+                        defaultValue={user?.lastName || ''}
                         placeholder="Enter your last name"
                       />
                     </div>
@@ -148,7 +148,7 @@ export default function Settings() {
                       <Input
                         id="email"
                         type="email"
-                        defaultValue={user?.email || '}
+                        defaultValue={user?.email || ''}
                         placeholder="Enter your email"
                       />
                     </div>
@@ -269,7 +269,7 @@ export default function Settings() {
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
                               <span className="text-white text-xs font-medium">
-                                {member.name.split(' ').map(n => n[0]).join(')}
+                                {member.name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                             <div>

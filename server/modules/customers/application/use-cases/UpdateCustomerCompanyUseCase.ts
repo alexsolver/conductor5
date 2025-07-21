@@ -4,38 +4,38 @@
  * Updates an existing customer company
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany'[,;]
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository'[,;]
+import { CustomerCompany } from '../../domain/entities/CustomerCompany';
+import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository';
 
 export interface UpdateCustomerCompanyRequest {
-  id: string';
-  tenantId: string';
-  name?: string';
-  displayName?: string';
-  description?: string';
-  industry?: string';
-  size?: 'small' | 'medium' | 'large' | 'enterprise'[,;]
-  email?: string';
-  phone?: string';
-  website?: string';
+  id: string;
+  tenantId: string;
+  name?: string;
+  displayName?: string;
+  description?: string;
+  industry?: string;
+  size?: 'small' | 'medium' | 'large' | 'enterprise';
+  email?: string;
+  phone?: string;
+  website?: string;
   address?: {
-    street?: string';
-    city?: string';
-    state?: string';
-    country?: string';
-    postalCode?: string';
-  }';
-  subscriptionTier?: 'basic' | 'premium' | 'enterprise'[,;]
-  contractType?: 'monthly' | 'yearly' | 'custom'[,;]
-  maxUsers?: number';
-  maxTickets?: number';
-  status?: 'active' | 'inactive' | 'suspended' | 'trial'[,;]
-  isActive?: boolean';
-  updatedBy: string';
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+  };
+  subscriptionTier?: 'basic' | 'premium' | 'enterprise';
+  contractType?: 'monthly' | 'yearly' | 'custom';
+  maxUsers?: number;
+  maxTickets?: number;
+  status?: 'active' | 'inactive' | 'suspended' | 'trial';
+  isActive?: boolean;
+  updatedBy: string;
 }
 
 export interface UpdateCustomerCompanyResponse {
-  company: CustomerCompany';
+  company: CustomerCompany;
 }
 
 export class UpdateCustomerCompanyUseCase {
@@ -46,28 +46,28 @@ export class UpdateCustomerCompanyUseCase {
   async execute(request: UpdateCustomerCompanyRequest): Promise<UpdateCustomerCompanyResponse> {
     // Find existing company
     const existingCompany = await this.customerCompanyRepository.findById(
-      request.id',
+      request.id,
       request.tenantId
-    )';
+    );
 
     if (!existingCompany) {
-      throw new Error(`Company with ID "${request.id}" not found`)';
+      throw new Error(`Company with ID "${request.id}" not found`);
     }
 
     // Check if name is being changed and doesn't conflict
     if (request.name && request.name !== existingCompany.getName()) {
       const companyWithSameName = await this.customerCompanyRepository.findByName(
-        request.name',
+        request.name,
         request.tenantId
-      )';
+      );
 
       if (companyWithSameName && companyWithSameName.getId() !== request.id) {
-        throw new Error(`Company with name "${request.name}" already exists in this tenant`)';
+        throw new Error(`Company with name "${request.name}" already exists in this tenant`);
       }
     }
 
     // Apply updates through domain entity methods
-    let updatedCompany = existingCompany';
+    let updatedCompany = existingCompany;
 
     // Update basic info if provided
     if (request.name !== undefined || 
@@ -76,13 +76,13 @@ export class UpdateCustomerCompanyUseCase {
         request.industry !== undefined ||
         request.size !== undefined) {
       updatedCompany = updatedCompany.updateBasicInfo({
-        name: request.name',
-        displayName: request.displayName',
-        description: request.description',
-        industry: request.industry',
-        size: request.size',
-        updatedBy: request.updatedBy',
-      })';
+        name: request.name,
+        displayName: request.displayName,
+        description: request.description,
+        industry: request.industry,
+        size: request.size,
+        updatedBy: request.updatedBy,
+      });
     }
 
     // Update contact info if provided
@@ -91,12 +91,12 @@ export class UpdateCustomerCompanyUseCase {
         request.website !== undefined ||
         request.address !== undefined) {
       updatedCompany = updatedCompany.updateContactInfo({
-        email: request.email',
-        phone: request.phone',
-        website: request.website',
-        address: request.address',
-        updatedBy: request.updatedBy',
-      })';
+        email: request.email,
+        phone: request.phone,
+        website: request.website,
+        address: request.address,
+        updatedBy: request.updatedBy,
+      });
     }
 
     // Update subscription if provided
@@ -105,28 +105,28 @@ export class UpdateCustomerCompanyUseCase {
         request.maxUsers !== undefined ||
         request.maxTickets !== undefined) {
       updatedCompany = updatedCompany.updateSubscription({
-        subscriptionTier: request.subscriptionTier',
-        contractType: request.contractType',
-        maxUsers: request.maxUsers',
-        maxTickets: request.maxTickets',
-        updatedBy: request.updatedBy',
-      })';
+        subscriptionTier: request.subscriptionTier,
+        contractType: request.contractType,
+        maxUsers: request.maxUsers,
+        maxTickets: request.maxTickets,
+        updatedBy: request.updatedBy,
+      });
     }
 
     // Update status if provided
     if (request.status !== undefined || request.isActive !== undefined) {
       updatedCompany = updatedCompany.updateStatus({
-        status: request.status',
-        isActive: request.isActive',
-        updatedBy: request.updatedBy',
-      })';
+        status: request.status,
+        isActive: request.isActive,
+        updatedBy: request.updatedBy,
+      });
     }
 
     // Save updated company
-    const savedCompany = await this.customerCompanyRepository.save(updatedCompany)';
+    const savedCompany = await this.customerCompanyRepository.save(updatedCompany);
 
     return {
-      company: savedCompany',
-    }';
+      company: savedCompany,
+    };
   }
 }

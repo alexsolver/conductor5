@@ -50,8 +50,8 @@ export default function BulkScheduleAssignment() {
   const form = useForm<BulkAssignmentForm>({
     resolver: zodResolver(bulkAssignmentSchema),
     defaultValues: {
-      templateId: ',
-      startDate: ',
+      templateId: '',
+      startDate: '',
       userIds: [],
     },
   });

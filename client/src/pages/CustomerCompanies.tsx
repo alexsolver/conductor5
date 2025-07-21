@@ -464,7 +464,7 @@ export default function CustomerCompanies() {
           />
         </div>
         <Badge variant="outline" className="text-sm">
-          {filteredCompanies.length} empresa{filteredCompanies.length !== 1 ? 's' : '}
+          {filteredCompanies.length} empresa{filteredCompanies.length !== 1 ? 's' : ''}
         </Badge>
       </div>
 

@@ -1,10 +1,10 @@
 // User Repository Implementation
-import { User } from "../../domain/entities/User"';
-import { IUserRepository } from "../../domain/repositories/IUserRepository"';
-import { db } from "../../db"';
-import { users } from "../../../shared/schema"';
-import { eq, desc, count } from "drizzle-orm"';
-import { logError } from "../../utils/logger"';
+import { User } from "../../domain/entities/User";
+import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { db } from "../../db";
+import { users } from "../../../shared/schema";
+import { eq, desc, count } from "drizzle-orm";
+import { logError } from "../../utils/logger";
 
 export class UserRepository implements IUserRepository {
   
@@ -13,27 +13,27 @@ export class UserRepository implements IUserRepository {
       const [userData] = await db
         .select()
         .from(users)
-        .where(eq(users.id, id))';
+        .where(eq(users.id, id));
 
-      if (!userData) return null';
+      if (!userData) return null;
 
       return new User(
-        userData.id',
-        userData.email!',
-        userData.passwordHash!',
-        userData.firstName',
-        userData.lastName',
-        userData.role as any',
-        userData.tenantId',
-        userData.profileImageUrl',
-        userData.isActive ?? true',
-        userData.lastLoginAt',
-        userData.createdAt || new Date()',
+        userData.id,
+        userData.email!,
+        userData.passwordHash!,
+        userData.firstName,
+        userData.lastName,
+        userData.role as any,
+        userData.tenantId,
+        userData.profileImageUrl,
+        userData.isActive ?? true,
+        userData.lastLoginAt,
+        userData.createdAt || new Date(),
         userData.updatedAt || new Date()
-      )';
+      );
     } catch (error) {
-      logError('Error finding user by ID', error, { userId: id })';
-      return null';
+      logError('Error finding user by ID', error, { userId: id });
+      return null;
     }
   }
 
@@ -42,33 +42,33 @@ export class UserRepository implements IUserRepository {
       const [userData] = await db
         .select()
         .from(users)
-        .where(eq(users.email, email.toLowerCase()))';
+        .where(eq(users.email, email.toLowerCase()));
 
-      if (!userData) return null';
+      if (!userData) return null;
 
       return new User(
-        userData.id',
-        userData.email!',
-        userData.passwordHash!',
-        userData.firstName',
-        userData.lastName',
-        userData.role as any',
-        userData.tenantId',
-        userData.profileImageUrl',
-        userData.isActive ?? true',
-        userData.lastLoginAt',
-        userData.createdAt || new Date()',
+        userData.id,
+        userData.email!,
+        userData.passwordHash!,
+        userData.firstName,
+        userData.lastName,
+        userData.role as any,
+        userData.tenantId,
+        userData.profileImageUrl,
+        userData.isActive ?? true,
+        userData.lastLoginAt,
+        userData.createdAt || new Date(),
         userData.updatedAt || new Date()
-      )';
+      );
     } catch (error) {
-      logError('Error finding user by email', error, { email: email.toLowerCase() })';
-      return null';
+      logError('Error finding user by email', error, { email: email.toLowerCase() });
+      return null;
     }
   }
 
   async findByTenant(tenantId: string, options?: { page?: number; limit?: number }): Promise<User[]> {
-    const limit = options?.limit || 50';
-    const offset = options?.page ? (options.page - 1) * limit : 0';
+    const limit = options?.limit || 50;
+    const offset = options?.page ? (options.page - 1) * limit : 0;
     try {
       const userData = await db
         .select()
@@ -76,25 +76,25 @@ export class UserRepository implements IUserRepository {
         .where(eq(users.tenantId, tenantId))
         .limit(limit)
         .offset(offset)
-        .orderBy(desc(users.createdAt))';
+        .orderBy(desc(users.createdAt));
 
       return userData.map(data => new User(
-        data.id',
-        data.email!',
-        data.passwordHash!',
-        data.firstName',
-        data.lastName',
-        data.role as any',
-        data.tenantId',
-        data.profileImageUrl',
-        data.isActive ?? true',
-        data.lastLoginAt',
-        data.createdAt || new Date()',
+        data.id,
+        data.email!,
+        data.passwordHash!,
+        data.firstName,
+        data.lastName,
+        data.role as any,
+        data.tenantId,
+        data.profileImageUrl,
+        data.isActive ?? true,
+        data.lastLoginAt,
+        data.createdAt || new Date(),
         data.updatedAt || new Date()
-      ))';
+      ));
     } catch (error) {
-      logError('Error finding users by tenant', error, { tenantId, limit, offset })';
-      return []';
+      logError('Error finding users by tenant', error, { tenantId, limit, offset });
+      return [];
     }
   }
 
@@ -103,38 +103,38 @@ export class UserRepository implements IUserRepository {
       const [savedData] = await db
         .insert(users)
         .values({
-          id: user.id',
-          email: user.email',
-          passwordHash: user.passwordHash',
-          firstName: user.firstName',
-          lastName: user.lastName',
-          role: user.role',
-          tenantId: user.tenantId',
-          profileImageUrl: user.profileImageUrl',
-          isActive: user.isActive',
-          lastLoginAt: user.lastLoginAt',
-          createdAt: user.createdAt',
+          id: user.id,
+          email: user.email,
+          passwordHash: user.passwordHash,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          tenantId: user.tenantId,
+          profileImageUrl: user.profileImageUrl,
+          isActive: user.isActive,
+          lastLoginAt: user.lastLoginAt,
+          createdAt: user.createdAt,
           updatedAt: user.updatedAt
         })
-        .returning()';
+        .returning();
 
       return new User(
-        savedData.id',
-        savedData.email!',
-        savedData.passwordHash!',
-        savedData.firstName',
-        savedData.lastName',
-        savedData.role as any',
-        savedData.tenantId',
-        savedData.profileImageUrl',
-        savedData.isActive ?? true',
-        savedData.lastLoginAt',
-        savedData.createdAt || new Date()',
+        savedData.id,
+        savedData.email!,
+        savedData.passwordHash!,
+        savedData.firstName,
+        savedData.lastName,
+        savedData.role as any,
+        savedData.tenantId,
+        savedData.profileImageUrl,
+        savedData.isActive ?? true,
+        savedData.lastLoginAt,
+        savedData.createdAt || new Date(),
         savedData.updatedAt || new Date()
-      )';
+      );
     } catch (error) {
-      logError('Error saving user', error, { userId: user.id, email: user.email })';
-      throw new Error('Failed to save user')';
+      logError('Error saving user', error, { userId: user.id, email: user.email });
+      throw new Error('Failed to save user');
     }
   }
 
@@ -143,37 +143,37 @@ export class UserRepository implements IUserRepository {
       const [updatedData] = await db
         .update(users)
         .set({
-          email: user.email',
-          passwordHash: user.passwordHash',
-          firstName: user.firstName',
-          lastName: user.lastName',
-          role: user.role',
-          tenantId: user.tenantId',
-          profileImageUrl: user.profileImageUrl',
-          isActive: user.isActive',
-          lastLoginAt: user.lastLoginAt',
+          email: user.email,
+          passwordHash: user.passwordHash,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          tenantId: user.tenantId,
+          profileImageUrl: user.profileImageUrl,
+          isActive: user.isActive,
+          lastLoginAt: user.lastLoginAt,
           updatedAt: new Date()
         })
         .where(eq(users.id, user.id))
-        .returning()';
+        .returning();
 
       return new User(
-        updatedData.id',
-        updatedData.email!',
-        updatedData.passwordHash!',
-        updatedData.firstName',
-        updatedData.lastName',
-        updatedData.role as any',
-        updatedData.tenantId',
-        updatedData.profileImageUrl',
-        updatedData.isActive ?? true',
-        updatedData.lastLoginAt',
-        updatedData.createdAt || new Date()',
+        updatedData.id,
+        updatedData.email!,
+        updatedData.passwordHash!,
+        updatedData.firstName,
+        updatedData.lastName,
+        updatedData.role as any,
+        updatedData.tenantId,
+        updatedData.profileImageUrl,
+        updatedData.isActive ?? true,
+        updatedData.lastLoginAt,
+        updatedData.createdAt || new Date(),
         updatedData.updatedAt || new Date()
-      )';
+      );
     } catch (error) {
-      logError('Error updating user', error, { userId: user.id })';
-      throw new Error('Failed to update user')';
+      logError('Error updating user', error, { userId: user.id });
+      throw new Error('Failed to update user');
     }
   }
 
@@ -181,18 +181,18 @@ export class UserRepository implements IUserRepository {
     try {
       await db
         .delete(users)
-        .where(eq(users.id, id))';
+        .where(eq(users.id, id));
 
-      return true';
+      return true;
     } catch (error) {
-      logError('Error deleting user', error, { userId: id })';
-      return false';
+      logError('Error deleting user', error, { userId: id });
+      return false;
     }
   }
 
   async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
-    const limit = options?.limit || 50';
-    const offset = options?.page ? (options.page - 1) * limit : 0';
+    const limit = options?.limit || 50;
+    const offset = options?.page ? (options.page - 1) * limit : 0;
     
     try {
       const userData = await db
@@ -200,49 +200,49 @@ export class UserRepository implements IUserRepository {
         .from(users)
         .limit(limit)
         .offset(offset)
-        .orderBy(desc(users.createdAt))';
+        .orderBy(desc(users.createdAt));
 
       return userData.map(data => new User(
-        data.id',
-        data.email!',
-        data.passwordHash!',
-        data.firstName',
-        data.lastName',
-        data.role as any',
-        data.tenantId',
-        data.profileImageUrl',
-        data.isActive ?? true',
-        data.lastLoginAt',
-        data.createdAt || new Date()',
+        data.id,
+        data.email!,
+        data.passwordHash!,
+        data.firstName,
+        data.lastName,
+        data.role as any,
+        data.tenantId,
+        data.profileImageUrl,
+        data.isActive ?? true,
+        data.lastLoginAt,
+        data.createdAt || new Date(),
         data.updatedAt || new Date()
-      ))';
+      ));
     } catch (error) {
-      logError('Error finding all users', error, { limit, offset })';
-      return []';
+      logError('Error finding all users', error, { limit, offset });
+      return [];
     }
   }
 
   async create(userData: { email: string; passwordHash: string; firstName?: string; lastName?: string; role: string; tenantId?: string }): Promise<User> {
     try {
       const user = new User(
-        crypto.randomUUID()',
-        userData.email',
-        userData.passwordHash',
-        userData.firstName',
-        userData.lastName',
-        userData.role as any',
-        userData.tenantId',
-        undefined',
-        true',
-        undefined',
-        new Date()',
+        crypto.randomUUID(),
+        userData.email,
+        userData.passwordHash,
+        userData.firstName,
+        userData.lastName,
+        userData.role as any,
+        userData.tenantId,
+        undefined,
+        true,
+        undefined,
+        new Date(),
         new Date()
-      )';
+      );
 
-      return await this.save(user)';
+      return await this.save(user);
     } catch (error) {
-      logError('Error creating user', error, { email: userData.email })';
-      throw new Error('Failed to create user')';
+      logError('Error creating user', error, { email: userData.email });
+      throw new Error('Failed to create user');
     }
   }
 
@@ -251,17 +251,17 @@ export class UserRepository implements IUserRepository {
       const [result] = await db
         .select({ count: count() })
         .from(users)
-        .where(eq(users.tenantId, tenantId))';
+        .where(eq(users.tenantId, tenantId));
 
-      return result.count || 0';
+      return result.count || 0;
     } catch (error) {
-      logError('Error counting users by tenant', error, { tenantId })';
-      return 0';
+      logError('Error counting users by tenant', error, { tenantId });
+      return 0;
     }
   }
 
   async findAllWithPagination(options: { limit: number; offset: number }): Promise<User[]> {
-    const { limit, offset } = options';
+    const { limit, offset } = options;
     
     try {
       const userData = await db
@@ -269,25 +269,25 @@ export class UserRepository implements IUserRepository {
         .from(users)
         .limit(limit)
         .offset(offset)
-        .orderBy(desc(users.createdAt))';
+        .orderBy(desc(users.createdAt));
 
       return userData.map(data => new User(
-        data.id',
-        data.email!',
-        data.passwordHash!',
-        data.firstName',
-        data.lastName',
-        data.role as any',
-        data.tenantId',
-        data.profileImageUrl',
-        data.isActive ?? true',
-        data.lastLoginAt',
-        data.createdAt || new Date()',
+        data.id,
+        data.email!,
+        data.passwordHash!,
+        data.firstName,
+        data.lastName,
+        data.role as any,
+        data.tenantId,
+        data.profileImageUrl,
+        data.isActive ?? true,
+        data.lastLoginAt,
+        data.createdAt || new Date(),
         data.updatedAt || new Date()
-      ))';
+      ));
     } catch (error) {
-      logError('Error finding users with pagination', error, { limit, offset })';
-      return []';
+      logError('Error finding users with pagination', error, { limit, offset });
+      return [];
     }
   }
 
@@ -295,12 +295,12 @@ export class UserRepository implements IUserRepository {
     try {
       const result = await db
         .select({ count: count() })
-        .from(users)';
+        .from(users);
       
-      return result[0]?.count || 0';
+      return result[0]?.count || 0;
     } catch (error) {
-      logError('Error counting all users', error)';
-      return 0';
+      logError('Error counting all users', error);
+      return 0;
     }
   }
 
@@ -309,12 +309,12 @@ export class UserRepository implements IUserRepository {
       const result = await db
         .select({ count: count() })
         .from(users)
-        .where(eq(users.isActive, true))';
+        .where(eq(users.isActive, true));
       
-      return result[0]?.count || 0';
+      return result[0]?.count || 0;
     } catch (error) {
-      logError('Error counting active users', error)';
-      return 0';
+      logError('Error counting active users', error);
+      return 0;
     }
   }
 }

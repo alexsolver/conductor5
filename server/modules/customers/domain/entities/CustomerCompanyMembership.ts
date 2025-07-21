@@ -6,26 +6,26 @@
 
 export class CustomerCompanyMembership {
   constructor(
-    private readonly id: string',
-    private readonly customerId: string',
-    private readonly companyId: string',
-    private role: 'member' | 'admin' | 'owner' | 'contact' = 'member'[,;]
-    private title: string | null = null',
-    private department: string | null = null',
+    private readonly id: string,
+    private readonly customerId: string,
+    private readonly companyId: string,
+    private role: 'member' | 'admin' | 'owner' | 'contact' = 'member',
+    private title: string | null = null,
+    private department: string | null = null,
     private permissions: {
-      canCreateTickets?: boolean';
-      canViewAllTickets?: boolean';
-      canManageUsers?: boolean';
-      canViewBilling?: boolean';
-      canManageSettings?: boolean';
-    } = {}',
-    private isActive: boolean = true',
-    private isPrimary: boolean = false',
-    private readonly joinedAt: Date = new Date()',
-    private leftAt: Date | null = null',
+      canCreateTickets?: boolean;
+      canViewAllTickets?: boolean;
+      canManageUsers?: boolean;
+      canViewBilling?: boolean;
+      canManageSettings?: boolean;
+    } = {},
+    private isActive: boolean = true,
+    private isPrimary: boolean = false,
+    private readonly joinedAt: Date = new Date(),
+    private leftAt: Date | null = null,
     private readonly addedBy: string
   ) {
-    this.validateBusinessRules()';
+    this.validateBusinessRules();
   }
 
   // Getters
@@ -48,7 +48,7 @@ export class CustomerCompanyMembership {
       this.permissions.canCreateTickets === true ||
       this.role === 'admin' ||
       this.role === 'owner'
-    )';
+    );
   }
 
   canViewAllTickets(): boolean {
@@ -56,7 +56,7 @@ export class CustomerCompanyMembership {
       this.permissions.canViewAllTickets === true ||
       this.role === 'admin' ||
       this.role === 'owner'
-    )';
+    );
   }
 
   canManageUsers(): boolean {
@@ -64,14 +64,14 @@ export class CustomerCompanyMembership {
       this.permissions.canManageUsers === true ||
       this.role === 'admin' ||
       this.role === 'owner'
-    )';
+    );
   }
 
   canManageSettings(): boolean {
     return this.isActive && (
       this.permissions.canManageSettings === true ||
       this.role === 'owner'
-    )';
+    );
   }
 
   canViewBilling(): boolean {
@@ -79,193 +79,193 @@ export class CustomerCompanyMembership {
       this.permissions.canViewBilling === true ||
       this.role === 'admin' ||
       this.role === 'owner'
-    )';
+    );
   }
 
   isOwner(): boolean {
-    return this.role === 'owner'[,;]
+    return this.role === 'owner';
   }
 
   isAdmin(): boolean {
-    return this.role === 'admin' || this.role === 'owner'[,;]
+    return this.role === 'admin' || this.role === 'owner';
   }
 
   getDisplayInfo(): { title: string; department: string } {
     return {
-      title: this.title || 'Member'[,;]
+      title: this.title || 'Member',
       department: this.department || 'General'
-    }';
+    };
   }
 
   // Business Rules Validation
   private validateBusinessRules(): void {
     if (!this.customerId) {
-      throw new Error('Customer ID is required')';
+      throw new Error('Customer ID is required');
     }
 
     if (!this.companyId) {
-      throw new Error('Company ID is required')';
+      throw new Error('Company ID is required');
     }
 
     if (!this.addedBy) {
-      throw new Error('Membership must have an adder')';
+      throw new Error('Membership must have an adder');
     }
 
     if (this.leftAt && this.leftAt <= this.joinedAt) {
-      throw new Error('Left date must be after joined date')';
+      throw new Error('Left date must be after joined date');
     }
   }
 
   // Update Methods
   updateRole(role: 'member' | 'admin' | 'owner' | 'contact'): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      this.id',
-      this.customerId',
-      this.companyId',
-      role',
-      this.title',
-      this.department',
-      this.permissions',
-      this.isActive',
-      this.isPrimary',
-      this.joinedAt',
-      this.leftAt',
+      this.id,
+      this.customerId,
+      this.companyId,
+      role,
+      this.title,
+      this.department,
+      this.permissions,
+      this.isActive,
+      this.isPrimary,
+      this.joinedAt,
+      this.leftAt,
       this.addedBy
-    )';
+    );
   }
 
   updateJobInfo(title: string | null, department: string | null): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      this.id',
-      this.customerId',
-      this.companyId',
-      this.role',
-      title',
-      department',
-      this.permissions',
-      this.isActive',
-      this.isPrimary',
-      this.joinedAt',
-      this.leftAt',
+      this.id,
+      this.customerId,
+      this.companyId,
+      this.role,
+      title,
+      department,
+      this.permissions,
+      this.isActive,
+      this.isPrimary,
+      this.joinedAt,
+      this.leftAt,
       this.addedBy
-    )';
+    );
   }
 
   updatePermissions(permissions: {
-    canCreateTickets?: boolean';
-    canViewAllTickets?: boolean';
-    canManageUsers?: boolean';
-    canViewBilling?: boolean';
-    canManageSettings?: boolean';
+    canCreateTickets?: boolean;
+    canViewAllTickets?: boolean;
+    canManageUsers?: boolean;
+    canViewBilling?: boolean;
+    canManageSettings?: boolean;
   }): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      this.id',
-      this.customerId',
-      this.companyId',
-      this.role',
-      this.title',
-      this.department',
-      { ...this.permissions, ...permissions }',
-      this.isActive',
-      this.isPrimary',
-      this.joinedAt',
-      this.leftAt',
+      this.id,
+      this.customerId,
+      this.companyId,
+      this.role,
+      this.title,
+      this.department,
+      { ...this.permissions, ...permissions },
+      this.isActive,
+      this.isPrimary,
+      this.joinedAt,
+      this.leftAt,
       this.addedBy
-    )';
+    );
   }
 
   deactivate(): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      this.id',
-      this.customerId',
-      this.companyId',
-      this.role',
-      this.title',
-      this.department',
-      this.permissions',
-      false',
+      this.id,
+      this.customerId,
+      this.companyId,
+      this.role,
+      this.title,
+      this.department,
+      this.permissions,
+      false,
       false, // Also remove primary status
-      this.joinedAt',
-      new Date()',
+      this.joinedAt,
+      new Date(),
       this.addedBy
-    )';
+    );
   }
 
   activate(): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      this.id',
-      this.customerId',
-      this.companyId',
-      this.role',
-      this.title',
-      this.department',
-      this.permissions',
-      true',
-      this.isPrimary',
-      this.joinedAt',
+      this.id,
+      this.customerId,
+      this.companyId,
+      this.role,
+      this.title,
+      this.department,
+      this.permissions,
+      true,
+      this.isPrimary,
+      this.joinedAt,
       null, // Clear left date
       this.addedBy
-    )';
+    );
   }
 
   setPrimary(isPrimary: boolean): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      this.id',
-      this.customerId',
-      this.companyId',
-      this.role',
-      this.title',
-      this.department',
-      this.permissions',
-      this.isActive',
-      isPrimary',
-      this.joinedAt',
-      this.leftAt',
+      this.id,
+      this.customerId,
+      this.companyId,
+      this.role,
+      this.title,
+      this.department,
+      this.permissions,
+      this.isActive,
+      isPrimary,
+      this.joinedAt,
+      this.leftAt,
       this.addedBy
-    )';
+    );
   }
 
   // Factory Methods
   static create(props: {
-    customerId: string';
-    companyId: string';
-    role?: 'member' | 'admin' | 'owner' | 'contact'[,;]
-    title?: string | null';
-    department?: string | null';
-    permissions?: any';
-    isPrimary?: boolean';
-    addedBy: string';
+    customerId: string;
+    companyId: string;
+    role?: 'member' | 'admin' | 'owner' | 'contact';
+    title?: string | null;
+    department?: string | null;
+    permissions?: any;
+    isPrimary?: boolean;
+    addedBy: string;
   }): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      crypto.randomUUID()',
-      props.customerId',
-      props.companyId',
-      props.role || 'member'[,;]
-      props.title || null',
-      props.department || null',
-      props.permissions || {}',
+      crypto.randomUUID(),
+      props.customerId,
+      props.companyId,
+      props.role || 'member',
+      props.title || null,
+      props.department || null,
+      props.permissions || {},
       true, // isActive
-      props.isPrimary || false',
-      new Date()',
+      props.isPrimary || false,
+      new Date(),
       null, // leftAt
       props.addedBy
-    )';
+    );
   }
 
   static fromPersistence(data: any): CustomerCompanyMembership {
     return new CustomerCompanyMembership(
-      data.id',
-      data.customerId',
-      data.companyId',
-      data.role || 'member'[,;]
-      data.title',
-      data.department',
-      data.permissions || {}',
-      data.isActive !== false',
-      data.isPrimary || false',
-      data.joinedAt',
-      data.leftAt',
+      data.id,
+      data.customerId,
+      data.companyId,
+      data.role || 'member',
+      data.title,
+      data.department,
+      data.permissions || {},
+      data.isActive !== false,
+      data.isPrimary || false,
+      data.joinedAt,
+      data.leftAt,
       data.addedBy
-    )';
+    );
   }
 }

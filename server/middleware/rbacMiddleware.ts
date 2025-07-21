@@ -1,257 +1,354 @@
-/**
- * RBAC (Role-Based Access Control) Middleware
- * Handles authorization and permission checks
- */
-
 import { Request, Response, NextFunction } from 'express';
-import { logInfo, logError, logWarn } from '../utils/logger';
+import { storageSimple } from '../storage-simple';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-    role: string;
-    permissions: string[];
-    email?: string;
-  };
-}
-
+// Enhanced RBAC/ABAC System with Tenant-specific permissions
 export interface Permission {
   resource: string;
   action: string;
-  condition?: (req: AuthenticatedRequest) => boolean;
+  conditions?: Record<string, any>;
 }
 
 export interface Role {
   name: string;
   permissions: Permission[];
+  tenantId?: string;
 }
 
-// Default role definitions
-export const ROLES: { [key: string]: Role } = {
-  admin: {
-    name: 'admin',
-    permissions: ['
-      { resource: '*', action: '*' }
-    ]
+export interface AuthorizedUser {
+  id: string;
+  email: string;
+  role: string;
+  tenantId: string;
+  permissions: Permission[];
+  attributes: Record<string, any>;
+}
+
+export interface AuthorizedRequest extends Request {
+  user?: AuthorizedUser;
+  tenant?: any;
+}
+
+// Comprehensive permission definitions
+export const PERMISSIONS = {
+  // Platform-level permissions (SaaS Admin)
+  PLATFORM: {
+    MANAGE_TENANTS: { resource: 'platform', action: 'manage_tenants' },
+    MANAGE_USERS: { resource: 'platform', action: 'manage_users' },
+    VIEW_ANALYTICS: { resource: 'platform', action: 'view_analytics' },
+    MANAGE_BILLING: { resource: 'platform', action: 'manage_billing' },
+    MANAGE_SECURITY: { resource: 'platform', action: 'manage_security' },
   },
-  manager: {
-    name: 'manager',
-    permissions: ['
-      { resource: 'customers', action: 'read' },
-      { resource: 'customers', action: 'create' },
-      { resource: 'customers', action: 'update' },
-      { resource: 'tickets', action: '*' },
-      { resource: 'reports', action: 'read' }
-    ]
+  
+  // Tenant-level permissions
+  TENANT: {
+    MANAGE_SETTINGS: { resource: 'tenant', action: 'manage_settings' },
+    MANAGE_USERS: { resource: 'tenant', action: 'manage_users' },
+    VIEW_ANALYTICS: { resource: 'tenant', action: 'view_analytics' },
+    MANAGE_BILLING: { resource: 'tenant', action: 'manage_billing' },
+    CONFIGURE_INTEGRATIONS: { resource: 'tenant', action: 'configure_integrations' },
   },
-  agent: {
-    name: 'agent',
-    permissions: ['
-      { resource: 'customers', action: 'read' },
-      { resource: 'tickets', action: 'read' },
-      { resource: 'tickets', action: 'update' },
-      { resource: 'tickets', action: 'create' }
-    ]
+  
+  // Ticket permissions
+  TICKET: {
+    VIEW_ALL: { resource: 'ticket', action: 'view_all' },
+    VIEW_ASSIGNED: { resource: 'ticket', action: 'view_assigned' },
+    VIEW_OWN: { resource: 'ticket', action: 'view_own' },
+    CREATE: { resource: 'ticket', action: 'create' },
+    UPDATE: { resource: 'ticket', action: 'update' },
+    DELETE: { resource: 'ticket', action: 'delete' },
+    ASSIGN: { resource: 'ticket', action: 'assign' },
+    RESOLVE: { resource: 'ticket', action: 'resolve' },
+    REOPEN: { resource: 'ticket', action: 'reopen' },
   },
-  user: {
-    name: 'user',
-    permissions: ['
-      { resource: 'profile', action: 'read' },
-      { resource: 'profile', action: 'update' },
-      { resource: 'tickets', action: 'read', condition: (req) => req.user?.id === req.params.userId }
-    ]
-  }
+  
+  // Customer permissions
+  CUSTOMER: {
+    VIEW_ALL: { resource: 'customer', action: 'view_all' },
+    VIEW_OWN: { resource: 'customer', action: 'view_own' },
+    CREATE: { resource: 'customer', action: 'create' },
+    UPDATE: { resource: 'customer', action: 'update' },
+    DELETE: { resource: 'customer', action: 'delete' },
+    EXPORT: { resource: 'customer', action: 'export' },
+  },
+  
+  // Knowledge Base permissions
+  KNOWLEDGE: {
+    VIEW_ALL: { resource: 'knowledge', action: 'view_all' },
+    VIEW_PUBLIC: { resource: 'knowledge', action: 'view_public' },
+    CREATE: { resource: 'knowledge', action: 'create' },
+    UPDATE: { resource: 'knowledge', action: 'update' },
+    DELETE: { resource: 'knowledge', action: 'delete' },
+    PUBLISH: { resource: 'knowledge', action: 'publish' },
+  },
+  
+  // Analytics permissions
+  ANALYTICS: {
+    VIEW_BASIC: { resource: 'analytics', action: 'view_basic' },
+    VIEW_DETAILED: { resource: 'analytics', action: 'view_detailed' },
+    EXPORT: { resource: 'analytics', action: 'export' },
+  },
 };
 
-/**
- * Check if user has specific permission
- */
-export function hasPermission(userRole: string, resource: string, action: string, req?: AuthenticatedRequest): boolean {
-  const role = ROLES[userRole];
-  if (!role) {
-    logWarn('Unknown role', { role: userRole });
-    return false;
+// Role definitions with tenant-specific permissions
+export const ROLE_PERMISSIONS = {
+  saas_admin: [
+    PERMISSIONS.PLATFORM.MANAGE_TENANTS,
+    PERMISSIONS.PLATFORM.MANAGE_USERS,
+    PERMISSIONS.PLATFORM.VIEW_ANALYTICS,
+    PERMISSIONS.PLATFORM.MANAGE_BILLING,
+    PERMISSIONS.PLATFORM.MANAGE_SECURITY,
+    PERMISSIONS.TENANT.MANAGE_SETTINGS,
+    PERMISSIONS.TENANT.MANAGE_USERS,
+    PERMISSIONS.TENANT.VIEW_ANALYTICS,
+    PERMISSIONS.TICKET.VIEW_ALL,
+    PERMISSIONS.TICKET.CREATE,
+    PERMISSIONS.TICKET.UPDATE,
+    PERMISSIONS.TICKET.DELETE,
+    PERMISSIONS.TICKET.ASSIGN,
+    PERMISSIONS.TICKET.RESOLVE,
+    PERMISSIONS.CUSTOMER.VIEW_ALL,
+    PERMISSIONS.CUSTOMER.CREATE,
+    PERMISSIONS.CUSTOMER.UPDATE,
+    PERMISSIONS.CUSTOMER.DELETE,
+    PERMISSIONS.CUSTOMER.EXPORT,
+    PERMISSIONS.KNOWLEDGE.VIEW_ALL,
+    PERMISSIONS.KNOWLEDGE.CREATE,
+    PERMISSIONS.KNOWLEDGE.UPDATE,
+    PERMISSIONS.KNOWLEDGE.DELETE,
+    PERMISSIONS.KNOWLEDGE.PUBLISH,
+    PERMISSIONS.ANALYTICS.VIEW_DETAILED,
+    PERMISSIONS.ANALYTICS.EXPORT,
+  ],
+  
+  tenant_admin: [
+    PERMISSIONS.TENANT.MANAGE_SETTINGS,
+    PERMISSIONS.TENANT.MANAGE_USERS,
+    PERMISSIONS.TENANT.VIEW_ANALYTICS,
+    PERMISSIONS.TENANT.CONFIGURE_INTEGRATIONS,
+    PERMISSIONS.TICKET.VIEW_ALL,
+    PERMISSIONS.TICKET.CREATE,
+    PERMISSIONS.TICKET.UPDATE,
+    PERMISSIONS.TICKET.ASSIGN,
+    PERMISSIONS.TICKET.RESOLVE,
+    PERMISSIONS.CUSTOMER.VIEW_ALL,
+    PERMISSIONS.CUSTOMER.CREATE,
+    PERMISSIONS.CUSTOMER.UPDATE,
+    PERMISSIONS.CUSTOMER.DELETE,
+    PERMISSIONS.CUSTOMER.EXPORT,
+    PERMISSIONS.KNOWLEDGE.VIEW_ALL,
+    PERMISSIONS.KNOWLEDGE.CREATE,
+    PERMISSIONS.KNOWLEDGE.UPDATE,
+    PERMISSIONS.KNOWLEDGE.DELETE,
+    PERMISSIONS.KNOWLEDGE.PUBLISH,
+    PERMISSIONS.ANALYTICS.VIEW_DETAILED,
+    PERMISSIONS.ANALYTICS.EXPORT,
+  ],
+  
+  agent: [
+    PERMISSIONS.TICKET.VIEW_ALL,
+    PERMISSIONS.TICKET.CREATE,
+    PERMISSIONS.TICKET.UPDATE,
+    PERMISSIONS.TICKET.RESOLVE,
+    PERMISSIONS.CUSTOMER.VIEW_ALL,
+    PERMISSIONS.CUSTOMER.CREATE,
+    PERMISSIONS.CUSTOMER.UPDATE,
+    PERMISSIONS.KNOWLEDGE.VIEW_ALL,
+    PERMISSIONS.KNOWLEDGE.CREATE,
+    PERMISSIONS.KNOWLEDGE.UPDATE,
+    PERMISSIONS.ANALYTICS.VIEW_BASIC,
+  ],
+  
+  customer: [
+    PERMISSIONS.TICKET.VIEW_OWN,
+    PERMISSIONS.TICKET.CREATE,
+    PERMISSIONS.CUSTOMER.VIEW_OWN,
+    PERMISSIONS.KNOWLEDGE.VIEW_PUBLIC,
+  ],
+};
+
+export class RBACService {
+  private static instance: RBACService;
+  
+  static getInstance(): RBACService {
+    if (!RBACService.instance) {
+      RBACService.instance = new RBACService();
+    }
+    return RBACService.instance;
   }
 
-  return role.permissions.some(permission => {
-    // Check wildcard permissions
-    if (permission.resource === '*' || permission.action === '*') {
-      return true;
+  async getUserPermissions(userId: string, tenantId?: string): Promise<Permission[]> {
+    const user = await storageSimple.getUser(userId);
+    if (!user) return [];
+
+    const rolePermissions = ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS] || [];
+    
+    // Filter permissions based on tenant context
+    if (tenantId && user.tenantId !== tenantId && user.role !== 'saas_admin') {
+      return rolePermissions.filter(p => p.resource !== 'platform');
     }
 
-    // Check exact match
-    if (permission.resource === resource && permission.action === action) {
-      // Check condition if present
-      if (permission.condition && req) {
-        return permission.condition(req);
+    return rolePermissions;
+  }
+
+  async hasPermission(user: AuthorizedUser, permission: Permission, context?: any): Promise<boolean> {
+    // Check if user has permissions array
+    if (!user.permissions || !Array.isArray(user.permissions)) {
+      return false;
+    }
+    
+    // Check if user has the permission
+    const hasPermission = user.permissions.some(p => 
+      p.resource === permission.resource && p.action === permission.action
+    );
+
+    if (!hasPermission) return false;
+
+    // Apply ABAC conditions if any
+    if (permission.conditions) {
+      return this.evaluateConditions(permission.conditions, user, context);
+    }
+
+    return true;
+  }
+
+  private evaluateConditions(conditions: Record<string, any>, user: AuthorizedUser, context?: any): boolean {
+    // Example condition evaluation
+    for (const [key, value] of Object.entries(conditions)) {
+      switch (key) {
+        case 'tenant_id':
+          if (user.tenantId !== value) return false;
+          break;
+        case 'owner_id':
+          if (context?.ownerId !== user.id) return false;
+          break;
+        case 'resource_tenant':
+          if (context?.tenantId !== user.tenantId) return false;
+          break;
+        case 'time_range':
+          const now = new Date();
+          if (now < new Date(value.start) || now > new Date(value.end)) return false;
+          break;
+        default:
+          // Custom attribute check
+          if (user.attributes[key] !== value) return false;
       }
-      return true;
     }
+    return true;
+  }
 
-    return false;
-  });
+  async canAccessResource(user: AuthorizedUser, resource: string, action: string, context?: any): Promise<boolean> {
+    const permission = { resource, action };
+    return this.hasPermission(user, permission, context);
+  }
 }
 
-/**
- * Middleware to require specific permission
- */
-export function requirePermission(resource: string, action: string) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const rbacService = RBACService.getInstance();
+
+// Enhanced authorization middleware factory
+export function requirePermission(resource: string, action: string, contextProvider?: (req: Request) => any) {
+  return async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const userRole = req.user.role;
-    if (!hasPermission(userRole, resource, action, req)) {
-      logWarn('Access denied', {
-        userId: req.user.id,
-        role: userRole,
-        resource,
-        action,
-        path: req.path
-      });
+    const context = contextProvider ? contextProvider(req) : undefined;
+    const hasPermission = await rbacService.canAccessResource(req.user, resource, action, context);
 
+    if (!hasPermission) {
       return res.status(403).json({ 
         message: 'Insufficient permissions',
-        required: { resource, action }
+        required: { resource, action },
+        userRole: req.user.role 
       });
     }
-
-    logInfo('Permission granted', {
-      userId: req.user.id,
-      role: userRole,
-      resource,
-      action,
-      path: req.path
-    });
 
     next();
   };
 }
 
-/**
- * Middleware to require admin role
- */
-export function requireAdmin() {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+// Tenant isolation middleware
+export function requireTenantAccess(tenantIdParam: string = 'tenantId') {
+  return async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    if (req.user.role !== 'admin') {
-      logWarn('Admin access denied', {
-        userId: req.user.id,
-        role: req.user.role,
-        path: req.path
-      });
+    const requestedTenantId = req.params[tenantIdParam] || req.body.tenantId || req.query.tenantId;
+    
+    // SaaS admins can access any tenant
+    if (req.user.role === 'saas_admin') {
+      return next();
+    }
 
-      return res.status(403).json({ message: 'Admin access required' });
+    // Other users can only access their own tenant
+    if (req.user.tenantId !== requestedTenantId) {
+      return res.status(403).json({ 
+        message: 'Access denied to tenant',
+        userTenant: req.user.tenantId,
+        requestedTenant: requestedTenantId
+      });
     }
 
     next();
   };
 }
 
-/**
- * Middleware to require manager or higher role
- */
-export function requireManager() {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+// Dynamic permission middleware
+export function requireDynamicPermission(permissionProvider: (req: Request) => { resource: string; action: string }) {
+  return async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const allowedRoles = ['admin', 'manager];
-    if (!allowedRoles.includes(req.user.role)) {
-      logWarn('Manager access denied', {
-        userId: req.user.id,
-        role: req.user.role,
-        path: req.path
-      });
+    const { resource, action } = permissionProvider(req);
+    const hasPermission = await rbacService.canAccessResource(req.user, resource, action);
 
-      return res.status(403).json({ message: 'Manager access or higher required' });
+    if (!hasPermission) {
+      return res.status(403).json({ 
+        message: 'Insufficient permissions',
+        required: { resource, action },
+        userRole: req.user.role 
+      });
     }
 
     next();
   };
 }
 
-/**
- * Middleware to check tenant access
- */
-export function requireTenantAccess(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-
-  if (!req.user.tenantId) {
-    logWarn('Tenant access denied - no tenant ID', {
-      userId: req.user.id,
-      path: req.path
-    });
-
-    return res.status(403).json({ message: 'Tenant access required' });
-  }
-
-  // Add tenant ID to request headers for downstream processing
-  req.headers['x-tenant-id] = req.user.tenantId;
-
-  next();
-}
-
-/**
- * Middleware to check resource ownership
- */
-export function requireOwnership(resourceIdParam: string = 'id') {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+// Resource ownership middleware
+export function requireResourceOwnership(resourceProvider: (req: Request) => Promise<{ ownerId: string; tenantId: string }>) {
+  return async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const resourceId = req.params[resourceIdParam];
-    if (!resourceId) {
-      return res.status(400).json({ message: 'Resource ID required' });
+    try {
+      const resource = await resourceProvider(req);
+      
+      // Check tenant access
+      if (req.user.tenantId !== resource.tenantId && req.user.role !== 'saas_admin') {
+        return res.status(403).json({ message: 'Access denied to resource tenant' });
+      }
+
+      // Check ownership (for customers accessing their own resources)
+      if (req.user.role === 'customer' && req.user.id !== resource.ownerId) {
+        return res.status(403).json({ message: 'Access denied to resource' });
+      }
+
+      next();
+    } catch (error) {
+      return res.status(404).json({ message: 'Resource not found' });
     }
-
-    // For now, assume ownership based on user ID match
-    // In a real implementation, you'd check against the database
-    if (req.user.id !== resourceId && req.user.role !== 'admin') {
-      logWarn('Ownership access denied', {
-        userId: req.user.id,
-        resourceId,
-        path: req.path
-      });
-
-      return res.status(403).json({ message: 'Resource access denied' });
-    }
-
-    next();
   };
 }
 
-/**
- * Get user permissions for debugging/API endpoints
- */
-export function getUserPermissions(req: AuthenticatedRequest, res: Response) {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
+// Permission checking utilities
+export const PermissionUtils = {
+  canManageTenants: (user: AuthorizedUser) => rbacService.canAccessResource(user, 'platform', 'manage_tenants'),
+  canManageUsers: (user: AuthorizedUser) => rbacService.canAccessResource(user, 'tenant', 'manage_users'),
+  canViewAllTickets: (user: AuthorizedUser) => rbacService.canAccessResource(user, 'ticket', 'view_all'),
+  canAssignTickets: (user: AuthorizedUser) => rbacService.canAccessResource(user, 'ticket', 'assign'),
+  canExportData: (user: AuthorizedUser) => rbacService.canAccessResource(user, 'analytics', 'export'),
+};
 
-  const role = ROLES[req.user.role];
-  if (!role) {
-    return res.status(400).json({ message: 'Invalid role' });
-  }
-
-  res.json({
-    user: {
-      id: req.user.id,
-      role: req.user.role,
-      tenantId: req.user.tenantId
-    },
-    permissions: role.permissions
-  });
-}
-
-// Export types for use in other modules
-export type { AuthenticatedRequest };
+export default rbacService;

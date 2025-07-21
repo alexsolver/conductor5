@@ -415,7 +415,7 @@ export function Sidebar() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {user?.firstName ? `${user.firstName} ${user.lastName || '}`.trim() : user?.email}
+                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
               </p>
               <p className="text-xs text-white text-opacity-80 truncate capitalize">{user?.role}</p>
             </div>

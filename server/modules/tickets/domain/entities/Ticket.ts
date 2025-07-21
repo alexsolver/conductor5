@@ -5,78 +5,78 @@
  */
 
 export interface TicketCreateProps {
-  tenantId: string';
-  customerId: string';
-  callerId: string';
-  callerType: 'user' | 'customer'[,;]
-  subject: string';
-  description: string';
-  shortDescription?: string';
-  category?: string';
-  subcategory?: string';
-  priority: 'low' | 'medium' | 'high' | 'urgent'[,;]
-  impact?: 'low' | 'medium' | 'high'[,;]
-  urgency?: 'low' | 'medium' | 'high'[,;]
-  state?: string';
-  status?: string';
-  assignedToId?: string';
-  beneficiaryId?: string';
-  beneficiaryType?: 'user' | 'customer'[,;]
-  assignmentGroup?: string';
-  location?: string';
-  contactType?: string';
-  businessImpact?: string';
-  symptoms?: string';
-  workaround?: string';
-  configurationItem?: string';
-  businessService?: string';
-  resolutionCode?: string';
-  resolutionNotes?: string';
-  workNotes?: string';
-  closeNotes?: string';
-  notify?: boolean';
-  rootCause?: string';
+  tenantId: string;
+  customerId: string;
+  callerId: string;
+  callerType: 'user' | 'customer';
+  subject: string;
+  description: string;
+  shortDescription?: string;
+  category?: string;
+  subcategory?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  impact?: 'low' | 'medium' | 'high';
+  urgency?: 'low' | 'medium' | 'high';
+  state?: string;
+  status?: string;
+  assignedToId?: string;
+  beneficiaryId?: string;
+  beneficiaryType?: 'user' | 'customer';
+  assignmentGroup?: string;
+  location?: string;
+  contactType?: string;
+  businessImpact?: string;
+  symptoms?: string;
+  workaround?: string;
+  configurationItem?: string;
+  businessService?: string;
+  resolutionCode?: string;
+  resolutionNotes?: string;
+  workNotes?: string;
+  closeNotes?: string;
+  notify?: boolean;
+  rootCause?: string;
 }
 
 export class Ticket {
   constructor(
-    private readonly id: string',
-    private readonly tenantId: string',
-    private readonly customerId: string',
-    private readonly callerId: string',
-    private readonly callerType: 'user' | 'customer'[,;]
-    private subject: string',
-    private description: string',
-    private readonly number: string',
-    private shortDescription: string',
-    private category: string',
-    private subcategory: string',
-    private priority: 'low' | 'medium' | 'high' | 'urgent'[,;]
-    private impact: 'low' | 'medium' | 'high'[,;]
-    private urgency: 'low' | 'medium' | 'high'[,;]
-    private state: string',
-    private status: string',
-    private assignedToId: string | null',
-    private beneficiaryId: string | null',
-    private beneficiaryType: 'user' | 'customer' | null',
-    private assignmentGroup: string | null',
-    private location: string | null',
-    private contactType: string',
-    private businessImpact: string | null',
-    private symptoms: string | null',
-    private workaround: string | null',
-    private configurationItem: string | null',
-    private businessService: string | null',
-    private resolutionCode: string | null',
-    private resolutionNotes: string | null',
-    private workNotes: string | null',
-    private closeNotes: string | null',
-    private notify: boolean',
-    private rootCause: string | null',
-    private readonly openedAt: Date',
-    private resolvedAt: Date | null',
-    private closedAt: Date | null',
-    private readonly createdAt: Date',
+    private readonly id: string,
+    private readonly tenantId: string,
+    private readonly customerId: string,
+    private readonly callerId: string,
+    private readonly callerType: 'user' | 'customer',
+    private subject: string,
+    private description: string,
+    private readonly number: string,
+    private shortDescription: string,
+    private category: string,
+    private subcategory: string,
+    private priority: 'low' | 'medium' | 'high' | 'urgent',
+    private impact: 'low' | 'medium' | 'high',
+    private urgency: 'low' | 'medium' | 'high',
+    private state: string,
+    private status: string,
+    private assignedToId: string | null,
+    private beneficiaryId: string | null,
+    private beneficiaryType: 'user' | 'customer' | null,
+    private assignmentGroup: string | null,
+    private location: string | null,
+    private contactType: string,
+    private businessImpact: string | null,
+    private symptoms: string | null,
+    private workaround: string | null,
+    private configurationItem: string | null,
+    private businessService: string | null,
+    private resolutionCode: string | null,
+    private resolutionNotes: string | null,
+    private workNotes: string | null,
+    private closeNotes: string | null,
+    private notify: boolean,
+    private rootCause: string | null,
+    private readonly openedAt: Date,
+    private resolvedAt: Date | null,
+    private closedAt: Date | null,
+    private readonly createdAt: Date,
     private updatedAt: Date
   ) {}
 
@@ -108,293 +108,293 @@ export class Ticket {
 
   // Business rules
   canBeAssigned(): boolean {
-    return this.state !== 'closed' && this.state !== 'resolved'[,;]
+    return this.state !== 'closed' && this.state !== 'resolved';
   }
 
   canBeResolved(): boolean {
-    return this.state === 'in_progress' || this.state === 'open'[,;]
+    return this.state === 'in_progress' || this.state === 'open';
   }
 
   canBeClosed(): boolean {
-    return this.state === 'resolved' || this.state === 'in_progress'[,;]
+    return this.state === 'resolved' || this.state === 'in_progress';
   }
 
   isOverdue(): boolean {
     if (this.state === 'closed' || this.state === 'resolved') {
-      return false';
+      return false;
     }
     
     // Business rule: High priority tickets are overdue after 4 hours
     // Medium priority after 24 hours, Low priority after 72 hours
     const hoursLimit = {
-      urgent: 2',
-      high: 4',
-      medium: 24',
+      urgent: 2,
+      high: 4,
+      medium: 24,
       low: 72
-    }[this.priority]';
+    }[this.priority];
 
-    const hoursSinceCreated = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60)';
-    return hoursSinceCreated > hoursLimit';
+    const hoursSinceCreated = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceCreated > hoursLimit;
   }
 
   requiresEscalation(): boolean {
-    return this.priority === 'urgent' && !this.assignedToId';
+    return this.priority === 'urgent' && !this.assignedToId;
   }
 
   // Factory method
   static create(props: TicketCreateProps, ticketNumber: string, idGenerator: { generate(): string }): Ticket {
     // Business validation
     if (!props.subject?.trim()) {
-      throw new Error('Ticket subject is required')';
+      throw new Error('Ticket subject is required');
     }
     
     if (!props.description?.trim()) {
-      throw new Error('Ticket description is required')';
+      throw new Error('Ticket description is required');
     }
     
     if (!props.tenantId) {
-      throw new Error('Ticket must belong to a tenant')';
+      throw new Error('Ticket must belong to a tenant');
     }
 
     if (!props.customerId) {
-      throw new Error('Ticket must have a customer')';
+      throw new Error('Ticket must have a customer');
     }
 
     if (!props.callerId) {
-      throw new Error('Ticket must have a caller')';
+      throw new Error('Ticket must have a caller');
     }
 
-    const now = new Date()';
+    const now = new Date();
     
     return new Ticket(
-      idGenerator.generate()',
-      props.tenantId',
-      props.customerId',
-      props.callerId',
-      props.callerType',
-      props.subject.trim()',
-      props.description.trim()',
-      ticketNumber',
-      props.shortDescription?.trim() || props.subject.trim()',
-      props.category || 'general'[,;]
-      props.subcategory || '[,;]
-      props.priority',
-      props.impact || 'medium'[,;]
-      props.urgency || 'medium'[,;]
-      props.state || 'open'[,;]
-      props.status || 'open'[,;]
-      props.assignedToId || null',
-      props.beneficiaryId || null',
-      props.beneficiaryType || null',
-      props.assignmentGroup || null',
-      props.location || null',
-      props.contactType || 'email'[,;]
-      props.businessImpact || null',
-      props.symptoms || null',
-      props.workaround || null',
-      props.configurationItem || null',
-      props.businessService || null',
-      props.resolutionCode || null',
-      props.resolutionNotes || null',
-      props.workNotes || null',
-      props.closeNotes || null',
-      props.notify || true',
-      props.rootCause || null',
+      idGenerator.generate(),
+      props.tenantId,
+      props.customerId,
+      props.callerId,
+      props.callerType,
+      props.subject.trim(),
+      props.description.trim(),
+      ticketNumber,
+      props.shortDescription?.trim() || props.subject.trim(),
+      props.category || 'general',
+      props.subcategory || '',
+      props.priority,
+      props.impact || 'medium',
+      props.urgency || 'medium',
+      props.state || 'open',
+      props.status || 'open',
+      props.assignedToId || null,
+      props.beneficiaryId || null,
+      props.beneficiaryType || null,
+      props.assignmentGroup || null,
+      props.location || null,
+      props.contactType || 'email',
+      props.businessImpact || null,
+      props.symptoms || null,
+      props.workaround || null,
+      props.configurationItem || null,
+      props.businessService || null,
+      props.resolutionCode || null,
+      props.resolutionNotes || null,
+      props.workNotes || null,
+      props.closeNotes || null,
+      props.notify || true,
+      props.rootCause || null,
       now, // openedAt
       null, // resolvedAt
       null, // closedAt
       now, // createdAt
       now  // updatedAt
-    )';
+    );
   }
 
   // Update methods (immutable)
   assign(assignedToId: string, assignmentGroup?: string): Ticket {
     if (!this.canBeAssigned()) {
-      throw new Error('Ticket cannot be assigned in current state')';
+      throw new Error('Ticket cannot be assigned in current state');
     }
 
     return new Ticket(
-      this.id',
-      this.tenantId',
-      this.customerId',
-      this.callerId',
-      this.callerType',
-      this.subject',
-      this.description',
-      this.number',
-      this.shortDescription',
-      this.category',
-      this.subcategory',
-      this.priority',
-      this.impact',
-      this.urgency',
+      this.id,
+      this.tenantId,
+      this.customerId,
+      this.callerId,
+      this.callerType,
+      this.subject,
+      this.description,
+      this.number,
+      this.shortDescription,
+      this.category,
+      this.subcategory,
+      this.priority,
+      this.impact,
+      this.urgency,
       'in_progress', // Change state to in_progress when assigned
-      this.status',
-      assignedToId',
-      this.beneficiaryId',
-      this.beneficiaryType',
-      assignmentGroup || this.assignmentGroup',
-      this.location',
-      this.contactType',
-      this.businessImpact',
-      this.symptoms',
-      this.workaround',
-      this.configurationItem',
-      this.businessService',
-      this.resolutionCode',
-      this.resolutionNotes',
-      this.workNotes',
-      this.closeNotes',
-      this.notify',
-      this.rootCause',
-      this.openedAt',
-      this.resolvedAt',
-      this.closedAt',
-      this.createdAt',
+      this.status,
+      assignedToId,
+      this.beneficiaryId,
+      this.beneficiaryType,
+      assignmentGroup || this.assignmentGroup,
+      this.location,
+      this.contactType,
+      this.businessImpact,
+      this.symptoms,
+      this.workaround,
+      this.configurationItem,
+      this.businessService,
+      this.resolutionCode,
+      this.resolutionNotes,
+      this.workNotes,
+      this.closeNotes,
+      this.notify,
+      this.rootCause,
+      this.openedAt,
+      this.resolvedAt,
+      this.closedAt,
+      this.createdAt,
       new Date() // updatedAt
-    )';
+    );
   }
 
   resolve(resolutionCode: string, resolutionNotes: string): Ticket {
     if (!this.canBeResolved()) {
-      throw new Error('Ticket cannot be resolved in current state')';
+      throw new Error('Ticket cannot be resolved in current state');
     }
 
-    const now = new Date()';
+    const now = new Date();
     
     return new Ticket(
-      this.id',
-      this.tenantId',
-      this.customerId',
-      this.callerId',
-      this.callerType',
-      this.subject',
-      this.description',
-      this.number',
-      this.shortDescription',
-      this.category',
-      this.subcategory',
-      this.priority',
-      this.impact',
-      this.urgency',
-      'resolved'[,;]
-      'resolved'[,;]
-      this.assignedToId',
-      this.beneficiaryId',
-      this.beneficiaryType',
-      this.assignmentGroup',
-      this.location',
-      this.contactType',
-      this.businessImpact',
-      this.symptoms',
-      this.workaround',
-      this.configurationItem',
-      this.businessService',
-      resolutionCode',
-      resolutionNotes',
-      this.workNotes',
-      this.closeNotes',
-      this.notify',
-      this.rootCause',
-      this.openedAt',
+      this.id,
+      this.tenantId,
+      this.customerId,
+      this.callerId,
+      this.callerType,
+      this.subject,
+      this.description,
+      this.number,
+      this.shortDescription,
+      this.category,
+      this.subcategory,
+      this.priority,
+      this.impact,
+      this.urgency,
+      'resolved',
+      'resolved',
+      this.assignedToId,
+      this.beneficiaryId,
+      this.beneficiaryType,
+      this.assignmentGroup,
+      this.location,
+      this.contactType,
+      this.businessImpact,
+      this.symptoms,
+      this.workaround,
+      this.configurationItem,
+      this.businessService,
+      resolutionCode,
+      resolutionNotes,
+      this.workNotes,
+      this.closeNotes,
+      this.notify,
+      this.rootCause,
+      this.openedAt,
       now, // resolvedAt
-      this.closedAt',
-      this.createdAt',
+      this.closedAt,
+      this.createdAt,
       now // updatedAt
-    )';
+    );
   }
 
   close(closeNotes?: string): Ticket {
     if (!this.canBeClosed()) {
-      throw new Error('Ticket cannot be closed in current state')';
+      throw new Error('Ticket cannot be closed in current state');
     }
 
-    const now = new Date()';
+    const now = new Date();
     
     return new Ticket(
-      this.id',
-      this.tenantId',
-      this.customerId',
-      this.callerId',
-      this.callerType',
-      this.subject',
-      this.description',
-      this.number',
-      this.shortDescription',
-      this.category',
-      this.subcategory',
-      this.priority',
-      this.impact',
-      this.urgency',
-      'closed'[,;]
-      'closed'[,;]
-      this.assignedToId',
-      this.beneficiaryId',
-      this.beneficiaryType',
-      this.assignmentGroup',
-      this.location',
-      this.contactType',
-      this.businessImpact',
-      this.symptoms',
-      this.workaround',
-      this.configurationItem',
-      this.businessService',
-      this.resolutionCode',
-      this.resolutionNotes',
-      this.workNotes',
-      closeNotes || this.closeNotes',
-      this.notify',
-      this.rootCause',
-      this.openedAt',
-      this.resolvedAt',
+      this.id,
+      this.tenantId,
+      this.customerId,
+      this.callerId,
+      this.callerType,
+      this.subject,
+      this.description,
+      this.number,
+      this.shortDescription,
+      this.category,
+      this.subcategory,
+      this.priority,
+      this.impact,
+      this.urgency,
+      'closed',
+      'closed',
+      this.assignedToId,
+      this.beneficiaryId,
+      this.beneficiaryType,
+      this.assignmentGroup,
+      this.location,
+      this.contactType,
+      this.businessImpact,
+      this.symptoms,
+      this.workaround,
+      this.configurationItem,
+      this.businessService,
+      this.resolutionCode,
+      this.resolutionNotes,
+      this.workNotes,
+      closeNotes || this.closeNotes,
+      this.notify,
+      this.rootCause,
+      this.openedAt,
+      this.resolvedAt,
       now, // closedAt
-      this.createdAt',
+      this.createdAt,
       now // updatedAt
-    )';
+    );
   }
 
   // Factory method for reconstruction from persistence
   static fromPersistence(data: any): Ticket {
     return new Ticket(
-      data.id',
-      data.tenantId',
-      data.customerId',
-      data.callerId',
-      data.callerType',
-      data.subject',
-      data.description',
-      data.number',
-      data.shortDescription',
-      data.category',
-      data.subcategory',
-      data.priority',
-      data.impact',
-      data.urgency',
-      data.state',
-      data.status',
-      data.assignedToId',
-      data.beneficiaryId',
-      data.beneficiaryType',
-      data.assignmentGroup',
-      data.location',
-      data.contactType',
-      data.businessImpact',
-      data.symptoms',
-      data.workaround',
-      data.configurationItem',
-      data.businessService',
-      data.resolutionCode',
-      data.resolutionNotes',
-      data.workNotes',
-      data.closeNotes',
-      data.notify',
-      data.rootCause',
-      data.openedAt',
-      data.resolvedAt',
-      data.closedAt',
-      data.createdAt',
+      data.id,
+      data.tenantId,
+      data.customerId,
+      data.callerId,
+      data.callerType,
+      data.subject,
+      data.description,
+      data.number,
+      data.shortDescription,
+      data.category,
+      data.subcategory,
+      data.priority,
+      data.impact,
+      data.urgency,
+      data.state,
+      data.status,
+      data.assignedToId,
+      data.beneficiaryId,
+      data.beneficiaryType,
+      data.assignmentGroup,
+      data.location,
+      data.contactType,
+      data.businessImpact,
+      data.symptoms,
+      data.workaround,
+      data.configurationItem,
+      data.businessService,
+      data.resolutionCode,
+      data.resolutionNotes,
+      data.workNotes,
+      data.closeNotes,
+      data.notify,
+      data.rootCause,
+      data.openedAt,
+      data.resolvedAt,
+      data.closedAt,
+      data.createdAt,
       data.updatedAt
-    )';
+    );
   }
 }

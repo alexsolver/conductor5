@@ -42,7 +42,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
-  const [searchQuery, setSearchQuery] = useState(');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Force re-render key
   const { toast } = useToast();

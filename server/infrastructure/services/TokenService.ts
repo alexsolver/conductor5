@@ -1,25 +1,25 @@
 // JWT Token Service Implementation
-import jwt from 'jsonwebtoken'[,;]
-import { ITokenService } from '../../domain/services/ITokenService'[,;]
-import { User } from '../../domain/entities/User'[,;]
+import jwt from 'jsonwebtoken';
+import { ITokenService } from '../../domain/services/ITokenService';
+import { User } from '../../domain/entities/User';
 
 export class TokenService implements ITokenService {
-  private readonly accessTokenSecret: string';
-  private readonly refreshTokenSecret: string';
-  private readonly accessTokenExpiry = '24h'[,;] // Aumentado para 24 horas para estabilidade
-  private readonly refreshTokenExpiry = '7d'[,;]
+  private readonly accessTokenSecret: string;
+  private readonly refreshTokenSecret: string;
+  private readonly accessTokenExpiry = '24h'; // Aumentado para 24 horas para estabilidade
+  private readonly refreshTokenExpiry = '7d';
 
   private generateSecureDefaultSecret(type: string): string {
     // Generate secure random bytes for development - more secure than hardcoded values
     const randomBytes = Array.from({ length: 64 }, () => 
       Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
-    ).join(')';
-    return `dev-${type}-${randomBytes}-${Date.now()}`';
+    ).join('');
+    return `dev-${type}-${randomBytes}-${Date.now()}`;
   }
 
   constructor() {
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecureDefaultSecret('access')';
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureDefaultSecret('refresh')';
+    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecureDefaultSecret('access');
+    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureDefaultSecret('refresh');
     
     if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
       // JWT secrets automatically generated from secure random bytes for production security
@@ -28,71 +28,71 @@ export class TokenService implements ITokenService {
 
   generateAccessToken(user: User): string {
     const payload = {
-      userId: user.id',
-      email: user.email',
-      role: user.role',
-      tenantId: user.tenantId',
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
       type: 'access'
-    }';
+    };
 
     return jwt.sign(payload, this.accessTokenSecret, { 
-      expiresIn: this.accessTokenExpiry',
-      issuer: 'conductor-platform'[,;]
+      expiresIn: this.accessTokenExpiry,
+      issuer: 'conductor-platform',
       audience: 'conductor-users'
-    })';
+    });
   }
 
   generateRefreshToken(user: User): string {
     const payload = {
-      userId: user.id',
+      userId: user.id,
       type: 'refresh'
-    }';
+    };
 
     return jwt.sign(payload, this.refreshTokenSecret, { 
-      expiresIn: this.refreshTokenExpiry',
-      issuer: 'conductor-platform'[,;]
+      expiresIn: this.refreshTokenExpiry,
+      issuer: 'conductor-platform',
       audience: 'conductor-users'
-    })';
+    });
   }
 
   verifyAccessToken(token: string): { userId: string; email: string; role: string; tenantId: string | null } | null {
     try {
       const decoded = jwt.verify(token, this.accessTokenSecret, {
-        issuer: 'conductor-platform'[,;]
+        issuer: 'conductor-platform',
         audience: 'conductor-users'
-      }) as any';
+      }) as any;
 
       if (decoded.type !== 'access') {
-        return null';
+        return null;
       }
 
       return {
-        userId: decoded.userId',
-        email: decoded.email',
-        role: decoded.role',
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role,
         tenantId: decoded.tenantId
-      }';
+      };
     } catch (error) {
-      return null';
+      return null;
     }
   }
 
   verifyRefreshToken(token: string): { userId: string } | null {
     try {
       const decoded = jwt.verify(token, this.refreshTokenSecret, {
-        issuer: 'conductor-platform'[,;]
+        issuer: 'conductor-platform',
         audience: 'conductor-users'
-      }) as any';
+      }) as any;
 
       if (decoded.type !== 'refresh') {
-        return null';
+        return null;
       }
 
       return {
         userId: decoded.userId
-      }';
+      };
     } catch (error) {
-      return null';
+      return null;
     }
   }
 }

@@ -3,43 +3,43 @@
  * Handles automatic tenant creation based on different triggers
  */
 
-import { storage } from "../storage-simple"';
-import { DependencyContainer } from "../application/services/DependencyContainer"';
-import crypto from "crypto"';
+import { storage } from "../storage-simple";
+import { DependencyContainer } from "../application/services/DependencyContainer";
+import crypto from "crypto";
 
 export interface AutoProvisioningConfig {
-  enabled: boolean';
-  allowSelfProvisioning: boolean';
-  defaultTenantSettings: Record<string, any>';
-  autoCreateOnFirstUser: boolean';
-  subdomainGeneration: 'random' | 'company-based' | 'user-based'[,;]
+  enabled: boolean;
+  allowSelfProvisioning: boolean;
+  defaultTenantSettings: Record<string, any>;
+  autoCreateOnFirstUser: boolean;
+  subdomainGeneration: 'random' | 'company-based' | 'user-based';
 }
 
 export interface TenantProvisioningRequest {
-  name: string';
-  subdomain?: string';
-  companyName?: string';
-  userEmail?: string';
-  settings?: Record<string, any>';
-  trigger: 'manual' | 'registration' | 'invitation' | 'api'[,;]
+  name: string;
+  subdomain?: string;
+  companyName?: string;
+  userEmail?: string;
+  settings?: Record<string, any>;
+  trigger: 'manual' | 'registration' | 'invitation' | 'api';
 }
 
 class TenantAutoProvisioningService {
-  private config: AutoProvisioningConfig';
+  private config: AutoProvisioningConfig;
 
   constructor() {
     this.config = {
-      enabled: true',
-      allowSelfProvisioning: true',
+      enabled: true,
+      allowSelfProvisioning: true,
       defaultTenantSettings: {
-        maxUsers: 50',
-        maxTickets: 1000',
-        features: ['tickets', 'customers', 'analytics]',
+        maxUsers: 50,
+        maxTickets: 1000,
+        features: ['tickets', 'customers', 'analytics'],
         theme: 'default'
-      }',
-      autoCreateOnFirstUser: true',
+      },
+      autoCreateOnFirstUser: true,
       subdomainGeneration: 'company-based'
-    }';
+    };
   }
 
   /**
@@ -48,58 +48,58 @@ class TenantAutoProvisioningService {
   async provisionTenant(request: TenantProvisioningRequest): Promise<{ tenant: any; success: boolean; message: string }> {
     try {
       if (!this.config.enabled) {
-        return { tenant: null, success: false, message: 'Auto-provisioning is disabled' }';
+        return { tenant: null, success: false, message: 'Auto-provisioning is disabled' };
       }
 
       // Validate request
-      const validationResult = this.validateProvisioningRequest(request)';
+      const validationResult = this.validateProvisioningRequest(request);
       if (!validationResult.valid) {
-        return { tenant: null, success: false, message: validationResult.message }';
+        return { tenant: null, success: false, message: validationResult.message };
       }
 
       // Generate subdomain if not provided
-      const subdomain = request.subdomain || await this.generateSubdomain(request)';
+      const subdomain = request.subdomain || await this.generateSubdomain(request);
 
       // Check if subdomain already exists
-      const existingTenant = await storage.getTenantBySubdomain(subdomain)';
+      const existingTenant = await storage.getTenantBySubdomain(subdomain);
       if (existingTenant) {
-        return { tenant: null, success: false, message: `Subdomain '${subdomain}' already exists` }';
+        return { tenant: null, success: false, message: `Subdomain '${subdomain}' already exists` };
       }
 
       // Create tenant entity
-      const container = DependencyContainer.getInstance()';
-      const tenantRepository = container.tenantRepository';
+      const container = DependencyContainer.getInstance();
+      const tenantRepository = container.tenantRepository;
       
-      const { Tenant } = await import('../domain/entities/Tenant')';
+      const { Tenant } = await import('../domain/entities/Tenant');
       const tenantEntity = new Tenant(
-        crypto.randomUUID()',
-        request.name',
-        subdomain',
+        crypto.randomUUID(),
+        request.name,
+        subdomain,
         { ...this.config.defaultTenantSettings, ...request.settings }
-      )';
+      );
 
       // Save tenant
-      const savedTenant = await tenantRepository.save(tenantEntity)';
+      const savedTenant = await tenantRepository.save(tenantEntity);
 
       // Initialize tenant schema
-      await container.storage.initializeTenantSchema(savedTenant.id)';
+      await container.storage.initializeTenantSchema(savedTenant.id);
 
       // Log provisioning activity
-      console.log(`Auto-provisioned tenant: ${savedTenant.name} (${savedTenant.subdomain}) - Trigger: ${request.trigger}`)';
+      console.log(`Auto-provisioned tenant: ${savedTenant.name} (${savedTenant.subdomain}) - Trigger: ${request.trigger}`);
 
       return {
-        tenant: savedTenant',
-        success: true',
+        tenant: savedTenant,
+        success: true,
         message: `Tenant '${savedTenant.name}' created successfully`
-      }';
+      };
 
     } catch (error) {
-      console.error('Error in auto-provisioning:', error)';
+      console.error('Error in auto-provisioning:', error);
       return {
-        tenant: null',
-        success: false',
+        tenant: null,
+        success: false,
         message: `Provisioning failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      }';
+      };
     }
   }
 
@@ -108,68 +108,68 @@ class TenantAutoProvisioningService {
    */
   async shouldAutoProvisionForUser(userEmail: string, companyName?: string): Promise<boolean> {
     if (!this.config.enabled || !this.config.autoCreateOnFirstUser) {
-      return false';
+      return false;
     }
 
     // Check if user already belongs to a tenant
-    const existingUser = await storage.getUserByEmail?.(userEmail)';
+    const existingUser = await storage.getUserByEmail?.(userEmail);
     if (existingUser?.tenantId) {
-      return false';
+      return false;
     }
 
     // Additional logic can be added here (e.g., domain-based checks)
-    return true';
+    return true;
   }
 
   /**
    * Auto-provision tenant on user registration
    */
   async provisionOnUserRegistration(userEmail: string, userName: string, companyName?: string): Promise<{ tenant: any; success: boolean; message: string }> {
-    const shouldProvision = await this.shouldAutoProvisionForUser(userEmail, companyName)';
+    const shouldProvision = await this.shouldAutoProvisionForUser(userEmail, companyName);
     
     if (!shouldProvision) {
-      return { tenant: null, success: false, message: 'Auto-provisioning not applicable for this user' }';
+      return { tenant: null, success: false, message: 'Auto-provisioning not applicable for this user' };
     }
 
-    const tenantName = companyName || `${userName}'s Organization`';
+    const tenantName = companyName || `${userName}'s Organization`;
     
     return await this.provisionTenant({
-      name: tenantName',
-      companyName',
-      userEmail',
+      name: tenantName,
+      companyName,
+      userEmail,
       trigger: 'registration'
-    })';
+    });
   }
 
   /**
    * Generate subdomain based on configuration
    */
   private async generateSubdomain(request: TenantProvisioningRequest): Promise<string> {
-    let baseSubdomain: string';
+    let baseSubdomain: string;
 
     switch (this.config.subdomainGeneration) {
       case 'company-based':
-        baseSubdomain = this.sanitizeSubdomain(request.companyName || request.name)';
-        break';
+        baseSubdomain = this.sanitizeSubdomain(request.companyName || request.name);
+        break;
       case 'user-based':
-        baseSubdomain = this.sanitizeSubdomain(request.userEmail?.split('@')[0] || request.name)';
-        break';
+        baseSubdomain = this.sanitizeSubdomain(request.userEmail?.split('@')[0] || request.name);
+        break;
       case 'random':
       default:
-        baseSubdomain = `tenant-${crypto.randomBytes(4).toString('hex')}`';
-        break';
+        baseSubdomain = `tenant-${crypto.randomBytes(4).toString('hex')}`;
+        break;
     }
 
     // Ensure uniqueness
-    let subdomain = baseSubdomain';
-    let counter = 1';
+    let subdomain = baseSubdomain;
+    let counter = 1;
     
     while (await storage.getTenantBySubdomain(subdomain)) {
-      subdomain = `${baseSubdomain}-${counter}`';
-      counter++';
+      subdomain = `${baseSubdomain}-${counter}`;
+      counter++;
     }
 
-    return subdomain';
+    return subdomain;
   }
 
   /**
@@ -180,8 +180,8 @@ class TenantAutoProvisioningService {
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '-')
       .replace(/-+/g, '-')
-      .replace(/^-|-$/g, ')
-      .substring(0, 20)';
+      .replace(/^-|-$/g, '')
+      .substring(0, 20);
   }
 
   /**
@@ -189,34 +189,34 @@ class TenantAutoProvisioningService {
    */
   private validateProvisioningRequest(request: TenantProvisioningRequest): { valid: boolean; message: string } {
     if (!request.name || request.name.trim().length === 0) {
-      return { valid: false, message: 'Tenant name is required' }';
+      return { valid: false, message: 'Tenant name is required' };
     }
 
     if (request.subdomain && !/^[a-z0-9-]+$/.test(request.subdomain)) {
-      return { valid: false, message: 'Subdomain must contain only lowercase letters, numbers, and hyphens' }';
+      return { valid: false, message: 'Subdomain must contain only lowercase letters, numbers, and hyphens' };
     }
 
     if (request.trigger === 'registration' && !request.userEmail) {
-      return { valid: false, message: 'User email is required for registration trigger' }';
+      return { valid: false, message: 'User email is required for registration trigger' };
     }
 
-    return { valid: true, message: 'Valid request' }';
+    return { valid: true, message: 'Valid request' };
   }
 
   /**
    * Update auto-provisioning configuration
    */
   updateConfig(newConfig: Partial<AutoProvisioningConfig>): void {
-    this.config = { ...this.config, ...newConfig }';
-    console.log('Auto-provisioning config updated:', this.config)';
+    this.config = { ...this.config, ...newConfig };
+    console.log('Auto-provisioning config updated:', this.config);
   }
 
   /**
    * Get current configuration
    */
   getConfig(): AutoProvisioningConfig {
-    return { ...this.config }';
+    return { ...this.config };
   }
 }
 
-export const tenantAutoProvisioningService = new TenantAutoProvisioningService()';
+export const tenantAutoProvisioningService = new TenantAutoProvisioningService();

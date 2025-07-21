@@ -280,7 +280,7 @@ export default function SaasAdmin() {
                       </h3>
                       <Badge 
                         variant={user.role === 'saas_admin' ? 'default' : 'secondary'}
-                        className={user.role === 'saas_admin' ? 'bg-red-100 text-red-700' : '}
+                        className={user.role === 'saas_admin' ? 'bg-red-100 text-red-700' : ''}
                       >
                         {user.role.replace('_', ' ')}
                       </Badge>
