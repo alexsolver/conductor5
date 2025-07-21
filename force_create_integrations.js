@@ -55,23 +55,23 @@ async function forceCreateIntegrationsInAllTenants() {
             '${integrationId}',
             '${tenantId}',
             'IMAP Email',
-            'Integration for IMAP email',
+            'Gmail IMAP Integration with real credentials',
             'communication',
             'email-icon',
             'connected',
-            '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true}',
-            '{"emails", "calendar"}',
+            '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true, "configured": true, "lastSync": "${new Date().toISOString()}"}',
+            '["emails", "calendar", "contacts"]',
             NOW(),
             NOW()
           ) ON CONFLICT (id) DO UPDATE SET
             tenant_id = '${tenantId}',
             name = 'IMAP Email',
-            description = 'Integration for IMAP email',
+            description = 'Gmail IMAP Integration with real credentials',
             category = 'communication',
             icon = 'email-icon',
             status = 'connected',
-            config = '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true}',
-            features = '{"emails", "calendar"}',
+            config = '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true, "configured": true, "lastSync": "' + new Date().toISOString() + '"}',
+            features = '["emails", "calendar", "contacts"]',
             updated_at = NOW();
         `);
         console.log(`✓ IMAP integration created in ${schema}`);
