@@ -224,6 +224,7 @@ export * from './location';
 export * from './user-management';
 export * from './technical-skills';
 export * from './journey';
+export * from './timecard';
 export * from './schedule';
 export * from './security';
 export * from './tenant-constraints';

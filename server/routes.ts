@@ -26,6 +26,7 @@ import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import dashboardRoutes from './modules/dashboard/routes';
 import journeyRoutes from './modules/journey-management/routes';
+import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/routes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -381,6 +382,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OmniBridge Module
   app.use('/api/omni-bridge', omniBridgeRoutes);
+
+  // Timecard Routes
+  app.use('/api/timecard', jwtAuth, requireTenantAccess, timecardRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

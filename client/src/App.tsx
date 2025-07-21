@@ -52,6 +52,7 @@ import Projects from "./pages/Projects"; // Import the Projects component
 import ProjectActions from "./pages/ProjectActions"; // Import the Project Actions component
 import OmniBridge from "./pages/OmniBridge";
 import JourneyControl from "./pages/JourneyControl"; // Import the Journey Control component
+import Timecard from "./pages/Timecard";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -124,6 +125,7 @@ function AppRouter() {
         <Route path="/projects" component={Projects} />
         <Route path="/project-actions" component={ProjectActions} />
         <Route path="/journey-control" component={JourneyControl} />
+        <Route path="/timecard" component={Timecard} />
         <Route path="/omnibridge" component={OmniBridge} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
