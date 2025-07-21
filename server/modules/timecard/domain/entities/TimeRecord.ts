@@ -5,8 +5,8 @@ export interface TimeRecord {
   
   // Dados do registro
   recordDateTime: Date;
-  recordType: 'clock_in' | 'clock_out' | 'break_start' | 'break_end';
-  deviceType: 'web' | 'mobile' | 'totem' | 'api' | 'biometric';
+  recordType: 'clock_in' | 'clock_out' | 'break_start' | 'break_end''[,;]
+  deviceType: 'web' | 'mobile' | 'totem' | 'api' | 'biometric''[,;]
   
   // Localização e segurança
   ipAddress?: string;
@@ -36,8 +36,8 @@ export interface TimeRecord {
 }
 
 export interface CreateTimeRecordRequest {
-  recordType: 'clock_in' | 'clock_out' | 'break_start' | 'break_end';
-  deviceType: 'web' | 'mobile' | 'totem' | 'api' | 'biometric';
+  recordType: 'clock_in' | 'clock_out' | 'break_start' | 'break_end''[,;]
+  deviceType: 'web' | 'mobile' | 'totem' | 'api' | 'biometric''[,;]
   location?: {
     latitude: number;
     longitude: number;
@@ -72,7 +72,7 @@ export interface DailyTimesheet {
   breakMinutes?: number;
   
   // Status e validação
-  status: 'pending' | 'validated' | 'inconsistent' | 'approved';
+  status: 'pending' | 'validated' | 'inconsistent' | 'approved''[,;]
   hasInconsistencies: boolean;
   inconsistencyReasons?: string[];
   
@@ -102,10 +102,10 @@ export interface HourBankEntry {
   usedHours: string;
   expiredHours: string;
   
-  expirationPolicy: '6_months' | '12_months' | 'no_expiration';
+  expirationPolicy: '6_months' | '12_months' | 'no_expiration''[,;]
   expirationDate?: Date;
   
-  movementType: 'credit' | 'debit' | 'adjustment' | 'expiration';
+  movementType: 'credit' | 'debit' | 'adjustment' | 'expiration''[,;]
   description?: string;
   relatedTimesheetId?: string;
   
@@ -120,7 +120,7 @@ export interface WorkSchedule {
   name: string;
   code: string;
   
-  scheduleType: '5x2' | '6x1' | '12x36' | 'plantao' | 'intermitente';
+  scheduleType: '5x2' | '6x1' | '12x36' | 'plantao' | 'intermitente''[,;]
   
   workDaysPerWeek: number;
   hoursPerDay: string;
@@ -152,15 +152,15 @@ export interface TimeAlert {
   tenantId: string;
   userId?: string;
   
-  alertType: 'missing_record' | 'duplicate_record' | 'overtime_exceeded' | 'incomplete_shift' | 'hour_bank_limit' | 'legal_violation';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  alertType: 'missing_record' | 'duplicate_record' | 'overtime_exceeded' | 'incomplete_shift' | 'hour_bank_limit' | 'legal_violation''[,;]
+  severity: 'low' | 'medium' | 'high' | 'critical''[,;]
   
   title: string;
   description?: string;
   relatedDate?: Date;
   relatedRecordId?: string;
   
-  status: 'active' | 'acknowledged' | 'resolved' | 'dismissed';
+  status: 'active' | 'acknowledged' | 'resolved' | 'dismissed''[,;]
   resolvedBy?: string;
   resolvedAt?: Date;
   resolutionNotes?: string;

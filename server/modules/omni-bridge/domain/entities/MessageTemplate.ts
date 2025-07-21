@@ -28,7 +28,7 @@ export class MessageTemplate {
     // Replace variables in subject
     if (renderedSubject) {
       for (const variable of this.variables) {
-        const value = variables[variable.key] || variable.defaultValue || ';
+        const value = variables[variable.key] || variable.defaultValue || '[,;]
         renderedSubject = renderedSubject.replace(
           new RegExp(`{{${variable.key}}}`, 'g'),
           value
@@ -38,7 +38,7 @@ export class MessageTemplate {
 
     // Replace variables in content
     for (const variable of this.variables) {
-      const value = variables[variable.key] || variable.defaultValue || ';
+      const value = variables[variable.key] || variable.defaultValue || '[,;]
       renderedContent = renderedContent.replace(
         new RegExp(`{{${variable.key}}}`, 'g'),
         value
@@ -60,7 +60,7 @@ export interface TemplateVariable {
   key: string;
   name: string;
   description: string;
-  type: 'text' | 'number' | 'date' | 'email';
+  type: 'text' | 'number' | 'date' | 'email''[,;]
   required: boolean;
   defaultValue?: string;
 }

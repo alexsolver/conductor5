@@ -1,4 +1,4 @@
-import { storageSimple } from '../storage-simple';
+import { storageSimple } from '../storage-simple''[,;]
 
 export interface FeatureFlag {
   id: string;
@@ -40,9 +40,9 @@ export class FeatureFlagService {
   private initializeDefaultFlags(): void {
     const defaultFlags: FeatureFlag[] = [
       {
-        id: 'advanced_analytics',
-        name: 'Advanced Analytics',
-        description: 'Enable advanced analytics dashboard',
+        id: 'advanced_analytics''[,;]
+        name: 'Advanced Analytics''[,;]
+        description: 'Enable advanced analytics dashboard''[,;]
         enabled: true,
         rolloutPercentage: 100,
         fallbackValue: false,
@@ -50,9 +50,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'ai_chat_assistant',
-        name: 'AI Chat Assistant',
-        description: 'Enable AI-powered chat assistant',
+        id: 'ai_chat_assistant''[,;]
+        name: 'AI Chat Assistant''[,;]
+        description: 'Enable AI-powered chat assistant''[,;]
         enabled: false,
         rolloutPercentage: 0,
         fallbackValue: false,
@@ -60,9 +60,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'bulk_operations',
-        name: 'Bulk Operations',
-        description: 'Enable bulk operations for tickets and customers',
+        id: 'bulk_operations''[,;]
+        name: 'Bulk Operations''[,;]
+        description: 'Enable bulk operations for tickets and customers''[,;]
         enabled: true,
         rolloutPercentage: 50,
         fallbackValue: false,
@@ -70,9 +70,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'real_time_collaboration',
-        name: 'Real-time Collaboration',
-        description: 'Enable real-time collaborative editing',
+        id: 'real_time_collaboration''[,;]
+        name: 'Real-time Collaboration''[,;]
+        description: 'Enable real-time collaborative editing''[,;]
         enabled: false,
         rolloutPercentage: 25,
         fallbackValue: false,
@@ -80,9 +80,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'advanced_search',
-        name: 'Advanced Search',
-        description: 'Enable advanced search with filters',
+        id: 'advanced_search''[,;]
+        name: 'Advanced Search''[,;]
+        description: 'Enable advanced search with filters''[,;]
         enabled: true,
         rolloutPercentage: 75,
         fallbackValue: false,
@@ -90,9 +90,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'custom_fields',
-        name: 'Custom Fields',
-        description: 'Enable custom fields for tickets and customers',
+        id: 'custom_fields''[,;]
+        name: 'Custom Fields''[,;]
+        description: 'Enable custom fields for tickets and customers''[,;]
         enabled: true,
         rolloutPercentage: 100,
         fallbackValue: false,
@@ -100,9 +100,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'sla_management',
-        name: 'SLA Management',
-        description: 'Enable SLA tracking and management',
+        id: 'sla_management''[,;]
+        name: 'SLA Management''[,;]
+        description: 'Enable SLA tracking and management''[,;]
         enabled: false,
         rolloutPercentage: 0,
         fallbackValue: false,
@@ -110,9 +110,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'webhook_integrations',
-        name: 'Webhook Integrations',
-        description: 'Enable webhook integrations',
+        id: 'webhook_integrations''[,;]
+        name: 'Webhook Integrations''[,;]
+        description: 'Enable webhook integrations''[,;]
         enabled: true,
         rolloutPercentage: 80,
         fallbackValue: false,
@@ -120,9 +120,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'mobile_app',
-        name: 'Mobile App Support',
-        description: 'Enable mobile app features',
+        id: 'mobile_app''[,;]
+        name: 'Mobile App Support''[,;]
+        description: 'Enable mobile app features''[,;]
         enabled: false,
         rolloutPercentage: 10,
         fallbackValue: false,
@@ -130,9 +130,9 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'api_rate_limiting',
-        name: 'API Rate Limiting',
-        description: 'Enable API rate limiting',
+        id: 'api_rate_limiting''[,;]
+        name: 'API Rate Limiting''[,;]
+        description: 'Enable API rate limiting''[,;]
         enabled: true,
         rolloutPercentage: 100,
         fallbackValue: true,
@@ -178,7 +178,7 @@ export class FeatureFlagService {
 
       // Check rollout percentage
       if (flag.rolloutPercentage < 100) {
-        const userId = context.userId || 'anonymous';
+        const userId = context.userId || 'anonymous''[,;]
         const hash = this.hashString(flagId + userId);
         const percentage = hash % 100;
         
@@ -344,17 +344,17 @@ export class FeatureFlagService {
       const isEnabled = await this.isEnabled(flagId, context);
       
       if (!isEnabled || variants.length === 0) {
-        return variants[0] || 'default';
+        return variants[0] || 'default''[,;]
       }
 
-      const userId = context.userId || 'anonymous';
+      const userId = context.userId || 'anonymous''[,;]
       const hash = this.hashString(flagId + userId + 'variant');
       const variantIndex = hash % variants.length;
       
       return variants[variantIndex];
     } catch (error) {
       console.error(`Error getting variant for flag '${flagId}':`, error);
-      return variants[0] || 'default';
+      return variants[0] || 'default''[,;]
     }
   }
 

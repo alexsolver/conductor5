@@ -1,17 +1,18 @@
+export interface MockDataIssue {
+  type: 'mock_data' | 'incomplete_function' | 'non_functional_ui''[,;]
+  line: number;
+  description: string;
+  evidence: string;
+}
 
 export class MockDataDetector {
-  static async scanForMockData(content: string, filePath: string): Promise<Array<{
-    type: 'mock_data' | 'incomplete_function' | 'disabled_button';
-    line: number;
-    description: string;
-    evidence: string;
-  }>> {
-    const issues = [];
+  static detectMockData(content: string, filePath: string): MockDataIssue[] {
+    const issues: MockDataIssue[] = [];
     const lines = content.split('\n');
 
-    // Detect mock data patterns
+    // Mock data patterns - improved to reduce false positives
     const mockPatterns = [
-      /mock|fake|dummy|test_data|placeholder/gi,
+      /john\.doe@example\.com/gi,
       /lorem ipsum/gi,
       /\[\{.*"id":\s*["']?(1|2|3)["']?.*\}\]/gi, // Array with simple IDs
       /Math\.random\(\)/g, // Random data generation
@@ -41,7 +42,7 @@ export class MockDataDetector {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = lines[lineNumber - 1]?.trim() || ';
+        const lineContent = lines[lineNumber - 1]?.trim() || '[,;]
         
         // Skip lines that are legitimate implementations
         if (lineContent.includes('return this.toDomainEntity') ||
@@ -55,9 +56,9 @@ export class MockDataDetector {
         }
         
         issues.push({
-          type: 'incomplete_function',
+          type: 'incomplete_function''[,;]
           line: lineNumber,
-          description: 'Incomplete functionality detected',
+          description: 'Incomplete functionality detected''[,;]
           evidence: lineContent
         });
       }
@@ -68,39 +69,52 @@ export class MockDataDetector {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = lines[lineNumber - 1]?.trim() || ';
+        const lineContent = lines[lineNumber - 1]?.trim() || '[,;]
         
         // Skip if it's in comments, tests, or legitimate code
         if (lineContent.includes('//') || 
             lineContent.includes('/*') ||
+            lineContent.includes('console.log') ||
+            lineContent.includes('describe(') ||
+            lineContent.includes('test(') ||
+            lineContent.includes('it(') ||
             filePath.includes('test') ||
-            lineContent.includes('fromPersistence') ||
-            lineContent.includes('toDomainEntity') ||
-            lineContent.includes('Domain') ||
-            lineContent.includes('Entity')) {
+            filePath.includes('spec') ||
+            filePath.includes('example') ||
+            filePath.includes('demo')) {
           continue;
         }
         
         issues.push({
-          type: 'mock_data',
+          type: 'mock_data''[,;]
           line: lineNumber,
-          description: 'Mock data detected',
+          description: 'Mock or placeholder data detected''[,;]
           evidence: lineContent
         });
       }
     });
 
-    // Check for disabled buttons
+    // Check for non-functional UI elements
     buttonPatterns.forEach(pattern => {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = lines[lineNumber - 1]?.trim() || ';
+        const lineContent = lines[lineNumber - 1]?.trim() || '[,;]
+        
+        // Skip if it's intentionally disabled or in tests
+        if (lineContent.includes('Loading') ||
+            lineContent.includes('disabled') ||
+            lineContent.includes('isLoading') ||
+            filePath.includes('test') ||
+            filePath.includes('Loading') ||
+            filePath.includes('Skeleton')) {
+          continue;
+        }
         
         issues.push({
-          type: 'disabled_button',
+          type: 'non_functional_ui''[,;]
           line: lineNumber,
-          description: 'Non-functional button detected',
+          description: 'Non-functional UI element detected''[,;]
           evidence: lineContent
         });
       }

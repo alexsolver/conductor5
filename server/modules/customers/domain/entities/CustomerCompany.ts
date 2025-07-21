@@ -25,7 +25,7 @@ export class CustomerCompany {
     } = {},
     private taxId: string | null = null,
     private registrationNumber: string | null = null,
-    private subscriptionTier: 'basic' | 'premium' | 'enterprise' = 'basic',
+    private subscriptionTier: 'basic' | 'premium' | 'enterprise' = 'basic''[,;]
     private contractType: 'monthly' | 'yearly' | 'custom' | null = null,
     private maxUsers: number | null = null,
     private maxTickets: number | null = null,
@@ -48,7 +48,7 @@ export class CustomerCompany {
     } = {},
     private tags: string[] = [],
     private metadata: Record<string, unknown> = {},
-    private status: 'active' | 'inactive' | 'suspended' | 'trial' = 'active',
+    private status: 'active' | 'inactive' | 'suspended' | 'trial' = 'active''[,;]
     private isActive: boolean = true,
     private isPrimary: boolean = false,
     private readonly createdAt: Date = new Date(),
@@ -116,7 +116,7 @@ export class CustomerCompany {
   }
 
   isEnterprise(): boolean {
-    return this.subscriptionTier === 'enterprise' || this.size === 'enterprise';
+    return this.subscriptionTier === 'enterprise' || this.size === 'enterprise'[,;]
   }
 
   hasValidContact(): boolean {
@@ -251,7 +251,7 @@ export class CustomerCompany {
   }
 
   updateSubscription(props: {
-    subscriptionTier?: 'basic' | 'premium' | 'enterprise';
+    subscriptionTier?: 'basic' | 'premium' | 'enterprise'[,;]
     contractType?: 'monthly' | 'yearly' | 'custom' | null;
     maxUsers?: number | null;
     maxTickets?: number | null;
@@ -289,7 +289,7 @@ export class CustomerCompany {
   }
 
   updateStatus(props: {
-    status?: 'active' | 'inactive' | 'suspended' | 'trial';
+    status?: 'active' | 'inactive' | 'suspended' | 'trial'[,;]
     isActive?: boolean;
     updatedBy: string;
   }): CustomerCompany {
@@ -336,7 +336,7 @@ export class CustomerCompany {
     phone?: string | null;
     website?: string | null;
     address?: Record<string, string>;
-    subscriptionTier?: 'basic' | 'premium' | 'enterprise';
+    subscriptionTier?: 'basic' | 'premium' | 'enterprise'[,;]
     createdBy: string;
   }): CustomerCompany {
     return new CustomerCompany(
@@ -353,7 +353,7 @@ export class CustomerCompany {
       props.address || {},
       null, // taxId
       null, // registrationNumber
-      props.subscriptionTier || 'basic',
+      props.subscriptionTier || 'basic''[,;]
       null, // contractType
       null, // maxUsers
       null, // maxTickets
@@ -385,14 +385,14 @@ export class CustomerCompany {
       data.address || {},
       data.taxId,
       data.registrationNumber,
-      data.subscriptionTier || 'basic',
+      data.subscriptionTier || 'basic''[,;]
       data.contractType,
       data.maxUsers,
       data.maxTickets,
       data.settings || {},
       data.tags || [],
       data.metadata || {},
-      data.status || 'active',
+      data.status || 'active''[,;]
       data.isActive !== false,
       data.isPrimary || false,
       data.createdAt,

@@ -17,7 +17,7 @@ export abstract class DomainEvent {
 // Customer Events
 export class CustomerCreated extends DomainEvent {
   get eventName(): string {
-    return 'customer.created';
+    return 'customer.created'[,;]
   }
 
   constructor(
@@ -35,7 +35,7 @@ export class CustomerCreated extends DomainEvent {
 
 export class CustomerUpdated extends DomainEvent {
   get eventName(): string {
-    return 'customer.updated';
+    return 'customer.updated'[,;]
   }
 
   constructor(
@@ -50,7 +50,7 @@ export class CustomerUpdated extends DomainEvent {
 // Ticket Events
 export class TicketCreated extends DomainEvent {
   get eventName(): string {
-    return 'ticket.created';
+    return 'ticket.created'[,;]
   }
 
   constructor(
@@ -68,7 +68,7 @@ export class TicketCreated extends DomainEvent {
 
 export class TicketAssigned extends DomainEvent {
   get eventName(): string {
-    return 'ticket.assigned';
+    return 'ticket.assigned'[,;]
   }
 
   constructor(
@@ -83,7 +83,7 @@ export class TicketAssigned extends DomainEvent {
 
 export class TicketStatusChanged extends DomainEvent {
   get eventName(): string {
-    return 'ticket.status_changed';
+    return 'ticket.status_changed'[,;]
   }
 
   constructor(

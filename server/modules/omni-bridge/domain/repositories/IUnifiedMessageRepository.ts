@@ -3,7 +3,7 @@
  * UnifiedMessage Repository Interface
  * Clean Architecture - Domain Layer
  */
-import { UnifiedMessage } from '../entities/UnifiedMessage';
+import { UnifiedMessage } from '../entities/UnifiedMessage''[,;]
 
 export interface IUnifiedMessageRepository {
   findAll(tenantId: string, options?: MessageSearchOptions): Promise<UnifiedMessage[]>;
@@ -28,7 +28,7 @@ export interface MessageSearchOptions {
   channelType?: string;
   priority?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: 'asc' | 'desc''[,;]
 }
 
 export interface MessageFilters {

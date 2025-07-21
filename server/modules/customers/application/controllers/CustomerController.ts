@@ -4,10 +4,10 @@
  * Handles HTTP requests and delegates to Application Service
  */
 
-import { Request, Response } from 'express';
-import { z } from 'zod';
-import { CustomerApplicationService } from '../services/CustomerApplicationService';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { Request, Response } from 'express''[,;]
+import { z } from 'zod''[,;]
+import { CustomerApplicationService } from '../services/CustomerApplicationService''[,;]
+import { AuthenticatedRequest } from '../../../middleware/jwtAuth''[,;]
 
 // Input validation schemas
 const createCustomerSchema = z.object({

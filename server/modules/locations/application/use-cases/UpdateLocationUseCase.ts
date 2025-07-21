@@ -1,11 +1,11 @@
-import { Location } from '../../domain/entities/Location';
-import { ILocationRepository } from '../../domain/repositories/ILocationRepository';
-import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher';
+import { Location } from '../../domain/entities/Location''[,;]
+import { ILocationRepository } from '../../domain/repositories/ILocationRepository''[,;]
+import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher''[,;]
 
 export interface UpdateLocationRequest {
   name?: string;
-  type?: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro';
-  status?: 'ativo' | 'inativo' | 'manutencao' | 'suspenso';
+  type?: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro''[,;]
+  status?: 'ativo' | 'inativo' | 'manutencao' | 'suspenso''[,;]
   address?: string;
   number?: string;
   complement?: string;
@@ -65,7 +65,7 @@ export class UpdateLocationUseCase {
 
       // Publish domain event
       await this.eventPublisher.publish({
-        type: 'LocationUpdated',
+        type: 'LocationUpdated''[,;]
         aggregateId: locationId,
         tenantId,
         data: {

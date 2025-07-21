@@ -1,13 +1,13 @@
-import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { LocationController } from './application/controllers/LocationController';
-import { CreateLocationUseCase } from './application/use-cases/CreateLocationUseCase';
-import { GetLocationsUseCase } from './application/use-cases/GetLocationsUseCase';
-import { UpdateLocationUseCase } from './application/use-cases/UpdateLocationUseCase';
-import { FindNearbyLocationsUseCase } from './application/use-cases/FindNearbyLocationsUseCase';
-import { DrizzleLocationRepository } from './infrastructure/repositories/DrizzleLocationRepository';
-import { DomainEventPublisher } from '../shared/infrastructure/DomainEventPublisher';
-import { CepService } from './services/CepService';
+import { Router } from 'express''[,;]
+import { jwtAuth } from '../../middleware/jwtAuth''[,;]
+import { LocationController } from './application/controllers/LocationController''[,;]
+import { CreateLocationUseCase } from './application/use-cases/CreateLocationUseCase''[,;]
+import { GetLocationsUseCase } from './application/use-cases/GetLocationsUseCase''[,;]
+import { UpdateLocationUseCase } from './application/use-cases/UpdateLocationUseCase''[,;]
+import { FindNearbyLocationsUseCase } from './application/use-cases/FindNearbyLocationsUseCase''[,;]
+import { DrizzleLocationRepository } from './infrastructure/repositories/DrizzleLocationRepository''[,;]
+import { DomainEventPublisher } from '../shared/infrastructure/DomainEventPublisher''[,;]
+import { CepService } from './services/CepService''[,;]
 
 const router = Router();
 

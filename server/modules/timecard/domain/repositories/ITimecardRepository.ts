@@ -1,4 +1,4 @@
-import { TimeRecord, CreateTimeRecordRequest, DailyTimesheet, HourBankEntry, WorkSchedule, TimeAlert } from '../entities/TimeRecord';
+import { TimeRecord, CreateTimeRecordRequest, DailyTimesheet, HourBankEntry, WorkSchedule, TimeAlert } from '../entities/TimeRecord''[,;]
 
 export interface ITimecardRepository {
   // Time Records

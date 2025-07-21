@@ -3,11 +3,11 @@
  * Handles translation files management for SaaS admins
  */
 
-import { Router } from 'express';
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { z } from 'zod';
-import fs from 'fs/promises';
-import path from 'path';
+import { Router } from 'express''[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
+import { z } from 'zod''[,;]
+import fs from 'fs/promises''[,;]
+import path from 'path''[,;]
 
 const router = Router();
 
@@ -109,7 +109,7 @@ router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     if (!validationResult.success) {
       return res.status(400).json({
-        message: 'Invalid translation data',
+        message: 'Invalid translation data''[,;]
         errors: validationResult.error.errors
       });
     }
@@ -130,7 +130,7 @@ router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
     await fs.writeFile(filePath, newContent, 'utf8');
 
     res.json({
-      message: 'Translations updated successfully',
+      message: 'Translations updated successfully''[,;]
       language,
       updatedAt: new Date().toISOString()
     });
@@ -166,7 +166,7 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
       await fs.writeFile(filePath, backupContent);
       
       res.json({
-        message: 'Translations restored from backup',
+        message: 'Translations restored from backup''[,;]
         language,
         restoredAt: new Date().toISOString()
       });
@@ -235,10 +235,10 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
 // Helper functions
 function getLanguageName(code: string): string {
   const names: Record<string, string> = {
-    'en': 'English',
-    'pt-BR': 'Português (Brasil)',
-    'es': 'Español',
-    'fr': 'Français',
+    'en': 'English''[,;]
+    'pt-BR': 'Português (Brasil)''[,;]
+    'es': 'Español''[,;]
+    'fr': 'Français''[,;]
     'de': 'Deutsch'
   };
   return names[code] || code;
@@ -246,13 +246,13 @@ function getLanguageName(code: string): string {
 
 function getLanguageFlag(code: string): string {
   const flags: Record<string, string> = {
-    'en': '🇺🇸',
-    'pt-BR': '🇧🇷',
-    'es': '🇪🇸',
-    'fr': '🇫🇷',
+    'en': '🇺🇸''[,;]
+    'pt-BR': '🇧🇷''[,;]
+    'es': '🇪🇸''[,;]
+    'fr': '🇫🇷''[,;]
     'de': '🇩🇪'
   };
-  return flags[code] || '🌐';
+  return flags[code] || '🌐''[,;]
 }
 
 export default router;

@@ -50,22 +50,22 @@ export class ProcessingRule {
 
   private getMessageValue(field: string, message: UnifiedMessage): string {
     switch (field) {
-      case 'subject': return message.subject || ';
+      case 'subject': return message.subject || '[,;]
       case 'content': return message.content;
       case 'from': return message.fromAddress;
       case 'to': return message.toAddress;
-      default: return ';
+      default: return '[,;]
     }
   }
 }
 
 export interface RuleCondition {
-  field: 'subject' | 'content' | 'from' | 'to';
-  operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex';
+  field: 'subject' | 'content' | 'from' | 'to''[,;]
+  operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex''[,;]
   value: string;
 }
 
 export interface RuleAction {
-  type: 'create_ticket' | 'auto_reply' | 'forward' | 'set_priority' | 'add_tag';
+  type: 'create_ticket' | 'auto_reply' | 'forward' | 'set_priority' | 'add_tag''[,;]
   parameters: Record<string, any>;
 }

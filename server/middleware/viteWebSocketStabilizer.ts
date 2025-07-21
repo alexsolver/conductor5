@@ -78,7 +78,7 @@ class ViteWebSocketStabilizer {
   public middleware() {
     return (req: Request, res: Response, next: NextFunction) => {
       const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-      const userAgent = req.get('User-Agent') || ';
+      const userAgent = req.get('User-Agent') || '';
       const clientId = `${clientIP}_${userAgent.substring(0, 50)}`;
 
       // VITE WEBSOCKET DETECTION: Handle WebSocket upgrade requests

@@ -3,10 +3,10 @@
  * Clean Architecture - Application Layer
  */
 
-import { Ticket } from '../../domain/entities/Ticket';
-import { ITicketRepository } from '../../domain/ports/ITicketRepository';
-import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
-import { TicketResolvedEvent } from '../../domain/events/TicketResolvedEvent';
+import { Ticket } from '../../domain/entities/Ticket''[,;]
+import { ITicketRepository } from '../../domain/ports/ITicketRepository''[,;]
+import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher''[,;]
+import { TicketResolvedEvent } from '../../domain/events/TicketResolvedEvent''[,;]
 
 export interface ResolveTicketInput {
   ticketId: string;

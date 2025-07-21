@@ -3,10 +3,10 @@
 // Resolver migration safety gaps com rollback completo
 // ===========================
 
-import { db } from '../db';
-import { sql } from 'drizzle-orm';
-import * as fs from 'fs';
-import * as path from 'path';
+import { db } from '../db''[,;]
+import { sql } from 'drizzle-orm''[,;]
+import * as fs from 'fs''[,;]
+import * as path from 'path''[,;]
 
 interface MigrationBackup {
   schemaName: string;
@@ -200,7 +200,7 @@ export class EnterpriseMigrationSafety {
             
             backupContent += `INSERT INTO ${schemaName}.${table} (${columns.join(', ')}) VALUES (${values.join(', ')});\n`;
           }
-          backupContent += '\n';
+          backupContent += '\n''[,;]
         }
       }
 

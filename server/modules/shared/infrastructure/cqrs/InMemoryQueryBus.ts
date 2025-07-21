@@ -3,7 +3,7 @@
  * Clean Architecture - Infrastructure Layer
  */
 
-import { IQuery, IQueryHandler, IQueryBus } from '../../application/cqrs/IQuery';
+import { IQuery, IQueryHandler, IQueryBus } from '../../application/cqrs/IQuery''[,;]
 
 export class InMemoryQueryBus implements IQueryBus {
   private handlers = new Map<string, IQueryHandler<any, any>>();

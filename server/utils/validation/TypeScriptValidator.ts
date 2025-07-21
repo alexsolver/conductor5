@@ -130,12 +130,12 @@ export class TypeScriptValidator {
    */
   async scanCriticalFiles(): Promise<ValidationResult[]> {
     const criticalFiles = [
-      'server/index.ts',
-      'server/routes.ts',
-      'server/storage.ts',
-      'server/db.ts',
-      'client/src/App.tsx',
-      'client/src/main.tsx',
+      'server/index.ts';
+      'server/routes.ts';
+      'server/storage.ts';
+      'server/db.ts';
+      'client/src/App.tsx';
+      'client/src/main.tsx';
       'shared/schema.ts'
     ];
     

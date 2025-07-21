@@ -1,6 +1,6 @@
 
-import { InternalForm } from '../../domain/entities/InternalForm';
-import { FormSubmission } from '../../domain/entities/FormSubmission';
+import { InternalForm } from '../../domain/entities/InternalForm''[,;]
+import { FormSubmission } from '../../domain/entities/FormSubmission''[,;]
 
 export class InternalFormActionsService {
   async executeActions(form: InternalForm, submission: FormSubmission): Promise<void> {
@@ -56,9 +56,9 @@ export class InternalFormActionsService {
 
   private async executeWebhook(action: any, submission: FormSubmission): Promise<void> {
     const response = await fetch(action.config.url, {
-      method: action.config.method || 'POST',
+      method: action.config.method || 'POST''[,;]
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json''[,;]
         ...action.config.headers
       },
       body: JSON.stringify({

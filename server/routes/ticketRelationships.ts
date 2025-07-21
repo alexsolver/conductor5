@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { AuthenticatedRequest, jwtAuth } from '../middleware/jwtAuth';
-import { getStorage } from '../storage-simple';
-import { logInfo, logError } from '../utils/logger';
+import { Router } from 'express''[,;]
+import { AuthenticatedRequest, jwtAuth } from '../middleware/jwtAuth''[,;]
+import { getStorage } from '../storage-simple''[,;]
+import { logInfo, logError } from '../utils/logger''[,;]
 
 const router = Router();
 

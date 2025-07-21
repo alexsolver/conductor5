@@ -1,6 +1,6 @@
 // Password Hashing Implementation
-import bcrypt from 'bcryptjs';
-import { IPasswordHasher } from '../../domain/services/IPasswordHasher';
+import bcrypt from 'bcryptjs''[,;]
+import { IPasswordHasher } from '../../domain/services/IPasswordHasher''[,;]
 
 export class PasswordHasher implements IPasswordHasher {
   private readonly saltRounds = 12;

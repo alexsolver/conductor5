@@ -23,7 +23,7 @@ export const requirePermission = (...permissions: Permission[]) => {
     
     if (!hasPermission) {
       return res.status(403).json({ 
-        message: 'Insufficient permissions',
+        message: 'Insufficient permissions';
         required: permissions,
         userRole: req.user.role 
       });
@@ -56,7 +56,7 @@ export const requireTenantAccess = (tenantIdParam = 'tenantId') => {
 
     if (!canAccess) {
       return res.status(403).json({ 
-        message: 'Access denied to tenant',
+        message: 'Access denied to tenant';
         userTenant: req.user.tenantId,
         requestedTenant: targetTenantId
       });
@@ -77,7 +77,7 @@ export const requireRoles = (...roles: Role[]) => {
 
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ 
-        message: 'Insufficient role privileges',
+        message: 'Insufficient role privileges';
         required: roles,
         userRole: req.user.role 
       });

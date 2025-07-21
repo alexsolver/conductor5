@@ -1,8 +1,8 @@
-import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm';
-import { db } from '../../../../db';
-import { userSkills, skills as technicalSkills, users, certifications } from '../../../../../shared/schema';
-import { UserSkill } from '../../domain/entities/UserSkill';
-import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
+import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm''[,;]
+import { db } from '../../../../db''[,;]
+import { userSkills, skills as technicalSkills, users } from '../../../../../shared/schema''[,;]
+import { UserSkill } from '../../domain/entities/UserSkill''[,;]
+import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository''[,;]
 
 export class DrizzleUserSkillRepository implements IUserSkillRepository {
   async create(userSkill: UserSkill): Promise<UserSkill> {

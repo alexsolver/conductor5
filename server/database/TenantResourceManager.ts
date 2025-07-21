@@ -3,12 +3,12 @@
 // Sistema de quotas e monitoramento de recursos por tenant
 // ===========================
 
-import { enterpriseConnectionPoolManager } from './EnterpriseConnectionPoolManager';
-import { enterpriseRealTimeAlerting } from './EnterpriseRealTimeAlerting';
+import { enterpriseConnectionPoolManager } from './EnterpriseConnectionPoolManager''[,;]
+import { enterpriseRealTimeAlerting } from './EnterpriseRealTimeAlerting''[,;]
 
 interface TenantResourceQuota {
   tenantId: string;
-  plan: 'free' | 'basic' | 'premium' | 'enterprise';
+  plan: 'free' | 'basic' | 'premium' | 'enterprise''[,;]
   quotas: {
     maxConnections: number;
     maxQueryTime: number; // milliseconds
@@ -173,7 +173,7 @@ export class TenantResourceManager {
     quota.limits.connectionLimitReached = connections >= quota.quotas.maxConnections;
     
     if (quota.limits.connectionLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('pool_exhaustion_critical',
+      enterpriseRealTimeAlerting.triggerAlert('pool_exhaustion_critical''[,;]
         `Tenant ${tenantId} reached connection limit: ${connections}/${quota.quotas.maxConnections}`,
         { tenantId, connections, limit: quota.quotas.maxConnections, plan: quota.plan },
         tenantId
@@ -203,7 +203,7 @@ export class TenantResourceManager {
     quota.limits.dataTransferLimitReached = quota.usage.dataTransferUsed >= quota.quotas.maxDataTransfer;
     
     if (quota.limits.dataTransferLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('performance_degradation',
+      enterpriseRealTimeAlerting.triggerAlert('performance_degradation''[,;]
         `Tenant ${tenantId} exceeded data transfer limit: ${quota.usage.dataTransferUsed.toFixed(1)}MB/${quota.quotas.maxDataTransfer}MB`,
         { tenantId, usage: quota.usage.dataTransferUsed, limit: quota.quotas.maxDataTransfer, plan: quota.plan },
         tenantId
@@ -217,7 +217,7 @@ export class TenantResourceManager {
     quota.limits.storageLimitReached = storageMB >= quota.quotas.maxStorageSize;
     
     if (quota.limits.storageLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('performance_degradation',
+      enterpriseRealTimeAlerting.triggerAlert('performance_degradation''[,;]
         `Tenant ${tenantId} storage limit reached: ${storageMB.toFixed(1)}MB/${quota.quotas.maxStorageSize}MB`,
         { tenantId, usage: storageMB, limit: quota.quotas.maxStorageSize, plan: quota.plan },
         tenantId
@@ -231,7 +231,7 @@ export class TenantResourceManager {
     quota.limits.ticketLimitReached = quota.usage.ticketsThisMonth >= quota.quotas.maxTicketsPerMonth;
     
     if (quota.limits.ticketLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('performance_degradation',
+      enterpriseRealTimeAlerting.triggerAlert('performance_degradation''[,;]
         `Tenant ${tenantId} monthly ticket limit reached: ${quota.usage.ticketsThisMonth}/${quota.quotas.maxTicketsPerMonth}`,
         { tenantId, usage: quota.usage.ticketsThisMonth, limit: quota.quotas.maxTicketsPerMonth, plan: quota.plan },
         tenantId

@@ -4,21 +4,21 @@
  * Configures dependency injection for the Customer module
  */
 
-import { container, TOKENS } from '../../../shared/infrastructure/DependencyContainer';
-import { DrizzleCustomerRepository } from '../repositories/DrizzleCustomerRepository';
-import { DrizzleCustomerCompanyRepository } from '../repositories/DrizzleCustomerCompanyRepository';
-import { CreateCustomerUseCase } from '../../application/usecases/CreateCustomerUseCase';
-import { GetCustomersUseCase } from '../../application/usecases/GetCustomersUseCase';
-import { UpdateCustomerUseCase } from '../../application/usecases/UpdateCustomerUseCase';
-import { DeleteCustomerUseCase } from '../../application/usecases/DeleteCustomerUseCase';
-import { CreateCustomerCompanyUseCase } from '../../application/use-cases/CreateCustomerCompanyUseCase';
-import { GetCustomerCompaniesUseCase } from '../../application/use-cases/GetCustomerCompaniesUseCase';
-import { UpdateCustomerCompanyUseCase } from '../../application/use-cases/UpdateCustomerCompanyUseCase';
-import { ManageCustomerCompanyMembershipUseCase } from '../../application/use-cases/ManageCustomerCompanyMembershipUseCase';
-import { CustomerApplicationService } from '../../application/services/CustomerApplicationService';
-import { CustomerController } from '../../application/controllers/CustomerController';
-import { CustomerCompanyController } from '../../application/controllers/CustomerCompanyController';
-import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher';
+import { container, TOKENS } from '../../../shared/infrastructure/DependencyContainer''[,;]
+import { DrizzleCustomerRepository } from '../repositories/DrizzleCustomerRepository''[,;]
+import { DrizzleCustomerCompanyRepository } from '../repositories/DrizzleCustomerCompanyRepository''[,;]
+import { CreateCustomerUseCase } from '../../application/usecases/CreateCustomerUseCase''[,;]
+import { GetCustomersUseCase } from '../../application/usecases/GetCustomersUseCase''[,;]
+import { UpdateCustomerUseCase } from '../../application/usecases/UpdateCustomerUseCase''[,;]
+import { DeleteCustomerUseCase } from '../../application/usecases/DeleteCustomerUseCase''[,;]
+import { CreateCustomerCompanyUseCase } from '../../application/use-cases/CreateCustomerCompanyUseCase''[,;]
+import { GetCustomerCompaniesUseCase } from '../../application/use-cases/GetCustomerCompaniesUseCase''[,;]
+import { UpdateCustomerCompanyUseCase } from '../../application/use-cases/UpdateCustomerCompanyUseCase''[,;]
+import { ManageCustomerCompanyMembershipUseCase } from '../../application/use-cases/ManageCustomerCompanyMembershipUseCase''[,;]
+import { CustomerApplicationService } from '../../application/services/CustomerApplicationService''[,;]
+import { CustomerController } from '../../application/controllers/CustomerController''[,;]
+import { CustomerCompanyController } from '../../application/controllers/CustomerCompanyController''[,;]
+import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher''[,;]
 
 export function setupCustomerDependencies(): void {
   // Register repositories

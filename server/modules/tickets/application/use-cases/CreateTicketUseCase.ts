@@ -13,13 +13,13 @@ export interface CreateTicketRequest {
   shortDescription?: string;
   category?: string;
   subcategory?: string;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  impact?: 'low' | 'medium' | 'high';
-  urgency?: 'low' | 'medium' | 'high';
+  priority?: 'low' | 'medium' | 'high' | 'critical''[,;]
+  impact?: 'low' | 'medium' | 'high''[,;]
+  urgency?: 'low' | 'medium' | 'high''[,;]
   
   // Enhanced person referencing
   callerId: string;
-  callerType: 'user' | 'customer';
+  callerType: 'user' | 'customer''[,;]
   beneficiaryId?: string; // Optional - defaults to callerId
   beneficiaryType?: 'user' | 'customer'; // Optional - defaults to callerType
   
@@ -74,7 +74,7 @@ export class CreateTicketUseCase {
     if (request.assignedToId) {
       const agentExists = await this.personRepository.validatePersonExists(
         request.assignedToId,
-        'user',
+        'user''[,;]
         request.tenantId
       );
 
@@ -140,14 +140,14 @@ export class CreateTicketUseCase {
       savedTicket.id,
       savedTicket.tenantId,
       {
-        number: savedTicket.number || ',
+        number: savedTicket.number || ''[,;]
         subject: savedTicket.subject,
         priority: savedTicket.priority,
         caller: caller ? { id: caller.id, type: caller.type, name: caller.fullName } : undefined,
         beneficiary: beneficiary ? { id: beneficiary.id, type: beneficiary.type, name: beneficiary.fullName } : undefined,
         serviceType: savedTicket.isAutoService ? 'auto' : 
                     savedTicket.isProxyService ? 'proxy' : 
-                    savedTicket.isInternalService ? 'internal' : 'hybrid',
+                    savedTicket.isInternalService ? 'internal' : 'hybrid''[,;]
       }
     );
 

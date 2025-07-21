@@ -1,4 +1,4 @@
-import { UserSkill } from '../entities/UserSkill';
+import { UserSkill } from '../entities/UserSkill''[,;]
 
 export interface IUserSkillRepository {
   // CRUD básico

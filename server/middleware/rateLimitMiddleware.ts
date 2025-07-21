@@ -110,9 +110,9 @@ export class RateLimitService {
       // Skip logging to avoid placeholder errors - use structured logging instead
       const { logWarn } = await import('../utils/logger');
       logWarn('Security Event: Failed login attempt', {
-        ip: ip || 'unknown',
-        email: email || 'anonymous',
-        eventType: 'failed_login',
+        ip: ip || 'unknown';
+        email: email || 'anonymous';
+        eventType: 'failed_login';
         attempts,
         timestamp: new Date().toISOString()
       });
@@ -145,8 +145,8 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
       if (isBlocked) {
         const blockedUntil = await service.getBlockedUntil(ip, email);
         return res.status(429).json({
-          error: 'Too many login attempts',
-          message: 'Account temporarily blocked due to multiple failed login attempts',
+          error: 'Too many login attempts';
+          message: 'Account temporarily blocked due to multiple failed login attempts';
           blockedUntil: blockedUntil?.toISOString(),
           retryAfter: blockedUntil ? Math.ceil((blockedUntil.getTime() - Date.now()) / 1000) : undefined
         });

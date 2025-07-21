@@ -3,7 +3,7 @@
  * Clean Architecture - Domain Layer
  */
 
-import { Ticket } from '../entities/Ticket';
+import { Ticket } from '../entities/Ticket''[,;]
 
 export interface TicketFilter {
   tenantId: string;

@@ -219,6 +219,113 @@ export const locations = pgTable("locations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// SKILLS - Habilidades Técnicas para módulo technical-skills
+export const skills = pgTable("skills", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }),
+  level: varchar("level", { length: 20 }).default("beginner"), // beginner, intermediate, advanced, expert
+  tags: jsonb("tags").default([]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// USER SKILLS - Relação usuário-habilidades
+export const userSkills = pgTable("user_skills", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  skillId: uuid("skill_id").notNull().references(() => skills.id),
+  proficiencyLevel: varchar("proficiency_level", { length: 20 }).default("beginner"),
+  yearsExperience: integer("years_experience").default(0),
+  certifications: jsonb("certifications").default([]),
+  lastUsed: timestamp("last_used"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CERTIFICATIONS - Certificações dos usuários
+export const certifications = pgTable("certifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  skillId: uuid("skill_id").references(() => skills.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  issuer: varchar("issuer", { length: 255 }),
+  issueDate: timestamp("issue_date"),
+  expiryDate: timestamp("expiry_date"),
+  credentialId: varchar("credential_id", { length: 100 }),
+  credentialUrl: varchar("credential_url", { length: 500 }),
+  isVerified: boolean("is_verified").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// INTERNAL FORMS - Formulários internos para módulo internal-forms
+export const internalForms = pgTable("internal_forms", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  formType: varchar("form_type", { length: 50 }).default("standard"),
+  fields: jsonb("fields").default([]),
+  validationRules: jsonb("validation_rules").default({}),
+  isActive: boolean("is_active").default(true),
+  isPublic: boolean("is_public").default(false),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SCHEDULES - Agendamentos para módulo schedule-management
+export const schedules = pgTable("schedules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  isRecurring: boolean("is_recurring").default(false),
+  recurrencePattern: jsonb("recurrence_pattern").default({}),
+  status: varchar("status", { length: 20 }).default("scheduled"),
+  isActive: boolean("is_active").default(true),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SCHEDULE AVAILABILITY - Disponibilidade de agenda
+export const scheduleAvailability = pgTable("schedule_availability", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 (Sunday-Saturday)
+  startTime: varchar("start_time", { length: 5 }).notNull(), // HH:MM format
+  endTime: varchar("end_time", { length: 5 }).notNull(),
+  isAvailable: boolean("is_available").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SCHEDULE CONFLICTS - Conflitos de agenda
+export const scheduleConflicts = pgTable("schedule_conflicts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  scheduleId: uuid("schedule_id").notNull().references(() => schedules.id),
+  conflictingScheduleId: uuid("conflicting_schedule_id").notNull().references(() => schedules.id),
+  conflictType: varchar("conflict_type", { length: 50 }).default("overlap"),
+  severity: varchar("severity", { length: 20 }).default("medium"),
+  isResolved: boolean("is_resolved").default(false),
+  resolution: text("resolution"),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
 // ===========================
 // RELACIONAMENTOS (FKs consistentes)
 // ===========================
@@ -276,6 +383,48 @@ export const insertProjectActionSchema = createInsertSchema(projectActions).omit
   updatedAt: true,
 });
 
+export const insertSkillSchema = createInsertSchema(skills).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSkillSchema = createInsertSchema(userSkills).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCertificationSchema = createInsertSchema(certifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInternalFormSchema = createInsertSchema(internalForms).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleSchema = createInsertSchema(schedules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleAvailabilitySchema = createInsertSchema(scheduleAvailability).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleConflictSchema = createInsertSchema(scheduleConflicts).omit({
+  id: true,
+  createdAt: true,
+  resolvedAt: true,
+});
+
 // ===========================
 // TIPOS TYPESCRIPT
 // ===========================
@@ -296,3 +445,17 @@ export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type InsertProjectAction = z.infer<typeof insertProjectActionSchema>;
+export type Skill = typeof skills.$inferSelect;
+export type UserSkill = typeof userSkills.$inferSelect;
+export type Certification = typeof certifications.$inferSelect;
+export type InternalForm = typeof internalForms.$inferSelect;
+export type Schedule = typeof schedules.$inferSelect;
+export type ScheduleAvailability = typeof scheduleAvailability.$inferSelect;
+export type ScheduleConflict = typeof scheduleConflicts.$inferSelect;
+export type InsertSkill = z.infer<typeof insertSkillSchema>;
+export type InsertUserSkill = z.infer<typeof insertUserSkillSchema>;
+export type InsertCertification = z.infer<typeof insertCertificationSchema>;
+export type InsertInternalForm = z.infer<typeof insertInternalFormSchema>;
+export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type InsertScheduleAvailability = z.infer<typeof insertScheduleAvailabilitySchema>;
+export type InsertScheduleConflict = z.infer<typeof insertScheduleConflictSchema>;

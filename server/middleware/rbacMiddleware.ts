@@ -256,7 +256,7 @@ export function requirePermission(resource: string, action: string, contextProvi
 
     if (!hasPermission) {
       return res.status(403).json({ 
-        message: 'Insufficient permissions',
+        message: 'Insufficient permissions';
         required: { resource, action },
         userRole: req.user.role 
       });
@@ -283,7 +283,7 @@ export function requireTenantAccess(tenantIdParam: string = 'tenantId') {
     // Other users can only access their own tenant
     if (req.user.tenantId !== requestedTenantId) {
       return res.status(403).json({ 
-        message: 'Access denied to tenant',
+        message: 'Access denied to tenant';
         userTenant: req.user.tenantId,
         requestedTenant: requestedTenantId
       });
@@ -305,7 +305,7 @@ export function requireDynamicPermission(permissionProvider: (req: Request) => {
 
     if (!hasPermission) {
       return res.status(403).json({ 
-        message: 'Insufficient permissions',
+        message: 'Insufficient permissions';
         required: { resource, action },
         userRole: req.user.role 
       });

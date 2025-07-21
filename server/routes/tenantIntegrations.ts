@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { jwtAuth } from '../middleware/jwtAuth';
-import { requireTenantAdmin, requirePermission, AuthorizedRequest } from '../middleware/authorizationMiddleware';
-import { Permission } from '../domain/authorization/RolePermissions';
+import { Router } from 'express''[,;]
+import { jwtAuth } from '../middleware/jwtAuth''[,;]
+import { requireTenantAdmin, requirePermission, AuthorizedRequest } from '../middleware/authorizationMiddleware''[,;]
+import { Permission } from '../domain/authorization/RolePermissions''[,;]
 
 const router = Router();
 
@@ -37,7 +37,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
     if (!imapServer || !emailAddress || !password) {
       return {
         success: false,
-        error: 'Parâmetros de conexão incompletos',
+        error: 'Parâmetros de conexão incompletos''[,;]
         details: { missing: ['server', 'email', 'password'].filter(param => !config[param]) }
       };
     }
@@ -47,14 +47,14 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
     if (!emailRegex.test(emailAddress)) {
       return {
         success: false,
-        error: 'Formato de email inválido',
+        error: 'Formato de email inválido''[,;]
         details: { email: emailAddress }
       };
     }
     
     // Simular teste de conexão (substituir por conexão real em produção)
     const testPort = imapPort || (useSSL ? 993 : 143);
-    const protocol = useSSL ? 'IMAPS' : 'IMAP';
+    const protocol = useSSL ? 'IMAPS' : 'IMAP''[,;]
     
     // Simular diferentes cenários baseados no servidor
     if (imapServer.includes('gmail.com')) {
@@ -62,7 +62,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
       if (password.length < 16) {
         return {
           success: false,
-          error: 'Gmail requer App Password (16 caracteres). Configure um App Password nas configurações de segurança.',
+          error: 'Gmail requer App Password (16 caracteres). Configure um App Password nas configurações de segurança.''[,;]
           details: {
             hint: 'Vá para: Conta Google > Segurança > Verificação em duas etapas > Senhas de app'
           }
@@ -77,7 +77,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
         server: imapServer,
         port: testPort,
         protocol,
-        security: useSSL ? 'SSL/TLS' : 'Plain',
+        security: useSSL ? 'SSL/TLS' : 'Plain''[,;]
         email: emailAddress,
         status: 'Configuração válida para conexão IMAP'
       }
@@ -86,7 +86,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
   } catch (error) {
     return {
       success: false,
-      error: 'Erro interno no teste de conexão',
+      error: 'Erro interno no teste de conexão''[,;]
       details: { error: (error as Error).message }
     };
   }
@@ -198,31 +198,31 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
     // Prepare configuration for storage (store actual values, not masked)
     const configData = {
       // OAuth2 fields
-      clientId: clientId || ',
-      clientSecret: clientSecret || ',
-      redirectUri: redirectUri || ',
+      clientId: clientId || ''[,;]
+      clientSecret: clientSecret || ''[,;]
+      redirectUri: redirectUri || ''[,;]
       // Traditional fields
-      apiKey: apiKey || ',
-      apiSecret: apiSecret || ',
-      webhookUrl: webhookUrl || ',
-      accessToken: accessToken || ',
-      refreshToken: refreshToken || ',
+      apiKey: apiKey || ''[,;]
+      apiSecret: apiSecret || ''[,;]
+      webhookUrl: webhookUrl || ''[,;]
+      accessToken: accessToken || ''[,;]
+      refreshToken: refreshToken || ''[,;]
       // IMAP specific fields
-      imapServer: imapServer || 'imap.gmail.com',
+      imapServer: imapServer || 'imap.gmail.com''[,;]
       imapPort: parseInt(imapPort || '993') || 993,
-      emailAddress: emailAddress || ',
-      password: password || ',
+      emailAddress: emailAddress || ''[,;]
+      password: password || ''[,;]
       useSSL: useSSL !== false,
-      imapSecurity: req.body.imapSecurity || 'SSL/TLS',
+      imapSecurity: req.body.imapSecurity || 'SSL/TLS''[,;]
       // Compatibility fields
-      serverHost: imapServer || 'imap.gmail.com',
+      serverHost: imapServer || 'imap.gmail.com''[,;]
       serverPort: parseInt(imapPort || '993') || 993,
-      username: emailAddress || ',
+      username: emailAddress || ''[,;]
       // Dropbox specific fields
-      dropboxAppKey: dropboxAppKey || ',
-      dropboxAppSecret: dropboxAppSecret || ',
-      dropboxAccessToken: dropboxAccessToken || ',
-      backupFolder: backupFolder || '/Backups/Conductor',
+      dropboxAppKey: dropboxAppKey || ''[,;]
+      dropboxAppSecret: dropboxAppSecret || ''[,;]
+      dropboxAccessToken: dropboxAccessToken || ''[,;]
+      backupFolder: backupFolder || '/Backups/Conductor''[,;]
       enabled: enabled !== false,
       settings: settings || {},
       // Metadata
@@ -240,25 +240,25 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       integrationId,
       tenantId,
       // OAuth2 fields (masked)
-      clientId: clientId ? '***' + clientId.slice(-4) : ',
-      clientSecret: clientSecret ? '***' + clientSecret.slice(-4) : ',
+      clientId: clientId ? '***' + clientId.slice(-4) : ''[,;]
+      clientSecret: clientSecret ? '***' + clientSecret.slice(-4) : ''[,;]
       redirectUri,
       // Traditional fields (masked)
-      apiKey: apiKey ? '***' + apiKey.slice(-4) : ',
-      apiSecret: apiSecret ? '***' + apiSecret.slice(-4) : ',
+      apiKey: apiKey ? '***' + apiKey.slice(-4) : ''[,;]
+      apiSecret: apiSecret ? '***' + apiSecret.slice(-4) : ''[,;]
       webhookUrl,
-      accessToken: accessToken ? '***' + accessToken.slice(-4) : ',
-      refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : ',
+      accessToken: accessToken ? '***' + accessToken.slice(-4) : ''[,;]
+      refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : ''[,;]
       // IMAP specific fields (masked)
       imapServer,
       imapPort,
       emailAddress,
-      password: password ? '***' + password.slice(-4) : ',
+      password: password ? '***' + password.slice(-4) : ''[,;]
       useSSL,
       // Dropbox specific fields (masked)
-      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : ',
-      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : ',
-      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : ',
+      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : ''[,;]
+      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : ''[,;]
+      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : ''[,;]
       backupFolder,
       enabled: enabled !== false,
       settings: settings || {},
@@ -266,7 +266,7 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
     };
 
     res.json({
-      message: 'Integration configured successfully',
+      message: 'Integration configured successfully''[,;]
       config: maskedConfig
     });
   } catch (error) {
@@ -297,8 +297,8 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           success: true, 
           error: ', 
           details: { 
-            server: 'smtp.gmail.com',
-            port: '587',
+            server: 'smtp.gmail.com''[,;]
+            port: '587''[,;]
             authentication: 'successful'
           }
         };
@@ -309,8 +309,8 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           success: true, 
           error: ', 
           details: { 
-            phoneNumber: '+55 11 99999-9999',
-            status: 'verified',
+            phoneNumber: '+55 11 99999-9999''[,;]
+            status: 'verified''[,;]
             webhookStatus: 'active'
           }
         };
@@ -321,7 +321,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           success: true, 
           error: ', 
           details: { 
-            workspace: 'empresa-workspace',
+            workspace: 'empresa-workspace''[,;]
             channels: ['#suporte', '#alertas'],
             botStatus: 'online'
           }
@@ -372,16 +372,16 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                     server: config.imapServer,
                     port: config.imapPort || 993,
                     email: config.emailAddress,
-                    ssl: config.useSSL ? 'Enabled' : 'Disabled',
-                    connection: 'Connection successful',
-                    status: 'IMAP server accessible',
+                    ssl: config.useSSL ? 'Enabled' : 'Disabled''[,;]
+                    connection: 'Connection successful''[,;]
+                    status: 'IMAP server accessible''[,;]
                     lastTested: new Date().toISOString()
                   }
                 };
               } else {
                 testResult = {
                   success: false,
-                  error: connectionTest.error || 'Falha na conexão IMAP',
+                  error: connectionTest.error || 'Falha na conexão IMAP''[,;]
                   details: connectionTest.details || {}
                 };
               }
@@ -405,10 +405,10 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           success: true, 
           error: ', 
           details: { 
-            accountInfo: 'Personal Account',
-            usedSpace: '2.5 GB',
-            totalSpace: '16 GB',
-            backupFolder: '/Backups/Conductor',
+            accountInfo: 'Personal Account''[,;]
+            usedSpace: '2.5 GB''[,;]
+            totalSpace: '16 GB''[,;]
+            backupFolder: '/Backups/Conductor''[,;]
             lastSync: new Date().toISOString()
           }
         };
@@ -419,8 +419,8 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           success: true, 
           error: ', 
           details: { 
-            url: 'https://exemplo.com/webhook',
-            responseTime: '120ms',
+            url: 'https://exemplo.com/webhook''[,;]
+            responseTime: '120ms''[,;]
             status: 'reachable'
           }
         };
@@ -431,7 +431,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           success: true, 
           error: ', 
           details: { 
-            status: 'integration test successful',
+            status: 'integration test successful''[,;]
             timestamp: new Date().toISOString()
           }
         };
@@ -460,22 +460,22 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    let authUrl = ';
-    let scopes = ';
+    let authUrl = '[,;]
+    let scopes = '[,;]
     
     // Generate OAuth2 URLs based on integration type
     if (integrationId === 'gmail-oauth2') {
-      const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-      scopes = 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
-      const clientId = req.body.clientId || 'YOUR_GOOGLE_CLIENT_ID';
+      const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth''[,;]
+      scopes = 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send''[,;]
+      const clientId = req.body.clientId || 'YOUR_GOOGLE_CLIENT_ID''[,;]
       const redirectUri = req.body.redirectUri || `${req.protocol}://${req.get('host')}/auth/gmail/callback`;
       
       authUrl = `${baseUrl}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&access_type=offline&prompt=consent`;
     } 
     else if (integrationId === 'outlook-oauth2') {
-      const baseUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize';
-      scopes = 'openid profile email https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send';
-      const clientId = req.body.clientId || 'YOUR_AZURE_CLIENT_ID';
+      const baseUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize''[,;]
+      scopes = 'openid profile email https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send''[,;]
+      const clientId = req.body.clientId || 'YOUR_AZURE_CLIENT_ID''[,;]
       const redirectUri = req.body.redirectUri || `${req.protocol}://${req.get('host')}/auth/outlook/callback`;
       
       authUrl = `${baseUrl}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&response_mode=query`;
@@ -485,7 +485,7 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
     }
 
     res.json({
-      message: 'OAuth2 authorization URL generated',
+      message: 'OAuth2 authorization URL generated''[,;]
       authUrl,
       integrationId,
       tenantId,
@@ -516,119 +516,119 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
     const allIntegrations = [
       // Comunicação (7 integrações)
       {
-        id: 'gmail-oauth2',
-        name: 'Gmail OAuth2',
-        description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
-        category: 'Comunicação',
-        icon: 'Mail',
+        id: 'gmail-oauth2''[,;]
+        name: 'Gmail OAuth2''[,;]
+        description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'Mail''[,;]
         features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
       },
       {
-        id: 'outlook-oauth2',
-        name: 'Outlook OAuth2',
-        description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
-        category: 'Comunicação',
-        icon: 'Mail',
+        id: 'outlook-oauth2''[,;]
+        name: 'Outlook OAuth2''[,;]
+        description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'Mail''[,;]
         features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
       },
       {
-        id: 'email-smtp',
-        name: 'Email SMTP',
-        description: 'Configuração de servidor SMTP para envio de emails automáticos e notificações',
-        category: 'Comunicação',
-        icon: 'Mail',
+        id: 'email-smtp''[,;]
+        name: 'Email SMTP''[,;]
+        description: 'Configuração de servidor SMTP para envio de emails automáticos e notificações''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'Mail''[,;]
         features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
       },
       {
-        id: 'imap-email',
-        name: 'IMAP Email',
-        description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
-        category: 'Comunicação',
-        icon: 'Inbox',
+        id: 'imap-email''[,;]
+        name: 'IMAP Email''[,;]
+        description: 'Conecte sua caixa de email via IMAP para sincronização de tickets''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'Inbox''[,;]
         features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
       },
       {
-        id: 'whatsapp-business',
-        name: 'WhatsApp Business',
-        description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
-        category: 'Comunicação',
-        icon: 'MessageSquare',
+        id: 'whatsapp-business''[,;]
+        name: 'WhatsApp Business''[,;]
+        description: 'Integração com WhatsApp Business API para atendimento via WhatsApp''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'MessageSquare''[,;]
         features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
       },
       {
-        id: 'slack',
-        name: 'Slack',
-        description: 'Notificações e gerenciamento de tickets através do Slack',
-        category: 'Comunicação',
-        icon: 'MessageCircle',
+        id: 'slack''[,;]
+        name: 'Slack''[,;]
+        description: 'Notificações e gerenciamento de tickets através do Slack''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'MessageCircle''[,;]
         features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
       },
       {
-        id: 'twilio-sms',
-        name: 'Twilio SMS',
-        description: 'Envio de SMS para notificações e alertas importantes',
-        category: 'Comunicação',
-        icon: 'Phone',
+        id: 'twilio-sms''[,;]
+        name: 'Twilio SMS''[,;]
+        description: 'Envio de SMS para notificações e alertas importantes''[,;]
+        category: 'Comunicação''[,;]
+        icon: 'Phone''[,;]
         features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
       },
       // Automação (2 integrações)
       {
-        id: 'zapier',
-        name: 'Zapier',
-        description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
-        category: 'Automação',
-        icon: 'Zap',
+        id: 'zapier''[,;]
+        name: 'Zapier''[,;]
+        description: 'Conecte com mais de 3000 aplicativos através de automações Zapier''[,;]
+        category: 'Automação''[,;]
+        icon: 'Zap''[,;]
         features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
       },
       {
-        id: 'webhooks',
-        name: 'Webhooks',
-        description: 'Receba notificações em tempo real de eventos do sistema',
-        category: 'Automação',
-        icon: 'Webhook',
+        id: 'webhooks''[,;]
+        name: 'Webhooks''[,;]
+        description: 'Receba notificações em tempo real de eventos do sistema''[,;]
+        category: 'Automação''[,;]
+        icon: 'Webhook''[,;]
         features: ['Eventos em tempo real', 'Custom endpoints', 'Retry automático']
       },
       // Dados (2 integrações)
       {
-        id: 'crm-integration',
-        name: 'CRM Integration',
-        description: 'Sincronização com sistemas CRM para gestão unificada de clientes',
-        category: 'Dados',
-        icon: 'Database',
+        id: 'crm-integration''[,;]
+        name: 'CRM Integration''[,;]
+        description: 'Sincronização com sistemas CRM para gestão unificada de clientes''[,;]
+        category: 'Dados''[,;]
+        icon: 'Database''[,;]
         features: ['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']
       },
       {
-        id: 'dropbox-personal',
-        name: 'Dropbox Pessoal',
-        description: 'Backup automático de dados e arquivos importantes',
-        category: 'Dados',
-        icon: 'Cloud',
+        id: 'dropbox-personal''[,;]
+        name: 'Dropbox Pessoal''[,;]
+        description: 'Backup automático de dados e arquivos importantes''[,;]
+        category: 'Dados''[,;]
+        icon: 'Cloud''[,;]
         features: ['Backup automático', 'Sincronização de arquivos', 'Versionamento']
       },
       // Segurança (1 integração)
       {
-        id: 'sso-saml',
-        name: 'SSO/SAML',
-        description: 'Single Sign-On para autenticação corporativa segura',
-        category: 'Segurança',
-        icon: 'Shield',
+        id: 'sso-saml''[,;]
+        name: 'SSO/SAML''[,;]
+        description: 'Single Sign-On para autenticação corporativa segura''[,;]
+        category: 'Segurança''[,;]
+        icon: 'Shield''[,;]
         features: ['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']
       },
       // Produtividade (2 integrações)
       {
-        id: 'google-workspace',
-        name: 'Google Workspace',
-        description: 'Integração completa com Gmail, Drive e Calendar',
-        category: 'Produtividade',
-        icon: 'Calendar',
+        id: 'google-workspace''[,;]
+        name: 'Google Workspace''[,;]
+        description: 'Integração completa com Gmail, Drive e Calendar''[,;]
+        category: 'Produtividade''[,;]
+        icon: 'Calendar''[,;]
         features: ['Gmail sync', 'Drive backup', 'Calendar integration']
       },
       {
-        id: 'chatbot-ai',
-        name: 'Chatbot IA',
-        description: 'Assistente virtual inteligente para atendimento automatizado',
-        category: 'Produtividade',
-        icon: 'Bot',
+        id: 'chatbot-ai''[,;]
+        name: 'Chatbot IA''[,;]
+        description: 'Assistente virtual inteligente para atendimento automatizado''[,;]
+        category: 'Produtividade''[,;]
+        icon: 'Bot''[,;]
         features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
       }
     ];

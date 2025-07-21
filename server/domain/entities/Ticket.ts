@@ -1,6 +1,6 @@
 // Domain Entity - Pure business logic
-export type TicketStatus = 'open' | 'in_progress' | 'pending' | 'resolved' | 'closed';
-export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TicketStatus = 'open' | 'in_progress' | 'pending' | 'resolved' | 'closed'[,;]
+export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent'[,;]
 
 export class Ticket {
   constructor(
@@ -9,8 +9,8 @@ export class Ticket {
     public readonly customerId: string,
     public readonly subject: string,
     public readonly description: string | null = null,
-    public readonly status: TicketStatus = 'open',
-    public readonly priority: TicketPriority = 'medium',
+    public readonly status: TicketStatus = 'open''[,;]
+    public readonly priority: TicketPriority = 'medium''[,;]
     public readonly assignedToId: string | null = null,
     public readonly tags: string[] = [],
     public readonly metadata: Record<string, unknown> = {},
@@ -20,11 +20,11 @@ export class Ticket {
 
   // Business rules
   get isOpen(): boolean {
-    return this.status === 'open';
+    return this.status === 'open'[,;]
   }
 
   get isResolved(): boolean {
-    return this.status === 'resolved' || this.status === 'closed';
+    return this.status === 'resolved' || this.status === 'closed'[,;]
   }
 
   get isAssigned(): boolean {
@@ -32,7 +32,7 @@ export class Ticket {
   }
 
   get isUrgent(): boolean {
-    return this.priority === 'urgent' || this.priority === 'high';
+    return this.priority === 'urgent' || this.priority === 'high'[,;]
   }
 
   get ageInDays(): number {
@@ -43,12 +43,12 @@ export class Ticket {
 
   canBeAssignedTo(userId: string): boolean {
     // Business rule: tickets can only be reassigned if not closed
-    return this.status !== 'closed';
+    return this.status !== 'closed'[,;]
   }
 
   canBeResolvedBy(userId: string): boolean {
     // Business rule: only assigned agent or admin can resolve
-    return this.assignedToId === userId || this.status !== 'closed';
+    return this.assignedToId === userId || this.status !== 'closed'[,;]
   }
 
   // Factory methods
@@ -85,8 +85,8 @@ export class Ticket {
       props.customerId,
       props.subject.trim(),
       props.description?.trim() || null,
-      'open',
-      props.priority || 'medium',
+      'open''[,;]
+      props.priority || 'medium''[,;]
       props.assignedToId || null,
       props.tags || [],
       props.metadata || {},

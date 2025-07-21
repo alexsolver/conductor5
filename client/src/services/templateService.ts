@@ -14,12 +14,12 @@ export interface Template {
   name: string;
   description: string;
   colors: TemplateColors;
-  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant' | 'sunset' | 'ocean' | 'forest';
+  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant' | 'sunset' | 'ocean' | 'forest''';
   cssVariables: Record<string, string>;
 }
 
 export class TemplateService {
-  private static readonly STORAGE_KEY = 'selected-template';
+  private static readonly STORAGE_KEY = 'selected-template''';
 
   static applyTemplate(template: Template): void {
     const root = document.documentElement;
@@ -192,6 +192,6 @@ export class TemplateService {
     const b = parseInt(hex.slice(5, 7), 16);
     
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#000000' : '#ffffff';
+    return luminance > 0.5 ? '#000000' : '#ffffff''';
   }
 }

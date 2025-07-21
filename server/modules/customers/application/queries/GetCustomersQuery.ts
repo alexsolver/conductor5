@@ -4,11 +4,11 @@
  * Clean Architecture - Application Layer
  */
 
-import { IQuery, IQueryHandler } from '../../../shared/application/cqrs/IQuery';
-import { GetCustomersUseCase, GetCustomersInput, GetCustomersOutput } from '../usecases/GetCustomersUseCase';
+import { IQuery, IQueryHandler } from '../../../shared/application/cqrs/IQuery''[,;]
+import { GetCustomersUseCase, GetCustomersInput, GetCustomersOutput } from '../usecases/GetCustomersUseCase''[,;]
 
 export class GetCustomersQuery implements IQuery<GetCustomersOutput> {
-  public readonly queryName = 'GetCustomersQuery';
+  public readonly queryName = 'GetCustomersQuery''[,;]
 
   constructor(
     public readonly tenantId: string,

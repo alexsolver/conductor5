@@ -86,7 +86,7 @@ export class EnhancedUUIDValidator {
       
       return {
         valid: false,
-        normalized: ',
+        normalized: ''[,;]
         errors: validation.errors
       };
     }
@@ -102,7 +102,7 @@ export class EnhancedUUIDValidator {
   // NORMALIZAÇÃO SEGURA
   // ===========================
   normalizeTenantId(tenantId: string): string {
-    if (!tenantId) return ';
+    if (!tenantId) return ''[,;]
     
     // Convert to lowercase and remove any whitespace
     const normalized = tenantId.toLowerCase().trim();
@@ -209,7 +209,7 @@ export class EnhancedUUIDValidator {
       
       if (!tenantId) {
         return res.status(400).json({
-          error: 'Missing tenant ID',
+          error: 'Missing tenant ID''[,;]
           code: 'TENANT_ID_REQUIRED'
         });
       }
@@ -218,8 +218,8 @@ export class EnhancedUUIDValidator {
       
       if (!validation.valid) {
         return res.status(400).json({
-          error: 'Invalid tenant ID format',
-          code: 'INVALID_TENANT_ID',
+          error: 'Invalid tenant ID format''[,;]
+          code: 'INVALID_TENANT_ID''[,;]
           details: validation.errors
         });
       }
@@ -243,7 +243,7 @@ export class EnhancedUUIDValidator {
       tenantId: validation.normalized,
       operation,
       userId,
-      validationStatus: validation.valid ? 'VALID' : 'INVALID',
+      validationStatus: validation.valid ? 'VALID' : 'INVALID''[,;]
       errors: validation.errors,
       warnings: validation.valid && validation.errors.length > 0 ? validation.errors : undefined
     };

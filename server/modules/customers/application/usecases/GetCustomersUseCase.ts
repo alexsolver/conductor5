@@ -3,8 +3,8 @@
  * Clean Architecture - Application Layer
  */
 
-import { Customer } from '../../domain/entities/Customer';
-import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository';
+import { Customer } from '../../domain/entities/Customer''[,;]
+import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository''[,;]
 
 export interface GetCustomersInput {
   tenantId: string;

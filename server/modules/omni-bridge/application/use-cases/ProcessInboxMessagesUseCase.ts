@@ -2,8 +2,8 @@
  * Process Inbox Messages Use Case
  * Clean Architecture - Application Layer
  */
-import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository';
-import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository';
+import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository''[,;]
+import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository''[,;]
 
 export class ProcessInboxMessagesUseCase {
   constructor(
@@ -38,7 +38,7 @@ export class ProcessInboxMessagesUseCase {
             for (const action of rule.actions) {
               switch (action.type) {
                 case 'set_priority':
-                  message.priority = action.value as 'low' | 'medium' | 'high' | 'urgent';
+                  message.priority = action.value as 'low' | 'medium' | 'high' | 'urgent''[,;]
                   break;
                 case 'create_ticket':
                   // Would create ticket here
@@ -60,7 +60,7 @@ export class ProcessInboxMessagesUseCase {
         }
 
         // Mark as processed
-        message.status = ruleMatched ? 'processed' : 'read';
+        message.status = ruleMatched ? 'processed' : 'read''[,;]
         await this.messageRepository.update(tenantId, message.id, { 
           status: message.status,
           priority: message.priority 

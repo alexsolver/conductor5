@@ -1,7 +1,7 @@
 
-import { sql } from 'drizzle-orm';
-import { db } from '../db';
-import { logInfo, logError } from '../utils/logger';
+import { sql } from 'drizzle-orm''[,;]
+import { db } from '../db''[,;]
+import { logInfo, logError } from '../utils/logger''[,;]
 
 /**
  * CRITICAL FIX: Tenant-Optimized Index Creation

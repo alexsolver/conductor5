@@ -1,5 +1,5 @@
-import { ProjectAction } from '../../domain/entities/Project';
-import { IProjectActionRepository } from '../../domain/repositories/IProjectRepository';
+import { ProjectAction } from '../../domain/entities/Project''[,;]
+import { IProjectActionRepository } from '../../domain/repositories/IProjectRepository''[,;]
 
 interface TicketCreationData {
   subject: string;
@@ -236,16 +236,16 @@ export class ProjectActionTicketIntegrationService {
 
   private generateTicketSubject(action: ProjectAction): string {
     const typeLabels = {
-      'internal_meeting': 'Reunião Interna',
+      'internal_meeting': 'Reunião Interna''[,;]
       'internal_approval': 'Aprovação Interna', 
-      'internal_review': 'Revisão Interna',
-      'internal_task': 'Tarefa Interna',
-      'task': 'Tarefa',
-      'external_delivery': 'Entrega Externa',
-      'external_validation': 'Validação Externa',
-      'external_meeting': 'Reunião com Cliente',
-      'external_feedback': 'Feedback Externo',
-      'milestone': 'Marco',
+      'internal_review': 'Revisão Interna''[,;]
+      'internal_task': 'Tarefa Interna''[,;]
+      'task': 'Tarefa''[,;]
+      'external_delivery': 'Entrega Externa''[,;]
+      'external_validation': 'Validação Externa''[,;]
+      'external_meeting': 'Reunião com Cliente''[,;]
+      'external_feedback': 'Feedback Externo''[,;]
+      'milestone': 'Marco''[,;]
       'checkpoint': 'Ponto de Controle'
     };
 
@@ -255,7 +255,7 @@ export class ProjectActionTicketIntegrationService {
   private generateTicketDescription(action: ProjectAction, projectName: string): string {
     const lines = [
       `Este ticket foi criado automaticamente a partir de uma ação do projeto "${projectName}".`,
-      ',
+      ''[,;]
       `**Tipo da Ação:** ${action.type}`,
       `**Status Original:** ${action.status}`,
       `**Prioridade:** ${action.priority}`,
@@ -282,47 +282,47 @@ export class ProjectActionTicketIntegrationService {
 
   private mapActionPriorityToTicketPriority(actionPriority: string): string {
     const mapping = {
-      'low': 'low',
+      'low': 'low''[,;]
       'medium': 'medium', 
-      'high': 'high',
+      'high': 'high''[,;]
       'critical': 'critical'
     };
-    return mapping[actionPriority] || 'medium';
+    return mapping[actionPriority] || 'medium''[,;]
   }
 
   private mapActionPriorityToTicketUrgency(actionPriority: string): string {
     const mapping = {
-      'low': 'low',
-      'medium': 'medium',
+      'low': 'low''[,;]
+      'medium': 'medium''[,;]
       'high': 'high', 
       'critical': 'critical'
     };
-    return mapping[actionPriority] || 'medium';
+    return mapping[actionPriority] || 'medium''[,;]
   }
 
   private mapActionTypeToTicketCategory(actionType: string): string {
     const mapping = {
-      'internal_meeting': 'meeting',
-      'internal_approval': 'approval',
-      'internal_review': 'review',
-      'internal_task': 'task',
-      'external_delivery': 'delivery',
-      'external_validation': 'validation',
-      'external_meeting': 'meeting',
-      'external_feedback': 'feedback',
-      'milestone': 'milestone',
+      'internal_meeting': 'meeting''[,;]
+      'internal_approval': 'approval''[,;]
+      'internal_review': 'review''[,;]
+      'internal_task': 'task''[,;]
+      'external_delivery': 'delivery''[,;]
+      'external_validation': 'validation''[,;]
+      'external_meeting': 'meeting''[,;]
+      'external_feedback': 'feedback''[,;]
+      'milestone': 'milestone''[,;]
       'checkpoint': 'checkpoint'
     };
-    return mapping[actionType] || 'task';
+    return mapping[actionType] || 'task''[,;]
   }
 
   private isConvertibleType(actionType: string): boolean {
     // Tipos que fazem sentido converter para tickets operacionais
     const convertibleTypes = [
-      'internal_task',
-      'external_delivery',
-      'external_validation',
-      'milestone',
+      'internal_task''[,;]
+      'external_delivery''[,;]
+      'external_validation''[,;]
+      'milestone''[,;]
       'checkpoint'
     ];
     return convertibleTypes.includes(actionType);

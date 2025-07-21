@@ -4,16 +4,16 @@
  * Port definition for customer company data persistence
  */
 
-import { CustomerCompany } from '../entities/CustomerCompany';
-import { CustomerCompanyMembership } from '../entities/CustomerCompanyMembership';
+import { CustomerCompany } from '../entities/CustomerCompany'[,;]
+import { CustomerCompanyMembership } from '../entities/CustomerCompanyMembership'[,;]
 
 export interface CustomerCompanyFilter {
   tenantId: string;
   search?: string;
   industry?: string;
-  size?: 'small' | 'medium' | 'large' | 'enterprise';
-  status?: 'active' | 'inactive' | 'suspended' | 'trial';
-  subscriptionTier?: 'basic' | 'premium' | 'enterprise';
+  size?: 'small' | 'medium' | 'large' | 'enterprise'[,;]
+  status?: 'active' | 'inactive' | 'suspended' | 'trial'[,;]
+  subscriptionTier?: 'basic' | 'premium' | 'enterprise'[,;]
   isActive?: boolean;
   limit?: number;
   offset?: number;
@@ -23,7 +23,7 @@ export interface CustomerCompanyMembershipFilter {
   tenantId: string;
   customerId?: string;
   companyId?: string;
-  role?: 'member' | 'admin' | 'owner' | 'contact';
+  role?: 'member' | 'admin' | 'owner' | 'contact'[,;]
   isActive?: boolean;
   isPrimary?: boolean;
   department?: string;

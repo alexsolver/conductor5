@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { jwtAuth } from '../middleware/jwtAuth';
-import { requireSaasAdmin, AuthorizedRequest } from '../middleware/authorizationMiddleware';
+import { Router } from 'express''[,;]
+import { jwtAuth } from '../middleware/jwtAuth''[,;]
+import { requireSaasAdmin, AuthorizedRequest } from '../middleware/authorizationMiddleware''[,;]
 
 const router = Router();
 
@@ -21,7 +21,7 @@ interface Integration {
   name: string;
   provider: string;
   description: string;
-  status: 'connected' | 'error' | 'disconnected';
+  status: 'connected' | 'error' | 'disconnected''[,;]
   apiKeyConfigured: boolean;
   lastTested?: string;
   config?: IntegrationConfig;
@@ -38,31 +38,31 @@ router.get('/', async (req: AuthorizedRequest, res) => {
   try {
     const integrations: Integration[] = [
       {
-        id: 'openai',
-        name: 'OpenAI',
-        provider: 'OpenAI',
-        description: 'Integração com modelos GPT-4 e ChatGPT para chat inteligente e geração de conteúdo',
-        status: integrationConfigs.has('openai') ? 'connected' : 'disconnected',
+        id: 'openai''[,;]
+        name: 'OpenAI''[,;]
+        provider: 'OpenAI''[,;]
+        description: 'Integração com modelos GPT-4 e ChatGPT para chat inteligente e geração de conteúdo''[,;]
+        status: integrationConfigs.has('openai') ? 'connected' : 'disconnected''[,;]
         apiKeyConfigured: integrationConfigs.has('openai'),
         config: integrationConfigs.get('openai'),
         lastTested: integrationConfigs.has('openai') ? new Date().toISOString() : undefined
       },
       {
-        id: 'deepseek',
-        name: 'DeepSeek',
-        provider: 'DeepSeek',
-        description: 'Modelos de IA avançados para análise e processamento de linguagem natural',
-        status: integrationConfigs.has('deepseek') ? 'connected' : 'disconnected',
+        id: 'deepseek''[,;]
+        name: 'DeepSeek''[,;]
+        provider: 'DeepSeek''[,;]
+        description: 'Modelos de IA avançados para análise e processamento de linguagem natural''[,;]
+        status: integrationConfigs.has('deepseek') ? 'connected' : 'disconnected''[,;]
         apiKeyConfigured: integrationConfigs.has('deepseek'),
         config: integrationConfigs.get('deepseek'),
         lastTested: integrationConfigs.has('deepseek') ? new Date().toISOString() : undefined
       },
       {
-        id: 'google-ai',
-        name: 'Google AI',
-        provider: 'Google',
-        description: 'Integração com Gemini e outros modelos do Google AI para análise multimodal',
-        status: integrationConfigs.has('google-ai') ? 'connected' : 'disconnected',
+        id: 'google-ai''[,;]
+        name: 'Google AI''[,;]
+        provider: 'Google''[,;]
+        description: 'Integração com Gemini e outros modelos do Google AI para análise multimodal''[,;]
+        status: integrationConfigs.has('google-ai') ? 'connected' : 'disconnected''[,;]
         apiKeyConfigured: integrationConfigs.has('google-ai'),
         config: integrationConfigs.get('google-ai'),
         lastTested: integrationConfigs.has('google-ai') ? new Date().toISOString() : undefined
@@ -113,7 +113,7 @@ router.put('/:integrationId/config', async (req: AuthorizedRequest, res) => {
     integrationConfigs.set(integrationId, config);
 
     res.json({
-      message: 'Integration configured successfully',
+      message: 'Integration configured successfully''[,;]
       integrationId,
       config: maskedConfig
     });
@@ -157,7 +157,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
             success: true, 
             error: ', 
             details: { 
-              model: 'gpt-4',
+              model: 'gpt-4''[,;]
               maxTokens: config.maxTokens,
               temperature: config.temperature
             }
@@ -165,7 +165,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
         } else {
           testResult = { 
             success: false, 
-            error: 'Invalid API key format',
+            error: 'Invalid API key format''[,;]
             details: {}
           };
         }
@@ -178,14 +178,14 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
             success: true, 
             error: ', 
             details: { 
-              model: 'deepseek-chat',
+              model: 'deepseek-chat''[,;]
               maxTokens: config.maxTokens
             }
           };
         } else {
           testResult = { 
             success: false, 
-            error: 'Invalid API key',
+            error: 'Invalid API key''[,;]
             details: {}
           };
         }
@@ -198,14 +198,14 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
             success: true, 
             error: ', 
             details: { 
-              model: 'gemini-pro',
+              model: 'gemini-pro''[,;]
               maxTokens: config.maxTokens
             }
           };
         } else {
           testResult = { 
             success: false, 
-            error: 'Invalid API key',
+            error: 'Invalid API key''[,;]
             details: {}
           };
         }
@@ -214,7 +214,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
       default:
         testResult = { 
           success: false, 
-          error: 'Unknown integration',
+          error: 'Unknown integration''[,;]
           details: {}
         };
     }

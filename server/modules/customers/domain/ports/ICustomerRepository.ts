@@ -3,7 +3,7 @@
  * Clean Architecture - Domain Layer
  */
 
-import { Customer } from '../entities/Customer';
+import { Customer } from '../entities/Customer'[,;]
 
 export interface CustomerFilter {
   tenantId: string;

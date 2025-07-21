@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import { z } from 'zod';
-import { DrizzleUserSkillRepository } from '../../infrastructure/repositories/DrizzleUserSkillRepository';
-import { UserSkill } from '../../domain/entities/UserSkill';
-import { insertUserSkillSchema } from '../../../../../shared/schema/technical-skills';
+import { Request, Response } from 'express''[,;]
+import { z } from 'zod''[,;]
+import { DrizzleUserSkillRepository } from '../../infrastructure/repositories/DrizzleUserSkillRepository''[,;]
+import { UserSkill } from '../../domain/entities/UserSkill''[,;]
+import { insertUserSkillSchema } from '../../../../../shared/schema''[,;]
 // Logger temporariamente removido para simplificação
 
 interface AuthenticatedRequest extends Request {
@@ -35,7 +35,7 @@ export class UserSkillController {
       } else if (skillId) {
         const filters: any = {};
         if (minLevel) filters.minLevel = parseInt(minLevel as string);
-        if (validCertification) filters.validCertification = validCertification === 'true';
+        if (validCertification) filters.validCertification = validCertification === 'true''[,;]
         
         userSkills = await this.userSkillRepository.findUsersWithSkill(skillId as string, filters);
       } else {
@@ -141,7 +141,7 @@ export class UserSkillController {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,
-          message: 'Dados inválidos',
+          message: 'Dados inválidos''[,;]
           errors: error.errors
         });
       }
@@ -176,7 +176,7 @@ export class UserSkillController {
       if (updateData.proficiencyLevel !== undefined) {
         existingUserSkill.updateProficiencyLevel(
           updateData.proficiencyLevel,
-          req.user?.id || 'system',
+          req.user?.id || 'system''[,;]
           updateData.levelChangeReason
         );
       }
@@ -306,7 +306,7 @@ export class UserSkillController {
         assessmentDate: new Date(),
         notes: comment || null,
         metadata: {
-          assessmentType: 'peer-evaluation',
+          assessmentType: 'peer-evaluation''[,;]
           ticketId: ticketId || null,
           customerId: customerId || null
         }

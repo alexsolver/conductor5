@@ -176,7 +176,7 @@ export class EnterpriseOptimizer {
   private async addTenantIsolationConstraints(schemaName: string): Promise<void> {
     try {
       const tables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs',
+        'customers', 'tickets', 'ticket_messages', 'activity_logs';
         'locations', 'customer_companies', 'skills', 'certifications', 'user_skills'
       ];
 

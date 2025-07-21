@@ -4,10 +4,10 @@
  * Orchestrates multiple use cases and provides a clean API
  */
 
-import { CreateTicketUseCase, CreateTicketInput, CreateTicketOutput } from '../usecases/CreateTicketUseCase';
-import { GetTicketsUseCase, GetTicketsInput, GetTicketsOutput } from '../usecases/GetTicketsUseCase';
-import { AssignTicketUseCase, AssignTicketInput, AssignTicketOutput } from '../usecases/AssignTicketUseCase';
-import { ResolveTicketUseCase, ResolveTicketInput, ResolveTicketOutput } from '../usecases/ResolveTicketUseCase';
+import { CreateTicketUseCase, CreateTicketInput, CreateTicketOutput } from '../usecases/CreateTicketUseCase''[,;]
+import { GetTicketsUseCase, GetTicketsInput, GetTicketsOutput } from '../usecases/GetTicketsUseCase''[,;]
+import { AssignTicketUseCase, AssignTicketInput, AssignTicketOutput } from '../usecases/AssignTicketUseCase''[,;]
+import { ResolveTicketUseCase, ResolveTicketInput, ResolveTicketOutput } from '../usecases/ResolveTicketUseCase''[,;]
 
 export class TicketApplicationService {
   constructor(

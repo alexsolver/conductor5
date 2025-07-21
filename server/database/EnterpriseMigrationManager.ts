@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm';
-import { db } from '../db';
+import { sql } from 'drizzle-orm''[,;]
+import { db } from '../db''[,;]
 
 // ===========================
 // ENTERPRISE MIGRATION MANAGER
@@ -100,11 +100,11 @@ export class EnterpriseMigrationManager {
   async repairMissingTables(tenantId: string): Promise<void> {
     const migrations = [
       {
-        name: 'create_customers_table',
+        name: 'create_customers_table''[,;]
         sql: `
           CREATE TABLE IF NOT EXISTS {schemaName}.customers (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL,
             phone VARCHAR(50),
@@ -122,11 +122,11 @@ export class EnterpriseMigrationManager {
         `
       },
       {
-        name: 'create_skills_table',
+        name: 'create_skills_table''[,;]
         sql: `
           CREATE TABLE IF NOT EXISTS {schemaName}.skills (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
             name VARCHAR(255) NOT NULL,
             category VARCHAR(100) NOT NULL,
             description TEXT,
@@ -146,11 +146,11 @@ export class EnterpriseMigrationManager {
         `
       },
       {
-        name: 'create_certifications_table',
+        name: 'create_certifications_table''[,;]
         sql: `
           CREATE TABLE IF NOT EXISTS {schemaName}.certifications (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
             name VARCHAR(255) NOT NULL,
             issuer VARCHAR(255) NOT NULL,
             description TEXT,
@@ -167,7 +167,7 @@ export class EnterpriseMigrationManager {
         `
       },
       {
-        name: 'create_performance_indexes',
+        name: 'create_performance_indexes''[,;]
         sql: `
           CREATE INDEX IF NOT EXISTS customers_tenant_email_idx 
           ON {schemaName}.customers (tenant_id, email);
@@ -208,7 +208,7 @@ export class EnterpriseMigrationManager {
             AND column_name = 'tenant_id'
           ) THEN
             ALTER TABLE {schemaName}.${tableName} 
-            ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+            ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
             
             ALTER TABLE {schemaName}.${tableName} 
             ADD CONSTRAINT ${tableName}_tenant_id_format 
@@ -278,7 +278,7 @@ export class EnterpriseMigrationManager {
       
       // Check required tables exist
       const requiredTables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs',
+        'customers', 'tickets', 'ticket_messages', 'activity_logs''[,;]
         'locations', 'customer_companies', 'skills', 'certifications'
       ];
 

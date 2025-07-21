@@ -2,14 +2,14 @@
  * OmniBridge Routes
  * Clean Architecture - Infrastructure Layer
  */
-import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { requirePermission } from '../../middleware/rbacMiddleware';
-import { OmniBridgeController } from './application/controllers/OmniBridgeController';
-import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository';
-import { DrizzleUnifiedMessageRepository } from './infrastructure/repositories/DrizzleUnifiedMessageRepository';
-import { DrizzleProcessingRuleRepository } from './infrastructure/repositories/DrizzleProcessingRuleRepository';
-import { DrizzleMessageTemplateRepository } from './infrastructure/repositories/DrizzleMessageTemplateRepository';
+import { Router } from 'express''[,;]
+import { jwtAuth } from '../../middleware/jwtAuth''[,;]
+import { requirePermission } from '../../middleware/rbacMiddleware''[,;]
+import { OmniBridgeController } from './application/controllers/OmniBridgeController''[,;]
+import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository''[,;]
+import { DrizzleUnifiedMessageRepository } from './infrastructure/repositories/DrizzleUnifiedMessageRepository''[,;]
+import { DrizzleProcessingRuleRepository } from './infrastructure/repositories/DrizzleProcessingRuleRepository''[,;]
+import { DrizzleMessageTemplateRepository } from './infrastructure/repositories/DrizzleMessageTemplateRepository''[,;]
 
 const router = Router();
 

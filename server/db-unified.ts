@@ -74,7 +74,7 @@ export class UnifiedDatabaseManager {
           name VARCHAR(100) NOT NULL,
           subdomain VARCHAR(50) UNIQUE NOT NULL,
           status VARCHAR(20) DEFAULT 'active' NOT NULL,
-          settings JSONB DEFAULT '{}',
+          settings JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL
         )
@@ -124,9 +124,9 @@ export class UnifiedDatabaseManager {
     
     // Get existing tenant IDs from any remaining data or create sample tenants
     const sampleTenants = [
-      '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      '715c510a-3db5-4510-880a-9a1a5c320100',
-      '78a4c88e-0e85-4f7c-ad92-f472dad50d7a',
+      '3f99462f-3621-4b1b-bea8-782acc50d62e''[,;]
+      '715c510a-3db5-4510-880a-9a1a5c320100''[,;]
+      '78a4c88e-0e85-4f7c-ad92-f472dad50d7a''[,;]
       'cb9056df-d964-43d7-8fd8-b0cc00a72056'
     ];
 
@@ -160,16 +160,16 @@ export class UnifiedDatabaseManager {
       await db.execute(sql.raw(`
         CREATE TABLE "${schemaName}".solicitantes (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
           first_name VARCHAR(100),
           last_name VARCHAR(100),
           email VARCHAR(255),
           phone VARCHAR(20),
           documento VARCHAR(50),
-          tipo_pessoa VARCHAR(20) DEFAULT 'fisica',
-          preferencia_contato VARCHAR(20) DEFAULT 'email',
-          idioma VARCHAR(10) DEFAULT 'pt-BR',
-          timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
+          tipo_pessoa VARCHAR(20) DEFAULT 'fisica''[,;]
+          preferencia_contato VARCHAR(20) DEFAULT 'email''[,;]
+          idioma VARCHAR(10) DEFAULT 'pt-BR''[,;]
+          timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo''[,;]
           observacoes TEXT,
           verified BOOLEAN DEFAULT false,
           active BOOLEAN DEFAULT true,
@@ -179,8 +179,8 @@ export class UnifiedDatabaseManager {
           notes TEXT,
           avatar TEXT,
           signature TEXT,
-          locale VARCHAR(10) DEFAULT 'pt-BR',
-          language VARCHAR(10) DEFAULT 'pt-BR',
+          locale VARCHAR(10) DEFAULT 'pt-BR''[,;]
+          language VARCHAR(10) DEFAULT 'pt-BR''[,;]
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
@@ -192,14 +192,14 @@ export class UnifiedDatabaseManager {
       await db.execute(sql.raw(`
         CREATE TABLE "${schemaName}".favorecidos (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
           nome VARCHAR(200) NOT NULL,
           email VARCHAR(255),
           telefone VARCHAR(20),
           documento VARCHAR(50),
           endereco TEXT,
           pode_interagir BOOLEAN DEFAULT false,
-          tipo_vinculo VARCHAR(50) DEFAULT 'outro',
+          tipo_vinculo VARCHAR(50) DEFAULT 'outro''[,;]
           observacoes TEXT,
           ativo BOOLEAN DEFAULT true,
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
@@ -213,18 +213,18 @@ export class UnifiedDatabaseManager {
       await db.execute(sql.raw(`
         CREATE TABLE "${schemaName}".tickets (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
           number VARCHAR(50),
           subject VARCHAR(255) NOT NULL,
           short_description TEXT,
           description TEXT,
           status VARCHAR(50) DEFAULT 'open' NOT NULL,
-          priority VARCHAR(20) DEFAULT 'medium',
+          priority VARCHAR(20) DEFAULT 'medium''[,;]
           category VARCHAR(100),
           subcategory VARCHAR(100),
-          impact VARCHAR(20) DEFAULT 'low',
-          urgency VARCHAR(20) DEFAULT 'low',
-          state VARCHAR(50) DEFAULT 'new',
+          impact VARCHAR(20) DEFAULT 'low''[,;]
+          urgency VARCHAR(20) DEFAULT 'low''[,;]
+          state VARCHAR(50) DEFAULT 'new''[,;]
           
           solicitante_id UUID REFERENCES "${schemaName}".solicitantes(id),
           caller_id UUID,
@@ -258,7 +258,7 @@ export class UnifiedDatabaseManager {
       await db.execute(sql.raw(`
         CREATE TABLE "${schemaName}".ticket_messages (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
           ticket_id UUID REFERENCES "${schemaName}".tickets(id) NOT NULL,
           user_id UUID,
           content TEXT NOT NULL,
@@ -274,12 +274,12 @@ export class UnifiedDatabaseManager {
       await db.execute(sql.raw(`
         CREATE TABLE "${schemaName}".locations (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
           name VARCHAR(200) NOT NULL,
           address TEXT,
           city VARCHAR(100),
           state VARCHAR(50),
-          country VARCHAR(50) DEFAULT 'Brasil',
+          country VARCHAR(50) DEFAULT 'Brasil''[,;]
           postal_code VARCHAR(20),
           latitude VARCHAR(50),
           longitude VARCHAR(50),
@@ -295,7 +295,7 @@ export class UnifiedDatabaseManager {
       await db.execute(sql.raw(`
         CREATE TABLE "${schemaName}".activity_logs (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
           entity_type VARCHAR(50) NOT NULL,
           entity_id UUID NOT NULL,
           action VARCHAR(100) NOT NULL,

@@ -1,9 +1,9 @@
 
-import { Request, Response } from 'express';
-import { CreateInternalFormUseCase } from '../use-cases/CreateInternalFormUseCase';
-import { SubmitFormUseCase } from '../use-cases/SubmitFormUseCase';
-import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository';
-import { IFormSubmissionRepository } from '../../domain/repositories/IFormSubmissionRepository';
+import { Request, Response } from 'express''[,;]
+import { CreateInternalFormUseCase } from '../use-cases/CreateInternalFormUseCase''[,;]
+import { SubmitFormUseCase } from '../use-cases/SubmitFormUseCase''[,;]
+import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository''[,;]
+import { IFormSubmissionRepository } from '../../domain/repositories/IFormSubmissionRepository''[,;]
 
 export class InternalFormController {
   constructor(
@@ -90,7 +90,7 @@ export class InternalFormController {
       } else if (status) {
         submissions = await this.submissionRepository.findByStatus(status as string, tenantId);
       } else {
-        submissions = await this.submissionRepository.findByUser(', tenantId); // All submissions
+        submissions = await this.submissionRepository.findByUser('[,;] tenantId); // All submissions
       }
 
       res.json(submissions);

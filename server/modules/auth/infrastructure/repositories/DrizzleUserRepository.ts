@@ -4,11 +4,11 @@
  * Implements IUserRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, or, sql } from 'drizzle-orm';
-import { User } from '../../domain/entities/User';
-import { IUserRepository, UserFilter } from '../../domain/ports/IUserRepository';
-import { users } from '@shared/schema';
-import { db } from '../../../../db';
+import { eq, and, ilike, count, or, sql } from 'drizzle-orm''[,;]
+import { User } from '../../domain/entities/User''[,;]
+import { IUserRepository, UserFilter } from '../../domain/ports/IUserRepository''[,;]
+import { users } from '@shared/schema''[,;]
+import { db } from '../../../../db''[,;]
 
 export class DrizzleUserRepository implements IUserRepository {
   

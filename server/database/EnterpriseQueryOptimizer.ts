@@ -1,6 +1,6 @@
-import { sql } from 'drizzle-orm';
-import { db } from '../db';
-import { enterpriseMonitoring } from './EnterpriseMonitoring';
+import { sql } from 'drizzle-orm''[,;]
+import { db } from '../db''[,;]
+import { enterpriseMonitoring } from './EnterpriseMonitoring''[,;]
 
 // ===========================
 // ENTERPRISE QUERY OPTIMIZER
@@ -99,7 +99,7 @@ export class EnterpriseQueryOptimizer {
 
     return this.executeOptimizedQuery(
       tenantId,
-      'getCustomers',
+      'getCustomers''[,;]
       async () => {
         const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         
@@ -154,7 +154,7 @@ export class EnterpriseQueryOptimizer {
 
     return this.executeOptimizedQuery(
       tenantId,
-      'getTickets',
+      'getTickets''[,;]
       async () => {
         const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         
@@ -205,7 +205,7 @@ export class EnterpriseQueryOptimizer {
   async getOptimizedDashboardMetrics(tenantId: string): Promise<any> {
     return this.executeOptimizedQuery(
       tenantId,
-      'dashboardMetrics',
+      'dashboardMetrics''[,;]
       async () => {
         const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         
@@ -300,7 +300,7 @@ export class EnterpriseQueryOptimizer {
     
     return this.executeOptimizedQuery(
       tenantId,
-      'indexAnalysis',
+      'indexAnalysis''[,;]
       async () => {
         const result = await db.execute(sql`
           SELECT 

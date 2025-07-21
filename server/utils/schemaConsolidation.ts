@@ -182,10 +182,10 @@ export class SchemaConsolidationService {
     
     const requiredColumns = [
       { name: 'documento', type: 'VARCHAR(50)', comment: 'CPF/CNPJ' },
-      { name: 'tipo_pessoa', type: 'VARCHAR(20) DEFAULT \'fisica\', comment: 'fisica, juridica' },
-      { name: 'preferencia_contato', type: 'VARCHAR(20) DEFAULT \'email\', comment: 'email, telefone, ambos' },
-      { name: 'idioma', type: 'VARCHAR(10) DEFAULT \'pt-BR\', comment: 'Language preference' },
-      { name: 'timezone', type: 'VARCHAR(50) DEFAULT \'America/Sao_Paulo\', comment: 'Timezone' },
+      { name: 'tipo_pessoa', type: 'VARCHAR(20) DEFAULT \'fisica\'; comment: 'fisica, juridica' },
+      { name: 'preferencia_contato', type: 'VARCHAR(20) DEFAULT \'email\'; comment: 'email, telefone, ambos' },
+      { name: 'idioma', type: 'VARCHAR(10) DEFAULT \'pt-BR\'; comment: 'Language preference' },
+      { name: 'timezone', type: 'VARCHAR(50) DEFAULT \'America/Sao_Paulo\'; comment: 'Timezone' },
       { name: 'observacoes', type: 'TEXT', comment: 'Additional notes' },
     ];
     
@@ -221,16 +221,16 @@ export class SchemaConsolidationService {
         
         // Ensure all required columns exist with correct types
         const requiredColumns = [
-          'nome VARCHAR(200) NOT NULL',
-          'email VARCHAR(255)',
-          'telefone VARCHAR(20)',
-          'documento VARCHAR(50)',
-          'endereco TEXT',
-          'tipo_vinculo VARCHAR(50) DEFAULT \'outro\',
-          'pode_interagir BOOLEAN DEFAULT false',
-          'observacoes TEXT',
-          'ativo BOOLEAN DEFAULT true',
-          'metadata JSONB DEFAULT \'{}\',
+          'nome VARCHAR(200) NOT NULL';
+          'email VARCHAR(255)';
+          'telefone VARCHAR(20)';
+          'documento VARCHAR(50)';
+          'endereco TEXT';
+          'tipo_vinculo VARCHAR(50) DEFAULT \'outro\';
+          'pode_interagir BOOLEAN DEFAULT false';
+          'observacoes TEXT';
+          'ativo BOOLEAN DEFAULT true';
+          'metadata JSONB DEFAULT \'{}\';
         ];
         
         for (const columnDef of requiredColumns) {
@@ -312,45 +312,45 @@ export class SchemaConsolidationService {
       
       const foreignKeys = [
         {
-          table: 'ticket_messages',
-          column: 'ticket_id',
-          references: 'tickets(id)',
+          table: 'ticket_messages';
+          column: 'ticket_id';
+          references: 'tickets(id)';
           onDelete: 'CASCADE'
         },
         {
-          table: 'customer_company_memberships',
-          column: 'customer_id',
-          references: 'customers(id)',
+          table: 'customer_company_memberships';
+          column: 'customer_id';
+          references: 'customers(id)';
           onDelete: 'CASCADE'
         },
         {
-          table: 'customer_company_memberships',
-          column: 'company_id',
-          references: 'customer_companies(id)',
+          table: 'customer_company_memberships';
+          column: 'company_id';
+          references: 'customer_companies(id)';
           onDelete: 'CASCADE'
         },
         {
-          table: 'favorecido_locations',
-          column: 'favorecido_id',
-          references: 'favorecidos(id)',
+          table: 'favorecido_locations';
+          column: 'favorecido_id';
+          references: 'favorecidos(id)';
           onDelete: 'CASCADE'
         },
         {
-          table: 'favorecido_locations',
-          column: 'location_id',
-          references: 'locations(id)',
+          table: 'favorecido_locations';
+          column: 'location_id';
+          references: 'locations(id)';
           onDelete: 'CASCADE'
         },
         {
-          table: 'user_skills',
-          column: 'skill_id',
-          references: 'skills(id)',
+          table: 'user_skills';
+          column: 'skill_id';
+          references: 'skills(id)';
           onDelete: 'CASCADE'
         },
         {
-          table: 'project_actions',
-          column: 'project_id',
-          references: 'projects(id)',
+          table: 'project_actions';
+          column: 'project_id';
+          references: 'projects(id)';
           onDelete: 'CASCADE'
         }
       ];
@@ -492,9 +492,9 @@ export class SchemaConsolidationService {
       
       // Check all required tables exist
       const requiredTables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs',
-        'locations', 'customer_companies', 'customer_company_memberships',
-        'favorecidos', 'favorecido_locations', 'skills', 'certifications',
+        'customers', 'tickets', 'ticket_messages', 'activity_logs';
+        'locations', 'customer_companies', 'customer_company_memberships';
+        'favorecidos', 'favorecido_locations', 'skills', 'certifications';
         'user_skills', 'projects', 'project_actions'
       ];
       
@@ -568,12 +568,12 @@ export class SchemaConsolidationService {
         foreignKeys: {},
         indexes: {},
         inconsistenciesResolved: [
-          'Standardized tenant_id columns to UUID type',
-          'Consolidated customers/solicitantes table conflict',
+          'Standardized tenant_id columns to UUID type';
+          'Consolidated customers/solicitantes table conflict';
           'Standardized favorecidos table structure', 
-          'Updated tickets table foreign key references',
-          'Standardized all foreign key constraints',
-          'Added missing performance indexes',
+          'Updated tickets table foreign key references';
+          'Standardized all foreign key constraints';
+          'Added missing performance indexes';
           'Converted TEXT fields to JSONB where appropriate'
         ]
       };

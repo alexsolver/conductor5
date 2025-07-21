@@ -1,10 +1,10 @@
-import { Location } from '../../domain/entities/Location';
-import { ILocationRepository } from '../../domain/repositories/ILocationRepository';
-import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher';
+import { Location } from '../../domain/entities/Location''[,;]
+import { ILocationRepository } from '../../domain/repositories/ILocationRepository''[,;]
+import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher''[,;]
 
 export interface CreateLocationRequest {
   name: string;
-  type: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro';
+  type: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro''[,;]
   address: string;
   number?: string;
   complement?: string;
@@ -79,7 +79,7 @@ export class CreateLocationUseCase {
 
       // Publish domain event
       await this.eventPublisher.publish({
-        type: 'LocationCreated',
+        type: 'LocationCreated''[,;]
         aggregateId: savedLocation.id,
         tenantId,
         data: {

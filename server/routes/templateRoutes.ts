@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { Router } from 'express''[,;]
+import { promises as fs } from 'fs''[,;]
+import path from 'path''[,;]
 
 const router = Router();
 
@@ -78,8 +78,8 @@ async function applyTemplateToCSS(template: Template): Promise<void> {
     );
     
     // Update gradient variables based on template style
-    let gradientPrimary = ';
-    let gradientSecondary = ';
+    let gradientPrimary = '[,;]
+    let gradientSecondary = '[,;]
     
     switch (template.style) {
       case 'corporate':
@@ -162,7 +162,7 @@ router.post('/apply', async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: 'Template aplicado com sucesso',
+      message: 'Template aplicado com sucesso''[,;]
       template: template.id
     });
     
@@ -170,7 +170,7 @@ router.post('/apply', async (req, res) => {
     console.error('Error applying template:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Erro ao aplicar template',
+      message: 'Erro ao aplicar template''[,;]
       error: error.message 
     });
   }
@@ -202,13 +202,13 @@ router.get('/current', async (req, res) => {
 router.post('/reset', async (req, res) => {
   try {
     const defaultTemplate: Template = {
-      id: 'default',
-      name: 'Default',
-      description: 'Template padrão do sistema',
+      id: 'default''[,;]
+      name: 'Default''[,;]
+      description: 'Template padrão do sistema''[,;]
       colors: {
-        primary: '#2563eb',
+        primary: '#2563eb''[,;]
         secondary: '#64748b', 
-        accent: '#06b6d4',
+        accent: '#06b6d4''[,;]
         background: '#ffffff'
       },
       style: 'modern'

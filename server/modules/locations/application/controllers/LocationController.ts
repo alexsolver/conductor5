@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../../../types/auth';
-import { CreateLocationUseCase } from '../use-cases/CreateLocationUseCase';
-import { GetLocationsUseCase } from '../use-cases/GetLocationsUseCase';
-import { UpdateLocationUseCase } from '../use-cases/UpdateLocationUseCase';
-import { FindNearbyLocationsUseCase } from '../use-cases/FindNearbyLocationsUseCase';
-import { insertLocationSchema } from '../../../../../shared/schema/location';
-import { z } from 'zod';
+import { Request, Response } from 'express''[,;]
+import { AuthenticatedRequest } from '../../../../types/auth''[,;]
+import { CreateLocationUseCase } from '../use-cases/CreateLocationUseCase''[,;]
+import { GetLocationsUseCase } from '../use-cases/GetLocationsUseCase''[,;]
+import { UpdateLocationUseCase } from '../use-cases/UpdateLocationUseCase''[,;]
+import { FindNearbyLocationsUseCase } from '../use-cases/FindNearbyLocationsUseCase''[,;]
+import { insertLocationSchema } from '../../../../../shared/schema''[,;]
+import { z } from 'zod''[,;]
 
 export class LocationController {
   constructor(
@@ -40,7 +40,7 @@ export class LocationController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Dados inválidos',
+          message: 'Dados inválidos''[,;]
           errors: error.errors
         });
       } else {
@@ -166,7 +166,7 @@ export class LocationController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Dados inválidos',
+          message: 'Dados inválidos''[,;]
           errors: error.errors
         });
       } else {

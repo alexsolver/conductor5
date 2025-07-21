@@ -3,10 +3,10 @@
  * Clean Architecture - Domain Layer
  */
 
-import { IDomainEvent } from '../../../shared/domain/IDomainEvent';
+import { IDomainEvent } from '../../../shared/domain/IDomainEvent'[,;]
 
 export class CustomerCreatedEvent implements IDomainEvent {
-  public readonly eventName = 'CustomerCreated';
+  public readonly eventName = 'CustomerCreated'[,;]
   public readonly aggregateId: string;
   public readonly occurredOn: Date;
 

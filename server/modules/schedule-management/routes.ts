@@ -1,8 +1,8 @@
 
-import { Router } from 'express';
-import { ScheduleController } from './application/controllers/ScheduleController';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { enhancedTenantValidator } from '../../middleware/tenantValidator';
+import { Router } from 'express''[,;]
+import { ScheduleController } from './application/controllers/ScheduleController''[,;]
+import { jwtAuth } from '../../middleware/jwtAuth''[,;]
+import { enhancedTenantValidator } from '../../middleware/tenantValidator''[,;]
 
 const router = Router();
 const scheduleController = new ScheduleController();

@@ -1,10 +1,10 @@
-import { sql, eq, or, ilike, isNotNull } from 'drizzle-orm';
-import { NeonDatabase } from '@neondatabase/serverless';
-import { Skill } from '../../domain/entities/Skill';
-import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
-import { db } from '../../../../db';
-import { skills, userSkills } from '@shared/schema';
-import winston from 'winston';
+import { sql, eq, or, ilike, isNotNull } from 'drizzle-orm''[,;]
+import { NeonDatabase } from '@neondatabase/serverless''[,;]
+import { Skill } from '../../domain/entities/Skill''[,;]
+import { ISkillRepository } from '../../domain/repositories/ISkillRepository''[,;]
+import { db } from '../../../../db''[,;]
+import { skills, userSkills } from '@shared/schema''[,;]
+import winston from 'winston''[,;]
 
 export class DrizzleSkillRepository implements ISkillRepository {
   private db: NeonDatabase;

@@ -1,5 +1,5 @@
 // User Domain Entity - Clean Architecture
-export type UserRole = 'admin' | 'agent' | 'customer';
+export type UserRole = 'admin' | 'agent' | 'customer''[,;]
 
 export class User {
   constructor(
@@ -8,7 +8,7 @@ export class User {
     public readonly passwordHash: string,
     public readonly firstName: string | null = null,
     public readonly lastName: string | null = null,
-    public readonly role: UserRole = 'agent',
+    public readonly role: UserRole = 'agent''[,;]
     public readonly tenantId: string | null = null,
     public readonly profileImageUrl: string | null = null,
     public readonly isActive: boolean = true,
@@ -29,11 +29,11 @@ export class User {
   }
 
   get isAdmin(): boolean {
-    return this.role === 'admin';
+    return this.role === 'admin''[,;]
   }
 
   get isAgent(): boolean {
-    return this.role === 'agent';
+    return this.role === 'agent''[,;]
   }
 
   canAccessTenant(tenantId: string): boolean {
@@ -70,7 +70,7 @@ export class User {
       props.passwordHash,
       props.firstName || null,
       props.lastName || null,
-      props.role || 'agent',
+      props.role || 'agent''[,;]
       props.tenantId || null,
       props.profileImageUrl || null,
       true,

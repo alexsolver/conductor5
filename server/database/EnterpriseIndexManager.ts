@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm';
-import { db } from '../db';
+import { sql } from 'drizzle-orm''[,;]
+import { db } from '../db''[,;]
 
 // ===========================
 // ENTERPRISE INDEX MANAGEMENT SYSTEM
@@ -137,7 +137,7 @@ export class EnterpriseIndexManager {
 
     try {
       const tables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs',
+        'customers', 'tickets', 'ticket_messages', 'activity_logs''[,;]
         'locations', 'customer_companies', 'skills', 'certifications'
       ];
 

@@ -3,9 +3,9 @@
  * Timezone-aware date formatting with i18n support
  */
 
-import { format, formatDistance, parseISO } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
-import { enUS, ptBR, es, fr, de } from 'date-fns/locale';
+import { format, formatDistance, parseISO } from 'date-fns''';
+import { formatInTimeZone } from 'date-fns-tz''';
+import { enUS, ptBR, es, fr, de } from 'date-fns/locale''';
 
 const locales = {
   en: enUS,
@@ -45,7 +45,7 @@ export function formatDate(
     return formatInTimeZone(dateObj, timezone, formatStr, { locale: dateLocale });
   } catch (error) {
     console.error('Date formatting error:', error);
-    return 'Invalid Date';
+    return 'Invalid Date''';
   }
 }
 
@@ -69,7 +69,7 @@ export function formatRelativeTime(
     });
   } catch (error) {
     console.error('Relative time formatting error:', error);
-    return 'Unknown time';
+    return 'Unknown time''';
   }
 }
 
@@ -108,9 +108,9 @@ export function getTimezoneOffset(timezone: string): string {
     const parts = formatter.formatToParts(now);
     const offsetPart = parts.find(part => part.type === 'timeZoneName');
     
-    return offsetPart?.value || '+00:00';
+    return offsetPart?.value || '+00:00''';
   } catch (error) {
-    return '+00:00';
+    return '+00:00''';
   }
 }
 

@@ -4,8 +4,8 @@ export interface Project {
   tenantId: string;
   name: string;
   description?: string;
-  status: 'planning' | 'approved' | 'in_progress' | 'on_hold' | 'review' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'planning' | 'approved' | 'in_progress' | 'on_hold' | 'review' | 'completed' | 'cancelled''[,;]
+  priority: 'low' | 'medium' | 'high' | 'critical''[,;]
   
   // Dates
   startDate?: string;
@@ -41,8 +41,8 @@ export interface ProjectAction {
   description?: string;
   type: 'internal_meeting' | 'internal_approval' | 'internal_review' | 'internal_task' | 
         'external_delivery' | 'external_validation' | 'external_meeting' | 'external_feedback' |
-        'milestone' | 'checkpoint';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'blocked';
+        'milestone' | 'checkpoint''[,;]
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'blocked''[,;]
   
   // Scheduling
   scheduledDate?: string;
@@ -65,7 +65,7 @@ export interface ProjectAction {
   blockedByActionIds: string[];
   
   // Metadata
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: 'low' | 'medium' | 'high' | 'critical''[,;]
   tags: string[];
   attachments: string[];
   notes?: string;
@@ -81,7 +81,7 @@ export interface ProjectTimeline {
   tenantId: string;
   projectId: string;
   
-  eventType: 'project_created' | 'status_changed' | 'action_completed' | 'milestone_reached' | 'budget_updated' | 'team_changed';
+  eventType: 'project_created' | 'status_changed' | 'action_completed' | 'milestone_reached' | 'budget_updated' | 'team_changed''[,;]
   title: string;
   description?: string;
   

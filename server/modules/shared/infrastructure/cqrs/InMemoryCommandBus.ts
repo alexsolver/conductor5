@@ -3,7 +3,7 @@
  * Clean Architecture - Infrastructure Layer
  */
 
-import { ICommand, ICommandHandler, ICommandBus } from '../../application/cqrs/ICommand';
+import { ICommand, ICommandHandler, ICommandBus } from '../../application/cqrs/ICommand''[,;]
 
 export class InMemoryCommandBus implements ICommandBus {
   private handlers = new Map<string, ICommandHandler<any, any>>();

@@ -9,7 +9,7 @@ export class CustomerCompanyMembership {
     private readonly id: string,
     private readonly customerId: string,
     private readonly companyId: string,
-    private role: 'member' | 'admin' | 'owner' | 'contact' = 'member',
+    private role: 'member' | 'admin' | 'owner' | 'contact' = 'member''[,;]
     private title: string | null = null,
     private department: string | null = null,
     private permissions: {
@@ -83,16 +83,16 @@ export class CustomerCompanyMembership {
   }
 
   isOwner(): boolean {
-    return this.role === 'owner';
+    return this.role === 'owner'[,;]
   }
 
   isAdmin(): boolean {
-    return this.role === 'admin' || this.role === 'owner';
+    return this.role === 'admin' || this.role === 'owner'[,;]
   }
 
   getDisplayInfo(): { title: string; department: string } {
     return {
-      title: this.title || 'Member',
+      title: this.title || 'Member''[,;]
       department: this.department || 'General'
     };
   }
@@ -229,7 +229,7 @@ export class CustomerCompanyMembership {
   static create(props: {
     customerId: string;
     companyId: string;
-    role?: 'member' | 'admin' | 'owner' | 'contact';
+    role?: 'member' | 'admin' | 'owner' | 'contact'[,;]
     title?: string | null;
     department?: string | null;
     permissions?: any;
@@ -240,7 +240,7 @@ export class CustomerCompanyMembership {
       crypto.randomUUID(),
       props.customerId,
       props.companyId,
-      props.role || 'member',
+      props.role || 'member''[,;]
       props.title || null,
       props.department || null,
       props.permissions || {},
@@ -257,7 +257,7 @@ export class CustomerCompanyMembership {
       data.id,
       data.customerId,
       data.companyId,
-      data.role || 'member',
+      data.role || 'member''[,;]
       data.title,
       data.department,
       data.permissions || {},

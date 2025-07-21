@@ -1,5 +1,5 @@
 // REMOVED: Redis dependency
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express''[,;]
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -164,7 +164,7 @@ export function createMemoryRateLimitMiddleware(config: RateLimitConfig) {
   
   return async (req: Request, res: Response, next: NextFunction) => {
     const identifier = config.keyGenerator ? config.keyGenerator(req) : 
-      req.ip || req.connection.remoteAddress || 'unknown';
+      req.ip || req.connection.remoteAddress || 'unknown''[,;]
     
     try {
       const rateLimitInfo = await service.checkRateLimit(identifier, config);
@@ -185,7 +185,7 @@ export function createMemoryRateLimitMiddleware(config: RateLimitConfig) {
         }
 
         return res.status(429).json({
-          error: 'Rate limit exceeded',
+          error: 'Rate limit exceeded''[,;]
           message: `Too many requests. Try again after ${rateLimitInfo.resetTime.toISOString()}`,
           retryAfter: Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000)
         });
@@ -250,7 +250,7 @@ export function createSlidingWindowRateLimitMiddleware(config: RateLimitConfig) 
   
   return async (req: Request, res: Response, next: NextFunction) => {
     const identifier = config.keyGenerator ? config.keyGenerator(req) : 
-      req.ip || req.connection.remoteAddress || 'unknown';
+      req.ip || req.connection.remoteAddress || 'unknown''[,;]
     
     try {
       const rateLimitInfo = await service.checkSlidingWindowRateLimit(identifier, config);
@@ -269,7 +269,7 @@ export function createSlidingWindowRateLimitMiddleware(config: RateLimitConfig) 
         }
 
         return res.status(429).json({
-          error: 'Rate limit exceeded',
+          error: 'Rate limit exceeded''[,;]
           message: `Too many requests. Try again after ${rateLimitInfo.resetTime.toISOString()}`,
           retryAfter: Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000)
         });

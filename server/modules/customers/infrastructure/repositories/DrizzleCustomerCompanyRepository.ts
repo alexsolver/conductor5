@@ -4,17 +4,17 @@
  * Implements ICustomerCompanyRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, sql, or } from 'drizzle-orm';
-import { CustomerCompany } from '../../domain/entities/CustomerCompany';
-import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership';
+import { eq, and, ilike, count, sql, or } from 'drizzle-orm''[,;]
+import { CustomerCompany } from '../../domain/entities/CustomerCompany''[,;]
+import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership''[,;]
 import { 
   ICustomerCompanyRepository, 
   CustomerCompanyFilter,
   CustomerCompanyMembershipFilter 
-} from '../../domain/ports/ICustomerCompanyRepository';
+} from '../../domain/ports/ICustomerCompanyRepository''[,;]
 // TODO: getTenantSpecificSchema needs to be added to unified schema
-// import { getTenantSpecificSchema } from '@shared/schema';
-import { schemaManager } from '../../../../db';
+// import { getTenantSpecificSchema } from '@shared/schema''[,;]
+import { schemaManager } from '../../../../db''[,;]
 
 // Types will be inferred dynamically from tenant schema
 
@@ -78,7 +78,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
 
     // Use direct SQL with schema-qualified table name to bypass Drizzle schema issues
-    let whereClause = ';
+    let whereClause = '[,;]
     const params: any[] = [];
     let paramIndex = 1;
 
@@ -89,31 +89,31 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
 
     if (filter.industry) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `industry = $${paramIndex++}`;
       params.push(filter.industry);
     }
 
     if (filter.size) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `size = $${paramIndex++}`;
       params.push(filter.size);
     }
 
     if (filter.status) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `status = $${paramIndex++}`;
       params.push(filter.status);
     }
 
     if (filter.subscriptionTier) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `subscription_tier = $${paramIndex++}`;
       params.push(filter.subscriptionTier);
     }
 
     if (filter.isActive !== undefined) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `is_active = $${paramIndex++}`;
       params.push(filter.isActive);
     }
@@ -161,7 +161,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       // Helper function to safely handle null/undefined values
       const safeString = (value: any) => {
         if (value === null || value === undefined) {
-          return 'NULL';
+          return 'NULL''[,;]
         }
         return `'${String(value).replace(/'/g, "'")}'`;
       };
@@ -199,7 +199,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       // Helper function to safely handle null/undefined values
       const safeString = (value: unknown) => {
         if (value === null || value === undefined) {
-          return 'NULL';
+          return 'NULL''[,;]
         }
         return `'${String(value).replace(/'/g, "'")}'`;
       };
@@ -254,7 +254,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
 
     // Use direct SQL with schema-qualified table name to bypass Drizzle schema issues
-    let whereClause = ';
+    let whereClause = '[,;]
     const params: any[] = [];
     let paramIndex = 1;
 
@@ -265,31 +265,31 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
 
     if (filter.industry) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `industry = $${paramIndex++}`;
       params.push(filter.industry);
     }
 
     if (filter.size) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `size = $${paramIndex++}`;
       params.push(filter.size);
     }
 
     if (filter.status) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `status = $${paramIndex++}`;
       params.push(filter.status);
     }
 
     if (filter.subscriptionTier) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `subscription_tier = $${paramIndex++}`;
       params.push(filter.subscriptionTier);
     }
 
     if (filter.isActive !== undefined) {
-      if (whereClause) whereClause += ' AND ';
+      if (whereClause) whereClause += ' AND ''[,;]
       whereClause += `is_active = $${paramIndex++}`;
       params.push(filter.isActive);
     }
@@ -552,7 +552,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
     return results.map(result => ({
       customerId: result.customerId,
-      role: result.role || 'member',
+      role: result.role || 'member''[,;]
       title: result.title || undefined,
     }));
   }
@@ -600,14 +600,14 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       address: data.address || {},
       taxId: data.tax_id,
       registrationNumber: data.registration_number,
-      subscriptionTier: data.subscription_tier || 'basic',
+      subscriptionTier: data.subscription_tier || 'basic''[,;]
       contractType: data.contract_type,
       maxUsers: data.max_users,
       maxTickets: data.max_tickets,
       settings: data.settings || {},
       tags: data.tags || [],
       metadata: data.metadata || {},
-      status: data.status || 'active',
+      status: data.status || 'active''[,;]
       isActive: data.is_active !== false,
       isPrimary: data.is_primary || false,
       createdAt: data.created_at,
@@ -654,7 +654,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       id: data.id,
       customerId: data.customer_id,
       companyId: data.company_id,
-      role: data.role || 'member',
+      role: data.role || 'member''[,;]
       title: data.title,
       department: data.department,
       permissions: data.permissions || {},

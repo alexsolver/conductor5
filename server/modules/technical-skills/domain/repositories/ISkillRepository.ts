@@ -1,4 +1,4 @@
-import { Skill } from '../entities/Skill';
+import { Skill } from '../entities/Skill''[,;]
 
 export interface ISkillRepository {
   // CRUD básico

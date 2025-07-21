@@ -1,12 +1,12 @@
 
-import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { InternalFormController } from './application/controllers/InternalFormController';
-import { CreateInternalFormUseCase } from './application/use-cases/CreateInternalFormUseCase';
-import { SubmitFormUseCase } from './application/use-cases/SubmitFormUseCase';
-import { DrizzleInternalFormRepository } from './infrastructure/repositories/DrizzleInternalFormRepository';
-import { DrizzleFormSubmissionRepository } from './infrastructure/repositories/DrizzleFormSubmissionRepository';
-import { InternalFormActionsService } from './application/services/InternalFormActionsService';
+import { Router } from 'express''[,;]
+import { jwtAuth } from '../../middleware/jwtAuth''[,;]
+import { InternalFormController } from './application/controllers/InternalFormController''[,;]
+import { CreateInternalFormUseCase } from './application/use-cases/CreateInternalFormUseCase''[,;]
+import { SubmitFormUseCase } from './application/use-cases/SubmitFormUseCase''[,;]
+import { DrizzleInternalFormRepository } from './infrastructure/repositories/DrizzleInternalFormRepository''[,;]
+import { DrizzleFormSubmissionRepository } from './infrastructure/repositories/DrizzleFormSubmissionRepository''[,;]
+import { InternalFormActionsService } from './application/services/InternalFormActionsService''[,;]
 
 const router = Router();
 

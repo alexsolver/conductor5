@@ -35,8 +35,8 @@ const createTablesQuery = `
             number VARCHAR(50) UNIQUE NOT NULL,
             subject VARCHAR(500) NOT NULL,
             description TEXT,
-            status VARCHAR(50) DEFAULT 'open',
-            priority VARCHAR(20) DEFAULT 'medium',
+            status VARCHAR(50) DEFAULT 'open''[,;]
+            priority VARCHAR(20) DEFAULT 'medium''[,;]
             solicitante_id VARCHAR(36),
             favorecido_id VARCHAR(36),
             assignee_id VARCHAR(36),
@@ -71,10 +71,10 @@ const createTablesQuery = `
             title VARCHAR(500) NOT NULL,
             excerpt TEXT,
             content TEXT NOT NULL,
-            category VARCHAR(100) DEFAULT 'general',
-            tags JSONB DEFAULT '[]',
-            author VARCHAR(255) DEFAULT 'system',
-            status VARCHAR(50) DEFAULT 'published',
+            category VARCHAR(100) DEFAULT 'general''[,;]
+            tags JSONB DEFAULT '[]''[,;]
+            author VARCHAR(255) DEFAULT 'system''[,;]
+            status VARCHAR(50) DEFAULT 'published''[,;]
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
           );
@@ -132,7 +132,7 @@ const createTablesQuery = `
             tenant_id VARCHAR(36) NOT NULL,
             name VARCHAR(255) NOT NULL,
             description TEXT,
-            fields JSONB NOT NULL DEFAULT '[]',
+            fields JSONB NOT NULL DEFAULT '[]''[,;]
             is_active BOOLEAN DEFAULT true,
             created_by VARCHAR(36),
             created_at TIMESTAMP DEFAULT NOW(),
@@ -172,7 +172,7 @@ const createTablesQuery = `
             tenant_id VARCHAR(36) NOT NULL,
             user_id VARCHAR(36) NOT NULL,
             skill_id VARCHAR(36) NOT NULL,
-            proficiency_level VARCHAR(50) DEFAULT 'beginner',
+            proficiency_level VARCHAR(50) DEFAULT 'beginner''[,;]
             years_of_experience INTEGER DEFAULT 0,
             certification_details TEXT,
             last_used_date DATE,
@@ -188,8 +188,8 @@ const createTablesQuery = `
             tenant_id VARCHAR(36) NOT NULL,
             name VARCHAR(255) NOT NULL,
             description TEXT,
-            status VARCHAR(50) DEFAULT 'planning',
-            priority VARCHAR(20) DEFAULT 'medium',
+            status VARCHAR(50) DEFAULT 'planning''[,;]
+            priority VARCHAR(20) DEFAULT 'medium''[,;]
             start_date DATE,
             end_date DATE,
             estimated_hours INTEGER,
@@ -212,8 +212,8 @@ const createTablesQuery = `
             name VARCHAR(255) NOT NULL,
             description TEXT,
             action_type VARCHAR(100) NOT NULL,
-            trigger_conditions JSONB DEFAULT '{}',
-            action_config JSONB DEFAULT '{}',
+            trigger_conditions JSONB DEFAULT '{}''[,;]
+            action_config JSONB DEFAULT '{}''[,;]
             is_active BOOLEAN DEFAULT true,
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW(),
@@ -226,10 +226,10 @@ const createTablesQuery = `
             tenant_id VARCHAR(36) NOT NULL,
             name VARCHAR(255) NOT NULL,
             description TEXT,
-            category VARCHAR(100) DEFAULT 'Geral',
-            priority VARCHAR(20) DEFAULT 'medium',
-            urgency VARCHAR(20) DEFAULT 'medium',
-            impact VARCHAR(20) DEFAULT 'medium',
+            category VARCHAR(100) DEFAULT 'Geral''[,;]
+            priority VARCHAR(20) DEFAULT 'medium''[,;]
+            urgency VARCHAR(20) DEFAULT 'medium''[,;]
+            impact VARCHAR(20) DEFAULT 'medium''[,;]
             default_title VARCHAR(500),
             default_description TEXT,
             default_tags TEXT,
@@ -263,16 +263,16 @@ const createTablesQuery = `
             from_email VARCHAR(255) NOT NULL,
             from_name VARCHAR(255),
             to_email VARCHAR(255) NOT NULL,
-            cc_emails TEXT DEFAULT '[]',
-            bcc_emails TEXT DEFAULT '[]',
+            cc_emails TEXT DEFAULT '[]''[,;]
+            bcc_emails TEXT DEFAULT '[]''[,;]
             subject VARCHAR(998),
             body_text TEXT,
             body_html TEXT,
             has_attachments BOOLEAN DEFAULT false,
             attachment_count INTEGER DEFAULT 0,
-            attachment_details TEXT DEFAULT '[]',
-            email_headers TEXT DEFAULT '{}',
-            priority VARCHAR(20) DEFAULT 'medium',
+            attachment_details TEXT DEFAULT '[]''[,;]
+            email_headers TEXT DEFAULT '{}''[,;]
+            priority VARCHAR(20) DEFAULT 'medium''[,;]
             is_read BOOLEAN DEFAULT false,
             is_processed BOOLEAN DEFAULT false,
             rule_matched VARCHAR(255),
@@ -290,8 +290,8 @@ const createTablesQuery = `
             description TEXT,
             category VARCHAR(100),
             icon VARCHAR(100),
-            status VARCHAR(50) DEFAULT 'disconnected',
-            config JSONB DEFAULT '{}',
+            status VARCHAR(50) DEFAULT 'disconnected''[,;]
+            config JSONB DEFAULT '{}''[,;]
             features TEXT[],
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
@@ -299,9 +299,9 @@ const createTablesQuery = `
         `;
 
 const expectedTables = [
-        'customers', 'external_contacts', 'tickets', 'ticket_relationships',
+        'customers', 'external_contacts', 'tickets', 'ticket_relationships''[,;]
         'knowledge_base_articles', 'locations', 'customer_companies', 
-        'customer_company_memberships', 'internal_forms', 'form_submissions',
+        'customer_company_memberships', 'internal_forms', 'form_submissions''[,;]
         'skills', 'user_skills', 'projects', 'project_actions', 
         'ticket_templates', 'email_templates', 'emails', 'integrations'
       ];

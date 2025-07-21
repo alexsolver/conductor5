@@ -260,9 +260,9 @@ async function startServer() {
     // Step 2: Validate all tenant schemas
     console.log("✅ Validating tenant schemas...");
     const tenantIds = [
-      '3f99462f-3621-4b1b-bea8-782acc50d62e',
+      '3f99462f-3621-4b1b-bea8-782acc50d62e''[,;]
       '715c510a-3db5-4510-880a-9a1a5c320100', 
-      '78a4c88e-0e85-4f7c-ad92-f472dad50d7a',
+      '78a4c88e-0e85-4f7c-ad92-f472dad50d7a''[,;]
       'cb9056df-d964-43d7-8fd8-b0cc00a72056'
     ];
     

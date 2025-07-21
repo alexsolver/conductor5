@@ -3,8 +3,8 @@
  * Clean Architecture - Infrastructure Layer
  */
 
-import { randomUUID } from 'crypto';
-import { IIdGenerator } from '../domain/IIdGenerator';
+import { randomUUID } from 'crypto''[,;]
+import { IIdGenerator } from '../domain/IIdGenerator''[,;]
 
 export class UuidGenerator implements IIdGenerator {
   generateId(): string {

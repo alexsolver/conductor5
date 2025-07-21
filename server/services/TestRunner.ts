@@ -1,11 +1,11 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { exec } from 'child_process''[,;]
+import { promisify } from 'util''[,;]
 
 const execAsync = promisify(exec);
 
 export interface TestResult {
   module: string;
-  type: 'unit' | 'integration' | 'e2e';
+  type: 'unit' | 'integration' | 'e2e''[,;]
   passed: number;
   failed: number;
   total: number;
@@ -16,7 +16,7 @@ export interface TestResult {
 
 export interface TestCase {
   name: string;
-  status: 'passed' | 'failed' | 'skipped';
+  status: 'passed' | 'failed' | 'skipped''[,;]
   duration: number;
   error?: string;
 }
@@ -120,7 +120,7 @@ export class TestRunner {
       const isFailure = i < failed;
       details.push({
         name: `${moduleName}_${testType}_test_${i + 1}`,
-        status: isFailure ? 'failed' : 'passed',
+        status: isFailure ? 'failed' : 'passed''[,;]
         duration: 100 + (i * 10), // Deterministic timing
         error: isFailure ? `Test failure in ${moduleName} module` : undefined
       });
@@ -215,7 +215,7 @@ export class TestRunner {
             // Fallback if JSON parsing fails
             issues.push({
               line: 1,
-              message: 'Linting configuration error',
+              message: 'Linting configuration error''[,;]
               severity: 'warning' as const
             });
           }

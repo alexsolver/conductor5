@@ -1,5 +1,5 @@
 
-import { GmailService } from './GmailService';
+import { GmailService } from './GmailService''[,;]
 
 export class GmailSyncScheduler {
   private static instance: GmailSyncScheduler;

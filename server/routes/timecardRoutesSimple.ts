@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express''[,;]
 
 const router = Router();
 
@@ -8,7 +8,7 @@ router.get('/test', async (req: Request, res: Response) => {
     console.log('📋 Timecard test route accessed - SUCCESS!');
     res.json({ 
       status: 'success', 
-      message: 'Timecard routes are working - NO AUTH BYPASS CONFIRMED',
+      message: 'Timecard routes are working - NO AUTH BYPASS CONFIRMED''[,;]
       timestamp: new Date().toISOString(),
       headers: req.headers 
     });

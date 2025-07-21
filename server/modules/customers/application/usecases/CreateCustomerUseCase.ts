@@ -3,11 +3,11 @@
  * Clean Architecture - Application Layer
  */
 
-import { Customer } from '../../domain/entities/Customer';
-import { ICustomerRepository } from '../../domain/ports/ICustomerRepository';
-import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
-import { CustomerCreatedEvent } from '../../domain/events/CustomerCreatedEvent';
-import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator';
+import { Customer } from '../../domain/entities/Customer''[,;]
+import { ICustomerRepository } from '../../domain/ports/ICustomerRepository''[,;]
+import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher''[,;]
+import { CustomerCreatedEvent } from '../../domain/events/CustomerCreatedEvent''[,;]
+import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator''[,;]
 
 export interface CreateCustomerInput {
   tenantId: string;
@@ -48,7 +48,7 @@ export class CreateCustomerUseCase {
 
       if (existingCustomer) {
         return {
-          id: ',
+          id: '[,;]
           success: false,
           error: 'Customer with this email already exists'
         };
@@ -62,11 +62,11 @@ export class CreateCustomerUseCase {
         email: input.email,
         phone: input.phone,
         company: input.company,
-        timezone: input.timezone || 'UTC',
-        locale: input.locale || 'en-US',
-        language: input.language || 'en',
+        timezone: input.timezone || 'UTC''[,;]
+        locale: input.locale || 'en-US''[,;]
+        language: input.language || 'en''[,;]
         externalId: input.externalId,
-        role: input.role || 'customer',
+        role: input.role || 'customer''[,;]
         notes: input.notes,
         verified: false,
         active: true,
@@ -93,7 +93,7 @@ export class CreateCustomerUseCase {
       };
     } catch (error) {
       return {
-        id: ',
+        id: ''[,;]
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };

@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
-import { CreateTimeRecordRequest } from '../../domain/entities/TimeRecord';
-import { z } from 'zod';
+import { Request, Response } from 'express''[,;]
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository''[,;]
+import { CreateTimeRecordRequest } from '../../domain/entities/TimeRecord''[,;]
+import { z } from 'zod''[,;]
 
 const timecardRepository = new DrizzleTimecardRepository();
 
@@ -327,21 +327,21 @@ export class TimecardController {
       
       // Determinar status atual
       const lastRecord = userRecords[userRecords.length - 1];
-      let status = 'not_started';
+      let status = 'not_started''[,;]
       
       if (lastRecord) {
         switch (lastRecord.recordType) {
           case 'clock_in':
-            status = 'working';
+            status = 'working''[,;]
             break;
           case 'clock_out':
-            status = 'finished';
+            status = 'finished''[,;]
             break;
           case 'break_start':
-            status = 'on_break';
+            status = 'on_break''[,;]
             break;
           case 'break_end':
-            status = 'working';
+            status = 'working''[,;]
             break;
         }
       }
@@ -608,7 +608,7 @@ export class TimecardController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const userId = req.params.userId;
-      const unreadOnly = req.query.unreadOnly === 'true';
+      const unreadOnly = req.query.unreadOnly === 'true''[,;]
       
       const notifications = await timecardRepository.findUserNotifications(userId, tenantId, unreadOnly);
       res.json(notifications);

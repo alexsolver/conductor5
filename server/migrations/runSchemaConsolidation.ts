@@ -2,8 +2,8 @@
 // Runs the comprehensive schema consolidation to resolve all inconsistencies
 // This script should be run once to fix all fragmentation issues
 
-import { SchemaManager } from '../db';
-import SchemaConsolidationService from '../utils/schemaConsolidation';
+import { SchemaManager } from '../db''[,;]
+import SchemaConsolidationService from '../utils/schemaConsolidation''[,;]
 
 export class SchemaConsolidationMigration {
   
@@ -147,7 +147,7 @@ export class SchemaConsolidationMigration {
     if (successful.length > 0) {
       console.log('\n✅ SUCCESSFUL CONSOLIDATIONS:');
       successful.forEach(result => {
-        const status = result.isValid ? '✅ VALID' : '⚠️ NEEDS REVIEW';
+        const status = result.isValid ? '✅ VALID' : '⚠️ NEEDS REVIEW''[,;]
         console.log(`  - ${result.schemaName}: ${status}`);
       });
     }
@@ -191,12 +191,12 @@ export class SchemaConsolidationMigration {
           schemaName,
           currentlyValid: isCurrentlyValid,
           plannedChanges: [
-            'Standardize tenant_id columns to UUID type',
-            'Consolidate customers/solicitantes tables',
-            'Standardize favorecidos structure',
-            'Update tickets table references',
-            'Standardize foreign key constraints',
-            'Add missing performance indexes',
+            'Standardize tenant_id columns to UUID type''[,;]
+            'Consolidate customers/solicitantes tables''[,;]
+            'Standardize favorecidos structure''[,;]
+            'Update tickets table references''[,;]
+            'Standardize foreign key constraints''[,;]
+            'Add missing performance indexes''[,;]
             'Convert TEXT to JSONB fields'
           ],
           currentReport: report

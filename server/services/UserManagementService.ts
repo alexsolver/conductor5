@@ -1,8 +1,8 @@
-import { schemaManager } from '../db';
-import { storageSimple } from '../storage-simple';
-import { db } from '../db';
-import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
-import { users, tenants } from '@shared/schema';
+import { schemaManager } from '../db''[,;]
+import { storageSimple } from '../storage-simple''[,;]
+import { db } from '../db''[,;]
+import { eq, and, or, sql, desc, asc } from 'drizzle-orm''[,;]
+import { users, tenants } from '@shared/schema''[,;]
 
 // TODO: User management tables need to be added to unified schema
 // Temporary types until user management is integrated
@@ -22,9 +22,9 @@ type UserActivityLog = any;
 type InsertUserActivityLog = any;
 type ActiveSession = any;
 type InsertActiveSession = any;
-import { PERMISSIONS } from '../middleware/rbacMiddleware';
-import { nanoid } from 'nanoid';
-import crypto from 'crypto';
+import { PERMISSIONS } from '../middleware/rbacMiddleware''[,;]
+import { nanoid } from 'nanoid''[,;]
+import crypto from 'crypto''[,;]
 
 export interface UserManagementOptions {
   includePermissions?: boolean;
@@ -300,14 +300,14 @@ export class UserManagementService {
       if (assignment.systemRole) {
         await this.assignRoleToUser(userId, {
           systemRole: assignment.systemRole,
-          scope: 'tenant',
+          scope: 'tenant''[,;]
           scopeId: invitation.tenantId
         }, invitation.invitedBy);
       }
       if (assignment.customRoleId) {
         await this.assignRoleToUser(userId, {
           roleId: assignment.customRoleId,
-          scope: 'tenant',
+          scope: 'tenant''[,;]
           scopeId: invitation.tenantId
         }, invitation.invitedBy);
       }
@@ -321,7 +321,7 @@ export class UserManagementService {
     await db
       .update(userInvitations)
       .set({ 
-        status: 'accepted',
+        status: 'accepted''[,;]
         acceptedAt: new Date()
       })
       .where(eq(userInvitations.id, invitation.id));

@@ -10,7 +10,7 @@ import {
   shiftSwapRequests,
   flexibleWorkArrangements,
   scheduleNotifications
-} from '@shared/schema';
+} from '@shared/schema''[,;]
 import { 
   TimeRecord, 
   CreateTimeRecordRequest, 
@@ -18,11 +18,11 @@ import {
   HourBankEntry, 
   WorkSchedule, 
   TimeAlert 
-} from '../../domain/entities/TimeRecord';
-import { ITimecardRepository } from '../../domain/repositories/ITimecardRepository';
-import { sql, eq, and, gte, lte, desc, asc } from 'drizzle-orm';
-import { db } from '../../../../db';
-import crypto from 'crypto';
+} from '../../domain/entities/TimeRecord''[,;]
+import { ITimecardRepository } from '../../domain/repositories/ITimecardRepository''[,;]
+import { sql, eq, and, gte, lte, desc, asc } from 'drizzle-orm''[,;]
+import { db } from '../../../../db''[,;]
+import crypto from 'crypto''[,;]
 
 export class DrizzleTimecardRepository implements ITimecardRepository {
   
@@ -340,7 +340,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
         usedHours: "0",
         expiredHours: entry.balanceHours,
         expirationPolicy: entry.expirationPolicy as any,
-        movementType: 'expiration',
+        movementType: 'expiration''[,;]
         description: `Expiração automática de ${entry.balanceHours} horas`,
         relatedTimesheetId: entry.relatedTimesheetId || undefined,
       });
@@ -459,7 +459,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     const [resolved] = await db
       .update(timeAlerts)
       .set({
-        status: 'resolved',
+        status: 'resolved''[,;]
         resolvedBy,
         resolvedAt: new Date(),
         resolutionNotes: notes,
@@ -689,17 +689,17 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
   }
 
   private mapViolationToAlertType(violation: string): 'missing_record' | 'duplicate_record' | 'overtime_exceeded' | 'incomplete_shift' | 'hour_bank_limit' | 'legal_violation' {
-    if (violation.includes('Ausência')) return 'missing_record';
-    if (violation.includes('duplicadas')) return 'duplicate_record';
-    if (violation.includes('excessiva')) return 'overtime_exceeded';
-    return 'legal_violation';
+    if (violation.includes('Ausência')) return 'missing_record''[,;]
+    if (violation.includes('duplicadas')) return 'duplicate_record''[,;]
+    if (violation.includes('excessiva')) return 'overtime_exceeded''[,;]
+    return 'legal_violation''[,;]
   }
 
   private mapViolationToSeverity(violation: string): 'low' | 'medium' | 'high' | 'critical' {
-    if (violation.includes('excessiva')) return 'critical';
-    if (violation.includes('duplicadas')) return 'high';
-    if (violation.includes('Ausência')) return 'medium';
-    return 'low';
+    if (violation.includes('excessiva')) return 'critical''[,;]
+    if (violation.includes('duplicadas')) return 'high''[,;]
+    if (violation.includes('Ausência')) return 'medium''[,;]
+    return 'low''[,;]
   }
 
   private async createAuditLog(
@@ -762,7 +762,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
   async approveAbsenceRequest(requestId: string, tenantId: string, reviewedBy: string, notes?: string): Promise<any> {
     const [updated] = await db.update(absenceRequests)
       .set({
-        status: 'approved',
+        status: 'approved''[,;]
         reviewedBy,
         reviewedAt: new Date(),
         reviewNotes: notes,
@@ -884,7 +884,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     const [updated] = await db.update(scheduleNotifications)
       .set({
         readAt: new Date(),
-        status: 'read',
+        status: 'read''[,;]
         updatedAt: new Date(),
       })
       .where(and(
@@ -930,8 +930,8 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       workDaysPerWeek: template[0].configuration.workDays.length,
       hoursPerDay: template[0].configuration.startTime && template[0].configuration.endTime 
         ? '8.0' // Calcular baseado nos horários
-        : '8.0',
-      hoursPerWeek: '40.0',
+        : '8.0''[,;]
+      hoursPerWeek: '40.0''[,;]
       standardStart: template[0].configuration.startTime,
       standardEnd: template[0].configuration.endTime,
       breakDuration: template[0].configuration.breakDuration || 0,
@@ -953,7 +953,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       tenantId,
       userId,
       notificationType: 'schedule_assignment' as const,
-      title: 'Nova Escala Atribuída',
+      title: 'Nova Escala Atribuída''[,;]
       message: `Você foi atribuído ao template de escala "${template[0].name}"`,
       data: {
         templateId,

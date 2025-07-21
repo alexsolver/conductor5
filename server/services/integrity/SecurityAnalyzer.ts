@@ -1,4 +1,4 @@
-import { FileIssue } from '../IntegrityControlService';
+import { FileIssue } from '../IntegrityControlService''[,;]
 
 export class SecurityAnalyzer {
   static analyzeSecurityVulnerabilities(content: string, filePath: string): FileIssue[] {
@@ -75,10 +75,10 @@ export class SecurityAnalyzer {
           }
           
           issues.push({
-            type: 'error',
+            type: 'error''[,;]
             line: lineIndex + 1,
-            description: 'SQL injection vulnerability detected',
-            problemFound: 'Unsafe SQL construction',
+            description: 'SQL injection vulnerability detected''[,;]
+            problemFound: 'Unsafe SQL construction''[,;]
             correctionPrompt: `Fix SQL injection vulnerability in ${filePath} line ${lineIndex + 1}. Use Drizzle ORM's sql.identifier(), sql.placeholder(), or prepared statements instead of string interpolation.`
           });
         });
@@ -93,8 +93,8 @@ export class SecurityAnalyzer {
         // Only flag if no expiresIn is found in the options
         if (!match.includes('expiresIn')) {
           issues.push({
-            type: 'error',
-            description: 'Authentication security issue: JWT without expiration',
+            type: 'error''[,;]
+            description: 'Authentication security issue: JWT without expiration''[,;]
             problemFound: match,
             correctionPrompt: `Add expiresIn option to JWT in ${filePath}. Example: jwt.sign(payload, secret, { expiresIn: '15m' })`
           });
@@ -109,8 +109,8 @@ export class SecurityAnalyzer {
       const saltRounds = parseInt(bcryptMatch[1]);
       if (saltRounds < 10) {
         issues.push({
-          type: 'error',
-          description: 'Authentication security issue: Weak bcrypt salt rounds',
+          type: 'error''[,;]
+          description: 'Authentication security issue: Weak bcrypt salt rounds''[,;]
           problemFound: bcryptMatch[0],
           correctionPrompt: `Increase bcrypt salt rounds to at least 10 in ${filePath}. Current: ${saltRounds}, recommended: 12`
         });
@@ -127,7 +127,7 @@ export class SecurityAnalyzer {
     fileVulnerabilities.forEach(({ pattern, issue }) => {
       if (pattern.test(content)) {
         issues.push({
-          type: 'error',
+          type: 'error''[,;]
           description: `File security issue: ${issue}`,
           problemFound: issue,
           correctionPrompt: `Fix file security vulnerability in ${filePath}: ${issue}. Validate and sanitize all user inputs before file operations.`
@@ -147,9 +147,9 @@ export class SecurityAnalyzer {
     
     if (hasReqBodyUsage && !hasZodValidation) {
       issues.push({
-        type: 'warning',
-        description: 'Input validation issue: Unvalidated user input',
-        problemFound: 'Unvalidated user input',
+        type: 'warning''[,;]
+        description: 'Input validation issue: Unvalidated user input''[,;]
+        problemFound: 'Unvalidated user input''[,;]
         correctionPrompt: `Add input validation in ${filePath}: Unvalidated user input. Use Zod schemas or similar validation library before processing user data.`
       });
     }
@@ -157,7 +157,7 @@ export class SecurityAnalyzer {
     inputValidationIssues.forEach(({ pattern, issue }) => {
       if (pattern.test(content)) {
         issues.push({
-          type: 'warning',
+          type: 'warning''[,;]
           description: `Input validation issue: ${issue}`,
           problemFound: issue,
           correctionPrompt: `Add input validation in ${filePath}: ${issue}. Use Zod schemas or similar validation library before processing user data.`
@@ -177,7 +177,7 @@ export class SecurityAnalyzer {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = content.substring(0, match.index).split('\n')[lineNumber - 1] || ';
+        const lineContent = content.substring(0, match.index).split('\n')[lineNumber - 1] || '[,;]
         
         // Skip if it's a secure fallback pattern or environment variable usage
         if (lineContent.includes('process.env.') ||
@@ -193,7 +193,7 @@ export class SecurityAnalyzer {
         }
         
         issues.push({
-          type: 'error',
+          type: 'error''[,;]
           line: lineNumber,
           description: `Security vulnerability: ${issue}`,
           problemFound: match[0],
@@ -225,10 +225,10 @@ export class SecurityAnalyzer {
         
         if (isCritical) {
           issues.push({
-            type: 'error',
+            type: 'error''[,;]
             line: lineNumber,
-            description: 'Critical async function without error handling',
-            problemFound: 'Missing try/catch for database/auth operations',
+            description: 'Critical async function without error handling''[,;]
+            problemFound: 'Missing try/catch for database/auth operations''[,;]
             correctionPrompt: `Add try/catch block to async function in ${filePath} line ${lineNumber}. Wrap database/authentication operations in proper error handling.`
           });
         }
@@ -241,7 +241,7 @@ export class SecurityAnalyzer {
   private static extractFunctionBlock(content: string, startIndex: number): string | null {
     let braceCount = 0;
     let inFunction = false;
-    let functionBlock = ';
+    let functionBlock = '[,;]
     
     for (let i = startIndex; i < content.length; i++) {
       const char = content[i];

@@ -280,7 +280,7 @@ export class SchemaManager {
       }
 
       // Import tenant-specific schema generator
-      const { getTenantSpecificSchema } = await import('@shared/schema/tenant-specific');
+      const { getTenantSpecificSchema } = await import('@shared/schema');
       const tenantSchema = getTenantSpecificSchema(schemaName);
 
       this.tenantConnections.set(tenantId, { db: tenantDb, schema: tenantSchema });
@@ -319,9 +319,9 @@ export class SchemaManager {
           phone VARCHAR(50),
           company VARCHAR(255),
           cpf_cnpj VARCHAR(20),
-          contact_type VARCHAR(50) DEFAULT 'external',
+          contact_type VARCHAR(50) DEFAULT 'external''[,;]
           relationship VARCHAR(100),
-          preferred_contact_method VARCHAR(50) DEFAULT 'email',
+          preferred_contact_method VARCHAR(50) DEFAULT 'email''[,;]
           notes TEXT,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -357,8 +357,8 @@ export class SchemaManager {
           description TEXT,
           category VARCHAR(100),
           icon VARCHAR(100),
-          status VARCHAR(50) DEFAULT 'disconnected',
-          config JSONB DEFAULT '{}',
+          status VARCHAR(50) DEFAULT 'disconnected''[,;]
+          config JSONB DEFAULT '{}''[,;]
           features TEXT[],
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
@@ -391,8 +391,8 @@ export class SchemaManager {
           tenant_id UUID NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
-          conditions JSONB DEFAULT '{}',
-          actions JSONB DEFAULT '{}',
+          conditions JSONB DEFAULT '{}''[,;]
+          actions JSONB DEFAULT '{}''[,;]
           priority INTEGER DEFAULT 1,
           is_active BOOLEAN DEFAULT true,
           created_by UUID NOT NULL,
@@ -408,12 +408,12 @@ export class SchemaManager {
           tenant_id UUID NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
-          template_type VARCHAR(50) NOT NULL DEFAULT 'auto_response',
+          template_type VARCHAR(50) NOT NULL DEFAULT 'auto_response''[,;]
           subject VARCHAR(500) NOT NULL,
           body_html TEXT,
           body_text TEXT,
-          available_variables JSONB DEFAULT '[]',
-          conditional_logic JSONB DEFAULT '{}',
+          available_variables JSONB DEFAULT '[]''[,;]
+          conditional_logic JSONB DEFAULT '{}''[,;]
           is_default BOOLEAN DEFAULT false,
           is_active BOOLEAN DEFAULT true,
           requires_approval BOOLEAN DEFAULT false,
@@ -441,11 +441,11 @@ export class SchemaManager {
           action_taken VARCHAR(50) NOT NULL,
           ticket_id UUID,
           response_template_id UUID,
-          processing_status VARCHAR(50) NOT NULL DEFAULT 'processed',
+          processing_status VARCHAR(50) NOT NULL DEFAULT 'processed''[,;]
           error_message TEXT,
           processing_time INTEGER,
-          email_content JSONB DEFAULT '{}',
-          extracted_data JSONB DEFAULT '{}',
+          email_content JSONB DEFAULT '{}''[,;]
+          extracted_data JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           CONSTRAINT email_logs_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
         )
@@ -482,8 +482,8 @@ export class SchemaManager {
           company_website VARCHAR(255),
           company_address TEXT,
           logo_url VARCHAR(500),
-          brand_colors JSONB DEFAULT '{}',
-          social_links JSONB DEFAULT '{}',
+          brand_colors JSONB DEFAULT '{}''[,;]
+          social_links JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           CONSTRAINT email_signatures_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
@@ -520,9 +520,9 @@ export class SchemaManager {
           body_html TEXT,
           has_attachments BOOLEAN DEFAULT false,
           attachment_count INTEGER DEFAULT 0,
-          attachment_details JSONB DEFAULT '[]',
-          email_headers JSONB DEFAULT '{}',
-          priority VARCHAR(20) DEFAULT 'normal',
+          attachment_details JSONB DEFAULT '[]''[,;]
+          email_headers JSONB DEFAULT '{}''[,;]
+          priority VARCHAR(20) DEFAULT 'normal''[,;]
           is_read BOOLEAN DEFAULT false,
           is_processed BOOLEAN DEFAULT false,
           rule_matched UUID,
@@ -586,8 +586,8 @@ export class SchemaManager {
           tenant_id VARCHAR(36) NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
-          status VARCHAR(50) NOT NULL DEFAULT 'planning',
-          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+          status VARCHAR(50) NOT NULL DEFAULT 'planning''[,;]
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium''[,;]
           start_date DATE,
           end_date DATE,
           estimated_hours INTEGER,
@@ -596,9 +596,9 @@ export class SchemaManager {
           spent_amount DECIMAL(12,2) DEFAULT 0,
           progress_percentage INTEGER DEFAULT 0,
           project_manager_id UUID,
-          team_members JSONB DEFAULT '[]',
+          team_members JSONB DEFAULT '[]''[,;]
           tags VARCHAR(500),
-          metadata JSONB DEFAULT '{}',
+          metadata JSONB DEFAULT '{}''[,;]
           created_by UUID NOT NULL,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
@@ -615,16 +615,16 @@ export class SchemaManager {
           project_id UUID NOT NULL,
           title VARCHAR(255) NOT NULL,
           description TEXT,
-          action_type VARCHAR(50) NOT NULL DEFAULT 'task',
-          status VARCHAR(50) NOT NULL DEFAULT 'pending',
-          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+          action_type VARCHAR(50) NOT NULL DEFAULT 'task''[,;]
+          status VARCHAR(50) NOT NULL DEFAULT 'pending''[,;]
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium''[,;]
           assigned_to UUID,
           due_date DATE,
           completed_at TIMESTAMP,
           estimated_hours INTEGER,
           actual_hours INTEGER DEFAULT 0,
-          dependencies JSONB DEFAULT '[]',
-          attachments JSONB DEFAULT '[]',
+          dependencies JSONB DEFAULT '[]''[,;]
+          attachments JSONB DEFAULT '[]''[,;]
           comments TEXT,
           created_by UUID NOT NULL,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -646,7 +646,7 @@ export class SchemaManager {
           milestone BOOLEAN DEFAULT false,
           user_id UUID,
           action_id UUID,
-          metadata JSONB DEFAULT '{}',
+          metadata JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           CONSTRAINT project_timeline_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
         )
@@ -755,7 +755,7 @@ export class SchemaManager {
   // Create tenant-specific tables using parameterized queries for security
   private async createTenantTables(schemaName: string): Promise<void> {
     // CRITICAL FIX: Extract tenantId from schemaName for proper variable scope
-    const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
+    const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
     
     // CRITICAL FIX: Check if tables exist and need migration
     const tablesExist = await this.tablesExist(schemaName);
@@ -806,9 +806,9 @@ export class SchemaManager {
           active BOOLEAN DEFAULT TRUE,
           suspended BOOLEAN DEFAULT FALSE,
           last_login TIMESTAMP,
-          timezone VARCHAR(50) DEFAULT 'UTC',
-          locale VARCHAR(10) DEFAULT 'en-US',
-          language VARCHAR(5) DEFAULT 'en',
+          timezone VARCHAR(50) DEFAULT 'UTC''[,;]
+          locale VARCHAR(10) DEFAULT 'en-US''[,;]
+          language VARCHAR(5) DEFAULT 'en''[,;]
           external_id VARCHAR(255),
           role VARCHAR(100),
           notes VARCHAR(1000),
@@ -841,9 +841,9 @@ export class SchemaManager {
           phone VARCHAR(50),
           company VARCHAR(255),
           cpf_cnpj VARCHAR(20),
-          contact_type VARCHAR(50) DEFAULT 'external',
+          contact_type VARCHAR(50) DEFAULT 'external''[,;]
           relationship VARCHAR(100),
-          preferred_contact_method VARCHAR(50) DEFAULT 'email',
+          preferred_contact_method VARCHAR(50) DEFAULT 'email''[,;]
           notes TEXT,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -869,15 +869,15 @@ export class SchemaManager {
           tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           subject VARCHAR(500) NOT NULL,
           description TEXT,
-          status VARCHAR(50) DEFAULT 'open',
-          priority VARCHAR(20) DEFAULT 'medium',
+          status VARCHAR(50) DEFAULT 'open''[,;]
+          priority VARCHAR(20) DEFAULT 'medium''[,;]
           number VARCHAR(40),
           short_description VARCHAR(160),
           category VARCHAR(50),
           subcategory VARCHAR(50),
-          impact VARCHAR(20) DEFAULT 'medium',
-          urgency VARCHAR(20) DEFAULT 'medium',
-          state VARCHAR(20) DEFAULT 'new',
+          impact VARCHAR(20) DEFAULT 'medium''[,;]
+          urgency VARCHAR(20) DEFAULT 'medium''[,;]
+          state VARCHAR(20) DEFAULT 'new''[,;]
           customer_id UUID,
           assigned_to_id VARCHAR,
           caller_id UUID,
@@ -892,8 +892,8 @@ export class SchemaManager {
           work_notes TEXT, -- Optimized: TEXT for work notes
           configuration_item VARCHAR(100),
           business_service VARCHAR(100),
-          contact_type VARCHAR(20) DEFAULT 'email',
-          notify VARCHAR(20) DEFAULT 'do_not_notify',
+          contact_type VARCHAR(20) DEFAULT 'email''[,;]
+          notify VARCHAR(20) DEFAULT 'do_not_notify''[,;]
           close_notes TEXT,
           business_impact VARCHAR(50),
           symptoms TEXT,
@@ -932,8 +932,8 @@ export class SchemaManager {
           customer_id UUID,
           user_id VARCHAR,
           content TEXT NOT NULL,
-          type VARCHAR(50) DEFAULT 'comment',
-          is_internal VARCHAR(10) DEFAULT 'false',
+          type VARCHAR(50) DEFAULT 'comment''[,;]
+          is_internal VARCHAR(10) DEFAULT 'false''[,;]
           attachments TEXT, -- Optimized: TEXT for attachments list
           created_at TIMESTAMP DEFAULT NOW(),
           -- CRITICAL: Tenant isolation constraints
@@ -993,7 +993,7 @@ export class SchemaManager {
           city VARCHAR(100) NOT NULL,
           state VARCHAR(50) NOT NULL,
           zip_code VARCHAR(20) NOT NULL,
-          country VARCHAR(50) NOT NULL DEFAULT 'Brasil',
+          country VARCHAR(50) NOT NULL DEFAULT 'Brasil''[,;]
 
           -- Geographic coordinates
           latitude VARCHAR(20), -- Optimized: VARCHAR for latitude
@@ -1002,7 +1002,7 @@ export class SchemaManager {
           -- Business hours and SLA - OPTIMIZED
           business_hours TEXT, -- Optimized: TEXT for business hours
           special_hours TEXT, -- Optimized: TEXT for special hours
-          timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
+          timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo''[,;]
           sla_id UUID,
 
           -- Access and security
@@ -1039,14 +1039,14 @@ export class SchemaManager {
           address TEXT, -- Optimized: TEXT for address
           tax_id VARCHAR(100),
           registration_number VARCHAR(100),
-          subscription_tier VARCHAR(50) DEFAULT 'basic',
+          subscription_tier VARCHAR(50) DEFAULT 'basic''[,;]
           contract_type VARCHAR(50),
           max_users INTEGER,
           max_tickets INTEGER,
           settings TEXT, -- Optimized: TEXT for settings
           tags VARCHAR(500), -- Optimized: VARCHAR for tags
           metadata TEXT, -- Optimized: TEXT for metadata
-          status VARCHAR(50) DEFAULT 'active',
+          status VARCHAR(50) DEFAULT 'active''[,;]
           is_active BOOLEAN DEFAULT TRUE,
           is_primary BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -1074,7 +1074,7 @@ export class SchemaManager {
           tenant_id VARCHAR(36) NOT NULL, -- CRITICAL: Explicit tenant isolation
           customer_id UUID NOT NULL,
           company_id UUID NOT NULL,
-          role VARCHAR(100) DEFAULT 'member',
+          role VARCHAR(100) DEFAULT 'member''[,;]
           title VARCHAR(255),
           department VARCHAR(255),
           permissions TEXT, -- Optimized: TEXT for permissions
@@ -1282,9 +1282,9 @@ export class SchemaManager {
           name VARCHAR(255) NOT NULL,
           description TEXT,
           category VARCHAR(100) NOT NULL,
-          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
-          urgency VARCHAR(20) NOT NULL DEFAULT 'medium',
-          impact VARCHAR(20) NOT NULL DEFAULT 'medium',
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium''[,;]
+          urgency VARCHAR(20) NOT NULL DEFAULT 'medium''[,;]
+          impact VARCHAR(20) NOT NULL DEFAULT 'medium''[,;]
           default_title VARCHAR(500),
           default_description TEXT,
           default_tags TEXT, -- JSON array of tags
@@ -1319,8 +1319,8 @@ export class SchemaManager {
           description TEXT,
           category VARCHAR(100),
           icon VARCHAR(100),
-          status VARCHAR(50) DEFAULT 'disconnected',
-          config JSONB DEFAULT '{}',
+          status VARCHAR(50) DEFAULT 'disconnected''[,;]
+          config JSONB DEFAULT '{}''[,;]
           features TEXT[],
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
@@ -1343,8 +1343,8 @@ export class SchemaManager {
           tenant_id UUID NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
-          conditions JSONB DEFAULT '{}',
-          actions JSONB DEFAULT '{}',
+          conditions JSONB DEFAULT '{}''[,;]
+          actions JSONB DEFAULT '{}''[,;]
           priority INTEGER DEFAULT 1,
           is_active BOOLEAN DEFAULT true,
           created_by UUID NOT NULL,
@@ -1360,12 +1360,12 @@ export class SchemaManager {
           tenant_id UUID NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
-          template_type VARCHAR(50) NOT NULL DEFAULT 'auto_response',
+          template_type VARCHAR(50) NOT NULL DEFAULT 'auto_response''[,;]
           subject VARCHAR(500) NOT NULL,
           body_html TEXT,
           body_text TEXT,
-          available_variables JSONB DEFAULT '[]',
-          conditional_logic JSONB DEFAULT '{}',
+          available_variables JSONB DEFAULT '[]''[,;]
+          conditional_logic JSONB DEFAULT '{}''[,;]
           is_default BOOLEAN DEFAULT false,
           is_active BOOLEAN DEFAULT true,
           requires_approval BOOLEAN DEFAULT false,
@@ -1393,11 +1393,11 @@ export class SchemaManager {
           action_taken VARCHAR(50) NOT NULL,
           ticket_id UUID,
           response_template_id UUID,
-          processing_status VARCHAR(50) NOT NULL DEFAULT 'processed',
+          processing_status VARCHAR(50) NOT NULL DEFAULT 'processed''[,;]
           error_message TEXT,
           processing_time INTEGER,
-          email_content JSONB DEFAULT '{}',
-          extracted_data JSONB DEFAULT '{}',
+          email_content JSONB DEFAULT '{}''[,;]
+          extracted_data JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           CONSTRAINT email_logs_tenant_id_format CHECK (LENGTH(tenant_id::text) = 36)
         )
@@ -1423,7 +1423,7 @@ export class SchemaManager {
           location_id UUID NOT NULL,
           relationship VARCHAR(100),
           is_primary BOOLEAN DEFAULT false,
-          access_level VARCHAR(50) DEFAULT 'standard',
+          access_level VARCHAR(50) DEFAULT 'standard''[,;]
           notes TEXT,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
@@ -1465,7 +1465,7 @@ export class SchemaManager {
       const { logInfo } = await import('./utils/logger');
       logInfo(`✅ Tenant tables AND performance indexes created successfully for schema ${schemaName}`, { 
         schemaName,
-        security: 'All queries use sql.identifier() for safe schema references',
+        security: 'All queries use sql.identifier() for safe schema references''[,;]
         performance: 'Critical performance indexes created automatically'
       });
 
@@ -1540,7 +1540,7 @@ export class SchemaManager {
   private async simpleMigrateLegacyTables(schemaName: string): Promise<void> {
     try {
       // Extract tenant_id from schema name for migration
-      const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
+      const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
 
       // CRITICAL FIX: Use raw SQL for complex migration queries to avoid parameter binding issues
       const migrationQueries = [
@@ -1549,7 +1549,7 @@ export class SchemaManager {
          BEGIN 
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'skills')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'skills' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
              ALTER TABLE ${schemaName}.skills ADD CONSTRAINT skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
@@ -1559,7 +1559,7 @@ export class SchemaManager {
          BEGIN 
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'certifications')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'certifications' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.certifications ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.certifications ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
              ALTER TABLE ${schemaName}.certifications ADD CONSTRAINT certifications_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
@@ -1569,7 +1569,7 @@ export class SchemaManager {
          BEGIN 
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'user_skills')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'user_skills' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.user_skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.user_skills ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
              ALTER TABLE ${schemaName}.user_skills ADD CONSTRAINT user_skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
@@ -1579,7 +1579,7 @@ export class SchemaManager {
          BEGIN 
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'customers')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'customers' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.customers ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.customers ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
              ALTER TABLE ${schemaName}.customers ADD CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
@@ -1589,7 +1589,7 @@ export class SchemaManager {
          BEGIN 
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'tickets')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'tickets' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.tickets ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.tickets ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
              ALTER TABLE ${schemaName}.tickets ADD CONSTRAINT tickets_tenant_id_format CHECK (LENGTH(tenant_id) = 36);
            END IF;
          END $$;`,
@@ -1600,25 +1600,25 @@ export class SchemaManager {
            -- Ticket messages
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'ticket_messages')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'ticket_messages' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.ticket_messages ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.ticket_messages ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
            END IF;
 
            -- Activity logs
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'activity_logs')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'activity_logs' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.activity_logs ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.activity_logs ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
            END IF;
 
            -- Locations
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'locations')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'locations' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.locations ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.locations ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
            END IF;
 
            -- External contacts
            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'external_contacts')
               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${schemaName}' AND table_name = 'external_contacts' AND column_name = 'tenant_id') THEN
-             ALTER TABLE ${schemaName}.external_contacts ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}';
+             ALTER TABLE ${schemaName}.external_contacts ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}''[,;]
            END IF;
 
            -- CRITICAL FIX: Add missing 'active' column to customers table if missing
@@ -1685,7 +1685,7 @@ export class SchemaManager {
           slug VARCHAR(100) UNIQUE NOT NULL,
           subdomain VARCHAR(100) UNIQUE,
           is_active BOOLEAN DEFAULT true,
-          settings JSONB DEFAULT '{}',
+          settings JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )
@@ -1700,7 +1700,7 @@ export class SchemaManager {
           password_hash VARCHAR(255) NOT NULL,
           first_name VARCHAR(255),
           last_name VARCHAR(255),
-          role VARCHAR(50) NOT NULL DEFAULT 'agent',
+          role VARCHAR(50) NOT NULL DEFAULT 'agent''[,;]
           is_active BOOLEAN DEFAULT true,
           last_login TIMESTAMP,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -1752,9 +1752,9 @@ export class SchemaManager {
 
       // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 17 TABELAS CRÍTICAS)
       const requiredTables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs',
-        'locations', 'customer_companies', 'skills', 'certifications',
-        'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships',
+        'customers', 'tickets', 'ticket_messages', 'activity_logs''[,;]
+        'locations', 'customer_companies', 'skills', 'certifications''[,;]
+        'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships''[,;]
         'integrations', 'favorecido_locations', 'projects', 'project_actions', 'project_timeline'
       ];
 

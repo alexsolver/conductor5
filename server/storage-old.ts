@@ -415,9 +415,9 @@ export class DatabaseStorage implements IStorage {
           return {
             ...ticket,
             customer: customer ? { ...customer, tenantId } : {
-              id: ticket.customer_id || 'unknown',
+              id: ticket.customer_id || 'unknown''[,;]
               fullName: `ID: ${(ticket.customer_id || ').slice(-8)}`,
-              email: 'unknown@example.com',
+              email: 'unknown@example.com''[,;]
               tenantId
             },
             assignedTo: assignedTo || undefined
@@ -465,7 +465,7 @@ export class DatabaseStorage implements IStorage {
       customer: customer ? { ...customer, tenantId } : {
         id: result.ticket.customerId,
         fullName: `ID: ${result.ticket.customerId.slice(-8)}`,
-        email: 'unknown@example.com',
+        email: 'unknown@example.com''[,;]
         tenantId
       },
       assignedTo: result.assignedTo || undefined,
@@ -533,7 +533,7 @@ export class DatabaseStorage implements IStorage {
           customer: customer ? { ...customer, tenantId } : {
             id: row.ticket.customerId,
             fullName: `ID: ${row.ticket.customerId.slice(-8)}`,
-            email: 'unknown@example.com',
+            email: 'unknown@example.com''[,;]
             tenantId
           },
           assignedTo: row.assignedTo || undefined
@@ -580,7 +580,7 @@ export class DatabaseStorage implements IStorage {
   async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
     // Temporary implementation until activity logs schema is fully migrated
     return {
-      id: 'temp-log-id',
+      id: 'temp-log-id''[,;]
       entityType: log.entityType,
       entityId: log.entityId,
       action: log.action,
@@ -674,11 +674,11 @@ export class DatabaseStorage implements IStorage {
         email: solicitanteData.email,
         phone: solicitanteData.phone,
         documento: solicitanteData.documento,
-        tipoPessoa: solicitanteData.tipoPessoa || 'fisica',
+        tipoPessoa: solicitanteData.tipoPessoa || 'fisica''[,;]
         companyId: solicitanteData.companyId,
         locationId: solicitanteData.locationId,
-        preferenciaContato: solicitanteData.preferenciaContato || 'email',
-        idioma: solicitanteData.idioma || 'pt-BR',
+        preferenciaContato: solicitanteData.preferenciaContato || 'email''[,;]
+        idioma: solicitanteData.idioma || 'pt-BR''[,;]
         observacoes: solicitanteData.observacoes,
         active: true,
         verified: false,
@@ -731,7 +731,7 @@ export class DatabaseStorage implements IStorage {
           location_id UUID,
           customer_id UUID,
           pode_interagir BOOLEAN DEFAULT FALSE,
-          tipo_vinculo VARCHAR(50) DEFAULT 'outro',
+          tipo_vinculo VARCHAR(50) DEFAULT 'outro''[,;]
           observacoes TEXT,
           active BOOLEAN DEFAULT TRUE,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -774,12 +774,12 @@ export class DatabaseStorage implements IStorage {
           excerpt TEXT,
           content TEXT,
           category VARCHAR(100),
-          tags JSONB DEFAULT '[]',
+          tags JSONB DEFAULT '[]''[,;]
           author VARCHAR(255),
           views INTEGER DEFAULT 0,
           helpful INTEGER DEFAULT 0,
           not_helpful INTEGER DEFAULT 0,
-          status VARCHAR(50) DEFAULT 'published',
+          status VARCHAR(50) DEFAULT 'published''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )
@@ -906,14 +906,14 @@ export class DatabaseStorage implements IStorage {
           category VARCHAR(100),
           provider VARCHAR(255),
           description TEXT,
-          status VARCHAR(50) DEFAULT 'disconnected',
+          status VARCHAR(50) DEFAULT 'disconnected''[,;]
           configured BOOLEAN DEFAULT FALSE,
           api_key_configured BOOLEAN DEFAULT FALSE,
-          config JSONB DEFAULT '{}',
-          features JSONB DEFAULT '[]',
-          sync_frequency VARCHAR(50) DEFAULT 'manual',
+          config JSONB DEFAULT '{}''[,;]
+          features JSONB DEFAULT '[]''[,;]
+          sync_frequency VARCHAR(50) DEFAULT 'manual''[,;]
           is_active BOOLEAN DEFAULT TRUE,
-          metadata JSONB DEFAULT '{}',
+          metadata JSONB DEFAULT '{}''[,;]
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )

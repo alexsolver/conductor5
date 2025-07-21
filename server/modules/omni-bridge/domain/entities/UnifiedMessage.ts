@@ -17,8 +17,8 @@ export class UnifiedMessage {
     public readonly subject: string | null,
     public readonly content: string,
     public readonly contentHtml: string | null,
-    public readonly priority: 'low' | 'medium' | 'high' | 'urgent',
-    public readonly status: 'unread' | 'read' | 'archived' | 'processed',
+    public readonly priority: 'low' | 'medium' | 'high' | 'urgent''[,;]
+    public readonly status: 'unread' | 'read' | 'archived' | 'processed''[,;]
     public readonly hasAttachments: boolean,
     public readonly attachmentCount: number,
     public readonly attachments: any[],
@@ -46,7 +46,7 @@ export class UnifiedMessage {
       this.content,
       this.contentHtml,
       this.priority,
-      'read',
+      'read''[,;]
       this.hasAttachments,
       this.attachmentCount,
       this.attachments,
@@ -75,7 +75,7 @@ export class UnifiedMessage {
       this.content,
       this.contentHtml,
       this.priority,
-      'archived',
+      'archived''[,;]
       this.hasAttachments,
       this.attachmentCount,
       this.attachments,

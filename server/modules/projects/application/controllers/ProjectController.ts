@@ -1,7 +1,7 @@
 
-import { Request, Response } from 'express';
-import { ManageProjectsUseCase, ManageProjectActionsUseCase } from '../use-cases/ManageProjectsUseCase';
-import { DrizzleProjectRepository, DrizzleProjectActionRepository, DrizzleProjectTimelineRepository } from '../../infrastructure/repositories/DrizzleProjectRepository';
+import { Request, Response } from 'express''[,;]
+import { ManageProjectsUseCase, ManageProjectActionsUseCase } from '../use-cases/ManageProjectsUseCase''[,;]
+import { DrizzleProjectRepository, DrizzleProjectActionRepository, DrizzleProjectTimelineRepository } from '../../infrastructure/repositories/DrizzleProjectRepository''[,;]
 import { 
   CreateProjectSchema, 
   UpdateProjectSchema, 
@@ -9,7 +9,7 @@ import {
   UpdateProjectActionSchema,
   ProjectFiltersSchema,
   ProjectActionFiltersSchema 
-} from '../../../../../shared/schema/projects';
+} from '../../../../../shared/schema''[,;]
 
 interface AuthenticatedRequest extends Request {
   user?: {

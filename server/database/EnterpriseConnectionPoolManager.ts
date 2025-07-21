@@ -3,10 +3,10 @@
 // Resolver pool sizing para enterprise scale (100+ tenants)
 // ===========================
 
-import { Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { sql } from 'drizzle-orm';
-import { enterpriseUUIDValidator } from './EnterpriseUUIDValidator';
+import { Pool } from '@neondatabase/serverless''[,;]
+import { drizzle } from 'drizzle-orm/neon-serverless''[,;]
+import { sql } from 'drizzle-orm''[,;]
+import { enterpriseUUIDValidator } from './EnterpriseUUIDValidator''[,;]
 
 interface PoolMetrics {
   tenantId: string;
@@ -100,7 +100,7 @@ export class EnterpriseConnectionPoolManager {
 
   private initializeMainMetrics(): void {
     this.poolMetrics.set('main', {
-      tenantId: 'main',
+      tenantId: 'main''[,;]
       activeConnections: 0,
       idleConnections: 0,
       waitingClients: 0,

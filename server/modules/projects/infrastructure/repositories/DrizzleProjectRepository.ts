@@ -1,9 +1,9 @@
 
-import { eq, and, sql, desc, asc, like, inArray, gte, lte } from 'drizzle-orm';
-import { schemaManager } from '../../../../db';
-import { projects, projectActions, projectTimeline } from '../../../../../shared/schema';
-import { Project, ProjectAction, ProjectTimeline } from '../../domain/entities/Project';
-import { IProjectRepository, IProjectActionRepository, IProjectTimelineRepository, ProjectFilters, ProjectActionFilters } from '../../domain/repositories/IProjectRepository';
+import { eq, and, sql, desc, asc, like, inArray, gte, lte } from 'drizzle-orm''[,;]
+import { schemaManager } from '../../../../db''[,;]
+import { projects, projectActions, projectTimeline } from '../../../../../shared/schema''[,;]
+import { Project, ProjectAction, ProjectTimeline } from '../../domain/entities/Project''[,;]
+import { IProjectRepository, IProjectActionRepository, IProjectTimelineRepository, ProjectFilters, ProjectActionFilters } from '../../domain/repositories/IProjectRepository''[,;]
 
 export class DrizzleProjectRepository implements IProjectRepository {
   async create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> {

@@ -1,7 +1,7 @@
-import crypto from 'crypto';
-import { db } from '../db';
-import { sql } from 'drizzle-orm';
-import { storage } from '../storage';
+import crypto from 'crypto''[,;]
+import { db } from '../db''[,;]
+import { sql } from 'drizzle-orm''[,;]
+import { storage } from '../storage''[,;]
 
 interface MagicLinkToken {
   token: string;
@@ -292,7 +292,7 @@ export class AuthSecurityService {
         identifier,
         eventType,
         metadata: JSON.stringify(metadata),
-        ip: ip || '127.0.0.1',
+        ip: ip || '127.0.0.1''[,;]
         createdAt: new Date()
       });
     } catch (error) {

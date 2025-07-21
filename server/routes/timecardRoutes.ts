@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { TimecardController } from '../modules/timecard/application/controllers/TimecardController';
+import { Router } from 'express''[,;]
+import { TimecardController } from '../modules/timecard/application/controllers/TimecardController''[,;]
 
 const router = Router();
 const timecardController = new TimecardController();

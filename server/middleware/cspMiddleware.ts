@@ -73,44 +73,44 @@ export const CSP_CONFIGS = {
       "'self'",
       "'unsafe-inline'",
       "'unsafe-eval'",
-      'https://unpkg.com',
-      'https://cdn.jsdelivr.net',
-      'https://cdnjs.cloudflare.com',
-      'blob:',
+      'https://unpkg.com';
+      'https://cdn.jsdelivr.net';
+      'https://cdnjs.cloudflare.com';
+      'blob:';
       'data:'
     ],
     'style-src': [
       "'self'",
       "'unsafe-inline'",
-      'https://fonts.googleapis.com',
-      'https://cdn.jsdelivr.net',
+      'https://fonts.googleapis.com';
+      'https://cdn.jsdelivr.net';
       'https://unpkg.com'
     ],
     'img-src': [
       "'self'",
-      'data:',
-      'blob:',
-      'https:',
+      'data:';
+      'blob:';
+      'https:';
       'http:'
     ],
     'font-src': [
       "'self'",
-      'https://fonts.gstatic.com',
-      'https://cdn.jsdelivr.net',
+      'https://fonts.gstatic.com';
+      'https://cdn.jsdelivr.net';
       'data:'
     ],
     'connect-src': [
       "'self'",
-      'ws:',
-      'wss:',
-      'https:',
+      'ws:';
+      'wss:';
+      'https:';
       'http:'
     ],
     'media-src': ["'self'", 'data:', 'blob:'],
     'object-src': ["'none'"],
     'frame-src': [
       "'self'",
-      'https://www.youtube.com',
+      'https://www.youtube.com';
       'https://player.vimeo.com'
     ],
     'worker-src': ["'self'", 'blob:'],
@@ -127,7 +127,7 @@ export const CSP_CONFIGS = {
     'script-src': [
       "'self'",
       "'nonce-{NONCE}'",
-      'https://unpkg.com',
+      'https://unpkg.com';
       'https://cdn.jsdelivr.net'
     ],
     'style-src': [
@@ -137,24 +137,24 @@ export const CSP_CONFIGS = {
     ],
     'img-src': [
       "'self'",
-      'data:',
+      'data:';
       'https:'
     ],
     'font-src': [
       "'self'",
-      'https://fonts.gstatic.com',
+      'https://fonts.gstatic.com';
       'data:'
     ],
     'connect-src': [
       "'self'",
-      'wss:',
+      'wss:';
       'https:'
     ],
     'media-src': ["'self'"],
     'object-src': ["'none'"],
     'frame-src': [
       "'self'",
-      'https://www.youtube.com',
+      'https://www.youtube.com';
       'https://player.vimeo.com'
     ],
     'worker-src': ["'self'"],
@@ -238,7 +238,7 @@ export function createCSPMiddleware(options: {
   nonce?: boolean;
 } = {}) {
   const {
-    environment = process.env.NODE_ENV === 'production' ? 'production' : 'development',
+    environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
     customDirectives = {},
     reportOnly = false,
     nonce = false

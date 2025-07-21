@@ -25,7 +25,7 @@ const TEMP_DIRECTORIES = [
   'dist',
   '.cache',
   'temp',
-  'tmp',
+  'tmp'
 ];
 
 /**

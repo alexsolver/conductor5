@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware';
-import { userManagementService } from '../services/UserManagementService';
+import { Router } from 'express''[,;]
+import { z } from 'zod''[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
+import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware''[,;]
+import { userManagementService } from '../services/UserManagementService''[,;]
 
 // Temporary schemas until user-management tables are added to unified schema
 const insertUserGroupSchema = z.object({
@@ -119,7 +119,7 @@ router.get('/roles',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      const includeSystem = req.query.includeSystem === 'true';
+      const includeSystem = req.query.includeSystem === 'true''[,;]
       
       const roles = await userManagementService.getCustomRoles(tenantId, includeSystem);
       res.json({ roles });
@@ -283,10 +283,10 @@ router.get('/users/:userId',
     try {
       const { userId } = req.params;
       const options = {
-        includePermissions: req.query.includePermissions === 'true',
-        includeGroups: req.query.includeGroups === 'true',
-        includeRoles: req.query.includeRoles === 'true',
-        includeSessions: req.query.includeSessions === 'true',
+        includePermissions: req.query.includePermissions === 'true''[,;]
+        includeGroups: req.query.includeGroups === 'true''[,;]
+        includeRoles: req.query.includeRoles === 'true''[,;]
+        includeSessions: req.query.includeSessions === 'true''[,;]
         includeActivity: req.query.includeActivity === 'true'
       };
       
@@ -431,27 +431,27 @@ router.get('/system-roles',
     try {
       const systemRoles = [
         {
-          name: 'saas_admin',
-          displayName: 'SaaS Administrator',
-          description: 'Full platform access including all tenants',
+          name: 'saas_admin''[,;]
+          displayName: 'SaaS Administrator''[,;]
+          description: 'Full platform access including all tenants''[,;]
           isSystem: true
         },
         {
-          name: 'tenant_admin',
-          displayName: 'Tenant Administrator',
-          description: 'Full access to tenant resources and user management',
+          name: 'tenant_admin''[,;]
+          displayName: 'Tenant Administrator''[,;]
+          description: 'Full access to tenant resources and user management''[,;]
           isSystem: true
         },
         {
-          name: 'agent',
-          displayName: 'Support Agent',
-          description: 'Can handle tickets and manage customers',
+          name: 'agent''[,;]
+          displayName: 'Support Agent''[,;]
+          description: 'Can handle tickets and manage customers''[,;]
           isSystem: true
         },
         {
-          name: 'customer',
-          displayName: 'Customer',
-          description: 'Limited access to own tickets and profile',
+          name: 'customer''[,;]
+          displayName: 'Customer''[,;]
+          description: 'Limited access to own tickets and profile''[,;]
           isSystem: true
         }
       ];

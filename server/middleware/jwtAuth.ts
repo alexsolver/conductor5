@@ -91,7 +91,7 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     // Log but don't fail the request
     const { logWarn } = await import('../utils/logger');
     logWarn('Optional JWT authentication warning', { 
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Unknown error';
       method: req.method, 
       url: req.url 
     });

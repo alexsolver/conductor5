@@ -1,7 +1,7 @@
 
-import { Router } from 'express';
-import { IntegrityControlService } from '../services/IntegrityControlService';
-import { jwtAuth } from '../middleware/jwtAuth';
+import { Router } from 'express''[,;]
+import { IntegrityControlService } from '../services/IntegrityControlService''[,;]
+import { jwtAuth } from '../middleware/jwtAuth''[,;]
 
 const router = Router();
 const integrityService = new IntegrityControlService();
@@ -111,10 +111,10 @@ router.post('/scan/comprehensive', jwtAuth, async (req, res) => {
         summary,
         modules: summary.moduleDetails,
         recommendations: [
-          summary.securityVulnerabilities > 0 && 'Prioridade ALTA: Corrigir vulnerabilidades de segurança',
-          summary.incompleteFunctions > 5 && 'Completar funcionalidades pendentes',
-          summary.mockDataFound > 0 && 'Substituir dados mockados por fontes reais',
-          summary.nonFunctionalButtons > 0 && 'Implementar funcionalidade em botões inativos',
+          summary.securityVulnerabilities > 0 && 'Prioridade ALTA: Corrigir vulnerabilidades de segurança''[,;]
+          summary.incompleteFunctions > 5 && 'Completar funcionalidades pendentes''[,;]
+          summary.mockDataFound > 0 && 'Substituir dados mockados por fontes reais''[,;]
+          summary.nonFunctionalButtons > 0 && 'Implementar funcionalidade em botões inativos''[,;]
           summary.architectureViolations > 0 && 'Corrigir violações de Clean Architecture'
         ].filter(Boolean)
       }
@@ -124,7 +124,7 @@ router.post('/scan/comprehensive', jwtAuth, async (req, res) => {
     console.error('❌ Erro na varredura:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Erro interno na varredura do sistema',
+      error: 'Erro interno na varredura do sistema''[,;]
       details: error.message 
     });
   }

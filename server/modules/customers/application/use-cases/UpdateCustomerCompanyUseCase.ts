@@ -4,8 +4,8 @@
  * Updates an existing customer company
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany';
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository';
+import { CustomerCompany } from '../../domain/entities/CustomerCompany''[,;]
+import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository''[,;]
 
 export interface UpdateCustomerCompanyRequest {
   id: string;
@@ -14,7 +14,7 @@ export interface UpdateCustomerCompanyRequest {
   displayName?: string;
   description?: string;
   industry?: string;
-  size?: 'small' | 'medium' | 'large' | 'enterprise';
+  size?: 'small' | 'medium' | 'large' | 'enterprise''[,;]
   email?: string;
   phone?: string;
   website?: string;
@@ -25,11 +25,11 @@ export interface UpdateCustomerCompanyRequest {
     country?: string;
     postalCode?: string;
   };
-  subscriptionTier?: 'basic' | 'premium' | 'enterprise';
-  contractType?: 'monthly' | 'yearly' | 'custom';
+  subscriptionTier?: 'basic' | 'premium' | 'enterprise''[,;]
+  contractType?: 'monthly' | 'yearly' | 'custom''[,;]
   maxUsers?: number;
   maxTickets?: number;
-  status?: 'active' | 'inactive' | 'suspended' | 'trial';
+  status?: 'active' | 'inactive' | 'suspended' | 'trial''[,;]
   isActive?: boolean;
   updatedBy: string;
 }

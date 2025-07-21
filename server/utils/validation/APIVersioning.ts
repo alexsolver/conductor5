@@ -33,7 +33,7 @@ export class APIVersioning {
       // Validate version
       if (!this.isVersionSupported(version)) {
         return res.status(400).json({
-          error: 'Unsupported API version',
+          error: 'Unsupported API version';
           version,
           supportedVersions: this.config.supportedVersions
         });
@@ -121,7 +121,7 @@ export class APIVersioning {
 
 // Default configuration
 export const defaultAPIVersionConfig: APIVersionConfig = {
-  defaultVersion: '1.0',
+  defaultVersion: '1.0';
   supportedVersions: ['1.0', '1.1', '2.0'],
   deprecatedVersions: ['1.0']
 };

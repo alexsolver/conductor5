@@ -16,7 +16,7 @@ export abstract class DomainEvent {
 
 export class CustomerCreated extends DomainEvent {
   get eventName(): string {
-    return 'customer.created';
+    return 'customer.created'[,;]
   }
 
   constructor(
@@ -34,7 +34,7 @@ export class CustomerCreated extends DomainEvent {
 
 export class CustomerUpdated extends DomainEvent {
   get eventName(): string {
-    return 'customer.updated';
+    return 'customer.updated'[,;]
   }
 
   constructor(
@@ -48,7 +48,7 @@ export class CustomerUpdated extends DomainEvent {
 
 export class CustomerSuspended extends DomainEvent {
   get eventName(): string {
-    return 'customer.suspended';
+    return 'customer.suspended'[,;]
   }
 
   constructor(
@@ -62,7 +62,7 @@ export class CustomerSuspended extends DomainEvent {
 
 export class CustomerActivated extends DomainEvent {
   get eventName(): string {
-    return 'customer.activated';
+    return 'customer.activated'[,;]
   }
 
   constructor(
@@ -75,7 +75,7 @@ export class CustomerActivated extends DomainEvent {
 
 export class CustomerVerified extends DomainEvent {
   get eventName(): string {
-    return 'customer.verified';
+    return 'customer.verified'[,;]
   }
 
   constructor(

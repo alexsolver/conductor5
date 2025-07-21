@@ -206,30 +206,30 @@ export class IntelligentCacheManager<T = any> {
     
     for (const [key, entry] of this.cache.entries()) {
       let score = 0;
-      let reason = ';
+      let reason = '[,;]
       
       // TTL factor (higher = more likely to evict)
       if (entry.ttl) {
         const timeAlive = now - entry.createdAt.getTime();
         const ttlProgress = timeAlive / entry.ttl;
         score += ttlProgress * 40; // Max 40 points for TTL
-        if (ttlProgress > 0.8) reason += 'Near TTL expiry; ';
+        if (ttlProgress > 0.8) reason += 'Near TTL expiry; ''[,;]
       }
       
       // Access frequency factor (lower access count = higher eviction score)
       const avgAccessRate = entry.accessCount / ((now - entry.createdAt.getTime()) / 60000); // per minute
       score += Math.max(0, 30 - (avgAccessRate * 10)); // Max 30 points, scaled by access rate
-      if (avgAccessRate < 0.1) reason += 'Low access frequency; ';
+      if (avgAccessRate < 0.1) reason += 'Low access frequency; ''[,;]
       
       // Recency factor (older last access = higher eviction score)
       const minutesSinceAccess = (now - entry.lastAccessed.getTime()) / 60000;
       score += Math.min(minutesSinceAccess * 2, 20); // Max 20 points for recency
-      if (minutesSinceAccess > 10) reason += 'Not accessed recently; ';
+      if (minutesSinceAccess > 10) reason += 'Not accessed recently; ''[,;]
       
       // Size factor (larger entries = slightly higher eviction score)
       const sizeMB = entry.size / (1024 * 1024);
       score += Math.min(sizeMB * 5, 10); // Max 10 points for size
-      if (sizeMB > 1) reason += 'Large memory footprint; ';
+      if (sizeMB > 1) reason += 'Large memory footprint; ''[,;]
       
       scores.push({
         key,

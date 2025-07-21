@@ -1,11 +1,11 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { createRateLimitMiddleware, recordLoginAttempt } from '../middleware/rateLimitMiddleware';
-import { authSecurityService } from '../services/authSecurityService';
-import { storageSimple } from '../storage-simple';
+import { Router } from 'express''[,;]
+import { z } from 'zod''[,;]
+import bcrypt from 'bcryptjs''[,;]
+import jwt from 'jsonwebtoken''[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
+import { createRateLimitMiddleware, recordLoginAttempt } from '../middleware/rateLimitMiddleware''[,;]
+import { authSecurityService } from '../services/authSecurityService''[,;]
+import { storageSimple } from '../storage-simple''[,;]
 
 const router = Router();
 
@@ -70,7 +70,7 @@ router.post('/magic-link/request', authRateLimit, recordLoginAttempt, async (req
     await authSecurityService.sendMagicLinkEmail(email, token);
     
     res.json({ 
-      message: 'Magic link sent to your email',
+      message: 'Magic link sent to your email''[,;]
       expires: '15 minutes'
     });
   } catch (error) {
@@ -125,20 +125,20 @@ router.post('/magic-link/verify', authRateLimit, recordLoginAttempt, async (req,
     // Set HTTP-only cookies
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production''[,;]
+      sameSite: 'strict''[,;]
       maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production''[,;]
+      sameSite: 'strict''[,;]
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.json({
-      message: 'Login successful',
+      message: 'Login successful''[,;]
       user: {
         id: user.id,
         email: user.email,

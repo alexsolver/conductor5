@@ -3,7 +3,7 @@
 // Resolver problemas de pool sizing e hibernação Neon
 // ===========================
 
-import { Pool } from '@neondatabase/serverless';
+import { Pool } from '@neondatabase/serverless''[,;]
 
 interface ConnectionPoolConfig {
   maxConnections: number;

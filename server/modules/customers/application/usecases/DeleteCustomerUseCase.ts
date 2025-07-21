@@ -3,9 +3,9 @@
  * Clean Architecture - Application Layer
  */
 
-import { ICustomerRepository } from '../../domain/ports/ICustomerRepository';
-import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
-import { CustomerDeletedEvent } from '../../domain/events/CustomerDeletedEvent';
+import { ICustomerRepository } from '../../domain/ports/ICustomerRepository''[,;]
+import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher''[,;]
+import { CustomerDeletedEvent } from '../../domain/events/CustomerDeletedEvent''[,;]
 
 export interface DeleteCustomerInput {
   id: string;

@@ -3,10 +3,10 @@
 // Resolver timeouts de hibernação com recovery automático
 // ===========================
 
-import { Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { sql } from 'drizzle-orm';
-import { logInfo, logError, logWarn } from '../utils/logger';
+import { Pool } from '@neondatabase/serverless''[,;]
+import { drizzle } from 'drizzle-orm/neon-serverless''[,;]
+import { sql } from 'drizzle-orm''[,;]
+import { logInfo, logError, logWarn } from '../utils/logger''[,;]
 
 interface HibernationMetrics {
   hibernationEvents: number;
@@ -14,7 +14,7 @@ interface HibernationMetrics {
   successfulRecoveries: number;
   lastRecoveryTime?: Date;
   averageRecoveryTime: number;
-  currentStatus: 'active' | 'hibernating' | 'recovering' | 'failed';
+  currentStatus: 'active' | 'hibernating' | 'recovering' | 'failed''[,;]
 }
 
 interface ConnectionHealth {
@@ -59,18 +59,18 @@ export class NeonHibernationHandler {
   // ===========================
   private isHibernationError(error: any): boolean {
     const hibernationSignals = [
-      'terminating connection due to administrator command',
-      'connection terminated',
-      'socket timeout',
-      'connection closed',
-      'ECONNRESET',
-      'ETIMEDOUT',
-      'connection lost',
-      'server closed the connection unexpectedly',
+      'terminating connection due to administrator command''[,;]
+      'connection terminated''[,;]
+      'socket timeout''[,;]
+      'connection closed''[,;]
+      'ECONNRESET''[,;]
+      'ETIMEDOUT''[,;]
+      'connection lost''[,;]
+      'server closed the connection unexpectedly''[,;]
       'database is hibernating'
     ];
 
-    const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || ';
+    const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || ''[,;]
     return hibernationSignals.some(signal => errorMessage.includes(signal));
   }
 
@@ -99,7 +99,7 @@ export class NeonHibernationHandler {
           this.metrics.successfulRecoveries++;
           this.metrics.averageRecoveryTime = 
             (this.metrics.averageRecoveryTime + (Date.now() - startTime)) / 2;
-          this.metrics.currentStatus = 'active';
+          this.metrics.currentStatus = 'active''[,;]
           logInfo(`Hibernation recovery successful for ${context}`, { 
             attempt, 
             recoveryTime: Date.now() - startTime,
@@ -116,7 +116,7 @@ export class NeonHibernationHandler {
         if (this.isHibernationError(error)) {
           this.metrics.hibernationEvents++;
           this.metrics.recoveryAttempts++;
-          this.metrics.currentStatus = 'recovering';
+          this.metrics.currentStatus = 'recovering''[,;]
           
           logWarn(`Hibernation detected in ${context}`, { 
             attempt, 
@@ -148,7 +148,7 @@ export class NeonHibernationHandler {
     }
 
     // Todas as tentativas falharam
-    this.metrics.currentStatus = 'failed';
+    this.metrics.currentStatus = 'failed''[,;]
     logError(`Hibernation recovery failed after ${this.MAX_RETRY_ATTEMPTS} attempts`, lastError, { 
       context,
       connectionId,
@@ -394,7 +394,7 @@ export class NeonHibernationHandler {
     const unhealthyConnections = Array.from(this.healthChecks.values())
       .filter(health => !health.isHealthy || health.hibernationDetected);
     
-    return unhealthyConnections.length === 0 && this.metrics.currentStatus !== 'failed';
+    return unhealthyConnections.length === 0 && this.metrics.currentStatus !== 'failed''[,;]
   }
 
   // ===========================

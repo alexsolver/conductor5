@@ -66,8 +66,8 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
     // Set refresh token as httpOnly cookie
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production''[,;]
+      sameSite: 'strict''[,;]
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -78,7 +78,7 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Login error', error, { email: req.body?.email });
-    const message = error instanceof Error ? error.message : 'Login failed';
+    const message = error instanceof Error ? error.message : 'Login failed''[,;]
     res.status(400).json({ message });
   }
 });
@@ -135,8 +135,8 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
         if (defaultTenant.length === 0) {
           // Create default tenant
           [defaultTenant[0]] = await db.insert(tenants).values({
-            name: 'Default Organization',
-            subdomain: 'default',
+            name: 'Default Organization''[,;]
+            subdomain: 'default''[,;]
             settings: {},
             isActive: true
           }).returning();
@@ -153,8 +153,8 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
     // Set refresh token as httpOnly cookie
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production''[,;]
+      sameSite: 'strict''[,;]
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -170,7 +170,7 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Register error', error, { email: req.body?.email });
-    const message = error instanceof Error ? error.message : 'Registration failed';
+    const message = error instanceof Error ? error.message : 'Registration failed''[,;]
     res.status(400).json({ message });
   }
 });
@@ -264,7 +264,7 @@ authRouter.put('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Update user error', error, { userId: req.user?.id });
-    const message = error instanceof Error ? error.message : 'Failed to update user';
+    const message = error instanceof Error ? error.message : 'Failed to update user''[,;]
     res.status(400).json({ message });
   }
 });

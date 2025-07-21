@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { requireSaasAdmin, requirePermission, AuthorizedRequest } from '../../middleware/authorizationMiddleware';
-import { Permission } from '../../domain/authorization/RolePermissions';
-import { DependencyContainer } from '../../application/services/DependencyContainer';
+import { Router } from 'express''[,;]
+import { jwtAuth } from '../../middleware/jwtAuth''[,;]
+import { requireSaasAdmin, requirePermission, AuthorizedRequest } from '../../middleware/authorizationMiddleware''[,;]
+import { Permission } from '../../domain/authorization/RolePermissions''[,;]
+import { DependencyContainer } from '../../application/services/DependencyContainer''[,;]
 
 const router = Router();
 
@@ -269,7 +269,7 @@ router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async
       hashedPassword,
       firstName || null,
       lastName || null,
-      role || 'customer',
+      role || 'customer''[,;]
       tenantId || null
     );
     

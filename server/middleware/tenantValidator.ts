@@ -2,9 +2,9 @@
 import { Request, Response, NextFunction } from 'express';
 // Simple logger replacement
 const logger = {
-  warn: (message: string, meta?: any) => console.warn(message, meta || '),
-  error: (message: string, meta?: any) => console.error(message, meta || '),
-  debug: (message: string, meta?: any) => console.debug(message, meta || '),
+  warn: (message: string, meta?: any) => console.warn(message, meta || ''),
+  error: (message: string, meta?: any) => console.error(message, meta || ''),
+  debug: (message: string, meta?: any) => console.debug(message, meta || ''),
 };
 
 export interface TenantValidatedRequest extends Request {
@@ -104,7 +104,7 @@ export function enhancedTenantValidator() {
       next();
     } catch (error) {
       logger.error('Tenant validation error', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error';
         path: req.path,
         method: req.method,
         userAgent: req.get('User-Agent')
@@ -146,7 +146,7 @@ export function crossTenantValidator() {
       next();
     } catch (error) {
       logger.error('Cross-tenant validation error', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error';
         path: req.path
       });
       

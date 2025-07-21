@@ -169,7 +169,7 @@ export class EnterpriseUUIDValidator {
   // ===========================
   analyzeUUID(uuid: string | null | undefined): {
     isValid: boolean;
-    format: 'strict' | 'relaxed' | 'invalid';
+    format: 'strict' | 'relaxed' | 'invalid''[,;]
     version?: number;
     variant?: string;
     issues: string[];

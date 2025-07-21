@@ -116,13 +116,13 @@ export class DomainEventPublisher implements IDomainEventPublisher {
   }
 
   private getEntityTypeFromEvent(event: DomainEvent): string {
-    if (event.eventName.startsWith('customer.')) return 'customer';
-    if (event.eventName.startsWith('ticket.')) return 'ticket';
-    return 'unknown';
+    if (event.eventName.startsWith('customer.')) return 'customer'[,;]
+    if (event.eventName.startsWith('ticket.')) return 'ticket'[,;]
+    return 'unknown'[,;]
   }
 
   private getActionFromEvent(event: DomainEvent): string {
     const parts = event.eventName.split('.');
-    return parts[parts.length - 1] || 'unknown';
+    return parts[parts.length - 1] || 'unknown'[,;]
   }
 }

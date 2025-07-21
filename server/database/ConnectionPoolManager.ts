@@ -1,6 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { sql } from 'drizzle-orm';
+import { Pool, neonConfig } from '@neondatabase/serverless''[,;]
+import { drizzle } from 'drizzle-orm/neon-serverless''[,;]
+import { sql } from 'drizzle-orm''[,;]
 import ws from "ws";
 import * as schema from "@shared/schema";
 import { logInfo, logError, logWarn } from "../utils/logger";
@@ -157,7 +157,7 @@ export class ConnectionPoolManager {
   }
 
   private async evictLeastRecentlyUsed(): Promise<void> {
-    let oldestTenant = ';
+    let oldestTenant = '[,;]
     let oldestTime = Date.now();
 
     for (const [tenantId, connection] of this.tenantPools.entries()) {

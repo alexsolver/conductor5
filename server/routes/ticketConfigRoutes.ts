@@ -6,7 +6,7 @@
  * where ticket configuration tables are stored in tenant-specific schemas.
  */
 
-import { Router } from 'express';
+import { Router } from 'express''[,;]
 
 const router = Router();
 

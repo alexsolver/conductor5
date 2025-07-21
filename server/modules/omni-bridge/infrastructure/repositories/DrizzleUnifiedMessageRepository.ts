@@ -2,8 +2,8 @@
  * Drizzle Unified Message Repository
  * Clean Architecture - Infrastructure Layer
  */
-import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository';
-import { UnifiedMessage } from '../../domain/entities/UnifiedMessage';
+import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository''[,;]
+import { UnifiedMessage } from '../../domain/entities/UnifiedMessage''[,;]
 
 interface FindAllOptions {
   limit?: number;
@@ -29,13 +29,13 @@ export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepositor
       // Convert email data to UnifiedMessage format
       const messages: UnifiedMessage[] = emails.map(email => ({
         id: email.id,
-        channelType: 'email',
+        channelType: 'email''[,;]
         fromAddress: email.fromEmail || email.from_email,
         fromName: email.fromName || email.from_name,
         subject: email.subject,
-        content: email.bodyText || email.body_text || email.bodyHtml || email.body_html || ',
-        priority: (email.priority || 'medium') as 'low' | 'medium' | 'high' | 'urgent',
-        status: email.isRead || email.is_read ? 'read' : 'unread' as 'unread' | 'read' | 'archived' | 'processed',
+        content: email.bodyText || email.body_text || email.bodyHtml || email.body_html || '[,;]
+        priority: (email.priority || 'medium') as 'low' | 'medium' | 'high' | 'urgent''[,;]
+        status: email.isRead || email.is_read ? 'read' : 'unread' as 'unread' | 'read' | 'archived' | 'processed''[,;]
         hasAttachments: email.hasAttachments || email.has_attachments || false,
         receivedAt: email.receivedAt || email.received_at || email.createdAt || email.created_at || new Date().toISOString(),
         ticketId: email.ticketCreated || email.ticket_created || null,

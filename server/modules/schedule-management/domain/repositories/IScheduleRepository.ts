@@ -1,5 +1,5 @@
 
-import { Schedule, ScheduleAvailability, ScheduleConflict } from '../entities/Schedule';
+import { Schedule, ScheduleAvailability, ScheduleConflict } from '../entities/Schedule''[,;]
 
 export interface IScheduleRepository {
   create(schedule: Omit<Schedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<Schedule>;

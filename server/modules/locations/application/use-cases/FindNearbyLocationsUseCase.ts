@@ -1,5 +1,5 @@
-import { Location } from '../../domain/entities/Location';
-import { ILocationRepository, LocationProximitySearch } from '../../domain/repositories/ILocationRepository';
+import { Location } from '../../domain/entities/Location''[,;]
+import { ILocationRepository, LocationProximitySearch } from '../../domain/repositories/ILocationRepository''[,;]
 
 export interface FindNearbyLocationsRequest {
   latitude: number;
@@ -61,7 +61,7 @@ export class FindNearbyLocationsUseCase {
       return {
         locations: [],
         success: false,
-        message: error instanceof Error ? error.message : 'Erro ao buscar locais próximos',
+        message: error instanceof Error ? error.message : 'Erro ao buscar locais próximos''[,;]
         searchCenter: {
           latitude: request.latitude,
           longitude: request.longitude,

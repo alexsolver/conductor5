@@ -1,13 +1,13 @@
 // JWT Token Service Implementation
-import jwt from 'jsonwebtoken';
-import { ITokenService } from '../../domain/services/ITokenService';
-import { User } from '../../domain/entities/User';
+import jwt from 'jsonwebtoken'[,;]
+import { ITokenService } from '../../domain/services/ITokenService'[,;]
+import { User } from '../../domain/entities/User'[,;]
 
 export class TokenService implements ITokenService {
   private readonly accessTokenSecret: string;
   private readonly refreshTokenSecret: string;
-  private readonly accessTokenExpiry = '24h'; // Aumentado para 24 horas para estabilidade
-  private readonly refreshTokenExpiry = '7d';
+  private readonly accessTokenExpiry = '24h'[,;] // Aumentado para 24 horas para estabilidade
+  private readonly refreshTokenExpiry = '7d'[,;]
 
   private generateSecureDefaultSecret(type: string): string {
     // Generate secure random bytes for development - more secure than hardcoded values
@@ -37,7 +37,7 @@ export class TokenService implements ITokenService {
 
     return jwt.sign(payload, this.accessTokenSecret, { 
       expiresIn: this.accessTokenExpiry,
-      issuer: 'conductor-platform',
+      issuer: 'conductor-platform''[,;]
       audience: 'conductor-users'
     });
   }
@@ -50,7 +50,7 @@ export class TokenService implements ITokenService {
 
     return jwt.sign(payload, this.refreshTokenSecret, { 
       expiresIn: this.refreshTokenExpiry,
-      issuer: 'conductor-platform',
+      issuer: 'conductor-platform''[,;]
       audience: 'conductor-users'
     });
   }
@@ -58,7 +58,7 @@ export class TokenService implements ITokenService {
   verifyAccessToken(token: string): { userId: string; email: string; role: string; tenantId: string | null } | null {
     try {
       const decoded = jwt.verify(token, this.accessTokenSecret, {
-        issuer: 'conductor-platform',
+        issuer: 'conductor-platform''[,;]
         audience: 'conductor-users'
       }) as any;
 
@@ -80,7 +80,7 @@ export class TokenService implements ITokenService {
   verifyRefreshToken(token: string): { userId: string } | null {
     try {
       const decoded = jwt.verify(token, this.refreshTokenSecret, {
-        issuer: 'conductor-platform',
+        issuer: 'conductor-platform''[,;]
         audience: 'conductor-users'
       }) as any;
 

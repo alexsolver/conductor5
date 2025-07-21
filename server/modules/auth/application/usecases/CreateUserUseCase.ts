@@ -3,19 +3,19 @@
  * Clean Architecture - Application Layer
  */
 
-import { User } from '../../domain/entities/User';
-import { IUserRepository } from '../../domain/ports/IUserRepository';
-import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
-import { UserCreatedEvent } from '../../domain/events/UserCreatedEvent';
-import { IPasswordService } from '../../domain/ports/IPasswordService';
-import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator';
+import { User } from '../../domain/entities/User''[,;]
+import { IUserRepository } from '../../domain/ports/IUserRepository''[,;]
+import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher''[,;]
+import { UserCreatedEvent } from '../../domain/events/UserCreatedEvent''[,;]
+import { IPasswordService } from '../../domain/ports/IPasswordService''[,;]
+import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator''[,;]
 
 export interface CreateUserInput {
   email: string;
   password: string;
   firstName?: string;
   lastName?: string;
-  role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer';
+  role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer''[,;]
   tenantId?: string;
   active?: boolean;
   verified?: boolean;
@@ -42,7 +42,7 @@ export class CreateUserUseCase {
       const existingUser = await this.userRepository.findByEmail(input.email);
       if (existingUser) {
         return {
-          id: ',
+          id: ''[,;]
           success: false,
           error: 'User with this email already exists'
         };
@@ -84,7 +84,7 @@ export class CreateUserUseCase {
       };
     } catch (error) {
       return {
-        id: ',
+        id: ''[,;]
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };

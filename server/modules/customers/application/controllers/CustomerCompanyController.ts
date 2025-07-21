@@ -4,12 +4,12 @@
  * Handles HTTP requests for customer company operations
  */
 
-import { Request, Response } from 'express';
-import { z } from 'zod';
-import { CreateCustomerCompanyUseCase } from '../use-cases/CreateCustomerCompanyUseCase';
-import { GetCustomerCompaniesUseCase } from '../use-cases/GetCustomerCompaniesUseCase';
-import { UpdateCustomerCompanyUseCase } from '../use-cases/UpdateCustomerCompanyUseCase';
-import { ManageCustomerCompanyMembershipUseCase } from '../use-cases/ManageCustomerCompanyMembershipUseCase';
+import { Request, Response } from 'express''[,;]
+import { z } from 'zod''[,;]
+import { CreateCustomerCompanyUseCase } from '../use-cases/CreateCustomerCompanyUseCase''[,;]
+import { GetCustomerCompaniesUseCase } from '../use-cases/GetCustomerCompaniesUseCase''[,;]
+import { UpdateCustomerCompanyUseCase } from '../use-cases/UpdateCustomerCompanyUseCase''[,;]
+import { ManageCustomerCompanyMembershipUseCase } from '../use-cases/ManageCustomerCompanyMembershipUseCase''[,;]
 
 // Request validation schemas
 const createCustomerCompanySchema = z.object({
@@ -154,7 +154,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Validation error',
+          message: 'Validation error''[,;]
           errors: error.errors,
         });
         return;
@@ -162,7 +162,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false,
-        message: error.message || 'Failed to create customer company',
+        message: error.message || 'Failed to create customer company''[,;]
       });
     }
   }
@@ -218,7 +218,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Validation error',
+          message: 'Validation error''[,;]
           errors: error.errors,
         });
         return;
@@ -226,7 +226,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve customer companies',
+        message: 'Failed to retrieve customer companies''[,;]
       });
     }
   }
@@ -243,7 +243,7 @@ export class CustomerCompanyController {
       if (!id) {
         res.status(400).json({
           success: false,
-          message: 'Company ID is required',
+          message: 'Company ID is required''[,;]
         });
         return;
       }
@@ -258,7 +258,7 @@ export class CustomerCompanyController {
       if (result.companies.length === 0) {
         res.status(404).json({
           success: false,
-          message: 'Company not found',
+          message: 'Company not found''[,;]
         });
         return;
       }
@@ -298,7 +298,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve customer company',
+        message: 'Failed to retrieve customer company''[,;]
       });
     }
   }
@@ -361,7 +361,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Validation error',
+          message: 'Validation error''[,;]
           errors: error.errors,
         });
         return;
@@ -369,7 +369,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false,
-        message: error.message || 'Failed to update customer company',
+        message: error.message || 'Failed to update customer company''[,;]
       });
     }
   }
@@ -393,7 +393,7 @@ export class CustomerCompanyController {
       if (companies.companies.length === 0) {
         res.status(404).json({
           success: false,
-          message: 'Company not found',
+          message: 'Company not found''[,;]
         });
         return;
       }
@@ -401,7 +401,7 @@ export class CustomerCompanyController {
       // Delete functionality implementation in progress - requires cleanup of related data
       res.status(501).json({
         success: false,
-        message: 'Delete functionality not implemented yet',
+        message: 'Delete functionality not implemented yet''[,;]
       });
     } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
@@ -413,7 +413,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false,
-        message: 'Failed to delete customer company',
+        message: 'Failed to delete customer company''[,;]
       });
     }
   }
@@ -468,7 +468,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Validation error',
+          message: 'Validation error''[,;]
           errors: error.errors,
         });
         return;
@@ -476,7 +476,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false,
-        message: error.message || 'Failed to add membership',
+        message: error.message || 'Failed to add membership''[,;]
       });
     }
   }
@@ -530,7 +530,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
-          message: 'Validation error',
+          message: 'Validation error''[,;]
           errors: error.errors,
         });
         return;
@@ -538,7 +538,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false,
-        message: error.message || 'Failed to update membership',
+        message: error.message || 'Failed to update membership''[,;]
       });
     }
   }
@@ -585,7 +585,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve customer memberships',
+        message: 'Failed to retrieve customer memberships''[,;]
       });
     }
   }
@@ -632,7 +632,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve company memberships',
+        message: 'Failed to retrieve company memberships''[,;]
       });
     }
   }
