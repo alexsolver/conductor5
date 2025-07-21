@@ -182,9 +182,13 @@ export default function OmniBridge() {
         throw new Error(data.message || `HTTP ${response.status}`);
       }
 
-      // Map workspace admin integrations to OmniBridge channel format
+      // Filter only integrations from "Comunicação" category to match workspace admin
       const integrationsData = data.integrations || [];
-      const mappedChannels = integrationsData.map((integration: any) => {
+      const communicationIntegrations = integrationsData.filter((integration: any) => 
+        integration.category === 'Comunicação'
+      );
+      
+      const mappedChannels = communicationIntegrations.map((integration: any) => {
         // Map integration status to channel format
         let isConnected = integration.status === 'connected';
         let messageCount = 0;
@@ -227,7 +231,7 @@ export default function OmniBridge() {
       });
       
       setChannels(mappedChannels);
-      console.log('📋 Integrations mapeadas para canais:', mappedChannels.length);
+      console.log('📋 Canais de Comunicação filtrados:', mappedChannels.length, 'de', integrationsData.length, 'integrations totais');
     } catch (error) {
       console.error('Error loading channels:', error);
       toast({
