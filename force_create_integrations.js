@@ -49,31 +49,49 @@ async function forceCreateIntegrationsInAllTenants() {
       console.log(`Creating IMAP integration in ${schema}...`);
       const integrationId = 'imap-email-integration'; // You might want to generate a UUID here
       try {
+        const configData = JSON.stringify({
+          emailAddress: "alexsolver@gmail.com",
+          password: "cyyj vare pmjh scur", 
+          imapServer: "imap.gmail.com",
+          imapPort: 993,
+          imapSecurity: "SSL/TLS",
+          smtpServer: "smtp.gmail.com",
+          smtpPort: 587,
+          smtpSecurity: "STARTTLS",
+          useSSL: true,
+          autoSync: true,
+          isActive: true,
+          configured: true,
+          lastSync: new Date().toISOString()
+        });
+
+        const featuresData = JSON.stringify(["emails", "calendar", "contacts"]);
+
         await client.query(`
           INSERT INTO "${schema}".integrations (id, tenant_id, name, description, category, icon, status, config, features, created_at, updated_at)
           VALUES (
-            '${integrationId}',
-            '${tenantId}',
-            'IMAP Email',
-            'Gmail IMAP Integration with real credentials',
-            'communication',
-            'email-icon',
-            'connected',
-            '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true, "configured": true, "lastSync": "${new Date().toISOString()}"}',
-            '["emails", "calendar", "contacts"]',
-            NOW(),
-            NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
           ) ON CONFLICT (id) DO UPDATE SET
-            tenant_id = '${tenantId}',
-            name = 'IMAP Email',
-            description = 'Gmail IMAP Integration with real credentials',
-            category = 'communication',
-            icon = 'email-icon',
-            status = 'connected',
-            config = '{"emailAddress": "alexsolver@gmail.com", "password": "cyyj vare pmjh scur", "imapServer": "imap.gmail.com", "imapPort": 993, "imapSecurity": "SSL/TLS", "smtpServer": "smtp.gmail.com", "smtpPort": 587, "smtpSecurity": "STARTTLS", "useSSL": true, "autoSync": true, "isActive": true, "configured": true, "lastSync": "' + new Date().toISOString() + '"}',
-            features = '["emails", "calendar", "contacts"]',
-            updated_at = NOW();
-        `);
+            tenant_id = $2,
+            name = $3,
+            description = $4,
+            category = $5,
+            icon = $6,
+            status = $7,
+            config = $8,
+            features = $9,
+            updated_at = NOW()
+        `, [
+          integrationId,
+          tenantId,
+          'IMAP Email',
+          'Gmail IMAP Integration with real credentials',
+          'communication',
+          'email-icon',
+          'connected',
+          configData,
+          featuresData
+        ]);
         console.log(`✓ IMAP integration created in ${schema}`);
       } catch (error) {
         console.error(`✗ Failed to create/update IMAP integration in ${schema}:`, error.message);
