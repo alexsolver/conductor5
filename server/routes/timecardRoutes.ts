@@ -32,4 +32,28 @@ router.get('/reports/overtime', timecardController.getTenantOvertimeReport.bind(
 router.get('/reports/attendance', timecardController.getAttendanceReport.bind(timecardController));
 router.get('/reports/compliance', timecardController.getComplianceReport.bind(timecardController));
 
+// ===== NOVAS FUNCIONALIDADES: GESTÃO AVANÇADA DE JORNADAS =====
+
+// Gestão de Ausências
+router.post('/absence-requests', timecardController.createAbsenceRequest.bind(timecardController));
+router.get('/users/:userId/absence-requests', timecardController.getUserAbsenceRequests.bind(timecardController));
+router.get('/absence-requests/pending', timecardController.getPendingAbsenceRequests.bind(timecardController));
+router.put('/absence-requests/:requestId/approve', timecardController.approveAbsenceRequest.bind(timecardController));
+
+// Templates de Escalas
+router.post('/schedule-templates', timecardController.createScheduleTemplate.bind(timecardController));
+router.get('/schedule-templates', timecardController.getScheduleTemplates.bind(timecardController));
+
+// Troca de Turnos
+router.post('/shift-swap-requests', timecardController.createShiftSwapRequest.bind(timecardController));
+router.get('/shift-swap-requests', timecardController.getShiftSwapRequests.bind(timecardController));
+
+// Jornadas Flexíveis
+router.post('/flexible-work-arrangements', timecardController.createFlexibleWorkArrangement.bind(timecardController));
+router.get('/flexible-work-arrangements', timecardController.getFlexibleWorkArrangements.bind(timecardController));
+
+// Notificações
+router.get('/users/:userId/notifications', timecardController.getUserNotifications.bind(timecardController));
+router.put('/notifications/:notificationId/read', timecardController.markNotificationAsRead.bind(timecardController));
+
 export default router;

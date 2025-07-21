@@ -4,7 +4,12 @@ import {
   hourBank, 
   workSchedules, 
   timeAlerts,
-  auditLogs 
+  auditLogs,
+  absenceRequests,
+  scheduleTemplates,
+  shiftSwapRequests,
+  flexibleWorkArrangements,
+  scheduleNotifications
 } from '@shared/schema/timecard';
 import { 
   TimeRecord, 
@@ -733,5 +738,175 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     };
 
     await db.insert(auditLogs).values(logData);
+  }
+
+  // ===== NOVAS FUNCIONALIDADES: GESTÃO DE AUSÊNCIAS =====
+  
+  async createAbsenceRequest(tenantId: string, data: any): Promise<any> {
+    const [request] = await db.insert(absenceRequests).values({
+      ...data,
+      tenantId,
+      submittedAt: new Date(),
+    }).returning();
+    
+    return request;
+  }
+
+  async findAbsenceRequestsByUser(userId: string, tenantId: string): Promise<any[]> {
+    return await db.select()
+      .from(absenceRequests)
+      .where(and(
+        eq(absenceRequests.tenantId, tenantId),
+        eq(absenceRequests.userId, userId)
+      ))
+      .orderBy(desc(absenceRequests.submittedAt));
+  }
+
+  async findPendingAbsenceRequests(tenantId: string): Promise<any[]> {
+    return await db.select()
+      .from(absenceRequests)
+      .where(and(
+        eq(absenceRequests.tenantId, tenantId),
+        eq(absenceRequests.status, 'pending')
+      ))
+      .orderBy(desc(absenceRequests.submittedAt));
+  }
+
+  async approveAbsenceRequest(requestId: string, tenantId: string, reviewedBy: string, notes?: string): Promise<any> {
+    const [updated] = await db.update(absenceRequests)
+      .set({
+        status: 'approved',
+        reviewedBy,
+        reviewedAt: new Date(),
+        reviewNotes: notes,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(absenceRequests.id, requestId),
+        eq(absenceRequests.tenantId, tenantId)
+      ))
+      .returning();
+
+    return updated;
+  }
+
+  // ===== TEMPLATES DE ESCALAS =====
+  
+  async createScheduleTemplate(tenantId: string, data: any): Promise<any> {
+    const [template] = await db.insert(scheduleTemplates).values({
+      ...data,
+      tenantId,
+    }).returning();
+    
+    return template;
+  }
+
+  async findScheduleTemplates(tenantId: string, isActive?: boolean): Promise<any[]> {
+    let whereConditions = [eq(scheduleTemplates.tenantId, tenantId)];
+    
+    if (isActive !== undefined) {
+      whereConditions.push(eq(scheduleTemplates.isActive, isActive));
+    }
+    
+    return await db.select()
+      .from(scheduleTemplates)
+      .where(and(...whereConditions))
+      .orderBy(desc(scheduleTemplates.createdAt));
+  }
+
+  // ===== TROCA DE TURNOS =====
+  
+  async createShiftSwapRequest(tenantId: string, data: any): Promise<any> {
+    const [request] = await db.insert(shiftSwapRequests).values({
+      ...data,
+      tenantId,
+    }).returning();
+    
+    return request;
+  }
+
+  async findShiftSwapRequests(tenantId: string, userId?: string, status?: string): Promise<any[]> {
+    let whereConditions = [eq(shiftSwapRequests.tenantId, tenantId)];
+    
+    if (userId) {
+      whereConditions.push(eq(shiftSwapRequests.requesterId, userId));
+    }
+    
+    if (status) {
+      whereConditions.push(eq(shiftSwapRequests.status, status));
+    }
+    
+    return await db.select()
+      .from(shiftSwapRequests)
+      .where(and(...whereConditions))
+      .orderBy(desc(shiftSwapRequests.createdAt));
+  }
+
+  // ===== JORNADAS FLEXÍVEIS =====
+  
+  async createFlexibleWorkArrangement(tenantId: string, data: any): Promise<any> {
+    const [arrangement] = await db.insert(flexibleWorkArrangements).values({
+      ...data,
+      tenantId,
+    }).returning();
+    
+    return arrangement;
+  }
+
+  async findFlexibleWorkArrangements(tenantId: string, userId?: string): Promise<any[]> {
+    let whereConditions = [eq(flexibleWorkArrangements.tenantId, tenantId)];
+    
+    if (userId) {
+      whereConditions.push(eq(flexibleWorkArrangements.userId, userId));
+    }
+    
+    return await db.select()
+      .from(flexibleWorkArrangements)
+      .where(and(...whereConditions))
+      .orderBy(desc(flexibleWorkArrangements.createdAt));
+  }
+
+  // ===== NOTIFICAÇÕES =====
+  
+  async createScheduleNotification(tenantId: string, data: any): Promise<any> {
+    const [notification] = await db.insert(scheduleNotifications).values({
+      ...data,
+      tenantId,
+    }).returning();
+    
+    return notification;
+  }
+
+  async findUserNotifications(userId: string, tenantId: string, unreadOnly?: boolean): Promise<any[]> {
+    let whereConditions = [
+      eq(scheduleNotifications.tenantId, tenantId),
+      eq(scheduleNotifications.userId, userId)
+    ];
+    
+    if (unreadOnly) {
+      whereConditions.push(sql`${scheduleNotifications.readAt} IS NULL`);
+    }
+    
+    return await db.select()
+      .from(scheduleNotifications)
+      .where(and(...whereConditions))
+      .orderBy(desc(scheduleNotifications.createdAt));
+  }
+
+  async markNotificationAsRead(notificationId: string, tenantId: string, userId: string): Promise<any> {
+    const [updated] = await db.update(scheduleNotifications)
+      .set({
+        readAt: new Date(),
+        status: 'read',
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(scheduleNotifications.id, notificationId),
+        eq(scheduleNotifications.tenantId, tenantId),
+        eq(scheduleNotifications.userId, userId)
+      ))
+      .returning();
+
+    return updated;
   }
 }

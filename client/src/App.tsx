@@ -56,6 +56,8 @@ import ProjectActions from "./pages/ProjectActions"; // Import the Project Actio
 import OmniBridge from "./pages/OmniBridge";
 // Removed: JourneyControl - functionality eliminated from system
 import Timecard from "./pages/Timecard";
+import AbsenceManagement from "./pages/AbsenceManagement";
+import ScheduleTemplates from "./pages/ScheduleTemplates";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -132,6 +134,8 @@ function AppRouter() {
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
         <Route path="/hour-bank" component={HourBank} />
+        <Route path="/absence-management" component={AbsenceManagement} />
+        <Route path="/schedule-templates" component={ScheduleTemplates} />
         <Route path="/omnibridge" component={OmniBridge} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />

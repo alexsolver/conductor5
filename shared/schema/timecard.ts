@@ -261,3 +261,232 @@ export type TimeAlert = typeof timeAlerts.$inferSelect;
 export type InsertTimeAlert = z.infer<typeof insertTimeAlertSchema>;
 
 export type AuditLog = typeof auditLogs.$inferSelect;
+
+// Gestão de Ausências e Licenças
+export const absenceRequests = pgTable("absence_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 }).notNull(),
+  
+  // Tipo de ausência
+  absenceType: varchar("absence_type", { length: 30 }).notNull(), // 'vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence'
+  
+  // Período da ausência
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  totalDays: integer("total_days").notNull(),
+  
+  // Documentação
+  reason: text("reason").notNull(),
+  attachments: json("attachments").$type<string[]>(), // URLs dos documentos
+  medicalCertificate: varchar("medical_certificate", { length: 500 }), // URL do atestado
+  
+  // Workflow de aprovação
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'approved', 'rejected', 'cancelled'
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedBy: varchar("reviewed_by", { length: 36 }),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"),
+  
+  // Substituição durante ausência
+  coverUserId: varchar("cover_user_id", { length: 36 }),
+  coverApproved: boolean("cover_approved").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Templates de Escalas Reutilizáveis
+export const scheduleTemplates = pgTable("schedule_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  
+  // Identificação do template
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 30 }).notNull(), // 'fixed', 'rotating', 'flexible', 'shift'
+  
+  // Configuração do template
+  scheduleType: varchar("schedule_type", { length: 20 }).notNull(),
+  rotationCycleDays: integer("rotation_cycle_days"), // Dias para completar ciclo de rotação
+  configuration: json("configuration").$type<{
+    workDays: number[];
+    startTime: string;
+    endTime: string;
+    breakDuration: number;
+    flexTimeWindow?: number;
+    shiftRotations?: Array<{
+      name: string;
+      startTime: string;
+      endTime: string;
+      daysOfWeek: number[];
+    }>;
+  }>(),
+  
+  // Status e aprovação
+  isActive: boolean("is_active").default(true),
+  requiresApproval: boolean("requires_approval").default(true),
+  
+  createdBy: varchar("created_by", { length: 36 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Solicitações de Troca de Turnos
+export const shiftSwapRequests = pgTable("shift_swap_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  
+  // Usuários envolvidos
+  requesterId: varchar("requester_id", { length: 36 }).notNull(),
+  targetUserId: varchar("target_user_id", { length: 36 }),
+  
+  // Turnos para troca
+  originalShiftDate: timestamp("original_shift_date").notNull(),
+  originalShiftStart: timestamp("original_shift_start").notNull(),
+  originalShiftEnd: timestamp("original_shift_end").notNull(),
+  
+  swapShiftDate: timestamp("swap_shift_date"),
+  swapShiftStart: timestamp("swap_shift_start"),
+  swapShiftEnd: timestamp("swap_shift_end"),
+  
+  // Tipo de solicitação
+  swapType: varchar("swap_type", { length: 20 }).notNull(), // 'direct_swap', 'coverage_request', 'time_off_request'
+  reason: text("reason").notNull(),
+  
+  // Status e aprovação
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'accepted', 'rejected', 'approved', 'cancelled'
+  targetUserResponse: varchar("target_user_response", { length: 20 }), // 'accepted', 'rejected'
+  targetUserResponseAt: timestamp("target_user_response_at"),
+  
+  // Aprovação gerencial
+  managerApprovalRequired: boolean("manager_approval_required").default(true),
+  approvedBy: varchar("approved_by", { length: 36 }),
+  approvedAt: timestamp("approved_at"),
+  approvalNotes: text("approval_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Jornadas Flexíveis e Configurações Especiais
+export const flexibleWorkArrangements = pgTable("flexible_work_arrangements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 }).notNull(),
+  
+  // Tipo de arranjo flexível
+  arrangementType: varchar("arrangement_type", { length: 30 }).notNull(), // 'flexible_hours', 'remote_work', 'hybrid', 'compressed_workweek', 'job_sharing'
+  
+  // Configurações de horário flexível
+  coreHoursStart: varchar("core_hours_start", { length: 8 }), // Horário núcleo obrigatório
+  coreHoursEnd: varchar("core_hours_end", { length: 8 }),
+  flexWindowStart: varchar("flex_window_start", { length: 8 }), // Janela flexível início
+  flexWindowEnd: varchar("flex_window_end", { length: 8 }), // Janela flexível fim
+  
+  // Trabalho remoto
+  remoteWorkDays: json("remote_work_days").$type<number[]>(), // Dias da semana permitidos
+  remoteWorkLocation: text("remote_work_location"),
+  
+  // Configurações especiais
+  compressedWeekConfig: json("compressed_week_config").$type<{
+    daysPerWeek: number;
+    hoursPerDay: number;
+    schedule: Array<{ day: number; startTime: string; endTime: string }>;
+  }>(),
+  
+  // Múltiplos contratos/funções
+  multipleContracts: json("multiple_contracts").$type<Array<{
+    contractId: string;
+    role: string;
+    hoursPerWeek: number;
+    schedule: string;
+    location: string;
+  }>>(),
+  
+  // Período de vigência
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  
+  // Status e aprovação
+  status: varchar("status", { length: 20 }).default("active"), // 'active', 'suspended', 'expired', 'cancelled'
+  approvedBy: varchar("approved_by", { length: 36 }),
+  approvedAt: timestamp("approved_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notificações de Escalas e Alertas
+export const scheduleNotifications = pgTable("schedule_notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 }).notNull(),
+  
+  // Tipo de notificação
+  notificationType: varchar("notification_type", { length: 30 }).notNull(), // 'schedule_change', 'shift_reminder', 'overtime_alert', 'absence_reminder', 'approval_required'
+  
+  // Conteúdo
+  title: varchar("title", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  priority: varchar("priority", { length: 10 }).default("medium"), // 'low', 'medium', 'high', 'urgent'
+  
+  // Agendamento e entrega
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  readAt: timestamp("read_at"),
+  
+  // Dados relacionados
+  relatedEntityType: varchar("related_entity_type", { length: 30 }), // 'schedule', 'absence_request', 'shift_swap', 'timesheet'
+  relatedEntityId: varchar("related_entity_id", { length: 36 }),
+  
+  // Status
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'sent', 'read', 'dismissed'
+  deliveryMethod: varchar("delivery_method", { length: 20 }).default("in_app"), // 'in_app', 'email', 'sms', 'push'
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Zod Schemas para as novas tabelas
+export const insertAbsenceRequestSchema = createInsertSchema(absenceRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleTemplateSchema = createInsertSchema(scheduleTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertShiftSwapRequestSchema = createInsertSchema(shiftSwapRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFlexibleWorkArrangementSchema = createInsertSchema(flexibleWorkArrangements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleNotificationSchema = createInsertSchema(scheduleNotifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Novos tipos
+export type AbsenceRequest = typeof absenceRequests.$inferSelect;
+export type InsertAbsenceRequest = z.infer<typeof insertAbsenceRequestSchema>;
+export type ScheduleTemplate = typeof scheduleTemplates.$inferSelect;
+export type InsertScheduleTemplate = z.infer<typeof insertScheduleTemplateSchema>;
+export type ShiftSwapRequest = typeof shiftSwapRequests.$inferSelect;
+export type InsertShiftSwapRequest = z.infer<typeof insertShiftSwapRequestSchema>;
+export type FlexibleWorkArrangement = typeof flexibleWorkArrangements.$inferSelect;
+export type InsertFlexibleWorkArrangement = z.infer<typeof insertFlexibleWorkArrangementSchema>;
+export type ScheduleNotification = typeof scheduleNotifications.$inferSelect;
+export type InsertScheduleNotification = z.infer<typeof insertScheduleNotificationSchema>;

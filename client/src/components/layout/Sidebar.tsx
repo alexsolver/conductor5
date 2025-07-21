@@ -79,6 +79,8 @@ const baseNavigation: Array<{
       { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
       { name: "Banco de Horas", href: "/hour-bank", icon: CreditCard },
       { name: "Relatórios", href: "/timecard-reports", icon: FileText },
+      { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
+      { name: "Templates de Escalas", href: "/schedule-templates", icon: Settings },
     ]
   },
   { name: "Locais", href: "/locations", icon: MapPin },
