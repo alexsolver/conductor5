@@ -1,14 +1,14 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import cookieParser from "cookie-parser";
-import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability";
-import { initializeCleanup } from "./utils/temporaryFilesCleaner";
-import { connectionStabilizer } from "./utils/connectionStabilizer";
-import { productionInitializer } from './utils/productionInitializer";
-import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer";
-import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer";
-import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer";
+import express, { type Request, Response, NextFunction } from "express;
+import { registerRoutes } from "./routes;
+import { setupVite, serveStatic, log } from "./vite;
+import cookieParser from "cookie-parser;
+import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability;
+import { initializeCleanup } from "./utils/temporaryFilesCleaner;
+import { connectionStabilizer } from "./utils/connectionStabilizer;
+import { productionInitializer } from './utils/productionInitializer';
+import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
+import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
+import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
 
 const app = express();
 
@@ -23,7 +23,7 @@ app.use(cookieParser());
 // CRITICAL FIX: Optimized logging middleware to reduce I/O operations
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path";
+  const path = req.path;
 
   // CRITICAL: Skip logging for health checks, static assets, and Vite HMR to reduce I/O and prevent reconnections
   const skipLogging = path.includes('/health') || 
@@ -39,34 +39,34 @@ app.use((req, res, next) => {
                      path.includes('/node_modules/') ||
                      path.includes('/@fs/') ||
                      path.includes('/src/') ||
-                     req.method === 'HEAD";
+                     req.method === 'HEAD;
 
   if (skipLogging) {
     return next();
   }
 
-  let capturedJsonResponse: Record<string, any> | undefined = undefined";
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  const originalResJson = res.json";
+  const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson";
+    capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
-  }";
+  };
 
   res.on("finish", () => {
-    const duration = Date.now() - start";
+    const duration = Date.now() - start;
 
     // CRITICAL: Only log API requests and reduce verbose logging
     if (path.startsWith("/api") && !path.includes('/csp-report')) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`";
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
 
       // CRITICAL: Skip JSON response logging for performance-sensitive operations
       if (capturedJsonResponse && duration < 1000) { // Only log responses for slow requests
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`";
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+        logLine = logLine.slice(0, 79) + "…;
       }
 
       log(logLine);
@@ -98,11 +98,11 @@ app.use((req, res, next) => {
 
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500";
-    const message = err.message || "Internal Server Error";
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error;
 
     res.status(status).json({ message });
-    throw err";
+    throw err;
   });
 
   // importantly only setup vite in development and after
@@ -124,7 +124,7 @@ app.use((req, res, next) => {
   server.keepAliveTimeout = 120000; // 2 minutes
   server.headersTimeout = 120000; // 2 minutes  
   server.timeout = 120000; // 2 minutes
-  server.maxConnections = 1000";
+  server.maxConnections = 1000;
 
   // CRITICAL: WebSocket connection stability optimizations
   server.on('connection', (socket) => {
@@ -174,7 +174,7 @@ app.use((req, res, next) => {
 
   // CRITICAL STABILITY FIX: Enhanced error handling for WebSocket and database connection issues
   process.on('uncaughtException', (error) => {
-    const errorMsg = error.message || '";
+    const errorMsg = error.message || ';
     
     // VITE STABILITY: Ignore WebSocket and HMR related errors
     if (errorMsg.includes('WebSocket') || 
@@ -182,7 +182,7 @@ app.use((req, res, next) => {
         errorMsg.includes('HMR') ||
         errorMsg.includes('terminating connection due to administrator command')) {
       console.log('[Stability] Ignoring transient connection error:', errorMsg.substring(0, 100));
-      return";
+      return;
     }
     
     console.error('[Uncaught Exception]', error);
@@ -199,7 +199,7 @@ app.use((req, res, next) => {
         reasonStr.includes('HMR') ||
         reasonStr.includes('ECONNRESET')) {
       console.log('[Stability] Ignoring connection rejection:', reasonStr.substring(0, 100));
-      return";
+      return;
     }
     
     console.warn('[Unhandled Rejection]', reason);
