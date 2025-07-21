@@ -335,6 +335,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     for (const entry of expiredEntries) {
       // Criar entrada de expiração
       await this.createHourBankEntry(tenantId, {
+        tenantId,
         userId: entry.userId,
         referenceDate: today,
         balanceHours: (-Number(entry.balanceHours)).toString(),
@@ -689,6 +690,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     
     for (const violation of violations) {
       await this.createTimeAlert(tenantId, {
+        tenantId,
         userId,
         alertType: this.mapViolationToAlertType(violation),
         severity: this.mapViolationToSeverity(violation),
@@ -920,7 +922,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     startDate: Date,
     assignedBy: string
   ): Promise<any[]> {
-    const template = await this.db
+    const template = await db
       .select()
       .from(scheduleTemplates)
       .where(and(
@@ -954,7 +956,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       updatedAt: new Date(),
     }));
 
-    const schedules = await this.db
+    const schedules = await db
       .insert(workSchedules)
       .values(scheduleValues)
       .returning();
@@ -976,7 +978,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       createdAt: new Date(),
     }));
 
-    await this.db
+    await db
       .insert(scheduleNotifications)
       .values(notificationValues);
 
@@ -987,7 +989,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
   async findAvailableUsersForSchedule(tenantId: string, excludeUserIds: string[] = []): Promise<any[]> {
     // Esta implementação assume que existe uma tabela users no schema do tenant
     // Em um cenário real, você precisaria ajustar conforme sua estrutura de usuários
-    const users = await this.db.execute(sql`
+    const users = await db.execute(sql`
       SELECT id, first_name, last_name, email, role
       FROM users 
       WHERE tenant_id = ${tenantId}
@@ -1003,7 +1005,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
   async findActiveSchedulesByUsers(userIds: string[], tenantId: string): Promise<any[]> {
     if (userIds.length === 0) return [];
 
-    const schedules = await this.db
+    const schedules = await db
       .select()
       .from(workSchedules)
       .where(and(
@@ -1018,7 +1020,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
 
   // Buscar histórico de aplicações de template
   async findTemplateApplicationHistory(templateId: string, tenantId: string): Promise<any[]> {
-    const applications = await this.db
+    const applications = await db
       .select({
         scheduleId: workSchedules.id,
         userId: workSchedules.userId,
@@ -1039,7 +1041,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
 
   // Remover escala em lote
   async removeSchedulesFromMultipleUsers(userIds: string[], templateId: string, tenantId: string): Promise<number> {
-    const result = await this.db
+    const result = await db
       .update(workSchedules)
       .set({ 
         isActive: false,

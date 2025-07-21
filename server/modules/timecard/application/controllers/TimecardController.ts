@@ -172,7 +172,16 @@ export class TimecardController {
       });
 
       const data = schema.parse(req.body);
-      const schedule = await timecardRepository.createWorkSchedule(tenantId, data);
+      const schedule = await timecardRepository.createWorkSchedule(tenantId, {
+        ...data,
+        tenantId,
+        allowsFlexTime: data.allowsFlexTime ?? false,
+        allowsHourBank: data.allowsHourBank ?? false,
+        flexTimeToleranceMinutes: data.flexTimeToleranceMinutes ?? 0,
+        breakDuration: data.breakDuration ?? 0,
+        lunchDuration: data.lunchDuration ?? 0,
+        isActive: data.isActive ?? true
+      });
       
       res.json(schedule);
     } catch (error) {
