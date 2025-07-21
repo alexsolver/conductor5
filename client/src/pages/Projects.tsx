@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Users, DollarSign, BarChart3, Filter, Search, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Users, DollarSign, BarChart3, Filter, Search, Eye, Edit, Trash2, Gantt } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from '../hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import GanttChart from '../components/projects/GanttChart';
 
 interface Project {
   id: string;
@@ -83,6 +85,7 @@ export default function Projects() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [activeTab, setActiveTab] = useState('grid');
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
@@ -785,8 +788,28 @@ export default function Projects() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Project Views */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="grid" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Grade
+          </TabsTrigger>
+          <TabsTrigger value="gantt" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Gantt
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="grid" className="mt-6"></TabsContent>
+      <TabsContent value="gantt" className="mt-6">
+          <GanttChart projects={filteredProjects} />
+        </TabsContent>
+      </Tabs>
+
       {/* Projects List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ${activeTab !== 'grid' ? 'hidden' : ''}`}>
         {filteredProjects.map((project) => (
           <Card key={project.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
@@ -862,7 +885,7 @@ export default function Projects() {
           </Card>
         ))}
       </div>
-      {filteredProjects.length === 0 && (
+      {filteredProjects.length === 0 && activeTab === 'grid' && (
         <div className="text-center py-12">
           <div className="text-gray-500">Nenhum projeto encontrado</div>
         </div>
