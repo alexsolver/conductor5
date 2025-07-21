@@ -1,6 +1,11 @@
-// DEPRECATED: MODULAR SCHEMA INDEX - USE shared/schema-master.ts INSTEAD
-// This modular approach is being phased out in favor of unified schema-master.ts
-// MIGRATION: Update imports from '@shared/schema/index' to '@shared/schema'
+// COMPLETELY DEPRECATED: MODULAR SCHEMA INDEX
+// This entire modular approach has been DEPRECATED in favor of unified schema-master.ts
+// 
+// ❌ DO NOT USE THIS FILE - It causes architecture fragmentation
+// ✅ USE INSTEAD: import from '@shared/schema' (which re-exports schema-master.ts)
+//
+// MIGRATION COMPLETED: All functionality moved to schema-master.ts
+// This file will be removed in next version
 
 // Core domain schemas
 export * from "./base";

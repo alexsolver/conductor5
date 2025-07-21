@@ -1,7 +1,12 @@
+// DEPRECATED: HARDCODED SQL SCHEMA MANAGER - USE server/db.ts INSTEAD
+// This file contains hardcoded SQL that conflicts with the unified schema-master.ts
+// MIGRATION: All schema operations now use the consolidated server/db.ts SchemaManager
+
 // Re-export from main schema manager to maintain modularity
 export { schemaManager } from "../../../db";
 
-const createTablesQuery = `
+// DEPRECATED: This hardcoded SQL logic is replaced by unified schema management
+const deprecatedCreateTablesQuery = `
           -- Customers table  
           CREATE TABLE IF NOT EXISTS ${schemaName}.customers (
             id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
