@@ -382,7 +382,9 @@ export class OmniBridgeController {
         return;
       }
 
-      // Mock data para desenvolvimento se repository falhar
+      console.log(`📊 Getting monitoring status for tenant: ${tenantId}`);
+      
+      // Get real data from repositories
       let channels = [];
       let unreadCount = 0;
       let countByChannel = {};
@@ -391,39 +393,51 @@ export class OmniBridgeController {
         channels = await this.channelRepository.findAll(tenantId);
         unreadCount = await this.messageRepository.getUnreadCount(tenantId);
         countByChannel = await this.messageRepository.getCountByChannel(tenantId);
+        
+        console.log(`📊 Monitoring data: channels=${channels.length}, unread=${unreadCount}, byChannel=`, countByChannel);
       } catch (repoError) {
-        console.log('📊 Repository error, using mock monitoring data:', repoError);
-        channels = [{ isActive: true, isConnected: true, isHealthy: () => true }];
-        unreadCount = 1;
-        countByChannel = { email: 1 };
+        console.log('📊 Repository error, using empty monitoring data:', repoError);
+        channels = [];
+        unreadCount = 0;
+        countByChannel = {};
       }
       
-      const healthyChannels = channels.filter(c => c.isHealthy ? c.isHealthy() : true).length;
+      const healthyChannels = channels.filter(c => c.isHealthy ? c.isHealthy() : c.isConnected).length;
       const activeChannels = channels.filter(c => c.isActive).length;
       const connectedChannels = channels.filter(c => c.isConnected).length;
+
+      const monitoringData = {
+        totalChannels: channels.length,
+        activeChannels,
+        connectedChannels,
+        healthyChannels,
+        unreadMessages: unreadCount,
+        messagesByChannel: countByChannel,
+        systemStatus: connectedChannels > 0 ? 'healthy' : 'disconnected',
+        lastSync: new Date().toISOString(),
+        channels: channels.map(c => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+          isActive: c.isActive,
+          isConnected: c.isConnected,
+          messageCount: c.messageCount || 0
+        }))
+      };
 
       res.json({
         success: true,
         data: {
-          isMonitoring: true,
+          isMonitoring: connectedChannels > 0,
           tenantId,
           connectionCount: connectedChannels,
-          activeIntegrations: ['imap-email'],
-          message: 'Monitoramento ativo'
+          activeIntegrations: channels.filter(c => c.isConnected).map(c => c.id),
+          message: connectedChannels > 0 ? 'Monitoramento ativo' : 'Nenhum canal conectado'
         },
-        monitoring: {
-          totalChannels: channels.length,
-          activeChannels,
-          connectedChannels,
-          healthyChannels,
-          unreadMessages: unreadCount,
-          messagesByChannel: countByChannel,
-          systemStatus: healthyChannels >= 0 ? 'healthy' : 'degraded',
-          lastSync: new Date().toISOString()
-        }
+        monitoring: monitoringData
       });
     } catch (error) {
-      console.error('Error fetching monitoring status:', error);
+      console.error('❌ Error fetching monitoring status:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch monitoring status',
@@ -433,6 +447,17 @@ export class OmniBridgeController {
           connectionCount: 0,
           activeIntegrations: [],
           message: 'Monitoramento inativo'
+        },
+        monitoring: {
+          totalChannels: 0,
+          activeChannels: 0,
+          connectedChannels: 0,
+          healthyChannels: 0,
+          unreadMessages: 0,
+          messagesByChannel: {},
+          systemStatus: 'error',
+          lastSync: new Date().toISOString(),
+          channels: []
         }
       });
     }

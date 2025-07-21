@@ -87,6 +87,20 @@ export class DrizzleChannelRepository implements IChannelRepository {
           const emailsTableExists = this.checkEmailsTableExists();
           const isConnected = integration.status === 'connected' && hasValidConfig && emailsTableExists;
 
+          // Get actual message count for this channel
+          let messageCount = 0;
+          if (isConnected && this.isCommunicationIntegration(integration.id)) {
+            try {
+              const { storage } = await import('../../../../storage-simple');
+              const emails = await storage.getEmailInboxMessages(tenantId);
+              messageCount = emails ? emails.length : 0;
+              console.log(`📧 Channel ${integration.id} has ${messageCount} emails`);
+            } catch (error) {
+              console.log(`📧 Error getting email count for ${integration.id}:`, error);
+              messageCount = 0;
+            }
+          }
+
           return new Channel(
             `ch-${integration.id}`,
             integration.name || 'IMAP Email',
@@ -248,5 +262,20 @@ export class DrizzleChannelRepository implements IChannelRepository {
     // Implement your logic to check if the emails table exists
     // For example, query the database schema
     return true; // Replace with your actual check
+  }
+
+  private isCommunicationIntegration(integrationId: string): boolean {
+    const id = integrationId.toLowerCase();
+    return (
+      id.includes('email') ||
+      id.includes('gmail') ||
+      id.includes('outlook') ||
+      id.includes('imap') ||
+      id.includes('smtp') ||
+      id.includes('whatsapp') ||
+      id.includes('slack') ||
+      id.includes('sms') ||
+      id.includes('twilio')
+    );
   }
 }
