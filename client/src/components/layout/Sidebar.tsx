@@ -83,6 +83,7 @@ const baseNavigation: Array<{
       { name: "Relatórios", href: "/timecard-reports", icon: FileText },
       { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
       { name: "Templates de Escalas", href: "/schedule-templates", icon: Settings },
+      { name: "Agenda de Campo", href: "/agenda-manager", icon: Route },
     ]
   },
   { name: "Locais", href: "/locations", icon: MapPin },

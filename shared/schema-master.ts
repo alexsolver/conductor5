@@ -501,3 +501,104 @@ export type InsertHoliday = typeof holidays.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
+
+// ========================================
+// AGENDA/SCHEDULE MANAGEMENT TABLES
+// ========================================
+
+// Activity Types for scheduling
+export const activityTypes = pgTable("activity_types", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 7 }).notNull(), // Hex color
+  duration: integer("duration").notNull(), // Duration in minutes
+  category: varchar("category", { length: 50 }).notNull(), // visita_tecnica, instalacao, manutencao, suporte
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Agent Schedules/Agenda
+export const schedules = pgTable("schedules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  agentId: uuid("agent_id").notNull(), // References users table
+  customerId: uuid("customer_id"), // Optional - references customers
+  activityTypeId: uuid("activity_type_id").references(() => activityTypes.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  startDateTime: timestamp("start_datetime").notNull(),
+  endDateTime: timestamp("end_datetime").notNull(),
+  duration: integer("duration").notNull(), // Duration in minutes
+  status: varchar("status", { length: 20 }).default("scheduled").notNull(), // scheduled, in_progress, completed, cancelled
+  priority: varchar("priority", { length: 20 }).default("medium").notNull(), // low, medium, high, urgent
+  locationAddress: text("location_address"),
+  coordinates: jsonb("coordinates"), // {lat: number, lng: number}
+  internalNotes: text("internal_notes"),
+  clientNotes: text("client_notes"),
+  estimatedTravelTime: integer("estimated_travel_time"), // Minutes
+  actualStartTime: timestamp("actual_start_time"),
+  actualEndTime: timestamp("actual_end_time"),
+  isRecurring: boolean("is_recurring").default(false),
+  recurringPattern: jsonb("recurring_pattern"), // {type: 'daily'|'weekly'|'monthly', interval: number}
+  parentScheduleId: uuid("parent_schedule_id"), // For recurring schedules
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Agent Availability and Working Hours
+export const agentAvailability = pgTable("agent_availability", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  agentId: uuid("agent_id").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, etc.
+  startTime: varchar("start_time", { length: 5 }).notNull(), // HH:MM format
+  endTime: varchar("end_time", { length: 5 }).notNull(), // HH:MM format
+  breakStartTime: varchar("break_start_time", { length: 5 }),
+  breakEndTime: varchar("break_end_time", { length: 5 }),
+  isAvailable: boolean("is_available").default(true),
+  maxAppointments: integer("max_appointments").default(8),
+  preferredZones: jsonb("preferred_zones"), // Array of location zones
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule Settings and Configuration
+export const scheduleSettings = pgTable("schedule_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  agentId: uuid("agent_id"), // If null, applies to all agents
+  settingType: varchar("setting_type", { length: 50 }).notNull(), // working_hours, travel_time, buffer_time
+  settingKey: varchar("setting_key", { length: 100 }).notNull(),
+  settingValue: jsonb("setting_value").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule Conflicts and Validations
+export const scheduleConflicts = pgTable("schedule_conflicts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  scheduleId: uuid("schedule_id").references(() => schedules.id).notNull(),
+  conflictWithScheduleId: uuid("conflict_with_schedule_id").references(() => schedules.id),
+  conflictType: varchar("conflict_type", { length: 50 }).notNull(), // time_overlap, agent_unavailable, location_conflict
+  conflictDetails: jsonb("conflict_details"),
+  severity: varchar("severity", { length: 20 }).default("medium").notNull(), // low, medium, high, critical
+  isResolved: boolean("is_resolved").default(false),
+  resolutionNotes: text("resolution_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+// Schedule types
+export type InsertActivityType = typeof activityTypes.$inferInsert;
+export type ActivityType = typeof activityTypes.$inferSelect;
+export type InsertSchedule = typeof schedules.$inferInsert;
+export type Schedule = typeof schedules.$inferSelect;
+export type InsertAgentAvailability = typeof agentAvailability.$inferInsert;
+export type AgentAvailability = typeof agentAvailability.$inferSelect;
+export type InsertScheduleSettings = typeof scheduleSettings.$inferInsert;
+export type ScheduleSettings = typeof scheduleSettings.$inferSelect;

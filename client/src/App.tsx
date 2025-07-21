@@ -60,6 +60,7 @@ import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
 import MultilocationAdmin from "./pages/MultilocationAdmin";
 import HolidayCalendar from "./pages/HolidayCalendar";
+import AgendaManager from "./pages/AgendaManager";
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 
 // Components
@@ -142,6 +143,7 @@ function AppRouter() {
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/schedule-templates" component={ScheduleTemplates} />
         <Route path="/holiday-calendar" component={HolidayCalendar} />
+        <Route path="/agenda-manager" component={AgendaManager} />
         <Route path="/omnibridge" component={OmniBridge} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
