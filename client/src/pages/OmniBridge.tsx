@@ -48,11 +48,15 @@ export default function OmniBridge() {
 
   // Use only real APIs - no mock data
   const { data: integrationsData, isLoading: integrationsLoading, refetch: refetchIntegrations } = useQuery({
-    queryKey: ['/api/tenant-admin/integrations', refreshKey],
+    queryKey: ['/api/tenant-admin/integrations'],
+    staleTime: 0, // Always refetch
+    cacheTime: 0, // Don't cache
   });
 
   const { data: inboxData, isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
-    queryKey: ['/api/email-config/inbox', refreshKey],
+    queryKey: ['/api/email-config/inbox'],
+    staleTime: 0, // Always refetch
+    cacheTime: 0, // Don't cache
   });
 
   // Transform real data for display
@@ -62,11 +66,12 @@ export default function OmniBridge() {
   // Auto-refresh data every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setRefreshKey(prev => prev + 1);
+      refetchIntegrations();
+      refetchInbox();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refetchIntegrations, refetchInbox]);
 
   // Get channel type icon
   const getChannelIcon = (integration: any) => {
