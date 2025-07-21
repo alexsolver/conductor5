@@ -167,7 +167,8 @@ export function GanttChart({ projects, viewMode = 'weeks', className = '' }: Gan
   };
 
   const visibleProjects = projects.filter(project => {
-    if (!project.startDate) return false;
+    // Se não tem data de início, ainda mostra o projeto mas com posicionamento especial
+    if (!project.startDate) return true;
     const projectStart = new Date(project.startDate);
     const projectEnd = project.endDate ? new Date(project.endDate) : new Date(projectStart.getTime() + (project.estimatedHours || 40) * 60 * 60 * 1000);
     return projectStart <= endDate && projectEnd >= startDate;
@@ -285,7 +286,7 @@ export function GanttChart({ projects, viewMode = 'weeks', className = '' }: Gan
                 
                 <div className="flex-1 relative h-12 border-r">
                   {/* Project bar */}
-                  {position && (
+                  {position ? (
                     <div
                       className={`absolute top-2 h-6 ${statusColors[project.status]} rounded-sm cursor-pointer transition-all hover:opacity-80 ${priorityColors[project.priority]} border-2`}
                       style={{
@@ -308,6 +309,23 @@ export function GanttChart({ projects, viewMode = 'weeks', className = '' }: Gan
                           style={{ width: `${project.progress}%` }}
                         />
                       )}
+                    </div>
+                  ) : (
+                    // Projeto sem data - mostra barra cinza indicativa
+                    <div
+                      className="absolute top-2 h-6 bg-gray-300 rounded-sm cursor-pointer transition-all hover:opacity-80 border-2 border-gray-400"
+                      style={{
+                        left: '10%',
+                        width: '80%'
+                      }}
+                      onClick={() => setSelectedProject(project)}
+                      title={`${project.name} - Sem datas definidas`}
+                    >
+                      <div className="h-full flex items-center px-2">
+                        <span className="text-gray-700 text-xs font-medium truncate">
+                          Sem data - {project.actualHours}h
+                        </span>
+                      </div>
                     </div>
                   )}
                   
@@ -335,7 +353,13 @@ export function GanttChart({ projects, viewMode = 'weeks', className = '' }: Gan
         })}
       </div>
 
-      {visibleProjects.length === 0 && (
+      {projects.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>Nenhum projeto cadastrado</p>
+          <p className="text-sm">Crie um projeto para visualizar no cronograma</p>
+        </div>
+      ) : visibleProjects.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Nenhum projeto visível no período selecionado</p>
