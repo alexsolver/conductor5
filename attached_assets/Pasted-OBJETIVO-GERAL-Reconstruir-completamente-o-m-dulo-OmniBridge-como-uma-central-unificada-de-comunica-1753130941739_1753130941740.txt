@@ -1,0 +1,83 @@
+OBJETIVO GERAL:
+Reconstruir completamente o módulo OmniBridge como uma central unificada de comunicação multicanal avançada, integrando-se com as configurações de canais realizadas em Workspace Admin > Integrações > Comunicação.
+
+CONTEXTO TÉCNICO:
+
+Sistema: Conductor - Plataforma SaaS de suporte ao cliente multi-tenant
+Arquitetura: Clean Architecture com TypeScript, React, Node.js/Express
+Banco: PostgreSQL com Drizzle ORM, isolamento por schema
+Integração: Gmail IMAP já funcional, estrutura para WhatsApp/Telegram/SMS preparada
+INSTRUÇÕES DETALHADAS:
+
+1. ANÁLISE E ESTRUTURAÇÃO INICIAL
+Revisar arquitetura atual do OmniBridge.tsx
+Mapear integração com tenant-admin/integrations para obter configurações de canais
+Definir estrutura modular para cada funcionalidade principal
+Estabelecer padrões de comunicação entre componentes
+2. RECONSTRUÇÃO DO GERENCIAMENTO DE CANAIS
+Need to Have (Imediato):
+
+Dashboard visual com status em tempo real de todos os canais configurados
+Health check automático e monitoramento de conectividade
+Logs estruturados de erros por canal com categorização
+Sistema de rate limiting configurável por canal
+Teste de conectividade sob demanda com feedback visual
+Integração completa com credenciais do Workspace Admin
+Melhorias Sugeridas:
+
+Indicadores visuais de performance (latência, throughput)
+Alertas proativos de degradação de canal
+Histórico de uptime e disponibilidade
+Auto-reconexão inteligente em falhas
+3. INBOX UNIFICADO AVANÇADO
+Need to Have (Imediato):
+
+Interface única agregando mensagens de todos os canais
+Sistema de filtragem multinível (canal, prioridade, status, data, remetente)
+Busca full-text com indexação otimizada
+Threading inteligente de conversas por remetente/assunto
+Marcação em lote e ações bulk
+Preview de anexos e mídias inline
+Melhorias Sugeridas:
+
+Interface tipo Gmail com keyboard shortcuts
+Tags customizáveis por tenant
+Sistema de snippets para respostas rápidas
+Detecção automática de spam/phishing
+Modo de leitura focado sem distrações
+4. MOTOR DE PROCESSAMENTO AUTOMÁTICO
+Need to Have (Imediato):
+
+Builder visual de regras com interface drag-and-drop
+Engine de execução sequencial e paralela de regras
+Detecção de palavras-chave com expressões regulares
+Ações automáticas: criar ticket, escalar, responder, encaminhar
+Sistema de priorização baseado em critérios configuráveis
+Prevenção de duplicatas por fingerprinting de conteúdo
+Melhorias Sugeridas:
+
+Machine learning para classificação automática
+Análise de sentimento para detecção de urgência
+Workflow designer com condições complexas
+A/B testing de regras de processamento
+5. SISTEMA DE TEMPLATES E RESPOSTAS
+Need to Have (Imediato):
+
+Editor WYSIWYG para templates com variáveis dinâmicas
+Biblioteca de templates organizados por categoria/canal
+Sistema de aprovação workflow para templates
+Versionamento com rollback capabilities
+Personalização por equipe/agente
+Suporte multilíngue com fallbacks
+Melhorias Sugeridas:
+
+Templates com lógica condicional
+Geração automática via IA baseada em contexto
+Análise de efetividade de templates
+Templates adaptativos por canal (email vs WhatsApp)
+6. DASHBOARD DE MONITORAMENTO ENTERPRISE
+Need to Have (Imediato):
+
+Métricas em tempo real: volume, tempo resposta, SLA compliance
+Alertas configuráveis com múltiplos canais de notificação
+Relatórios executivos automáticos
