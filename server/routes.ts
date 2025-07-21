@@ -384,6 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/omni-bridge', omniBridgeRoutes);
 
   // Timecard Routes
+  const timecardRoutes = (await import('./routes/timecardRoutes')).default;
   app.use('/api/timecard', jwtAuth, requireTenantAccess, timecardRoutes);
 
   const httpServer = createServer(app);

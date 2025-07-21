@@ -22,6 +22,9 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
 import Roadmap from "./pages/Roadmap";
+import WorkSchedules from "./pages/WorkSchedules";
+import TimecardReports from "./pages/TimecardReports";
+import HourBank from "./pages/HourBank";
 import Compliance from "./pages/Compliance";
 import SaasAdmin from "./pages/SaasAdmin";
 import TenantAdmin from "./pages/TenantAdmin";
@@ -126,6 +129,9 @@ function AppRouter() {
         <Route path="/project-actions" component={ProjectActions} />
         <Route path="/journey-control" component={JourneyControl} />
         <Route path="/timecard" component={Timecard} />
+        <Route path="/work-schedules" component={WorkSchedules} />
+        <Route path="/timecard-reports" component={TimecardReports} />
+        <Route path="/hour-bank" component={HourBank} />
         <Route path="/omnibridge" component={OmniBridge} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />

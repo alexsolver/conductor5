@@ -42,7 +42,8 @@ import {
   FolderOpen,
   Folder,
   Clock,
-  Route
+  Route,
+  Calendar
 } from "lucide-react";
 
 // Base navigation with proper types
@@ -70,7 +71,16 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
-  { name: "Registro de Ponto", href: "/timecard", icon: Clock },
+  {
+    name: "Timecard",
+    icon: Clock,
+    children: [
+      { name: "Registro de Ponto", href: "/timecard", icon: Clock },
+      { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
+      { name: "Banco de Horas", href: "/hour-bank", icon: CreditCard },
+      { name: "Relatórios", href: "/timecard-reports", icon: FileText },
+    ]
+  },
   { name: "Controle de Jornadas", href: "/journey-control", icon: Route },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
