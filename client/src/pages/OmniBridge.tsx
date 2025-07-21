@@ -732,21 +732,21 @@ export default function OmniBridge() {
                           </div>
 
                           {/* Informações técnicas específicas */}
-                          {channel.name.toLowerCase().includes('imap') && (
+                          {(channel.name || '').toString().toLowerCase().includes('imap') && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Protocolo:</span>
                               <span className="font-medium text-blue-600">IMAP4 SSL/TLS</span>
                             </div>
                           )}
 
-                          {channel.name.toLowerCase().includes('oauth2') && (
+                          {(channel.name || '').toString().toLowerCase().includes('oauth2') && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Auth:</span>
                               <span className="font-medium text-green-600">OAuth 2.0</span>
                             </div>
                           )}
 
-                          {channel.name.toLowerCase().includes('webhook') && (
+                          {(channel.name || '').toString().toLowerCase().includes('webhook') && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Método:</span>
                               <span className="font-medium text-orange-600">HTTP Webhook</span>
@@ -772,7 +772,7 @@ export default function OmniBridge() {
                           </div>
                         )}
 
-                        {channel.isConnected && channel.name.toLowerCase().includes('imap') && (
+                        {channel.isConnected && (channel.name || '').toString().toLowerCase().includes('imap') && (
                           <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
                             <div className="flex items-center space-x-1">
                               <CheckCircle className="w-3 h-3" />
