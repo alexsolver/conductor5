@@ -79,9 +79,12 @@ export const customers = pgTable("customers", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
+  // Critical indexes for performance
+  tenantEmailIdx: index("customers_tenant_email_idx").on(table.tenantId, table.email),
+  tenantActiveIdx: index("customers_tenant_active_idx").on(table.tenantId, table.isActive),
 }));
 
-// Tickets table - Foreign keys optimized
+// Tickets table - Foreign keys optimized and critical indexes added
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -94,9 +97,13 @@ export const tickets = pgTable("tickets", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
+  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
+  index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
+]);
 
-// Ticket Messages table
+// Ticket Messages table - Audit fields completed
 export const ticketMessages = pgTable("ticket_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -106,9 +113,10 @@ export const ticketMessages = pgTable("ticket_messages", {
   senderType: varchar("sender_type", { length: 50 }).default("agent"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),  // Fixed: audit field added
 });
 
-// Activity Logs table
+// Activity Logs table - Critical indexes added
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -119,7 +127,10 @@ export const activityLogs = pgTable("activity_logs", {
   metadata: jsonb("metadata"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("activity_logs_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
+  index("activity_logs_tenant_time_idx").on(table.tenantId, table.createdAt),
+]);
 
 // Locations table
 export const locations = pgTable("locations", {
@@ -216,9 +227,12 @@ export const favorecidos = pgTable("favorecidos", {
   uniqueTenantCpf: unique("favorecidos_tenant_cpf_unique").on(table.tenantId, table.cpf),
   uniqueTenantCnpj: unique("favorecidos_tenant_cnpj_unique").on(table.tenantId, table.cnpj),
   uniqueTenantRg: unique("favorecidos_tenant_rg_unique").on(table.tenantId, table.rg),
+  // Critical indexes for Brazilian compliance
+  tenantCpfIdx: index("favorecidos_tenant_cpf_idx").on(table.tenantId, table.cpf),
+  tenantActiveIdx: index("favorecidos_tenant_active_idx").on(table.tenantId, table.isActive),
 }));
 
-// Projects table - Foreign keys and arrays optimized
+// Projects table - Foreign keys and arrays optimized with critical indexes
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -240,7 +254,11 @@ export const projects = pgTable("projects", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("projects_tenant_status_idx").on(table.tenantId, table.status),
+  index("projects_tenant_manager_idx").on(table.tenantId, table.managerId),
+  index("projects_tenant_deadline_idx").on(table.tenantId, table.endDate),
+]);
 
 // Project Actions table - Arrays and foreign keys optimized
 export const projectActions = pgTable("project_actions", {

@@ -54,7 +54,11 @@ export const schemaManager = {
         'user_skills', 
         'favorecidos', 
         'projects', 
-        'project_actions'
+        'project_actions',
+        'integrations',
+        'email_processing_rules',
+        'email_response_templates',
+        'email_processing_logs'
       ];
       
       const tableCount = await pool.query(
@@ -63,13 +67,14 @@ export const schemaManager = {
         [schemaName, requiredTables]
       );
       
-      if (parseInt(tableCount.rows[0].count) < 12) {
-        throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/12 required tables`);
+      const expectedCount = requiredTables.length;
+      if (parseInt(tableCount.rows[0].count) < expectedCount) {
+        throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/${expectedCount} required tables`);
       }
       
       return true;
     } catch (error) {
-      console.error(`❌ Tenant schema validation failed for ${tenantId}:`, error.message);
+      console.error(`❌ Tenant schema validation failed for ${tenantId}:`, (error as Error).message);
       return false;
     }
   },
@@ -94,7 +99,7 @@ export const schemaManager = {
       
       return true;
     } catch (error) {
-      console.error(`❌ Tenant existence check failed for ${tenantId}:`, error.message);
+      console.error(`❌ Tenant existence check failed for ${tenantId}:`, (error as Error).message);
       return false;
     }
   },
@@ -119,7 +124,7 @@ export const schemaManager = {
       console.log("✅ Public tables validation completed successfully");
       return true;
     } catch (error) {
-      console.error("❌ Public tables validation failed:", error.message);
+      console.error("❌ Public tables validation failed:", (error as Error).message);
       return false;
     }
   },
