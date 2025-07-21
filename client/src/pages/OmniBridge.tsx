@@ -630,57 +630,159 @@ export default function OmniBridge() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {channels.map(channel => (
-                  <Card key={channel.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          {getChannelIcon(channel.type)}
-                          <span className="font-medium">{channel.name}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <div className={`w-2 h-2 rounded-full ${getStatusColor(channel.isConnected ? 'connected' : 'disconnected')}`} />
-                          <Badge variant={channel.isActive ? 'default' : 'secondary'} className="text-xs">
-                            {channel.isActive ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </div>
-                      </div>
+                {channels.map(channel => {
+                  const getChannelTypeIcon = (type: string, name: string) => {
+                    // Baseado no nome e tipo, retornar ícone específico
+                    if (name.toLowerCase().includes('imap') || name.toLowerCase().includes('email')) {
+                      return <Mail className="h-5 w-5 text-blue-500" />;
+                    }
+                    if (name.toLowerCase().includes('whatsapp')) {
+                      return <MessageSquare className="h-5 w-5 text-green-500" />;
+                    }
+                    if (name.toLowerCase().includes('telegram')) {
+                      return <Send className="h-5 w-5 text-sky-500" />;
+                    }
+                    if (name.toLowerCase().includes('sms') || name.toLowerCase().includes('twilio')) {
+                      return <Phone className="h-5 w-5 text-purple-500" />;
+                    }
+                    if (name.toLowerCase().includes('slack')) {
+                      return <MessageCircle className="h-5 w-5 text-purple-600" />;
+                    }
+                    if (name.toLowerCase().includes('webhook') || name.toLowerCase().includes('zapier')) {
+                      return <Zap className="h-5 w-5 text-orange-500" />;
+                    }
+                    if (name.toLowerCase().includes('gmail')) {
+                      return <Mail className="h-5 w-5 text-red-500" />;
+                    }
+                    if (name.toLowerCase().includes('outlook')) {
+                      return <Mail className="h-5 w-5 text-blue-600" />;
+                    }
+                    return <Activity className="h-5 w-5 text-gray-500" />;
+                  };
 
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex justify-between">
-                          <span>Status:</span>
-                          <span className={`font-medium ${channel.isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                            {channel.isConnected ? 'Conectado' : 'Desconectado'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Mensagens:</span>
-                          <span className="font-medium">{channel.messageCount || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Última Sync:</span>
-                          <span className="font-medium">
-                            {channel.lastSync ? new Date(channel.lastSync).toLocaleString('pt-BR') : 'Nunca'}</span>
+                  const getChannelTypeBadge = (name: string) => {
+                    if (name.toLowerCase().includes('imap')) return 'IMAP4';
+                    if (name.toLowerCase().includes('whatsapp')) return 'WhatsApp';
+                    if (name.toLowerCase().includes('telegram')) return 'Telegram';
+                    if (name.toLowerCase().includes('sms') || name.toLowerCase().includes('twilio')) return 'SMS';
+                    if (name.toLowerCase().includes('slack')) return 'Slack';
+                    if (name.toLowerCase().includes('webhook')) return 'Webhook';
+                    if (name.toLowerCase().includes('zapier')) return 'Zapier';
+                    if (name.toLowerCase().includes('gmail')) return 'Gmail OAuth2';
+                    if (name.toLowerCase().includes('outlook')) return 'Outlook OAuth2';
+                    if (name.toLowerCase().includes('smtp')) return 'SMTP';
+                    if (name.toLowerCase().includes('crm')) return 'CRM';
+                    if (name.toLowerCase().includes('chatbot')) return 'ChatBot IA';
+                    if (name.toLowerCase().includes('google workspace')) return 'G Workspace';
+                    if (name.toLowerCase().includes('sso') || name.toLowerCase().includes('saml')) return 'SSO/SAML';
+                    if (name.toLowerCase().includes('dropbox')) return 'Dropbox';
+                    return 'Email';
+                  };
+
+                  return (
+                    <Card key={channel.id} className="border hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            {getChannelTypeIcon(channel.type, channel.name)}
+                            <div>
+                              <span className="font-medium text-sm">{channel.name}</span>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Badge variant="outline" className="text-xs px-2 py-0.5">
+                                  {getChannelTypeBadge(channel.name)}
+                                </Badge>
+                                <Badge 
+                                  variant={channel.isActive ? 'default' : 'secondary'} 
+                                  className="text-xs px-2 py-0.5"
+                                >
+                                  {channel.isActive ? 'Ativo' : 'Inativo'}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`w-3 h-3 rounded-full ${getStatusColor(channel.isConnected ? 'connected' : 'disconnected')}`} />
                         </div>
 
-                        {channel.errorCount > 0 && (
-                          <div className="flex items-center space-x-1 text-red-600">
-                            <AlertTriangle className="w-4 h-4" />
-                            <span className="text-xs">
-                              {channel.errorCount} erro{channel.errorCount > 1 ? 's' : ''}</span>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Status:</span>
+                            <span className={`font-medium ${channel.isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                              {channel.isConnected ? 'Conectado' : 'Desconectado'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Mensagens:</span>
+                            <span className="font-medium">{channel.messageCount || 0}</span>
+                          </div>
+                          
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Última Sync:</span>
+                            <span className="font-medium text-xs">
+                              {channel.lastSync ? new Date(channel.lastSync).toLocaleString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit', 
+                                year: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }) : 'Nunca'}
+                            </span>
+                          </div>
+
+                          {/* Informações técnicas específicas */}
+                          {channel.name.toLowerCase().includes('imap') && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Protocolo:</span>
+                              <span className="font-medium text-blue-600">IMAP4 SSL/TLS</span>
+                            </div>
+                          )}
+
+                          {channel.name.toLowerCase().includes('oauth2') && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Auth:</span>
+                              <span className="font-medium text-green-600">OAuth 2.0</span>
+                            </div>
+                          )}
+
+                          {channel.name.toLowerCase().includes('webhook') && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Método:</span>
+                              <span className="font-medium text-orange-600">HTTP Webhook</span>
+                            </div>
+                          )}
+
+                          {channel.errorCount > 0 && (
+                            <div className="flex items-center space-x-2 pt-2 border-t">
+                              <AlertTriangle className="w-4 h-4 text-red-500" />
+                              <span className="text-xs text-red-600">
+                                {channel.errorCount} erro{channel.errorCount > 1 ? 's' : ''} detectado{channel.errorCount > 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {channel.lastError && (
+                          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                            <div className="flex items-start space-x-1">
+                              <XCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                              <span>{channel.lastError}</span>
+                            </div>
                           </div>
                         )}
-                      </div>
 
-                      {channel.lastError && (
-                        <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
-                          {channel.lastError}
-                        </div>
-                      )}
+                        {channel.isConnected && channel.name.toLowerCase().includes('imap') && (
+                          <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                            <div className="flex items-center space-x-1">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Monitoramento IMAP ativo</span>
+                            </div>
+                          </div>
+                        )}
 
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
