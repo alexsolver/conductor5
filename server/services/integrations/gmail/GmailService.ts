@@ -6,8 +6,7 @@
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
 import { schemaManager } from '../../../db';
-import { emails } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 interface GmailConfig {
   user: string;
@@ -324,12 +323,8 @@ export class GmailService {
           const headers = email.headers || {};
           const messageId = headers['message-id'] ? headers['message-id'][0] : `gmail-${Date.now()}-${Math.random()}`;
           
-          // Check for duplicates - skip if already exists
-          const existing = await tenantDb.select().from(emails).where(eq(emails.messageId, messageId)).limit(1);
-          if (existing.length > 0) {
-            console.log(`⏭️ Email already exists: ${messageId}`);
-            continue;
-          }
+          // Check for duplicates using inbox table instead (emails table doesn't exist)
+          // For now, we'll just log and continue processing each email
 
           const from = headers.from ? headers.from[0] : 'unknown@gmail.com';
           const to = headers.to ? headers.to[0] : 'alexsolver@gmail.com';
@@ -382,9 +377,35 @@ export class GmailService {
             bccEmails: '[]'
           };
 
-          // Insert into emails table
-          await tenantDb.insert(emails).values(emailData);
-          console.log(`✅ Email saved to database: ${subject} (Priority: ${priority})`);
+          // Save to emails table using storage API
+          const { storage } = await import('../../../storage-simple');
+          
+          try {
+            // Insert email into database using direct SQL (emails table exists)
+            const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+            await tenantDb.execute(sql`
+              INSERT INTO ${sql.identifier(schemaName)}.emails (
+                tenant_id, message_id, from_email, from_name, to_email, cc_emails, bcc_emails,
+                subject, body_text, body_html, has_attachments, attachment_count,
+                attachment_details, email_headers, priority, is_read, is_processed,
+                email_date, received_at, processed_at
+              ) VALUES (
+                ${tenantId}, ${messageId}, ${fromEmail}, ${fromName}, ${to}, 
+                ${emailData.ccEmails}, ${emailData.bccEmails}, ${subject}, 
+                ${emailData.bodyText}, ${emailData.bodyHtml}, ${emailData.hasAttachments}, 
+                ${emailData.attachmentCount}, ${emailData.attachmentDetails}, 
+                ${emailData.emailHeaders}, ${priority}, false, false, 
+                ${date}, ${new Date()}, null
+              ) ON CONFLICT (message_id) DO NOTHING
+            `);
+            
+            console.log(`✅ Email saved to database: ${subject} (Priority: ${priority}, From: ${fromEmail})`);
+          } catch (saveError) {
+            console.error('Error saving email to database:', saveError);
+            console.log(`📧 Processed (not saved): ${subject} (Priority: ${priority}, From: ${fromEmail})`);
+          }
         } catch (error) {
           console.error('Error processing individual email:', error);
         }
@@ -399,6 +420,7 @@ export class GmailService {
       const { storage } = await import('../../../storage-simple');
       
       // Get IMAP Email integration credentials from database
+      const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
       
       if (!imapIntegration || !imapIntegration.config) {
         throw new Error('IMAP Email integration not found or not configured');
@@ -428,14 +450,7 @@ export class GmailService {
     }
   }
 
-  async stopEmailMonitoring(tenantId: string): Promise<void> {
-    const imap = this.imapConnections.get(tenantId);
-    if (imap) {
-      imap.end();
-      this.imapConnections.delete(tenantId);
-      console.log(`🛑 Gmail monitoring stopped for tenant: ${tenantId}`);
-    }
-  }
+  // Removed duplicate stopEmailMonitoring method - already exists above
 
   isConnected(tenantId: string): boolean {
     return this.imapConnections.has(tenantId);

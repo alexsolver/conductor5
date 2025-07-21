@@ -119,6 +119,15 @@ export class OmniBridgeAutoStart {
       
       if (result.success) {
         this.activeMonitoring.set(monitoringKey, true);
+        
+        // Update integration status in database to persist state
+        try {
+          const { storage } = await import('../storage-simple');
+          await storage.updateTenantIntegrationStatus(tenantId, integration.id, 'connected');
+        } catch (error) {
+          console.error('❌ Error updating integration status:', error);
+        }
+        
         console.log(`✅ IMAP monitoring started successfully for ${integration.name}`);
         console.log(`📥 Inbox will be populated with emails from ${config.emailAddress}`);
         
@@ -140,6 +149,17 @@ export class OmniBridgeAutoStart {
       // Stop Gmail service monitoring
       await this.gmailService.stopEmailMonitoring(tenantId);
       await this.gmailService.stopPeriodicSync(tenantId);
+      
+      // Update integration status in database to persist state
+      try {
+        const { storage } = await import('../storage-simple');
+        const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
+        if (imapIntegration) {
+          await storage.updateTenantIntegrationStatus(tenantId, imapIntegration.id, 'disconnected');
+        }
+      } catch (error) {
+        console.error('❌ Error updating integration status:', error);
+      }
       
       // Clear active monitoring map
       const keysToRemove = Array.from(this.activeMonitoring.keys()).filter(key => 

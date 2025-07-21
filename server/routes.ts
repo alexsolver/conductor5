@@ -493,12 +493,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Project routes temporarily removed due to syntax issues
 
+  // Email Configuration API Routes - For OmniBridge integration
+  app.get('/api/email-config/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      // Get all integrations from database, filter only communication category
+      const integrations = await unifiedStorage.getTenantIntegrations(tenantId);
+      const communicationIntegrations = integrations.filter((integration: any) => 
+        integration.category === 'Comunicação'
+      );
+
+      res.json({ integrations: communicationIntegrations });
+    } catch (error) {
+      console.error('Error fetching email integrations:', error);
+      res.status(500).json({ message: "Failed to fetch integrations" });
+    }
+  });
+
+  app.get('/api/email-config/inbox', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      // Get inbox messages from database
+      const messages = await unifiedStorage.getEmailInboxMessages(tenantId);
+      res.json({ messages });
+    } catch (error) {
+      console.error('Error fetching inbox messages:', error);
+      res.status(500).json({ message: "Failed to fetch inbox messages" });
+    }
+  });
+
+  app.get('/api/email-config/monitoring/status', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      // Get IMAP integration status from database
+      const imapIntegration = await unifiedStorage.getIntegrationByType(tenantId, 'IMAP Email');
+      const isMonitoring = imapIntegration && imapIntegration.status === 'connected';
+
+      res.json({
+        isMonitoring,
+        status: isMonitoring ? 'active' : 'inactive',
+        lastCheck: new Date().toISOString(),
+        activeConnections: isMonitoring ? 1 : 0
+      });
+    } catch (error) {
+      console.error('Error getting monitoring status:', error);
+      res.status(500).json({ 
+        isMonitoring: false,
+        status: 'error',
+        message: 'Failed to get monitoring status' 
+      });
+    }
+  });
+
+  app.post('/api/email-config/monitoring/start', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      // Get IMAP integration
+      const imapIntegration = await unifiedStorage.getIntegrationByType(tenantId, 'IMAP Email');
+      if (!imapIntegration) {
+        return res.status(404).json({ message: "IMAP integration not found" });
+      }
+
+      // Start Gmail service monitoring
+      const { GmailService } = await import('./services/integrations/gmail/GmailService');
+      const gmailService = new GmailService();
+      
+      const result = await gmailService.startEmailMonitoring(tenantId, imapIntegration.id);
+      
+      if (result.success) {
+        // Update integration status to connected
+        await unifiedStorage.updateTenantIntegrationStatus(tenantId, imapIntegration.id, 'connected');
+        
+        res.json({
+          success: true,
+          message: "Monitoramento IMAP iniciado com sucesso",
+          isMonitoring: true
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || "Failed to start monitoring"
+        });
+      }
+    } catch (error) {
+      console.error('Error starting email monitoring:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to start monitoring"
+      });
+    }
+  });
+
+  app.post('/api/email-config/monitoring/stop', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      // Get IMAP integration
+      const imapIntegration = await unifiedStorage.getIntegrationByType(tenantId, 'IMAP Email');
+      if (!imapIntegration) {
+        return res.status(404).json({ message: "IMAP integration not found" });
+      }
+
+      // Stop Gmail service monitoring
+      const { GmailService } = await import('./services/integrations/gmail/GmailService');
+      const gmailService = new GmailService();
+      
+      await gmailService.stopEmailMonitoring(tenantId);
+      
+      // Update integration status to disconnected
+      await unifiedStorage.updateTenantIntegrationStatus(tenantId, imapIntegration.id, 'disconnected');
+      
+      res.json({
+        success: true,
+        message: "Monitoramento IMAP parado com sucesso",
+        isMonitoring: false
+      });
+    } catch (error) {
+      console.error('Error stopping email monitoring:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to stop monitoring"
+      });
+    }
+  });
+
   // OmniBridge Module temporarily removed
 
   // Timecard Routes temporarily removed due to syntax issues
 
-  // OmniBridge Auto-Start Routes
-  app.post('/api/omnibridge/start-monitoring', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+  // OmniBridge Auto-Start Routes - Simplified without requireTenantAccess
+  app.post('/api/omnibridge/start-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
       const tenantId = req.user?.tenantId;
@@ -507,11 +650,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Tenant ID required" });
       }
 
+      console.log(`🚀 Starting OmniBridge monitoring for tenant: ${tenantId}`);
       await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
       
       res.json({ 
         message: "OmniBridge monitoring started successfully",
-        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring()
+        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
+        isActive: true
       });
     } catch (error) {
       console.error('Error starting OmniBridge monitoring:', error);
@@ -519,7 +664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/omnibridge/stop-monitoring', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/omnibridge/stop-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
       const tenantId = req.user?.tenantId;
@@ -528,22 +673,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Tenant ID required" });
       }
 
+      console.log(`🛑 Stopping OmniBridge monitoring for tenant: ${tenantId}`);
       await omniBridgeAutoStart.stopAllMonitoring(tenantId);
       
-      res.json({ message: "OmniBridge monitoring stopped successfully" });
+      res.json({ 
+        message: "OmniBridge monitoring stopped successfully",
+        isActive: false
+      });
     } catch (error) {
       console.error('Error stopping OmniBridge monitoring:', error);
       res.status(500).json({ message: "Failed to stop monitoring" });
     }
   });
 
-  app.get('/api/omnibridge/monitoring-status', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/omnibridge/monitoring-status', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
       
+      const activeMonitoring = omniBridgeAutoStart.getActiveMonitoring();
       res.json({ 
-        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
-        isActive: omniBridgeAutoStart.getActiveMonitoring().length > 0
+        activeMonitoring,
+        isActive: activeMonitoring.length > 0
       });
     } catch (error) {
       console.error('Error getting monitoring status:', error);

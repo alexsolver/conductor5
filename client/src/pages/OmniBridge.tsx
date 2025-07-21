@@ -75,24 +75,24 @@ export default function OmniBridge() {
     gcTime: 0, // Don't cache (updated from cacheTime)
   });
 
-  // Monitoring status query
+  // Monitoring status query - Using email-config API that works
   const { data: monitoringStatus } = useQuery({
-    queryKey: ['/api/omnibridge/monitoring-status'],
+    queryKey: ['/api/email-config/monitoring/status'],
     staleTime: 5000, // Cache for 5 seconds
     refetchInterval: 5000, // Refetch every 5 seconds
   });
 
-  // Start monitoring mutation
+  // Start monitoring mutation - Using email-config API
   const startMonitoringMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('POST', '/api/omnibridge/start-monitoring', {});
+      return await apiRequest('POST', '/api/email-config/monitoring/start', {});
     },
     onSuccess: () => {
       toast({
-        title: "Monitoramento Iniciado",
-        description: "O sistema começou a monitorar as integrações IMAP configuradas e a popular o inbox automaticamente."
+        title: "Monitoramento IMAP Iniciado",
+        description: "O sistema começou a monitorar emails IMAP e popular o inbox automaticamente."
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/monitoring-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
       queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
     },
     onError: (error: Error) => {
@@ -104,17 +104,17 @@ export default function OmniBridge() {
     }
   });
 
-  // Stop monitoring mutation  
+  // Stop monitoring mutation - Using email-config API  
   const stopMonitoringMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('POST', '/api/omnibridge/stop-monitoring', {});
+      return await apiRequest('POST', '/api/email-config/monitoring/stop', {});
     },
     onSuccess: () => {
       toast({
-        title: "Monitoramento Parado",
-        description: "O sistema parou de monitorar as integrações IMAP."
+        title: "Monitoramento IMAP Parado",
+        description: "O sistema parou de monitorar emails IMAP."
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/monitoring-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
     },
     onError: (error: Error) => {
       toast({
@@ -125,18 +125,32 @@ export default function OmniBridge() {
     }
   });
 
-  // Toggle channel status mutation
-  const toggleChannelMutation = useMutation({
-    mutationFn: async ({ channelId, enabled }: { channelId: string, enabled: boolean }) => {
-      // For now, just simulate - in production would call real API
-      return { success: true, channelId, enabled };
+  // Toggle channel monitoring mutation - for individual channels
+  const toggleChannelMonitoringMutation = useMutation({
+    mutationFn: async ({ channelId, shouldStart }: { channelId: string, shouldStart: boolean }) => {
+      if (channelId === 'imap-email') {
+        // Use the real email-config API for IMAP
+        const endpoint = shouldStart ? '/api/email-config/monitoring/start' : '/api/email-config/monitoring/stop';
+        return await apiRequest('POST', endpoint, {});
+      }
+      // For other channels, just simulate
+      return { success: true, channelId, isMonitoring: shouldStart };
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       toast({
-        title: `Canal ${data.enabled ? 'Ativado' : 'Desativado'}`,
-        description: `O canal foi ${data.enabled ? 'ativado' : 'desativado'} com sucesso.`
+        title: `Monitoramento ${variables.shouldStart ? 'Iniciado' : 'Parado'}`,
+        description: `Canal ${variables.channelId}: monitoramento ${variables.shouldStart ? 'iniciado' : 'parado'} com sucesso.`
       });
-      refetchIntegrations();
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/monitoring/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/integrations'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro no Monitoramento",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -382,18 +396,13 @@ export default function OmniBridge() {
                           <div className="space-y-3 mt-4">
                             {/* Status Toggle */}
                             <div className="flex items-center gap-2">
-                              <Switch 
-                                checked={channel.status === 'connected'} 
-                                onCheckedChange={(enabled) => 
-                                  toggleChannelMutation.mutate({ 
-                                    channelId: channel.id, 
-                                    enabled 
-                                  })
-                                }
-                                disabled={toggleChannelMutation.isPending}
-                              />
+                              <Badge className={getStatusColor(channel.status)}>
+                                {channel.status === 'connected' ? 'Conectado' : 
+                                 channel.status === 'disconnected' ? 'Desconectado' : 
+                                 'Erro'}
+                              </Badge>
                               <span className="text-sm text-gray-600">
-                                {channel.status === 'connected' ? 'Ativo' : 'Inativo'}
+                                {channel.status === 'connected' ? 'Canal Ativo' : 'Canal Inativo'}
                               </span>
                             </div>
 
