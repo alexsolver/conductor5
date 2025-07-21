@@ -20,6 +20,7 @@ interface GmailConfig {
 export class GmailService {
   private static instance: GmailService;
   private imapConnections: Map<string, Imap> = new Map();
+  private syncIntervals: Map<string, NodeJS.Timeout> = new Map();
 
   static getInstance(): GmailService {
     if (!GmailService.instance) {
@@ -179,37 +180,7 @@ export class GmailService {
     try {
       console.log(`📧 Starting Gmail monitoring for tenant: ${tenantId}, channel: ${channelId}`);
       
-      // Get IMAP Email integration credentials from database
-      const db = await schemaManager.getTenantDb(tenantId);
-      const integrationResult = await db.execute(`
-        SELECT config FROM integrations WHERE id = 'imap-email' LIMIT 1
-      `);
-      
-      if (integrationResult.rows.length === 0) {
-        return {
-          success: false,
-          message: 'IMAP Email integration not found'
-        };
-      }
-
-      const config = JSON.parse(integrationResult.rows[0].config as string);
-      console.log(`📋 Gmail Config Debug:`, {
-        emailAddress: !!config.emailAddress,
-        password: !!config.password,
-        imapServer: config.imapServer,
-        imapPort: config.imapPort,
-        imapSecurity: config.imapSecurity,
-        configKeys: Object.keys(config)
-      });
-      
-      // Connect to Gmail with explicit Gmail configuration
-      const gmailConfig = {
-        user: config.emailAddress,
-        password: config.password,
-        host: config.imapServer || 'imap.gmail.com',
-        port: parseInt(config.imapPort) || 993,
-        tls: config.imapSecurity === 'SSL/TLS'
-      };
+      const gmailConfig = await this.getGmailConfig(tenantId);
       
       console.log(`📧 Gmail Connection Config:`, {
         user: gmailConfig.user,
@@ -423,44 +394,38 @@ export class GmailService {
     }
   }
 
-  async getGmailConfig(): Promise<GmailConfig> {
-    // For alexsolver@gmail.com - this would normally come from secure configuration
-    return {
-      user: 'alexsolver@gmail.com',
-      password: process.env.GMAIL_APP_PASSWORD || '', // App-specific password
-      host: 'imap.gmail.com',
-      port: 993,
-      tls: true
-    };
-  }
-
-  async startEmailMonitoring(tenantId: string, channelId: string): Promise<{ success: boolean; message: string }> {
+  async getGmailConfig(tenantId: string): Promise<GmailConfig> {
     try {
-      console.log(`🔄 Starting Gmail monitoring for tenant: ${tenantId}`);
+      const { storage } = await import('../../../storage-simple');
       
-      const config = await this.getGmailConfig();
+      // Get IMAP Email integration credentials from database
+      const integrations = await storage.getTenantIntegrations(tenantId);
+      const imapIntegration = integrations.find(i => i.id === 'imap-email');
       
-      // Connect to Gmail
-      const connected = await this.connectToGmail(tenantId, config);
-      if (!connected) {
-        return {
-          success: false,
-          message: 'Failed to connect to Gmail. Please check credentials.'
-        };
+      if (!imapIntegration || !imapIntegration.config) {
+        throw new Error('IMAP Email integration not found or not configured');
       }
 
-      // Fetch recent emails immediately
-      await this.fetchRecentEmails(tenantId, channelId);
+      const config = typeof imapIntegration.config === 'string' 
+        ? JSON.parse(imapIntegration.config) 
+        : imapIntegration.config;
 
       return {
-        success: true,
-        message: 'Gmail monitoring started successfully'
+        user: config.emailAddress,
+        password: config.password,
+        host: config.imapServer || 'imap.gmail.com',
+        port: parseInt(config.imapPort) || 993,
+        tls: config.imapSecurity === 'SSL/TLS'
       };
     } catch (error) {
-      console.error('Error starting Gmail monitoring:', error);
+      console.error('Error getting Gmail config:', error);
+      // Fallback to env config
       return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to start Gmail monitoring'
+        user: 'alexsolver@gmail.com',
+        password: process.env.GMAIL_APP_PASSWORD || 'cyyj vare pmjh scur',
+        host: 'imap.gmail.com',
+        port: 993,
+        tls: true
       };
     }
   }
@@ -476,5 +441,39 @@ export class GmailService {
 
   isConnected(tenantId: string): boolean {
     return this.imapConnections.has(tenantId);
+  }
+
+  async startPeriodicSync(tenantId: string, channelId: string, intervalMinutes: number = 5): Promise<void> {
+    console.log(`🔄 Starting periodic Gmail sync every ${intervalMinutes} minutes for tenant: ${tenantId}`);
+    
+    // Initial sync
+    await this.startEmailMonitoring(tenantId, channelId);
+    
+    // Set up periodic sync
+    const intervalId = setInterval(async () => {
+      try {
+        console.log(`📧 Running periodic Gmail sync for tenant: ${tenantId}`);
+        const result = await this.startEmailMonitoring(tenantId, channelId);
+        if (!result.success) {
+          console.error(`❌ Periodic sync failed for tenant ${tenantId}: ${result.message}`);
+        }
+      } catch (error) {
+        console.error('Error in periodic Gmail sync:', error);
+      }
+    }, intervalMinutes * 60 * 1000);
+
+    // Store interval ID for cleanup
+    if (!this.syncIntervals) {
+      this.syncIntervals = new Map();
+    }
+    this.syncIntervals.set(tenantId, intervalId);
+  }
+
+  async stopPeriodicSync(tenantId: string): Promise<void> {
+    if (this.syncIntervals && this.syncIntervals.has(tenantId)) {
+      clearInterval(this.syncIntervals.get(tenantId));
+      this.syncIntervals.delete(tenantId);
+      console.log(`⏹️ Stopped periodic sync for tenant: ${tenantId}`);
+    }
   }
 }

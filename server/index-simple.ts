@@ -74,6 +74,20 @@ const port = parseInt(process.env.PORT || '5000', 10);
 
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
+
+  // Start Gmail sync scheduler for active tenants
+  try {
+    const { GmailSyncScheduler } = require('./services/integrations/gmail/GmailSyncScheduler');
+    const scheduler = GmailSyncScheduler.getInstance();
+
+    // Wait a bit for server to be fully ready, then start syncing
+    setTimeout(async () => {
+      console.log('🚀 Starting Gmail sync scheduler...');
+      await scheduler.startForAllActiveTenants();
+    }, 5000);
+  } catch (error) {
+    console.error('Failed to start Gmail sync scheduler:', error);
+  }
 });
 
 // Enhanced server stability

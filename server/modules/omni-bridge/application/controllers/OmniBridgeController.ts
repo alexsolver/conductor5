@@ -337,6 +337,43 @@ export class OmniBridgeController {
     }
   }
 
+  async forceSyncEmails(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        return;
+      }
+
+      console.log(`🔄 Forcing Gmail sync for tenant: ${tenantId}`);
+      
+      const result = await this.gmailService.startEmailMonitoring(tenantId, 'imap-email');
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          message: 'Gmail sync completed successfully',
+          data: {
+            tenantId,
+            syncTime: new Date().toISOString()
+          }
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to sync emails'
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error forcing Gmail sync:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to force Gmail sync',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      });
+    }
+  }
+
   async getMonitoringStatus(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = (req as any).user?.tenantId;
