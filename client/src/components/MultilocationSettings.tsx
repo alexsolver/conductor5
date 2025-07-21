@@ -1,7 +1,7 @@
 /**
- * Multilocation Settings Component
- * Estratégia híbrida: Nomenclatura brasileira + Aliases internacionais
- * Gerenciamento de configurações para múltiplos mercados
+ * Global Multilocation Settings Component
+ * Dynamic localization system for international markets
+ * Automatic field adaptation based on geographic location
  */
 
 import React, { useState } from 'react';

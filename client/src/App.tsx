@@ -60,6 +60,7 @@ import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
 import MultilocationAdmin from "./pages/MultilocationAdmin";
 import HolidayCalendar from "./pages/HolidayCalendar";
+// import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -119,6 +120,7 @@ function AppRouter() {
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
         <Route path="/tenant-admin/multilocation" component={MultilocationAdmin} />
+        {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />

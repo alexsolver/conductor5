@@ -26,6 +26,7 @@ import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
 import multilocationRoutes from './routes/multilocation';
+import geolocationRoutes from './routes/geolocation';
 import holidayRoutes from './routes/HolidayController';
 // Removed: journeyRoutes - functionality eliminated from system
 // import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
@@ -318,6 +319,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Holiday routes for journey control system
   app.use('/api/holidays', holidayRoutes);
+  
+  // Global multilocation API endpoints
+  app.get('/api/multilocation/markets', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const pool = schemaManager.getPool();
+      
+      const result = await pool.query(
+        `SELECT * FROM "${schemaManager.getSchemaName(tenantId)}"."market_localization" WHERE tenant_id = $1 AND is_active = true ORDER BY market_code`,
+        [tenantId]
+      );
+
+      const markets = result.rows.map(row => ({
+        marketCode: row.market_code,
+        countryCode: row.country_code,
+        languageCode: row.language_code,
+        currencyCode: row.currency_code
+      }));
+
+      res.json({ markets, defaultMarket: 'BR' });
+    } catch (error) {
+      console.error('Error fetching markets:', error);
+      res.status(500).json({ error: 'Failed to fetch markets' });
+    }
+  });
+
+  app.get('/api/multilocation/config/:marketCode', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { marketCode } = req.params;
+      const tenantId = req.user?.tenantId;
+      const pool = schemaManager.getPool();
+      
+      const result = await pool.query(
+        `SELECT * FROM "${schemaManager.getSchemaName(tenantId)}"."market_localization" WHERE tenant_id = $1 AND market_code = $2`,
+        [tenantId, marketCode]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: `Market not found: ${marketCode}` });
+      }
+
+      const market = result.rows[0];
+      res.json({
+        marketCode: market.market_code,
+        config: {
+          countryCode: market.country_code,
+          languageCode: market.language_code,
+          currencyCode: market.currency_code,
+          displayConfig: market.display_config,
+          validationRules: market.validation_rules,
+          legalFields: market.legal_field_mappings
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching market config:', error);
+      res.status(500).json({ error: 'Failed to fetch market config' });
+    }
+  });
+
+  // Currency conversion endpoint
+  app.post('/api/geolocation/convert-currency', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { amount, from, to } = req.body;
+      
+      // Get exchange rate from database
+      const pool = schemaManager.getPool();
+      const result = await pool.query(
+        'SELECT exchange_rate FROM exchange_rates WHERE base_currency = $1 AND target_currency = $2',
+        [from, to]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: `Exchange rate not found for ${from} to ${to}` });
+      }
+
+      const exchangeRate = parseFloat(result.rows[0].exchange_rate);
+      const convertedAmount = amount * exchangeRate;
+      let formattedAmount = convertedAmount.toFixed(2);
+      if (to === 'BRL') {
+        formattedAmount = `R$ ${convertedAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      } else if (to === 'USD') {
+        formattedAmount = `$${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      } else if (to === 'EUR') {
+        formattedAmount = `€${convertedAmount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;
+      }
+
+      res.json({
+        originalAmount: amount,
+        originalCurrency: from,
+        convertedAmount,
+        targetCurrency: to,
+        exchangeRate,
+        formattedAmount
+      });
+    } catch (error) {
+      console.error('Currency conversion error:', error);
+      res.status(500).json({ error: 'Failed to convert currency' });
+    }
+  });
+  
+  // Global multilocation routes  
+  // app.use('/api/multilocation', multilocationRoutes); // Temporarily disabled due to module export issue
+  
+  // Geolocation detection and formatting routes  
+  // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
   
   // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
 

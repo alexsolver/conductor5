@@ -1,6 +1,6 @@
-// MULTILOCATION SCHEMA MODULE
-// Estratégia híbrida: Nomenclatura brasileira + Aliases internacionais
-// Mantém compliance legal brasileiro com suporte global
+// GLOBAL MULTILOCATION SCHEMA MODULE
+// Dynamic localization system for international support
+// Automatic field adaptation based on geographic location
 
 import {
   pgTable,
@@ -12,6 +12,8 @@ import {
   uuid,
   boolean,
   unique,
+  numeric,
+  real,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -304,3 +306,44 @@ export const MARKET_CONFIGS: Record<string, MarketConfig> = {
     }
   }
 };
+
+// ========================================
+// CURRENCY AND EXCHANGE RATE TABLES
+// ========================================
+
+export const exchangeRates = pgTable("exchange_rates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  baseCurrency: varchar("base_currency", { length: 3 }).notNull(), // USD, EUR, etc.
+  targetCurrency: varchar("target_currency", { length: 3 }).notNull(), // BRL, GBP, etc.
+  exchangeRate: numeric("exchange_rate", { precision: 18, scale: 8 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  baseTargetIdx: index("idx_exchange_rates_base_target").on(table.baseCurrency, table.targetCurrency),
+  createdAtIdx: index("idx_exchange_rates_created_at").on(table.createdAt)
+}));
+
+export const currencyConversionLog = pgTable("currency_conversion_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  originalAmount: numeric("original_amount", { precision: 18, scale: 2 }).notNull(),
+  originalCurrency: varchar("original_currency", { length: 3 }).notNull(),
+  convertedAmount: numeric("converted_amount", { precision: 18, scale: 2 }).notNull(),
+  targetCurrency: varchar("target_currency", { length: 3 }).notNull(),
+  exchangeRate: numeric("exchange_rate", { precision: 18, scale: 8 }).notNull(),
+  conversionTimestamp: timestamp("conversion_timestamp").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  tenantIdx: index("idx_currency_log_tenant").on(table.tenantId),
+  timestampIdx: index("idx_currency_log_timestamp").on(table.conversionTimestamp)
+}));
+
+// Export additional schemas for the new tables
+export const insertExchangeRatesSchema = createInsertSchema(exchangeRates);
+export const insertCurrencyConversionLogSchema = createInsertSchema(currencyConversionLog);
+
+export type ExchangeRate = typeof exchangeRates.$inferSelect;
+export type InsertExchangeRate = typeof exchangeRates.$inferInsert;
+
+export type CurrencyConversionLog = typeof currencyConversionLog.$inferSelect;
+export type InsertCurrencyConversionLog = typeof currencyConversionLog.$inferInsert;

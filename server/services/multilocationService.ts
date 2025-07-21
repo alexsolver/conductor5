@@ -1,6 +1,6 @@
-// MULTILOCATION SERVICE
-// Estratégia híbrida para suporte internacional mantendo compliance brasileiro
-// Integração com sistema de localização existente
+// GLOBAL MULTILOCATION SERVICE
+// Dynamic localization system with automatic geographic detection
+// International compliance and field adaptation
 
 import { Pool } from '@neondatabase/serverless';
 import { 
