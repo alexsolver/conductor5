@@ -1,6 +1,6 @@
-import { sql } from 'drizzle-orm';
-import { db, schemaManager } from '../db';
-import { logInfo, logError, logWarn } from './logger';
+import { sql } from 'drizzle-orm'';
+import { db, schemaManager } from '../db'';
+import { logInfo, logError, logWarn } from './logger'';
 
 // ===========================
 // ENTERPRISE PRODUCTION INITIALIZATION SYSTEM
@@ -8,13 +8,13 @@ import { logInfo, logError, logWarn } from './logger';
 // ===========================
 
 export class ProductionInitializer {
-  private static instance: ProductionInitializer;
+  private static instance: ProductionInitializer';
 
   static getInstance(): ProductionInitializer {
     if (!ProductionInitializer.instance) {
-      ProductionInitializer.instance = new ProductionInitializer();
+      ProductionInitializer.instance = new ProductionInitializer()';
     }
-    return ProductionInitializer.instance;
+    return ProductionInitializer.instance';
   }
 
   // ===========================
@@ -22,24 +22,24 @@ export class ProductionInitializer {
   // ===========================
   async initialize(): Promise<void> {
     try {
-      logInfo('Starting production initialization...');
+      logInfo('Starting production initialization...')';
 
       // 1. Validate environment
-      await this.validateEnvironment();
+      await this.validateEnvironment()';
 
       // 2. Initialize database connections
-      await this.initializeDatabase();
+      await this.initializeDatabase()';
 
       // 3. Validate tenant schemas
-      await this.validateTenantSchemas();
+      await this.validateTenantSchemas()';
 
       // 4. Run health checks
-      await this.runHealthChecks();
+      await this.runHealthChecks()';
 
-      logInfo('Production initialization completed successfully');
+      logInfo('Production initialization completed successfully')';
     } catch (error) {
-      logError('Production initialization failed', error);
-      throw error;
+      logError('Production initialization failed', error)';
+      throw error';
     }
   }
 
@@ -47,20 +47,20 @@ export class ProductionInitializer {
   // ENVIRONMENT VALIDATION
   // ===========================
   private async validateEnvironment(): Promise<void> {
-    const requiredEnvVars = ['DATABASE_URL', 'NODE_ENV'];
+    const requiredEnvVars = ['DATABASE_URL', 'NODE_ENV']';
     
     for (const envVar of requiredEnvVars) {
       if (!process.env[envVar]) {
-        throw new Error(`Missing required environment variable: ${envVar}`);
+        throw new Error(`Missing required environment variable: ${envVar}`)';
       }
     }
 
     // Validate DATABASE_URL format
     if (!process.env.DATABASE_URL.startsWith('postgres://') && !process.env.DATABASE_URL.startsWith('postgresql://')) {
-      throw new Error('DATABASE_URL must be a valid PostgreSQL connection string');
+      throw new Error('DATABASE_URL must be a valid PostgreSQL connection string')';
     }
 
-    logInfo('Environment validation passed');
+    logInfo('Environment validation passed')';
   }
 
   // ===========================
@@ -68,14 +68,14 @@ export class ProductionInitializer {
   // ===========================
   private async initializeDatabase(): Promise<void> {
     try {
-      logInfo('Initializing database connections...');
+      logInfo('Initializing database connections...')';
       
-      await schemaManager.ensurePublicTables();
+      await schemaManager.ensurePublicTables()';
       
-      logInfo('Database initialization completed');
+      logInfo('Database initialization completed')';
     } catch (error) {
-      logError('Database initialization failed', error);
-      throw error;
+      logError('Database initialization failed', error)';
+      throw error';
     }
   }
 
@@ -87,40 +87,40 @@ export class ProductionInitializer {
       // Get all active tenants
       const result = await db.execute(sql`
         SELECT id, name FROM tenants WHERE is_active = true
-      `);
+      `)';
 
-      const tenants = result.rows as Array<{ id: string; name: string }>;
-      logInfo(`Validating ${tenants.length} tenant schemas`);
+      const tenants = result.rows as Array<{ id: string; name: string }>';
+      logInfo(`Validating ${tenants.length} tenant schemas`)';
 
       for (const tenant of tenants) {
         try {
-          const isValid = await schemaManager.validateTenantSchema(tenant.id);
+          const isValid = await schemaManager.validateTenantSchema(tenant.id)';
           if (!isValid) {
-            logWarn(`Schema validation failed for tenant ${tenant.id}, attempting auto-heal`, {});
+            logWarn(`Schema validation failed for tenant ${tenant.id}, attempting auto-heal`, {})';
             
             // CRITICAL FIX: Auto-healing com correção automática
-            await schemaManager.createTenantSchema(tenant.id);
+            await schemaManager.createTenantSchema(tenant.id)';
             
             // Re-validate after healing
-            const isValidAfterHeal = await schemaManager.validateTenantSchema(tenant.id);
+            const isValidAfterHeal = await schemaManager.validateTenantSchema(tenant.id)';
             if (isValidAfterHeal) {
-              logInfo(`✅ Auto-healing successful for tenant: ${tenant.id}`);
+              logInfo(`✅ Auto-healing successful for tenant: ${tenant.id}`)';
             } else {
-              logError(`❌ Auto-healing failed for tenant: ${tenant.id}`, new Error('Schema still invalid after healing'));
+              logError(`❌ Auto-healing failed for tenant: ${tenant.id}`, new Error('Schema still invalid after healing'))';
             }
           } else {
-            logInfo(`Schema validated for tenant: ${tenant.id}`);
+            logInfo(`Schema validated for tenant: ${tenant.id}`)';
           }
         } catch (error) {
-          logError(`Critical error during schema validation for tenant ${tenant.id}`, error);
+          logError(`Critical error during schema validation for tenant ${tenant.id}`, error)';
           // Continue with other tenants even if one fails
         }
       }
 
-      logInfo('Tenant schema validation completed');
+      logInfo('Tenant schema validation completed')';
     } catch (error) {
-      logError('Tenant schema validation failed', error);
-      throw error;
+      logError('Tenant schema validation failed', error)';
+      throw error';
     }
   }
 
@@ -130,45 +130,45 @@ export class ProductionInitializer {
   private async runHealthChecks(): Promise<void> {
     try {
       // Test database connectivity
-      await db.execute(sql`SELECT 1`);
+      await db.execute(sql`SELECT 1`)';
 
       // Test tenant schema access (using first available tenant)
       const tenantResult = await db.execute(sql`
         SELECT id FROM tenants WHERE is_active = true LIMIT 1
-      `);
+      `)';
 
       if (tenantResult.rows.length > 0) {
-        const tenantId = tenantResult.rows[0].id as string;
-        const isValid = await schemaManager.validateTenantSchema(tenantId);
+        const tenantId = tenantResult.rows[0].id as string';
+        const isValid = await schemaManager.validateTenantSchema(tenantId)';
         if (!isValid) {
-          logWarn(`Health check: Tenant schema ${tenantId} needs attention, attempting auto-correction...`);
+          logWarn(`Health check: Tenant schema ${tenantId} needs attention, attempting auto-correction...`)';
           
           try {
             // AUTO-CORRECTION: Tentar corrigir problemas de schema automaticamente
-            await schemaManager.createTenantSchema(tenantId);
+            await schemaManager.createTenantSchema(tenantId)';
             
             // Revalidar após correção
-            const isValidAfterFix = await schemaManager.validateTenantSchema(tenantId);
+            const isValidAfterFix = await schemaManager.validateTenantSchema(tenantId)';
             if (isValidAfterFix) {
-              logInfo(`Health check: Auto-correction successful for tenant ${tenantId}`);
+              logInfo(`Health check: Auto-correction successful for tenant ${tenantId}`)';
             } else {
-              logWarn(`Health check: Auto-correction failed for tenant ${tenantId}`);
+              logWarn(`Health check: Auto-correction failed for tenant ${tenantId}`)';
             }
           } catch (correctionError) {
-            logError(`Health check: Auto-correction error for tenant ${tenantId}`, correctionError);
+            logError(`Health check: Auto-correction error for tenant ${tenantId}`, correctionError)';
           }
         } else {
-          logInfo(`Health check: Tenant schema ${tenantId} is healthy`);
+          logInfo(`Health check: Tenant schema ${tenantId} is healthy`)';
         }
       }
 
-      logInfo('All health checks passed');
+      logInfo('All health checks passed')';
     } catch (error) {
-      logError('Health checks failed', error);
-      throw error;
+      logError('Health checks failed', error)';
+      throw error';
     }
   }
 }
 
 // Export singleton instance
-export const productionInitializer = ProductionInitializer.getInstance();
+export const productionInitializer = ProductionInitializer.getInstance()';

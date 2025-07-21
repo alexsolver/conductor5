@@ -2,29 +2,29 @@ import { ProjectAction } from '../../domain/entities/Project''[,;]
 import { IProjectActionRepository } from '../../domain/repositories/IProjectRepository''[,;]
 
 interface TicketCreationData {
-  subject: string;
-  description?: string;
-  priority: string;
-  urgency: string;
-  category: string;
-  assignedToId?: string;
-  relatedProjectId: string;
-  relatedActionId: string;
+  subject: string';
+  description?: string';
+  priority: string';
+  urgency: string';
+  category: string';
+  assignedToId?: string';
+  relatedProjectId: string';
+  relatedActionId: string';
   actionConversionData: {
-    originalActionType: string;
-    projectName: string;
-    actionTitle: string;
-    convertedAt: string;
-    convertedBy: string;
-  };
+    originalActionType: string';
+    projectName: string';
+    actionTitle: string';
+    convertedAt: string';
+    convertedBy: string';
+  }';
 }
 
 interface ConversionRules {
-  autoConvert?: boolean;
-  triggerOnStatus?: string[];
-  assignToSameUser?: boolean;
-  inheritPriority?: boolean;
-  copyAttachments?: boolean;
+  autoConvert?: boolean';
+  triggerOnStatus?: string[]';
+  assignToSameUser?: boolean';
+  inheritPriority?: boolean';
+  copyAttachments?: boolean';
 }
 
 export class ProjectActionTicketIntegrationService {
@@ -38,116 +38,116 @@ export class ProjectActionTicketIntegrationService {
   async convertActionToTicket(
     actionId: string, 
     tenantId: string, 
-    convertedBy: string,
+    convertedBy: string',
     projectName: string
   ): Promise<TicketCreationData> {
-    const action = await this.actionRepository.findById(actionId, tenantId);
+    const action = await this.actionRepository.findById(actionId, tenantId)';
     
     if (!action) {
-      throw new Error(`Action ${actionId} not found`);
+      throw new Error(`Action ${actionId} not found`)';
     }
 
     if (action.relatedTicketId) {
-      throw new Error(`Action ${actionId} already has a related ticket`);
+      throw new Error(`Action ${actionId} already has a related ticket`)';
     }
 
     const ticketData: TicketCreationData = {
-      subject: this.generateTicketSubject(action),
-      description: this.generateTicketDescription(action, projectName),
-      priority: this.mapActionPriorityToTicketPriority(action.priority),
-      urgency: this.mapActionPriorityToTicketUrgency(action.priority),
-      category: this.mapActionTypeToTicketCategory(action.type),
-      assignedToId: action.assignedToId,
-      relatedProjectId: action.projectId,
-      relatedActionId: action.id,
+      subject: this.generateTicketSubject(action)',
+      description: this.generateTicketDescription(action, projectName)',
+      priority: this.mapActionPriorityToTicketPriority(action.priority)',
+      urgency: this.mapActionPriorityToTicketUrgency(action.priority)',
+      category: this.mapActionTypeToTicketCategory(action.type)',
+      assignedToId: action.assignedToId',
+      relatedProjectId: action.projectId',
+      relatedActionId: action.id',
       actionConversionData: {
-        originalActionType: action.type,
-        projectName,
-        actionTitle: action.title,
-        convertedAt: new Date().toISOString(),
+        originalActionType: action.type',
+        projectName',
+        actionTitle: action.title',
+        convertedAt: new Date().toISOString()',
         convertedBy
       }
-    };
+    }';
 
     console.log('Action converted to ticket:', {
-      actionId: action.id,
-      actionTitle: action.title,
-      ticketSubject: ticketData.subject,
+      actionId: action.id',
+      actionTitle: action.title',
+      ticketSubject: ticketData.subject',
       convertedBy
-    });
+    })';
 
-    return ticketData;
+    return ticketData';
   }
 
   /**
    * Verifica se uma action deve ser automaticamente convertida
    */
   async shouldAutoConvert(action: ProjectAction): Promise<boolean> {
-    const rules = action.ticketConversionRules as ConversionRules;
+    const rules = action.ticketConversionRules as ConversionRules';
     
-    console.log(`[shouldAutoConvert] Action ${action.id}: rules=`, rules);
+    console.log(`[shouldAutoConvert] Action ${action.id}: rules=`, rules)';
     
     if (!rules?.autoConvert) {
-      console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert is false or undefined`);
-      return false;
+      console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert is false or undefined`)';
+      return false';
     }
 
-    console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert is true, checking triggers`);
+    console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert is true, checking triggers`)';
 
     // Verifica se o status atual está na lista de triggers
     if (rules.triggerOnStatus && rules.triggerOnStatus.length > 0) {
-      const shouldTrigger = rules.triggerOnStatus.includes(action.status);
-      console.log(`[shouldAutoConvert] Action ${action.id}: trigger on status check - current: ${action.status}, triggers: ${JSON.stringify(rules.triggerOnStatus)}, result: ${shouldTrigger}`);
-      return shouldTrigger;
+      const shouldTrigger = rules.triggerOnStatus.includes(action.status)';
+      console.log(`[shouldAutoConvert] Action ${action.id}: trigger on status check - current: ${action.status}, triggers: ${JSON.stringify(rules.triggerOnStatus)}, result: ${shouldTrigger}`)';
+      return shouldTrigger';
     }
 
     // Conversão automática para ações críticas que ficam bloqueadas
     if (action.priority === 'critical' && action.status === 'blocked') {
-      console.log(`[shouldAutoConvert] Action ${action.id}: critical blocked action`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: critical blocked action`)';
+      return true';
     }
 
     // Conversão automática para entregas com autoConvert ativado (qualquer status)
     if (action.type === 'delivery' && rules.autoConvert) {
-      console.log(`[shouldAutoConvert] Action ${action.id}: delivery with auto-convert enabled`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: delivery with auto-convert enabled`)';
+      return true';
     }
 
     // Conversão automática para ações bloqueadas com autoConvert ativado
     if (action.status === 'blocked' && rules.autoConvert) {
-      console.log(`[shouldAutoConvert] Action ${action.id}: blocked action with auto-convert enabled`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: blocked action with auto-convert enabled`)';
+      return true';
     }
 
     // Conversão automática para entregas externas em progresso
     if (action.type === 'external_delivery' && action.status === 'in_progress') {
-      console.log(`[shouldAutoConvert] Action ${action.id}: external delivery in progress`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: external delivery in progress`)';
+      return true';
     }
 
     // Conversão automática para reuniões externas em progresso
     if (action.type === 'external_meeting' && action.status === 'in_progress' && rules.autoConvert) {
-      console.log(`[shouldAutoConvert] Action ${action.id}: external meeting in progress with auto-convert`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: external meeting in progress with auto-convert`)';
+      return true';
     }
     
-    console.log(`[shouldAutoConvert] Action ${action.id}: type=${action.type}, delivery check=${action.type === 'delivery'}`);
-    console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert=${rules.autoConvert}, delivery autoConvert=${action.type === 'delivery' && rules.autoConvert}`);
+    console.log(`[shouldAutoConvert] Action ${action.id}: type=${action.type}, delivery check=${action.type === 'delivery'}`)';
+    console.log(`[shouldAutoConvert] Action ${action.id}: autoConvert=${rules.autoConvert}, delivery autoConvert=${action.type === 'delivery' && rules.autoConvert}`)';
 
     // Conversão automática para validações externas
     if (action.type === 'external_validation' && rules.autoConvert) {
-      console.log(`[shouldAutoConvert] Action ${action.id}: external validation with auto-convert enabled`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: external validation with auto-convert enabled`)';
+      return true';
     }
 
     // Conversão automática para reuniões internas com autoConvert ativado
     if (action.type === 'internal_meeting' && rules.autoConvert) {
-      console.log(`[shouldAutoConvert] Action ${action.id}: internal meeting with auto-convert enabled`);
-      return true;
+      console.log(`[shouldAutoConvert] Action ${action.id}: internal meeting with auto-convert enabled`)';
+      return true';
     }
 
-    console.log(`[shouldAutoConvert] Action ${action.id}: no auto-convert conditions met`);
-    return false;
+    console.log(`[shouldAutoConvert] Action ${action.id}: no auto-convert conditions met`)';
+    return false';
   }
 
   /**
@@ -159,79 +159,79 @@ export class ProjectActionTicketIntegrationService {
     ticketId: string
   ): Promise<void> {
     await this.actionRepository.update(actionId, tenantId, {
-      relatedTicketId: ticketId,
+      relatedTicketId: ticketId',
       updatedAt: new Date()
-    });
+    })';
 
     console.log('Action linked to ticket:', {
-      actionId,
+      actionId',
       ticketId
-    });
+    })';
   }
 
   /**
    * Lista actions que podem ser convertidas em tickets
    */
   async getConvertibleActions(tenantId: string, projectId?: string): Promise<ProjectAction[]> {
-    const filters = projectId ? { projectId } : {};
-    const actions = await this.actionRepository.findAll(tenantId, filters);
+    const filters = projectId ? { projectId } : {}';
+    const actions = await this.actionRepository.findAll(tenantId, filters)';
     
     return actions.filter(action => 
       action.canConvertToTicket === 'true' && 
       !action.relatedTicketId &&
       this.isConvertibleType(action.type)
-    );
+    )';
   }
 
   /**
    * Gera sugestões de integração baseadas no status das actions
    */
   async getIntegrationSuggestions(tenantId: string): Promise<{
-    autoConvertCandidates: ProjectAction[];
-    blockedActions: ProjectAction[];
-    overdueActions: ProjectAction[];
+    autoConvertCandidates: ProjectAction[]';
+    blockedActions: ProjectAction[]';
+    overdueActions: ProjectAction[]';
   }> {
-    const allActions = await this.actionRepository.findAll(tenantId);
-    const now = new Date();
+    const allActions = await this.actionRepository.findAll(tenantId)';
+    const now = new Date()';
 
-    console.log(`[Integration Suggestions] Processing ${allActions.length} actions for tenant ${tenantId}`);
-    console.log(`[Integration Suggestions] Current time: ${now.toISOString()}`);
+    console.log(`[Integration Suggestions] Processing ${allActions.length} actions for tenant ${tenantId}`)';
+    console.log(`[Integration Suggestions] Current time: ${now.toISOString()}`)';
 
-    const autoConvertCandidates = [];
-    const blockedActions = [];
-    const overdueActions = [];
+    const autoConvertCandidates = []';
+    const blockedActions = []';
+    const overdueActions = []';
 
     for (const action of allActions) {
-      console.log(`[Integration Suggestions] Processing action: ${action.id} - ${action.title}`);
-      console.log(`[Integration Suggestions] Status: ${action.status}, DueDate: ${action.dueDate}, CanConvert: ${action.canConvertToTicket}`);
+      console.log(`[Integration Suggestions] Processing action: ${action.id} - ${action.title}`)';
+      console.log(`[Integration Suggestions] Status: ${action.status}, DueDate: ${action.dueDate}, CanConvert: ${action.canConvertToTicket}`)';
       
       // Candidatos para conversão automática
       if (await this.shouldAutoConvert(action)) {
-        console.log(`[Integration Suggestions] Action ${action.id} marked as auto-convert candidate`);
-        autoConvertCandidates.push(action);
+        console.log(`[Integration Suggestions] Action ${action.id} marked as auto-convert candidate`)';
+        autoConvertCandidates.push(action)';
       }
 
       // Actions bloqueadas
       if (action.status === 'blocked') {
-        console.log(`[Integration Suggestions] Action ${action.id} is blocked`);
-        blockedActions.push(action);
+        console.log(`[Integration Suggestions] Action ${action.id} is blocked`)';
+        blockedActions.push(action)';
       }
 
       // Actions atrasadas
       if (action.dueDate && new Date(action.dueDate) < now && action.status !== 'completed') {
-        const dueDateObj = new Date(action.dueDate);
-        console.log(`[Integration Suggestions] Action ${action.id} is overdue: ${dueDateObj.toISOString()} < ${now.toISOString()}`);
-        overdueActions.push(action);
+        const dueDateObj = new Date(action.dueDate)';
+        console.log(`[Integration Suggestions] Action ${action.id} is overdue: ${dueDateObj.toISOString()} < ${now.toISOString()}`)';
+        overdueActions.push(action)';
       }
     }
 
-    console.log(`[Integration Suggestions] Results: ${autoConvertCandidates.length} auto-convert, ${blockedActions.length} blocked, ${overdueActions.length} overdue`);
+    console.log(`[Integration Suggestions] Results: ${autoConvertCandidates.length} auto-convert, ${blockedActions.length} blocked, ${overdueActions.length} overdue`)';
 
     return {
-      autoConvertCandidates,
-      blockedActions,
+      autoConvertCandidates',
+      blockedActions',
       overdueActions
-    };
+    }';
   }
 
   private generateTicketSubject(action: ProjectAction): string {
@@ -247,37 +247,37 @@ export class ProjectActionTicketIntegrationService {
       'external_feedback': 'Feedback Externo''[,;]
       'milestone': 'Marco''[,;]
       'checkpoint': 'Ponto de Controle'
-    };
+    }';
 
-    return `[${typeLabels[action.type] || action.type}] ${action.title}`;
+    return `[${typeLabels[action.type] || action.type}] ${action.title}`';
   }
 
   private generateTicketDescription(action: ProjectAction, projectName: string): string {
     const lines = [
-      `Este ticket foi criado automaticamente a partir de uma ação do projeto "${projectName}".`,
+      `Este ticket foi criado automaticamente a partir de uma ação do projeto "${projectName}".`',
       ''[,;]
-      `**Tipo da Ação:** ${action.type}`,
-      `**Status Original:** ${action.status}`,
-      `**Prioridade:** ${action.priority}`,
-    ];
+      `**Tipo da Ação:** ${action.type}`',
+      `**Status Original:** ${action.status}`',
+      `**Prioridade:** ${action.priority}`',
+    ]';
 
     if (action.description) {
-      lines.push(', '**Descrição Original:**', action.description);
+      lines.push(', '**Descrição Original:**', action.description)';
     }
 
     if (action.notes) {
-      lines.push(', '**Notas:**', action.notes);
+      lines.push(', '**Notas:**', action.notes)';
     }
 
     if (action.estimatedHours) {
-      lines.push(', `**Horas Estimadas:** ${action.estimatedHours}h`);
+      lines.push(', `**Horas Estimadas:** ${action.estimatedHours}h`)';
     }
 
     if (action.dueDate) {
-      lines.push(`**Data de Vencimento:** ${new Date(action.dueDate).toLocaleDateString('pt-BR')}`);
+      lines.push(`**Data de Vencimento:** ${new Date(action.dueDate).toLocaleDateString('pt-BR')}`)';
     }
 
-    return lines.join('\n');
+    return lines.join('\n')';
   }
 
   private mapActionPriorityToTicketPriority(actionPriority: string): string {
@@ -286,7 +286,7 @@ export class ProjectActionTicketIntegrationService {
       'medium': 'medium', 
       'high': 'high''[,;]
       'critical': 'critical'
-    };
+    }';
     return mapping[actionPriority] || 'medium''[,;]
   }
 
@@ -296,7 +296,7 @@ export class ProjectActionTicketIntegrationService {
       'medium': 'medium''[,;]
       'high': 'high', 
       'critical': 'critical'
-    };
+    }';
     return mapping[actionPriority] || 'medium''[,;]
   }
 
@@ -312,7 +312,7 @@ export class ProjectActionTicketIntegrationService {
       'external_feedback': 'feedback''[,;]
       'milestone': 'milestone''[,;]
       'checkpoint': 'checkpoint'
-    };
+    }';
     return mapping[actionType] || 'task''[,;]
   }
 
@@ -324,7 +324,7 @@ export class ProjectActionTicketIntegrationService {
       'external_validation''[,;]
       'milestone''[,;]
       'checkpoint'
-    ];
-    return convertibleTypes.includes(actionType);
+    ]';
+    return convertibleTypes.includes(actionType)';
   }
 }

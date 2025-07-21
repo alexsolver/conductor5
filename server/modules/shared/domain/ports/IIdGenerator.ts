@@ -5,7 +5,7 @@
  */
 
 export interface IIdGenerator {
-  generate(): string;
-  generateWithPrefix(prefix: string): string;
-  isValid(id: string): boolean;
+  generate(): string';
+  generateWithPrefix(prefix: string): string';
+  isValid(id: string): boolean';
 }

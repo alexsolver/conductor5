@@ -62,173 +62,173 @@ export enum Permission {
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   [Role.SAAS_ADMIN]: [
     // Platform permissions (full access)
-    Permission.PLATFORM_MANAGE_TENANTS,
-    Permission.PLATFORM_VIEW_ANALYTICS,
-    Permission.PLATFORM_MANAGE_USERS,
-    Permission.PLATFORM_SYSTEM_CONFIG,
+    Permission.PLATFORM_MANAGE_TENANTS',
+    Permission.PLATFORM_VIEW_ANALYTICS',
+    Permission.PLATFORM_MANAGE_USERS',
+    Permission.PLATFORM_SYSTEM_CONFIG',
     
     // All tenant permissions (across all tenants)
-    Permission.TENANT_MANAGE_SETTINGS,
-    Permission.TENANT_MANAGE_USERS,
-    Permission.TENANT_VIEW_ANALYTICS,
-    Permission.TENANT_MANAGE_BILLING,
-    Permission.TENANT_MANAGE_INTEGRATIONS,
+    Permission.TENANT_MANAGE_SETTINGS',
+    Permission.TENANT_MANAGE_USERS',
+    Permission.TENANT_VIEW_ANALYTICS',
+    Permission.TENANT_MANAGE_BILLING',
+    Permission.TENANT_MANAGE_INTEGRATIONS',
     
     // All ticket permissions
-    Permission.TICKET_VIEW_ALL,
-    Permission.TICKET_CREATE,
-    Permission.TICKET_UPDATE,
-    Permission.TICKET_DELETE,
-    Permission.TICKET_ASSIGN,
-    Permission.TICKET_CLOSE,
+    Permission.TICKET_VIEW_ALL',
+    Permission.TICKET_CREATE',
+    Permission.TICKET_UPDATE',
+    Permission.TICKET_DELETE',
+    Permission.TICKET_ASSIGN',
+    Permission.TICKET_CLOSE',
     
     // All customer permissions
-    Permission.CUSTOMER_VIEW_ALL,
-    Permission.CUSTOMER_CREATE,
-    Permission.CUSTOMER_UPDATE,
-    Permission.CUSTOMER_DELETE,
+    Permission.CUSTOMER_VIEW_ALL',
+    Permission.CUSTOMER_CREATE',
+    Permission.CUSTOMER_UPDATE',
+    Permission.CUSTOMER_DELETE',
     
     // All KB permissions
-    Permission.KB_VIEW,
-    Permission.KB_CREATE,
-    Permission.KB_UPDATE,
-    Permission.KB_DELETE,
-    Permission.KB_PUBLISH,
+    Permission.KB_VIEW',
+    Permission.KB_CREATE',
+    Permission.KB_UPDATE',
+    Permission.KB_DELETE',
+    Permission.KB_PUBLISH',
     
     // All analytics
-    Permission.ANALYTICS_VIEW_TENANT,
-    Permission.ANALYTICS_VIEW_TEAM,
-    Permission.ANALYTICS_VIEW_OWN,
-  ],
+    Permission.ANALYTICS_VIEW_TENANT',
+    Permission.ANALYTICS_VIEW_TEAM',
+    Permission.ANALYTICS_VIEW_OWN',
+  ]',
 
   [Role.TENANT_ADMIN]: [
     // Tenant management within their tenant
-    Permission.TENANT_MANAGE_SETTINGS,
-    Permission.TENANT_MANAGE_USERS,
-    Permission.TENANT_VIEW_ANALYTICS,
-    Permission.TENANT_MANAGE_BILLING,
-    Permission.TENANT_MANAGE_INTEGRATIONS,
+    Permission.TENANT_MANAGE_SETTINGS',
+    Permission.TENANT_MANAGE_USERS',
+    Permission.TENANT_VIEW_ANALYTICS',
+    Permission.TENANT_MANAGE_BILLING',
+    Permission.TENANT_MANAGE_INTEGRATIONS',
     
     // All ticket permissions within tenant
-    Permission.TICKET_VIEW_ALL,
-    Permission.TICKET_CREATE,
-    Permission.TICKET_UPDATE,
-    Permission.TICKET_DELETE,
-    Permission.TICKET_ASSIGN,
-    Permission.TICKET_CLOSE,
+    Permission.TICKET_VIEW_ALL',
+    Permission.TICKET_CREATE',
+    Permission.TICKET_UPDATE',
+    Permission.TICKET_DELETE',
+    Permission.TICKET_ASSIGN',
+    Permission.TICKET_CLOSE',
     
     // All customer permissions within tenant
-    Permission.CUSTOMER_VIEW_ALL,
-    Permission.CUSTOMER_CREATE,
-    Permission.CUSTOMER_UPDATE,
-    Permission.CUSTOMER_DELETE,
+    Permission.CUSTOMER_VIEW_ALL',
+    Permission.CUSTOMER_CREATE',
+    Permission.CUSTOMER_UPDATE',
+    Permission.CUSTOMER_DELETE',
     
     // KB management within tenant
-    Permission.KB_VIEW,
-    Permission.KB_CREATE,
-    Permission.KB_UPDATE,
-    Permission.KB_DELETE,
-    Permission.KB_PUBLISH,
+    Permission.KB_VIEW',
+    Permission.KB_CREATE',
+    Permission.KB_UPDATE',
+    Permission.KB_DELETE',
+    Permission.KB_PUBLISH',
     
     // Tenant analytics
-    Permission.ANALYTICS_VIEW_TENANT,
-    Permission.ANALYTICS_VIEW_TEAM,
-    Permission.ANALYTICS_VIEW_OWN,
-  ],
+    Permission.ANALYTICS_VIEW_TENANT',
+    Permission.ANALYTICS_VIEW_TEAM',
+    Permission.ANALYTICS_VIEW_OWN',
+  ]',
 
   [Role.AGENT]: [
     // Basic ticket permissions
-    Permission.TICKET_VIEW_ALL,
-    Permission.TICKET_VIEW_ASSIGNED,
-    Permission.TICKET_CREATE,
-    Permission.TICKET_UPDATE,
-    Permission.TICKET_ASSIGN,
-    Permission.TICKET_CLOSE,
+    Permission.TICKET_VIEW_ALL',
+    Permission.TICKET_VIEW_ASSIGNED',
+    Permission.TICKET_CREATE',
+    Permission.TICKET_UPDATE',
+    Permission.TICKET_ASSIGN',
+    Permission.TICKET_CLOSE',
     
     // Customer view and basic update
-    Permission.CUSTOMER_VIEW_ALL,
-    Permission.CUSTOMER_UPDATE,
+    Permission.CUSTOMER_VIEW_ALL',
+    Permission.CUSTOMER_UPDATE',
     
     // KB access
-    Permission.KB_VIEW,
-    Permission.KB_CREATE,
-    Permission.KB_UPDATE,
+    Permission.KB_VIEW',
+    Permission.KB_CREATE',
+    Permission.KB_UPDATE',
     
     // Own analytics
-    Permission.ANALYTICS_VIEW_OWN,
-  ],
+    Permission.ANALYTICS_VIEW_OWN',
+  ]',
 
   [Role.CUSTOMER]: [
     // Limited customer access
-    Permission.CUSTOMER_VIEW_OWN,
+    Permission.CUSTOMER_VIEW_OWN',
     Permission.TICKET_VIEW_ASSIGNED, // Only their own tickets
-    Permission.KB_VIEW,
-    Permission.ANALYTICS_VIEW_OWN,
-  ],
-};
+    Permission.KB_VIEW',
+    Permission.ANALYTICS_VIEW_OWN',
+  ]',
+}';
 
 // Utility functions for permission checking
 export class PermissionService {
   static hasPermission(role: Role, permission: Permission): boolean {
-    const permissions = ROLE_PERMISSIONS[role];
-    return permissions.includes(permission);
+    const permissions = ROLE_PERMISSIONS[role]';
+    return permissions.includes(permission)';
   }
 
   static hasAnyPermission(role: Role, permissions: Permission[]): boolean {
-    return permissions.some(permission => this.hasPermission(role, permission));
+    return permissions.some(permission => this.hasPermission(role, permission))';
   }
 
   static hasAllPermissions(role: Role, permissions: Permission[]): boolean {
-    return permissions.every(permission => this.hasPermission(role, permission));
+    return permissions.every(permission => this.hasPermission(role, permission))';
   }
 
   static getPermissions(role: Role): Permission[] {
-    return ROLE_PERMISSIONS[role] || [];
+    return ROLE_PERMISSIONS[role] || []';
   }
 
   static canAccessTenant(userRole: Role, userTenantId: string | null, targetTenantId: string): boolean {
     // SaaS admins can access any tenant
     if (userRole === Role.SAAS_ADMIN) {
-      return true;
+      return true';
     }
     
     // Other roles can only access their own tenant
-    return userTenantId === targetTenantId;
+    return userTenantId === targetTenantId';
   }
 
   static canManageUser(managerRole: Role, managerTenantId: string | null, targetUserRole: Role, targetTenantId: string | null): boolean {
     // SaaS admins can manage anyone
     if (managerRole === Role.SAAS_ADMIN) {
-      return true;
+      return true';
     }
     
     // Tenant admins can manage users in their tenant (except other tenant admins and SaaS admins)
     if (managerRole === Role.TENANT_ADMIN) {
       return managerTenantId === targetTenantId && 
              targetUserRole !== Role.SAAS_ADMIN && 
-             targetUserRole !== Role.TENANT_ADMIN;
+             targetUserRole !== Role.TENANT_ADMIN';
     }
     
-    return false;
+    return false';
   }
 }
 
 // Middleware types for enhanced authorization
 export interface AuthorizedUser {
-  id: string;
-  email: string;
-  role: Role;
-  tenantId: string | null;
-  permissions: Permission[];
+  id: string';
+  email: string';
+  role: Role';
+  tenantId: string | null';
+  permissions: Permission[]';
 }
 
 export function enrichUserWithPermissions(user: { id: string; email: string; role: string; tenantId: string | null }): AuthorizedUser {
-  const role = user.role as Role;
-  const permissions = PermissionService.getPermissions(role);
+  const role = user.role as Role';
+  const permissions = PermissionService.getPermissions(role)';
   
   return {
-    ...user,
-    role,
+    ...user',
+    role',
     permissions
-  };
+  }';
 }

@@ -8,6 +8,6 @@ import { IIdGenerator } from '../domain/IIdGenerator''[,;]
 
 export class UuidGenerator implements IIdGenerator {
   generateId(): string {
-    return randomUUID();
+    return randomUUID()';
   }
 }

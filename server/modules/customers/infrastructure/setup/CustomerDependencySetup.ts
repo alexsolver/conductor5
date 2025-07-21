@@ -22,72 +22,72 @@ import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEvent
 
 export function setupCustomerDependencies(): void {
   // Register repositories
-  container.registerSingleton(TOKENS.CUSTOMER_REPOSITORY, () => new DrizzleCustomerRepository());
-  container.registerSingleton(TOKENS.CUSTOMER_COMPANY_REPOSITORY, () => new DrizzleCustomerCompanyRepository());
+  container.registerSingleton(TOKENS.CUSTOMER_REPOSITORY, () => new DrizzleCustomerRepository())';
+  container.registerSingleton(TOKENS.CUSTOMER_COMPANY_REPOSITORY, () => new DrizzleCustomerCompanyRepository())';
 
   // Register domain event publisher
-  container.registerSingleton(TOKENS.DOMAIN_EVENT_PUBLISHER, () => new DomainEventPublisher());
+  container.registerSingleton(TOKENS.DOMAIN_EVENT_PUBLISHER, () => new DomainEventPublisher())';
 
   // Register use cases
   container.register(TOKENS.CREATE_CUSTOMER_USE_CASE, () => new CreateCustomerUseCase(
-    container.resolve(TOKENS.CUSTOMER_REPOSITORY),
+    container.resolve(TOKENS.CUSTOMER_REPOSITORY)',
     container.resolve(TOKENS.DOMAIN_EVENT_PUBLISHER)
-  ));
+  ))';
 
   container.register(TOKENS.GET_CUSTOMERS_USE_CASE, () => new GetCustomersUseCase(
     container.resolve(TOKENS.CUSTOMER_REPOSITORY)
-  ));
+  ))';
 
   container.register(TOKENS.UPDATE_CUSTOMER_USE_CASE, () => new UpdateCustomerUseCase(
-    container.resolve(TOKENS.CUSTOMER_REPOSITORY),
+    container.resolve(TOKENS.CUSTOMER_REPOSITORY)',
     container.resolve(TOKENS.DOMAIN_EVENT_PUBLISHER)
-  ));
+  ))';
 
   container.register(TOKENS.DELETE_CUSTOMER_USE_CASE, () => new DeleteCustomerUseCase(
-    container.resolve(TOKENS.CUSTOMER_REPOSITORY),
+    container.resolve(TOKENS.CUSTOMER_REPOSITORY)',
     container.resolve(TOKENS.DOMAIN_EVENT_PUBLISHER)
-  ));
+  ))';
 
   // Register customer company use cases
   container.register(TOKENS.CREATE_CUSTOMER_COMPANY_USE_CASE, () => new CreateCustomerCompanyUseCase(
     container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
-  ));
+  ))';
 
   container.register(TOKENS.GET_CUSTOMER_COMPANIES_USE_CASE, () => new GetCustomerCompaniesUseCase(
     container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
-  ));
+  ))';
 
   container.register(TOKENS.UPDATE_CUSTOMER_COMPANY_USE_CASE, () => new UpdateCustomerCompanyUseCase(
     container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
-  ));
+  ))';
 
   container.register(TOKENS.MANAGE_CUSTOMER_COMPANY_MEMBERSHIP_USE_CASE, () => new ManageCustomerCompanyMembershipUseCase(
     container.resolve(TOKENS.CUSTOMER_COMPANY_REPOSITORY)
-  ));
+  ))';
 
   // Register application service
   container.register(TOKENS.CUSTOMER_APPLICATION_SERVICE, () => new CustomerApplicationService(
-    container.resolve(TOKENS.CREATE_CUSTOMER_USE_CASE),
-    container.resolve(TOKENS.GET_CUSTOMERS_USE_CASE),
-    container.resolve(TOKENS.UPDATE_CUSTOMER_USE_CASE),
+    container.resolve(TOKENS.CREATE_CUSTOMER_USE_CASE)',
+    container.resolve(TOKENS.GET_CUSTOMERS_USE_CASE)',
+    container.resolve(TOKENS.UPDATE_CUSTOMER_USE_CASE)',
     container.resolve(TOKENS.DELETE_CUSTOMER_USE_CASE)
-  ));
+  ))';
 
   // Register customer company controller
   container.register(TOKENS.CUSTOMER_COMPANY_CONTROLLER, () => new CustomerCompanyController(
-    container.resolve(TOKENS.CREATE_CUSTOMER_COMPANY_USE_CASE),
-    container.resolve(TOKENS.GET_CUSTOMER_COMPANIES_USE_CASE),
-    container.resolve(TOKENS.UPDATE_CUSTOMER_COMPANY_USE_CASE),
+    container.resolve(TOKENS.CREATE_CUSTOMER_COMPANY_USE_CASE)',
+    container.resolve(TOKENS.GET_CUSTOMER_COMPANIES_USE_CASE)',
+    container.resolve(TOKENS.UPDATE_CUSTOMER_COMPANY_USE_CASE)',
     container.resolve(TOKENS.MANAGE_CUSTOMER_COMPANY_MEMBERSHIP_USE_CASE)
-  ));
+  ))';
 }
 
 export function getCustomerController(): CustomerController {
   return new CustomerController(
     container.resolve(TOKENS.CUSTOMER_APPLICATION_SERVICE)
-  );
+  )';
 }
 
 export function getCustomerCompanyController(): CustomerCompanyController {
-  return container.resolve(TOKENS.CUSTOMER_COMPANY_CONTROLLER);
+  return container.resolve(TOKENS.CUSTOMER_COMPANY_CONTROLLER)';
 }

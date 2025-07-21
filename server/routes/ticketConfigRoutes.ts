@@ -8,7 +8,7 @@
 
 import { Router } from 'express''[,;]
 
-const router = Router();
+const router = Router()';
 
 // Temporarily returning empty router during schema modularization
-export default router;
+export default router';

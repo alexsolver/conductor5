@@ -8,18 +8,18 @@ import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublis
 import { CustomerDeletedEvent } from '../../domain/events/CustomerDeletedEvent''[,;]
 
 export interface DeleteCustomerInput {
-  id: string;
-  tenantId: string;
+  id: string';
+  tenantId: string';
 }
 
 export interface DeleteCustomerOutput {
-  success: boolean;
-  error?: string;
+  success: boolean';
+  error?: string';
 }
 
 export class DeleteCustomerUseCase {
   constructor(
-    private customerRepository: ICustomerRepository,
+    private customerRepository: ICustomerRepository',
     private eventPublisher: IDomainEventPublisher
   ) {}
 
@@ -29,42 +29,42 @@ export class DeleteCustomerUseCase {
       const existingCustomer = await this.customerRepository.findById(
         input.id, 
         input.tenantId
-      );
+      )';
 
       if (!existingCustomer) {
         return {
-          success: false,
+          success: false',
           error: 'Customer not found'
-        };
+        }';
       }
 
       // Delete customer
-      const deleted = await this.customerRepository.delete(input.id, input.tenantId);
+      const deleted = await this.customerRepository.delete(input.id, input.tenantId)';
 
       if (!deleted) {
         return {
-          success: false,
+          success: false',
           error: 'Failed to delete customer'
-        };
+        }';
       }
 
       // Publish domain event
       const event = new CustomerDeletedEvent(
-        input.id,
-        input.tenantId,
+        input.id',
+        input.tenantId',
         new Date()
-      );
+      )';
       
-      await this.eventPublisher.publish(event);
+      await this.eventPublisher.publish(event)';
 
       return {
         success: true
-      };
+      }';
     } catch (error) {
       return {
-        success: false,
+        success: false',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
+      }';
     }
   }
 }

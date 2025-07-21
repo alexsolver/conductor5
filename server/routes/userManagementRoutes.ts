@@ -6,33 +6,33 @@ import { userManagementService } from '../services/UserManagementService''[,;]
 
 // Temporary schemas until user-management tables are added to unified schema
 const insertUserGroupSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  permissions: z.array(z.string()),
-});
+  name: z.string()',
+  description: z.string().optional()',
+  permissions: z.array(z.string())',
+})';
 
 const insertCustomRoleSchema = z.object({
-  name: z.string(),
-  permissions: z.array(z.string()),
-});
+  name: z.string()',
+  permissions: z.array(z.string())',
+})';
 
 const insertUserRoleAssignmentSchema = z.object({
-  userId: z.string(),
-  roleId: z.string(),
-});
+  userId: z.string()',
+  roleId: z.string()',
+})';
 
 const insertUserPermissionOverrideSchema = z.object({
-  userId: z.string(),
-  permission: z.string(),
-  granted: z.boolean(),
-});
+  userId: z.string()',
+  permission: z.string()',
+  granted: z.boolean()',
+})';
 
 const insertUserInvitationSchema = z.object({
-  email: z.string().email(),
-  role: z.string(),
-});
+  email: z.string().email()',
+  role: z.string()',
+})';
 
-const router = Router();
+const router = Router()';
 
 // ============= USER GROUPS ROUTES =============
 
@@ -42,15 +42,15 @@ router.get('/groups',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
-      const groups = await userManagementService.getUserGroups(tenantId);
-      res.json({ groups });
+      const tenantId = req.user!.tenantId';
+      const groups = await userManagementService.getUserGroups(tenantId)';
+      res.json({ groups })';
     } catch (error) {
-      console.error('Error fetching user groups:', error);
-      res.status(500).json({ message: 'Failed to fetch user groups' });
+      console.error('Error fetching user groups:', error)';
+      res.status(500).json({ message: 'Failed to fetch user groups' })';
     }
   }
-);
+)';
 
 // Create a new user group
 router.post('/groups', 
@@ -58,17 +58,17 @@ router.post('/groups',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
-      const data = insertUserGroupSchema.omit({ tenantId: true, createdBy: true }).parse(req.body);
+      const tenantId = req.user!.tenantId';
+      const data = insertUserGroupSchema.omit({ tenantId: true, createdBy: true }).parse(req.body)';
       
-      const group = await userManagementService.createUserGroup(tenantId, data, req.user!.id);
-      res.status(201).json({ group });
+      const group = await userManagementService.createUserGroup(tenantId, data, req.user!.id)';
+      res.status(201).json({ group })';
     } catch (error) {
-      console.error('Error creating user group:', error);
-      res.status(500).json({ message: 'Failed to create user group' });
+      console.error('Error creating user group:', error)';
+      res.status(500).json({ message: 'Failed to create user group' })';
     }
   }
-);
+)';
 
 // Add user to group
 router.post('/groups/:groupId/members', 
@@ -76,22 +76,22 @@ router.post('/groups/:groupId/members',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { groupId } = req.params;
-      const { userId, role = 'member' } = req.body;
+      const { groupId } = req.params';
+      const { userId, role = 'member' } = req.body';
       
       const membership = await userManagementService.addUserToGroup(
         userId, 
         groupId, 
         role, 
         req.user!.id
-      );
-      res.status(201).json({ membership });
+      )';
+      res.status(201).json({ membership })';
     } catch (error) {
-      console.error('Error adding user to group:', error);
-      res.status(500).json({ message: 'Failed to add user to group' });
+      console.error('Error adding user to group:', error)';
+      res.status(500).json({ message: 'Failed to add user to group' })';
     }
   }
-);
+)';
 
 // Remove user from group
 router.delete('/groups/:groupId/members/:userId', 
@@ -99,16 +99,16 @@ router.delete('/groups/:groupId/members/:userId',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { groupId, userId } = req.params;
+      const { groupId, userId } = req.params';
       
-      await userManagementService.removeUserFromGroup(userId, groupId, req.user!.id);
-      res.json({ message: 'User removed from group successfully' });
+      await userManagementService.removeUserFromGroup(userId, groupId, req.user!.id)';
+      res.json({ message: 'User removed from group successfully' })';
     } catch (error) {
-      console.error('Error removing user from group:', error);
-      res.status(500).json({ message: 'Failed to remove user from group' });
+      console.error('Error removing user from group:', error)';
+      res.status(500).json({ message: 'Failed to remove user from group' })';
     }
   }
-);
+)';
 
 // ============= CUSTOM ROLES ROUTES =============
 
@@ -118,17 +118,17 @@ router.get('/roles',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
+      const tenantId = req.user!.tenantId';
       const includeSystem = req.query.includeSystem === 'true''[,;]
       
-      const roles = await userManagementService.getCustomRoles(tenantId, includeSystem);
-      res.json({ roles });
+      const roles = await userManagementService.getCustomRoles(tenantId, includeSystem)';
+      res.json({ roles })';
     } catch (error) {
-      console.error('Error fetching custom roles:', error);
-      res.status(500).json({ message: 'Failed to fetch custom roles' });
+      console.error('Error fetching custom roles:', error)';
+      res.status(500).json({ message: 'Failed to fetch custom roles' })';
     }
   }
-);
+)';
 
 // Create a new custom role
 router.post('/roles', 
@@ -136,17 +136,17 @@ router.post('/roles',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
-      const data = insertCustomRoleSchema.omit({ tenantId: true, createdBy: true }).parse(req.body);
+      const tenantId = req.user!.tenantId';
+      const data = insertCustomRoleSchema.omit({ tenantId: true, createdBy: true }).parse(req.body)';
       
-      const role = await userManagementService.createCustomRole(tenantId, data, req.user!.id);
-      res.status(201).json({ role });
+      const role = await userManagementService.createCustomRole(tenantId, data, req.user!.id)';
+      res.status(201).json({ role })';
     } catch (error) {
-      console.error('Error creating custom role:', error);
-      res.status(500).json({ message: 'Failed to create custom role' });
+      console.error('Error creating custom role:', error)';
+      res.status(500).json({ message: 'Failed to create custom role' })';
     }
   }
-);
+)';
 
 // Update a custom role
 router.put('/roles/:roleId', 
@@ -154,17 +154,17 @@ router.put('/roles/:roleId',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { roleId } = req.params;
-      const data = req.body;
+      const { roleId } = req.params';
+      const data = req.body';
       
-      const role = await userManagementService.updateCustomRole(roleId, data, req.user!.id);
-      res.json({ role });
+      const role = await userManagementService.updateCustomRole(roleId, data, req.user!.id)';
+      res.json({ role })';
     } catch (error) {
-      console.error('Error updating custom role:', error);
-      res.status(500).json({ message: 'Failed to update custom role' });
+      console.error('Error updating custom role:', error)';
+      res.status(500).json({ message: 'Failed to update custom role' })';
     }
   }
-);
+)';
 
 // ============= USER ROLE ASSIGNMENTS ROUTES =============
 
@@ -174,17 +174,17 @@ router.post('/users/:userId/roles',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId } = req.params;
-      const data = insertUserRoleAssignmentSchema.omit({ userId: true, assignedBy: true }).parse(req.body);
+      const { userId } = req.params';
+      const data = insertUserRoleAssignmentSchema.omit({ userId: true, assignedBy: true }).parse(req.body)';
       
-      const assignment = await userManagementService.assignRoleToUser(userId, data, req.user!.id);
-      res.status(201).json({ assignment });
+      const assignment = await userManagementService.assignRoleToUser(userId, data, req.user!.id)';
+      res.status(201).json({ assignment })';
     } catch (error) {
-      console.error('Error assigning role to user:', error);
-      res.status(500).json({ message: 'Failed to assign role to user' });
+      console.error('Error assigning role to user:', error)';
+      res.status(500).json({ message: 'Failed to assign role to user' })';
     }
   }
-);
+)';
 
 // Remove role from user
 router.delete('/users/:userId/roles/:assignmentId', 
@@ -192,16 +192,16 @@ router.delete('/users/:userId/roles/:assignmentId',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId, assignmentId } = req.params;
+      const { userId, assignmentId } = req.params';
       
-      await userManagementService.removeRoleFromUser(userId, assignmentId, req.user!.id);
-      res.json({ message: 'Role removed from user successfully' });
+      await userManagementService.removeRoleFromUser(userId, assignmentId, req.user!.id)';
+      res.json({ message: 'Role removed from user successfully' })';
     } catch (error) {
-      console.error('Error removing role from user:', error);
-      res.status(500).json({ message: 'Failed to remove role from user' });
+      console.error('Error removing role from user:', error)';
+      res.status(500).json({ message: 'Failed to remove role from user' })';
     }
   }
-);
+)';
 
 // ============= PERMISSION OVERRIDES ROUTES =============
 
@@ -211,17 +211,17 @@ router.post('/users/:userId/permissions',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId } = req.params;
-      const data = insertUserPermissionOverrideSchema.omit({ userId: true, grantedBy: true }).parse(req.body);
+      const { userId } = req.params';
+      const data = insertUserPermissionOverrideSchema.omit({ userId: true, grantedBy: true }).parse(req.body)';
       
-      const override = await userManagementService.grantPermissionOverride(userId, data, req.user!.id);
-      res.status(201).json({ override });
+      const override = await userManagementService.grantPermissionOverride(userId, data, req.user!.id)';
+      res.status(201).json({ override })';
     } catch (error) {
-      console.error('Error granting permission override:', error);
-      res.status(500).json({ message: 'Failed to grant permission override' });
+      console.error('Error granting permission override:', error)';
+      res.status(500).json({ message: 'Failed to grant permission override' })';
     }
   }
-);
+)';
 
 // ============= USER INVITATIONS ROUTES =============
 
@@ -231,47 +231,47 @@ router.post('/invitations',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
+      const tenantId = req.user!.tenantId';
       const inviteSchema = z.object({
-        email: z.string().email(),
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        phone: z.string().optional(),
-        department: z.string().optional(),
-        position: z.string().optional(),
-        systemRole: z.string().optional(),
-        customRoleIds: z.array(z.string()).optional(),
-        groupIds: z.array(z.string()).optional(),
-        expiresInHours: z.number().default(48),
+        email: z.string().email()',
+        firstName: z.string().optional()',
+        lastName: z.string().optional()',
+        phone: z.string().optional()',
+        department: z.string().optional()',
+        position: z.string().optional()',
+        systemRole: z.string().optional()',
+        customRoleIds: z.array(z.string()).optional()',
+        groupIds: z.array(z.string()).optional()',
+        expiresInHours: z.number().default(48)',
         notes: z.string().optional()
-      });
+      })';
       
-      const data = inviteSchema.parse(req.body);
+      const data = inviteSchema.parse(req.body)';
       
-      const invitation = await userManagementService.inviteUser(tenantId, data, req.user!.id);
-      res.status(201).json({ invitation });
+      const invitation = await userManagementService.inviteUser(tenantId, data, req.user!.id)';
+      res.status(201).json({ invitation })';
     } catch (error) {
-      console.error('Error sending user invitation:', error);
-      res.status(500).json({ message: 'Failed to send user invitation' });
+      console.error('Error sending user invitation:', error)';
+      res.status(500).json({ message: 'Failed to send user invitation' })';
     }
   }
-);
+)';
 
 // Accept user invitation
 router.post('/invitations/:token/accept', 
   jwtAuth, 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { token } = req.params;
+      const { token } = req.params';
       
-      await userManagementService.acceptInvitation(token, req.user!.id);
-      res.json({ message: 'Invitation accepted successfully' });
+      await userManagementService.acceptInvitation(token, req.user!.id)';
+      res.json({ message: 'Invitation accepted successfully' })';
     } catch (error) {
-      console.error('Error accepting invitation:', error);
-      res.status(500).json({ message: 'Failed to accept invitation' });
+      console.error('Error accepting invitation:', error)';
+      res.status(500).json({ message: 'Failed to accept invitation' })';
     }
   }
-);
+)';
 
 // ============= ENHANCED USER MANAGEMENT ROUTES =============
 
@@ -281,27 +281,27 @@ router.get('/users/:userId',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params';
       const options = {
         includePermissions: req.query.includePermissions === 'true''[,;]
         includeGroups: req.query.includeGroups === 'true''[,;]
         includeRoles: req.query.includeRoles === 'true''[,;]
         includeSessions: req.query.includeSessions === 'true''[,;]
         includeActivity: req.query.includeActivity === 'true'
-      };
+      }';
       
-      const user = await userManagementService.getEnhancedUser(userId, options);
+      const user = await userManagementService.getEnhancedUser(userId, options)';
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User not found' })';
       }
       
-      res.json({ user });
+      res.json({ user })';
     } catch (error) {
-      console.error('Error fetching enhanced user:', error);
-      res.status(500).json({ message: 'Failed to fetch user information' });
+      console.error('Error fetching enhanced user:', error)';
+      res.status(500).json({ message: 'Failed to fetch user information' })';
     }
   }
-);
+)';
 
 // Get user effective permissions
 router.get('/users/:userId/permissions', 
@@ -309,16 +309,16 @@ router.get('/users/:userId/permissions',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params';
       
-      const permissions = await userManagementService.getUserEffectivePermissions(userId);
-      res.json({ permissions });
+      const permissions = await userManagementService.getUserEffectivePermissions(userId)';
+      res.json({ permissions })';
     } catch (error) {
-      console.error('Error fetching user permissions:', error);
-      res.status(500).json({ message: 'Failed to fetch user permissions' });
+      console.error('Error fetching user permissions:', error)';
+      res.status(500).json({ message: 'Failed to fetch user permissions' })';
     }
   }
-);
+)';
 
 // ============= SESSION MANAGEMENT ROUTES =============
 
@@ -328,20 +328,20 @@ router.get('/users/:userId/sessions',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params';
       
-      const user = await userManagementService.getEnhancedUser(userId, { includeSessions: true });
+      const user = await userManagementService.getEnhancedUser(userId, { includeSessions: true })';
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User not found' })';
       }
       
-      res.json({ sessions: user.sessions || [] });
+      res.json({ sessions: user.sessions || [] })';
     } catch (error) {
-      console.error('Error fetching user sessions:', error);
-      res.status(500).json({ message: 'Failed to fetch user sessions' });
+      console.error('Error fetching user sessions:', error)';
+      res.status(500).json({ message: 'Failed to fetch user sessions' })';
     }
   }
-);
+)';
 
 // Terminate a specific session
 router.delete('/sessions/:sessionId', 
@@ -349,16 +349,16 @@ router.delete('/sessions/:sessionId',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { sessionId } = req.params;
+      const { sessionId } = req.params';
       
-      await userManagementService.terminateSession(sessionId, req.user!.id);
-      res.json({ message: 'Session terminated successfully' });
+      await userManagementService.terminateSession(sessionId, req.user!.id)';
+      res.json({ message: 'Session terminated successfully' })';
     } catch (error) {
-      console.error('Error terminating session:', error);
-      res.status(500).json({ message: 'Failed to terminate session' });
+      console.error('Error terminating session:', error)';
+      res.status(500).json({ message: 'Failed to terminate session' })';
     }
   }
-);
+)';
 
 // Terminate all sessions for a user
 router.delete('/users/:userId/sessions', 
@@ -366,16 +366,16 @@ router.delete('/users/:userId/sessions',
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params';
       
-      await userManagementService.terminateAllUserSessions(userId, req.user!.id);
-      res.json({ message: 'All user sessions terminated successfully' });
+      await userManagementService.terminateAllUserSessions(userId, req.user!.id)';
+      res.json({ message: 'All user sessions terminated successfully' })';
     } catch (error) {
-      console.error('Error terminating user sessions:', error);
-      res.status(500).json({ message: 'Failed to terminate user sessions' });
+      console.error('Error terminating user sessions:', error)';
+      res.status(500).json({ message: 'Failed to terminate user sessions' })';
     }
   }
-);
+)';
 
 // ============= STATISTICS AND AUDIT ROUTES =============
 
@@ -385,16 +385,16 @@ router.get('/stats',
   requirePermission('tenant', 'view_analytics'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
+      const tenantId = req.user!.tenantId';
       
-      const stats = await userManagementService.getUserStats(tenantId);
-      res.json({ stats });
+      const stats = await userManagementService.getUserStats(tenantId)';
+      res.json({ stats })';
     } catch (error) {
-      console.error('Error fetching user stats:', error);
-      res.status(500).json({ message: 'Failed to fetch user statistics' });
+      console.error('Error fetching user stats:', error)';
+      res.status(500).json({ message: 'Failed to fetch user statistics' })';
     }
   }
-);
+)';
 
 // Get activity log for audit
 router.get('/activity', 
@@ -402,25 +402,25 @@ router.get('/activity',
   requirePermission('tenant', 'view_analytics'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
+      const tenantId = req.user!.tenantId';
+      const limit = parseInt(req.query.limit as string) || 50';
+      const offset = parseInt(req.query.offset as string) || 0';
       
-      const stats = await userManagementService.getUserStats(tenantId);
-      const activity = stats.recentActivity.slice(offset, offset + limit);
+      const stats = await userManagementService.getUserStats(tenantId)';
+      const activity = stats.recentActivity.slice(offset, offset + limit)';
       
       res.json({ 
-        activity,
-        total: stats.recentActivity.length,
-        limit,
+        activity',
+        total: stats.recentActivity.length',
+        limit',
         offset
-      });
+      })';
     } catch (error) {
-      console.error('Error fetching activity log:', error);
-      res.status(500).json({ message: 'Failed to fetch activity log' });
+      console.error('Error fetching activity log:', error)';
+      res.status(500).json({ message: 'Failed to fetch activity log' })';
     }
   }
-);
+)';
 
 // ============= SYSTEM ROLES AND PERMISSIONS INFO =============
 
@@ -435,34 +435,34 @@ router.get('/system-roles',
           displayName: 'SaaS Administrator''[,;]
           description: 'Full platform access including all tenants''[,;]
           isSystem: true
-        },
+        }',
         {
           name: 'tenant_admin''[,;]
           displayName: 'Tenant Administrator''[,;]
           description: 'Full access to tenant resources and user management''[,;]
           isSystem: true
-        },
+        }',
         {
           name: 'agent''[,;]
           displayName: 'Support Agent''[,;]
           description: 'Can handle tickets and manage customers''[,;]
           isSystem: true
-        },
+        }',
         {
           name: 'customer''[,;]
           displayName: 'Customer''[,;]
           description: 'Limited access to own tickets and profile''[,;]
           isSystem: true
         }
-      ];
+      ]';
       
-      res.json({ roles: systemRoles });
+      res.json({ roles: systemRoles })';
     } catch (error) {
-      console.error('Error fetching system roles:', error);
-      res.status(500).json({ message: 'Failed to fetch system roles' });
+      console.error('Error fetching system roles:', error)';
+      res.status(500).json({ message: 'Failed to fetch system roles' })';
     }
   }
-);
+)';
 
 // Get available permissions
 router.get('/permissions', 
@@ -472,44 +472,44 @@ router.get('/permissions',
     try {
       const permissions = [
         // Platform permissions
-        { category: 'Platform', resource: 'platform', action: 'manage_tenants', description: 'Manage all tenants' },
-        { category: 'Platform', resource: 'platform', action: 'manage_users', description: 'Manage all users across tenants' },
-        { category: 'Platform', resource: 'platform', action: 'view_analytics', description: 'View platform-wide analytics' },
-        { category: 'Platform', resource: 'platform', action: 'manage_billing', description: 'Manage platform billing' },
-        { category: 'Platform', resource: 'platform', action: 'manage_security', description: 'Manage security settings' },
+        { category: 'Platform', resource: 'platform', action: 'manage_tenants', description: 'description: 'Manage all tenants' }',',
+        { category: 'Platform', resource: 'platform', action: 'manage_users', description: 'description: 'Manage all users across tenants' }',',
+        { category: 'Platform', resource: 'platform', action: 'view_analytics', description: 'description: 'View platform-wide analytics' }',',
+        { category: 'Platform', resource: 'platform', action: 'manage_billing', description: 'description: 'Manage platform billing' }',',
+        { category: 'Platform', resource: 'platform', action: 'manage_security', description: 'description: 'Manage security settings' }',',
         
         // Tenant permissions
-        { category: 'Tenant', resource: 'tenant', action: 'manage_settings', description: 'Manage tenant settings' },
-        { category: 'Tenant', resource: 'tenant', action: 'manage_users', description: 'Manage tenant users' },
-        { category: 'Tenant', resource: 'tenant', action: 'view_analytics', description: 'View tenant analytics' },
-        { category: 'Tenant', resource: 'tenant', action: 'manage_billing', description: 'Manage tenant billing' },
-        { category: 'Tenant', resource: 'tenant', action: 'configure_integrations', description: 'Configure integrations' },
+        { category: 'Tenant', resource: 'tenant', action: 'manage_settings', description: 'description: 'Manage tenant settings' }',',
+        { category: 'Tenant', resource: 'tenant', action: 'manage_users', description: 'description: 'Manage tenant users' }',',
+        { category: 'Tenant', resource: 'tenant', action: 'view_analytics', description: 'description: 'View tenant analytics' }',',
+        { category: 'Tenant', resource: 'tenant', action: 'manage_billing', description: 'description: 'Manage tenant billing' }',',
+        { category: 'Tenant', resource: 'tenant', action: 'configure_integrations', description: 'description: 'Configure integrations' }',',
         
         // Ticket permissions
-        { category: 'Tickets', resource: 'ticket', action: 'view_all', description: 'View all tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'view_assigned', description: 'View assigned tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'view_own', description: 'View own tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'create', description: 'Create tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'update', description: 'Update tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'delete', description: 'Delete tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'assign', description: 'Assign tickets' },
-        { category: 'Tickets', resource: 'ticket', action: 'resolve', description: 'Resolve tickets' },
+        { category: 'Tickets', resource: 'ticket', action: 'view_all', description: 'description: 'View all tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'view_assigned', description: 'description: 'View assigned tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'view_own', description: 'description: 'View own tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'create', description: 'description: 'Create tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'update', description: 'description: 'Update tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'delete', description: 'description: 'Delete tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'assign', description: 'description: 'Assign tickets' }',',
+        { category: 'Tickets', resource: 'ticket', action: 'resolve', description: 'description: 'Resolve tickets' }',',
         
         // Customer permissions
-        { category: 'Customers', resource: 'customer', action: 'view_all', description: 'View all customers' },
-        { category: 'Customers', resource: 'customer', action: 'view_own', description: 'View own customer profile' },
-        { category: 'Customers', resource: 'customer', action: 'create', description: 'Create customers' },
-        { category: 'Customers', resource: 'customer', action: 'update', description: 'Update customers' },
-        { category: 'Customers', resource: 'customer', action: 'delete', description: 'Delete customers' },
+        { category: 'Customers', resource: 'customer', action: 'view_all', description: 'description: 'View all customers' }',',
+        { category: 'Customers', resource: 'customer', action: 'view_own', description: 'description: 'View own customer profile' }',',
+        { category: 'Customers', resource: 'customer', action: 'create', description: 'description: 'Create customers' }',',
+        { category: 'Customers', resource: 'customer', action: 'update', description: 'description: 'Update customers' }',',
+        { category: 'Customers', resource: 'customer', action: 'delete', description: 'description: 'Delete customers' }',',
         { category: 'Customers', resource: 'customer', action: 'export', description: 'Export customer data' }
-      ];
+      ]';
       
-      res.json({ permissions });
+      res.json({ permissions })';
     } catch (error) {
-      console.error('Error fetching permissions:', error);
-      res.status(500).json({ message: 'Failed to fetch permissions' });
+      console.error('Error fetching permissions:', error)';
+      res.status(500).json({ message: 'Failed to fetch permissions' })';
     }
   }
-);
+)';
 
-export default router;
+export default router';

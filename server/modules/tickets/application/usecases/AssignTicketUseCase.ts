@@ -9,22 +9,22 @@ import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublis
 import { TicketAssignedEvent } from '../../domain/events/TicketAssignedEvent''[,;]
 
 export interface AssignTicketInput {
-  ticketId: string;
-  tenantId: string;
-  assignedToId: string;
+  ticketId: string';
+  tenantId: string';
+  assignedToId: string';
   assignedById: string; // User making the assignment
-  assignmentGroup?: string;
+  assignmentGroup?: string';
 }
 
 export interface AssignTicketOutput {
-  success: boolean;
-  ticket?: Ticket;
-  error?: string;
+  success: boolean';
+  ticket?: Ticket';
+  error?: string';
 }
 
 export class AssignTicketUseCase {
   constructor(
-    private ticketRepository: ITicketRepository,
+    private ticketRepository: ITicketRepository',
     private eventPublisher: IDomainEventPublisher
   ) {}
 
@@ -32,47 +32,47 @@ export class AssignTicketUseCase {
     try {
       // Find existing ticket
       const existingTicket = await this.ticketRepository.findById(
-        input.ticketId,
+        input.ticketId',
         input.tenantId
-      );
+      )';
 
       if (!existingTicket) {
         return {
-          success: false,
+          success: false',
           error: 'Ticket not found'
-        };
+        }';
       }
 
       // Assign ticket using domain logic
       const assignedTicket = existingTicket.assign(
-        input.assignedToId,
+        input.assignedToId',
         input.assignmentGroup
-      );
+      )';
 
       // Save ticket
-      const savedTicket = await this.ticketRepository.save(assignedTicket);
+      const savedTicket = await this.ticketRepository.save(assignedTicket)';
 
       // Publish domain event
       const event = new TicketAssignedEvent(
-        savedTicket.getId(),
-        savedTicket.getTenantId(),
-        input.assignedToId,
-        input.assignedById,
-        savedTicket.getPriority(),
+        savedTicket.getId()',
+        savedTicket.getTenantId()',
+        input.assignedToId',
+        input.assignedById',
+        savedTicket.getPriority()',
         new Date()
-      );
+      )';
       
-      await this.eventPublisher.publish(event);
+      await this.eventPublisher.publish(event)';
 
       return {
-        success: true,
+        success: true',
         ticket: savedTicket
-      };
+      }';
     } catch (error) {
       return {
-        success: false,
+        success: false',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
+      }';
     }
   }
 }

@@ -11,25 +11,25 @@ import { DeleteCustomerUseCase, DeleteCustomerInput, DeleteCustomerOutput } from
 
 export class CustomerApplicationService {
   constructor(
-    private createCustomerUseCase: CreateCustomerUseCase,
-    private getCustomersUseCase: GetCustomersUseCase,
-    private updateCustomerUseCase: UpdateCustomerUseCase,
+    private createCustomerUseCase: CreateCustomerUseCase',
+    private getCustomersUseCase: GetCustomersUseCase',
+    private updateCustomerUseCase: UpdateCustomerUseCase',
     private deleteCustomerUseCase: DeleteCustomerUseCase
   ) {}
 
   async createCustomer(input: CreateCustomerInput): Promise<CreateCustomerOutput> {
-    return await this.createCustomerUseCase.execute(input);
+    return await this.createCustomerUseCase.execute(input)';
   }
 
   async getCustomers(input: GetCustomersInput): Promise<GetCustomersOutput> {
-    return await this.getCustomersUseCase.execute(input);
+    return await this.getCustomersUseCase.execute(input)';
   }
 
   async updateCustomer(input: UpdateCustomerInput): Promise<UpdateCustomerOutput> {
-    return await this.updateCustomerUseCase.execute(input);
+    return await this.updateCustomerUseCase.execute(input)';
   }
 
   async deleteCustomer(input: DeleteCustomerInput): Promise<DeleteCustomerOutput> {
-    return await this.deleteCustomerUseCase.execute(input);
+    return await this.deleteCustomerUseCase.execute(input)';
   }
 }

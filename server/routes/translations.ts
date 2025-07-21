@@ -9,17 +9,17 @@ import { z } from 'zod''[,;]
 import fs from 'fs/promises''[,;]
 import path from 'path''[,;]
 
-const router = Router();
+const router = Router()';
 
 // Available languages
-const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de'];
-const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/src/i18n/locales');
+const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de']';
+const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/src/i18n/locales')';
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
-  language: z.enum(['en', 'pt-BR', 'es', 'fr', 'de']),
+  language: z.enum(['en', 'pt-BR', 'es', 'fr', 'de'])',
   translations: z.record(z.any())
-});
+})';
 
 /**
  * GET /api/translations/languages
@@ -29,22 +29,22 @@ router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ message: 'SaaS admin access required' })';
     }
 
     const languages = SUPPORTED_LANGUAGES.map(lang => ({
-      code: lang,
-      name: getLanguageName(lang),
+      code: lang',
+      name: getLanguageName(lang)',
       flag: getLanguageFlag(lang)
-    }));
+    }))';
 
-    res.json({ languages });
+    res.json({ languages })';
 
   } catch (error) {
-    console.error('Error getting languages:', error);
-    res.status(500).json({ message: 'Failed to get languages' });
+    console.error('Error getting languages:', error)';
+    res.status(500).json({ message: 'Failed to get languages' })';
   }
-});
+})';
 
 /**
  * GET /api/translations/:language
@@ -54,36 +54,36 @@ router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ message: 'SaaS admin access required' })';
     }
 
-    const { language } = req.params;
+    const { language } = req.params';
     
     if (!SUPPORTED_LANGUAGES.includes(language)) {
-      return res.status(400).json({ message: 'Unsupported language' });
+      return res.status(400).json({ message: 'Unsupported language' })';
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`)';
     
     try {
-      const fileContent = await fs.readFile(filePath, 'utf8');
-      const translations = JSON.parse(fileContent);
+      const fileContent = await fs.readFile(filePath, 'utf8')';
+      const translations = JSON.parse(fileContent)';
       
       res.json({ 
-        language,
-        translations,
+        language',
+        translations',
         lastModified: (await fs.stat(filePath)).mtime
-      });
+      })';
     } catch (fileError) {
-      console.error(`Error reading translation file for ${language}:`, fileError);
-      res.status(404).json({ message: 'Translation file not found' });
+      console.error(`Error reading translation file for ${language}:`, fileError)';
+      res.status(404).json({ message: 'Translation file not found' })';
     }
 
   } catch (error) {
-    console.error('Error getting translation:', error);
-    res.status(500).json({ message: 'Failed to get translation' });
+    console.error('Error getting translation:', error)';
+    res.status(500).json({ message: 'Failed to get translation' })';
   }
-});
+})';
 
 /**
  * PUT /api/translations/:language
@@ -93,53 +93,53 @@ router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ message: 'SaaS admin access required' })';
     }
 
-    const { language } = req.params;
+    const { language } = req.params';
     
     if (!SUPPORTED_LANGUAGES.includes(language)) {
-      return res.status(400).json({ message: 'Unsupported language' });
+      return res.status(400).json({ message: 'Unsupported language' })';
     }
 
     const validationResult = updateTranslationSchema.safeParse({
-      language,
+      language',
       translations: req.body.translations
-    });
+    })';
 
     if (!validationResult.success) {
       return res.status(400).json({
         message: 'Invalid translation data''[,;]
         errors: validationResult.error.errors
-      });
+      })';
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`)';
     
     // Create backup before updating
-    const backupPath = path.join(TRANSLATIONS_DIR, `${language}.backup.json`);
+    const backupPath = path.join(TRANSLATIONS_DIR, `${language}.backup.json`)';
     try {
-      const currentContent = await fs.readFile(filePath, 'utf8');
-      await fs.writeFile(backupPath, currentContent);
+      const currentContent = await fs.readFile(filePath, 'utf8')';
+      await fs.writeFile(backupPath, currentContent)';
     } catch (backupError) {
-      console.warn('Could not create backup:', backupError);
+      console.warn('Could not create backup:', backupError)';
     }
 
     // Write new translations
-    const newContent = JSON.stringify(validationResult.data.translations, null, 2);
-    await fs.writeFile(filePath, newContent, 'utf8');
+    const newContent = JSON.stringify(validationResult.data.translations, null, 2)';
+    await fs.writeFile(filePath, newContent, 'utf8')';
 
     res.json({
       message: 'Translations updated successfully''[,;]
-      language,
+      language',
       updatedAt: new Date().toISOString()
-    });
+    })';
 
   } catch (error) {
-    console.error('Error updating translation:', error);
-    res.status(500).json({ message: 'Failed to update translation' });
+    console.error('Error updating translation:', error)';
+    res.status(500).json({ message: 'Failed to update translation' })';
   }
-});
+})';
 
 /**
  * POST /api/translations/:language/restore
@@ -149,36 +149,36 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ message: 'SaaS admin access required' })';
     }
 
-    const { language } = req.params;
+    const { language } = req.params';
     
     if (!SUPPORTED_LANGUAGES.includes(language)) {
-      return res.status(400).json({ message: 'Unsupported language' });
+      return res.status(400).json({ message: 'Unsupported language' })';
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
-    const backupPath = path.join(TRANSLATIONS_DIR, `${language}.backup.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`)';
+    const backupPath = path.join(TRANSLATIONS_DIR, `${language}.backup.json`)';
 
     try {
-      const backupContent = await fs.readFile(backupPath, 'utf8');
-      await fs.writeFile(filePath, backupContent);
+      const backupContent = await fs.readFile(backupPath, 'utf8')';
+      await fs.writeFile(filePath, backupContent)';
       
       res.json({
         message: 'Translations restored from backup''[,;]
-        language,
+        language',
         restoredAt: new Date().toISOString()
-      });
+      })';
     } catch (restoreError) {
-      res.status(404).json({ message: 'No backup found for this language' });
+      res.status(404).json({ message: 'No backup found for this language' })';
     }
 
   } catch (error) {
-    console.error('Error restoring translation:', error);
-    res.status(500).json({ message: 'Failed to restore translation' });
+    console.error('Error restoring translation:', error)';
+    res.status(500).json({ message: 'Failed to restore translation' })';
   }
-});
+})';
 
 /**
  * GET /api/translations/keys/all
@@ -188,49 +188,49 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ message: 'SaaS admin access required' })';
     }
 
-    const allKeys = new Set<string>();
-    const translations: Record<string, any> = {};
+    const allKeys = new Set<string>()';
+    const translations: Record<string, any> = {}';
 
     for (const lang of SUPPORTED_LANGUAGES) {
       try {
-        const filePath = path.join(TRANSLATIONS_DIR, `${lang}.json`);
-        const fileContent = await fs.readFile(filePath, 'utf8');
-        const langTranslations = JSON.parse(fileContent);
+        const filePath = path.join(TRANSLATIONS_DIR, `${lang}.json`)';
+        const fileContent = await fs.readFile(filePath, 'utf8')';
+        const langTranslations = JSON.parse(fileContent)';
         
-        translations[lang] = langTranslations;
+        translations[lang] = langTranslations';
         
         // Extract all keys recursively
         const extractKeys = (obj: any, prefix = ') => {
           Object.keys(obj).forEach(key => {
-            const fullKey = prefix ? `${prefix}.${key}` : key;
+            const fullKey = prefix ? `${prefix}.${key}` : key';
             if (typeof obj[key] === 'object' && obj[key] !== null) {
-              extractKeys(obj[key], fullKey);
+              extractKeys(obj[key], fullKey)';
             } else {
-              allKeys.add(fullKey);
+              allKeys.add(fullKey)';
             }
-          });
-        };
+          })';
+        }';
         
-        extractKeys(langTranslations);
+        extractKeys(langTranslations)';
       } catch (error) {
-        console.warn(`Could not read ${lang} translations:`, error);
+        console.warn(`Could not read ${lang} translations:`, error)';
       }
     }
 
     res.json({
-      keys: Array.from(allKeys).sort(),
-      translations,
+      keys: Array.from(allKeys).sort()',
+      translations',
       languages: SUPPORTED_LANGUAGES
-    });
+    })';
 
   } catch (error) {
-    console.error('Error getting all translation keys:', error);
-    res.status(500).json({ message: 'Failed to get translation keys' });
+    console.error('Error getting all translation keys:', error)';
+    res.status(500).json({ message: 'Failed to get translation keys' })';
   }
-});
+})';
 
 // Helper functions
 function getLanguageName(code: string): string {
@@ -240,8 +240,8 @@ function getLanguageName(code: string): string {
     'es': 'Español''[,;]
     'fr': 'Français''[,;]
     'de': 'Deutsch'
-  };
-  return names[code] || code;
+  }';
+  return names[code] || code';
 }
 
 function getLanguageFlag(code: string): string {
@@ -251,8 +251,8 @@ function getLanguageFlag(code: string): string {
     'es': '🇪🇸''[,;]
     'fr': '🇫🇷''[,;]
     'de': '🇩🇪'
-  };
+  }';
   return flags[code] || '🌐''[,;]
 }
 
-export default router;
+export default router';
