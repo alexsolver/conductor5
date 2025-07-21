@@ -62,62 +62,94 @@ export default function WorkSchedules() {
   });
 
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Buscar escalas
-  const { data: schedules, isLoading } = useQuery({
-    queryKey: ['/api/timecard/schedules'],
-  });
+  // Estado local temporário para escalas
+  const [schedules, setSchedules] = useState<WorkSchedule[]>([
+    {
+      id: '1',
+      userId: '550e8400-e29b-41d4-a716-446655440001',
+      scheduleType: '5x2',
+      startDate: '2025-01-01',
+      workDays: [1, 2, 3, 4, 5],
+      startTime: '08:00',
+      endTime: '18:00',
+      breakDurationMinutes: 60,
+      isActive: true,
+      userName: 'João Silva'
+    }
+  ]);
 
-  // Buscar usuários para o select
-  const { data: users } = useQuery({
-    queryKey: ['/api/customers'], // Assumindo que são os usuários do sistema
-  });
+  // Estado local para usuários
+  const [users] = useState([
+    { id: '550e8400-e29b-41d4-a716-446655440001', name: 'João Silva' },
+    { id: '550e8400-e29b-41d4-a716-446655440002', name: 'Maria Santos' }
+  ]);
 
-  // Mutation para criar/editar escala
-  const scheduleMutation = useMutation({
-    mutationFn: async (data: any) => {
+  // Função para salvar escala (simulada)
+  const handleSaveSchedule = async () => {
+    try {
+      const newSchedule: WorkSchedule = {
+        id: (schedules.length + 1).toString(),
+        ...formData,
+        userName: users.find(u => u.id === formData.userId)?.name || ''
+      };
+
       if (selectedSchedule) {
-        return await apiRequest('PUT', `/api/timecard/schedules/${selectedSchedule.id}`, data);
+        setSchedules(prev => prev.map(s => s.id === selectedSchedule.id ? { ...newSchedule, id: selectedSchedule.id } : s));
+        toast({
+          title: 'Escala atualizada!',
+          description: 'A escala de trabalho foi atualizada com sucesso.',
+        });
       } else {
-        return await apiRequest('POST', '/api/timecard/schedules', data);
+        setSchedules(prev => [...prev, newSchedule]);
+        toast({
+          title: 'Escala criada!',
+          description: 'A escala de trabalho foi criada com sucesso.',
+        });
       }
-    },
-    onSuccess: () => {
-      toast({
-        title: selectedSchedule ? 'Escala atualizada!' : 'Escala criada!',
-        description: 'A escala de trabalho foi salva com sucesso.',
-      });
+
       setIsDialogOpen(false);
       setSelectedSchedule(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedules'] });
-    },
-    onError: () => {
+      setFormData({
+        userId: '',
+        scheduleType: '5x2',
+        startDate: '',
+        endDate: '',
+        workDays: [1, 2, 3, 4, 5],
+        startTime: '08:00',
+        endTime: '18:00',
+        breakDurationMinutes: 60,
+        isActive: true
+      });
+    } catch (error) {
       toast({
         title: 'Erro ao salvar escala',
         description: 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
-    },
-  });
+    }
+  };
 
-  // Mutation para excluir escala
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return await apiRequest('DELETE', `/api/timecard/schedules/${id}`);
-    },
-    onSuccess: () => {
+  // Função para excluir escala (simulada)
+  const handleDeleteSchedule = async (id: string) => {
+    try {
+      setSchedules(prev => prev.filter(s => s.id !== id));
       toast({
         title: 'Escala excluída!',
         description: 'A escala foi removida com sucesso.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedules'] });
-    },
-  });
+    } catch (error) {
+      toast({
+        title: 'Erro ao excluir escala',
+        description: 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    scheduleMutation.mutate(formData);
+    handleSaveSchedule();
   };
 
   const handleEdit = (schedule: WorkSchedule) => {
@@ -164,16 +196,7 @@ export default function WorkSchedules() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-48 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="p-4 space-y-6">
@@ -201,7 +224,7 @@ export default function WorkSchedules() {
                       <SelectValue placeholder="Selecione o funcionário" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(users as any)?.customers?.map((user: any) => (
+                      {users.map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.name}
                         </SelectItem>

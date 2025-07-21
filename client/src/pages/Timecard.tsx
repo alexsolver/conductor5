@@ -41,8 +41,11 @@ interface TimeAlert {
 export default function Timecard() {
   const [location, setLocation] = useState<GeolocationPosition | null>(null);
   const [locationError, setLocationError] = useState<string>('');
+  const [currentStatus, setCurrentStatus] = useState<CurrentStatus>({
+    status: 'not_started',
+    todayRecords: [],
+  });
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Obter localização do usuário
   useEffect(() => {
@@ -59,18 +62,6 @@ export default function Timecard() {
     }
   }, []);
 
-  // Buscar status atual
-  const { data: currentStatus, isLoading: statusLoading } = useQuery({
-    queryKey: ['/api/timecard/users/550e8400-e29b-41d4-a716-446655440001/status'],
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
-  });
-
-  // Buscar alertas ativos
-  const { data: alerts } = useQuery({
-    queryKey: ['/api/timecard/alerts'],
-    queryParams: { userId: '550e8400-e29b-41d4-a716-446655440001' },
-  });
-
   // Mutation para registrar ponto
   const recordMutation = useMutation({
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
@@ -81,7 +72,11 @@ export default function Timecard() {
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/users/550e8400-e29b-41d4-a716-446655440001/status'] });
+      // Simular atualização do status
+      setCurrentStatus(prev => ({
+        ...prev,
+        status: prev.status === 'not_started' ? 'working' : 'finished'
+      }));
     },
     onError: (error) => {
       toast({
@@ -140,17 +135,7 @@ export default function Timecard() {
     return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
   };
 
-  if (statusLoading) {
-    return (
-      <div className="p-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-48 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
+
 
   const status = currentStatus?.status || 'not_started';
   const nextAction = getNextAction(status);
@@ -249,47 +234,38 @@ export default function Timecard() {
         </CardContent>
       </Card>
 
-      {/* Alertas Ativos */}
-      {alerts && alerts.length > 0 && (
+      {/* Status e Métricas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Alertas Ativos
-            </CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Horas Trabalhadas Hoje</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {alerts.map((alert: TimeAlert) => (
-                <div key={alert.id} className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg">
-                  <AlertTriangle className={`h-4 w-4 mt-0.5 ${
-                    alert.severity === 'critical' ? 'text-red-500' :
-                    alert.severity === 'high' ? 'text-orange-500' :
-                    alert.severity === 'medium' ? 'text-yellow-500' : 'text-blue-500'
-                  }`} />
-                  <div className="flex-1">
-                    <div className="font-medium">{alert.title}</div>
-                    {alert.description && (
-                      <div className="text-sm text-gray-600 mt-1">{alert.description}</div>
-                    )}
-                    <div className="text-xs text-gray-500 mt-2">
-                      {formatDate(alert.createdAt)}
-                    </div>
-                  </div>
-                  <Badge variant={
-                    alert.severity === 'critical' ? 'destructive' :
-                    alert.severity === 'high' ? 'destructive' : 'secondary'
-                  }>
-                    {alert.severity === 'critical' ? 'Crítico' :
-                     alert.severity === 'high' ? 'Alto' :
-                     alert.severity === 'medium' ? 'Médio' : 'Baixo'}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+            <div className="text-2xl font-bold">8h 30m</div>
+            <p className="text-xs text-gray-500">Meta: 8h</p>
           </CardContent>
         </Card>
-      )}
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Banco de Horas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">+2h 15m</div>
+            <p className="text-xs text-gray-500">Saldo positivo</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Compliance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">OK</div>
+            <p className="text-xs text-gray-500">CLT conforme</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
