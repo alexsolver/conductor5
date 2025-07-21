@@ -44,6 +44,13 @@ router.put('/absence-requests/:requestId/approve', timecardController.approveAbs
 router.post('/schedule-templates', timecardController.createScheduleTemplate.bind(timecardController));
 router.get('/schedule-templates', timecardController.getScheduleTemplates.bind(timecardController));
 
+// Gestão Bulk de Escalas - UX Melhorada
+router.post('/schedules/apply-to-multiple-users', timecardController.applyScheduleToMultipleUsers.bind(timecardController));
+router.get('/schedules/available-users', timecardController.getAvailableUsers.bind(timecardController));
+router.get('/schedules/by-users', timecardController.getSchedulesByUsers.bind(timecardController));
+router.get('/schedule-templates/:templateId/history', timecardController.getTemplateApplicationHistory.bind(timecardController));
+router.delete('/schedules/remove-from-multiple-users', timecardController.removeScheduleFromMultipleUsers.bind(timecardController));
+
 // Troca de Turnos
 router.post('/shift-swap-requests', timecardController.createShiftSwapRequest.bind(timecardController));
 router.get('/shift-swap-requests', timecardController.getShiftSwapRequests.bind(timecardController));

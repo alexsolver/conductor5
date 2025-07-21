@@ -5,13 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Plus, Settings, Clock, Calendar, Users, Copy } from 'lucide-react';
+import { Plus, Settings, Clock, Calendar, Users, Copy, UserPlus } from 'lucide-react';
+import BulkScheduleAssignment from '@/components/timecard/BulkScheduleAssignment';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -79,6 +81,10 @@ export default function ScheduleTemplates() {
   // Buscar templates de escalas
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/schedule-templates');
+      return response.json();
+    },
   });
 
   // Criar template
@@ -146,8 +152,8 @@ export default function ScheduleTemplates() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Templates de Escalas</h1>
-          <p className="text-gray-600">Gerencie modelos reutilizáveis de escalas de trabalho</p>
+          <h1 className="text-2xl font-bold text-gray-900">Gestão de Escalas</h1>
+          <p className="text-gray-600">Gerencie templates e atribuições de escalas de trabalho</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -396,91 +402,110 @@ export default function ScheduleTemplates() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
-        {templates.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-8">
-              <Settings className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum template criado</h3>
-              <p className="text-gray-500 text-center mb-4">
-                Crie seu primeiro template de escala para reutilizar em diferentes equipes
-              </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Primeiro Template
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map((template: any) => (
-              <Card key={template.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {template.description || 'Sem descrição'}
-                      </CardDescription>
-                    </div>
-                    <Badge variant="outline">
-                      {categoryLabels[template.category as keyof typeof categoryLabels]}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-gray-400" />
-                      <span>{formatWorkDays(template.configuration.workDays)}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {template.configuration.startTime} - {template.configuration.endTime}
-                      </span>
-                    </div>
+      <Tabs defaultValue="templates" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Templates de Escalas
+          </TabsTrigger>
+          <TabsTrigger value="bulk-assignment" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Atribuição em Lote
+          </TabsTrigger>
+        </TabsList>
 
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {calculateWorkingHours(
-                          template.configuration.startTime,
-                          template.configuration.endTime,
-                          template.configuration.breakDuration
-                        )} por dia
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-4">
-                      <Badge variant={template.isActive ? "default" : "secondary"}>
-                        {template.isActive ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                      
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {/* Implementar duplicação */}}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => {/* Implementar aplicação do template */}}
-                        >
-                          Aplicar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+        <TabsContent value="templates" className="space-y-6">
+          <div className="grid gap-4">
+            {templates.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-8">
+                  <Settings className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum template criado</h3>
+                  <p className="text-gray-500 text-center mb-4">
+                    Crie seu primeiro template de escala para reutilizar em diferentes equipes
+                  </p>
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeiro Template
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {templates.map((template: any) => (
+                  <Card key={template.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg">{template.name}</CardTitle>
+                          <CardDescription className="mt-1">
+                            {template.description || 'Sem descrição'}
+                          </CardDescription>
+                        </div>
+                        <Badge variant="outline">
+                          {categoryLabels[template.category as keyof typeof categoryLabels]}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span>{formatWorkDays(template.configuration.workDays)}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span>
+                            {template.configuration.startTime} - {template.configuration.endTime}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-gray-400" />
+                          <span>
+                            {calculateWorkingHours(
+                              template.configuration.startTime,
+                              template.configuration.endTime,
+                              template.configuration.breakDuration
+                            )} por dia
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-4">
+                          <Badge variant={template.isActive ? "default" : "secondary"}>
+                            {template.isActive ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                          
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {/* Implementar duplicação */}}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => {/* Implementar aplicação do template */}}
+                            >
+                              Aplicar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="bulk-assignment" className="space-y-6">
+          <BulkScheduleAssignment />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

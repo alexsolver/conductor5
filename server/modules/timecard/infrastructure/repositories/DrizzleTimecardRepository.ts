@@ -909,4 +909,149 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
 
     return updated;
   }
+
+  // ===== NOVOS MÉTODOS PARA GESTÃO BULK DE ESCALAS =====
+
+  // Aplicar template de escala para múltiplos usuários
+  async applyScheduleTemplateToMultipleUsers(
+    templateId: string, 
+    userIds: string[], 
+    tenantId: string, 
+    startDate: Date,
+    assignedBy: string
+  ): Promise<any[]> {
+    const template = await this.db
+      .select()
+      .from(scheduleTemplates)
+      .where(and(
+        eq(scheduleTemplates.id, templateId),
+        eq(scheduleTemplates.tenantId, tenantId),
+        eq(scheduleTemplates.isActive, true)
+      ))
+      .limit(1);
+
+    if (!template[0]) {
+      throw new Error('Template não encontrado ou inativo');
+    }
+
+    // Criar registros de escala para todos os usuários
+    const scheduleValues = userIds.map(userId => ({
+      id: crypto.randomUUID(),
+      userId,
+      scheduleType: template[0].scheduleType,
+      startDate,
+      endDate: template[0].rotationCycleDays 
+        ? new Date(startDate.getTime() + (template[0].rotationCycleDays * 24 * 60 * 60 * 1000))
+        : undefined,
+      workDays: template[0].configuration.workDays,
+      startTime: template[0].configuration.startTime,
+      endTime: template[0].configuration.endTime,
+      breakDuration: template[0].configuration.breakDuration,
+      flexTimeWindow: template[0].configuration.flexTimeWindow,
+      templateId,
+      tenantId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
+    const schedules = await this.db
+      .insert(workSchedules)
+      .values(scheduleValues)
+      .returning();
+
+    // Criar notificações para todos os usuários
+    const notificationValues = userIds.map(userId => ({
+      id: crypto.randomUUID(),
+      userId,
+      type: 'schedule_assignment' as const,
+      title: 'Nova Escala Atribuída',
+      message: `Você foi atribuído ao template de escala "${template[0].name}"`,
+      data: {
+        templateId,
+        templateName: template[0].name,
+        startDate: startDate.toISOString(),
+        assignedBy,
+      },
+      tenantId,
+      createdAt: new Date(),
+    }));
+
+    await this.db
+      .insert(scheduleNotifications)
+      .values(notificationValues);
+
+    return schedules;
+  }
+
+  // Buscar usuários disponíveis para atribuição de escala
+  async findAvailableUsersForSchedule(tenantId: string, excludeUserIds: string[] = []): Promise<any[]> {
+    // Esta implementação assume que existe uma tabela users no schema do tenant
+    // Em um cenário real, você precisaria ajustar conforme sua estrutura de usuários
+    const users = await this.db.execute(sql`
+      SELECT id, first_name, last_name, email, role
+      FROM users 
+      WHERE tenant_id = ${tenantId}
+      ${excludeUserIds.length > 0 ? sql`AND id NOT IN (${sql.join(excludeUserIds.map(id => sql`${id}`), sql`, `)})` : sql``}
+      AND active = true
+      ORDER BY first_name, last_name
+    `);
+
+    return users.rows;
+  }
+
+  // Buscar escalas ativas por usuários
+  async findActiveSchedulesByUsers(userIds: string[], tenantId: string): Promise<any[]> {
+    if (userIds.length === 0) return [];
+
+    const schedules = await this.db
+      .select()
+      .from(workSchedules)
+      .where(and(
+        sql`user_id IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`,
+        eq(workSchedules.tenantId, tenantId),
+        eq(workSchedules.isActive, true)
+      ))
+      .orderBy(workSchedules.startDate);
+
+    return schedules;
+  }
+
+  // Buscar histórico de aplicações de template
+  async findTemplateApplicationHistory(templateId: string, tenantId: string): Promise<any[]> {
+    const applications = await this.db
+      .select({
+        scheduleId: workSchedules.id,
+        userId: workSchedules.userId,
+        startDate: workSchedules.startDate,
+        endDate: workSchedules.endDate,
+        createdAt: workSchedules.createdAt,
+        isActive: workSchedules.isActive,
+      })
+      .from(workSchedules)
+      .where(and(
+        eq(workSchedules.templateId, templateId),
+        eq(workSchedules.tenantId, tenantId)
+      ))
+      .orderBy(desc(workSchedules.createdAt));
+
+    return applications;
+  }
+
+  // Remover escala em lote
+  async removeSchedulesFromMultipleUsers(userIds: string[], templateId: string, tenantId: string): Promise<number> {
+    const result = await this.db
+      .update(workSchedules)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(and(
+        sql`user_id IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`,
+        eq(workSchedules.templateId, templateId),
+        eq(workSchedules.tenantId, tenantId),
+        eq(workSchedules.isActive, true)
+      ));
+
+    return result.rowCount || 0;
+  }
 }

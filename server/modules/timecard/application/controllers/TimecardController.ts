@@ -622,4 +622,111 @@ export class TimecardController {
       res.status(500).json({ error: 'Failed to mark notification as read' });
     }
   }
+
+  // ===== GESTÃO BULK DE ESCALAS =====
+
+  async applyScheduleToMultipleUsers(req: Request, res: Response) {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const assignedBy = req.headers['x-user-id'] as string;
+      const { templateId, userIds, startDate } = req.body;
+
+      if (!templateId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ 
+          error: 'Template ID e lista de usuários são obrigatórios' 
+        });
+      }
+
+      const schedules = await timecardRepository.applyScheduleTemplateToMultipleUsers(
+        templateId,
+        userIds,
+        tenantId,
+        new Date(startDate),
+        assignedBy
+      );
+
+      res.json({
+        success: true,
+        message: `Escala aplicada para ${userIds.length} funcionários`,
+        schedules,
+        applied_count: schedules.length
+      });
+    } catch (error) {
+      console.error('Error applying schedule to multiple users:', error);
+      res.status(500).json({ error: 'Failed to apply schedule to multiple users' });
+    }
+  }
+
+  async getAvailableUsers(req: Request, res: Response) {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const excludeUserIds = req.query.exclude ? 
+        (req.query.exclude as string).split(',') : [];
+
+      const users = await timecardRepository.findAvailableUsersForSchedule(tenantId, excludeUserIds);
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching available users:', error);
+      res.status(500).json({ error: 'Failed to fetch available users' });
+    }
+  }
+
+  async getSchedulesByUsers(req: Request, res: Response) {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const userIds = req.query.userIds ? 
+        (req.query.userIds as string).split(',') : [];
+
+      if (userIds.length === 0) {
+        return res.status(400).json({ error: 'Lista de usuários é obrigatória' });
+      }
+
+      const schedules = await timecardRepository.findActiveSchedulesByUsers(userIds, tenantId);
+      res.json(schedules);
+    } catch (error) {
+      console.error('Error fetching schedules by users:', error);
+      res.status(500).json({ error: 'Failed to fetch schedules by users' });
+    }
+  }
+
+  async getTemplateApplicationHistory(req: Request, res: Response) {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const { templateId } = req.params;
+
+      const history = await timecardRepository.findTemplateApplicationHistory(templateId, tenantId);
+      res.json(history);
+    } catch (error) {
+      console.error('Error fetching template application history:', error);
+      res.status(500).json({ error: 'Failed to fetch template application history' });
+    }
+  }
+
+  async removeScheduleFromMultipleUsers(req: Request, res: Response) {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const { templateId, userIds } = req.body;
+
+      if (!templateId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ 
+          error: 'Template ID e lista de usuários são obrigatórios' 
+        });
+      }
+
+      const removedCount = await timecardRepository.removeSchedulesFromMultipleUsers(
+        userIds,
+        templateId,
+        tenantId
+      );
+
+      res.json({
+        success: true,
+        message: `${removedCount} escalas removidas com sucesso`,
+        removed_count: removedCount
+      });
+    } catch (error) {
+      console.error('Error removing schedules from multiple users:', error);
+      res.status(500).json({ error: 'Failed to remove schedules from multiple users' });
+    }
+  }
 }
