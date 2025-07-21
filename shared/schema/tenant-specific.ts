@@ -382,7 +382,7 @@ export function getTenantSpecificSchema(schemaName: string) {
     tenantEmailIndex: index("external_contacts_tenant_email_idx").on(table.tenantId, table.email),
   }));
 
-  export const ticketTemplates = pgTable('ticket_templates', {
+  const ticketTemplates = pgTable('ticket_templates', {
     id: varchar('id', { length: 36 }).primaryKey(),
     tenantId: varchar('tenant_id', { length: 36 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
@@ -405,7 +405,7 @@ export function getTenantSpecificSchema(schemaName: string) {
   });
 
   // Email inbox table for IMAP integration
-  export const emails = pgTable('emails', {
+  const emails = pgTable('emails', {
     id: varchar('id', { length: 36 }).primaryKey(),
     tenantId: varchar('tenant_id', { length: 36 }).notNull(),
     messageId: varchar('message_id', { length: 255 }).notNull(),
