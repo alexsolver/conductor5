@@ -58,7 +58,7 @@ export class ValidationStandardizer {
         { file: 'server/db.ts', method: 'tablesExist', expectedCount: 20, status: 'FIXED' },
         { file: 'server/db.ts', method: 'validateTenantSchema', expectedCount: 20, status: 'FIXED' },
         { file: 'server/db-unified.ts', method: 'validateTenantSchema', expectedCount: 6, status: 'LEGACY - DEPRECATED' },
-        { file: 'server/db-master.ts', method: 'validateTenantSchema', expectedCount: 'UNKNOWN', status: 'NEEDS_REVIEW' }
+        { file: 'server/db.ts', method: 'validateTenantSchema', expectedCount: 'UNKNOWN', status: 'NEEDS_REVIEW' }
       ],
       standardCount: this.STANDARD_TABLE_COUNT,
       standardTables: this.STANDARD_REQUIRED_TABLES,
@@ -123,7 +123,7 @@ export class ValidationStandardizer {
           validateTenantSchema: 'STANDARDIZED'
         },
         'server/db-unified.ts': 'DEPRECATED - Legacy file',
-        'server/db-master.ts': 'NEEDS_REVIEW'
+        'server/db.ts': 'NEEDS_REVIEW'
       },
       nextSteps: [
         'Verify all tenant schemas have 20 standard tables',

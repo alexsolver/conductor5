@@ -1,5 +1,6 @@
-// ENTERPRISE SCHEMA INDEX: Optimized modular exports for clean architecture
-// Centralized export point maintaining backwards compatibility with improved organization
+// DEPRECATED: MODULAR SCHEMA INDEX - USE shared/schema-master.ts INSTEAD
+// This modular approach is being phased out in favor of unified schema-master.ts
+// MIGRATION: Update imports from '@shared/schema/index' to '@shared/schema'
 
 // Core domain schemas
 export * from "./base";

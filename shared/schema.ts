@@ -1,6 +1,7 @@
 // UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
-// This file now imports from the master schema that consolidates all fragmented definitions
-// Replaces the fragmented approach with a single, authoritative schema definition
+// This file consolidates all fragmented schema definitions into one authoritative source
+// Replaces: schema-simple.ts, schema-unified.ts, modular schema/index.ts conflicts
 
-// Re-export everything from the unified master schema
+// ARCHITECTURE CONSOLIDATION: Use schema-master.ts as the single source of truth
+// Eliminates fragmentation between multiple schema files and SQL raw creation logic
 export * from "./schema-master";
