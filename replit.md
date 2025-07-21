@@ -34,9 +34,9 @@ Preferred communication style: Simple, everyday language.
 
 ✅ **FRONTEND ENTERPRISE MULTILOCATION:**
 - MultilocationSettings.tsx: Interface completa para gestão de configurações
-- MultilocationAdmin.tsx: Página de administração integrada ao Workspace Admin
+- MultilocationAdmin.tsx: Página de administração integrada ao SaaS Admin
 - Interface com 4 abas: Overview, Markets, Form Config, Validation
-- Navegação integrada ao sidebar com ícone Globe2
+- Navegação integrada ao sidebar com ícone Globe2 (movida para SaaS Admin conforme feedback)
 
 ✅ **DADOS INICIAIS BRASIL CONFIGURADOS:**
 - Brasil como mercado padrão em todos os tenant schemas
