@@ -570,7 +570,41 @@ export default function OmniBridge() {
                         <div className="flex items-center space-x-1">
                           <div className={`w-2 h-2 rounded-full ${getStatusColor(channel.isConnected ? 'connected' : 'disconnected')}`} />
                           <Badge variant={channel.isActive ? 'default' : 'secondary'} className="text-xs">
-                            {channel.isActive ? 'Ativo' : 'Inativo'}
+                            {channel.isActive ? 'Ativo' : 'Inativo'}</Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex justify-between">
+                          <span>Status:</span>
+                          <span className={`font-medium ${channel.isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                            {channel.isConnected ? 'Conectado' : 'Desconectado'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Mensagens:</span>
+                          <span className="font-medium">{channel.messageCount || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Última Sync:</span>
+                          <span className="font-medium">
+                            {channel.lastSync ? new Date(channel.lastSync).toLocaleString('pt-BR') : 'Nunca'}</span>
+                        </div>
+
+                        {channel.errorCount > 0 && (
+                          <div className="flex items-center space-x-1 text-red-600">
+                            <AlertTriangle className="w-4 h-4" />
+                            <span className="text-xs">
+                              {channel.errorCount} erro{channel.errorCount > 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {channel.lastError && (
+                        <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+                          {channel.lastError}
+                        </div>
+                      )}Active ? 'Ativo' : 'Inativo'}
                           </Badge>
                         </div>
                       </div>

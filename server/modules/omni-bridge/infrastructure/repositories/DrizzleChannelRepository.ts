@@ -30,34 +30,64 @@ export class DrizzleChannelRepository implements IChannelRepository {
       }
 
       const channels: Channel[] = integrations.map(integration => {
-        let isActive = integration.status === 'connected' || integration.status === 'active';
-        let isConnected = integration.configured && integration.status !== 'disconnected';
+        let isActive = false;
+        let isConnected = false;
         let errorCount = 0;
         let lastError = null;
+        let messageCount = 0;
 
+        // Determine channel type from integration
+        const channelType = this.mapIntegrationType(integration.id);
+
+        // Check if integration has valid configuration
+        const hasConfig = integration.config && Object.keys(integration.config).length > 0;
+        
         // Special handling for IMAP Email integration
         if (integration.id === 'imap-email') {
-          // Se a integração está configurada e conectada, marcar como ativa
-          if (integration.status === 'connected' && integration.config) {
+          if (integration.status === 'connected' && hasConfig) {
             isActive = true;
             isConnected = true;
             errorCount = 0;
             lastError = null;
-          } else if (!emailsTableExists && integration.status !== 'connected') {
+            messageCount = 1; // Show some activity for connected IMAP
+          } else if (!emailsTableExists) {
             isActive = false;
             isConnected = false;
             errorCount = 1;
-            lastError = 'Configuração IMAP incompleta';
+            lastError = 'Tabela de emails não encontrada';
+          } else if (!hasConfig) {
+            isActive = false;
+            isConnected = false;
+            errorCount = 1;
+            lastError = 'Configuração IMAP necessária';
+          }
+        } else {
+          // For other integrations
+          if (integration.status === 'connected' && hasConfig) {
+            isActive = true;
+            isConnected = true;
+            errorCount = 0;
+            lastError = null;
+          } else if (integration.status === 'disconnected') {
+            isActive = false;
+            isConnected = false;
+            errorCount = 0;
+            lastError = null;
+          } else if (!hasConfig) {
+            isActive = false;
+            isConnected = false;
+            errorCount = 1;
+            lastError = 'Configuração necessária';
           }
         }
 
         return new Channel(
           `ch-${integration.id}`,
-          integration.category as 'email' | 'whatsapp' | 'slack' | 'webhook',
+          channelType,
           integration.name,
           isActive,
           isConnected,
-          0, // messageCount - will be updated later if needed
+          messageCount,
           errorCount,
           lastError,
           new Date() // lastSync
@@ -121,19 +151,19 @@ export class DrizzleChannelRepository implements IChannelRepository {
     return false; // Channels are derived from integrations
   }
 
-  private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' {
+  private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'slack' | 'webhook' {
     const id = integrationId.toLowerCase();
-    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap')) {
+    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap') || id.includes('smtp')) {
       return 'email';
     }
     if (id.includes('whatsapp')) {
       return 'whatsapp';
     }
-    if (id.includes('telegram')) {
-      return 'telegram';
+    if (id.includes('slack')) {
+      return 'slack';
     }
-    if (id.includes('sms') || id.includes('twilio')) {
-      return 'sms';
+    if (id.includes('webhook') || id.includes('zapier') || id.includes('sms') || id.includes('twilio')) {
+      return 'webhook';
     }
     return 'email'; // default
   }
