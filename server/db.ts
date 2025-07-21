@@ -1272,6 +1272,68 @@ export class SchemaManager {
       // REMOVED: Invalid foreign key constraint for non-existent certification_id column
       // user_skills table doesn't have certification_id field - constraint removed
 
+      // CRITICAL FIX: Journey Control System Tables
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.journeys (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id VARCHAR(36) NOT NULL,
+          user_id VARCHAR(36) NOT NULL,
+          status VARCHAR(20) NOT NULL DEFAULT 'active',
+          start_time TIMESTAMP NOT NULL DEFAULT NOW(),
+          end_time TIMESTAMP,
+          total_hours DECIMAL(5,2),
+          location TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT journeys_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.journey_checkpoints (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          journey_id UUID NOT NULL,
+          tenant_id VARCHAR(36) NOT NULL,
+          type VARCHAR(50) NOT NULL,
+          timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+          location TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT checkpoints_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+          FOREIGN KEY (journey_id) REFERENCES ${schemaId}.journeys(id) ON DELETE CASCADE
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${schemaId}.journey_metrics (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          journey_id UUID NOT NULL,
+          tenant_id VARCHAR(36) NOT NULL,
+          date DATE NOT NULL,
+          total_working_hours DECIMAL(5,2) DEFAULT 0,
+          break_hours DECIMAL(5,2) DEFAULT 0,
+          overtime_hours DECIMAL(5,2) DEFAULT 0,
+          tickets_completed INTEGER DEFAULT 0,
+          customer_visits INTEGER DEFAULT 0,
+          productivity DECIMAL(5,2) DEFAULT 100,
+          created_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT metrics_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+          FOREIGN KEY (journey_id) REFERENCES ${schemaId}.journeys(id) ON DELETE CASCADE
+        )
+      `);
+
+      // Índices para performance das jornadas
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS journeys_tenant_user_status_idx ON ${schemaId}.journeys (tenant_id, user_id, status)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS checkpoints_journey_tenant_idx ON ${schemaId}.journey_checkpoints (journey_id, tenant_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS metrics_journey_date_idx ON ${schemaId}.journey_metrics (journey_id, tenant_id, date)
+      `);
+
       // CRITICAL FIX: Ticket templates table with MANDATORY tenant_id field
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS ${schemaId}.ticket_templates (

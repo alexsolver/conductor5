@@ -230,4 +230,57 @@ export class JourneyController {
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   }
+
+  async getTodayMetrics(req: Request, res: Response) {
+    try {
+      const { tenantId, user } = req as any;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const metrics = await this.journeyRepository.findMetricsByUserId(user.id, tenantId, today, tomorrow);
+      
+      // Calcular totais do dia
+      const totalMetrics = metrics.reduce((acc, metric) => ({
+        totalWorkingHours: acc.totalWorkingHours + Number(metric.totalWorkingHours || 0),
+        breakHours: acc.breakHours + Number(metric.breakHours || 0),
+        overtimeHours: acc.overtimeHours + Number(metric.overtimeHours || 0),
+        ticketsCompleted: acc.ticketsCompleted + (metric.ticketsCompleted || 0),
+        customerVisits: acc.customerVisits + (metric.customerVisits || 0),
+        productivity: acc.productivity + Number(metric.productivity || 0)
+      }), {
+        totalWorkingHours: 0,
+        breakHours: 0,
+        overtimeHours: 0,
+        ticketsCompleted: 0,
+        customerVisits: 0,
+        productivity: 0
+      });
+
+      // Calcular produtividade média
+      if (metrics.length > 0) {
+        totalMetrics.productivity = totalMetrics.productivity / metrics.length;
+      }
+      
+      res.json(totalMetrics);
+    } catch (error) {
+      console.error('Error getting today metrics:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  }
+
+  async getJourneyCheckpoints(req: Request, res: Response) {
+    try {
+      const { tenantId } = req as any;
+      const { journeyId } = req.params;
+      
+      const checkpoints = await this.journeyRepository.findCheckpointsByJourneyId(journeyId, tenantId);
+      res.json(checkpoints);
+    } catch (error) {
+      console.error('Error getting journey checkpoints:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  }
 }

@@ -40,7 +40,9 @@ import {
   FileText,
   Mail,
   FolderOpen,
-  Folder
+  Folder,
+  Clock,
+  Route
 } from "lucide-react";
 
 // Base navigation with proper types
@@ -68,6 +70,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Solicitantes", href: "/solicitantes", icon: Users },
+  { name: "Controle de Jornadas", href: "/journey-control", icon: Route },
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },

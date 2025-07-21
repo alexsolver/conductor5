@@ -1,0 +1,65 @@
+🔧 Recursos Funcionais
+
+1. Registro de Ponto Multicanal (Art. 74 CLT, Portaria 671)
+	•	Marcação via Web, App Mobile, Totem ou API (com geolocalização e IP)
+	•	Tipos de ponto: manual, eletrônico (REP-P, REP-C e REP-A) e híbrido
+	•	Reconhecimento facial e biometria (com LGPD compliance)
+	•	Registro offline com sincronização posterior
+
+2. Espelhamento de Jornada
+	•	Visualização diária/semanal do espelho de ponto
+	•	Validação e justificativa de inconsistências
+	•	Solicitação de ajuste de ponto com workflow de aprovação
+
+3. Jornadas Personalizadas por Contrato
+	•	Escalas 5x2, 6x1, 12x36, plantões e intermitentes
+	•	Regra de banco de horas, adicional noturno e intervalo
+	•	Jornadas específicas por local e SLA (integração com Conductor Locais)
+
+4. Banco de Horas e Compensações
+	•	Controle automático de saldos: positivos, negativos e expirados
+	•	Configuração de regras de vencimento (6 meses / 12 meses)
+	•	Integração com folha de pagamento e cálculo de horas extras
+
+5. Alertas de Inconsistências
+	•	Horários não batidos, batidas duplicadas, turnos incompletos
+	•	Jornada acima do permitido (limites legais)
+	•	Gatilhos para RH e gestor com sugestões automáticas de ação
+
+6. Dashboards de Acompanhamento
+	•	Relatórios de pontualidade, horas extras, banco de horas, ausências
+	•	Comparação entre locais e equipes
+	•	Exportação para Excel, PDF, integração via API
+
+7. Mecanismos de Auditoria e Compliance
+	•	Registro imutável dos logs (quem alterou o quê, quando e por quê)
+	•	Assinatura eletrônica de espelho de ponto
+	•	Histórico de justificativas, aprovações e notificações
+
+⸻
+
+📋 Requisitos Legais e Técnicos
+
+🔐 Conformidade Legal
+	•	CLT e Portaria MTP 671/2021
+	•	Lei Geral de Proteção de Dados (LGPD)
+	•	Acordos e convenções coletivas regionais
+	•	Registro de ponto alternativo permitido por acordo escrito
+
+⚙️ Requisitos Técnicos
+	•	Suporte a múltiplos fusos horários e locais de trabalho
+	•	Integração com módulos de RH, folha, e Conductor Locais
+	•	Armazenamento seguro com backup criptografado
+	•	Logs com retenção mínima de 5 anos (recomendada)
+
+👩‍💼 Perfis de Acesso
+	•	Colaborador: marcação, visualização e justificativas
+	•	Gestor: aprovação, ajustes e relatórios de equipe
+	•	RH/Admin: parametrização, auditoria e integração legal
+
+⸻
+
+💡 Funcionalidades Avançadas (Diferenciais)
+	•	Análise preditiva de risco trabalhista (ex: risco de passivo por excesso de horas extras)
+	•	Painel de conformidade sindical e regional (com alertas por CNPJ e município)
+	•	Assistente de jornada com IA para sugerir ajustes com base em padrões

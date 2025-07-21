@@ -1,63 +1,109 @@
 
-import { and, eq, gte, lte, isNull } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { journeys, journeyCheckpoints, journeyMetrics } from '../../../../../shared/schema/journey';
 import { IJourneyRepository } from '../../domain/repositories/IJourneyRepository';
 import { Journey, JourneyCheckpoint, JourneyMetrics } from '../../domain/entities/Journey';
 
 export class DrizzleJourneyRepository implements IJourneyRepository {
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   async create(journeyData: Omit<Journey, 'id' | 'createdAt' | 'updatedAt'>): Promise<Journey> {
-    const [journey] = await db.insert(journeys).values({
-      ...journeyData,
-      location: journeyData.location ? JSON.stringify(journeyData.location) : null,
-    }).returning();
+    const schemaName = this.getSchemaName(journeyData.tenantId);
+    const schemaId = sql.identifier(schemaName);
     
+    const result = await db.execute(sql`
+      INSERT INTO ${schemaId}.journeys (
+        tenant_id, user_id, start_time, end_time, status, 
+        notes, total_hours, location
+      ) VALUES (
+        ${journeyData.tenantId}, ${journeyData.userId}, ${journeyData.startTime}, 
+        ${journeyData.endTime || null}, ${journeyData.status}, 
+        ${journeyData.notes || null}, ${journeyData.totalHours || null}, 
+        ${journeyData.location ? JSON.stringify(journeyData.location) : null}
+      ) RETURNING *
+    `);
+    
+    const journey = result.rows[0];
     return {
-      ...journey,
+      id: journey.id,
+      tenantId: journey.tenant_id,
+      userId: journey.user_id,
+      startTime: journey.start_time,
+      endTime: journey.end_time || undefined,
+      status: journey.status,
+      notes: journey.notes || undefined,
+      totalHours: journey.total_hours ? parseFloat(journey.total_hours) : undefined,
       location: journey.location ? JSON.parse(journey.location) : undefined,
+      createdAt: journey.created_at,
+      updatedAt: journey.updated_at,
     };
   }
 
   async findById(id: string, tenantId: string): Promise<Journey | null> {
-    const [journey] = await db
-      .select()
-      .from(journeys)
-      .where(and(eq(journeys.id, id), eq(journeys.tenantId, tenantId)));
+    const schemaName = this.getSchemaName(tenantId);
+    const schemaId = sql.identifier(schemaName);
     
-    if (!journey) return null;
+    const result = await db.execute(sql`
+      SELECT * FROM ${schemaId}.journeys 
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+    `);
     
+    if (result.rows.length === 0) return null;
+    
+    const journey = result.rows[0];
     return {
-      ...journey,
+      id: journey.id,
+      tenantId: journey.tenant_id,
+      userId: journey.user_id,
+      startTime: journey.start_time,
+      endTime: journey.end_time || undefined,
+      status: journey.status,
+      notes: journey.notes || undefined,
+      totalHours: journey.total_hours ? parseFloat(journey.total_hours) : undefined,
       location: journey.location ? JSON.parse(journey.location) : undefined,
+      createdAt: journey.created_at,
+      updatedAt: journey.updated_at,
     };
   }
 
   async findByUserId(userId: string, tenantId: string, date?: Date): Promise<Journey[]> {
-    let whereCondition = and(
-      eq(journeys.userId, userId),
-      eq(journeys.tenantId, tenantId)
-    );
+    const schemaName = this.getSchemaName(tenantId);
+    const schemaId = sql.identifier(schemaName);
+    
+    let query = sql`
+      SELECT * FROM ${schemaId}.journeys 
+      WHERE user_id = ${userId} AND tenant_id = ${tenantId}
+    `;
 
     if (date) {
       const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
       
-      whereCondition = and(
-        whereCondition,
-        gte(journeys.startTime, startOfDay),
-        lte(journeys.startTime, endOfDay)
-      );
+      query = sql`
+        SELECT * FROM ${schemaId}.journeys 
+        WHERE user_id = ${userId} AND tenant_id = ${tenantId}
+        AND start_time >= ${startOfDay} AND start_time < ${endOfDay}
+      `;
     }
 
-    const results = await db
-      .select()
-      .from(journeys)
-      .where(whereCondition)
-      .orderBy(journeys.startTime);
+    query = sql`${query} ORDER BY start_time`;
+
+    const result = await db.execute(query);
     
-    return results.map(journey => ({
-      ...journey,
+    return result.rows.map(journey => ({
+      id: journey.id,
+      tenantId: journey.tenant_id,
+      userId: journey.user_id,
+      startTime: journey.start_time,
+      endTime: journey.end_time || undefined,
+      status: journey.status,
+      notes: journey.notes || undefined,
+      totalHours: journey.total_hours ? parseFloat(journey.total_hours) : undefined,
       location: journey.location ? JSON.parse(journey.location) : undefined,
+      createdAt: journey.created_at,
+      updatedAt: journey.updated_at,
     }));
   }
 
@@ -72,6 +118,16 @@ export class DrizzleJourneyRepository implements IJourneyRepository {
       ));
     
     if (!journey) return null;
+
+    return {
+      ...journey,
+      endTime: journey.endTime || undefined,
+      notes: journey.notes || undefined,
+      totalHours: journey.totalHours ? parseFloat(journey.totalHours) : undefined,
+      overtimeHours: journey.overtimeHours ? parseFloat(journey.overtimeHours) : undefined,
+      location: journey.location ? JSON.parse(journey.location) : undefined,
+    };
+  }
     
     return {
       ...journey,

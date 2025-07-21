@@ -1,6 +1,11 @@
 // Enhanced Multi-Tenant Validation Middleware
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../services/LoggingService';
+// Simple logger replacement
+const logger = {
+  warn: (message: string, meta?: any) => console.warn(message, meta || ''),
+  error: (message: string, meta?: any) => console.error(message, meta || ''),
+  debug: (message: string, meta?: any) => console.debug(message, meta || ''),
+};
 
 export interface TenantValidatedRequest extends Request {
   tenantId?: string;
