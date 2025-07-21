@@ -68,8 +68,8 @@ export const users = pgTable("users", {
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  firstName: varchar("first_name", { length: 255 }),
-  lastName: varchar("last_name", { length: 255 }),
+  firstName: varchar("first_name", { length: 255 }).notNull(),
+  lastName: varchar("last_name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }),
   company: varchar("company", { length: 255 }),
@@ -189,12 +189,12 @@ export const userSkills = pgTable("user_skills", {
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  nome: varchar("nome", { length: 255 }).notNull(),
+  nome: varchar("nome", { length: 255 }).notNull(), // Campo brasileiro - manter português
   email: varchar("email", { length: 255 }),
-  telefone: varchar("telefone", { length: 20 }),
+  telefone: varchar("telefone", { length: 20 }), // Campo brasileiro - manter português
   celular: varchar("celular", { length: 20 }),
-  cpf: varchar("cpf", { length: 14 }),
-  cnpj: varchar("cnpj", { length: 18 }),
+  cpf: varchar("cpf", { length: 14 }), // CPF brasileiro - manter português
+  cnpj: varchar("cnpj", { length: 18 }), // CNPJ brasileiro - manter português
   rg: varchar("rg", { length: 20 }),
   codigoIntegracao: varchar("codigo_integracao", { length: 100 }),
   endereco: text("endereco"),
@@ -223,7 +223,7 @@ export const projects = pgTable("projects", {
   endDate: date("end_date"),
   managerId: uuid("manager_id"),
   clientId: uuid("client_id"),
-  teamMemberIds: uuid("team_member_ids").array(),
+  teamMemberIds: jsonb("team_member_ids").$type<string[]>().default([]),
   tags: text("tags").array(),
   customFields: jsonb("custom_fields"),
   isActive: boolean("is_active").default(true),
@@ -245,9 +245,9 @@ export const projectActions = pgTable("project_actions", {
   actualHours: integer("actual_hours"),
   scheduledDate: date("scheduled_date"),
   assignedToId: uuid("assigned_to_id"),
-  responsibleIds: uuid("responsible_ids").array(),
-  dependsOnActionIds: uuid("depends_on_action_ids").array(),
-  blockedByActionIds: uuid("blocked_by_action_ids").array(),
+  responsibleIds: jsonb("responsible_ids").$type<string[]>().default([]),
+  dependsOnActionIds: jsonb("depends_on_action_ids").$type<string[]>().default([]),
+  blockedByActionIds: jsonb("blocked_by_action_ids").$type<string[]>().default([]),
   relatedTicketId: uuid("related_ticket_id"),
   canConvertToTicket: boolean("can_convert_to_ticket").default(false),
   ticketConversionRules: jsonb("ticket_conversion_rules"),
