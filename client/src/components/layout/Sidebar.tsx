@@ -43,7 +43,8 @@ import {
   Folder,
   Clock,
   Route,
-  Calendar
+  Calendar,
+  Globe2
 } from "lucide-react";
 
 // Base navigation with proper types
@@ -130,6 +131,7 @@ const adminNavigation = [
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
       { name: "OmniBridge", href: "/omnibridge", icon: Mail },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
+      { name: "Multilocation Settings", href: "/tenant-admin/multilocation", icon: Globe2 },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
     ]
   },

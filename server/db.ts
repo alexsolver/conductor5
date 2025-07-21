@@ -41,9 +41,9 @@ export const schemaManager = {
         throw new Error(`Tenant schema not found: ${schemaName}`);
       }
       
-      // Verificar tabelas TENANT-SPECIFIC obrigatórias (12 de 15 tabelas totais do schema-master.ts)
+      // Verificar tabelas TENANT-SPECIFIC obrigatórias (15 de 18 tabelas totais do schema-master.ts)
       // NOTA: 3 tabelas PUBLIC (sessions, tenants, users) validadas separadamente em ensurePublicTables()
-      // TENANT SCHEMA: 12 tabelas conforme definições no schema-master.ts
+      // TENANT SCHEMA: 15 tabelas conforme definições no schema-master.ts (12 originais + 3 multilocation)
       const requiredTables = [
     'customers',
     'tickets',
@@ -56,8 +56,11 @@ export const schemaManager = {
     'user_skills',
     'favorecidos',
     'projects',
-    'project_actions'
-  ]; // Total: 12 tenant-specific tables
+    'project_actions',
+    'market_localization',
+    'field_alias_mapping',
+    'localization_context'
+  ]; // Total: 15 tenant-specific tables
       
       const tableCount = await pool.query(
         `SELECT COUNT(*) as count FROM information_schema.tables 
@@ -67,7 +70,7 @@ export const schemaManager = {
       
       const expectedCount = requiredTables.length;
       if (parseInt(tableCount.rows[0].count) !== expectedCount) {
-        throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/${expectedCount} required tables (12 of 15 total schema tables)`);
+        throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/${expectedCount} required tables (15 of 18 total schema tables)`);
       }
       
       return true;
@@ -104,7 +107,7 @@ export const schemaManager = {
   
   async ensurePublicTables() {
     try {
-      // Verificar tabelas públicas obrigatórias (3 de 15 tabelas totais do schema-master.ts)  
+      // Verificar tabelas públicas obrigatórias (3 de 18 tabelas totais do schema-master.ts)  
       // PUBLIC SCHEMA: sessions (linha 27-35), tenants (linha 38-46), users (linha 49-63)
       // NOTA: sessions tabela existe no schema-master.ts e é necessária para express-session
       const requiredPublicTables = ['sessions', 'tenants', 'users'];
@@ -121,7 +124,7 @@ export const schemaManager = {
         }
       }
       
-      console.log(`✅ Public tables validation completed: ${requiredPublicTables.length}/3 tables validated (3 of 15 total schema tables)`);
+      console.log(`✅ Public tables validation completed: ${requiredPublicTables.length}/3 tables validated (3 of 18 total schema tables)`);
       return true;
     } catch (error) {
       console.error("❌ Public tables validation failed:", (error as Error).message);

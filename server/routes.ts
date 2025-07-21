@@ -25,6 +25,7 @@ import ticketRelationshipsRoutes from './routes/ticketRelationships';
 import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
+import multilocationRoutes from './routes/multilocation';
 // Removed: journeyRoutes - functionality eliminated from system
 // import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
 // import scheduleRoutes from './modules/schedule-management/routes'; // Temporarily removed
@@ -151,6 +152,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and mount localization routes
   const localizationRoutes = await import('./routes/localization');
   app.use('/api/localization', localizationRoutes.default);
+  
+  // Import and mount multilocation routes (enterprise international support)
+  const multilocationRoutes = await import('./routes/multilocation');
+  app.use('/api/multilocation', multilocationRoutes.default);
 
   // Import and mount tenant provisioning routes
   const tenantProvisioningRoutes = await import('./routes/tenant-provisioning');

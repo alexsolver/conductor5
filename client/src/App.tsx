@@ -58,6 +58,7 @@ import OmniBridge from "./pages/OmniBridge";
 import Timecard from "./pages/Timecard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
+import MultilocationAdmin from "./pages/MultilocationAdmin";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -116,6 +117,7 @@ function AppRouter() {
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
+        <Route path="/tenant-admin/multilocation" component={MultilocationAdmin} />
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />

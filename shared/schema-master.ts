@@ -345,6 +345,76 @@ export const insertProjectSchema = createInsertSchema(projects);
 export const insertProjectActionSchema = createInsertSchema(projectActions);
 
 // ========================================
+// MULTILOCATION TABLES (ENTERPRISE INTERNATIONAL SUPPORT)
+// ========================================
+
+// Market Localization Configuration - Estratégia híbrida para suporte internacional
+export const marketLocalization = pgTable("market_localization", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Market Configuration
+  marketCode: varchar("market_code", { length: 10 }).notNull(), // BR, US, EU, etc.
+  countryCode: varchar("country_code", { length: 2 }).notNull(), // ISO 3166-1
+  languageCode: varchar("language_code", { length: 10 }).notNull(), // pt-BR, en-US, etc.
+  currencyCode: varchar("currency_code", { length: 3 }).notNull(), // BRL, USD, EUR
+  
+  // Legal/Cultural Field Mapping (mantém CPF, CNPJ, RG + aliases internacionais)
+  legalFieldMappings: jsonb("legal_field_mappings").default({}).notNull(),
+  validationRules: jsonb("validation_rules").default({}).notNull(),
+  displayConfig: jsonb("display_config").default({}).notNull(),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueTenantMarket: unique("market_localization_tenant_market_unique").on(table.tenantId, table.marketCode),
+  tenantActiveIdx: index("market_localization_tenant_active_idx").on(table.tenantId, table.isActive),
+}));
+
+// Field Alias Mapping - Aliases internacionais para campos brasileiros (cpf → tax_id)
+export const fieldAliasMapping = pgTable("field_alias_mapping", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
+  sourceField: varchar("source_field", { length: 100 }).notNull(), // cpf, cnpj, rg
+  aliasField: varchar("alias_field", { length: 100 }).notNull(), // tax_id, business_tax_id
+  aliasDisplayName: varchar("alias_display_name", { length: 200 }).notNull(),
+  marketCode: varchar("market_code", { length: 10 }).notNull(),
+  validationRules: jsonb("validation_rules").default({}).notNull(),
+  transformationRules: jsonb("transformation_rules").default({}).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("field_alias_tenant_table_idx").on(table.tenantId, table.sourceTable),
+  index("field_alias_market_code_idx").on(table.marketCode),
+]);
+
+// Localization Context - Contexto de localização para forms e displays
+export const localizationContext = pgTable("localization_context", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contextKey: varchar("context_key", { length: 100 }).notNull(), // "favorecidos_form"
+  contextType: varchar("context_type", { length: 50 }).notNull(), // "form", "display"
+  marketCode: varchar("market_code", { length: 10 }).notNull(),
+  labels: jsonb("labels").default({}).notNull(), // Labels por idioma
+  placeholders: jsonb("placeholders").default({}).notNull(),
+  helpTexts: jsonb("help_texts").default({}).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("localization_context_tenant_key_idx").on(table.tenantId, table.contextKey),
+  index("localization_context_market_idx").on(table.marketCode),
+]);
+
+export const insertMarketLocalizationSchema = createInsertSchema(marketLocalization);
+export const insertFieldAliasMappingSchema = createInsertSchema(fieldAliasMapping);
+export const insertLocalizationContextSchema = createInsertSchema(localizationContext);
+
+// ========================================
 // TYPE EXPORTS
 // ========================================
 
@@ -390,6 +460,15 @@ export type InsertProject = typeof projects.$inferInsert;
 
 export type ProjectAction = typeof projectActions.$inferSelect;
 export type InsertProjectAction = typeof projectActions.$inferInsert;
+
+export type MarketLocalization = typeof marketLocalization.$inferSelect;
+export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
+
+export type FieldAliasMapping = typeof fieldAliasMapping.$inferSelect;
+export type InsertFieldAliasMapping = typeof fieldAliasMapping.$inferInsert;
+
+export type LocalizationContext = typeof localizationContext.$inferSelect;
+export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
