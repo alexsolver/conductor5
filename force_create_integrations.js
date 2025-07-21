@@ -1,4 +1,3 @@
-
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -49,7 +48,7 @@ async function forceCreateIntegrationsInAllTenants() {
       // Create IMAP integration
       console.log(`Creating IMAP integration in ${schema}...`);
       const integrationId = 'imap-email-integration';
-      
+
       try {
         const configData = JSON.stringify({
           emailAddress: "alexsolver@gmail.com",
