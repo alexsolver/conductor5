@@ -28,8 +28,8 @@ import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
 import multilocationRoutes from './routes/multilocation';
 import geolocationRoutes from './routes/geolocation';
 import holidayRoutes from './routes/HolidayController';
-import omnibridgeRoutes from './routes/omnibridge';
-import omnibridgeDataRoutes from './routes/omnibridgeData';
+// import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
+
 // Removed: journeyRoutes - functionality eliminated from system
 // import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
 // import scheduleRoutes from './modules/schedule-management/routes'; // Temporarily removed
@@ -44,8 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     nonce: true
   }));
 
-  // Mount OmniBridge data routes (without authentication)
-  app.use('/omnibridge-data', omnibridgeDataRoutes);
+
 
   // Apply memory-based rate limiting middleware  
   app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
