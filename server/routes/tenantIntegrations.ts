@@ -99,14 +99,27 @@ router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req
   try {
     const tenantId = req.user!.tenantId;
     
-
-if (!tenantId) {
+    if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
+    console.log(`🔧 Fetching integrations for tenant: ${tenantId}`);
     const { storage } = await import('../storage-simple');
+    const integrations = await storage.getTenantIntegrations(tenantId);
     
+    console.log(`🔧 Found ${integrations.length} integrations for tenant ${tenantId}`);
+    
+    res.json({ 
+      integrations,
+      total: integrations.length
+    });
   } catch (error) {
+    console.error('Error fetching tenant integrations:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch tenant integrations',
+      integrations: [],
+      total: 0
+    });
   }
 });
 
