@@ -73,6 +73,8 @@ const baseNavigation: Array<{
   { name: "Locais", href: "/locations", icon: MapPin },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
+  { name: "Gestão de Jornada", href: "/journey-management", icon: Clock },
+  { name: "Gestão de Agenda", href: "/schedule-management", icon: Calendar },
   { name: "Compliance", href: "/compliance", icon: Shield },
 ];
 
