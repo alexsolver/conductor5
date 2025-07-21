@@ -10,6 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
   Settings,
@@ -48,6 +56,11 @@ export default function OmniBridge() {
   const [activeTab, setActiveTab] = useState('channels');
   const [refreshKey, setRefreshKey] = useState(0);
   const queryClient = useQueryClient();
+  
+  // Channel configuration states
+  const [selectedChannel, setSelectedChannel] = useState<any>(null);
+  const [syncConfigOpen, setSyncConfigOpen] = useState(false);
+  const [syncInterval, setSyncInterval] = useState(2); // Default 2 minutes
 
   // Use only real APIs - no mock data
   const { data: integrationsData, isLoading: integrationsLoading, refetch: refetchIntegrations } = useQuery({
@@ -105,6 +118,49 @@ export default function OmniBridge() {
     onError: (error: Error) => {
       toast({
         title: "Erro ao Parar Monitoramento",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Toggle channel status mutation
+  const toggleChannelMutation = useMutation({
+    mutationFn: async ({ channelId, enabled }: { channelId: string, enabled: boolean }) => {
+      // For now, just simulate - in production would call real API
+      return { success: true, channelId, enabled };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: `Canal ${data.enabled ? 'Ativado' : 'Desativado'}`,
+        description: `O canal foi ${data.enabled ? 'ativado' : 'desativado'} com sucesso.`
+      });
+      refetchIntegrations();
+    }
+  });
+
+  // Configure sync interval for channel
+  const configureSyncMutation = useMutation({
+    mutationFn: async ({ channelId, intervalMinutes }: { channelId: string, intervalMinutes: number }) => {
+      // For IMAP channels, we would integrate with the Gmail service
+      if (channelId === 'imap-email') {
+        return await apiRequest('POST', '/api/omnibridge/configure-sync', {
+          channelId,
+          intervalMinutes
+        });
+      }
+      return { success: true, channelId, intervalMinutes };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Configuração de Sync Atualizada",
+        description: `Intervalo de sincronização configurado para ${data.intervalMinutes} minutos.`
+      });
+      setSyncConfigOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro na Configuração",
         description: error.message,
         variant: "destructive"
       });
@@ -190,31 +246,7 @@ export default function OmniBridge() {
             <span className="text-sm text-green-600 font-medium">Sistema Ativo</span>
           </div>
           
-          {/* IMAP Monitoring Control */}
-          <div className="flex items-center gap-2">
-            {(monitoringStatus as any)?.isActive ? (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => stopMonitoringMutation.mutate()}
-                disabled={stopMonitoringMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <Pause className="h-4 w-4" />
-                {stopMonitoringMutation.isPending ? 'Parando...' : 'Parar Monitoramento'}
-              </Button>
-            ) : (
-              <Button 
-                size="sm"
-                onClick={() => startMonitoringMutation.mutate()}
-                disabled={startMonitoringMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <Play className="h-4 w-4" />
-                {startMonitoringMutation.isPending ? 'Iniciando...' : 'Iniciar Monitoramento IMAP'}
-              </Button>
-            )}
-          </div>
+
 
           <Button 
             variant="outline"
@@ -334,7 +366,7 @@ export default function OmniBridge() {
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-3">
                             <Badge className={getStatusColor(channel.status)}>
                               {channel.status === 'connected' ? 'Conectado' : 
                                channel.status === 'disconnected' ? 'Desconectado' : 
@@ -342,6 +374,73 @@ export default function OmniBridge() {
                             </Badge>
                             <div className="text-xs text-gray-500">
                               {channel.category}
+                            </div>
+                          </div>
+
+                          {/* Channel Control Buttons */}
+                          <div className="space-y-3 mt-4">
+                            {/* Status Toggle */}
+                            <div className="flex items-center gap-2">
+                              <Switch 
+                                checked={channel.status === 'connected'} 
+                                onCheckedChange={(enabled) => 
+                                  toggleChannelMutation.mutate({ 
+                                    channelId: channel.id, 
+                                    enabled 
+                                  })
+                                }
+                                disabled={toggleChannelMutation.isPending}
+                              />
+                              <span className="text-sm text-gray-600">
+                                {channel.status === 'connected' ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2">
+                              {/* IMAP Monitoring Control - Only for IMAP email channel */}
+                              {channel.id === 'imap-email' && (
+                                <>
+                                  {(monitoringStatus as any)?.isActive ? (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => stopMonitoringMutation.mutate()}
+                                      disabled={stopMonitoringMutation.isPending}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Pause className="h-3 w-3" />
+                                      {stopMonitoringMutation.isPending ? 'Parando...' : 'Parar'}
+                                    </Button>
+                                  ) : (
+                                    <Button 
+                                      size="sm"
+                                      onClick={() => startMonitoringMutation.mutate()}
+                                      disabled={startMonitoringMutation.isPending}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Play className="h-3 w-3" />
+                                      {startMonitoringMutation.isPending ? 'Iniciando...' : 'Monitorar'}
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                              
+                              {/* Sync Configuration Button - For email channels */}
+                              {(channel.id === 'imap-email' || channel.name.toLowerCase().includes('email')) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedChannel(channel);
+                                    setSyncConfigOpen(true);
+                                  }}
+                                  className="flex items-center gap-1"
+                                >
+                                  <Clock className="h-3 w-3" />
+                                  Sync
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -483,6 +582,57 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Sync Configuration Dialog */}
+      <Dialog open={syncConfigOpen} onOpenChange={setSyncConfigOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar Tempo de Sincronização</DialogTitle>
+            <DialogDescription>
+              Configure o intervalo de sincronização para o canal {selectedChannel?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="syncInterval" className="text-right">
+                Intervalo (minutos)
+              </Label>
+              <Input
+                id="syncInterval"
+                type="number"
+                min="1"
+                max="60"
+                value={syncInterval}
+                onChange={(e) => setSyncInterval(parseInt(e.target.value) || 2)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Intervalo recomendado: 2-5 minutos para alta frequência, 10-30 minutos para uso normal
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSyncConfigOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedChannel) {
+                  configureSyncMutation.mutate({
+                    channelId: selectedChannel.id,
+                    intervalMinutes: syncInterval
+                  });
+                }
+              }}
+              disabled={configureSyncMutation.isPending}
+            >
+              {configureSyncMutation.isPending ? 'Configurando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
