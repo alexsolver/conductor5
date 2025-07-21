@@ -410,9 +410,35 @@ export const localizationContext = pgTable("localization_context", {
   index("localization_context_market_idx").on(table.marketCode),
 ]);
 
+// ========================================
+// HOLIDAYS SYSTEM (CONTROLE DE JORNADAS) 
+// ========================================
+
+// Holidays table for multilocation journey control system
+export const holidays = pgTable("holidays", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  date: date("date").notNull(),
+  type: varchar("type", { length: 20 }).notNull(), // 'national', 'regional', 'corporate', 'optional'
+  countryCode: varchar("country_code", { length: 3 }).notNull(), // ISO country codes (BRA, USA, etc.)
+  regionCode: varchar("region_code", { length: 10 }), // State/Province codes (SP, CA, etc.)
+  isRecurring: boolean("is_recurring").default(false),
+  isActive: boolean("is_active").default(true),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("holidays_tenant_date_idx").on(table.tenantId, table.date),
+  index("holidays_tenant_country_idx").on(table.tenantId, table.countryCode),
+  index("holidays_tenant_type_idx").on(table.tenantId, table.type),
+  index("holidays_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
 export const insertMarketLocalizationSchema = createInsertSchema(marketLocalization);
 export const insertFieldAliasMappingSchema = createInsertSchema(fieldAliasMapping);
 export const insertLocalizationContextSchema = createInsertSchema(localizationContext);
+export const insertHolidaySchema = createInsertSchema(holidays);
 
 // ========================================
 // TYPE EXPORTS
@@ -469,6 +495,9 @@ export type InsertFieldAliasMapping = typeof fieldAliasMapping.$inferInsert;
 
 export type LocalizationContext = typeof localizationContext.$inferSelect;
 export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
+
+export type Holiday = typeof holidays.$inferSelect;
+export type InsertHoliday = typeof holidays.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;

@@ -1,0 +1,68 @@
+🎯 OBJETIVO
+Implemente um sistema completo de calendário de feriados para controle de jornadas em ambiente multilocation, permitindo gerenciar feriados nacionais, regionais e corporativos por país/região.
+
+📋 ESPECIFICAÇÕES TÉCNICAS
+1. ESTRUTURA DE TABELAS (Schema)
+Crie tabela holidays no schema tenant com campos:
+id (UUID primary key)
+name (varchar 255) - Nome do feriado
+date (date) - Data do feriado
+type (enum: 'national', 'regional', 'corporate', 'optional')
+countryCode (varchar 3) - Código ISO do país
+regionCode (varchar 10) - Código da região/estado (opcional)
+isRecurring (boolean) - Se repete anualmente
+isActive (boolean) - Status ativo/inativo
+description (text) - Descrição opcional
+createdAt, updatedAt - Campos de auditoria
+2. BACKEND - API REST
+Endpoint GET /api/holidays - Listar feriados por país/região/ano
+Endpoint POST /api/holidays - Criar novo feriado
+Endpoint PUT /api/holidays/:id - Atualizar feriado
+Endpoint DELETE /api/holidays/:id - Remover feriado
+Endpoint GET /api/holidays/check/:date - Verificar se data é feriado
+Endpoint POST /api/holidays/import - Importar feriados de APIs externas
+3. CONTROLLER E REPOSITORY
+Crie HolidayController.ts em server/routes/
+Implemente DrizzleHolidayRepository.ts para operações de banco
+Adicione validações de sobreposição de feriados
+Integre com sistema de multilocation existente
+4. FRONTEND - Interface de Gestão
+Página Holidays.tsx em client/src/pages/
+Componente calendário visual para visualizar feriados
+Modal para criar/editar feriados
+Filtros por país, região, tipo de feriado
+Import/export de feriados em CSV/JSON
+Integração com calendário de escalas de trabalho
+5. INTEGRAÇÃO COM TIMECARD
+Modifique WorkSchedules.tsx para considerar feriados
+Atualize cálculo de banco de horas para descontar feriados
+Implemente alertas para conflitos feriado vs escala
+Adicione validação de ponto em feriados
+6. MULTILOCATION SUPPORT
+Configure feriados específicos por mercado (BR, US, etc.)
+Implemente herança: feriados nacionais → regionais → corporativos
+Suporte a diferentes calendários (Gregoriano, Lunar, etc.)
+API de feriados externos (Google Calendar, timeanddate.com)
+🚀 COMANDOS DE EXECUÇÃO
+Ordem de Implementação:
+Schema: Adicione tabela holidays ao schema-master.ts
+Repository: Crie DrizzleHolidayRepository com CRUD completo
+Controller: Implemente HolidayController com todos endpoints
+Routes: Configure rotas em routes.ts
+Frontend: Desenvolva página Holidays.tsx
+Integração: Conecte com WorkSchedules e Timecard
+Testing: Valide com dados reais de feriados brasileiros
+Validações Obrigatórias:
+✅ Feriados não podem se sobrepor para mesmo país/região
+✅ Data deve ser válida e não pode ser passada para feriados ativos
+✅ Integração com sistema de permissões (apenas admins criam feriados)
+✅ Suporte a fusos horários diferentes por região
+✅ Fallback para feriados quando APIs externas falham
+📊 ENTREGÁVEIS ESPERADOS
+Schema atualizado com tabela holidays
+API REST completa para gestão de feriados
+Interface frontend para administração
+Integração com controle de jornadas
+Suporte multilocation com herança de feriados
+Documentação de uso e APIs externas suportadas
+Execute na sequência: Schema → Backend → Frontend → Integração → Testes

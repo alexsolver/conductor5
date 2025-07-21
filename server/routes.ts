@@ -26,6 +26,7 @@ import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
 import multilocationRoutes from './routes/multilocation';
+import holidayRoutes from './routes/HolidayController';
 // Removed: journeyRoutes - functionality eliminated from system
 // import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
 // import scheduleRoutes from './modules/schedule-management/routes'; // Temporarily removed
@@ -314,6 +315,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
+  
+  // Holiday routes for journey control system
+  app.use('/api/holidays', holidayRoutes);
+  
   // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
 
 

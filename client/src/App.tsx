@@ -59,6 +59,7 @@ import Timecard from "./pages/Timecard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
 import MultilocationAdmin from "./pages/MultilocationAdmin";
+import HolidayCalendar from "./pages/HolidayCalendar";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -138,6 +139,7 @@ function AppRouter() {
         <Route path="/hour-bank" component={HourBank} />
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/schedule-templates" component={ScheduleTemplates} />
+        <Route path="/holiday-calendar" component={HolidayCalendar} />
         <Route path="/omnibridge" component={OmniBridge} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
