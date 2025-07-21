@@ -116,7 +116,7 @@ export const ticketMessages = pgTable("ticket_messages", {
   updatedAt: timestamp("updated_at").defaultNow(),  // Fixed: audit field added
 });
 
-// Activity Logs table - Critical indexes added
+// Activity Logs table - Critical indexes added, audit fields completed
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -127,6 +127,7 @@ export const activityLogs = pgTable("activity_logs", {
   metadata: jsonb("metadata"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),  // Fixed: audit field added
 }, (table) => [
   index("activity_logs_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
   index("activity_logs_tenant_time_idx").on(table.tenantId, table.createdAt),
