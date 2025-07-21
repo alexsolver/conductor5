@@ -40,6 +40,10 @@ export class GmailService {
         host: config.host,
         port: config.port,
         tls: config.tls,
+        tlsOptions: {
+          rejectUnauthorized: false,
+          secureProtocol: 'TLSv1_2_method'
+        },
         authTimeout: 5000,
         connTimeout: 10000,
         keepalive: false
@@ -122,9 +126,13 @@ export class GmailService {
         host: config.host,
         port: config.port,
         tls: config.tls,
-        authTimeout: 10000,
-        connTimeout: 30000,
-        keepalive: true
+        tlsOptions: {
+          rejectUnauthorized: false,
+          secureProtocol: 'TLSv1_2_method',
+          servername: config.host
+        },
+        authTimeout: 30000,
+        connTimeout: 30000
       });
 
       return new Promise((resolve, reject) => {
@@ -185,15 +193,33 @@ export class GmailService {
       }
 
       const config = JSON.parse(integrationResult.rows[0].config as string);
-      
-      // Connect to Gmail
-      const connected = await this.connectToGmail(tenantId, {
-        user: config.emailAddress || config.username,
-        password: config.password,
-        host: config.imapServer || config.serverHost,
-        port: config.imapPort || config.serverPort,
-        tls: config.imapSecurity === 'SSL/TLS' || config.useSSL
+      console.log(`📋 Gmail Config Debug:`, {
+        emailAddress: !!config.emailAddress,
+        password: !!config.password,
+        imapServer: config.imapServer,
+        imapPort: config.imapPort,
+        imapSecurity: config.imapSecurity,
+        configKeys: Object.keys(config)
       });
+      
+      // Connect to Gmail with explicit Gmail configuration
+      const gmailConfig = {
+        user: config.emailAddress,
+        password: config.password,
+        host: config.imapServer || 'imap.gmail.com',
+        port: parseInt(config.imapPort) || 993,
+        tls: config.imapSecurity === 'SSL/TLS'
+      };
+      
+      console.log(`📧 Gmail Connection Config:`, {
+        user: gmailConfig.user,
+        host: gmailConfig.host,
+        port: gmailConfig.port,
+        tls: gmailConfig.tls,
+        hasPassword: !!gmailConfig.password
+      });
+      
+      const connected = await this.connectToGmail(tenantId, gmailConfig);
 
       if (!connected) {
         return {

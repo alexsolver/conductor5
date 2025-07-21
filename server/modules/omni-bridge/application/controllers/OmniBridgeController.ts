@@ -10,14 +10,19 @@ import { IChannelRepository } from '../../domain/repositories/IChannelRepository
 import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository';
 import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository';
 import { IMessageTemplateRepository } from '../../domain/repositories/IMessageTemplateRepository';
+import { GmailService } from '../../../../services/integrations/gmail/GmailService';
 
 export class OmniBridgeController {
+  private gmailService: GmailService;
+  
   constructor(
     private channelRepository: IChannelRepository,
     private messageRepository: IUnifiedMessageRepository,
     private ruleRepository: IProcessingRuleRepository,
     private templateRepository: IMessageTemplateRepository
-  ) {}
+  ) {
+    this.gmailService = new GmailService();
+  }
 
   async getChannels(req: Request, res: Response): Promise<void> {
     try {
@@ -277,6 +282,58 @@ export class OmniBridgeController {
     } catch (error) {
       console.error('Error fetching templates:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch templates' });
+    }
+  }
+
+  async startMonitoring(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId;
+      const { integrationId, channelType } = req.body;
+      
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        return;
+      }
+
+      console.log(`🔄 Starting monitoring for tenant: ${tenantId}, integration: ${integrationId}`);
+
+      // Start Gmail monitoring if IMAP email integration
+      if (integrationId === 'imap-email' || channelType === 'email') {
+        const result = await this.gmailService.startEmailMonitoring(tenantId, integrationId);
+        
+        if (result.success) {
+          console.log('✅ Gmail monitoring started successfully');
+          res.json({
+            success: true,
+            message: 'Gmail monitoring started successfully',
+            data: {
+              tenantId,
+              integrationId,
+              channelType: 'email',
+              status: 'active'
+            }
+          });
+        } else {
+          console.error('❌ Failed to start Gmail monitoring:', result.message);
+          res.status(400).json({
+            success: false,
+            message: result.message || 'Failed to start Gmail monitoring'
+          });
+        }
+      } else {
+        // Other integrations can be added here
+        res.status(400).json({
+          success: false,
+          message: `Integration ${integrationId} not supported yet`
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error starting monitoring:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to start monitoring',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      });
     }
   }
 

@@ -76,5 +76,6 @@ router.get('/templates', omniBridgeController.getTemplates.bind(omniBridgeContro
 
 // === MONITORING ROUTES ===
 router.get('/monitoring', omniBridgeController.getMonitoringStatus.bind(omniBridgeController));
+router.post('/monitoring/start', omniBridgeController.startMonitoring.bind(omniBridgeController));
 
 export { router as omniBridgeRoutes };
