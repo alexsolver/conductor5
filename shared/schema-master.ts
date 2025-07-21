@@ -185,7 +185,7 @@ export const userSkills = pgTable("user_skills", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Favorecidos table (Brazilian business context)
+// Favorecidos table (Brazilian business context - external beneficiaries)
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),

@@ -244,6 +244,41 @@ Preferred communication style: Simple, everyday language.
 - ✅ Risco BAIXO - inconsistências não afetam funcionalidade, apenas manutenibilidade
 - ✅ Guia completo para equipe de desenvolvimento com exemplos práticos
 
+### July 21, 2025 - NOMENCLATURE STANDARDIZATION SYSTEM COMPLETED ✅ PORTUGUESE/ENGLISH PATTERNS DOCUMENTED
+
+**🎯 PROBLEMAS DE NOMENCLATURA SISTEMATICAMENTE MAPEADOS:**
+
+✅ **PORTUGUESE VS ENGLISH INCONSISTENCIES MAPPED:**
+- Identificadas tabelas mistas: `favorecidos` (português) vs `customers/external_contacts` (inglês)
+- Campos brasileiros documentados: `cpf`, `rg`, `cnpj` (manter por especificidade legal)
+- Decisão: Coexistência controlada - `favorecidos` para negócios BR, `external_contacts` para internacional
+- Sistema de validação de nomenclatura implementado
+
+✅ **UNDERSCORE VS CAMELCASE CONVENTIONS STANDARDIZED:**
+- Database PostgreSQL: SEMPRE snake_case (`customer_companies`, `user_skills`, `project_actions`)
+- Schema TypeScript: SEMPRE camelCase (`customerCompanies`, `userSkills`, `projectActions`) 
+- APIs: kebab-case URLs (`/api/customer-companies`) + camelCase JSON responses
+- Components: PascalCase (`CustomerCompanies.tsx`)
+
+✅ **COMPREHENSIVE NOMENCLATURE STANDARDS CREATED:**
+- NOMENCLATURE_STANDARDS.md com todas as regras estabelecidas
+- NomenclatureStandardizer.ts para validação automática
+- Padrões para novos desenvolvimentos documentados
+- Sistema de validação para manter consistência
+
+✅ **BUSINESS RULES FOR BRAZILIAN CONTEXT:**
+- Termos brasileiros mantidos: `cpf`, `cnpj`, `rg`, `favorecidos`
+- Termos internacionais: `customers`, `users`, `projects`, `email`, `phone`
+- Campos sistema padronizados: `tenant_id` UUID, `is_active` boolean, `created_at`/`updated_at` timestamp
+
+**🚀 RESULTADO FINAL:**
+- ✅ Inconsistências de nomenclatura completamente mapeadas e documentadas
+- ✅ Padrões claros estabelecidos para Database, Schema, API e Frontend
+- ✅ Coexistência controlada português/inglês para contexto brasileiro
+- ✅ Sistema de validação automática para novos desenvolvimentos
+- ✅ Risco BAIXO - inconsistências não afetam funcionalidade, apenas manutenibilidade
+- ✅ Guia completo para equipe de desenvolvimento com exemplos práticos
+
 ### July 21, 2025 - SCHEMA INCONSISTENCIES COMPLETELY RESOLVED ✅ CRITICAL FIELDS STANDARDIZATION
 
 **🎯 PROBLEMAS CRÍTICOS DE CAMPOS OBRIGATÓRIOS RESOLVIDOS:**
