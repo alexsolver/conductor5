@@ -1,0 +1,92 @@
+Baseado na análise dos arquivos do projeto, identifiquei várias inconsistências no schema do banco de dados. Vou listar todas as inconsistências encontradas:
+
+ANÁLISE COMPLETA DE INCONSISTÊNCIAS NO SCHEMA
+1. ARQUITETURA FRAGMENTADA
+1.1. Múltiplos Arquivos de Schema
+shared/schema.ts - Schema legacy (apenas re-exports)
+shared/schema-unified.ts - Schema unificado completo
+shared/schema-simple.ts - Schema simplificado
+shared/schema/ - Estrutura modular (17 arquivos)
+PROBLEMA: Não há um ponto único de verdade para o schema.
+
+1.2. Inconsistência entre Schemas
+O schema-unified.ts define estruturas diferentes dos schemas modulares em shared/schema/.
+
+2. PROBLEMAS DE ESTRUTURA DE TABELAS
+2.1. Tabela solicitantes vs customers
+schema-unified.ts define tabela solicitantes com campos brasileiros
+Schemas modulares mantêm tabela customers com estrutura internacional
+Sistema usa ambas inconsistentemente
+2.2. Campos Conflitantes em customers
+// Em schema-unified.ts
+documento: varchar("documento", { length: 50 }), // CPF/CNPJ
+tipoPessoa: varchar("tipo_pessoa", { length: 20 }).default("fisica"),
+// Em customer.ts modular
+// Estes campos não existem
+2.3. Tabela favorecidos Duplicada
+Definida em schema-unified.ts
+Também definida em server/db.ts com estrutura ligeiramente diferente
+Campos diferentes entre as definições
+3. INCONSISTÊNCIAS DE TIPOS DE DADOS
+3.1. IDs Inconsistentes
+// Em alguns lugares
+tenantId: varchar("tenant_id", { length: 36 })
+// Em outros lugares  
+tenantId: uuid("tenant_id")
+// Inconsistência de tipo entre VARCHAR e UUID
+3.2. Campos JSONB vs TEXT
+// schema-unified.ts
+settings: jsonb("settings").default({})
+// db.ts
+metadata: text("metadata") // Deveria ser JSONB
+4. PROBLEMAS DE VALIDAÇÃO
+4.1. Constraints Inconsistentes
+// Alguns locais têm
+CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+// Outros não têm validação de formato UUID
+4.2. Unique Constraints Conflitantes
+Algumas tabelas têm (tenant_id, email) unique
+Outras têm apenas email unique
+Pode causar problemas de multi-tenancy
+5. PROBLEMAS DE RELACIONAMENTOS
+5.1. Foreign Keys Inconsistentes
+// Em tickets
+solicitanteId: uuid("solicitante_id").references(() => solicitantes.id), // schema-unified
+customerId: uuid("customer_id") // db.ts (sem referência adequada)
+5.2. Relacionamentos Órfãos
+ticket_messages referencia customers que pode não existir se usando solicitantes
+favorecido_locations sem foreign keys definidas adequadamente
+6. PROBLEMAS DE ÍNDICES
+6.1. Índices Duplicados
+-- Definidos múltiplas vezes
+CREATE INDEX customers_tenant_email_idx
+CREATE INDEX customers_tenant_active_idx
+6.2. Índices Faltantes
+Faltam índices para performance em queries frequentes
+Relacionamentos sem índices adequados
+7. PROBLEMAS DE MIGRAÇÃO
+7.1. Auto-healing Conflitante
+O server/db.ts tem lógica de auto-healing que pode conflitar com schemas definidos:
+
+// Tenta migrar tabelas que podem não existir no schema atual
+await this.migrateLegacyTables(schemaName);
+7.2. Validação de Tabelas Inconsistente
+// Valida 17 tabelas mas algumas podem não estar definidas no schema ativo
+const requiredTables = [
+  'customers', 'tickets', 'favorecidos', // etc...
+];
+8. PROBLEMAS DE TIPOS TYPESCRIPT
+8.1. Tipos Conflitantes
+// schema-unified.ts
+export type SelectSolicitante = typeof solicitantes.$inferSelect;
+// Mas código usa
+export type SelectCustomer = typeof customers.$inferSelect;
+8.2. Imports Quebrados
+shared/schema.ts faz re-export de schemas que podem não existir
+Circular dependencies potenciais
+9. PROBLEMAS DE CONFIGURAÇÃO DE AMBIENTE
+9.1. Drizzle Config Inconsistente
+O drizzle.config.ts pode estar apontando para schema incorreto.
+
+9.2. Versionamento de Schema
+Não há controle de versão adequado dos schemas.
