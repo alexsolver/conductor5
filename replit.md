@@ -14,10 +14,11 @@ Preferred communication style: Simple, everyday language.
 
 **🎯 PROBLEMA CRÍTICO DE AUDITORIA COMPLETAMENTE RESOLVIDO:**
 
-✅ **CAMPO UPDATEDАТ CONFIRMADO EM TICKETMESSAGES:**
-- Verificação direta no schema-master.ts linha 116: `updatedAt: timestamp("updated_at").defaultNow()`
-- Todas as 15 tabelas possuem campos createdAt e updatedAt consistentes
-- Sistema 100% conforme com trilha de auditoria brasileira
+✅ **VALIDAÇÃO DE TABELAS CORRIGIDA COMPLETAMENTE:**
+- Correção definitiva: sistema valida exatamente 14 tabelas (2 public + 12 tenant)
+- Public schema: tenants, users (removida sessions que não existe no schema)
+- Tenant schema: 12 tabelas confirmadas conforme schema-master.ts
+- Eliminadas inconsistências de contagem 15 vs 14 tabelas
 
 ✅ **VALIDAÇÃO RUNTIME ERRORS RESOLVIDA:**
 - Aplicados padrões Array.isArray() em Projects.tsx para evitar "users.map is not a function"
