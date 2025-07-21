@@ -1,0 +1,97 @@
+🎯 OBJETIVO
+Revise e complete o módulo multilocation para um sistema global abrangente de localização, removendo conceitos específicos brasileiros e implementando um sistema verdadeiramente internacional que adapte dados conforme a localização geográfica do usuário/tenant.
+
+📋 ANÁLISE E IMPLEMENTAÇÃO NECESSÁRIA
+1. REVISÃO E REMOÇÃO DE CONCEITOS BRASILEIROS
+Remova todas as referências à "Estratégia híbrida nomenclatura brasileira"
+Elimine textos sobre manter CPF/CNPJ/RG como padrão
+Substitua por sistema dinâmico baseado na localização atual
+Remova aliases fixos (tax_id, business_tax_id) por campos adaptativos
+2. IMPLEMENTAÇÃO DE DETECÇÃO AUTOMÁTICA DE LOCALIZAÇÃO
+Crie serviço de geolocalização automática por IP
+Implemente detecção de fuso horário do browser
+Configure detecção automática de país/região
+Adicione fallback para configuração manual
+3. SISTEMA DE CAMPOS DINÂMICOS POR PAÍS
+Implemente configuração de campos obrigatórios por país
+Crie validações específicas por localização (CPF para BR, SSN para US, etc.)
+Configure máscaras de entrada dinâmicas
+Implemente formatação automática de dados
+4. MÓDULOS ESSENCIAIS FALTANTES
+A. SISTEMA DE MOEDAS E CONVERSÃO
+API de cotações em tempo real
+Conversão automática de valores
+Histórico de taxas de câmbio
+Configuração de moeda padrão por região
+B. FORMATAÇÃO DE DADOS REGIONAIS
+Números (1.000,00 vs 1,000.00)
+Datas (DD/MM/YYYY vs MM/DD/YYYY)
+Telefones com códigos de país
+Endereços com formato local
+C. SISTEMA DE IMPOSTOS E COMPLIANCE
+Regras fiscais por país
+Cálculos de impostos locais
+Relatórios de compliance regional
+Integração com sistemas fiscais locais
+D. CALENDÁRIO MULTILOCATION COMPLETO
+Feriados nacionais e regionais por país
+Fuso horário automático
+Horário comercial por região
+Calendário lunar/alternativo quando aplicável
+5. INTERFACE ADMINISTRATIVA GLOBAL
+Dashboard de configuração por país/região
+Gestão centralizada de todas as localizações
+Monitor de atividade por região geográfica
+Relatórios de uso por localização
+6. INTEGRAÇÃO COM APIS EXTERNAS
+Google Maps/Places para endereços
+Serviços de validação de documentos por país
+APIs bancárias regionais
+Serviços postais locais
+7. SISTEMA DE TRADUÇÃO AUTOMÁTICA
+Integração com Google Translate
+Cache de traduções frequentes
+Tradução contextual de campos
+Suporte a RTL (árabe, hebraico)
+8. COMPLIANCE E SEGURANÇA REGIONAL
+GDPR para Europa
+LGPD para Brasil
+CCPA para Califórnia
+Configurações de privacidade por região
+🚀 COMANDOS DE EXECUÇÃO ESPECÍFICOS
+Ordem de Implementação:
+Remover Conceitos Brasileiros: Limpe todas as referências específicas ao Brasil
+Geolocalização: Implemente detecção automática de localização
+Campos Dinâmicos: Configure sistema de campos por país
+Moedas e Conversão: Adicione sistema completo de moedas
+Calendário Global: Implemente sistema de feriados internacionais
+Interface Admin: Desenvolva dashboard de gestão global
+APIs Externas: Integre serviços de validação globais
+Compliance: Configure regras de privacidade por região
+Arquivos a Revisar/Criar:
+shared/schema-multilocation.ts - Remover conceitos brasileiros
+server/services/GeolocationService.ts - Novo serviço de localização
+server/services/CurrencyService.ts - Sistema de moedas
+server/services/ComplianceService.ts - Regras por região
+client/src/components/MultilocationSettings.tsx - Interface global
+server/routes/geolocation.ts - APIs de localização
+server/services/HolidayService.ts - Calendário global
+Funcionalidades Críticas a Implementar:
+Auto-detecção de país por IP/GPS
+Campos dinâmicos baseados na localização
+Conversão automática de moedas
+Validação inteligente de documentos por país
+Formatação automática de dados regionais
+Compliance automático baseado na localização
+Feriados dinâmicos por região
+Interface adaptativa por cultura local
+📊 ENTREGÁVEIS ESPERADOS
+Sistema completamente desnacionalizado (sem bias brasileiro)
+Detecção automática de localização funcional
+Campos e validações dinâmicas por país
+Sistema de moedas com conversão em tempo real
+Calendário global com feriados regionais
+Interface administrativa para gestão global
+Compliance automático por região
+Documentação de uso internacional
+Execute na sequência: Limpeza → Geolocalização → Campos Dinâmicos → Moedas → Calendário → Interface → Compliance → Testes

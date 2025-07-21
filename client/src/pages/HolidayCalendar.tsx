@@ -378,12 +378,12 @@ export default function HolidayCalendar() {
             
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo</label>
-              <Select value={selectedType} onValueChange={setSelectedType}>
+              <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                   {Object.entries(typeLabels).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {label}
