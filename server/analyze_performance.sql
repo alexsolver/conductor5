@@ -1,0 +1,16 @@
+-- Analyze table statistics for performance optimization
+ANALYZE tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.customers;
+ANALYZE tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.favorecidos;
+ANALYZE tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.tickets;
+
+ANALYZE tenant_715c510a_3db5_4510_880a_9a1a5c320100.customers;
+ANALYZE tenant_715c510a_3db5_4510_880a_9a1a5c320100.favorecidos;
+ANALYZE tenant_715c510a_3db5_4510_880a_9a1a5c320100.tickets;
+
+ANALYZE tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a.customers;
+ANALYZE tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a.favorecidos;
+ANALYZE tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a.tickets;
+
+ANALYZE tenant_cb9056df_d964_43d7_8fd8_b0cc00a72056.customers;
+ANALYZE tenant_cb9056df_d964_43d7_8fd8_b0cc00a72056.favorecidos;
+ANALYZE tenant_cb9056df_d964_43d7_8fd8_b0cc00a72056.tickets;
