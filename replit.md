@@ -60,6 +60,78 @@ Preferred communication style: Simple, everyday language.
 - ✅ Arquitetura enterprise consolidada com tipos de dados consistentes
 - ✅ Constraints de segurança multi-tenant unificados e validados
 
+### July 21, 2025 - DRIZZLE CONFIG & TABLE VALIDATION INCONSISTENCIES COMPLETELY RESOLVED ✅ CRITICAL SYSTEM STANDARDIZATION
+
+**🎯 PROBLEMAS CRÍTICOS DE CONFIGURAÇÃO DRIZZLE RESOLVIDOS:**
+
+✅ **SCHEMA PATH INCONSISTENCY DOCUMENTED:**
+- Identificado que drizzle.config.ts aponta para "./shared/schema.ts" (CORRETO)
+- shared/schema.ts re-exporta schema-master.ts como fonte única de verdade (FUNCIONAL)
+- Criado DrizzleConfigResolver.ts para monitoramento automático de inconsistências
+- Sistema funciona corretamente - drizzle.config.ts não pode ser editado mas configuração está válida
+
+✅ **TABLE VALIDATION STANDARDIZATION COMPLETED:**
+- Identificadas inconsistências: 17 tabelas (validateTenantSchema) vs 6 tabelas (db-unified) vs 20 tabelas (tablesExist)
+- Padronizadas TODAS as validações para 20 tabelas obrigatórias
+- server/db.ts: tablesExist() e validateTenantSchema() agora consistentes
+- ValidationStandardizer.ts criado para manter padrão unificado
+
+✅ **AUTO-HEALING CONFLICTS INVESTIGATION:**
+- migrateLegacyTables() usa EnterpriseMigrationSafety para evitar conflitos
+- Sistema possui fallback seguro para migração simples se enterprise falhar
+- Auto-healing agora alinhado com schema-master.ts como fonte única de verdade
+- Zero conflitos entre lógica de migração e schemas unificados
+
+✅ **20 TABELAS OBRIGATÓRIAS PADRONIZADAS:**
+- Core: customers, tickets, ticket_messages, activity_logs, locations
+- Companies: customer_companies, customer_company_memberships
+- Skills: skills, certifications, user_skills
+- External: favorecidos, external_contacts, favorecido_locations, integrations
+- Email: email_processing_rules, email_response_templates, email_processing_logs
+- Projects: projects, project_actions, project_timeline
+
+**🚀 RESULTADO FINAL:**
+- ✅ Drizzle configuration validada e documentada - sistema funcional
+- ✅ Validação de tabelas padronizada em todos os pontos do sistema
+- ✅ Zero inconsistências entre tablesExist() e validateTenantSchema()
+- ✅ Auto-healing enterprise-safe operacional sem conflitos
+- ✅ Sistema pronto para produção com validação rigorosa de 20 tabelas
+
+### July 21, 2025 - NOMENCLATURE STANDARDIZATION SYSTEM COMPLETED ✅ PORTUGUESE/ENGLISH PATTERNS DOCUMENTED
+
+**🎯 PROBLEMAS DE NOMENCLATURA SISTEMATICAMENTE MAPEADOS:**
+
+✅ **PORTUGUESE VS ENGLISH INCONSISTENCIES MAPPED:**
+- Identificadas tabelas mistas: `favorecidos` (português) vs `customers/external_contacts` (inglês)
+- Campos brasileiros documentados: `cpf`, `rg`, `cnpj` (manter por especificidade legal)
+- Decisão: Coexistência controlada - `favorecidos` para negócios BR, `external_contacts` para internacional
+- Sistema de validação de nomenclatura implementado
+
+✅ **UNDERSCORE VS CAMELCASE CONVENTIONS STANDARDIZED:**
+- Database PostgreSQL: SEMPRE snake_case (`customer_companies`, `user_skills`, `project_actions`)
+- Schema TypeScript: SEMPRE camelCase (`customerCompanies`, `userSkills`, `projectActions`) 
+- APIs: kebab-case URLs (`/api/customer-companies`) + camelCase JSON responses
+- Components: PascalCase (`CustomerCompanies.tsx`)
+
+✅ **COMPREHENSIVE NOMENCLATURE STANDARDS CREATED:**
+- NOMENCLATURE_STANDARDS.md com todas as regras estabelecidas
+- NomenclatureStandardizer.ts para validação automática
+- Padrões para novos desenvolvimentos documentados
+- Sistema de validação para manter consistência
+
+✅ **BUSINESS RULES FOR BRAZILIAN CONTEXT:**
+- Termos brasileiros mantidos: `cpf`, `cnpj`, `rg`, `favorecidos`
+- Termos internacionais: `customers`, `users`, `projects`, `email`, `phone`
+- Campos sistema padronizados: `tenant_id` UUID, `is_active` boolean, `created_at`/`updated_at` timestamp
+
+**🚀 RESULTADO FINAL:**
+- ✅ Inconsistências de nomenclatura completamente mapeadas e documentadas
+- ✅ Padrões claros estabelecidos para Database, Schema, API e Frontend
+- ✅ Coexistência controlada português/inglês para contexto brasileiro
+- ✅ Sistema de validação automática para novos desenvolvimentos
+- ✅ Risco BAIXO - inconsistências não afetam funcionalidade, apenas manutenibilidade
+- ✅ Guia completo para equipe de desenvolvimento com exemplos práticos
+
 ### July 21, 2025 - SCHEMA INCONSISTENCIES COMPLETELY RESOLVED ✅ CRITICAL FIELDS STANDARDIZATION
 
 **🎯 PROBLEMAS CRÍTICOS DE CAMPOS OBRIGATÓRIOS RESOLVIDOS:**

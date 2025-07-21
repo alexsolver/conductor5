@@ -725,29 +725,35 @@ export class SchemaManager {
   // Check if tables exist in schema
   private async tablesExist(schemaName: string): Promise<boolean> {
     try {
+      // STANDARDIZED: Lista completa de 20 tabelas obrigatórias (padronizada com validateTenantSchema)
+      const REQUIRED_TABLES = [
+        'customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 
+        'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 
+        'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations',
+        'email_processing_rules', 'email_response_templates', 'email_processing_logs', 
+        'projects', 'project_actions', 'project_timeline'
+      ];
+
       const result = await db.execute(sql`
         SELECT COUNT(*) as table_count
         FROM information_schema.tables 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'favorecidos', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'customer_company_memberships', 'external_contacts', 'skills', 'certifications', 'user_skills', 'integrations', 'favorecido_locations', 'email_processing_rules', 'email_response_templates', 'email_processing_logs', 'projects', 'project_actions', 'project_timeline')
+        AND table_name IN (${sql.raw(REQUIRED_TABLES.map(t => `'${t}'`).join(', '))})
       `);
 
-      // CORREÇÃO: Deve ter PELO MENOS 20 tabelas (incluindo 3 tabelas de email config + 3 tabelas de projetos) - validação flexível para evolução
       const tableCount = result.rows[0]?.table_count as number;
-      const minimumTableCount = 20;
+      const requiredTableCount = REQUIRED_TABLES.length; // 20 tabelas
       
-      if (tableCount < minimumTableCount) {
-        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas, mínimo: ${minimumTableCount}`);
+      if (tableCount < requiredTableCount) {
+        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount}/${requiredTableCount} tabelas obrigatórias`);
         return false;
       }
       
-      // ENHANCED: Log when schema has more tables than expected (future evolution)
-      if (tableCount > minimumTableCount) {
-        console.log(`[tablesExist] Schema ${schemaName} tem ${tableCount} tabelas (${tableCount - minimumTableCount} tabelas extras - evolução futura)`);
-      }
-      
+      // Success case: schema has all required tables
+      console.log(`[tablesExist] ✅ Schema ${schemaName} tem todas as ${requiredTableCount} tabelas obrigatórias`);
       return true;
-    } catch {
+    } catch (error) {
+      console.error(`[tablesExist] Error checking tables for ${schemaName}:`, error);
       return false;
     }
   }
@@ -1750,12 +1756,13 @@ export class SchemaManager {
         return true; // Schema created successfully
       }
 
-      // STEP 2: Validação estrutural completa das tabelas essenciais (TODAS AS 17 TABELAS CRÍTICAS)
+      // STEP 2: Validação estrutural completa das tabelas essenciais (STANDARDIZED: 20 TABELAS OBRIGATÓRIAS)
       const requiredTables = [
         'customers', 'tickets', 'ticket_messages', 'activity_logs',
         'locations', 'customer_companies', 'skills', 'certifications',
         'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships',
-        'integrations', 'favorecido_locations', 'projects', 'project_actions', 'project_timeline'
+        'integrations', 'favorecido_locations', 'email_processing_rules', 'email_response_templates', 
+        'email_processing_logs', 'projects', 'project_actions', 'project_timeline'
       ];
 
       const tableResult = await db.execute(sql`
@@ -1763,7 +1770,7 @@ export class SchemaManager {
                COUNT(column_name) as column_count
         FROM information_schema.columns 
         WHERE table_schema = ${schemaName}
-        AND table_name IN ('customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 'customer_companies', 'skills', 'certifications', 'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships', 'integrations', 'favorecido_locations', 'projects', 'project_actions', 'project_timeline')
+        AND table_name IN (${sql.raw(requiredTables.map(t => `'${t}'`).join(', '))})
         GROUP BY table_name
       `);
 
