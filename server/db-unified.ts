@@ -184,7 +184,8 @@ export class UnifiedDatabaseManager {
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
-          CONSTRAINT chk_tenant_id CHECK (tenant_id = '${tenantId}')
+          CONSTRAINT customers_tenant_id_uuid_format CHECK (LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'),
+          CONSTRAINT customers_tenant_email_unique UNIQUE (tenant_id, email)
         )
       `));
 
@@ -205,7 +206,8 @@ export class UnifiedDatabaseManager {
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
-          CONSTRAINT chk_favorecidos_tenant_id CHECK (tenant_id = '${tenantId}')
+          CONSTRAINT favorecidos_tenant_id_uuid_format CHECK (LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'),
+          CONSTRAINT favorecidos_tenant_email_unique UNIQUE (tenant_id, email)
         )
       `));
 
@@ -250,7 +252,8 @@ export class UnifiedDatabaseManager {
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
-          CONSTRAINT chk_tickets_tenant_id CHECK (tenant_id = '${tenantId}')
+          CONSTRAINT tickets_tenant_id_uuid_format CHECK (LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'),
+          CONSTRAINT tickets_tenant_number_unique UNIQUE (tenant_id, number)
         )
       `));
 
@@ -266,7 +269,7 @@ export class UnifiedDatabaseManager {
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
-          CONSTRAINT chk_ticket_messages_tenant_id CHECK (tenant_id = '${tenantId}')
+          CONSTRAINT ticket_messages_tenant_id_uuid_format CHECK (LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
         )
       `));
 
@@ -287,7 +290,8 @@ export class UnifiedDatabaseManager {
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
-          CONSTRAINT chk_locations_tenant_id CHECK (tenant_id = '${tenantId}')
+          CONSTRAINT locations_tenant_id_uuid_format CHECK (LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'),
+          CONSTRAINT locations_tenant_name_unique UNIQUE (tenant_id, name)
         )
       `));
 
@@ -303,7 +307,7 @@ export class UnifiedDatabaseManager {
           details JSONB,
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           
-          CONSTRAINT chk_activity_logs_tenant_id CHECK (tenant_id = '${tenantId}')
+          CONSTRAINT activity_logs_tenant_id_uuid_format CHECK (LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
         )
       `));
 
