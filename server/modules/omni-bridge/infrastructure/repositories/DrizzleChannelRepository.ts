@@ -62,39 +62,46 @@ export class DrizzleChannelRepository implements IChannelRepository {
         if (integration.id === 'imap-email') {
           // Check if has valid IMAP configuration
           const hasValidImapConfig = integration.config && 
+            typeof integration.config === 'object' &&
             integration.config.emailAddress && 
             integration.config.password && 
-            integration.config.imapServer;
+            integration.config.imapServer &&
+            integration.config.configured === true;
 
-          if (integration.status === 'connected' && hasValidImapConfig && emailsTableExists) {
+          console.log(`📧 IMAP Integration Debug:`, {
+            id: integration.id,
+            status: integration.status,
+            hasConfig: !!integration.config,
+            configKeys: integration.config ? Object.keys(integration.config) : [],
+            hasValidImapConfig,
+            emailsTableExists
+          });
+
+          if (hasValidImapConfig && emailsTableExists) {
+            // Valid configuration and table exists
             isActive = true;
-            isConnected = true;
+            isConnected = integration.status === 'connected' || integration.status === 'active';
             errorCount = 0;
             lastError = null;
-            messageCount = actualEmailCount; // Use actual count from database
-          } else if (!emailsTableExists && hasValidImapConfig) {
-            isActive = true; // Show as active but with error
+            messageCount = actualEmailCount;
+          } else if (hasValidImapConfig && !emailsTableExists) {
+            // Valid config but table missing
+            isActive = true;
             isConnected = false;
             errorCount = 1;
             lastError = 'Tabela de emails não encontrada';
-          } else if (!hasValidImapConfig) {
-            isActive = true; // Show as active but with error
+          } else if (!hasValidImapConfig && emailsTableExists) {
+            // Table exists but config missing/invalid
+            isActive = true;
             isConnected = false;
             errorCount = 1;
             lastError = 'Configuração IMAP necessária';
-          } else if (integration.status === 'disconnected') {
-            isActive = true; // Keep as active but show disconnected
-            isConnected = false;
-            errorCount = 0;
-            lastError = 'Integração desconectada';
-            messageCount = actualEmailCount;
-          } else if (hasValidImapConfig && emailsTableExists) {
-            // Has config and table but status might be wrong - try to connect
+          } else {
+            // No valid config and no table
             isActive = true;
-            isConnected = true;
-            errorCount = 0;
-            lastError = null;
-            messageCount = actualEmailCount;
+            isConnected = false;
+            errorCount = 1;
+            lastError = 'Configuração IMAP necessária';
           }
         } else {
           // For other integrations - make them more visible
