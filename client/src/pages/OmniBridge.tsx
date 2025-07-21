@@ -183,7 +183,7 @@ export default function OmniBridge() {
       }
 
       const channelsData = data.data || data.channels || [];
-      
+
       // Use dados reais da API, sem modificações artificiais
       const realChannels = channelsData.map((channel: any) => ({
         id: channel.id,
@@ -198,7 +198,7 @@ export default function OmniBridge() {
         status: channel.status || (channel.isConnected ? 'connected' : 'disconnected'),
         hasConfig: channel.hasConfig || false
       }));
-      
+
       setChannels(realChannels);
       console.log('📋 Canais carregados (dados reais):', realChannels.length);
     } catch (error) {
@@ -712,12 +712,12 @@ export default function OmniBridge() {
                               {channel.isConnected ? 'Conectado' : 'Desconectado'}
                             </span>
                           </div>
-                          
+
                           <div className="flex justify-between">
                             <span className="text-gray-600">Mensagens:</span>
                             <span className="font-medium">{channel.messageCount || 0}</span>
                           </div>
-                          
+
                           <div className="flex justify-between">
                             <span className="text-gray-600">Última Sync:</span>
                             <span className="font-medium text-xs">
@@ -830,7 +830,7 @@ export default function OmniBridge() {
                   <SelectContent>
                     <SelectItem value="all">Todos os canais</SelectItem>
                     <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+Fix channel data mapping to use real API data instead of mock values                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
                     <SelectItem value="telegram">Telegram</SelectItem>
                     <SelectItem value="sms">SMS</SelectItem>
                   </SelectContent>

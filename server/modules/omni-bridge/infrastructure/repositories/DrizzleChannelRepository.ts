@@ -100,14 +100,19 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
         const channel = new Channel(
           `ch-${integration.id}`,
+          tenantId,
           channelType,
           integration.name,
           isActive,
           isConnected,
+          integration.config || {},
+          0, // rateLimit - pode ser configurado posteriormente
+          integration.lastSync ? new Date(integration.lastSync) : null,
           messageCount,
           errorCount,
           lastError,
-          new Date() // lastSync
+          integration.createdAt ? new Date(integration.createdAt) : new Date(),
+          integration.updatedAt ? new Date(integration.updatedAt) : new Date()
         );
 
         console.log(`📋 Creating channel: ${integration.id}`, {
