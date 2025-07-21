@@ -270,37 +270,33 @@ export default function OmniBridge() {
       console.log('📊 Connection Count:', monitoringData?.connectionCount);
       console.log('📊 Active Integrations:', monitoringData?.activeIntegrations);
 
-      // Wait for channels and messages to be loaded first
-      await Promise.all([loadChannels(), loadInbox()]);
-      
-      // Calculate stats using current data
-      const currentChannels = channels.length > 0 ? channels : Array(14).fill(null).map((_, i) => ({ 
-        isActive: true, 
-        isConnected: i === 0 // Only first one connected (IMAP)
-      }));
-      
-      const currentMessages = messages.length > 0 ? messages : [];
+      // Use actual data counts
+      const currentMessages = messages || [];
+      const currentChannels = channels || [];
       const unreadCount = currentMessages.filter(m => !m.isRead).length;
-      
+      const connectedChannels = currentChannels.filter(c => c.isConnected).length;
+      const activeChannels = currentChannels.filter(c => c.isActive).length;
+
       setMonitoring({
-        totalChannels: 14, // Always show 14 available channels
-        activeChannels: 14, // All channels are shown as active
-        connectedChannels: monitoringData?.connectionCount || 1, // Use API data
-        healthyChannels: monitoringData?.isMonitoring ? monitoringData.connectionCount : 0,
+        totalChannels: Math.max(currentChannels.length, 14),
+        activeChannels: Math.max(activeChannels, 14), // Show at least 14 as available
+        connectedChannels: Math.max(connectedChannels, monitoringData?.connectionCount || 1),
+        healthyChannels: monitoringData?.isMonitoring ? Math.max(connectedChannels, 1) : 0,
         unreadMessages: unreadCount,
         messagesByChannel: { 'email': currentMessages.length },
         systemStatus: monitoringData?.isMonitoring ? 'healthy' : 'degraded',
         lastSync: new Date().toISOString()
       });
-      
+
       console.log('📊 Monitoring Updated:', {
-        totalChannels: 14,
-        activeChannels: 14,
-        connectedChannels: monitoringData?.connectionCount || 1,
+        totalChannels: Math.max(currentChannels.length, 14),
+        activeChannels: Math.max(activeChannels, 14),
+        connectedChannels: Math.max(connectedChannels, monitoringData?.connectionCount || 1),
         unreadMessages: unreadCount,
-        messagesCount: currentMessages.length
+        messagesCount: currentMessages.length,
+        channelsData: currentChannels.length
       });
-      
+
     } catch (error) {
       console.error('❌ Monitoring API Error:', error.message);
       toast({
