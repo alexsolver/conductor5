@@ -633,49 +633,51 @@ export default function OmniBridge() {
                 {channels.map(channel => {
                   const getChannelTypeIcon = (type: string, name: string) => {
                     // Baseado no nome e tipo, retornar ícone específico
-                    if (name.toLowerCase().includes('imap') || name.toLowerCase().includes('email')) {
+                    const safeName = (name || '').toString().toLowerCase();
+                    if (safeName.includes('imap') || safeName.includes('email')) {
                       return <Mail className="h-5 w-5 text-blue-500" />;
                     }
-                    if (name.toLowerCase().includes('whatsapp')) {
+                    if (safeName.includes('whatsapp')) {
                       return <MessageSquare className="h-5 w-5 text-green-500" />;
                     }
-                    if (name.toLowerCase().includes('telegram')) {
+                    if (safeName.includes('telegram')) {
                       return <Send className="h-5 w-5 text-sky-500" />;
                     }
-                    if (name.toLowerCase().includes('sms') || name.toLowerCase().includes('twilio')) {
+                    if (safeName.includes('sms') || safeName.includes('twilio')) {
                       return <Phone className="h-5 w-5 text-purple-500" />;
                     }
-                    if (name.toLowerCase().includes('slack')) {
+                    if (safeName.includes('slack')) {
                       return <MessageCircle className="h-5 w-5 text-purple-600" />;
                     }
-                    if (name.toLowerCase().includes('webhook') || name.toLowerCase().includes('zapier')) {
+                    if (safeName.includes('webhook') || safeName.includes('zapier')) {
                       return <Zap className="h-5 w-5 text-orange-500" />;
                     }
-                    if (name.toLowerCase().includes('gmail')) {
+                    if (safeName.includes('gmail')) {
                       return <Mail className="h-5 w-5 text-red-500" />;
                     }
-                    if (name.toLowerCase().includes('outlook')) {
+                    if (safeName.includes('outlook')) {
                       return <Mail className="h-5 w-5 text-blue-600" />;
                     }
                     return <Activity className="h-5 w-5 text-gray-500" />;
                   };
 
                   const getChannelTypeBadge = (name: string) => {
-                    if (name.toLowerCase().includes('imap')) return 'IMAP4';
-                    if (name.toLowerCase().includes('whatsapp')) return 'WhatsApp';
-                    if (name.toLowerCase().includes('telegram')) return 'Telegram';
-                    if (name.toLowerCase().includes('sms') || name.toLowerCase().includes('twilio')) return 'SMS';
-                    if (name.toLowerCase().includes('slack')) return 'Slack';
-                    if (name.toLowerCase().includes('webhook')) return 'Webhook';
-                    if (name.toLowerCase().includes('zapier')) return 'Zapier';
-                    if (name.toLowerCase().includes('gmail')) return 'Gmail OAuth2';
-                    if (name.toLowerCase().includes('outlook')) return 'Outlook OAuth2';
-                    if (name.toLowerCase().includes('smtp')) return 'SMTP';
-                    if (name.toLowerCase().includes('crm')) return 'CRM';
-                    if (name.toLowerCase().includes('chatbot')) return 'ChatBot IA';
-                    if (name.toLowerCase().includes('google workspace')) return 'G Workspace';
-                    if (name.toLowerCase().includes('sso') || name.toLowerCase().includes('saml')) return 'SSO/SAML';
-                    if (name.toLowerCase().includes('dropbox')) return 'Dropbox';
+                    const safeName = (name || '').toString().toLowerCase();
+                    if (safeName.includes('imap')) return 'IMAP4';
+                    if (safeName.includes('whatsapp')) return 'WhatsApp';
+                    if (safeName.includes('telegram')) return 'Telegram';
+                    if (safeName.includes('sms') || safeName.includes('twilio')) return 'SMS';
+                    if (safeName.includes('slack')) return 'Slack';
+                    if (safeName.includes('webhook')) return 'Webhook';
+                    if (safeName.includes('zapier')) return 'Zapier';
+                    if (safeName.includes('gmail')) return 'Gmail OAuth2';
+                    if (safeName.includes('outlook')) return 'Outlook OAuth2';
+                    if (safeName.includes('smtp')) return 'SMTP';
+                    if (safeName.includes('crm')) return 'CRM';
+                    if (safeName.includes('chatbot')) return 'ChatBot IA';
+                    if (safeName.includes('google workspace')) return 'G Workspace';
+                    if (safeName.includes('sso') || safeName.includes('saml')) return 'SSO/SAML';
+                    if (safeName.includes('dropbox')) return 'Dropbox';
                     return 'Email';
                   };
 
