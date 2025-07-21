@@ -1,0 +1,65 @@
+📊 ANÁLISE COMPLETA DE INCONSISTÊNCIAS DO SCHEMA
+Baseando-me nos arquivos do schema atual, aqui está uma análise completa das inconsistências identificadas:
+
+🔍 1. INCONSISTÊNCIAS DE NOMENCLATURA
+❌ Problemas Críticos:
+Tabela favorecidos: Única tabela com nomenclatura em português
+Campos híbridos inconsistentes:
+favorecidos.name vs outros firstName/lastName
+favorecidos.phone vs favorecidos.cellPhone (redundância interna)
+cpf, cnpj, rg (português) coexistem com email, phone (inglês)
+Status Atual:
+// INCONSISTENTE - Mistura nomenclaturas
+favorecidos: {
+  name: varchar("name", { length: 255 }),        // Inglês
+  cpf: varchar("cpf", { length: 14 }),           // Português
+  phone: varchar("phone", { length: 20 }),       // Inglês
+  cellPhone: varchar("cell_phone", { length: 20 }) // Inglês + redundância
+}
+🔢 2. INCONSISTÊNCIAS DE TIPOS DE DADOS
+❌ Problemas Identificados:
+Phone fields: Padronizados para varchar(20) mas ainda há variações
+Status fields: Variação entre defaults - "open", "planning", "pending"
+Array implementations: Migração JSONB → native arrays inconsistente
+Exemplo:
+// INCONSISTENTE - Defaults diferentes para status
+tickets.status: default("open")
+projects.status: default("planning") 
+projectActions.status: default("pending")
+🔗 3. INCONSISTÊNCIAS DE CHAVES ESTRANGEIRAS
+❌ Problema CRÍTICO:
+// ERRO GRAVE - Tipo incompatível detectado
+users.id: uuid("id").primaryKey().defaultRandom()                    // UUID
+tickets.assignedToId: uuid("assigned_to_id").references(() => users.id) // UUID→UUID ✓
+projectActions.assignedToId: uuid("assigned_to_id").references(() => users.id) // UUID→UUID ✓
+Status: CORRIGIDO - Todas as FKs agora usam UUID corretamente
+
+📋 4. INCONSISTÊNCIAS DE VALIDAÇÃO
+❌ Problemas Detectados:
+Conforme análise do server/db.ts:
+
+// VALIDAÇÃO INCOMPLETA
+const requiredTables = [
+  'customers', 'tickets', 'ticket_messages', 'activity_logs', 
+  'locations', 'customer_companies', 'skills', 'certifications', 
+  'user_skills', 'favorecidos', 'projects', 'project_actions'
+]; // 12 tabelas validadas
+// MAS SCHEMA TEM: 17 tabelas total (3 públicas + 14 tenant-specific)
+GAP: 5 tabelas não validadas (sessions, tenants, users + 2 outras)
+
+🏗️ 5. INCONSISTÊNCIAS DE ÍNDICES
+❌ Problemas de Performance:
+Índices faltando: Alguns campos FK sem índices otimizados
+Tenant isolation: Índices não incluem tenantId consistentemente
+Geolocalização: Índices de proximidade incompletos
+Exemplo:
+// INCOMPLETO - Pode ser otimizado para tenant isolation
+index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId)
+// Mas falta em algumas tabelas similarmente estruturadas
+🔒 6. INCONSISTÊNCIAS DE CONSTRAINTS
+✅ BOM EXEMPLO - Tenant isolation correto:
+favorecidos: {
+  uniqueTenantEmail: unique("favorecidos_tenant_email_unique").on(table.tenantId, table.email),
+  uniqueTenantCpf: unique("favorecidos_tenant_cpf_unique").on(table.tenantId, table.cpf)
+}
+// VERIFICAR - Se todas as tabelas têm constraints similares

@@ -118,6 +118,57 @@ firstName: varchar("first_name", { length: 100 })
 lastName: varchar("last_name", { length: 100 })
 ```
 
+
+
+### Brazilian Legal Field Requirements
+
+**Context**: favorecidos table serves Brazilian market with specific legal compliance needs:
+
+**Required Brazilian Legal Fields**:
+- `cpf`: Cadastro de Pessoa Física (Individual taxpayer ID)
+- `cnpj`: Cadastro Nacional da Pessoa Jurídica (Company taxpayer ID)  
+- `rg`: Registro Geral (Identity document)
+
+**Business Justification**:
+1. **Legal Compliance**: Required for Brazilian tax and identity verification
+2. **Payment Processing**: Needed for PIX transfers and bank operations
+3. **Contract Management**: Required for formal business agreements
+
+**Coexistence Strategy**:
+- Brazilian legal fields: Keep Portuguese terms (cpf, cnpj, rg)
+- International fields: Use English terms (name, email, phone)
+- This hybrid approach serves both local compliance and international development
+
+### Entity vs Individual Field Patterns
+
+**Business Rule**: Different naming patterns serve different entity types:
+
+1. **Individual Entities (customers, users)**:
+   - Use structured naming: `firstName` + `lastName`
+   - Supports formal addressing and international formats
+   - Example: customers table for individual requesters
+
+2. **Business Entities (favorecidos)**:
+   - Use single `name` field for business/company names
+   - Accommodates company names that don't split naturally
+   - Example: "Tech Solutions LTDA", "João Silva & Associados"
+
+**Implementation**:
+```typescript
+// ✅ Individual entities
+customers: {
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 })
+}
+
+// ✅ Business entities  
+favorecidos: {
+  name: varchar("name", { length: 255 })  // Company/business name
+}
+```
+
+**Justification**: Brazilian business context often involves both individual customers and business entities as favorecidos (beneficiaries), requiring different field structures.
+
 ## 🔧 Inconsistency Resolution Guidelines
 
 ### 1. **Field Name Conflicts**

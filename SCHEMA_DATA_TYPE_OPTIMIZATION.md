@@ -4,6 +4,25 @@
 ## Overview
 This document defines data type standards and optimization guidelines for the Conductor platform schema, ensuring consistency, performance, and maintainability across all database fields.
 
+
+### Status Field Default Values
+
+**Business Context**: Different entities have different initial states:
+
+1. **Tickets**: `default("open")`
+   - New tickets start as "open" awaiting initial triage
+   - Follows helpdesk workflow conventions
+
+2. **Projects**: `default("planning")`
+   - New projects start in "planning" phase before execution
+   - Follows project management lifecycle
+
+3. **Project Actions**: `default("pending")`
+   - New actions await assignment and scheduling
+   - Follows task management workflow
+
+**Consistency Rule**: Status defaults reflect business workflow entry points, not arbitrary values.
+
 ## 🎯 Data Type Standards
 
 ### 📱 Phone Field Standards
