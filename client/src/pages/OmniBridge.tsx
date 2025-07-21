@@ -169,33 +169,7 @@ export default function OmniBridge() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.log('Token não encontrado, usando dados demo');
-        setChannels([
-          {
-            id: '1',
-            type: 'email',
-            name: 'Email IMAP',
-            isActive: true,
-            isConnected: true,
-            messageCount: 127,
-            errorCount: 0,
-            health: 'healthy',
-            status: 'connected',
-            performance: { latency: 120, uptime: 99.2 },
-            rateLimiting: { currentUsage: 45, maxRequests: 100 }
-          },
-          {
-            id: '2',
-            type: 'whatsapp',
-            name: 'WhatsApp Business',
-            isActive: true,
-            isConnected: false,
-            messageCount: 89,
-            health: 'warning',
-            status: 'disconnected'
-          }
-        ]);
-        return;
+        throw new Error('Token de autenticação não encontrado');
       }
 
       const response = await fetch('/api/tenant-admin/integrations', {
@@ -204,6 +178,11 @@ export default function OmniBridge() {
           'Content-Type': 'application/json'
         }
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       if (response.ok) {
         const data = await response.json();
         const integrations = data.integrations || [];
@@ -237,22 +216,7 @@ export default function OmniBridge() {
       }
     } catch (error) {
       console.error('Erro ao carregar canais:', error);
-      // Fallback to demo data on error
-      setChannels([
-        {
-          id: '1',
-          type: 'email',
-          name: 'Email IMAP',
-          isActive: true,
-          isConnected: true,
-          messageCount: 127,
-          errorCount: 0,
-          health: 'healthy',
-          status: 'connected',
-          performance: { latency: 120, uptime: 99.2 },
-          rateLimiting: { currentUsage: 45, maxRequests: 100 }
-        }
-      ]);
+      setChannels([]);
     }
   };
 
@@ -282,170 +246,66 @@ export default function OmniBridge() {
         
         setMessages(transformedMessages);
       } else {
-        // Fallback to demo data
-        setMessages([
-          {
-            id: '1',
-            channelType: 'email',
-            fromName: 'João Silva',
-            fromAddress: 'joao@empresa.com',
-            subject: 'Problema urgente no sistema',
-            content: 'Preciso de ajuda com um problema crítico no sistema de vendas...',
-            receivedAt: new Date().toISOString(),
-            priority: 'urgent',
-            status: 'unread',
-            hasAttachments: true,
-            sentiment: 'negative'
-          },
-          {
-            id: '2',
-            channelType: 'whatsapp',
-            fromName: 'Maria Santos',
-            fromAddress: '+55 11 99999-9999',
-            subject: '',
-            content: 'Olá, gostaria de saber sobre os novos produtos',
-            receivedAt: new Date(Date.now() - 3600000).toISOString(),
-            priority: 'medium',
-            status: 'read',
-            sentiment: 'positive'
-          }
-        ]);
+        throw new Error('Falha ao carregar mensagens da API');
       }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
-      // Set demo data on error
-      setMessages([
-        {
-          id: '1',
-          channelType: 'email',
-          fromName: 'João Silva',
-          fromAddress: 'joao@empresa.com',
-          subject: 'Problema urgente no sistema',
-          content: 'Preciso de ajuda com um problema crítico no sistema de vendas...',
-          receivedAt: new Date().toISOString(),
-          priority: 'urgent',
-          status: 'unread',
-          hasAttachments: true,
-          sentiment: 'negative'
-        }
-      ]);
+      setMessages([]);
     }
   };
 
-  const loadRules = () => {
-    setRules([
-      {
-        id: '1',
-        name: 'Emergência Crítica - Sistema',
-        enabled: true,
-        priority: 1,
-        conditions: [
-          { field: 'subject', operator: 'contains', value: 'crítico' },
-          { field: 'content', operator: 'contains', value: 'sistema' }
-        ],
-        actions: [
-          { type: 'create_ticket' },
-          { type: 'notify_manager' },
-          { type: 'escalate_team' }
-        ],
-        stats: { triggered: 23, successRate: 96 }
-      },
-      {
-        id: '2',
-        name: 'Suporte Comercial',
-        enabled: true,
-        priority: 2,
-        conditions: [
-          { field: 'content', operator: 'contains', value: 'produto' }
-        ],
-        actions: [
-          { type: 'assign_sales' },
-          { type: 'send_template' }
-        ],
-        stats: { triggered: 187, successRate: 91 }
-      },
-      {
-        id: '3',
-        name: 'FAQ Automatizada',
-        enabled: false,
-        priority: 3,
-        conditions: [
-          { field: 'content', operator: 'contains', value: 'como funciona' }
-        ],
-        actions: [
-          { type: 'send_template' }
-        ],
-        stats: { triggered: 342, successRate: 89 }
+  const loadRules = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
       }
-    ]);
+
+      const response = await fetch('/api/omnibridge/rules', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const rulesData = data.rules || [];
+      setRules(rulesData);
+    } catch (error) {
+      console.error('Erro ao carregar regras:', error);
+      setRules([]);
+    }
   };
 
-  const loadTemplates = () => {
-    setTemplates([
-      {
-        id: '1',
-        name: 'Confirmação Recebimento',
-        category: 'Automática',
-        channel: ['email', 'whatsapp'],
-        subject: 'Recebemos sua mensagem',
-        content: 'Olá! Recebemos sua mensagem e entraremos em contato em breve. Nossa equipe irá responder dentro de 24 horas.',
-        usage: 1247,
-        effectiveness: 94,
-        approved: true,
-        multilingual: true,
-        languages: ['pt-BR', 'en-US', 'es-ES']
-      },
-      {
-        id: '2',
-        name: 'Suporte Técnico - Primeira Resposta',
-        category: 'Manual',
-        channel: ['email'],
-        subject: 'Suporte Técnico - Ticket #{ticket_id}',
-        content: 'Olá {customer_name}, recebemos seu relato sobre {issue_type}. Nosso time técnico já está analisando e você receberá atualizações em breve.',
-        usage: 892,
-        effectiveness: 91,
-        approved: true,
-        multilingual: false
-      },
-      {
-        id: '3',
-        name: 'Informações Comerciais',
-        category: 'Manual',
-        channel: ['whatsapp', 'sms'],
-        subject: '',
-        content: 'Oi! 😊 Obrigado pelo interesse em nossos produtos. Nossa equipe comercial entrará em contato para apresentar as melhores opções para você!',
-        usage: 567,
-        effectiveness: 87,
-        approved: true,
-        multilingual: true,
-        languages: ['pt-BR', 'en-US']
-      },
-      {
-        id: '4',
-        name: 'Fora do Horário Comercial',
-        category: 'Automática',
-        channel: ['email', 'whatsapp'],
-        subject: 'Mensagem fora do horário comercial',
-        content: 'Obrigado por entrar em contato! Nosso horário de atendimento é das 8h às 18h, de segunda a sexta. Retornaremos seu contato no próximo dia útil.',
-        usage: 432,
-        effectiveness: 88,
-        approved: true,
-        multilingual: true,
-        languages: ['pt-BR']
-      },
-      {
-        id: '5',
-        name: 'Escalação - Urgente',
-        category: 'Escalação',
-        channel: ['email'],
-        subject: 'URGENTE: Escalação necessária - {case_id}',
-        content: 'Esta mensagem foi escalada devido à criticidade. Cliente: {customer_name}. Problema: {issue_description}. Ação imediata necessária.',
-        usage: 45,
-        effectiveness: 98,
-        approved: true,
-        multilingual: false
+  const loadTemplates = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
       }
-    ]);
+
+      const response = await fetch('/api/omnibridge/templates', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const templatesData = data.templates || [];
+      setTemplates(templatesData);
+    } catch (error) {
+      console.error('Erro ao carregar templates:', error);
+      setTemplates([]);
+    }
   };
 
   const loadMonitoring = () => {

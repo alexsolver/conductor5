@@ -28,6 +28,7 @@ import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
 import multilocationRoutes from './routes/multilocation';
 import geolocationRoutes from './routes/geolocation';
 import holidayRoutes from './routes/HolidayController';
+import omnibridgeRoutes from './routes/omnibridge';
 // Removed: journeyRoutes - functionality eliminated from system
 // import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
 // import scheduleRoutes from './modules/schedule-management/routes'; // Temporarily removed
@@ -421,6 +422,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Global multilocation routes  
   // app.use('/api/multilocation', multilocationRoutes); // Temporarily disabled due to module export issue
+  
+  // OmniBridge routes - integrate directly with auth
+  app.get('/api/omnibridge/rules', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const pool = schemaManager.getPool();
+      const result = await pool.query(
+        `SELECT * FROM omnibridge_rules WHERE tenant_id = $1 ORDER BY priority DESC, created_at DESC`,
+        [tenantId]
+      );
+      res.json({ rules: result.rows });
+    } catch (error) {
+      console.error('Error fetching OmniBridge rules:', error);
+      res.status(500).json({ error: 'Failed to fetch rules' });
+    }
+  });
+
+  app.get('/api/omnibridge/templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const pool = schemaManager.getPool();
+      const result = await pool.query(
+        `SELECT * FROM omnibridge_templates WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [tenantId]
+      );
+      res.json({ templates: result.rows });
+    } catch (error) {
+      console.error('Error fetching OmniBridge templates:', error);
+      res.status(500).json({ error: 'Failed to fetch templates' });
+    }
+  });
+
+  app.get('/api/omnibridge/metrics', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const pool = schemaManager.getPool();
+      const result = await pool.query(
+        `SELECT * FROM omnibridge_metrics WHERE tenant_id = $1 ORDER BY metric_date DESC`,
+        [tenantId]
+      );
+      res.json({ metrics: result.rows });
+    } catch (error) {
+      console.error('Error fetching OmniBridge metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch metrics' });
+    }
+  });
   
   // Geolocation detection and formatting routes  
   // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
