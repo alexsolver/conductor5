@@ -271,17 +271,42 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Get inbox messages from tenant-specific schema
+      // Get inbox messages from the actual emails table where processed emails are stored
       const result = await db.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.email_inbox
+        SELECT 
+          id,
+          message_id,
+          subject,
+          from_email as sender,
+          to_email as recipient,
+          body_text as body,
+          priority,
+          CASE WHEN is_read THEN 'read' ELSE 'unread' END as status,
+          is_processed as processed,
+          email_date,
+          received_at as created_at
+        FROM ${sql.identifier(schemaName)}.emails
         WHERE tenant_id = ${tenantId}
-        ORDER BY created_at DESC
+        ORDER BY received_at DESC
+        LIMIT 50
       `);
       
       return result.rows || [];
     } catch (error) {
       console.error('Error fetching inbox messages:', error);
-      return [];
+      
+      // Fallback to email_inbox table if emails table doesn't exist
+      try {
+        const fallbackResult = await db.execute(sql`
+          SELECT * FROM ${sql.identifier(schemaName)}.email_inbox
+          WHERE tenant_id = ${tenantId}
+          ORDER BY created_at DESC
+        `);
+        return fallbackResult.rows || [];
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        return [];
+      }
     }
   }
 
