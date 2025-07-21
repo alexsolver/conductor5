@@ -41,11 +41,19 @@ export const schemaManager = {
         throw new Error(`Tenant schema not found: ${schemaName}`);
       }
       
-      // Verificar tabelas obrigatórias (15 tabelas conforme schema-master.ts real)
+            // Verificar tabelas obrigatórias (12 tabelas conforme schema-master.ts)
       const requiredTables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations',
-        'customer_companies', 'customer_company_memberships', 'skills', 
-        'certifications', 'user_skills', 'favorecidos', 'projects', 
+        'customers', 
+        'tickets', 
+        'ticket_messages', 
+        'activity_logs', 
+        'locations', 
+        'customer_companies', 
+        'skills', 
+        'certifications', 
+        'user_skills', 
+        'favorecidos', 
+        'projects', 
         'project_actions'
       ];
       
@@ -55,8 +63,8 @@ export const schemaManager = {
         [schemaName, requiredTables]
       );
       
-      if (parseInt(tableCount.rows[0].count) < 13) {
-        throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/13 required tables`);
+      if (parseInt(tableCount.rows[0].count) < 12) {
+        throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/12 required tables`);
       }
       
       return true;

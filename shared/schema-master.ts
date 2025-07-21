@@ -14,6 +14,7 @@ import {
   integer,
   decimal,
   date,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -64,21 +65,23 @@ export const users = pgTable("users", {
 // TENANT-SPECIFIC SCHEMA TABLES
 // ========================================
 
-// Customers table (Solicitantes - internal system requesters)
+// Customers table (Solicitantes - internal system requesters) - Data types optimized
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   firstName: varchar("first_name", { length: 255 }).notNull(),
   lastName: varchar("last_name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
-  phone: varchar("phone", { length: 50 }),
+  phone: varchar("phone", { length: 20 }),                   // Standardized: 50 → 20 chars
   company: varchar("company", { length: 255 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
+}));
 
-// Tickets table
+// Tickets table - Foreign keys optimized
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -87,7 +90,7 @@ export const tickets = pgTable("tickets", {
   status: varchar("status", { length: 50 }).default("open"),
   priority: varchar("priority", { length: 20 }).default("medium"),
   customerId: uuid("customer_id").references(() => customers.id),
-  assignedTo: varchar("assigned_to", { length: 255 }),
+  assignedToId: uuid("assigned_to_id").references(() => users.id), // Fixed: string → UUID FK
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -188,29 +191,34 @@ export const userSkills = pgTable("user_skills", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Favorecidos table (Brazilian business context - external beneficiaries)
+// Favorecidos table (Brazilian beneficiaries) - Nomenclature standardized and constraints added
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  nome: varchar("nome", { length: 255 }).notNull(), // Campo brasileiro - manter português
-  email: varchar("email", { length: 255 }),
-  telefone: varchar("telefone", { length: 20 }), // Campo brasileiro - manter português
-  celular: varchar("celular", { length: 20 }),
-  cpf: varchar("cpf", { length: 14 }), // CPF brasileiro - manter português
-  cnpj: varchar("cnpj", { length: 18 }), // CNPJ brasileiro - manter português
-  rg: varchar("rg", { length: 20 }),
-  codigoIntegracao: varchar("codigo_integracao", { length: 100 }),
-  endereco: text("endereco"),
-  cidade: varchar("cidade", { length: 100 }),
-  estado: varchar("estado", { length: 2 }),
-  cep: varchar("cep", { length: 10 }),
-  observacoes: text("observacoes"),
+  name: varchar("name", { length: 255 }).notNull(),        // Standardized: nome → name
+  email: varchar("email", { length: 255 }),                // Already English ✓
+  phone: varchar("phone", { length: 20 }),                 // Standardized: telefone → phone
+  cellPhone: varchar("cell_phone", { length: 20 }),        // Standardized: celular → cell_phone
+  cpf: varchar("cpf", { length: 14 }),                     // Keep Brazilian legal term ✓
+  cnpj: varchar("cnpj", { length: 18 }),                   // Keep Brazilian legal term ✓
+  rg: varchar("rg", { length: 20 }),                       // Keep Brazilian legal term ✓
+  integrationCode: varchar("integration_code", { length: 100 }), // Standardized: codigo_integracao → integration_code
+  address: text("address"),                                 // Standardized: endereco → address
+  city: varchar("city", { length: 100 }),                  // Standardized: cidade → city
+  state: varchar("state", { length: 2 }),                  // Standardized: estado → state
+  zipCode: varchar("zip_code", { length: 10 }),            // Standardized: cep → zip_code
+  notes: text("notes"),                                     // Standardized: observacoes → notes
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  uniqueTenantEmail: unique("favorecidos_tenant_email_unique").on(table.tenantId, table.email),
+  uniqueTenantCpf: unique("favorecidos_tenant_cpf_unique").on(table.tenantId, table.cpf),
+  uniqueTenantCnpj: unique("favorecidos_tenant_cnpj_unique").on(table.tenantId, table.cnpj),
+  uniqueTenantRg: unique("favorecidos_tenant_rg_unique").on(table.tenantId, table.rg),
+}));
 
-// Projects table
+// Projects table - Foreign keys and arrays optimized
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -224,9 +232,9 @@ export const projects = pgTable("projects", {
   actualHours: integer("actual_hours"),
   startDate: date("start_date"),
   endDate: date("end_date"),
-  managerId: uuid("manager_id"),
-  clientId: uuid("client_id"),
-  teamMemberIds: jsonb("team_member_ids").$type<string[]>().default([]),
+  managerId: uuid("manager_id").references(() => users.id),    // Fixed: added FK reference
+  clientId: uuid("client_id").references(() => customers.id),  // Fixed: added FK reference
+  teamMemberIds: uuid("team_member_ids").array().default([]),  // Fixed: JSONB → native array
   tags: text("tags").array(),
   customFields: jsonb("custom_fields"),
   isActive: boolean("is_active").default(true),
@@ -234,7 +242,7 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Project Actions table
+// Project Actions table - Arrays and foreign keys optimized
 export const projectActions = pgTable("project_actions", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -247,11 +255,11 @@ export const projectActions = pgTable("project_actions", {
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours"),
   scheduledDate: date("scheduled_date"),
-  assignedToId: uuid("assigned_to_id"),
-  responsibleIds: jsonb("responsible_ids").$type<string[]>().default([]),
-  dependsOnActionIds: jsonb("depends_on_action_ids").$type<string[]>().default([]),
-  blockedByActionIds: jsonb("blocked_by_action_ids").$type<string[]>().default([]),
-  relatedTicketId: uuid("related_ticket_id"),
+  assignedToId: uuid("assigned_to_id").references(() => users.id),      // Fixed: added FK reference
+  responsibleIds: uuid("responsible_ids").array().default([]),          // Fixed: JSONB → native array
+  dependsOnActionIds: uuid("depends_on_action_ids").array().default([]), // Fixed: JSONB → native array
+  blockedByActionIds: uuid("blocked_by_action_ids").array().default([]), // Fixed: JSONB → native array
+  relatedTicketId: uuid("related_ticket_id").references(() => tickets.id), // Fixed: added FK reference
   canConvertToTicket: boolean("can_convert_to_ticket").default(false),
   ticketConversionRules: jsonb("ticket_conversion_rules"),
   completedAt: timestamp("completed_at"),

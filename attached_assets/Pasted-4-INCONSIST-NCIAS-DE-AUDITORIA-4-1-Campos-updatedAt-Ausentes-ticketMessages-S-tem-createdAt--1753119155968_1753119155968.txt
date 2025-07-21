@@ -1,0 +1,55 @@
+4. INCONSISTÊNCIAS DE AUDITORIA
+4.1. Campos updatedAt Ausentes
+// ❌ ticketMessages SÓ tem createdAt
+export const ticketMessages = pgTable("ticket_messages", {
+  createdAt: timestamp("created_at").defaultNow(), // ✅ Presente
+  // ❌ updatedAt AUSENTE - inconsistente com outras tabelas
+});
+// vs outras tabelas que têm ambos
+createdAt: timestamp("created_at").defaultNow(),
+updatedAt: timestamp("updated_at").defaultNow(),
+5. PROBLEMAS DE INDEXAÇÃO
+5.1. Apenas Uma Tabela com Índice Explícito
+// ✅ ÚNICO índice explícito definido
+export const sessions = pgTable(
+  "sessions",
+  { /* campos */ },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+// ❌ TODAS as outras tabelas carecem de índices críticos:
+// - customers sem índice em (tenant_id, email)
+// - tickets sem índice em (tenant_id, status, priority)  
+// - favorecidos sem índice em (tenant_id, cpf)
+6. INCONSISTÊNCIAS DE CAMPOS OBRIGATÓRIOS
+6.1. Campos Críticos Opcionais
+// ❌ favorecidos - Campos críticos como opcionais
+nome: varchar("nome", { length: 255 }).notNull(),    // ✅ Obrigatório
+email: varchar("email", { length: 255 }),            // ❓ Opcional (problemático)
+cpf: varchar("cpf", { length: 14 }),                 // ❓ Opcional (CPF é essencial no Brasil)
+cnpj: varchar("cnpj", { length: 18 }),               // ❓ Opcional
+7. DISCREPÂNCIAS NA VALIDAÇÃO
+7.1. Contagem de Tabelas Divergente
+// server/db.ts - validateTenantSchema()
+const requiredTables = [
+  'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations',
+  'customer_companies', 'skills', 'certifications', 'user_skills', 
+  'favorecidos', 'projects', 'project_actions'
+]; // 12 tabelas
+// MAS schema-master.ts define mais tabelas:
+// - project_timeline (não está na validação)
+// - integrations (não está na validação)
+// - customer_company_memberships (nome pode divergir)
+8. LOGS DE ERRO ATIVOS IDENTIFICADOS
+8.1. Erros de Runtime
+// Console logs mostram problemas ativos:
+{"message":"Uncaught TypeError: users.map is not a function","type":"error"}
+// Sugere que queries retornam undefined em vez de arrays
+"Erro ao buscar estatísticas:",{}
+"Erro ao buscar projetos:",{}
+"Erro ao obter localização:",{}
+9. PROBLEMAS DE PERFORMANCE
+9.1. Queries Potencialmente Lentas
+// ❌ Sem índices em campos frequentemente consultados
+// tickets.status, tickets.priority (para dashboards)
+// customers.email (para autenticação/busca)
+// favorecidos.cpf (para validação brasileira)

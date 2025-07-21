@@ -1,7 +1,13 @@
-// UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
-// This file consolidates all fragmented schema definitions into one authoritative source
-// Replaces: schema-simple.ts, schema-unified.ts, modular schema/index.ts conflicts
+/**
+ * SCHEMA PROXY - FONTE ÚNICA DE VERDADE
+ * 
+ * Este arquivo é apenas um proxy que re-exporta o schema master.
+ * TODAS as definições estão em schema-master.ts
+ * 
+ * ARQUITETURA CONSOLIDADA:
+ * ✅ shared/schema-master.ts - Fonte única autoritativa
+ * ✅ shared/schema.ts - Proxy de re-export (este arquivo)
+ * ✅ server/db.ts - Validação alinhada com schema real
+ */
 
-// ARCHITECTURE CONSOLIDATION: Use schema-master.ts as the single source of truth
-// Eliminates fragmentation between multiple schema files and SQL raw creation logic
-export * from "./schema-master";
+export * from './schema-master';
