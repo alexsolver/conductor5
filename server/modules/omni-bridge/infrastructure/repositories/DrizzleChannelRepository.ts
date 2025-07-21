@@ -37,16 +37,17 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
         // Special handling for IMAP Email integration
         if (integration.id === 'imap-email') {
-          if (!emailsTableExists) {
-            isActive = false;
-            isConnected = false;
-            errorCount = 1;
-            lastError = 'Configuração IMAP incompleta';
-          } else {
+          // Se a integração está configurada e conectada, marcar como ativa
+          if (integration.status === 'connected' && integration.config) {
             isActive = true;
             isConnected = true;
             errorCount = 0;
             lastError = null;
+          } else if (!emailsTableExists && integration.status !== 'connected') {
+            isActive = false;
+            isConnected = false;
+            errorCount = 1;
+            lastError = 'Configuração IMAP incompleta';
           }
         }
 
