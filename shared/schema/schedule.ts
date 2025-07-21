@@ -1,6 +1,6 @@
 
 import { pgTable, text, timestamp, boolean, integer, decimal, pgEnum } from 'drizzle-orm/pg-core';
-import { users } from './base';
+import { users } from './user-management';
 import { customers } from './customer';
 import { tickets } from './ticket';
 import { projects } from './projects-db';

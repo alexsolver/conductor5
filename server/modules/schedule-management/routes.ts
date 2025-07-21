@@ -2,14 +2,14 @@
 import { Router } from 'express';
 import { ScheduleController } from './application/controllers/ScheduleController';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { enhancedTenantValidator } from '../../middleware/tenantValidator';
+import { tenantValidator } from '../../middleware/tenantValidator';
 
 const router = Router();
 const scheduleController = new ScheduleController();
 
 // Todas as rotas requerem autenticação e validação de tenant
 router.use(jwtAuth);
-router.use(enhancedTenantValidator());
+router.use(tenantValidator);
 
 // CRUD de agendamentos
 router.post('/', scheduleController.createSchedule.bind(scheduleController));

@@ -2,14 +2,14 @@
 import { Router } from 'express';
 import { JourneyController } from './application/controllers/JourneyController';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { enhancedTenantValidator } from '../../middleware/tenantValidator';
+import { tenantValidator } from '../../middleware/tenantValidator';
 
 const router = Router();
 const journeyController = new JourneyController();
 
 // Todas as rotas requerem autenticação e validação de tenant
 router.use(jwtAuth);
-router.use(enhancedTenantValidator());
+router.use(tenantValidator);
 
 // Gestão de jornada
 router.post('/start', journeyController.startJourney.bind(journeyController));

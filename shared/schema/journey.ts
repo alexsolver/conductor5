@@ -1,6 +1,6 @@
 
 import { pgTable, text, timestamp, decimal, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
-import { users } from './base';
+import { users } from './user-management';
 
 export const journeyStatusEnum = pgEnum('journey_status', ['active', 'paused', 'completed']);
 export const checkpointTypeEnum = pgEnum('checkpoint_type', ['check_in', 'check_out', 'break_start', 'break_end', 'location_update']);
