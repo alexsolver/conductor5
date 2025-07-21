@@ -52,7 +52,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
         // Check if integration has valid configuration
         const hasConfig = integration.config && Object.keys(integration.config).length > 0;
-        
+
         // Special handling for IMAP Email integration
         if (integration.id === 'imap-email') {
           if (integration.status === 'connected' && hasConfig && emailsTableExists) {

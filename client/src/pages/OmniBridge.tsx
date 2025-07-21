@@ -184,51 +184,23 @@ export default function OmniBridge() {
 
       const channelsData = data.data || data.channels || [];
       
-      // Enhance channel data with more realistic states
-      const enhancedChannels = channelsData.map((channel: any, index: number) => {
-        const now = new Date();
-        const syncVariations = [
-          new Date(now.getTime() - 5 * 60000).toISOString(), // 5 min ago
-          new Date(now.getTime() - 15 * 60000).toISOString(), // 15 min ago  
-          new Date(now.getTime() - 30 * 60000).toISOString(), // 30 min ago
-          new Date(now.getTime() - 60 * 60000).toISOString(), // 1 hour ago
-          null // Never synced
-        ];
-        
-        // Make some channels connected and active
-        const isConnected = ['imap-email', 'gmail-oauth2', 'whatsapp-business', 'slack'].includes(channel.id) || 
-                           index % 3 === 0; // Every 3rd channel connected
-        
-        const messageCount = isConnected ? Math.floor(Math.random() * 50) + 1 : 0;
-        const lastSync = isConnected ? syncVariations[index % 4] : null;
-        const errorCount = isConnected ? 0 : (Math.random() > 0.7 ? 1 : 0);
-        
-        let lastError = null;
-        if (!isConnected) {
-          const errors = [
-            'Configuração necessária',
-            'Token expirado', 
-            'Credenciais inválidas',
-            'Conexão timeout',
-            'Integração desconectada'
-          ];
-          lastError = errors[index % errors.length];
-        }
-        
-        return {
-          ...channel,
-          isConnected,
-          messageCount,
-          lastSync,
-          errorCount,
-          lastError,
-          // Keep original isActive but make connected ones active
-          isActive: isConnected ? true : channel.isActive
-        };
-      });
+      // Use dados reais da API, sem modificações artificiais
+      const realChannels = channelsData.map((channel: any) => ({
+        id: channel.id,
+        type: channel.type || 'email',
+        name: channel.name,
+        isActive: channel.isActive || channel.active || false,
+        isConnected: channel.isConnected || channel.connected || false,
+        messageCount: channel.messageCount || 0,
+        errorCount: channel.errorCount || 0,
+        lastError: channel.lastError || (channel.isConnected ? null : 'Integração desconectada'),
+        lastSync: channel.lastSync || channel.lastSyncAt || null,
+        status: channel.status || (channel.isConnected ? 'connected' : 'disconnected'),
+        hasConfig: channel.hasConfig || false
+      }));
       
-      setChannels(enhancedChannels);
-      console.log('📋 Canais carregados:', enhancedChannels.length);
+      setChannels(realChannels);
+      console.log('📋 Canais carregados (dados reais):', realChannels.length);
     } catch (error) {
       console.error('Error loading channels:', error);
       toast({
@@ -314,37 +286,48 @@ export default function OmniBridge() {
       console.log('📊 Connection Count:', monitoringData?.connectionCount);
       console.log('📊 Active Integrations:', monitoringData?.activeIntegrations);
 
-      // Use actual data counts from enhanced channels
+      // Use dados reais dos canais e mensagens carregados
       const currentMessages = messages || [];
       const currentChannels = channels || [];
-      const unreadCount = currentMessages.filter(m => !m.isRead).length;
+      const unreadCount = currentMessages.filter(m => m.status === 'unread' || !m.isRead).length;
       const connectedChannels = currentChannels.filter(c => c.isConnected).length;
       const activeChannels = currentChannels.filter(c => c.isActive).length;
+      const healthyChannels = currentChannels.filter(c => c.isConnected && !c.errorCount).length;
       const totalMessages = currentChannels.reduce((sum, c) => sum + (c.messageCount || 0), 0);
 
+      // Calcular mensagens por canal baseado nos dados reais
+      const messagesByChannel = currentChannels.reduce((acc, c) => {
+        if (c.messageCount > 0) {
+          acc[c.type] = (acc[c.type] || 0) + c.messageCount;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Adicionar mensagens da inbox atual
+      currentMessages.forEach(msg => {
+        const channelType = msg.channelType || 'email';
+        messagesByChannel[channelType] = (messagesByChannel[channelType] || 0) + 1;
+      });
+
       setMonitoring({
-        totalChannels: currentChannels.length || 14,
+        totalChannels: currentChannels.length || 0,
         activeChannels: activeChannels,
         connectedChannels: connectedChannels,
-        healthyChannels: connectedChannels, // Connected channels are healthy
-        unreadMessages: Math.max(unreadCount, Math.floor(totalMessages * 0.3)), // ~30% unread
-        messagesByChannel: currentChannels.reduce((acc, c) => {
-          if (c.messageCount > 0) {
-            acc[c.type] = (acc[c.type] || 0) + c.messageCount;
-          }
-          return acc;
-        }, {} as Record<string, number>),
-        systemStatus: connectedChannels > 0 ? 'healthy' : 'degraded',
+        healthyChannels: healthyChannels,
+        unreadMessages: Math.max(unreadCount, currentMessages.length),
+        messagesByChannel: messagesByChannel,
+        systemStatus: connectedChannels > 0 && healthyChannels === connectedChannels ? 'healthy' : 'degraded',
         lastSync: new Date().toISOString()
       });
 
-      console.log('📊 Monitoring Updated:', {
-        totalChannels: Math.max(currentChannels.length, 14),
-        activeChannels: Math.max(activeChannels, 14),
-        connectedChannels: Math.max(connectedChannels, monitoringData?.connectionCount || 1),
+      console.log('📊 Monitoring Updated (dados reais):', {
+        totalChannels: currentChannels.length,
+        activeChannels: activeChannels,
+        connectedChannels: connectedChannels,
+        healthyChannels: healthyChannels,
         unreadMessages: unreadCount,
         messagesCount: currentMessages.length,
-        channelsData: currentChannels.length
+        messagesByChannel: messagesByChannel
       });
 
     } catch (error) {
