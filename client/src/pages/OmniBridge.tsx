@@ -99,7 +99,7 @@ export default function OmniBridge() {
   const refreshTokenIfNeeded = async () => {
     // Primeiro, tenta obter o token atual
     let token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-    
+
     if (!token) {
       console.log('🔑 Nenhum token encontrado, redirecionando para login');
       window.location.href = '/login';
@@ -570,7 +570,8 @@ export default function OmniBridge() {
                         <div className="flex items-center space-x-1">
                           <div className={`w-2 h-2 rounded-full ${getStatusColor(channel.isConnected ? 'connected' : 'disconnected')}`} />
                           <Badge variant={channel.isActive ? 'default' : 'secondary'} className="text-xs">
-                            {channel.isActive ? 'Ativo' : 'Inativo'}</Badge>
+                            {channel.isActive ? 'Ativo' : 'Inativo'}
+                          </Badge>
                         </div>
                       </div>
 
@@ -606,7 +607,7 @@ export default function OmniBridge() {
                         </div>
                       )}
 
-                      </CardContent>
+                    </CardContent>
                   </Card>
                 ))}
               </div>

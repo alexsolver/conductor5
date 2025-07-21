@@ -62,12 +62,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
             lastError = null;
             messageCount = actualEmailCount; // Use actual count from database
           } else if (!emailsTableExists) {
-            isActive = false;
+            isActive = true; // Show as active but with error
             isConnected = false;
             errorCount = 1;
             lastError = 'Tabela de emails não encontrada';
           } else if (!hasConfig) {
-            isActive = false;
+            isActive = true; // Show as active but with error
             isConnected = false;
             errorCount = 1;
             lastError = 'Configuração IMAP necessária';
@@ -75,30 +75,30 @@ export class DrizzleChannelRepository implements IChannelRepository {
             isActive = true; // Keep as active but show disconnected
             isConnected = false;
             errorCount = 0;
-            lastError = null;
+            lastError = 'Integração desconectada';
             messageCount = actualEmailCount;
           }
         } else {
-          // For other integrations
+          // For other integrations - make them more visible
           if (integration.status === 'connected' && hasConfig) {
             isActive = true;
             isConnected = true;
             errorCount = 0;
             lastError = null;
           } else if (integration.status === 'disconnected') {
-            isActive = false;
+            isActive = true; // Show as active but disconnected
             isConnected = false;
             errorCount = 0;
-            lastError = null;
+            lastError = 'Integração desconectada';
           } else if (!hasConfig) {
-            isActive = false;
+            isActive = true; // Show as active but needs config
             isConnected = false;
             errorCount = 1;
             lastError = 'Configuração necessária';
           }
         }
 
-        return new Channel(
+        const channel = new Channel(
           `ch-${integration.id}`,
           channelType,
           integration.name,
@@ -109,6 +109,20 @@ export class DrizzleChannelRepository implements IChannelRepository {
           lastError,
           new Date() // lastSync
         );
+
+        console.log(`📋 Creating channel: ${integration.id}`, {
+          name: integration.name,
+          type: channelType,
+          isActive,
+          isConnected,
+          messageCount,
+          errorCount,
+          lastError,
+          hasConfig,
+          status: integration.status
+        });
+
+        return channel;
       });
 
       console.log(`DrizzleChannelRepository: Found ${channels.length} channels for tenant ${tenantId}`);
