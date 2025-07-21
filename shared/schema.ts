@@ -1,5 +1,6 @@
-// Legacy schema.ts - Now imports from modular schema structure
-// This file maintains backwards compatibility while using the new modular approach
+// UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
+// This file now imports from the master schema that consolidates all fragmented definitions
+// Replaces the fragmented approach with a single, authoritative schema definition
 
-// Re-export everything from the new modular schema structure
-export * from "./schema/index";
+// Re-export everything from the unified master schema
+export * from "./schema-master";
