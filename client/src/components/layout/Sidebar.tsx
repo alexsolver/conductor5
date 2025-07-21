@@ -40,7 +40,9 @@ import {
   FileText,
   Mail,
   FolderOpen,
-  Folder
+  Folder,
+  Clock,
+  Calendar
 } from "lucide-react";
 
 // Base navigation with proper types
@@ -207,7 +209,7 @@ export function Sidebar() {
             if (item.children) {
               const isOpen = openMenus[item.name] || false;
               const hasActiveChild = item.children.some(child => location === child.href);
-              
+
               return (
                 <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
                   <CollapsibleTrigger className="w-full">
@@ -258,7 +260,7 @@ export function Sidebar() {
                 </Collapsible>
               );
             }
-            
+
             // If item has no children, render as simple link
             if (!item.href) return null; // Skip items without href
             const isActive = location === item.href;
