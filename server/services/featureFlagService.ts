@@ -110,9 +110,7 @@ export class FeatureFlagService {
         updatedAt: new Date()
       },
       {
-        id: 'webhook_integrations',
         name: 'Webhook Integrations',
-        description: 'Enable webhook integrations',
         enabled: true,
         rolloutPercentage: 80,
         fallbackValue: false,

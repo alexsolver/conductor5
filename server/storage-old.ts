@@ -871,24 +871,16 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = db;
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Query integrations from tenant-specific schema
-      const integrations = await tenantDb.execute(
-        sql`SELECT * FROM ${sql.identifier(schemaName, 'integrations')} ORDER BY created_at DESC`
       );
 
-      // If no integrations exist, create default ones
-      if (integrations.length === 0) {
         await this.createDefaultIntegrations(tenantId);
         // Re-fetch after creating defaults
         const newIntegrations = await tenantDb.execute(
-          sql`SELECT * FROM ${sql.identifier(schemaName, 'integrations')} ORDER BY created_at DESC`
         );
         return Array.isArray(newIntegrations) ? newIntegrations : [];
       }
 
-      return Array.isArray(integrations) ? integrations : [];
     } catch (error) {
-      console.error('Error fetching tenant integrations:', error);
       return [];
     }
   }
@@ -898,9 +890,7 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = db;
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Create integrations table for tenant - populated by user configuration
       await tenantDb.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'integrations')} (
           id VARCHAR(255) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           category VARCHAR(100),
@@ -919,9 +909,7 @@ export class DatabaseStorage implements IStorage {
         )
       `);
 
-      // No default integrations - tenant will configure as needed
     } catch (error) {
-      console.error('Error creating integrations table:', error);
       throw error;
     }
   }

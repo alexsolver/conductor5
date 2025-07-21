@@ -61,7 +61,6 @@ export class TenantConstraintsUnifier {
     customer_company_memberships: [
       'UNIQUE (tenant_id, customer_id, company_id)'
     ],
-    integrations: [
       'UNIQUE (tenant_id, integration_type, name)'
     ],
     projects: [

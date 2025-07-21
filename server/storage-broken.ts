@@ -58,7 +58,7 @@ export class DatabaseStorage implements IStorage {
   private schemaManager: SchemaManager;
 
   constructor() {
-    this.schemaManager = SchemaManager.getInstance();
+    this.schemaManager = // SchemaManager.getInstance();
   }
 
   // ===========================

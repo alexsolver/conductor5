@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository';
 import { Skill } from '../../domain/entities/Skill';
-import { insertSkillSchema } from '../../../../../shared/schema/technical-skills';
+import { insertSkillSchema } from '@shared/schema';
 import winston from 'winston';
 
 interface AuthenticatedRequest extends Request {

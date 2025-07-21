@@ -6,7 +6,7 @@
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
 import { schemaManager } from '../../../db';
-import { emails } from '@shared/schema/tenant-specific';
+import { emails } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 interface GmailConfig {
@@ -399,8 +399,6 @@ export class GmailService {
       const { storage } = await import('../../../storage-simple');
       
       // Get IMAP Email integration credentials from database
-      const integrations = await storage.getTenantIntegrations(tenantId);
-      const imapIntegration = integrations.find(i => i.id === 'imap-email');
       
       if (!imapIntegration || !imapIntegration.config) {
         throw new Error('IMAP Email integration not found or not configured');

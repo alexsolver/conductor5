@@ -93,7 +93,6 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
 }
 
 /**
- * GET /api/tenant-admin/integrations
  * Obter integrações do tenant - 100% PostgreSQL Database
  */
 router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
@@ -105,19 +104,13 @@ if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    // Get integrations from PostgreSQL database with tenant isolation
     const { storage } = await import('../storage-simple');
-    const integrations = await storage.getTenantIntegrations(tenantId);
     
-    res.json({ integrations });
   } catch (error) {
-    console.error('Error fetching tenant integrations:', error);
-    res.status(500).json({ message: 'Failed to fetch integrations' });
   }
 });
 
 /**
- * GET /api/tenant-admin/integrations/:integrationId/config
  * Obter configuração específica de uma integração
  */
 router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
@@ -161,7 +154,6 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
 });
 
 /**
- * POST /api/tenant-admin/integrations/:integrationId/config
  * Configurar integração do tenant
  */
 router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
@@ -276,7 +268,6 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
 });
 
 /**
- * POST /api/tenant-admin/integrations/:integrationId/test
  * Testar integração do tenant
  */
 router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
@@ -448,7 +439,6 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
 });
 
 /**
- * POST /api/tenant-admin/integrations/:integrationId/oauth/start
  * Iniciar fluxo OAuth2 para Gmail ou Outlook
  */
 router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
@@ -499,7 +489,6 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
 });
 
 /**
- * POST /api/tenant-admin/integrations/populate-all-14
  * Endpoint para forçar a criação de todas as 14 integrações
  */
 router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
@@ -644,7 +633,6 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
     }
 
     res.json({ 
-      message: `Successfully populated all ${allIntegrations.length} integrations`,
       totalCreated: allIntegrations.length,
       categories: {
         'Comunicação': 7,
@@ -655,8 +643,6 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
       }
     });
   } catch (error) {
-    console.error('Error populating all integrations:', error);
-    res.status(500).json({ message: 'Failed to populate all integrations' });
   }
 });
 

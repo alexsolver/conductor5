@@ -288,7 +288,6 @@ const deprecatedCreateTablesQuery = `
           );
 
           -- Integrations table
-          CREATE TABLE IF NOT EXISTS ${schemaName}.integrations (
             id VARCHAR(255) PRIMARY KEY,
             tenant_id VARCHAR(36) NOT NULL,
             name VARCHAR(255) NOT NULL,
@@ -308,5 +307,4 @@ const expectedTables = [
         'knowledge_base_articles', 'locations', 'customer_companies', 
         'customer_company_memberships', 'internal_forms', 'form_submissions',
         'skills', 'user_skills', 'projects', 'project_actions', 
-        'ticket_templates', 'email_templates', 'emails', 'integrations'
       ];

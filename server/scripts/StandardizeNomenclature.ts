@@ -22,11 +22,9 @@ export class NomenclatureStandardizer {
     // Convenção de naming: sempre underscore no banco
     camelCaseToUnderscore: {
       'customerCompanies': 'customer_companies',
-      'externalContacts': 'external_contacts',
       'userSkills': 'user_skills',
       'projectActions': 'project_actions',
       'timecardAlerts': 'timecard_alerts',
-      'scheduleTemplates': 'schedule_templates'
     }
   };
 
@@ -42,7 +40,6 @@ export class NomenclatureStandardizer {
       },
       
       underscoreVsCamelCase: {
-        schemaDefinitions: ['customerCompanies', 'externalContacts', 'userSkills'],
         databaseTables: ['customer_companies', 'external_contacts', 'user_skills'],
         recommendation: 'Schema deve usar camelCase, DB deve usar underscore'
       },

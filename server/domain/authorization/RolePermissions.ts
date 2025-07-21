@@ -27,7 +27,6 @@ export enum Permission {
   TENANT_MANAGE_USERS = 'tenant:manage_users',
   TENANT_VIEW_ANALYTICS = 'tenant:view_analytics',
   TENANT_MANAGE_BILLING = 'tenant:manage_billing',
-  TENANT_MANAGE_INTEGRATIONS = 'tenant:manage_integrations',
   
   // Ticket Management
   TICKET_VIEW_ALL = 'ticket:view_all',

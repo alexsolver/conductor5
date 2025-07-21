@@ -1,5 +1,5 @@
 import { eq, and, desc, asc, ilike, count, sql } from "drizzle-orm";
-import { db, schemaManager } from "./db";
+import { db, SchemaManager } from "./db";
 import { users, tenants, type User, type InsertUser } from "@shared/schema";
 import { logInfo, logError } from "./utils/logger";
 import { poolManager } from "./database/ConnectionPoolManager";
@@ -97,10 +97,10 @@ async function validateTenantAccess(tenantId: string): Promise<string> {
 // ===========================
 
 export class DatabaseStorage implements IStorage {
-  // private schemaManager: SchemaManager; // Removed for simplification
+  private schemaManager: SchemaManager;
 
   constructor() {
-    // Using simplified schema manager from db.ts
+    this.schemaManager = // SchemaManager.getInstance();
   }
 
   // ===========================
@@ -170,7 +170,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       // Create tenant-specific schema
-      await schemaManager.createTenantSchema(tenant.id);
+      await this.schemaManager.createTenantSchema(tenant.id);
 
       logInfo('Tenant created successfully', { tenantId: tenant.id, name: tenant.name });
       return tenant;
@@ -1430,7 +1430,7 @@ export class DatabaseStorage implements IStorage {
   async getEmailTemplates(tenantId: string): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const { db } = await schemaManager.getTenantDb(validatedTenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`
@@ -1456,7 +1456,7 @@ export class DatabaseStorage implements IStorage {
   async createEmailTemplate(tenantId: string, templateData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const { db } = await schemaManager.getTenantDb(validatedTenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const templateId = randomUUID();
@@ -1486,7 +1486,7 @@ export class DatabaseStorage implements IStorage {
   async updateEmailTemplate(tenantId: string, templateId: string, templateData: any): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const { db } = await schemaManager.getTenantDb(validatedTenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const now = new Date().toISOString();
@@ -1517,7 +1517,7 @@ export class DatabaseStorage implements IStorage {
   async deleteEmailTemplate(tenantId: string, templateId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const { db } = await schemaManager.getTenantDb(validatedTenantId);
+      const { db } = await this.schemaManager.getTenantDb(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await db.execute(sql`

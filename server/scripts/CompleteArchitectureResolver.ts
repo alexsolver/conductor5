@@ -196,10 +196,10 @@ console.warn('DEPRECATED: server/modules/shared/database/SchemaManager.ts - Use 
 
   private async updateFragmentedImports(): Promise<void> {
     try {
-      // Update imports from shared/schema/index to shared/schema
+      // Update imports from "@shared/schema"
       await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|shared/schema/index|@shared/schema|g" {} \\;');
       
-      // Update imports from shared/schema/ (modular) to shared/schema
+      // Update imports from "@shared/schema"
       await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|shared/schema/[^\"]*|@shared/schema|g" {} \\;');
       
       console.log('✅ Updated all fragmented imports');

@@ -191,11 +191,9 @@ router.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    const favorecidoLocations = await storage.getFavorecidoLocations(id, user.tenantId);
 
     res.json({
       success: true,
-      locations: favorecidoLocations
     });
   } catch (error) {
     console.error("Error fetching favorecido locations:", error);

@@ -69,15 +69,12 @@ export class GmailSyncScheduler {
       
       for (const tenantId of tenants) {
         try {
-          const integrations = await storage.getTenantIntegrations(tenantId);
-          const imapIntegration = integrations.find(i => i.id === 'imap-email' && i.status === 'connected');
           
           if (imapIntegration) {
             console.log(`📧 Starting Gmail sync for tenant with IMAP integration: ${tenantId}`);
             await this.startPeriodicSync(tenantId, 5); // Sync every 5 minutes
           }
         } catch (error) {
-          console.error(`Error checking integrations for tenant ${tenantId}:`, error);
         }
       }
     } catch (error) {

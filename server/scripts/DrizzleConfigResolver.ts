@@ -85,7 +85,6 @@ export class DrizzleConfigResolver {
         'customers', 'tickets', 'ticket_messages', 'activity_logs',
         'locations', 'customer_companies', 'skills', 'certifications', 
         'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships',
-        'integrations', 'favorecido_locations', 'email_processing_rules', 
         'email_response_templates', 'email_processing_logs', 'projects', 
         'project_actions', 'project_timeline'
       ];

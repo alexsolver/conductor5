@@ -176,7 +176,6 @@ router.get('/groups',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      const groups = await userManagementService.getTenantUserGroups(tenantId);
       res.json({ groups });
     } catch (error) {
       console.error('Error fetching tenant user groups:', error);
@@ -192,7 +191,6 @@ router.get('/roles',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      const roles = await userManagementService.getTenantCustomRoles(tenantId);
       res.json({ roles });
     } catch (error) {
       console.error('Error fetching tenant custom roles:', error);

@@ -77,7 +77,6 @@ const server = app.listen(port, '0.0.0.0', () => {
 
   // Start Gmail sync scheduler for active tenants
   try {
-    const { GmailSyncScheduler } = require('./services/integrations/gmail/GmailSyncScheduler');
     const scheduler = GmailSyncScheduler.getInstance();
 
     // Wait a bit for server to be fully ready, then start syncing

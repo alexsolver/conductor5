@@ -45,7 +45,6 @@ export const PERMISSIONS = {
     MANAGE_USERS: { resource: 'tenant', action: 'manage_users' },
     VIEW_ANALYTICS: { resource: 'tenant', action: 'view_analytics' },
     MANAGE_BILLING: { resource: 'tenant', action: 'manage_billing' },
-    CONFIGURE_INTEGRATIONS: { resource: 'tenant', action: 'configure_integrations' },
   },
   
   // Ticket permissions
