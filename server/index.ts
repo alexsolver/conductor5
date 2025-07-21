@@ -1,10 +1,10 @@
-import express, { type Request, Response, NextFunction } from "express;
-import { registerRoutes } from "./routes;
-import { setupVite, serveStatic, log } from "./vite;
-import cookieParser from "cookie-parser;
-import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability;
-import { initializeCleanup } from "./utils/temporaryFilesCleaner;
-import { connectionStabilizer } from "./utils/connectionStabilizer;
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import cookieParser from "cookie-parser";
+import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability";
+import { initializeCleanup } from "./utils/temporaryFilesCleaner";
+import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
 import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
 import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
@@ -39,7 +39,7 @@ app.use((req, res, next) => {
                      path.includes('/node_modules/') ||
                      path.includes('/@fs/') ||
                      path.includes('/src/') ||
-                     req.method === 'HEAD;
+                     req.method === 'HEAD';
 
   if (skipLogging) {
     return next();
@@ -66,7 +66,7 @@ app.use((req, res, next) => {
       }
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…;
+        logLine = logLine.slice(0, 79) + "…";
       }
 
       log(logLine);
@@ -99,7 +99,7 @@ app.use((req, res, next) => {
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error;
+    const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
     throw err;
@@ -174,7 +174,7 @@ app.use((req, res, next) => {
 
   // CRITICAL STABILITY FIX: Enhanced error handling for WebSocket and database connection issues
   process.on('uncaughtException', (error) => {
-    const errorMsg = error.message || ';
+    const errorMsg = error.message || 'Unknown error';
     
     // VITE STABILITY: Ignore WebSocket and HMR related errors
     if (errorMsg.includes('WebSocket') || 
@@ -206,10 +206,10 @@ app.use((req, res, next) => {
   });
 
   server.listen({
-    port',
-    host: "0.0.0.0"',
-    reusePort: true',
-    keepAlive: true',
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+    keepAlive: true,
     keepAliveInitialDelay: 0
   }, () => {
     log(`serving on port ${port}`);
