@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { storage } from "../../storage-simple";
 import { jwtAuth } from "../../middleware/jwtAuth";
-import { insertFavorecidoSchema, type InsertFavorecido } from "@shared/schema-simple";
+import { insertFavorecidoSchema, type InsertFavorecido } from "@shared/schema";
 
 // Add type for authenticated request
 interface AuthenticatedRequest extends Request {

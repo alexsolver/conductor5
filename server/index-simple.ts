@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { db } from "./db";
-import { users, customers, tickets, tenants } from "@shared/schema-simple";
+import { users, customers, tickets, tenants } from "@shared/schema";
 
 const app = express();
 

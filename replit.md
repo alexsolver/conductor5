@@ -10,9 +10,21 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 21, 2025 - SCHEMA CONSOLIDATION & UUID STANDARDIZATION COMPLETED ✅ CRITICAL ARCHITECTURE ALIGNMENT
+### July 21, 2025 - SCHEMA CONSOLIDATION & TABLE CONFLICTS RESOLUTION COMPLETED ✅ CRITICAL ARCHITECTURE UNIFICATION
 
-**🎯 SCHEMA-DATABASE ALIGNMENT COMPLETAMENTE RESOLVIDO:**
+**🎯 CONFLITOS DE ESTRUTURA DE TABELAS COMPLETAMENTE RESOLVIDOS:**
+
+✅ **SCHEMA FRAGMENTATION ELIMINATED:**
+- Removidos arquivos schema-simple.ts e schema-unified.ts que causavam conflitos estruturais
+- Consolidadas definições inconsistentes de `customers` vs `solicitantes` em favor do schema master
+- Unificada tabela `favorecidos` que tinha campos diferentes (email vs nome) entre arquivos
+- shared/schema.ts agora re-exporta exclusivamente do schema-master.ts como fonte única de verdade
+
+✅ **IMPORTS CONSOLIDATION COMPLETED:**
+- Corrigidas todas as importações de '@shared/schema-simple' para '@shared/schema'
+- Atualizados server/index-simple.ts, server/modules/favorecidos/routes.ts, server/db.ts
+- Eliminadas dependências circulares e referências conflitantes entre schemas
+- Sistema agora usa uma única fonte de verdade para definições de tabelas
 
 ✅ **TENANT_ID UUID STANDARDIZATION COMPLETED:**
 - Corrigidas TODAS as 20+ ocorrências de `tenantId: varchar("tenant_id", { length: 36 })` para `tenantId: uuid("tenant_id")`
@@ -34,6 +46,8 @@ Preferred communication style: Simple, everyday language.
 **🚀 RESULTADO FINAL:**
 - ✅ Schema master 100% alinhado com estrutura real do banco PostgreSQL
 - ✅ Zero inconsistências entre Drizzle schema e tabelas reais
+- ✅ Eliminados conflitos customers vs solicitantes e favorecidos duplicados
+- ✅ Importações unificadas usando shared/schema.ts como proxy único
 - ✅ Padronização UUID completa eliminando erros de tipo
 - ✅ Sistema pronto para operação sem erros de schema/database mismatch
 - ✅ Arquitetura enterprise consolidada com tipos de dados consistentes
