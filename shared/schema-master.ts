@@ -52,7 +52,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   role: varchar("role", { length: 50 }).default("agent").notNull(),
-  tenantId: uuid("tenant_id").references(() => tenants.id),
+  tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
   profileImageUrl: varchar("profile_image_url"),
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),
@@ -88,6 +88,7 @@ export const tickets = pgTable("tickets", {
   priority: varchar("priority", { length: 20 }).default("medium"),
   customerId: uuid("customer_id").references(() => customers.id),
   assignedTo: varchar("assigned_to", { length: 255 }),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -100,6 +101,7 @@ export const ticketMessages = pgTable("ticket_messages", {
   content: text("content").notNull(),
   sender: varchar("sender", { length: 255 }).notNull(),
   senderType: varchar("sender_type", { length: 50 }).default("agent"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -112,6 +114,7 @@ export const activityLogs = pgTable("activity_logs", {
   action: varchar("action", { length: 100 }).notNull(),
   userId: varchar("user_id", { length: 255 }),
   metadata: jsonb("metadata"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
