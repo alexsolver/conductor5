@@ -1,0 +1,168 @@
+OBJETIVO GERAL:
+Desenvolver um módulo completo de agenda/cronograma para gestão de agentes de campo, baseado no visual da interface apresentada, integrando-se perfeitamente com a arquitetura Clean Architecture do sistema Conductor.
+
+CONTEXTO TÉCNICO:
+
+Sistema: Conductor - Plataforma SaaS multi-tenant de suporte ao cliente
+Arquitetura: Clean Architecture com TypeScript, React, Node.js/Express
+Banco: PostgreSQL com Drizzle ORM, isolamento por schema de tenant
+Frontend: React com shadcn/ui, TanStack Query, Tailwind CSS
+Layout Referência: Interface de cronograma semanal com agentes listados verticalmente
+
+INSTRUÇÕES DETALHADAS:
+
+1. ANÁLISE DO LAYOUT DE REFERÊNCIA
+Estudar a interface apresentada: layout de grade semanal
+Agentes listados verticalmente no lado esquerdo
+Dias da semana como colunas horizontais
+Blocos de tempo coloridos representando agendamentos
+Métricas de produtividade e horas por agente
+Indicadores visuais de status e tipos de atividade
+
+2. ESTRUTURA DE DADOS E SCHEMA
+Tabela de agendamentos (schedules) com campos:
+ID, tenant_id, agent_id, customer_id
+start_datetime, end_datetime, duration
+activity_type, status, priority
+location_address, coordinates
+description, internal_notes
+created_at, updated_at
+Tabela de tipos de atividade (activity_types):
+Visita técnica, instalação, manutenção, suporte
+Cores diferenciadas por tipo
+Tabela de configurações de agenda (schedule_settings):
+Horários de trabalho por agente
+Zonas de atendimento (integração futura)
+Tempos de deslocamento
+Integração com mapas para otimização de rotas
+Conflitos automáticos de horários
+
+3. FUNCIONALIDADES PRINCIPAIS
+
+3.1 Visualização de Agenda
+Dashboard principal com grade diária/semanal/mensal
+Lista de agentes com fotos e informações básicas
+Blocos de agendamento coloridos por tipo
+Navegação entre semanas/meses
+Filtros por agente, tipo de atividade, status
+Métricas básicas: horas agendadas, produtividade
+
+3.2 Gestão de Agendamentos
+
+CRUD completo de agendamentos
+Drag & drop para reagendar
+Modal de criação/edição com todos os campos
+Validação de conflitos de horário
+Associação com clientes e tickets existentes
+Notificações de mudanças
+
+3.3 Gestão de Agentes
+Cadastro de disponibilidade por agente (integrar com Jornada)
+Definição de horários de trabalho(integrar com Jornada)
+Zonas de atendimento preferenciais (integração futura)
+
+3.5 Inteligência e Automação
+Sugestão automática de horários
+Otimização de rotas
+Matching automático agente-cliente por skill
+Predição de tempo de atividade
+Alertas proativos de conflitos
+
+3.6 Integrações Avançadas
+Integração com GPS para tracking
+Notificações push mobile
+WhatsApp/SMS para confirmações
+3.7 Analytics Avançados
+Dashboard executivo
+Análise de padrões de demanda
+Forecast de necessidade de agentes
+4. INTERFACE DO USUÁRIO
+Implementar baseado na referência:
+Layout principal em grid responsivo
+Sidebar com lista de agentes (foto, nome, métricas)
+Header com navegação temporal e filtros
+Grid central com slots de tempo
+Código de cores para diferentes tipos de atividade
+Tooltips informativos nos agendamentos
+Modais para edição
+Drag & drop funcional
+5. ARQUITETURA TÉCNICA
+Backend (Clean Architecture):
+
+Module: schedule-management
+Domain: Entities (Schedule, Agent, ActivityType)
+Application: Use Cases, Controllers
+Infrastructure: Repositories Drizzle
+Rotas REST completas
+Validação de dados com Zod
+Middleware de autorização
+WebSocket para atualizações real-time
+Frontend:
+
+Página principal: AgendaManager.tsx
+Componentes modulares:
+WeeklyScheduleGrid.tsx
+AgentList.tsx
+ScheduleModal.tsx
+DragDropSchedule.tsx
+Hooks customizados para lógica complexa
+Context para estado global da agenda
+6. INTEGRAÇÃO COM SISTEMA EXISTENTE
+Conectar com módulos existentes:
+
+Users/UserManagement para lista de agentes
+Customers para associação de agendamentos
+Tickets para vinculação de atividades
+Locations para endereços e coordenadas
+Notifications para alertas
+TimeCard para registro de horas
+7. FUNCIONALIDADES AVANÇADAS DE UX
+Busca rápida de agentes/clientes
+Filtros em tempo real
+Loading states otimizados
+Error boundaries
+Bulk operations
+Temas personalizáveis
+
+8. PERFORMANCE E ESCALABILIDADE
+Otimizações:
+
+Paginação inteligente
+Caching de dados frequentes
+Lazy loading de componentes
+Debounce em filtros
+Virtual scrolling para listas grandes
+
+9. SEGURANÇA E COMPLIANCE
+Implementar:
+
+Controle de acesso baseado em roles
+Audit trail de mudanças
+Criptografia de dados sensíveis
+Compliance LGPD
+Rate limiting nas APIs
+
+10. TESTES E QUALIDADE
+Estratégia de testes:
+
+Unit tests para use cases
+Integration tests para repositories
+E2E tests para fluxos críticos
+Performance tests para cargas altas
+
+DELIVERABLES ESPERADOS:
+
+Módulo de agenda completamente funcional
+Interface baseada no design de referência
+CRUD operacional com dados reais
+Integração seamless com módulos existentes
+Performance otimizada para uso real
+Documentação técnica e de usuário
+PRIORIZAÇÃO DE DESENVOLVIMENTO:
+
+Estrutura de dados e backend core
+Interface básica de visualização
+CRUD de agendamentos
+Drag & drop e interações
+Relatórios e métricas
+Integrações avançadas
