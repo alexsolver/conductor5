@@ -1,199 +1,226 @@
-# NOMENCLATURE STANDARDS - PORTUGUESE/ENGLISH CONSISTENCY RESOLVED
+# NOMENCLATURE STANDARDS GUIDE
+**Established: July 21, 2025**
 
-## INCONSISTÊNCIAS CRÍTICAS IDENTIFICADAS ❌
+## Overview
+This document defines the nomenclature standards for the Conductor platform, addressing the coexistence of Portuguese and English naming conventions in a Brazilian business context.
 
-### 1. Tabela Favorecidos - Mistura Português/Inglês
+## 🎯 Core Principles
+
+### 1. **Business Context First**
+- Brazilian legal terms (CPF, CNPJ, RG) remain in Portuguese for accuracy
+- International business terms (email, phone) use English for global compatibility
+- Table names reflect target audience (favorecidos = Brazilian context, customers = international)
+
+### 2. **Consistency Within Scope**
+- Database fields: Always snake_case (`created_at`, `tenant_id`)
+- TypeScript schema: Always camelCase (`createdAt`, `tenantId`)
+- API endpoints: kebab-case URLs (`/api/customer-companies`)
+- Components: PascalCase (`CustomerCompanies.tsx`)
+
+### 3. **Functional Distinction**
+- `favorecidos`: Brazilian entities with CPF/CNPJ (Portuguese context)
+- `customers`: International entities with standard fields (English context)
+- Both can coexist serving different business needs
+
+## 📋 Detailed Standards
+
+### Database Naming Conventions
+
+#### ✅ CORRECT Patterns:
+```sql
+-- Table names: snake_case
+CREATE TABLE customer_companies (...);
+CREATE TABLE user_skills (...);
+CREATE TABLE project_actions (...);
+
+-- Field names: snake_case
+tenant_id UUID NOT NULL
+created_at TIMESTAMP DEFAULT NOW()
+is_active BOOLEAN DEFAULT true
+```
+
+#### ❌ AVOID:
+```sql
+-- Mixed case in database
+CREATE TABLE customerCompanies (...);
+CREATE TABLE UserSkills (...);
+
+-- Inconsistent field naming
+createdAt TIMESTAMP  -- Should be created_at
+tenantID UUID        -- Should be tenant_id
+```
+
+### TypeScript Schema Conventions
+
+#### ✅ CORRECT Patterns:
 ```typescript
-// ANTES - Nomenclatura inconsistente:
-export const favorecidos = pgTable("favorecidos", {
-  nome: varchar("nome", { length: 255 }),              // 🇧🇷 Português
-  email: varchar("email", { length: 255 }),            // 🇺🇸 Inglês  
-  telefone: varchar("telefone", { length: 20 }),       // 🇧🇷 Português
-  celular: varchar("celular", { length: 20 }),         // 🇧🇷 Português
-  cpf: varchar("cpf", { length: 14 }),                 // 🇧🇷 Português (legal)
-  codigoIntegracao: varchar("codigo_integracao"),      // 🇧🇷 Português
-  endereco: text("endereco"),                          // 🇧🇷 Português
-  observacoes: text("observacoes"),                    // 🇧🇷 Português
+// Schema definitions: camelCase
+export const customerCompanies = pgTable("customer_companies", {
+  tenantId: uuid("tenant_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  isActive: boolean("is_active").default(true)
 });
 
-// VS outras tabelas 100% inglês:
-export const customers = pgTable("customers", {
-  firstName: varchar("first_name", { length: 255 }),   // 🇺🇸 Inglês
-  lastName: varchar("last_name", { length: 255 }),     // 🇺🇸 Inglês
-  email: varchar("email", { length: 255 }),            // 🇺🇸 Inglês
-  phone: varchar("phone", { length: 20 }),             // 🇺🇸 Inglês
-});
+// Types: camelCase
+type CustomerCompany = typeof customerCompanies.$inferSelect;
 ```
 
-### 2. Snake_case vs camelCase Inconsistente
+### API Naming Conventions
+
+#### ✅ CORRECT Patterns:
 ```typescript
-// Database PostgreSQL:
-customer_companies, user_skills, project_actions        // ✅ snake_case
+// URL endpoints: kebab-case
+GET /api/customer-companies
+POST /api/user-skills
+PUT /api/project-actions/:id
 
-// Schema TypeScript:
-customerCompanies, userSkills, projectActions          // ✅ camelCase
-
-// PROBLEMA - Favorecidos inconsistente:
-codigo_integracao (snake_case) vs codigoIntegracao (camelCase) // ❌
-```
-
-## PADRÕES ESTABELECIDOS ✅
-
-### 1. Regra de Nomenclatura Unificada
-```typescript
-// INGLÊS: Campos padrão do sistema
-name, email, phone, address, city, state, notes, status, priority
-
-// PORTUGUÊS: Apenas termos legais brasileiros específicos
-cpf, cnpj, rg (documentos brasileiros únicos sem equivalente internacional)
-
-// COEXISTÊNCIA CONTROLADA: 
-// - Tabela "favorecidos" (conceito brasileiro específico)
-// - Campos em inglês (padronização internacional)
-```
-
-### 2. Convenções por Camada
-```typescript
-// DATABASE POSTGRESQL: snake_case SEMPRE
-customer_companies, user_skills, project_actions, cell_phone, zip_code
-
-// SCHEMA TYPESCRIPT: camelCase SEMPRE  
-customerCompanies, userSkills, projectActions, cellPhone, zipCode
-
-// API URLS: kebab-case
-/api/customer-companies, /api/user-skills, /api/project-actions
-
-// COMPONENTS: PascalCase
-CustomerCompanies.tsx, UserSkills.tsx, ProjectActions.tsx
-```
-
-### 3. Campos Padronizados
-```typescript
-// DEPOIS - Nomenclatura consistente:
-export const favorecidos = pgTable("favorecidos", {
-  name: varchar("name", { length: 255 }),              // ✅ Inglês padrão
-  email: varchar("email", { length: 255 }),            // ✅ Inglês padrão
-  phone: varchar("phone", { length: 20 }),             // ✅ Inglês padrão
-  cellPhone: varchar("cell_phone", { length: 20 }),    // ✅ Inglês padrão
-  cpf: varchar("cpf", { length: 14 }),                 // ✅ Termo legal BR
-  cnpj: varchar("cnpj", { length: 18 }),               // ✅ Termo legal BR
-  rg: varchar("rg", { length: 20 }),                   // ✅ Termo legal BR
-  integrationCode: varchar("integration_code"),        // ✅ Inglês padrão
-  address: text("address"),                            // ✅ Inglês padrão
-  city: varchar("city", { length: 100 }),             // ✅ Inglês padrão
-  state: varchar("state", { length: 2 }),             // ✅ Inglês padrão
-  zipCode: varchar("zip_code", { length: 10 }),       // ✅ Inglês padrão
-  notes: text("notes"),                                // ✅ Inglês padrão
-});
-```
-
-## BUSINESS RULES BRASILEIRAS
-
-### 1. Termos Legais Mantidos
-```typescript
-// Documentos brasileiros únicos (manter português):
-cpf: "Cadastro de Pessoa Física"
-cnpj: "Cadastro Nacional da Pessoa Jurídica"  
-rg: "Registro Geral"
-
-// Conceitos brasileiros específicos:
-favorecidos: "Beneficiários externos em contexto empresarial brasileiro"
-```
-
-### 2. Campos Sistema Padronizados
-```typescript
-// Sempre em inglês para consistência internacional:
-tenant_id, is_active, created_at, updated_at
-user_id, customer_id, project_id
-name, email, phone, address, city, state
-status, priority, description, notes
-```
-
-## VALIDAÇÃO AUTOMÁTICA
-
-### 1. NomenclatureStandardizer
-```typescript
-export class NomenclatureStandardizer {
-  static validateFieldNames(schema: any): ValidationResult {
-    const errors = [];
-    
-    // Verificar mistura português/inglês
-    const portugueseFields = ['nome', 'telefone', 'endereco', 'observacoes'];
-    const foundPortuguese = portugueseFields.filter(field => 
-      schema.includes(field) && !['cpf', 'cnpj', 'rg'].includes(field)
-    );
-    
-    if (foundPortuguese.length > 0) {
-      errors.push(`Portuguese fields found: ${foundPortuguese.join(', ')}`);
-    }
-    
-    // Verificar snake_case vs camelCase
-    const inconsistentCasing = this.validateCasing(schema);
-    
-    return { valid: errors.length === 0, errors };
-  }
+// JSON response: camelCase
+{
+  "customerCompanies": [...],
+  "totalCount": 42,
+  "isActive": true
 }
 ```
 
-### 2. Padrões para Novos Desenvolvimentos
+### Component Naming Conventions
+
+#### ✅ CORRECT Patterns:
 ```typescript
-// REGRAS PARA NOVOS CAMPOS:
+// File names: PascalCase
+CustomerCompanies.tsx
+UserSkills.tsx
+ProjectActions.tsx
 
-// ✅ CORRETO:
-export const newTable = pgTable("new_table", {
-  name: varchar("name"),                    // Inglês padrão
-  email: varchar("email"),                  // Inglês padrão
-  phone: varchar("phone"),                  // Inglês padrão
-  cpf: varchar("cpf"),                      // Termo legal BR específico
-});
+// Component names: PascalCase
+export function CustomerCompanies() { ... }
+export function UserSkillsManager() { ... }
+```
 
-// ❌ EVITAR:
-export const newTable = pgTable("new_table", {
-  nome: varchar("nome"),                    // Português genérico
-  telefone: varchar("telefone"),           // Português genérico
-  emailAddress: varchar("email_endereco"), // Mistura idiomas
+## 🇧🇷 Brazilian-Specific Fields
+
+### Legal Requirements (Keep Portuguese)
+```typescript
+// ✅ CORRECT - Legal accuracy required
+cpf: varchar("cpf", { length: 14 })        // Brazilian tax ID
+cnpj: varchar("cnpj", { length: 18 })      // Brazilian company ID  
+rg: varchar("rg", { length: 20 })          // Brazilian identity document
+
+// ✅ CORRECT - Business context
+favorecidos: "Beneficiaries/Recipients in Brazilian business context"
+```
+
+### International Fields (Use English)
+```typescript
+// ✅ CORRECT - Global compatibility
+email: varchar("email", { length: 255 })
+phone: varchar("phone", { length: 20 })
+firstName: varchar("first_name", { length: 100 })
+lastName: varchar("last_name", { length: 100 })
+```
+
+## 🔧 Inconsistency Resolution Guidelines
+
+### 1. **Field Name Conflicts**
+
+**Problem**: `favorecidos.name` vs `customers.firstName/lastName`
+
+**Resolution Options**:
+- **Option A**: Standardize on `firstName/lastName` everywhere
+- **Option B**: Use `name` for entities, `firstName/lastName` for people
+- **Recommended**: Option B - business entities use `name`, individuals use `firstName/lastName`
+
+### 2. **Phone Field Redundancy**
+
+**Problem**: `phone` and `cellPhone` in same table
+
+**Resolution**:
+```typescript
+// ✅ PREFERRED - Clear distinction
+landlinePhone: varchar("landline_phone", { length: 20 })
+mobilePhone: varchar("mobile_phone", { length: 20 })
+
+// ✅ ALTERNATIVE - Primary/secondary
+primaryPhone: varchar("primary_phone", { length: 20 })
+secondaryPhone: varchar("secondary_phone", { length: 20 })
+```
+
+### 3. **Table Language Mixing**
+
+**Current State**: 
+- 1 Portuguese table: `favorecidos`
+- 12+ English tables: `customers`, `tickets`, etc.
+
+**Recommendation**: **KEEP AS-IS**
+- `favorecidos` serves Brazilian market specifically
+- English tables serve international/general use
+- Both patterns have business justification
+
+## 📊 Implementation Checklist
+
+### For New Development:
+- [ ] Database fields use snake_case
+- [ ] TypeScript schema uses camelCase  
+- [ ] API endpoints use kebab-case URLs
+- [ ] Components use PascalCase
+- [ ] Brazilian legal fields keep Portuguese names
+- [ ] International business fields use English
+
+### For Existing Code:
+- [ ] Document business justification for mixed languages
+- [ ] Resolve field naming conflicts (name vs firstName/lastName)
+- [ ] Clarify phone field purposes (landline vs mobile)
+- [ ] Maintain consistency within each table/module
+
+## 🎯 Business Impact Assessment
+
+### Risk Level: **LOW** 🟢
+- Inconsistencies don't break functionality
+- Mixed languages serve legitimate business purposes
+- Primary impact is on developer experience and maintenance
+
+### Benefits of Standardization:
+1. **Developer Productivity**: Predictable naming patterns
+2. **Code Maintainability**: Consistent conventions across codebase
+3. **International Compatibility**: English for global features
+4. **Legal Compliance**: Portuguese for Brazilian requirements
+
+## 📚 Examples
+
+### Complete Table Example:
+```typescript
+// Brazilian-specific table
+export const favorecidos = pgTable("favorecidos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Business entity info (Portuguese context)
+  name: varchar("name", { length: 255 }).notNull(),           // Entity name
+  tradeName: varchar("trade_name", { length: 255 }),         // Nome fantasia
+  
+  // Brazilian legal fields (keep Portuguese)
+  cpf: varchar("cpf", { length: 14 }),                       // Individual tax ID
+  cnpj: varchar("cnpj", { length: 18 }),                     // Company tax ID
+  rg: varchar("rg", { length: 20 }),                         // Identity document
+  
+  // International contact fields (English)
+  email: varchar("email", { length: 255 }),
+  primaryPhone: varchar("primary_phone", { length: 20 }),
+  secondaryPhone: varchar("secondary_phone", { length: 20 }),
+  
+  // Standard system fields (English)
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 ```
 
-## IMPACTO E MIGRAÇÃO
+## 🔄 Future Considerations
 
-### 1. Mudanças Implementadas
-```sql
--- Campos favorecidos padronizados:
-nome → name
-telefone → phone  
-celular → cell_phone
-codigo_integracao → integration_code
-endereco → address
-cidade → city
-estado → state
-cep → zip_code
-observacoes → notes
+1. **Internationalization (i18n)**: Consider translatable display names while keeping database fields consistent
+2. **API Documentation**: Document field purposes clearly for mixed-language APIs
+3. **Migration Strategy**: Plan for potential future standardization if business requirements change
 
--- Mantidos (termos legais):
-cpf, cnpj, rg ✓
-```
+---
 
-### 2. Compatibilidade
-- **Backend**: Schemas atualizados com novos nomes
-- **Frontend**: Components e forms precisam ser atualizados
-- **Database**: Colunas mantêm nomes originais por compatibilidade
-- **API**: Novos endpoints usam nomenclatura padronizada
-
-### 3. Benefícios Alcançados
-- ✅ Consistência nomenclatura 95% inglês + 5% termos legais BR
-- ✅ Zero mistura português/inglês em campos genéricos  
-- ✅ Padrões claros para desenvolvimento futuro
-- ✅ Compatibilidade internacional mantida
-- ✅ Conformidade legal brasileira preservada
-
-## MÉTRICAS DE PADRONIZAÇÃO
-
-- **Campos padronizados**: 12/12 favorecidos (100%)
-- **Termos legais preservados**: 3/3 (cpf, cnpj, rg) 
-- **Consistência inglês**: 90%+ em todo sistema
-- **Tabelas alinhadas**: 15/15 com padrão unificado
-
-**Status**: ✅ NOMENCLATURA COMPLETAMENTE PADRONIZADA  
-**Data**: 21 de julho de 2025  
-**Resultado**: Sistema consistente, internacional e legalmente compliant
+**Last Updated**: July 21, 2025  
+**Next Review**: Quarterly or when expanding to new markets

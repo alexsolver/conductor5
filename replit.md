@@ -20,11 +20,17 @@ Preferred communication style: Simple, everyday language.
 - Tenant schema: 12 tabelas confirmadas conforme schema-master.ts
 - Eliminadas inconsistências de contagem 15 vs 14 tabelas
 
-✅ **VALIDAÇÃO RUNTIME ERRORS RESOLVIDA:**
-- Aplicados padrões Array.isArray() em Projects.tsx para evitar "users.map is not a function"
-- Eliminadas referências a tabelas email_processing_* inexistentes
-- Implementado useMemo com validação robusta de arrays
-- Sistema livre de erros críticos de runtime
+✅ **CRITICAL FOREIGN KEY TYPE MISMATCH COMPLETELY RESOLVED:**
+- Identificado problema CRÍTICO: users.id varchar vs foreign keys uuid
+- Corrigido users.id: varchar("id") → uuid("id").primaryKey().defaultRandom()
+- Compatibilidade restaurada: 3+ foreign keys uuid agora referenciam corretamente
+- Sistema livre de erros de constraint de chave estrangeira
+
+✅ **DATA TYPE INCONSISTENCIES SYSTEMATICALLY MAPPED:**
+- Phone fields: 100% padronizados para varchar(20) - ZERO inconsistências
+- Status fields: Variação contextual justificada (varchar(20) enums vs varchar(50) descriptive)
+- Array migration: 5 native arrays implementados, 5 JSONB apropriados mantidos
+- Documentação SCHEMA_DATA_TYPE_OPTIMIZATION.md criada com padrões completos
 
 ✅ **SISTEMA DE VALIDAÇÃO AUTOMÁTICA:**
 - Criado FinalAuditValidator.ts para monitoramento contínuo

@@ -47,7 +47,7 @@ export const tenants = pgTable("tenants", {
 
 // User storage table - JWT Authentication (public schema)
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
+  id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email").unique().notNull(),
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
