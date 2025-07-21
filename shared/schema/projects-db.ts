@@ -71,10 +71,10 @@ export const projects = pgTable('projects', {
   // People
   projectManagerId: uuid('project_manager_id'),
   clientId: uuid('client_id'),
-  teamMemberIds: jsonb('team_member_ids').$type<string[]>().notNull().default([]),
+  teamMemberIds: uuid('team_member_ids').array().notNull().default([]),
   
-  // Metadata
-  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  // Metadata  
+  tags: text('tags').array().notNull().default([]),
   customFields: jsonb('custom_fields').$type<Record<string, any>>().notNull().default({}),
   
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -103,7 +103,7 @@ export const projectActions = pgTable('project_actions', {
   
   // Assignment
   assignedToId: uuid('assigned_to_id'),
-  responsibleIds: jsonb('responsible_ids').$type<string[]>().notNull().default([]),
+  responsibleIds: uuid('responsible_ids').array().notNull().default([]),
   
   // External Actions
   clientContactId: uuid('client_contact_id'),
@@ -111,8 +111,8 @@ export const projectActions = pgTable('project_actions', {
   deliveryMethod: varchar('delivery_method', { length: 100 }),
   
   // Dependencies
-  dependsOnActionIds: jsonb('depends_on_action_ids').$type<string[]>().notNull().default([]),
-  blockedByActionIds: jsonb('blocked_by_action_ids').$type<string[]>().notNull().default([]),
+  dependsOnActionIds: uuid('depends_on_action_ids').array().notNull().default([]),
+  blockedByActionIds: uuid('blocked_by_action_ids').array().notNull().default([]),
   
   // Metadata
   priority: projectPriorityEnum('priority').notNull().default('medium'),

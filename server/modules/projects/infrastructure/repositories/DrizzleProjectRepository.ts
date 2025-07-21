@@ -7,16 +7,20 @@ import { IProjectRepository, IProjectActionRepository, IProjectTimelineRepositor
 
 export class DrizzleProjectRepository implements IProjectRepository {
   async create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> {
-    const now = new Date().toISOString();
     const id = crypto.randomUUID();
     
-    const { db } = await schemaManager.getTenantDb(project.tenantId);
-    const [created] = await db.insert(projects).values({
+    const insertData = {
       id,
       ...project,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
+      // Ensure arrays are properly formatted for JSON fields
+      teamMemberIds: project.teamMemberIds || [],
+      tags: project.tags || [],
+      customFields: project.customFields || {}
+      // createdAt and updatedAt are handled by defaultNow() in the database schema
+    };
+    
+    const { db } = await schemaManager.getTenantDb(project.tenantId);
+    const [created] = await db.insert(projects).values(insertData).returning();
     
     return created;
   }
@@ -300,9 +304,10 @@ export class DrizzleProjectActionRepository implements IProjectActionRepository 
 
 export class DrizzleProjectTimelineRepository implements IProjectTimelineRepository {
   async create(timeline: Omit<ProjectTimeline, 'id' | 'createdAt'>): Promise<ProjectTimeline> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = crypto.randomUUID();
     
+    const { db } = await schemaManager.getTenantDb(timeline.tenantId);
     const [created] = await db.insert(projectTimeline).values({
       id,
       ...timeline,
@@ -313,6 +318,7 @@ export class DrizzleProjectTimelineRepository implements IProjectTimelineReposit
   }
 
   async findByProject(projectId: string, tenantId: string): Promise<ProjectTimeline[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     return await db
       .select()
       .from(projectTimeline)
@@ -321,6 +327,7 @@ export class DrizzleProjectTimelineRepository implements IProjectTimelineReposit
   }
 
   async findAll(tenantId: string): Promise<ProjectTimeline[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     return await db
       .select()
       .from(projectTimeline)

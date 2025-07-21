@@ -36,8 +36,19 @@ export class ProjectController {
   // Projects
   async createProject(req: AuthenticatedRequest, res: Response) {
     try {
-      const { tenantId, userId } = req.user!;
+      console.log('req.user structure:', JSON.stringify(req.user, null, 2));
       
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      console.log('Step 1: Extracting tenant and user values...');
+      const tenantId = req.user.tenantId;
+      const userId = req.user.id;
+      
+      console.log('Step 2: Extracted values - tenantId:', tenantId, 'userId:', userId);
+      
+      console.log('Step 3: Starting validation...');
       const validation = CreateProjectSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({ 
@@ -46,7 +57,7 @@ export class ProjectController {
         });
       }
 
-      // Convert date strings to Date objects for Drizzle
+      // Convert date strings to Date objects for Drizzle  
       const projectData = {
         ...validation.data,
         tenantId,
@@ -55,10 +66,15 @@ export class ProjectController {
         teamMemberIds: validation.data.teamMemberIds || [],
         tags: validation.data.tags || [],
         customFields: validation.data.customFields || {},
-        startDate: validation.data.startDate ? new Date(validation.data.startDate) : undefined,
-        endDate: validation.data.endDate ? new Date(validation.data.endDate) : undefined,
-        dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : undefined
+        // Only include date fields if they are provided
+        ...(validation.data.startDate && { startDate: new Date(validation.data.startDate) }),
+        ...(validation.data.endDate && { endDate: new Date(validation.data.endDate) }),
+        createdBy: userId,
+        updatedBy: userId
       };
+
+      console.log('Controller - projectData before use case:', JSON.stringify(projectData, null, 2));
+      console.log('Controller - userId extracted from auth:', userId);
 
       const project = await this.projectsUseCase.createProject(projectData, userId);
 
@@ -193,11 +209,15 @@ export class ProjectController {
         });
       }
 
-      // Ensure arrays are properly initialized
+      // Convert date strings to Date objects and ensure arrays are properly initialized
       const actionData = {
         ...validation.data,
         tenantId,
         actualHours: 0,
+        // Convert date strings to Date objects for Drizzle
+        scheduledDate: validation.data.scheduledDate ? new Date(validation.data.scheduledDate) : undefined,
+        dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : undefined,
+        completedDate: validation.data.completedDate ? new Date(validation.data.completedDate) : undefined,
         // Convert string arrays or undefined to proper arrays
         responsibleIds: Array.isArray(validation.data.responsibleIds) ? validation.data.responsibleIds : [],
         dependsOnActionIds: Array.isArray(validation.data.dependsOnActionIds) ? validation.data.dependsOnActionIds : [],
@@ -277,7 +297,15 @@ export class ProjectController {
         });
       }
 
-      const action = await this.actionsUseCase.updateAction(id, tenantId, validation.data, userId);
+      // Convert date strings to Date objects for Drizzle
+      const updateData = {
+        ...validation.data,
+        scheduledDate: validation.data.scheduledDate ? new Date(validation.data.scheduledDate) : undefined,
+        dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : undefined,
+        completedDate: validation.data.completedDate ? new Date(validation.data.completedDate) : undefined
+      };
+
+      const action = await this.actionsUseCase.updateAction(id, tenantId, updateData, userId);
       if (!action) {
         return res.status(404).json({ message: 'Ação não encontrada' });
       }
