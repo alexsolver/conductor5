@@ -45,7 +45,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
         integration.category === 'Comunicação' || integration.category === 'communication'
       );
 
-      const channels: Channel[] = communicationIntegrations.map(integration => {
+      const channels: Channel[] = await Promise.all(communicationIntegrations.map(async integration => {
         let isActive = false;
         let isConnected = false;
         let errorCount = 0;
@@ -163,7 +163,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
         });
 
         return channel;
-      });
+      }));
 
       console.log(`DrizzleChannelRepository: Found ${channels.length} communication channels for tenant ${tenantId} (filtered from ${integrations.length} total integrations)`);
       return channels;
