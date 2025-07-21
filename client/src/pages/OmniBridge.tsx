@@ -188,6 +188,16 @@ export default function OmniBridge() {
     integration.category === 'Comunicação'
   );
   const inbox = (inboxData as any)?.messages || [];
+  
+  // Debug log for inbox data
+  useEffect(() => {
+    if (inbox.length > 0) {
+      console.log('📧 Inbox data received:', inbox.length, 'messages');
+      console.log('📧 First message structure:', inbox[0]);
+    } else {
+      console.log('📪 No inbox messages available');
+    }
+  }, [inbox]);
 
   // Auto-refresh data every 30 seconds
   useEffect(() => {
@@ -515,27 +525,31 @@ export default function OmniBridge() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <h4 className="font-medium">{message.subject || message.title || 'Sem assunto'}</h4>
+                            <h4 className="font-medium">{message.subject || 'Sem assunto'}</h4>
                             <p className="text-sm text-gray-500">
-                              De: {message.from || message.sender || 'Desconhecido'}
+                              De: {message.sender || message.from_email || 'Desconhecido'}
                             </p>
                           </div>
                           <div className="text-right">
                             <Badge variant="outline" className="mb-1">
-                              {message.priority || 'normal'}
+                              {message.priority || 'medium'}
                             </Badge>
                             <p className="text-xs text-gray-500">
-                              {message.createdAt ? new Date(message.createdAt).toLocaleString('pt-BR') : 'Data indisponível'}
+                              {message.created_at ? new Date(message.created_at).toLocaleString('pt-BR') : 
+                               message.email_date ? new Date(message.email_date).toLocaleString('pt-BR') :
+                               'Data indisponível'}
                             </p>
                           </div>
                         </div>
                         <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                          {message.content || message.body || 'Conteúdo indisponível'}
+                          {message.body || message.body_text || 'Conteúdo indisponível'}
                         </p>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span>Canal: {message.channel || 'email'}</span>
+                          <span>Canal: email</span>
                           <Separator orientation="vertical" className="h-3" />
-                          <span>Status: {message.status || 'pendente'}</span>
+                          <span>Status: {message.status || (message.is_read ? 'lido' : 'não lido')}</span>
+                          <Separator orientation="vertical" className="h-3" />
+                          <span>Processado: {message.processed || message.is_processed ? 'sim' : 'não'}</span>
                         </div>
                       </CardContent>
                     </Card>
