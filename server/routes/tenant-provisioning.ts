@@ -3,10 +3,10 @@
  * Handles automatic tenant creation endpoints
  */
 
-import { Router } from 'express''[,;]
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
-import { tenantAutoProvisioningService } from '../services/TenantAutoProvisioningService''[,;]
-import { z } from 'zod''[,;]
+import { Router } from 'express'[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth'[,;]
+import { tenantAutoProvisioningService } from '../services/TenantAutoProvisioningService'[,;]
+import { z } from 'zod'[,;]
 
 const router = Router()';
 
@@ -16,7 +16,7 @@ const provisionTenantSchema = z.object({
   subdomain: z.string().optional()',
   companyName: z.string().optional()',
   settings: z.record(z.any()).optional()',
-  trigger: z.enum(['manual', 'registration', 'invitation', 'api']).default('manual')
+  trigger: z.enum(['manual', 'registration', 'invitation', 'api]).default('manual')
 })';
 
 // Schema for auto-provisioning configuration
@@ -25,7 +25,7 @@ const configSchema = z.object({
   allowSelfProvisioning: z.boolean()',
   defaultTenantSettings: z.record(z.any())',
   autoCreateOnFirstUser: z.boolean()',
-  subdomainGeneration: z.enum(['random', 'company-based', 'user-based'])
+  subdomainGeneration: z.enum(['random', 'company-based', 'user-based])
 })';
 
 /**
@@ -42,7 +42,7 @@ router.post('/provision', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const validationResult = provisionTenantSchema.safeParse(req.body)';
     if (!validationResult.success) {
       return res.status(400).json({ 
-        message: 'Invalid request data''[,;]
+        message: 'Invalid request data'[,;]
         errors: validationResult.error.errors
       })';
     }
@@ -138,7 +138,7 @@ router.put('/config', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const validationResult = configSchema.partial().safeParse(req.body)';
     if (!validationResult.success) {
       return res.status(400).json({ 
-        message: 'Invalid configuration data''[,;]
+        message: 'Invalid configuration data'[,;]
         errors: validationResult.error.errors
       })';
     }
@@ -146,7 +146,7 @@ router.put('/config', jwtAuth, async (req: AuthenticatedRequest, res) => {
     tenantAutoProvisioningService.updateConfig(validationResult.data)';
     
     res.json({
-      message: 'Configuration updated successfully''[,;]
+      message: 'Configuration updated successfully'[,;]
       config: tenantAutoProvisioningService.getConfig()
     })';
 

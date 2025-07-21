@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express''[,;]
+import { Router, Request, Response } from 'express'[,;]
 
 const router = Router()';
 
@@ -8,7 +8,7 @@ router.get('/test', async (req: Request, res: Response) => {
     console.log('📋 Timecard test route accessed - SUCCESS!')';
     res.json({ 
       status: 'success', 
-      message: 'Timecard routes are working - NO AUTH BYPASS CONFIRMED''[,;]
+      message: 'Timecard routes are working - NO AUTH BYPASS CONFIRMED'[,;]
       timestamp: new Date().toISOString()',
       headers: req.headers 
     })';
@@ -22,7 +22,7 @@ router.get('/test', async (req: Request, res: Response) => {
 router.get('/absence-requests/pending', async (req: Request, res: Response) => {
   try {
     console.log('📋 Pending absence requests accessed')';
-    const tenantId = req.headers['x-tenant-id'] as string';
+    const tenantId = req.headers['x-tenant-id] as string';
     
     // Return empty array to test basic functionality
     res.json([])';
@@ -36,7 +36,7 @@ router.get('/absence-requests/pending', async (req: Request, res: Response) => {
 router.get('/schedule-templates', async (req: Request, res: Response) => {
   try {
     console.log('📋 Schedule templates accessed')';
-    const tenantId = req.headers['x-tenant-id'] as string';
+    const tenantId = req.headers['x-tenant-id] as string';
     
     // Return empty array to test basic functionality  
     res.json([])';

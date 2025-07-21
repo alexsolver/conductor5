@@ -1,8 +1,8 @@
-import { Request, Response } from 'express''[,;]
-import { ProjectActionTicketIntegrationService } from '../services/ProjectActionTicketIntegrationService''[,;]
-import { DrizzleProjectRepository, DrizzleProjectActionRepository } from '../../infrastructure/repositories/DrizzleProjectRepository''[,;]
-import { storage } from '../../../../storage-simple''[,;]
-import crypto from 'crypto''[,;]
+import { Request, Response } from 'express'[,;]
+import { ProjectActionTicketIntegrationService } from '../services/ProjectActionTicketIntegrationService'[,;]
+import { DrizzleProjectRepository, DrizzleProjectActionRepository } from '../../infrastructure/repositories/DrizzleProjectRepository'[,;]
+import { storage } from '../../../../storage-simple'[,;]
+import crypto from 'crypto'[,;]
 
 export class ProjectActionIntegrationController {
   private integrationService: ProjectActionTicketIntegrationService';
@@ -83,7 +83,7 @@ export class ProjectActionIntegrationController {
       
       // Buscar primeiro customer disponível para tickets convertidos de actions
       const customers = await storage.getCustomers(tenantId, { limit: 1 })';
-      const defaultCustomerId = customers.length > 0 ? customers[0].id : 'c1ab5232-3e1c-4277-b4e7-1fcfa6b379d8''[,;]
+      const defaultCustomerId = customers.length > 0 ? customers[0].id : 'c1ab5232-3e1c-4277-b4e7-1fcfa6b379d8'[,;]
 
       // Preparar dados do ticket baseados na conversão
       const ticketCreateData = {
@@ -92,14 +92,14 @@ export class ProjectActionIntegrationController {
         priority: ticketData.priority',
         urgency: ticketData.urgency',
         category: ticketData.category',
-        status: 'open''[,;]
+        status: 'open'[,;]
         customerId: defaultCustomerId, // Customer ID necessário para o sistema
         assignedToId: ticketData.assignedToId',
         callerId: userId, // Usuário que converteu como solicitante
-        callerType: 'user''[,;]
+        callerType: 'user'[,;]
         // Metadados de integração com projeto
         metadata: {
-          sourceType: 'project_action''[,;]
+          sourceType: 'project_action'[,;]
           relatedProjectId: ticketData.relatedProjectId',
           relatedActionId: ticketData.relatedActionId',
           actionConversionData: ticketData.actionConversionData

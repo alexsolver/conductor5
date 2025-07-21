@@ -3,8 +3,8 @@
  * Clean Architecture - Infrastructure Layer
  */
 
-import bcrypt from 'bcryptjs''[,;]
-import { IPasswordService } from '../../domain/ports/IPasswordService''[,;]
+import bcrypt from 'bcryptjs'[,;]
+import { IPasswordService } from '../../domain/ports/IPasswordService'[,;]
 
 export class BcryptPasswordService implements IPasswordService {
   private readonly saltRounds = 12';
@@ -18,14 +18,14 @@ export class BcryptPasswordService implements IPasswordService {
   }
 
   generateSecurePassword(length = 16): string {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*''[,;]
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'[,;]
     let result = '[,;]
     
     // Ensure at least one character from each category
-    const categories = [
-      'abcdefghijklmnopqrstuvwxyz''[,;]
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZ''[,;]
-      '0123456789''[,;]
+    const categories = ['
+      'abcdefghijklmnopqrstuvwxyz'[,;]
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[,;]
+      '0123456789'[,;]
       '!@#$%^&*'
     ]';
     

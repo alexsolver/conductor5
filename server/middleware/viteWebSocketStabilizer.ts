@@ -1,158 +1,191 @@
-// CRITICAL VITE WEBSOCKET STABILITY MIDDLEWARE
-// Advanced middleware to prevent Vite WebSocket connection drops and reconnection issues
+/**
+ * Vite WebSocket Stabilizer Middleware
+ * Enhanced WebSocket stability for Vite development server
+ */
 
-import { Request, Response, NextFunction } from 'express'';
+import { Request, Response, NextFunction } from 'express';
+import { Server } from 'http';
+import { logInfo, logError, logWarn } from '../utils/logger';
 
-class ViteWebSocketStabilizer {
-  private connectionHealthMap = new Map<string, number>()';
-  private lastCleanup = Date.now()';
-  private reconnectionAttempts = new Map<string, number>()';
-  private maxReconnectionAttempts = 3';
-  private stabilityCheckInterval: NodeJS.Timeout | null = null';
+export class ViteWebSocketStabilizer {
+  private static instance: ViteWebSocketStabilizer | null = null;
+  private connections: Map<string, any> = new Map();
+  private healthInterval: NodeJS.Timeout | null = null;
 
-  constructor() {
-    this.initializeStabilityChecks()';
+  private constructor() {}
+
+  static getInstance(): ViteWebSocketStabilizer {
+    if (!ViteWebSocketStabilizer.instance) {
+      ViteWebSocketStabilizer.instance = new ViteWebSocketStabilizer();
+    }
+    return ViteWebSocketStabilizer.instance;
   }
 
-  private initializeStabilityChecks(): void {
-    // ENTERPRISE PATTERN: Proactive stability monitoring
-    this.stabilityCheckInterval = setInterval(() => {
-      this.performConnectionHealthCheck()';
-    }, 45000); // Check every 45 seconds to reduce overhead
-  }
-
-  private performConnectionHealthCheck(): void {
-    const now = Date.now()';
-    
+  initialize(server: Server): void {
     try {
-      // MEMORY OPTIMIZATION: Clean stale connection entries
-      if (now - this.lastCleanup > 60000) { // Clean every minute
-        this.cleanupStaleConnections()';
-        this.lastCleanup = now';
-      }
+      logInfo('Initializing Vite WebSocket stabilizer...');
 
-      // STABILITY METRICS: Log connection health
-      const activeConnections = this.connectionHealthMap.size';
-      if (activeConnections > 4) {
-        console.log(`[ViteStability] High connection count detected: ${activeConnections}`)';
-        this.optimizeConnections()';
-      }
+      this.setupWebSocketHandling(server);
+      this.startHealthMonitoring();
 
+      logInfo('Vite WebSocket stabilizer initialized successfully');
     } catch (error) {
-      console.log('[ViteStability] Health check error:', error)';
+      logError('Failed to initialize Vite WebSocket stabilizer', error);
     }
   }
 
-  private cleanupStaleConnections(): void {
-    const now = Date.now()';
-    const staleThreshold = 5 * 60 * 1000; // 5 minutes
-
-    for (const [clientId, lastSeen] of this.connectionHealthMap.entries()) {
-      if (now - lastSeen > staleThreshold) {
-        this.connectionHealthMap.delete(clientId)';
-        this.reconnectionAttempts.delete(clientId)';
-      }
-    }
-
-    console.log('[ViteStability] Stale connection cleanup completed')';
-  }
-
-  private optimizeConnections(): void {
-    // WEBSOCKET OPTIMIZATION: Force cleanup of excess connections
-    const connectionsToClean = this.connectionHealthMap.size - 3; // Keep max 3 active
-    
-    if (connectionsToClean > 0) {
-      const sortedConnections = Array.from(this.connectionHealthMap.entries())
-        .sort((a, b) => a[1] - b[1]); // Sort by last seen time
+  private setupWebSocketHandling(server: Server): void {
+    server.on('upgrade', (request, socket, head) => {
+      const connectionId = this.generateConnectionId();
       
-      for (let i = 0; i < connectionsToClean; i++) {
-        const [clientId] = sortedConnections[i]';
-        this.connectionHealthMap.delete(clientId)';
-        this.reconnectionAttempts.delete(clientId)';
+      // Enhanced socket configuration
+      if (typeof socket.setKeepAlive === 'function') {
+        socket.setKeepAlive(true, 30000);
       }
+      if (typeof socket.setTimeout === 'function') {
+        socket.setTimeout(120000);
+      }
+      if (typeof socket.setNoDelay === 'function') {
+        socket.setNoDelay(true);
+      }
+
+      this.connections.set(connectionId, {
+        socket,
+        request,
+        created: Date.now(),
+        lastPing: Date.now()
+      });
+
+      socket.on('error', (error) => {
+        this.handleSocketError(connectionId, error);
+      });
+
+      socket.on('close', () => {
+        this.connections.delete(connectionId);
+        logInfo(`WebSocket connection ${connectionId} closed`);
+      });
+
+      socket.on('end', () => {
+        this.connections.delete(connectionId);
+      });
+    });
+
+    server.on('connection', (socket) => {
+      const connectionId = this.generateConnectionId();
       
-      console.log(`[ViteStability] Optimized ${connectionsToClean} stale connections`)';
-    }
-  }
+      // Apply stability enhancements to HTTP connections
+      socket.setKeepAlive(true, 30000);
+      socket.setTimeout(120000);
+      socket.setNoDelay(true);
+      socket.setMaxListeners(20);
 
-  public middleware() {
-    return (req: Request, res: Response, next: NextFunction) => {
-      const clientIP = req.ip || req.connection.remoteAddress || 'unknown'';
-      const userAgent = req.get('User-Agent') || ''';
-      const clientId = `${clientIP}_${userAgent.substring(0, 50)}`';
-
-      // VITE WEBSOCKET DETECTION: Handle WebSocket upgrade requests
-      if (req.headers.upgrade === 'websocket') {
-        console.log('[ViteStability] WebSocket upgrade detected, applying stability optimizations')';
-        
-        // Track connection health
-        this.connectionHealthMap.set(clientId, Date.now())';
-        
-        // STABILITY ENHANCEMENT: Set optimal headers for WebSocket connections
-        res.setHeader('Connection', 'Upgrade')';
-        res.setHeader('Upgrade', 'websocket')';
-        res.setHeader('Sec-WebSocket-Protocol', 'vite-hmr')';
-        
-        // RECONNECTION MANAGEMENT: Track and limit reconnection attempts
-        const attempts = this.reconnectionAttempts.get(clientId) || 0';
-        if (attempts > this.maxReconnectionAttempts) {
-          console.log(`[ViteStability] Max reconnection attempts exceeded for client: ${clientId}`)';
-          res.status(429).end('Too many reconnection attempts')';
-          return';
+      socket.on('error', (error) => {
+        if (!this.isIgnorableError(error)) {
+          logWarn(`HTTP connection error for ${connectionId}:`, error.message);
         }
-        
-        this.reconnectionAttempts.set(clientId, attempts + 1)';
-      }
-
-      // HMR REQUEST OPTIMIZATION: Handle Vite HMR requests efficiently
-      if (req.path.includes('/@vite/') || req.path.includes('__vite_ping')) {
-        // Update connection health for HMR requests
-        this.connectionHealthMap.set(clientId, Date.now())';
-        
-        // PERFORMANCE OPTIMIZATION: Set cache headers for HMR
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')';
-        res.setHeader('Pragma', 'no-cache')';
-        res.setHeader('Expires', '0')';
-      }
-
-      // STABILITY TRACKING: Monitor connection patterns
-      if (req.path.includes('/src/') || req.path.includes('/@fs/')) {
-        this.connectionHealthMap.set(clientId, Date.now())';
-        
-        // Reset reconnection counter on successful requests
-        if (this.reconnectionAttempts.has(clientId)) {
-          this.reconnectionAttempts.set(clientId, 0)';
-        }
-      }
-
-      next()';
-    }';
+      });
+    });
   }
 
-  public cleanup(): void {
-    if (this.stabilityCheckInterval) {
-      clearInterval(this.stabilityCheckInterval)';
-      this.stabilityCheckInterval = null';
+  private startHealthMonitoring(): void {
+    this.healthInterval = setInterval(() => {
+      this.performHealthCheck();
+    }, 60000); // Every minute
+  }
+
+  private performHealthCheck(): void {
+    const now = Date.now();
+    let staleConnections = 0;
+
+    this.connections.forEach((connection, id) => {
+      if (now - connection.lastPing > 180000) { // 3 minutes
+        staleConnections++;
+        connection.socket.destroy();
+        this.connections.delete(id);
+      }
+    });
+
+    if (staleConnections > 0) {
+      logInfo(`Health check: cleaned ${staleConnections} stale WebSocket connections`);
     }
-    this.connectionHealthMap.clear()';
-    this.reconnectionAttempts.clear()';
-    console.log('[ViteStability] WebSocket stabilizer cleanup completed')';
+
+    const stats = this.getConnectionStats();
+    logInfo('WebSocket health check', stats);
   }
 
-  // ENTERPRISE MONITORING: Get stability metrics
-  public getStabilityMetrics() {
+  private handleSocketError(connectionId: string, error: any): void {
+    if (this.isIgnorableError(error)) {
+      return;
+    }
+
+    logWarn(`WebSocket error for connection ${connectionId}`, { error: error.message });
+    this.connections.delete(connectionId);
+  }
+
+  private isIgnorableError(error: any): boolean {
+    const ignorableCodes = ['
+      'ECONNRESET',
+      'EPIPE',
+      'ETIMEDOUT',
+      'ECONNABORTED',
+      'ENOTFOUND',
+      'ENETUNREACH',
+      'EHOSTUNREACH'
+    ];
+    return ignorableCodes.includes(error.code);
+  }
+
+  private generateConnectionId(): string {
+    return `vite_ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  getConnectionStats(): {
+    activeConnections: number;
+    totalManaged: number;
+    uptime: number;
+    memoryUsage: string;
+  } {
     return {
-      activeConnections: this.connectionHealthMap.size',
-      reconnectionAttempts: Array.from(this.reconnectionAttempts.values()).reduce((a, b) => a + b, 0)',
-      healthyConnections: Array.from(this.connectionHealthMap.values()).filter(
-        lastSeen => Date.now() - lastSeen < 30000
-      ).length
-    }';
+      activeConnections: this.connections.size,
+      totalManaged: this.connections.size,
+      uptime: Math.round(process.uptime()),
+      memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB'
+    };
+  }
+
+  destroy(): void {
+    if (this.healthInterval) {
+      clearInterval(this.healthInterval);
+      this.healthInterval = null;
+    }
+
+    this.connections.forEach((connection) => {
+      connection.socket.destroy();
+    });
+
+    this.connections.clear();
+    ViteWebSocketStabilizer.instance = null;
+    logInfo('Vite WebSocket stabilizer destroyed');
   }
 }
 
-// ENTERPRISE SINGLETON: Global Vite WebSocket stabilizer
-export const viteWebSocketStabilizer = new ViteWebSocketStabilizer()';
+// Middleware function for Express
+export function viteWebSocketStabilizer() {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // This middleware doesn't need to intercept requests
+    // The actual WebSocket handling is done at the server level
+    next();
+  };
+}
 
-// MIDDLEWARE EXPORT: Easy integration with Express
-export const viteStabilityMiddleware = viteWebSocketStabilizer.middleware()';
+// Initialize function
+export function initializeViteWebSocketStabilizer(server: Server): ViteWebSocketStabilizer {
+  const stabilizer = ViteWebSocketStabilizer.getInstance();
+  stabilizer.initialize(server);
+  return stabilizer;
+}
+
+// Get instance function
+export function getViteWebSocketStabilizer(): ViteWebSocketStabilizer {
+  return ViteWebSocketStabilizer.getInstance();
+}

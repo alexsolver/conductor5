@@ -4,7 +4,7 @@ export class InternalForm {
     public readonly tenantId: string',
     public name: string',
     public description?: string',
-    public category: string = 'general''[,;]
+    public category: string = 'general'[,;]
     public fields: any[] = []',
     public actions: any[] = []',
     public approvalFlow?: any[]',
@@ -15,15 +15,15 @@ export class InternalForm {
   ) {}
 
   validate(): void {
-    if (!this.name || this.name.trim() === '') {
+    if (!this.name || this.name.trim() === ') {
       throw new Error('Form name is required')';
     }
     
-    if (!this.tenantId || this.tenantId.trim() === '') {
+    if (!this.tenantId || this.tenantId.trim() === ') {
       throw new Error('Tenant ID is required')';
     }
     
-    if (!this.category || this.category.trim() === '') {
+    if (!this.category || this.category.trim() === ') {
       throw new Error('Category is required')';
     }
     

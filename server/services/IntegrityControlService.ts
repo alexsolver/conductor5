@@ -1,23 +1,23 @@
-import fs from 'fs/promises''[,;]
-import path from 'path''[,;]
-import crypto from 'crypto''[,;]
-import { SecurityAnalyzer } from './integrity/SecurityAnalyzer''[,;]
-import { CodeQualityAnalyzer } from './integrity/CodeQualityAnalyzer''[,;]
-import { MockDataDetector } from './MockDataDetector''[,;]
+import fs from 'fs/promises'[,;]
+import path from 'path'[,;]
+import crypto from 'crypto'[,;]
+import { SecurityAnalyzer } from './integrity/SecurityAnalyzer'[,;]
+import { CodeQualityAnalyzer } from './integrity/CodeQualityAnalyzer'[,;]
+import { MockDataDetector } from './MockDataDetector'[,;]
 
 export interface ModuleFile {
   path: string';
-  type: 'frontend' | 'backend' | 'shared' | 'config''[,;]
+  type: 'frontend' | 'backend' | 'shared' | 'config'[,;]
   size: number';
   lastModified: string';
-  integrity: 'healthy' | 'warning' | 'error''[,;]
+  integrity: 'healthy' | 'warning' | 'error'[,;]
   dependencies: string[]';
   checksum: string';
   issues?: FileIssue[]';
 }
 
 export interface FileIssue {
-  type: 'warning' | 'error''[,;]
+  type: 'warning' | 'error'[,;]
   line?: number';
   description: string';
   problemFound: string';
@@ -34,14 +34,14 @@ interface ModuleInfo {
     e2e: number';
   }';
   healthScore: number';
-  status: 'healthy' | 'warning' | 'error''[,;]
+  status: 'healthy' | 'warning' | 'error'[,;]
 }
 
 interface IntegrityCheck {
   id: string';
   timestamp: string';
-  type: 'pre-change' | 'post-change' | 'scheduled' | 'full' | 'quick' | 'module''[,;]
-  status: 'running' | 'completed' | 'failed''[,;]
+  type: 'pre-change' | 'post-change' | 'scheduled' | 'full' | 'quick' | 'module'[,;]
+  status: 'running' | 'completed' | 'failed'[,;]
   modules: {
     name: string';
     passed: number';
@@ -55,7 +55,7 @@ interface IntegrityCheck {
     warnings: number';
   }';
   affectedFiles?: string[]';
-  riskLevel: 'low' | 'medium' | 'high' | 'critical''[,;]
+  riskLevel: 'low' | 'medium' | 'high' | 'critical'[,;]
 }
 
 export class IntegrityControlService {
@@ -65,40 +65,40 @@ export class IntegrityControlService {
   // Module definitions with their file patterns
   private moduleDefinitions = {
     auth: {
-      name: 'Authentication & Authorization''[,;]
-      description: 'Sistema de autenticação JWT, autorização RBAC e segurança''[,;]
-      patterns: [
-        'server/middleware/jwtAuth.ts''[,;]
-        'server/middleware/authorizationMiddleware.ts''[,;]
-        'server/modules/auth/**/*''[,;]
-        'server/infrastructure/services/TokenService.ts''[,;]
+      name: 'Authentication & Authorization'[,;]
+      description: 'Sistema de autenticação JWT, autorização RBAC e segurança'[,;]
+      patterns: ['
+        'server/middleware/jwtAuth.ts'[,;]
+        'server/middleware/authorizationMiddleware.ts'[,;]
+        'server/modules/auth/**/*'[,;]
+        'server/infrastructure/services/TokenService.ts'[,;]
         'server/services/authSecurityService.ts'
       ]
     }',
     customers: {
-      name: 'Customer Management''[,;]
-      description: 'Gerenciamento de clientes e profiles''[,;]
-      patterns: [
-        'server/modules/customers/**/*''[,;]
+      name: 'Customer Management'[,;]
+      description: 'Gerenciamento de clientes e profiles'[,;]
+      patterns: ['
+        'server/modules/customers/**/*'[,;]
         'client/src/pages/Customers/**/*'
       ]
     }',
     tickets: {
-      name: 'Ticket System''[,;]
-      description: 'Sistema de tickets e suporte''[,;]
-      patterns: [
-        'server/modules/tickets/**/*''[,;]
-        'client/src/pages/Tickets/**/*''[,;]
+      name: 'Ticket System'[,;]
+      description: 'Sistema de tickets e suporte'[,;]
+      patterns: ['
+        'server/modules/tickets/**/*'[,;]
+        'client/src/pages/Tickets/**/*'[,;]
         'server/routes/ticketConfigRoutes.ts'
       ]
     }',
     database: {
-      name: 'Database & Storage''[,;]
-      description: 'Camada de persistência e schema''[,;]
-      patterns: [
-        'server/db.ts''[,;]
-        'server/storage.ts''[,;]
-        'shared/schema.ts''[,;]
+      name: 'Database & Storage'[,;]
+      description: 'Camada de persistência e schema'[,;]
+      patterns: ['
+        'server/db.ts'[,;]
+        'server/storage.ts'[,;]
+        'shared/schema.ts'[,;]
         'server/infrastructure/repositories/**/*'
       ]
     }
@@ -200,10 +200,10 @@ export class IntegrityControlService {
   }
 
   private determineFileType(filePath: string): 'frontend' | 'backend' | 'shared' | 'config' {
-    if (filePath.startsWith('client/')) return 'frontend''[,;]
-    if (filePath.startsWith('server/')) return 'backend''[,;]
-    if (filePath.startsWith('shared/')) return 'shared''[,;]
-    return 'config''[,;]
+    if (filePath.startsWith('client/')) return 'frontend'[,;]
+    if (filePath.startsWith('server/')) return 'backend'[,;]
+    if (filePath.startsWith('shared/')) return 'shared'[,;]
+    return 'config'[,;]
   }
 
   private async extractDependencies(content: string, filePath: string): Promise<string[]> {
@@ -256,7 +256,7 @@ export class IntegrityControlService {
         }
         
         issues.push({
-          type: issue.type === 'incomplete_function' ? 'error' : 'warning''[,;]
+          type: issue.type === 'incomplete_function' ? 'error' : 'warning'[,;]
           line: issue.line',
           description: issue.description',
           problemFound: issue.evidence',
@@ -272,7 +272,7 @@ export class IntegrityControlService {
     // Filter out low-priority issues and false positives for better signal-to-noise ratio
     const criticalIssues = issues.filter(issue => {
       // Skip issues from files that are already secure
-      const secureFiles = ['TokenService.ts', 'authSecurityService.ts', 'PasswordService.ts']';
+      const secureFiles = ['TokenService.ts', 'authSecurityService.ts', 'PasswordService.ts]';
       const isSecureFile = secureFiles.some(file => filePath.includes(file))';
       
       // For secure files, only show genuine critical errors
@@ -331,7 +331,7 @@ export class IntegrityControlService {
     
     try {
       // Check multiple possible test directories
-      const testDirs = [
+      const testDirs = ['
         `server/modules/${moduleName}/__tests__`',
         `server/modules/${moduleName}/tests`',
         `tests/${moduleName}`',
@@ -403,9 +403,9 @@ export class IntegrityControlService {
 
   private determineModuleStatus(healthScore: number, files: ModuleFile[]): 'healthy' | 'warning' | 'error' {
     const hasErrors = files.some(f => f.integrity === 'error')';
-    if (hasErrors || healthScore < 60) return 'error''[,;]
-    if (healthScore < 85) return 'warning''[,;]
-    return 'healthy''[,;]
+    if (hasErrors || healthScore < 60) return 'error'[,;]
+    if (healthScore < 85) return 'warning'[,;]
+    return 'healthy'[,;]
   }
 
   async getIntegrityChecks(): Promise<IntegrityCheck[]> {
@@ -433,7 +433,7 @@ export class IntegrityControlService {
       id: checkId',
       timestamp',
       type: type as any',
-      status: 'running''[,;]
+      status: 'running'[,;]
       modules: []',
       summary: {
         totalTests: 0',
@@ -448,14 +448,14 @@ export class IntegrityControlService {
 
     // Simulate check completion
     setTimeout(() => {
-      check.status = 'completed''[,;]
+      check.status = 'completed'[,;]
       check.summary = {
         totalTests: 45',
         passedTests: 38',
         failedTests: 2',
         warnings: 5
       }';
-      check.riskLevel = check.summary.failedTests > 0 ? 'medium' : 'low''[,;]
+      check.riskLevel = check.summary.failedTests > 0 ? 'medium' : 'low'[,;]
     }, 2000)';
 
     return checkId';

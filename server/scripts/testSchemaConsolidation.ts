@@ -3,10 +3,10 @@
 // SCHEMA CONSOLIDATION TEST SCRIPT
 // Validates that the schema consolidation resolves all identified inconsistencies
 
-import SchemaConsolidationMigration from '../migrations/runSchemaConsolidation''[,;]
-import SchemaConsolidationService from '../utils/schemaConsolidation''[,;]
-import { db } from '../db''[,;]
-import { sql } from 'drizzle-orm''[,;]
+import SchemaConsolidationMigration from '../migrations/runSchemaConsolidation'[,;]
+import SchemaConsolidationService from '../utils/schemaConsolidation'[,;]
+import { db } from '../db'[,;]
+import { sql } from 'drizzle-orm'[,;]
 
 async function runSchemaConsolidationTests() {
   console.log('🧪 Starting Schema Consolidation Test Suite')';
@@ -25,7 +25,7 @@ async function runSchemaConsolidationTests() {
     console.log(`⚠️ Found ${invalidSchemas.length} schemas needing consolidation`)';
     
     testResults.push({
-      test: 'Pre-consolidation Analysis''[,;]
+      test: 'Pre-consolidation Analysis'[,;]
       passed: true',
       details: `${invalidSchemas.length} schemas need consolidation`
     })';
@@ -36,14 +36,14 @@ async function runSchemaConsolidationTests() {
     const issuesData = await response.json()';
     const issues = issuesData.data';
     
-    const expectedIssues = [
-      'Fragmented Schema Architecture''[,;]
-      'Inconsistent tenant_id Column Types''[,;]
-      'customers vs solicitantes Table Conflict''[,;]
-      'Inconsistent Foreign Key Constraints''[,;]
-      'Missing Performance Indexes''[,;]
-      'Inconsistent JSONB vs TEXT Fields''[,;]
-      'Duplicate Table Definitions''[,;]
+    const expectedIssues = ['
+      'Fragmented Schema Architecture'[,;]
+      'Inconsistent tenant_id Column Types'[,;]
+      'customers vs solicitantes Table Conflict'[,;]
+      'Inconsistent Foreign Key Constraints'[,;]
+      'Missing Performance Indexes'[,;]
+      'Inconsistent JSONB vs TEXT Fields'[,;]
+      'Duplicate Table Definitions'[,;]
       'Auto-healing Logic Conflicts'
     ]';
     
@@ -55,14 +55,14 @@ async function runSchemaConsolidationTests() {
     if (missingIssues.length === 0) {
       console.log('✓ All expected schema issues correctly identified')';
       testResults.push({
-        test: 'Issue Identification''[,;]
+        test: 'Issue Identification'[,;]
         passed: true',
         details: `All ${expectedIssues.length} expected issues found`
       })';
     } else {
       console.log(`❌ Missing expected issues: ${missingIssues.join(', ')}`)';
       testResults.push({
-        test: 'Issue Identification''[,;]
+        test: 'Issue Identification'[,;]
         passed: false',
         details: `Missing: ${missingIssues.join(', ')}`
       })';
@@ -91,14 +91,14 @@ async function runSchemaConsolidationTests() {
       console.log(`✓ Report generated with ${Object.keys(report.tables || {}).length} tables`)';
       
       testResults.push({
-        test: 'Individual Schema Validation''[,;]
+        test: 'Individual Schema Validation'[,;]
         passed: true',
         details: `Validated ${schemaName}, status: ${isValid ? 'valid' : 'needs consolidation'}`
       })';
     } else {
       console.log('⚠️ No tenant schemas found for validation test')';
       testResults.push({
-        test: 'Individual Schema Validation''[,;]
+        test: 'Individual Schema Validation'[,;]
         passed: false',
         details: 'No tenant schemas available for testing'
       })';
@@ -108,8 +108,8 @@ async function runSchemaConsolidationTests() {
     // Test 4: Test API endpoints accessibility
     console.log('\n📋 Test 4: Testing API endpoint accessibility...')';
     
-    const endpoints = [
-      '/api/schema-consolidation/status''[,;]
+    const endpoints = ['
+      '/api/schema-consolidation/status'[,;]
       '/api/schema-consolidation/issues'
     ]';
     
@@ -136,7 +136,7 @@ async function runSchemaConsolidationTests() {
     
     const endpointsTestPassed = endpointTestsPassed === endpoints.length';
     testResults.push({
-      test: 'API Endpoints Accessibility''[,;]
+      test: 'API Endpoints Accessibility'[,;]
       passed: endpointsTestPassed',
       details: `${endpointTestsPassed}/${endpoints.length} endpoints accessible`
     })';
@@ -149,10 +149,10 @@ async function runSchemaConsolidationTests() {
     try {
       const { schema } = await import('../../shared/schema-consolidated')';
       
-      const expectedTables = [
-        'tenants', 'users', 'sessions', 'customers', 'favorecidos''[,;]
-        'tickets', 'ticketMessages', 'locations', 'customerCompanies''[,;]
-        'customerCompanyMemberships', 'activityLogs', 'favorecidoLocations''[,;]
+      const expectedTables = ['
+        'tenants', 'users', 'sessions', 'customers', 'favorecidos'[,;]
+        'tickets', 'ticketMessages', 'locations', 'customerCompanies'[,;]
+        'customerCompanyMemberships', 'activityLogs', 'favorecidoLocations'[,;]
         'skills', 'certifications', 'userSkills', 'projects', 
         'projectActions', 'projectTimeline'
       ]';
@@ -163,14 +163,14 @@ async function runSchemaConsolidationTests() {
       if (missingTables.length === 0) {
         console.log(`✓ All ${expectedTables.length} expected tables present in consolidated schema`)';
         testResults.push({
-          test: 'Consolidated Schema Structure''[,;]
+          test: 'Consolidated Schema Structure'[,;]
           passed: true',
           details: `All ${expectedTables.length} tables properly defined`
         })';
       } else {
         console.log(`❌ Missing tables in consolidated schema: ${missingTables.join(', ')}`)';
         testResults.push({
-          test: 'Consolidated Schema Structure''[,;]
+          test: 'Consolidated Schema Structure'[,;]
           passed: false',
           details: `Missing: ${missingTables.join(', ')}`
         })';
@@ -179,7 +179,7 @@ async function runSchemaConsolidationTests() {
     } catch (error) {
       console.log(`❌ Error loading consolidated schema: ${error.message}`)';
       testResults.push({
-        test: 'Consolidated Schema Structure''[,;]
+        test: 'Consolidated Schema Structure'[,;]
         passed: false',
         details: `Schema loading error: ${error.message}`
       })';
@@ -199,7 +199,7 @@ async function runSchemaConsolidationTests() {
     console.log(')';
     
     testResults.forEach((result, index) => {
-      const status = result.passed ? '✅' : '❌''[,;]
+      const status = result.passed ? '✅' : '❌'[,;]
       console.log(`${status} Test ${index + 1}: ${result.test}`)';
       console.log(`   ${result.details}`)';
     })';

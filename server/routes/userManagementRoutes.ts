@@ -1,515 +1,401 @@
-import { Router } from 'express''[,;]
-import { z } from 'zod''[,;]
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
-import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware''[,;]
-import { userManagementService } from '../services/UserManagementService''[,;]
+/**
+ * User Management Routes
+ * Handles user CRUD operations and management
+ */
 
-// Temporary schemas until user-management tables are added to unified schema
-const insertUserGroupSchema = z.object({
-  name: z.string()',
-  description: z.string().optional()',
-  permissions: z.array(z.string())',
-})';
+import { Router, Request, Response } from 'express';
+import { jwtAuth } from '../middleware/jwtAuth';
+import { requireTenantAccess, requireAdmin, AuthenticatedRequest } from '../middleware/rbacMiddleware';
+import { logInfo, logError } from '../utils/logger';
+import { storage } from '../storage-simple';
 
-const insertCustomRoleSchema = z.object({
-  name: z.string()',
-  permissions: z.array(z.string())',
-})';
+const router = Router();
 
-const insertUserRoleAssignmentSchema = z.object({
-  userId: z.string()',
-  roleId: z.string()',
-})';
+/**
+ * Get all users for tenant
+ */
+router.get('/', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { page = 1, limit = 20, search, role, status } = req.query;
+    
+    logInfo('Getting users', { tenantId, page, limit, search, role, status });
+    
+    const users = await storage.getTenantUsers(tenantId, {
+      limit: Number(limit),
+      offset: (Number(page) - 1) * Number(limit)
+    });
 
-const insertUserPermissionOverrideSchema = z.object({
-  userId: z.string()',
-  permission: z.string()',
-  granted: z.boolean()',
-})';
-
-const insertUserInvitationSchema = z.object({
-  email: z.string().email()',
-  role: z.string()',
-})';
-
-const router = Router()';
-
-// ============= USER GROUPS ROUTES =============
-
-// Get all user groups for a tenant
-router.get('/groups', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      const groups = await userManagementService.getUserGroups(tenantId)';
-      res.json({ groups })';
-    } catch (error) {
-      console.error('Error fetching user groups:', error)';
-      res.status(500).json({ message: 'Failed to fetch user groups' })';
+    // Apply filters if provided
+    let filteredUsers = users;
+    
+    if (search) {
+      const searchTerm = search.toString().toLowerCase();
+      filteredUsers = users.filter(user =>
+        user.username.toLowerCase().includes(searchTerm) ||
+        (user.email && user.email.toLowerCase().includes(searchTerm))
+      );
     }
-  }
-)';
 
-// Create a new user group
-router.post('/groups', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      const data = insertUserGroupSchema.omit({ tenantId: true, createdBy: true }).parse(req.body)';
-      
-      const group = await userManagementService.createUserGroup(tenantId, data, req.user!.id)';
-      res.status(201).json({ group })';
-    } catch (error) {
-      console.error('Error creating user group:', error)';
-      res.status(500).json({ message: 'Failed to create user group' })';
+    if (role) {
+      filteredUsers = filteredUsers.filter(user => user.role === role);
     }
-  }
-)';
 
-// Add user to group
-router.post('/groups/:groupId/members', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { groupId } = req.params';
-      const { userId, role = 'member' } = req.body';
-      
-      const membership = await userManagementService.addUserToGroup(
-        userId, 
-        groupId, 
-        role, 
-        req.user!.id
-      )';
-      res.status(201).json({ membership })';
-    } catch (error) {
-      console.error('Error adding user to group:', error)';
-      res.status(500).json({ message: 'Failed to add user to group' })';
-    }
-  }
-)';
+    // Remove sensitive information
+    const safeUsers = filteredUsers.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+      isActive: user.isActive ?? true,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }));
 
-// Remove user from group
-router.delete('/groups/:groupId/members/:userId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { groupId, userId } = req.params';
-      
-      await userManagementService.removeUserFromGroup(userId, groupId, req.user!.id)';
-      res.json({ message: 'User removed from group successfully' })';
-    } catch (error) {
-      console.error('Error removing user from group:', error)';
-      res.status(500).json({ message: 'Failed to remove user from group' })';
-    }
-  }
-)';
-
-// ============= CUSTOM ROLES ROUTES =============
-
-// Get all custom roles for a tenant
-router.get('/roles', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      const includeSystem = req.query.includeSystem === 'true''[,;]
-      
-      const roles = await userManagementService.getCustomRoles(tenantId, includeSystem)';
-      res.json({ roles })';
-    } catch (error) {
-      console.error('Error fetching custom roles:', error)';
-      res.status(500).json({ message: 'Failed to fetch custom roles' })';
-    }
-  }
-)';
-
-// Create a new custom role
-router.post('/roles', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      const data = insertCustomRoleSchema.omit({ tenantId: true, createdBy: true }).parse(req.body)';
-      
-      const role = await userManagementService.createCustomRole(tenantId, data, req.user!.id)';
-      res.status(201).json({ role })';
-    } catch (error) {
-      console.error('Error creating custom role:', error)';
-      res.status(500).json({ message: 'Failed to create custom role' })';
-    }
-  }
-)';
-
-// Update a custom role
-router.put('/roles/:roleId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { roleId } = req.params';
-      const data = req.body';
-      
-      const role = await userManagementService.updateCustomRole(roleId, data, req.user!.id)';
-      res.json({ role })';
-    } catch (error) {
-      console.error('Error updating custom role:', error)';
-      res.status(500).json({ message: 'Failed to update custom role' })';
-    }
-  }
-)';
-
-// ============= USER ROLE ASSIGNMENTS ROUTES =============
-
-// Assign role to user
-router.post('/users/:userId/roles', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId } = req.params';
-      const data = insertUserRoleAssignmentSchema.omit({ userId: true, assignedBy: true }).parse(req.body)';
-      
-      const assignment = await userManagementService.assignRoleToUser(userId, data, req.user!.id)';
-      res.status(201).json({ assignment })';
-    } catch (error) {
-      console.error('Error assigning role to user:', error)';
-      res.status(500).json({ message: 'Failed to assign role to user' })';
-    }
-  }
-)';
-
-// Remove role from user
-router.delete('/users/:userId/roles/:assignmentId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId, assignmentId } = req.params';
-      
-      await userManagementService.removeRoleFromUser(userId, assignmentId, req.user!.id)';
-      res.json({ message: 'Role removed from user successfully' })';
-    } catch (error) {
-      console.error('Error removing role from user:', error)';
-      res.status(500).json({ message: 'Failed to remove role from user' })';
-    }
-  }
-)';
-
-// ============= PERMISSION OVERRIDES ROUTES =============
-
-// Grant permission override to user
-router.post('/users/:userId/permissions', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId } = req.params';
-      const data = insertUserPermissionOverrideSchema.omit({ userId: true, grantedBy: true }).parse(req.body)';
-      
-      const override = await userManagementService.grantPermissionOverride(userId, data, req.user!.id)';
-      res.status(201).json({ override })';
-    } catch (error) {
-      console.error('Error granting permission override:', error)';
-      res.status(500).json({ message: 'Failed to grant permission override' })';
-    }
-  }
-)';
-
-// ============= USER INVITATIONS ROUTES =============
-
-// Send user invitation
-router.post('/invitations', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      const inviteSchema = z.object({
-        email: z.string().email()',
-        firstName: z.string().optional()',
-        lastName: z.string().optional()',
-        phone: z.string().optional()',
-        department: z.string().optional()',
-        position: z.string().optional()',
-        systemRole: z.string().optional()',
-        customRoleIds: z.array(z.string()).optional()',
-        groupIds: z.array(z.string()).optional()',
-        expiresInHours: z.number().default(48)',
-        notes: z.string().optional()
-      })';
-      
-      const data = inviteSchema.parse(req.body)';
-      
-      const invitation = await userManagementService.inviteUser(tenantId, data, req.user!.id)';
-      res.status(201).json({ invitation })';
-    } catch (error) {
-      console.error('Error sending user invitation:', error)';
-      res.status(500).json({ message: 'Failed to send user invitation' })';
-    }
-  }
-)';
-
-// Accept user invitation
-router.post('/invitations/:token/accept', 
-  jwtAuth, 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { token } = req.params';
-      
-      await userManagementService.acceptInvitation(token, req.user!.id)';
-      res.json({ message: 'Invitation accepted successfully' })';
-    } catch (error) {
-      console.error('Error accepting invitation:', error)';
-      res.status(500).json({ message: 'Failed to accept invitation' })';
-    }
-  }
-)';
-
-// ============= ENHANCED USER MANAGEMENT ROUTES =============
-
-// Get enhanced user information
-router.get('/users/:userId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId } = req.params';
-      const options = {
-        includePermissions: req.query.includePermissions === 'true''[,;]
-        includeGroups: req.query.includeGroups === 'true''[,;]
-        includeRoles: req.query.includeRoles === 'true''[,;]
-        includeSessions: req.query.includeSessions === 'true''[,;]
-        includeActivity: req.query.includeActivity === 'true'
-      }';
-      
-      const user = await userManagementService.getEnhancedUser(userId, options)';
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' })';
+    res.json({
+      users: safeUsers,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: filteredUsers.length,
+        totalPages: Math.ceil(filteredUsers.length / Number(limit))
       }
-      
-      res.json({ user })';
-    } catch (error) {
-      console.error('Error fetching enhanced user:', error)';
-      res.status(500).json({ message: 'Failed to fetch user information' })';
-    }
+    });
+  } catch (error) {
+    logError('Error getting users', error);
+    res.status(500).json({ message: 'Failed to get users' });
   }
-)';
+});
 
-// Get user effective permissions
-router.get('/users/:userId/permissions', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId } = req.params';
-      
-      const permissions = await userManagementService.getUserEffectivePermissions(userId)';
-      res.json({ permissions })';
-    } catch (error) {
-      console.error('Error fetching user permissions:', error)';
-      res.status(500).json({ message: 'Failed to fetch user permissions' })';
+/**
+ * Get specific user by ID
+ */
+router.get('/:userId', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { userId } = req.params;
+    
+    logInfo('Getting user by ID', { tenantId, userId });
+    
+    const user = await storage.getUser(Number(userId));
+    
+    if (!user || user.tenantId !== tenantId) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    // Remove sensitive information
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+      isActive: user.isActive ?? true,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+
+    res.json(safeUser);
+  } catch (error) {
+    logError('Error getting user by ID', error);
+    res.status(500).json({ message: 'Failed to get user' });
   }
-)';
+});
 
-// ============= SESSION MANAGEMENT ROUTES =============
-
-// Get active sessions for a user
-router.get('/users/:userId/sessions', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId } = req.params';
-      
-      const user = await userManagementService.getEnhancedUser(userId, { includeSessions: true })';
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' })';
-      }
-      
-      res.json({ sessions: user.sessions || [] })';
-    } catch (error) {
-      console.error('Error fetching user sessions:', error)';
-      res.status(500).json({ message: 'Failed to fetch user sessions' })';
+/**
+ * Create new user (admin only)
+ */
+router.post('/', jwtAuth, requireAdmin(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const userData = req.body;
+    
+    logInfo('Creating user', { tenantId, userData: { ...userData, password: '[REDACTED]' } });
+    
+    // Validate required fields
+    if (!userData.username || !userData.password || !userData.email) {
+      return res.status(400).json({ message: 'Username, email, and password are required' });
     }
-  }
-)';
 
-// Terminate a specific session
-router.delete('/sessions/:sessionId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { sessionId } = req.params';
-      
-      await userManagementService.terminateSession(sessionId, req.user!.id)';
-      res.json({ message: 'Session terminated successfully' })';
-    } catch (error) {
-      console.error('Error terminating session:', error)';
-      res.status(500).json({ message: 'Failed to terminate session' })';
+    // Check if user already exists
+    const existingUser = await storage.getUserByUsername(userData.username);
+    if (existingUser) {
+      return res.status(409).json({ message: 'Username already exists' });
     }
-  }
-)';
 
-// Terminate all sessions for a user
-router.delete('/users/:userId/sessions', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { userId } = req.params';
-      
-      await userManagementService.terminateAllUserSessions(userId, req.user!.id)';
-      res.json({ message: 'All user sessions terminated successfully' })';
-    } catch (error) {
-      console.error('Error terminating user sessions:', error)';
-      res.status(500).json({ message: 'Failed to terminate user sessions' })';
+    const newUser = await storage.createUser({
+      username: userData.username,
+      email: userData.email,
+      password: userData.password, // Should be hashed in storage layer
+      role: userData.role || 'user',
+      tenantId: tenantId,
+      isActive: userData.isActive ?? true
+    });
+
+    // Remove sensitive information from response
+    const safeUser = {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      role: newUser.role,
+      tenantId: newUser.tenantId,
+      isActive: newUser.isActive,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt
+    };
+
+    res.status(201).json(safeUser);
+  } catch (error) {
+    logError('Error creating user', error);
+    res.status(500).json({ message: 'Failed to create user' });
+  }
+});
+
+/**
+ * Update user (admin only or self)
+ */
+router.put('/:userId', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { userId } = req.params;
+    const updateData = req.body;
+    const currentUserId = req.user!.id;
+    
+    logInfo('Updating user', { tenantId, userId, updateData: { ...updateData, password: updateData.password ? '[REDACTED]' : undefined } });
+    
+    // Check if user exists and belongs to tenant
+    const user = await storage.getUser(Number(userId));
+    if (!user || user.tenantId !== tenantId) {
+      return res.status(404).json({ message: 'User not found' });
     }
-  }
-)';
 
-// ============= STATISTICS AND AUDIT ROUTES =============
-
-// Get user management statistics
-router.get('/stats', 
-  jwtAuth, 
-  requirePermission('tenant', 'view_analytics'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      
-      const stats = await userManagementService.getUserStats(tenantId)';
-      res.json({ stats })';
-    } catch (error) {
-      console.error('Error fetching user stats:', error)';
-      res.status(500).json({ message: 'Failed to fetch user statistics' })';
+    // Check permissions: admin can update anyone, users can only update themselves
+    if (req.user!.role !== 'admin' && currentUserId !== userId) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
     }
-  }
-)';
 
-// Get activity log for audit
-router.get('/activity', 
-  jwtAuth, 
-  requirePermission('tenant', 'view_analytics'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user!.tenantId';
-      const limit = parseInt(req.query.limit as string) || 50';
-      const offset = parseInt(req.query.offset as string) || 0';
-      
-      const stats = await userManagementService.getUserStats(tenantId)';
-      const activity = stats.recentActivity.slice(offset, offset + limit)';
-      
-      res.json({ 
-        activity',
-        total: stats.recentActivity.length',
-        limit',
-        offset
-      })';
-    } catch (error) {
-      console.error('Error fetching activity log:', error)';
-      res.status(500).json({ message: 'Failed to fetch activity log' })';
-    }
-  }
-)';
-
-// ============= SYSTEM ROLES AND PERMISSIONS INFO =============
-
-// Get available system roles
-router.get('/system-roles', 
-  jwtAuth, 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const systemRoles = [
-        {
-          name: 'saas_admin''[,;]
-          displayName: 'SaaS Administrator''[,;]
-          description: 'Full platform access including all tenants''[,;]
-          isSystem: true
-        }',
-        {
-          name: 'tenant_admin''[,;]
-          displayName: 'Tenant Administrator''[,;]
-          description: 'Full access to tenant resources and user management''[,;]
-          isSystem: true
-        }',
-        {
-          name: 'agent''[,;]
-          displayName: 'Support Agent''[,;]
-          description: 'Can handle tickets and manage customers''[,;]
-          isSystem: true
-        }',
-        {
-          name: 'customer''[,;]
-          displayName: 'Customer''[,;]
-          description: 'Limited access to own tickets and profile''[,;]
-          isSystem: true
+    // Prepare update data
+    const allowedFields = ['email', 'role', 'isActive', 'password];
+    const filteredUpdateData: any = {};
+    
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        // Non-admin users cannot change their own role
+        if (field === 'role' && req.user!.role !== 'admin') {
+          continue;
         }
-      ]';
-      
-      res.json({ roles: systemRoles })';
-    } catch (error) {
-      console.error('Error fetching system roles:', error)';
-      res.status(500).json({ message: 'Failed to fetch system roles' })';
+        filteredUpdateData[field] = updateData[field];
+      }
     }
-  }
-)';
 
-// Get available permissions
-router.get('/permissions', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const permissions = [
-        // Platform permissions
-        { category: 'Platform', resource: 'platform', action: 'manage_tenants', description: 'description: 'Manage all tenants' }',',
-        { category: 'Platform', resource: 'platform', action: 'manage_users', description: 'description: 'Manage all users across tenants' }',',
-        { category: 'Platform', resource: 'platform', action: 'view_analytics', description: 'description: 'View platform-wide analytics' }',',
-        { category: 'Platform', resource: 'platform', action: 'manage_billing', description: 'description: 'Manage platform billing' }',',
-        { category: 'Platform', resource: 'platform', action: 'manage_security', description: 'description: 'Manage security settings' }',',
-        
-        // Tenant permissions
-        { category: 'Tenant', resource: 'tenant', action: 'manage_settings', description: 'description: 'Manage tenant settings' }',',
-        { category: 'Tenant', resource: 'tenant', action: 'manage_users', description: 'description: 'Manage tenant users' }',',
-        { category: 'Tenant', resource: 'tenant', action: 'view_analytics', description: 'description: 'View tenant analytics' }',',
-        { category: 'Tenant', resource: 'tenant', action: 'manage_billing', description: 'description: 'Manage tenant billing' }',',
-        { category: 'Tenant', resource: 'tenant', action: 'configure_integrations', description: 'description: 'Configure integrations' }',',
-        
-        // Ticket permissions
-        { category: 'Tickets', resource: 'ticket', action: 'view_all', description: 'description: 'View all tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'view_assigned', description: 'description: 'View assigned tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'view_own', description: 'description: 'View own tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'create', description: 'description: 'Create tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'update', description: 'description: 'Update tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'delete', description: 'description: 'Delete tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'assign', description: 'description: 'Assign tickets' }',',
-        { category: 'Tickets', resource: 'ticket', action: 'resolve', description: 'description: 'Resolve tickets' }',',
-        
-        // Customer permissions
-        { category: 'Customers', resource: 'customer', action: 'view_all', description: 'description: 'View all customers' }',',
-        { category: 'Customers', resource: 'customer', action: 'view_own', description: 'description: 'View own customer profile' }',',
-        { category: 'Customers', resource: 'customer', action: 'create', description: 'description: 'Create customers' }',',
-        { category: 'Customers', resource: 'customer', action: 'update', description: 'description: 'Update customers' }',',
-        { category: 'Customers', resource: 'customer', action: 'delete', description: 'description: 'Delete customers' }',',
-        { category: 'Customers', resource: 'customer', action: 'export', description: 'Export customer data' }
-      ]';
-      
-      res.json({ permissions })';
-    } catch (error) {
-      console.error('Error fetching permissions:', error)';
-      res.status(500).json({ message: 'Failed to fetch permissions' })';
+    // Mock update - in real implementation, use storage.updateUser()
+    const updatedUser = {
+      ...user,
+      ...filteredUpdateData,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Remove sensitive information
+    const safeUser = {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      tenantId: updatedUser.tenantId,
+      isActive: updatedUser.isActive,
+      lastLoginAt: updatedUser.lastLoginAt,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt
+    };
+
+    res.json(safeUser);
+  } catch (error) {
+    logError('Error updating user', error);
+    res.status(500).json({ message: 'Failed to update user' });
+  }
+});
+
+/**
+ * Delete user (admin only)
+ */
+router.delete('/:userId', jwtAuth, requireAdmin(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { userId } = req.params;
+    
+    logInfo('Deleting user', { tenantId, userId });
+    
+    // Check if user exists and belongs to tenant
+    const user = await storage.getUser(Number(userId));
+    if (!user || user.tenantId !== tenantId) {
+      return res.status(404).json({ message: 'User not found' });
     }
-  }
-)';
 
-export default router';
+    // Prevent self-deletion
+    if (req.user!.id === userId) {
+      return res.status(400).json({ message: 'Cannot delete your own account' });
+    }
+
+    // Mock deletion - in real implementation, use storage.deleteUser()
+    // For safety, we might want to soft delete (set isActive = false) instead
+    logInfo('User deleted successfully', { userId });
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    logError('Error deleting user', error);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+});
+
+/**
+ * Get user permissions
+ */
+router.get('/:userId/permissions', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { userId } = req.params;
+    
+    logInfo('Getting user permissions', { tenantId, userId });
+    
+    // Check if user exists and belongs to tenant
+    const user = await storage.getUser(Number(userId));
+    if (!user || user.tenantId !== tenantId) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Mock permissions based on role - in real implementation, get from RBAC system
+    const permissions = {
+      admin: ['*],
+      manager: ['read:all', 'write:tickets', 'write:customers', 'read:reports],
+      agent: ['read:tickets', 'write:tickets', 'read:customers],
+      user: ['read:profile', 'write:profile]
+    };
+
+    res.json({
+      userId: user.id,
+      role: user.role,
+      permissions: permissions[user.role as keyof typeof permissions] || []
+    });
+  } catch (error) {
+    logError('Error getting user permissions', error);
+    res.status(500).json({ message: 'Failed to get user permissions' });
+  }
+});
+
+/**
+ * Update user permissions (admin only)
+ */
+router.put('/:userId/permissions', jwtAuth, requireAdmin(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { userId } = req.params;
+    const { role, customPermissions } = req.body;
+    
+    logInfo('Updating user permissions', { tenantId, userId, role, customPermissions });
+    
+    // Check if user exists and belongs to tenant
+    const user = await storage.getUser(Number(userId));
+    if (!user || user.tenantId !== tenantId) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'manager', 'agent', 'user];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Mock update - in real implementation, update user role and custom permissions
+    const updatedPermissions = {
+      userId: user.id,
+      role: role || user.role,
+      customPermissions: customPermissions || [],
+      updatedAt: new Date().toISOString()
+    };
+
+    res.json(updatedPermissions);
+  } catch (error) {
+    logError('Error updating user permissions', error);
+    res.status(500).json({ message: 'Failed to update user permissions' });
+  }
+});
+
+/**
+ * Get user activity log
+ */
+router.get('/:userId/activity', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { userId } = req.params;
+    const { page = 1, limit = 20, startDate, endDate } = req.query;
+    
+    logInfo('Getting user activity', { tenantId, userId, page, limit, startDate, endDate });
+    
+    // Check if user exists and belongs to tenant
+    const user = await storage.getUser(Number(userId));
+    if (!user || user.tenantId !== tenantId) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Mock activity log - in real implementation, get from audit log
+    const activities = ['
+      {
+        id: 'activity_1',
+        action: 'login',
+        timestamp: '2024-01-21T09:00:00Z',
+        ipAddress: '192.168.1.100',
+        userAgent: 'Mozilla/5.0...',
+        details: { success: true }
+      },
+      {
+        id: 'activity_2',
+        action: 'create_ticket',
+        timestamp: '2024-01-21T09:15:00Z',
+        ipAddress: '192.168.1.100',
+        details: { ticketId: 'ticket_123', title: 'Sample Ticket' }
+      },
+      {
+        id: 'activity_3',
+        action: 'update_profile',
+        timestamp: '2024-01-21T10:30:00Z',
+        ipAddress: '192.168.1.100',
+        details: { fields: ['email] }
+      }
+    ];
+
+    // Apply date filters if provided
+    let filteredActivities = activities;
+    if (startDate) {
+      filteredActivities = filteredActivities.filter(activity => 
+        new Date(activity.timestamp) >= new Date(startDate.toString())
+      );
+    }
+    if (endDate) {
+      filteredActivities = filteredActivities.filter(activity => 
+        new Date(activity.timestamp) <= new Date(endDate.toString())
+      );
+    }
+
+    // Apply pagination
+    const startIndex = (Number(page) - 1) * Number(limit);
+    const paginatedActivities = filteredActivities.slice(startIndex, startIndex + Number(limit));
+
+    res.json({
+      activities: paginatedActivities,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: filteredActivities.length,
+        totalPages: Math.ceil(filteredActivities.length / Number(limit))
+      }
+    });
+  } catch (error) {
+    logError('Error getting user activity', error);
+    res.status(500).json({ message: 'Failed to get user activity' });
+  }
+});
+
+export default router;

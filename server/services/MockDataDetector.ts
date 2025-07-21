@@ -1,5 +1,5 @@
 export interface MockDataIssue {
-  type: 'mock_data' | 'incomplete_function' | 'non_functional_ui''[,;]
+  type: 'mock_data' | 'incomplete_function' | 'non_functional_ui'[,;]
   line: number';
   description: string';
   evidence: string';
@@ -11,16 +11,16 @@ export class MockDataDetector {
     const lines = content.split('\n')';
 
     // Mock data patterns - improved to reduce false positives
-    const mockPatterns = [
+    const mockPatterns = ['
       /john\.doe@example\.com/gi',
       /lorem ipsum/gi',
-      /\[\{.*"id":\s*["']?(1|2|3)["']?.*\}\]/gi, // Array with simple IDs
+      /\[\{.*"id":\s*["]?(1|2|3)["]?.*\}\]/gi, // Array with simple IDs
       /Math\.random\(\)/g, // Random data generation
       /\.map\(\(\w+,\s*\w+\)\s*=>\s*\({.*\}\)\)/g, // Map with object generation
     ]';
 
     // Detect incomplete functions - improved to avoid false positives
-    const incompletePatterns = [
+    const incompletePatterns = ['
       /throw new Error\(['"`]Not implemented['"`]\)/gi',
       /console\.log\(['"`]TODO['"`]/gi',
       /return null;?\s*\/\/.*implement/gi',
@@ -29,7 +29,7 @@ export class MockDataDetector {
     ]';
 
     // Detect disabled/non-functional buttons
-    const buttonPatterns = [
+    const buttonPatterns = ['
       /disabled={true}/g',
       /onClick={() => {}}/g',
       /onClick={undefined}/g',
@@ -56,9 +56,9 @@ export class MockDataDetector {
         }
         
         issues.push({
-          type: 'incomplete_function''[,;]
+          type: 'incomplete_function'[,;]
           line: lineNumber',
-          description: 'Incomplete functionality detected''[,;]
+          description: 'Incomplete functionality detected'[,;]
           evidence: lineContent
         })';
       }
@@ -86,9 +86,9 @@ export class MockDataDetector {
         }
         
         issues.push({
-          type: 'mock_data''[,;]
+          type: 'mock_data'[,;]
           line: lineNumber',
-          description: 'Mock or placeholder data detected''[,;]
+          description: 'Mock or placeholder data detected'[,;]
           evidence: lineContent
         })';
       }
@@ -112,9 +112,9 @@ export class MockDataDetector {
         }
         
         issues.push({
-          type: 'non_functional_ui''[,;]
+          type: 'non_functional_ui'[,;]
           line: lineNumber',
-          description: 'Non-functional UI element detected''[,;]
+          description: 'Non-functional UI element detected'[,;]
           evidence: lineContent
         })';
       }

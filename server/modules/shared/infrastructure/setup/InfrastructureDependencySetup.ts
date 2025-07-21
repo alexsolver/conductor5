@@ -4,51 +4,51 @@
  * Configures all infrastructure dependencies and abstractions
  */
 
-import { container, TOKENS } from '../DependencyContainer''[,;]
+import { container, TOKENS } from '../DependencyContainer'[,;]
 
 // Domain Event Publisher
-import { DomainEventPublisher } from '../events/DomainEventPublisher''[,;]
+import { DomainEventPublisher } from '../events/DomainEventPublisher'[,;]
 
 // ID Generator
-import { UuidGenerator } from '../services/UuidGenerator''[,;]
+import { UuidGenerator } from '../services/UuidGenerator'[,;]
 
 // Email Service
-import { ConsoleEmailService } from '../services/EmailService''[,;]
+import { ConsoleEmailService } from '../services/EmailService'[,;]
 
 // Password Service
-import { BcryptPasswordService } from '../../auth/infrastructure/services/BcryptPasswordService''[,;]
+import { BcryptPasswordService } from '../../auth/infrastructure/services/BcryptPasswordService'[,;]
 
 // Repositories
-import { DrizzleCustomerRepository } from '../../customers/infrastructure/repositories/DrizzleCustomerRepository''[,;]
-import { DrizzleTicketRepository } from '../../tickets/infrastructure/repositories/DrizzleTicketRepository''[,;]
-import { DrizzleUserRepository } from '../../auth/infrastructure/repositories/DrizzleUserRepository''[,;]
+import { DrizzleCustomerRepository } from '../../customers/infrastructure/repositories/DrizzleCustomerRepository'[,;]
+import { DrizzleTicketRepository } from '../../tickets/infrastructure/repositories/DrizzleTicketRepository'[,;]
+import { DrizzleUserRepository } from '../../auth/infrastructure/repositories/DrizzleUserRepository'[,;]
 
 // CQRS Infrastructure
-import { InMemoryCommandBus } from '../cqrs/InMemoryCommandBus''[,;]
-import { InMemoryQueryBus } from '../cqrs/InMemoryQueryBus''[,;]
+import { InMemoryCommandBus } from '../cqrs/InMemoryCommandBus'[,;]
+import { InMemoryQueryBus } from '../cqrs/InMemoryQueryBus'[,;]
 
 // Use Cases
-import { CreateCustomerUseCase } from '../../customers/application/usecases/CreateCustomerUseCase''[,;]
-import { GetCustomersUseCase } from '../../customers/application/usecases/GetCustomersUseCase''[,;]
-import { UpdateCustomerUseCase } from '../../customers/application/usecases/UpdateCustomerUseCase''[,;]
-import { DeleteCustomerUseCase } from '../../customers/application/usecases/DeleteCustomerUseCase''[,;]
+import { CreateCustomerUseCase } from '../../customers/application/usecases/CreateCustomerUseCase'[,;]
+import { GetCustomersUseCase } from '../../customers/application/usecases/GetCustomersUseCase'[,;]
+import { UpdateCustomerUseCase } from '../../customers/application/usecases/UpdateCustomerUseCase'[,;]
+import { DeleteCustomerUseCase } from '../../customers/application/usecases/DeleteCustomerUseCase'[,;]
 
-import { CreateTicketUseCase } from '../../tickets/application/usecases/CreateTicketUseCase''[,;]
-import { GetTicketsUseCase } from '../../tickets/application/usecases/GetTicketsUseCase''[,;]
-import { AssignTicketUseCase } from '../../tickets/application/usecases/AssignTicketUseCase''[,;]
-import { ResolveTicketUseCase } from '../../tickets/application/usecases/ResolveTicketUseCase''[,;]
+import { CreateTicketUseCase } from '../../tickets/application/usecases/CreateTicketUseCase'[,;]
+import { GetTicketsUseCase } from '../../tickets/application/usecases/GetTicketsUseCase'[,;]
+import { AssignTicketUseCase } from '../../tickets/application/usecases/AssignTicketUseCase'[,;]
+import { ResolveTicketUseCase } from '../../tickets/application/usecases/ResolveTicketUseCase'[,;]
 
-import { CreateUserUseCase } from '../../auth/application/usecases/CreateUserUseCase''[,;]
+import { CreateUserUseCase } from '../../auth/application/usecases/CreateUserUseCase'[,;]
 
 // Application Services
-import { CustomerApplicationService } from '../../customers/application/services/CustomerApplicationService''[,;]
-import { TicketApplicationService } from '../../tickets/application/services/TicketApplicationService''[,;]
+import { CustomerApplicationService } from '../../customers/application/services/CustomerApplicationService'[,;]
+import { TicketApplicationService } from '../../tickets/application/services/TicketApplicationService'[,;]
 
 // Command/Query Handlers
-import { CreateCustomerCommandHandler } from '../../customers/application/commands/CreateCustomerCommand''[,;]
-import { GetCustomersQueryHandler } from '../../customers/application/queries/GetCustomersQuery''[,;]
-import { CreateTicketCommandHandler } from '../../tickets/application/commands/CreateTicketCommand''[,;]
-import { GetTicketsQueryHandler } from '../../tickets/application/queries/GetTicketsQuery''[,;]
+import { CreateCustomerCommandHandler } from '../../customers/application/commands/CreateCustomerCommand'[,;]
+import { GetCustomersQueryHandler } from '../../customers/application/queries/GetCustomersQuery'[,;]
+import { CreateTicketCommandHandler } from '../../tickets/application/commands/CreateTicketCommand'[,;]
+import { GetTicketsQueryHandler } from '../../tickets/application/queries/GetTicketsQuery'[,;]
 
 /**
  * Setup all infrastructure dependencies with proper Clean Architecture abstractions

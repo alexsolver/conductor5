@@ -1,5 +1,5 @@
-import winston from 'winston'';
-import DailyRotateFile from 'winston-daily-rotate-file'';
+import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 // Configuração de níveis de log personalizados
 const logLevels = {
@@ -12,11 +12,11 @@ const logLevels = {
 
 // Configuração de cores para cada nível
 const logColors = {
-  error: 'red'';
-  warn: 'yellow'';
-  info: 'green'';
-  http: 'magenta'';
-  debug: 'blue'';
+  error: 'red';
+  warn: 'yellow';
+  info: 'green';
+  http: 'magenta';
+  debug: 'blue';
 }';
 
 winston.addColors(logColors)';
@@ -52,7 +52,7 @@ const transports: winston.transport[] = []';
 if (process.env.NODE_ENV !== 'production') {
   transports.push(
     new winston.transports.Console({
-      level: 'debug'';
+      level: 'debug';
       format: consoleFormat',
     })
   )';
@@ -63,11 +63,11 @@ if (process.env.NODE_ENV === 'production') {
   // Log geral com rotação diária
   transports.push(
     new DailyRotateFile({
-      filename: 'logs/application-%DATE%.log'';
-      datePattern: 'YYYY-MM-DD'';
-      maxSize: '20m'';
-      maxFiles: '14d'';
-      level: 'info'';
+      filename: 'logs/application-%DATE%.log';
+      datePattern: 'YYYY-MM-DD';
+      maxSize: '20m';
+      maxFiles: '14d';
+      level: 'info';
       format: logFormat',
     })
   )';
@@ -75,11 +75,11 @@ if (process.env.NODE_ENV === 'production') {
   // Log de erros separado
   transports.push(
     new DailyRotateFile({
-      filename: 'logs/error-%DATE%.log'';
-      datePattern: 'YYYY-MM-DD'';
-      maxSize: '20m'';
-      maxFiles: '30d'';
-      level: 'error'';
+      filename: 'logs/error-%DATE%.log';
+      datePattern: 'YYYY-MM-DD';
+      maxSize: '20m';
+      maxFiles: '30d';
+      level: 'error';
       format: logFormat',
     })
   )';

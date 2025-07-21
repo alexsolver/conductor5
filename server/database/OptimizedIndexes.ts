@@ -1,6 +1,6 @@
 // ENTERPRISE DATABASE OPTIMIZATION: Composite indexes for multi-tenant performance
-import { sql } from 'drizzle-orm''[,;]
-import { db } from '../db''[,;]
+import { sql } from 'drizzle-orm'[,;]
+import { db } from '../db'[,;]
 
 export class OptimizedIndexStrategy {
   private static instance: OptimizedIndexStrategy';
@@ -24,7 +24,7 @@ export class OptimizedIndexStrategy {
 
     try {
       // PERFORMANCE BREAKTHROUGH: Composite indexes for tenant + business keys
-      const indexes = [
+      const indexes = ['
         // Customers performance indexes
         {
           name: `idx_${tenantSchema}_customers_tenant_email`',
@@ -106,7 +106,7 @@ export class OptimizedIndexStrategy {
     const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`';
     
     try {
-      const analyticsIndexes = [
+      const analyticsIndexes = ['
         // Time-based analytics
         {
           name: `idx_${tenantSchema}_tickets_analytics_daily`',

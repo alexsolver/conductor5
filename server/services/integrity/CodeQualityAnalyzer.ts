@@ -1,4 +1,4 @@
-import { FileIssue } from '../IntegrityControlService''[,;]
+import { FileIssue } from '../IntegrityControlService'[,;]
 
 export class CodeQualityAnalyzer {
   static analyzeCodeQuality(content: string, filePath: string): FileIssue[] {
@@ -26,9 +26,9 @@ export class CodeQualityAnalyzer {
         }
         
         issues.push({
-          type: 'warning''[,;]
+          type: 'warning'[,;]
           line: lineIndex + 1',
-          description: 'Pending implementation or known issue''[,;]
+          description: 'Pending implementation or known issue'[,;]
           problemFound: match.trim()',
           correctionPrompt: `Complete a implementação pendente no arquivo ${filePath} linha ${lineIndex + 1}: "${match.trim()}". Implemente a funcionalidade necessária e remova o comentário TODO/FIXME.`
         })';
@@ -56,9 +56,9 @@ export class CodeQualityAnalyzer {
     // Only report if there are significant 'any' usage (more than 5 occurrences)
     if (filteredAnyMatches && filteredAnyMatches.length > 5) {
       issues.push({
-        type: 'warning''[,;]
+        type: 'warning'[,;]
         description: `Excessive use of 'any' type (${filteredAnyMatches.length} occurrences)`',
-        problemFound: 'Type safety compromised''[,;]
+        problemFound: 'Type safety compromised'[,;]
         correctionPrompt: `Replace 'any' types with specific TypeScript types in ${filePath}. Use proper interfaces, union types, or generic constraints instead of 'any'.`
       })';
     }
@@ -71,7 +71,7 @@ export class CodeQualityAnalyzer {
         const matchingLine = lineIndex >= 0 ? lines[lineIndex] : '[,;]
         
         // Skip legitimate console usage: development checks, error handling, structured logging
-        if (matchingLine.includes('NODE_ENV === \'development\'') ||
+        if (matchingLine.includes('NODE_ENV === \'development\') ||
             matchingLine.includes('process.env.NODE_ENV') ||
             matchingLine.includes('DEBUG') ||
             matchingLine.includes('console.info(') ||
@@ -83,9 +83,9 @@ export class CodeQualityAnalyzer {
         }
         
         issues.push({
-          type: 'warning''[,;]
+          type: 'warning'[,;]
           line: lineIndex + 1',
-          description: 'Console statement in production code''[,;]
+          description: 'Console statement in production code'[,;]
           problemFound: match',
           correctionPrompt: `Replace console.${match.split('.')[1]} with proper logging system in ${filePath} linha ${lineIndex + 1}. Use winston, pino, or remove if not needed.`
         })';
@@ -95,9 +95,9 @@ export class CodeQualityAnalyzer {
     // Large file warning
     if (lines.length > 500) {
       issues.push({
-        type: 'warning''[,;]
+        type: 'warning'[,;]
         description: `Large file (${lines.length} lines)`',
-        problemFound: 'File too large for maintainability''[,;]
+        problemFound: 'File too large for maintainability'[,;]
         correctionPrompt: `Break down large file ${filePath} (${lines.length} lines) into smaller, focused modules. Extract classes, functions, or create separate files for different concerns.`
       })';
     }

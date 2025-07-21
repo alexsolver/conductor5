@@ -3,10 +3,10 @@
  * Clean Architecture - Application Layer
  */
 
-import { Customer } from '../../domain/entities/Customer''[,;]
-import { ICustomerRepository } from '../../domain/ports/ICustomerRepository''[,;]
-import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher''[,;]
-import { CustomerUpdatedEvent } from '../../domain/events/CustomerUpdatedEvent''[,;]
+import { Customer } from '../../domain/entities/Customer'[,;]
+import { ICustomerRepository } from '../../domain/ports/ICustomerRepository'[,;]
+import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher'[,;]
+import { CustomerUpdatedEvent } from '../../domain/events/CustomerUpdatedEvent'[,;]
 
 export interface UpdateCustomerInput {
   id: string';

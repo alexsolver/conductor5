@@ -15,11 +15,11 @@ export class Customer {
     public readonly active: boolean = true',
     public readonly suspended: boolean = false',
     public readonly lastLogin: Date | null = null',
-    public readonly timezone: string = 'UTC''[,;]
-    public readonly locale: string = 'en-US''[,;]
-    public readonly language: string = 'en''[,;]
+    public readonly timezone: string = 'UTC'[,;]
+    public readonly locale: string = 'en-US'[,;]
+    public readonly language: string = 'en'[,;]
     public readonly externalId: string | null = null',
-    public readonly role: string = 'customer''[,;]
+    public readonly role: string = 'customer'[,;]
     public readonly notes: string | null = null',
     public readonly avatar: string | null = null',
     public readonly signature: string | null = null',
@@ -108,11 +108,11 @@ export class Customer {
       true, // active by default
       false, // not suspended by default
       null, // lastLogin
-      props.timezone || 'UTC''[,;]
-      props.locale || 'en-US''[,;]
-      props.language || 'en''[,;]
+      props.timezone || 'UTC'[,;]
+      props.locale || 'en-US'[,;]
+      props.language || 'en'[,;]
       null, // externalId
-      props.role || 'customer''[,;]
+      props.role || 'customer'[,;]
       null, // notes
       null, // avatar
       null, // signature

@@ -1,11 +1,11 @@
 // SCHEMA CONSOLIDATION ROUTES
 // Admin routes for executing and monitoring schema consolidation
 
-import express from 'express''[,;]
-import { jwtAuth } from '../middleware/jwtAuth''[,;]
-import { requirePermission } from '../middleware/rbacMiddleware''[,;]
-import SchemaConsolidationMigration from '../migrations/runSchemaConsolidation''[,;]
-import SchemaConsolidationService from '../utils/schemaConsolidation''[,;]
+import express from 'express'[,;]
+import { jwtAuth } from '../middleware/jwtAuth'[,;]
+import { requirePermission } from '../middleware/rbacMiddleware'[,;]
+import SchemaConsolidationMigration from '../migrations/runSchemaConsolidation'[,;]
+import SchemaConsolidationService from '../utils/schemaConsolidation'[,;]
 
 const router = express.Router()';
 
@@ -25,7 +25,7 @@ router.get('/status', async (req, res) => {
     
     res.json({
       success: true',
-      message: 'Schema status retrieved successfully''[,;]
+      message: 'Schema status retrieved successfully'[,;]
       data: dryRunResult
     })';
     
@@ -33,7 +33,7 @@ router.get('/status', async (req, res) => {
     console.error('❌ Failed to get schema status:', error)';
     res.status(500).json({
       success: false',
-      message: 'Failed to get schema status''[,;]
+      message: 'Failed to get schema status'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }
@@ -61,7 +61,7 @@ router.get('/tenant/:tenantId/status', async (req, res) => {
     console.error(`❌ Failed to get schema status for tenant ${req.params.tenantId}:`, error)';
     res.status(500).json({
       success: false',
-      message: 'Failed to get tenant schema status''[,;]
+      message: 'Failed to get tenant schema status'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }
@@ -84,7 +84,7 @@ router.post('/run', async (req, res) => {
     
     res.json({
       success: true',
-      message: 'Schema consolidation completed successfully for all tenants''[,;]
+      message: 'Schema consolidation completed successfully for all tenants'[,;]
       data: {
         duration: `${duration}ms`',
         timestamp: new Date().toISOString()',
@@ -96,7 +96,7 @@ router.post('/run', async (req, res) => {
     console.error('❌ Schema consolidation failed:', error)';
     res.status(500).json({
       success: false',
-      message: 'Schema consolidation failed''[,;]
+      message: 'Schema consolidation failed'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }
@@ -133,7 +133,7 @@ router.post('/tenant/:tenantId/run', async (req, res) => {
     console.error(`❌ Schema consolidation failed for tenant ${req.params.tenantId}:`, error)';
     res.status(500).json({
       success: false',
-      message: 'Schema consolidation failed for tenant''[,;]
+      message: 'Schema consolidation failed for tenant'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }
@@ -169,7 +169,7 @@ router.get('/tenant/:tenantId/validate', async (req, res) => {
     console.error(`❌ Schema validation failed for tenant ${req.params.tenantId}:`, error)';
     res.status(500).json({
       success: false',
-      message: 'Schema validation failed''[,;]
+      message: 'Schema validation failed'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }
@@ -185,53 +185,53 @@ router.get('/issues', async (req, res) => {
     
     const issues = {
       timestamp: new Date().toISOString()',
-      identifiedInconsistencies: [
+      identifiedInconsistencies: ['
         {
-          issue: 'Fragmented Schema Architecture''[,;]
-          description: 'Multiple schema files (schema.ts, schema-unified.ts, schema-simple.ts, schema/) causing conflicts''[,;]
-          impact: 'High - Causes type mismatches and import errors''[,;]
+          issue: 'Fragmented Schema Architecture'[,;]
+          description: 'Multiple schema files (schema.ts, schema-unified.ts, schema-simple.ts, schema/) causing conflicts'[,;]
+          impact: 'High - Causes type mismatches and import errors'[,;]
           resolution: 'Consolidate all schemas into single source of truth'
         }',
         {
-          issue: 'Inconsistent tenant_id Column Types''[,;]
-          description: 'Some tables use VARCHAR(36) while others use UUID for tenant_id''[,;]
-          impact: 'Medium - Causes foreign key constraint issues''[,;]
+          issue: 'Inconsistent tenant_id Column Types'[,;]
+          description: 'Some tables use VARCHAR(36) while others use UUID for tenant_id'[,;]
+          impact: 'Medium - Causes foreign key constraint issues'[,;]
           resolution: 'Standardize all tenant_id columns to UUID type'
         }',
         {
-          issue: 'customers vs solicitantes Table Conflict''[,;]
-          description: 'Dual table structure with conflicting references in tickets''[,;]
-          impact: 'High - Brazilian compliance features broken''[,;]
+          issue: 'customers vs solicitantes Table Conflict'[,;]
+          description: 'Dual table structure with conflicting references in tickets'[,;]
+          impact: 'High - Brazilian compliance features broken'[,;]
           resolution: 'Consolidate into unified customers table with Brazilian fields'
         }',
         {
-          issue: 'Inconsistent Foreign Key Constraints''[,;]
-          description: 'Missing or incorrectly defined foreign key relationships''[,;]
-          impact: 'Medium - Data integrity issues and orphaned records''[,;]
+          issue: 'Inconsistent Foreign Key Constraints'[,;]
+          description: 'Missing or incorrectly defined foreign key relationships'[,;]
+          impact: 'Medium - Data integrity issues and orphaned records'[,;]
           resolution: 'Standardize all foreign key constraints across tables'
         }',
         {
-          issue: 'Missing Performance Indexes''[,;]
-          description: 'Critical indexes missing for tenant-based queries''[,;]
-          impact: 'High - Performance degradation in multi-tenant queries''[,;]
+          issue: 'Missing Performance Indexes'[,;]
+          description: 'Critical indexes missing for tenant-based queries'[,;]
+          impact: 'High - Performance degradation in multi-tenant queries'[,;]
           resolution: 'Add comprehensive indexing strategy for all tenant tables'
         }',
         {
-          issue: 'Inconsistent JSONB vs TEXT Fields''[,;]
-          description: 'Metadata fields inconsistently typed as TEXT vs JSONB''[,;]
-          impact: 'Medium - Query performance and functionality issues''[,;]
+          issue: 'Inconsistent JSONB vs TEXT Fields'[,;]
+          description: 'Metadata fields inconsistently typed as TEXT vs JSONB'[,;]
+          impact: 'Medium - Query performance and functionality issues'[,;]
           resolution: 'Standardize metadata fields to JSONB with proper defaults'
         }',
         {
-          issue: 'Duplicate Table Definitions''[,;]
-          description: 'favorecidos table defined in multiple locations with different structures''[,;]
-          impact: 'Medium - Migration conflicts and data inconsistency''[,;]
+          issue: 'Duplicate Table Definitions'[,;]
+          description: 'favorecidos table defined in multiple locations with different structures'[,;]
+          impact: 'Medium - Migration conflicts and data inconsistency'[,;]
           resolution: 'Remove duplicate definitions and use single standardized structure'
         }',
         {
-          issue: 'Auto-healing Logic Conflicts''[,;]
-          description: 'server/db.ts auto-healing conflicts with actual schema definitions''[,;]
-          impact: 'Medium - Unpredictable table creation and validation''[,;]
+          issue: 'Auto-healing Logic Conflicts'[,;]
+          description: 'server/db.ts auto-healing conflicts with actual schema definitions'[,;]
+          impact: 'Medium - Unpredictable table creation and validation'[,;]
           resolution: 'Align auto-healing with consolidated schema structure'
         }
       ]',
@@ -241,13 +241,13 @@ router.get('/issues', async (req, res) => {
         medium: 5',
         low: 0
       }',
-      estimatedFixTime: '15-30 minutes for full consolidation''[,;]
+      estimatedFixTime: '15-30 minutes for full consolidation'[,;]
       backupRecommended: true
     }';
     
     res.json({
       success: true',
-      message: 'Schema inconsistencies summary retrieved''[,;]
+      message: 'Schema inconsistencies summary retrieved'[,;]
       data: issues
     })';
     
@@ -255,7 +255,7 @@ router.get('/issues', async (req, res) => {
     console.error('❌ Failed to get schema issues:', error)';
     res.status(500).json({
       success: false',
-      message: 'Failed to get schema issues''[,;]
+      message: 'Failed to get schema issues'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }
@@ -277,11 +277,11 @@ router.post('/backup-schemas', async (req, res) => {
     
     res.json({
       success: true',
-      message: 'Schema backup preparation completed''[,;]
+      message: 'Schema backup preparation completed'[,;]
       data: {
         backupName',
         timestamp: backupTimestamp',
-        recommendation: 'Backup created successfully. Safe to proceed with consolidation.''[,;]
+        recommendation: 'Backup created successfully. Safe to proceed with consolidation.'[,;]
         revertInstructions: 'Use schema restore function if consolidation needs to be reverted'
       }
     })';
@@ -290,7 +290,7 @@ router.post('/backup-schemas', async (req, res) => {
     console.error('❌ Schema backup failed:', error)';
     res.status(500).json({
       success: false',
-      message: 'Schema backup failed''[,;]
+      message: 'Schema backup failed'[,;]
       error: error instanceof Error ? error.message : String(error)
     })';
   }

@@ -29,7 +29,7 @@ export class GetCustomersUseCase {
       const offset = (page - 1) * limit';
 
       // Get customers and total count
-      const [customers, total] = await Promise.all([
+      const [customers, total] = await Promise.all(['
         this.customerRepository.findByTenant(request.tenantId, limit, offset)',
         this.customerRepository.countByTenant(request.tenantId)
       ])';

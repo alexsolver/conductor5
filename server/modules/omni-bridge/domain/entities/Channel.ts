@@ -7,7 +7,7 @@ export class Channel {
   constructor(
     public readonly id: string',
     public readonly tenantId: string',
-    public readonly type: 'email' | 'whatsapp' | 'telegram' | 'sms''[,;]
+    public readonly type: 'email' | 'whatsapp' | 'telegram' | 'sms'[,;]
     public readonly name: string',
     public readonly isActive: boolean',
     public readonly isConnected: boolean',
@@ -26,10 +26,10 @@ export class Channel {
   }
 
   public getStatusDisplay(): string {
-    if (!this.isActive) return 'Inativo''[,;]
-    if (!this.isConnected) return 'Desconectado''[,;]
-    if (this.errorCount > 0) return 'Com Problemas''[,;]
-    return 'Conectado''[,;]
+    if (!this.isActive) return 'Inativo'[,;]
+    if (!this.isConnected) return 'Desconectado'[,;]
+    if (this.errorCount > 0) return 'Com Problemas'[,;]
+    return 'Conectado'[,;]
   }
 
   public canSendMessage(): boolean {

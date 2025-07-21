@@ -1,5 +1,5 @@
-import { Location } from '../../domain/entities/Location''[,;]
-import { ILocationRepository, LocationSearchFilters } from '../../domain/repositories/ILocationRepository''[,;]
+import { Location } from '../../domain/entities/Location'[,;]
+import { ILocationRepository, LocationSearchFilters } from '../../domain/repositories/ILocationRepository'[,;]
 
 export interface GetLocationsRequest {
   limit?: number';

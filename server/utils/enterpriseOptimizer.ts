@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm'';
-import { db } from '../db'';
+import { sql } from 'drizzle-orm';
+import { db } from '../db';
 
 // ===========================
 // ENTERPRISE SYSTEM OPTIMIZER
@@ -175,8 +175,8 @@ export class EnterpriseOptimizer {
 
   private async addTenantIsolationConstraints(schemaName: string): Promise<void> {
     try {
-      const tables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs'';
+      const tables = ['
+        'customers', 'tickets', 'ticket_messages', 'activity_logs';
         'locations', 'customer_companies', 'skills', 'certifications', 'user_skills'
       ]';
 

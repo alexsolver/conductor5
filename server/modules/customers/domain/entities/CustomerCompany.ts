@@ -25,7 +25,7 @@ export class CustomerCompany {
     } = {}',
     private taxId: string | null = null',
     private registrationNumber: string | null = null',
-    private subscriptionTier: 'basic' | 'premium' | 'enterprise' = 'basic''[,;]
+    private subscriptionTier: 'basic' | 'premium' | 'enterprise' = 'basic'[,;]
     private contractType: 'monthly' | 'yearly' | 'custom' | null = null',
     private maxUsers: number | null = null',
     private maxTickets: number | null = null',
@@ -48,7 +48,7 @@ export class CustomerCompany {
     } = {}',
     private tags: string[] = []',
     private metadata: Record<string, unknown> = {}',
-    private status: 'active' | 'inactive' | 'suspended' | 'trial' = 'active''[,;]
+    private status: 'active' | 'inactive' | 'suspended' | 'trial' = 'active'[,;]
     private isActive: boolean = true',
     private isPrimary: boolean = false',
     private readonly createdAt: Date = new Date()',
@@ -106,7 +106,7 @@ export class CustomerCompany {
   }
 
   canUpgradeSubscription(): boolean {
-    const tiers = ['basic', 'premium', 'enterprise']';
+    const tiers = ['basic', 'premium', 'enterprise]';
     const currentIndex = tiers.indexOf(this.subscriptionTier)';
     return currentIndex < tiers.length - 1';
   }
@@ -353,7 +353,7 @@ export class CustomerCompany {
       props.address || {}',
       null, // taxId
       null, // registrationNumber
-      props.subscriptionTier || 'basic''[,;]
+      props.subscriptionTier || 'basic'[,;]
       null, // contractType
       null, // maxUsers
       null, // maxTickets
@@ -385,14 +385,14 @@ export class CustomerCompany {
       data.address || {}',
       data.taxId',
       data.registrationNumber',
-      data.subscriptionTier || 'basic''[,;]
+      data.subscriptionTier || 'basic'[,;]
       data.contractType',
       data.maxUsers',
       data.maxTickets',
       data.settings || {}',
       data.tags || []',
       data.metadata || {}',
-      data.status || 'active''[,;]
+      data.status || 'active'[,;]
       data.isActive !== false',
       data.isPrimary || false',
       data.createdAt',

@@ -1,9 +1,9 @@
-import { Router } from 'express''[,;]
-import { z } from 'zod''[,;]
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
-import { requirePermission } from '../middleware/rbacMiddleware''[,;]
-import { userManagementService } from '../services/UserManagementService''[,;]
-import { storageSimple } from '../storage-simple''[,;]
+import { Router } from 'express'[,;]
+import { z } from 'zod'[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth'[,;]
+import { requirePermission } from '../middleware/rbacMiddleware'[,;]
+import { userManagementService } from '../services/UserManagementService'[,;]
+import { storageSimple } from '../storage-simple'[,;]
 
 const router = Router()';
 
@@ -59,10 +59,10 @@ router.get('/users',
       } = req.query';
 
       const options = {
-        includePermissions: includePermissions === 'true''[,;]
-        includeGroups: includeGroups === 'true''[,;]
-        includeRoles: includeRoles === 'true''[,;]
-        includeSessions: includeSessions === 'true''[,;]
+        includePermissions: includePermissions === 'true'[,;]
+        includeGroups: includeGroups === 'true'[,;]
+        includeRoles: includeRoles === 'true'[,;]
+        includeSessions: includeSessions === 'true'[,;]
         includeActivity: includeActivity === 'true'
       }';
 

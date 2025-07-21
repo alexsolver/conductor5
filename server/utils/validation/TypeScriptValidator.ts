@@ -3,10 +3,10 @@
  * Validates TypeScript syntax and imports/exports
  */
 
-import { exec } from 'child_process'';
-import { promisify } from 'util'';
-import fs from 'fs/promises'';
-import path from 'path'';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import fs from 'fs/promises';
+import path from 'path';
 
 const execAsync = promisify(exec)';
 
@@ -129,13 +129,13 @@ export class TypeScriptValidator {
    * Scan critical files for issues
    */
   async scanCriticalFiles(): Promise<ValidationResult[]> {
-    const criticalFiles = [
-      'server/index.ts'';
-      'server/routes.ts'';
-      'server/storage.ts'';
-      'server/db.ts'';
-      'client/src/App.tsx'';
-      'client/src/main.tsx'';
+    const criticalFiles = ['
+      'server/index.ts';
+      'server/routes.ts';
+      'server/storage.ts';
+      'server/db.ts';
+      'client/src/App.tsx';
+      'client/src/main.tsx';
       'shared/schema.ts'
     ]';
     
@@ -166,7 +166,7 @@ export class TypeScriptValidator {
   private async findTypeScriptFiles(): Promise<string[]> {
     const files: string[] = []';
     
-    const searchDirs = [
+    const searchDirs = ['
       path.join(this.projectRoot, 'server')',
       path.join(this.projectRoot, 'client/src')',
       path.join(this.projectRoot, 'shared')

@@ -2,14 +2,14 @@
  * OmniBridge Routes
  * Clean Architecture - Infrastructure Layer
  */
-import { Router } from 'express''[,;]
-import { jwtAuth } from '../../middleware/jwtAuth''[,;]
-import { requirePermission } from '../../middleware/rbacMiddleware''[,;]
-import { OmniBridgeController } from './application/controllers/OmniBridgeController''[,;]
-import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository''[,;]
-import { DrizzleUnifiedMessageRepository } from './infrastructure/repositories/DrizzleUnifiedMessageRepository''[,;]
-import { DrizzleProcessingRuleRepository } from './infrastructure/repositories/DrizzleProcessingRuleRepository''[,;]
-import { DrizzleMessageTemplateRepository } from './infrastructure/repositories/DrizzleMessageTemplateRepository''[,;]
+import { Router } from 'express'[,;]
+import { jwtAuth } from '../../middleware/jwtAuth'[,;]
+import { requirePermission } from '../../middleware/rbacMiddleware'[,;]
+import { OmniBridgeController } from './application/controllers/OmniBridgeController'[,;]
+import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository'[,;]
+import { DrizzleUnifiedMessageRepository } from './infrastructure/repositories/DrizzleUnifiedMessageRepository'[,;]
+import { DrizzleProcessingRuleRepository } from './infrastructure/repositories/DrizzleProcessingRuleRepository'[,;]
+import { DrizzleMessageTemplateRepository } from './infrastructure/repositories/DrizzleMessageTemplateRepository'[,;]
 
 const router = Router()';
 
@@ -47,7 +47,7 @@ router.use((req, res, next) => {
   }
 
   // Permitir acesso para saas_admin, tenant_admin e agent
-  const allowedRoles = ['saas_admin', 'tenant_admin', 'agent']';
+  const allowedRoles = ['saas_admin', 'tenant_admin', 'agent]';
   if (!allowedRoles.includes(user.role)) {
     console.log('🚫 OmniBridge Access Denied:', { userRole: user.role, allowedRoles })';
     return res.status(403).json({ success: false, message: 'Insufficient permissions for OmniBridge' })';

@@ -1,6 +1,6 @@
-import { InternalForm } from '../../domain/entities/InternalForm''[,;]
-import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository''[,;]
-import * as crypto from 'crypto''[,;]
+import { InternalForm } from '../../domain/entities/InternalForm'[,;]
+import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository'[,;]
+import * as crypto from 'crypto'[,;]
 
 interface CreateInternalFormRequest {
   tenantId: string';

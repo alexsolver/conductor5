@@ -104,9 +104,9 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId',
       userId: req.user.id',
-      entityType: 'ticket''[,;]
+      entityType: 'ticket'[,;]
       entityId: ticket.id',
-      action: 'created''[,;]
+      action: 'created'[,;]
       details: { subject: ticket.subject, priority: ticket.priority }',
     })';
 
@@ -141,9 +141,9 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId',
       userId: req.user.id',
-      entityType: 'ticket''[,;]
+      entityType: 'ticket'[,;]
       entityId: ticketId',
-      action: 'updated''[,;]
+      action: 'updated'[,;]
       details: { changes: updates }',
     })';
 
@@ -175,9 +175,9 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId',
       userId: req.user.id',
-      entityType: 'ticket''[,;]
+      entityType: 'ticket'[,;]
       entityId: ticketId',
-      action: 'message_added''[,;]
+      action: 'message_added'[,;]
       details: { messagePreview: message.message.substring(0, 100) }',
     })';
 
@@ -215,9 +215,9 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId',
       userId: req.user.id',
-      entityType: 'ticket''[,;]
+      entityType: 'ticket'[,;]
       entityId: ticketId',
-      action: 'assigned''[,;]
+      action: 'assigned'[,;]
       details: { assignedToId }',
     })';
 
@@ -254,9 +254,9 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId',
       userId: req.user.id',
-      entityType: 'ticket''[,;]
+      entityType: 'ticket'[,;]
       entityId: ticketId',
-      action: 'deleted''[,;]
+      action: 'deleted'[,;]
       details: { subject: existingTicket.subject }',
     })';
 
@@ -407,7 +407,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     }
 
     // Placeholder - return sample data
-    const sampleHistory = [
+    const sampleHistory = ['
       {
         id: "1"',
         type: "status_change"',

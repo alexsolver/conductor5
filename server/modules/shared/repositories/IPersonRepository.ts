@@ -1,7 +1,7 @@
 // Interface for unified person repository
 export interface Person {
   id: string';
-  type: 'user' | 'customer''[,;]
+  type: 'user' | 'customer'[,;]
   email: string';
   fullName: string';
   firstName?: string';

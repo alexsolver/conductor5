@@ -1,7 +1,7 @@
 
-import { sql } from 'drizzle-orm''[,;]
-import { db } from '../db''[,;]
-import { logInfo, logError } from '../utils/logger''[,;]
+import { sql } from 'drizzle-orm'[,;]
+import { db } from '../db'[,;]
+import { logInfo, logError } from '../utils/logger'[,;]
 
 /**
  * CRITICAL FIX: Tenant-Optimized Index Creation
@@ -14,7 +14,7 @@ export class TenantIndexOptimizer {
       const schemaId = sql.identifier(schemaName)';
       
       // CRITICAL FIX: Composite indexes for tenant isolation + performance
-      const indexQueries = [
+      const indexQueries = ['
         // Customer performance indexes
         sql`CREATE INDEX CONCURRENTLY IF NOT EXISTS customers_tenant_active_verified_idx 
             ON ${schemaId}.customers (tenant_id, active, verified) 
@@ -143,7 +143,7 @@ export class TenantIndexOptimizer {
       const schemaId = sql.identifier(schemaName)';
       
       // Atualizar estatísticas críticas do PostgreSQL
-      const criticalTables = [
+      const criticalTables = ['
         'tickets', 'customers', 'activity_logs', 'skills', 'user_skills', 
         'certifications', 'favorecidos', 'customer_companies', 
         'customer_company_memberships', 'locations', 'ticket_messages'

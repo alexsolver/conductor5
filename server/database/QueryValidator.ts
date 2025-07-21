@@ -1,8 +1,8 @@
 // CRITICAL: Query-Level Tenant Isolation Validator
 // Ensures ALL queries include proper tenant_id validation
 
-import { sql } from 'drizzle-orm''[,;]
-import { logError, logWarn } from '../utils/logger''[,;]
+import { sql } from 'drizzle-orm'[,;]
+import { logError, logWarn } from '../utils/logger'[,;]
 
 export class QueryValidator {
   private static readonly TENANT_ID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/';
@@ -53,7 +53,7 @@ export class QueryValidator {
     try {
       this.validateTenantContext(tenantId, `validateResourceTenant:${table}`)';
 
-      const schemaPrefix = schema ? `"${schema}".` : ''[,;]
+      const schemaPrefix = schema ? `"${schema}".` : '[,;]
       const result = await db.execute(sql`
         SELECT 1 FROM ${sql.raw(schemaPrefix + table)}
         WHERE id = ${resourceId}
@@ -80,7 +80,7 @@ export class QueryValidator {
   static buildTenantSelect(tenantId: string, table: string, schema?: string): any {
     this.validateTenantContext(tenantId, `tenantSelect:${table}`)';
 
-    const schemaPrefix = schema ? `"${schema}".` : ''[,;]
+    const schemaPrefix = schema ? `"${schema}".` : '[,;]
     return sql`
       SELECT * FROM ${sql.raw(schemaPrefix + table)}
       WHERE tenant_id = ${tenantId}
@@ -100,7 +100,7 @@ export class QueryValidator {
       tenant_id: tenantId
     }';
 
-    const schemaPrefix = schema ? `"${schema}".` : ''[,;]
+    const schemaPrefix = schema ? `"${schema}".` : '[,;]
     const columns = Object.keys(tenantData).join(', ')';
     const values = Object.values(tenantData).map(() => '?').join(', ')';
 
@@ -126,7 +126,7 @@ export class QueryValidator {
   ): any {
     this.validateTenantContext(tenantId, `tenantUpdate:${table}`)';
 
-    const schemaPrefix = schema ? `"${schema}".` : ''[,;]
+    const schemaPrefix = schema ? `"${schema}".` : '[,;]
     const setClause = Object.keys(data)
       .map(key => `${key} = ?`)
       .join(', ')';
@@ -154,7 +154,7 @@ export class QueryValidator {
   ): any {
     this.validateTenantContext(tenantId, `tenantDelete:${table}`)';
 
-    const schemaPrefix = schema ? `"${schema}".` : ''[,;]
+    const schemaPrefix = schema ? `"${schema}".` : '[,;]
     return sql.raw(`
       DELETE FROM ${schemaPrefix}${table}
       WHERE tenant_id = ${tenantId}

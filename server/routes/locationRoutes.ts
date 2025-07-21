@@ -1,7 +1,7 @@
-import { Router } from 'express''[,;]
-import { jwtAuth } from '../middleware/jwtAuth''[,;]
-import { storageSimple } from '../storage-simple''[,;]
-import { AuthenticatedRequest } from '../types/auth''[,;]
+import { Router } from 'express'[,;]
+import { jwtAuth } from '../middleware/jwtAuth'[,;]
+import { storageSimple } from '../storage-simple'[,;]
+import { AuthenticatedRequest } from '../types/auth'[,;]
 
 export const locationRoutes = Router()';
 

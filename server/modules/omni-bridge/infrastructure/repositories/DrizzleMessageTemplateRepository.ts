@@ -3,24 +3,24 @@
  * Drizzle Message Template Repository
  * Clean Architecture - Infrastructure Layer
  */
-import { IMessageTemplateRepository } from '../../domain/repositories/IMessageTemplateRepository''[,;]
-import { MessageTemplate } from '../../domain/entities/MessageTemplate''[,;]
+import { IMessageTemplateRepository } from '../../domain/repositories/IMessageTemplateRepository'[,;]
+import { MessageTemplate } from '../../domain/entities/MessageTemplate'[,;]
 
 export class DrizzleMessageTemplateRepository implements IMessageTemplateRepository {
   async findAll(tenantId: string): Promise<MessageTemplate[]> {
     try {
       // Retornar templates padrão para demonstração
-      const defaultTemplates = [
+      const defaultTemplates = ['
         new MessageTemplate(
-          'welcome-template''[,;]
+          'welcome-template'[,;]
           tenantId',
-          'Boas-vindas''[,;]
-          'Template de boas-vindas para novos clientes''[,;]
-          'email''[,;]
-          'Bem-vindo ao nosso sistema!''[,;]
-          'Olá {{customerName}},\n\nSeja bem-vindo ao nosso sistema de suporte!\n\nAtenciosamente,\nEquipe de Suporte''[,;]
-          '<p>Olá {{customerName}},</p><p>Seja bem-vindo ao nosso sistema de suporte!</p><p>Atenciosamente,<br>Equipe de Suporte</p>''[,;]
-          ['customerName']',
+          'Boas-vindas'[,;]
+          'Template de boas-vindas para novos clientes'[,;]
+          'email'[,;]
+          'Bem-vindo ao nosso sistema!'[,;]
+          'Olá {{customerName}},\n\nSeja bem-vindo ao nosso sistema de suporte!\n\nAtenciosamente,\nEquipe de Suporte'[,;]
+          '<p>Olá {{customerName}},</p><p>Seja bem-vindo ao nosso sistema de suporte!</p><p>Atenciosamente,<br>Equipe de Suporte</p>'[,;]
+          ['customerName]',
           true',
           new Date()',
           new Date()

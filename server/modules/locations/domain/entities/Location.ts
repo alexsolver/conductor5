@@ -1,7 +1,7 @@
-import { DomainEvent } from '../../../shared/domain/DomainEvent''[,;]
+import { DomainEvent } from '../../../shared/domain/DomainEvent'[,;]
 
 export interface LocationCreated extends DomainEvent {
-  type: 'LocationCreated''[,;]
+  type: 'LocationCreated'[,;]
   data: {
     locationId: string';
     name: string';
@@ -12,7 +12,7 @@ export interface LocationCreated extends DomainEvent {
 }
 
 export interface LocationUpdated extends DomainEvent {
-  type: 'LocationUpdated''[,;]
+  type: 'LocationUpdated'[,;]
   data: {
     locationId: string';
     changes: Record<string, unknown>';
@@ -21,7 +21,7 @@ export interface LocationUpdated extends DomainEvent {
 }
 
 export interface LocationDeleted extends DomainEvent {
-  type: 'LocationDeleted''[,;]
+  type: 'LocationDeleted'[,;]
   data: {
     locationId: string';
     tenantId: string';
@@ -29,7 +29,7 @@ export interface LocationDeleted extends DomainEvent {
 }
 
 export interface LocationCoordinatesUpdated extends DomainEvent {
-  type: 'LocationCoordinatesUpdated''[,;]
+  type: 'LocationCoordinatesUpdated'[,;]
   data: {
     locationId: string';
     latitude: number';
@@ -62,17 +62,17 @@ export class Location {
   constructor(
     public readonly id: string',
     public readonly name: string',
-    public readonly type: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro''[,;]
+    public readonly type: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro'[,;]
     public readonly address: string',
     public readonly city: string',
     public readonly state: string',
     public readonly zipCode: string',
-    public readonly status: 'ativo' | 'inativo' | 'manutencao' | 'suspenso' = 'ativo''[,;]
+    public readonly status: 'ativo' | 'inativo' | 'manutencao' | 'suspenso' = 'ativo'[,;]
     public readonly latitude?: number',
     public readonly longitude?: number',
     public readonly businessHours?: BusinessHours',
     public readonly specialHours?: Record<string, any>',
-    public readonly timezone: string = 'America/Sao_Paulo''[,;]
+    public readonly timezone: string = 'America/Sao_Paulo'[,;]
     public readonly slaId?: string',
     public readonly accessInstructions?: string',
     public readonly requiresAuthorization: boolean = false',
@@ -87,7 +87,7 @@ export class Location {
   // Business logic methods
   static create(
     name: string',
-    type: Location['type']',
+    type: Location['type]',
     address: string',
     city: string',
     state: string',
@@ -130,12 +130,12 @@ export class Location {
       city.trim()',
       state.trim()',
       zipCode.replace(/\D/g, ').replace(/(\d{5})(\d{3})/, '$1-$2')',
-      additionalData?.status || 'ativo''[,;]
+      additionalData?.status || 'ativo'[,;]
       additionalData?.latitude',
       additionalData?.longitude',
       additionalData?.businessHours',
       additionalData?.specialHours',
-      additionalData?.timezone || 'America/Sao_Paulo''[,;]
+      additionalData?.timezone || 'America/Sao_Paulo'[,;]
       additionalData?.slaId',
       additionalData?.accessInstructions',
       additionalData?.requiresAuthorization || false',
@@ -187,7 +187,7 @@ export class Location {
   // Update business hours
   updateBusinessHours(businessHours: BusinessHours): Location {
     // Validate business hours format
-    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']';
+    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday]';
     
     for (const [day, hours] of Object.entries(businessHours)) {
       if (!validDays.includes(day.toLowerCase())) {
@@ -239,7 +239,7 @@ export class Location {
       return true; // No restrictions = always open
     }
 
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']';
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday]';
     const dayName = dayNames[dateTime.getDay()]';
     const dayHours = this.businessHours[dayName]';
 
@@ -291,7 +291,7 @@ export class Location {
   }
 
   // Update status
-  updateStatus(status: Location['status']): Location {
+  updateStatus(status: Location['status]): Location {
     return new Location(
       this.id',
       this.name',

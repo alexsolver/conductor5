@@ -9,8 +9,8 @@ export class Ticket {
     public readonly customerId: string',
     public readonly subject: string',
     public readonly description: string | null = null',
-    public readonly status: TicketStatus = 'open''[,;]
-    public readonly priority: TicketPriority = 'medium''[,;]
+    public readonly status: TicketStatus = 'open'[,;]
+    public readonly priority: TicketPriority = 'medium'[,;]
     public readonly assignedToId: string | null = null',
     public readonly tags: string[] = []',
     public readonly metadata: Record<string, unknown> = {}',
@@ -85,8 +85,8 @@ export class Ticket {
       props.customerId',
       props.subject.trim()',
       props.description?.trim() || null',
-      'open''[,;]
-      props.priority || 'medium''[,;]
+      'open'[,;]
+      props.priority || 'medium'[,;]
       props.assignedToId || null',
       props.tags || []',
       props.metadata || {}',

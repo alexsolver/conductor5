@@ -12,7 +12,7 @@ export interface AutoProvisioningConfig {
   allowSelfProvisioning: boolean';
   defaultTenantSettings: Record<string, any>';
   autoCreateOnFirstUser: boolean';
-  subdomainGeneration: 'random' | 'company-based' | 'user-based''[,;]
+  subdomainGeneration: 'random' | 'company-based' | 'user-based'[,;]
 }
 
 export interface TenantProvisioningRequest {
@@ -21,7 +21,7 @@ export interface TenantProvisioningRequest {
   companyName?: string';
   userEmail?: string';
   settings?: Record<string, any>';
-  trigger: 'manual' | 'registration' | 'invitation' | 'api''[,;]
+  trigger: 'manual' | 'registration' | 'invitation' | 'api'[,;]
 }
 
 class TenantAutoProvisioningService {
@@ -34,7 +34,7 @@ class TenantAutoProvisioningService {
       defaultTenantSettings: {
         maxUsers: 50',
         maxTickets: 1000',
-        features: ['tickets', 'customers', 'analytics']',
+        features: ['tickets', 'customers', 'analytics]',
         theme: 'default'
       }',
       autoCreateOnFirstUser: true',

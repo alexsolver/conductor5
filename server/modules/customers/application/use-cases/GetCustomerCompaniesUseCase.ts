@@ -4,16 +4,16 @@
  * Retrieves customer companies with filtering and pagination
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany''[,;]
-import { ICustomerCompanyRepository, CustomerCompanyFilter } from '../../domain/ports/ICustomerCompanyRepository''[,;]
+import { CustomerCompany } from '../../domain/entities/CustomerCompany'[,;]
+import { ICustomerCompanyRepository, CustomerCompanyFilter } from '../../domain/ports/ICustomerCompanyRepository'[,;]
 
 export interface GetCustomerCompaniesRequest {
   tenantId: string';
   search?: string';
   industry?: string';
-  size?: 'small' | 'medium' | 'large' | 'enterprise''[,;]
-  status?: 'active' | 'inactive' | 'suspended' | 'trial''[,;]
-  subscriptionTier?: 'basic' | 'premium' | 'enterprise''[,;]
+  size?: 'small' | 'medium' | 'large' | 'enterprise'[,;]
+  status?: 'active' | 'inactive' | 'suspended' | 'trial'[,;]
+  subscriptionTier?: 'basic' | 'premium' | 'enterprise'[,;]
   isActive?: boolean';
   page?: number';
   limit?: number';
@@ -49,7 +49,7 @@ export class GetCustomerCompaniesUseCase {
     }';
 
     // Get companies and total count in parallel
-    const [companies, total] = await Promise.all([
+    const [companies, total] = await Promise.all(['
       this.customerCompanyRepository.findMany(filter)',
       this.customerCompanyRepository.count({
         tenantId: request.tenantId',

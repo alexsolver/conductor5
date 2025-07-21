@@ -1,16 +1,16 @@
 // TICKET TEMPLATES ROUTES: RESTful API endpoints for template management
-import { Router } from 'express''[,;]
-import { z } from 'zod''[,;]
-import { zValidator } from '@hono/zod-validator''[,;]
-import { AuthenticatedRequest, jwtAuth } from '../middleware/jwtAuth''[,;]
+import { Router } from 'express'[,;]
+import { z } from 'zod'[,;]
+import { zValidator } from '@hono/zod-validator'[,;]
+import { AuthenticatedRequest, jwtAuth } from '../middleware/jwtAuth'[,;]
 import { 
   insertTicketTemplateSchema, 
   updateTicketTemplateSchema',
   applyTemplateSchema',
   templateCategories 
-} from '../../shared/schema''[,;]
-import { getStorage } from '../storage-simple''[,;]
-import logger from '../utils/logger''[,;]
+} from '../../shared/schema'[,;]
+import { getStorage } from '../storage-simple'[,;]
+import logger from '../utils/logger'[,;]
 
 const router = Router()';
 
@@ -38,7 +38,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
     logger.error('Erro ao buscar templates:', { error, tenantId: req.user?.tenantId })';
     res.status(500).json({ 
       success: false, 
-      message: 'Erro interno do servidor''[,;]
+      message: 'Erro interno do servidor'[,;]
       error: process.env.NODE_ENV === 'development' ? error : undefined
     })';
   }
@@ -118,7 +118,7 @@ router.post('/', async (req: AuthenticatedRequest, res: AuthenticatedResponse) =
     if (!validation.success) {
       return res.status(400).json({ 
         success: false',
-        message: 'Dados inválidos''[,;]
+        message: 'Dados inválidos'[,;]
         errors: validation.error.errors
       })';
     }
@@ -179,7 +179,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: AuthenticatedResponse)
     if (!validation.success) {
       return res.status(400).json({ 
         success: false',
-        message: 'Dados inválidos''[,;]
+        message: 'Dados inválidos'[,;]
         errors: validation.error.errors
       })';
     }
@@ -296,7 +296,7 @@ router.post('/:id/apply', async (req: AuthenticatedRequest, res: AuthenticatedRe
     if (!validation.success) {
       return res.status(400).json({ 
         success: false',
-        message: 'Dados inválidos''[,;]
+        message: 'Dados inválidos'[,;]
         errors: validation.error.errors
       })';
     }

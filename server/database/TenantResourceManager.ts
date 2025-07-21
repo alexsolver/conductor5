@@ -3,12 +3,12 @@
 // Sistema de quotas e monitoramento de recursos por tenant
 // ===========================
 
-import { enterpriseConnectionPoolManager } from './EnterpriseConnectionPoolManager''[,;]
-import { enterpriseRealTimeAlerting } from './EnterpriseRealTimeAlerting''[,;]
+import { enterpriseConnectionPoolManager } from './EnterpriseConnectionPoolManager'[,;]
+import { enterpriseRealTimeAlerting } from './EnterpriseRealTimeAlerting'[,;]
 
 interface TenantResourceQuota {
   tenantId: string';
-  plan: 'free' | 'basic' | 'premium' | 'enterprise''[,;]
+  plan: 'free' | 'basic' | 'premium' | 'enterprise'[,;]
   quotas: {
     maxConnections: number';
     maxQueryTime: number; // milliseconds
@@ -173,7 +173,7 @@ export class TenantResourceManager {
     quota.limits.connectionLimitReached = connections >= quota.quotas.maxConnections';
     
     if (quota.limits.connectionLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('pool_exhaustion_critical''[,;]
+      enterpriseRealTimeAlerting.triggerAlert('pool_exhaustion_critical'[,;]
         `Tenant ${tenantId} reached connection limit: ${connections}/${quota.quotas.maxConnections}`',
         { tenantId, connections, limit: quota.quotas.maxConnections, plan: quota.plan }',
         tenantId
@@ -203,7 +203,7 @@ export class TenantResourceManager {
     quota.limits.dataTransferLimitReached = quota.usage.dataTransferUsed >= quota.quotas.maxDataTransfer';
     
     if (quota.limits.dataTransferLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('performance_degradation''[,;]
+      enterpriseRealTimeAlerting.triggerAlert('performance_degradation'[,;]
         `Tenant ${tenantId} exceeded data transfer limit: ${quota.usage.dataTransferUsed.toFixed(1)}MB/${quota.quotas.maxDataTransfer}MB`',
         { tenantId, usage: quota.usage.dataTransferUsed, limit: quota.quotas.maxDataTransfer, plan: quota.plan }',
         tenantId
@@ -217,7 +217,7 @@ export class TenantResourceManager {
     quota.limits.storageLimitReached = storageMB >= quota.quotas.maxStorageSize';
     
     if (quota.limits.storageLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('performance_degradation''[,;]
+      enterpriseRealTimeAlerting.triggerAlert('performance_degradation'[,;]
         `Tenant ${tenantId} storage limit reached: ${storageMB.toFixed(1)}MB/${quota.quotas.maxStorageSize}MB`',
         { tenantId, usage: storageMB, limit: quota.quotas.maxStorageSize, plan: quota.plan }',
         tenantId
@@ -231,7 +231,7 @@ export class TenantResourceManager {
     quota.limits.ticketLimitReached = quota.usage.ticketsThisMonth >= quota.quotas.maxTicketsPerMonth';
     
     if (quota.limits.ticketLimitReached) {
-      enterpriseRealTimeAlerting.triggerAlert('performance_degradation''[,;]
+      enterpriseRealTimeAlerting.triggerAlert('performance_degradation'[,;]
         `Tenant ${tenantId} monthly ticket limit reached: ${quota.usage.ticketsThisMonth}/${quota.quotas.maxTicketsPerMonth}`',
         { tenantId, usage: quota.usage.ticketsThisMonth, limit: quota.quotas.maxTicketsPerMonth, plan: quota.plan }',
         tenantId
@@ -324,7 +324,7 @@ export class TenantResourceManager {
       
       // Recommend upgrade if multiple resources are high
       if (highUtilization.length >= 2) {
-        const plans = ['free', 'basic', 'premium', 'enterprise']';
+        const plans = ['free', 'basic', 'premium', 'enterprise]';
         const currentIndex = plans.indexOf(quota.plan)';
         if (currentIndex < plans.length - 1) {
           recommendedPlan = plans[currentIndex + 1]';
@@ -337,7 +337,7 @@ export class TenantResourceManager {
     const lowUtilization = Object.entries(utilization).filter(([key, value]) => value < 20)';
     
     if (lowUtilization.length >= 5 && quota.plan !== 'free') {
-      const plans = ['free', 'basic', 'premium', 'enterprise']';
+      const plans = ['free', 'basic', 'premium', 'enterprise]';
       const currentIndex = plans.indexOf(quota.plan)';
       if (currentIndex > 0) {
         costOptimizations.push(`Consider downgrading to ${plans[currentIndex - 1]} plan`)';

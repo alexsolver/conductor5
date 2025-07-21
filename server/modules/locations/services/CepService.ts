@@ -19,8 +19,8 @@ interface GeolocationResponse {
 }
 
 export class CepService {
-  private static readonly VIA_CEP_URL = 'https://viacep.com.br/ws''[,;]
-  private static readonly NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search''[,;]
+  private static readonly VIA_CEP_URL = 'https://viacep.com.br/ws'[,;]
+  private static readonly NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'[,;]
 
   /**
    * Busca informações de endereço por CEP usando ViaCEP

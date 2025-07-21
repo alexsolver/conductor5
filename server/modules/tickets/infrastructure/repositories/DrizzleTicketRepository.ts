@@ -4,12 +4,12 @@
  * Implements ITicketRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, or, sql } from 'drizzle-orm''[,;]
-import { Ticket } from '../../domain/entities/Ticket''[,;]
-import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository''[,;]
-import { tickets } from '@shared/schema''[,;]
-import { db } from '../../../../db''[,;]
-import { ticketNumberGenerator } from '../../../../utils/ticketNumberGenerator''[,;]
+import { eq, and, ilike, count, or, sql } from 'drizzle-orm'[,;]
+import { Ticket } from '../../domain/entities/Ticket'[,;]
+import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository'[,;]
+import { tickets } from '@shared/schema'[,;]
+import { db } from '../../../../db'[,;]
+import { ticketNumberGenerator } from '../../../../utils/ticketNumberGenerator'[,;]
 
 export class DrizzleTicketRepository implements ITicketRepository {
   

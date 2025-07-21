@@ -1,4 +1,4 @@
-import { FormSubmission } from '../entities/FormSubmission''[,;]
+import { FormSubmission } from '../entities/FormSubmission'[,;]
 
 export interface IFormSubmissionRepository {
   create(submission: FormSubmission): Promise<FormSubmission>';

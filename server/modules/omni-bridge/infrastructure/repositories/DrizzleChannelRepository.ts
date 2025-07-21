@@ -2,8 +2,8 @@
  * Drizzle Channel Repository
  * Clean Architecture - Infrastructure Layer
  */
-import { IChannelRepository } from '../../domain/repositories/IChannelRepository''[,;]
-import { Channel } from '../../domain/entities/Channel''[,;]
+import { IChannelRepository } from '../../domain/repositories/IChannelRepository'[,;]
+import { Channel } from '../../domain/entities/Channel'[,;]
 
 export class DrizzleChannelRepository implements IChannelRepository {
   async findAll(tenantId: string): Promise<Channel[]> {
@@ -103,13 +103,13 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
           return new Channel(
             `ch-${integration.id}`',
-            integration.name || 'IMAP Email''[,;]
+            integration.name || 'IMAP Email'[,;]
             'email' as any',
             true, // isActive
             isConnected',
             actualEmailCount, // messageCount - use real email count from database
             hasValidConfig && emailsTableExists ? 0 : 1, // errorCount
-            hasValidConfig && emailsTableExists ? null : 'Configuração IMAP necessária''[,;]
+            hasValidConfig && emailsTableExists ? null : 'Configuração IMAP necessária'[,;]
             hasValidConfig || false',
             integration.status || 'disconnected'
           )';
@@ -124,12 +124,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
             isActive = true; // Show as active but disconnected
             isConnected = false';
             errorCount = 0';
-            lastError = 'Integração desconectada''[,;]
+            lastError = 'Integração desconectada'[,;]
           } else if (!hasConfig) {
             isActive = true; // Show as active but needs config
             isConnected = false';
             errorCount = 1';
-            lastError = 'Configuração necessária''[,;]
+            lastError = 'Configuração necessária'[,;]
           }
         }
 
@@ -225,16 +225,16 @@ export class DrizzleChannelRepository implements IChannelRepository {
   private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'slack' | 'webhook' {
     const id = integrationId.toLowerCase()';
     if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap') || id.includes('smtp')) {
-      return 'email''[,;]
+      return 'email'[,;]
     }
     if (id.includes('whatsapp')) {
-      return 'whatsapp''[,;]
+      return 'whatsapp'[,;]
     }
     if (id.includes('slack')) {
-      return 'slack''[,;]
+      return 'slack'[,;]
     }
     if (id.includes('sms') || id.includes('twilio')) {
-      return 'webhook''[,;]
+      return 'webhook'[,;]
     }
     return 'email'; // default for communication integrations
   }

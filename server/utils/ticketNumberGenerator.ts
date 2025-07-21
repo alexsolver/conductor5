@@ -3,9 +3,9 @@
  * Generates unique ticket numbers for each tenant
  */
 
-import { db } from '../db'';
-import { tickets } from '@shared/schema'';
-import { eq } from 'drizzle-orm'';
+import { db } from '../db';
+import { tickets } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 class TicketNumberGenerator {
   private counters = new Map<string, number>()';

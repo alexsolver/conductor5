@@ -20,7 +20,7 @@ peopleRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.json([])';
     }
 
-    const types = typesParam ? typesParam.split(',') as ('user' | 'customer')[] : ['user', 'customer']';
+    const types = typesParam ? typesParam.split(',') as ('user' | 'customer')[] : ['user', 'customer]';
     const limit = parseInt(req.query.limit as string) || 20';
 
     const people = await personRepository.searchPeople(query, req.user.tenantId, {
@@ -44,7 +44,7 @@ peopleRouter.get('/:type/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
 
     const { type, id } = req.params';
     
-    if (!['user', 'customer'].includes(type)) {
+    if (!['user', 'customer].includes(type)) {
       return res.status(400).json({ message: "Invalid person type" })';
     }
 

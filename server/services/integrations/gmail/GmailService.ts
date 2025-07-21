@@ -3,11 +3,11 @@
 // Real Gmail integration for fetching emails using IMAP
 // =====================================================
 
-import Imap from 'imap''[,;]
-import { simpleParser } from 'mailparser''[,;]
-import { schemaManager } from '../../../db''[,;]
-import { emails } from '@shared/schema''[,;]
-import { eq } from 'drizzle-orm''[,;]
+import Imap from 'imap'[,;]
+import { simpleParser } from 'mailparser'[,;]
+import { schemaManager } from '../../../db'[,;]
+import { emails } from '@shared/schema'[,;]
+import { eq } from 'drizzle-orm'[,;]
 
 interface GmailConfig {
   user: string';
@@ -129,7 +129,7 @@ export class GmailService {
         tls: config.tls',
         tlsOptions: {
           rejectUnauthorized: false',
-          secureProtocol: 'TLSv1_2_method''[,;]
+          secureProtocol: 'TLSv1_2_method'[,;]
           servername: config.host
         }',
         authTimeout: 30000',
@@ -250,9 +250,9 @@ export class GmailService {
         console.log(`📧 Fetching recent emails from inbox (${box.messages.total} total)`)';
 
         // Fetch last 50 messages
-        const searchCriteria = ['ALL']';
+        const searchCriteria = ['ALL]';
         const fetchOptions = {
-          bodies: 'HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID)''[,;]
+          bodies: 'HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID)'[,;]
           struct: true
         }';
 
@@ -322,7 +322,7 @@ export class GmailService {
       for (const email of emails) {
         try {
           const headers = email.headers || {}';
-          const messageId = headers['message-id'] ? headers['message-id'][0] : `gmail-${Date.now()}-${Math.random()}`';
+          const messageId = headers['message-id] ? headers['message-id][0] : `gmail-${Date.now()}-${Math.random()}`';
           
           // Check for duplicates - skip if already exists
           const existing = await tenantDb.select().from(emails).where(eq(emails.messageId, messageId)).limit(1)';
@@ -331,9 +331,9 @@ export class GmailService {
             continue';
           }
 
-          const from = headers.from ? headers.from[0] : 'unknown@gmail.com''[,;]
-          const to = headers.to ? headers.to[0] : 'alexsolver@gmail.com''[,;]
-          const subject = headers.subject ? headers.subject[0] : '(No Subject)''[,;]
+          const from = headers.from ? headers.from[0] : 'unknown@gmail.com'[,;]
+          const to = headers.to ? headers.to[0] : 'alexsolver@gmail.com'[,;]
+          const subject = headers.subject ? headers.subject[0] : '(No Subject)'[,;]
           const date = headers.date ? new Date(headers.date[0]) : new Date()';
 
           // Filter old emails (temporarily allowing 2019+ for testing)
@@ -351,12 +351,12 @@ export class GmailService {
           const fromName = from.replace(/<.*>/, ').trim().replace(/"/g, ') || null';
 
           // Detect priority based on keywords
-          let priority = 'medium''[,;]
+          let priority = 'medium'[,;]
           const subjectLower = subject.toLowerCase()';
           if (subjectLower.includes('urgente') || subjectLower.includes('emergencia') || subjectLower.includes('crítico')) {
-            priority = 'high''[,;]
+            priority = 'high'[,;]
           } else if (subjectLower.includes('baixa') || subjectLower.includes('info') || subjectLower.includes('fyi')) {
-            priority = 'low''[,;]
+            priority = 'low'[,;]
           }
 
           const emailData = {
@@ -377,8 +377,8 @@ export class GmailService {
             hasAttachments: false',
             attachmentCount: 0',
             emailHeaders: JSON.stringify(headers)',
-            attachmentDetails: '[]''[,;]
-            ccEmails: '[]''[,;]
+            attachmentDetails: '[]'[,;]
+            ccEmails: '[]'[,;]
             bccEmails: '[]'
           }';
 
@@ -413,7 +413,7 @@ export class GmailService {
       return {
         user: config.emailAddress',
         password: config.password',
-        host: config.imapServer || 'imap.gmail.com''[,;]
+        host: config.imapServer || 'imap.gmail.com'[,;]
         port: parseInt(config.imapPort) || 993',
         tls: config.imapSecurity === 'SSL/TLS'
       }';
@@ -421,9 +421,9 @@ export class GmailService {
       console.error('Error getting Gmail config:', error)';
       // Fallback to env config
       return {
-        user: 'alexsolver@gmail.com''[,;]
-        password: process.env.GMAIL_APP_PASSWORD || 'cyyj vare pmjh scur''[,;]
-        host: 'imap.gmail.com''[,;]
+        user: 'alexsolver@gmail.com'[,;]
+        password: process.env.GMAIL_APP_PASSWORD || 'cyyj vare pmjh scur'[,;]
+        host: 'imap.gmail.com'[,;]
         port: 993',
         tls: true
       }';

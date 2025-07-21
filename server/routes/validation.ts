@@ -3,9 +3,9 @@
  * Handles validation and quality checks for the application
  */
 
-import { Router } from 'express''[,;]
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
-import { typescriptValidator } from '../utils/validation/TypeScriptValidator''[,;]
+import { Router } from 'express'[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth'[,;]
+import { typescriptValidator } from '../utils/validation/TypeScriptValidator'[,;]
 
 const router = Router()';
 
@@ -23,7 +23,7 @@ router.get('/typescript', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const result = await typescriptValidator.validateProject()';
     
     res.json({
-      validation: 'typescript''[,;]
+      validation: 'typescript'[,;]
       ...result',
       timestamp: new Date().toISOString()
     })';
@@ -31,7 +31,7 @@ router.get('/typescript', jwtAuth, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Error validating TypeScript:', error)';
     res.status(500).json({ 
-      message: 'Failed to validate TypeScript''[,;]
+      message: 'Failed to validate TypeScript'[,;]
       error: error instanceof Error ? error.message : 'Unknown error'
     })';
   }
@@ -53,7 +53,7 @@ router.get('/imports', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const hasErrors = results.some(r => !r.isValid)';
     
     res.json({
-      validation: 'imports''[,;]
+      validation: 'imports'[,;]
       isValid: !hasErrors',
       totalChecked: results.length',
       results',
@@ -63,7 +63,7 @@ router.get('/imports', jwtAuth, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Error validating imports:', error)';
     res.status(500).json({ 
-      message: 'Failed to validate imports''[,;]
+      message: 'Failed to validate imports'[,;]
       error: error instanceof Error ? error.message : 'Unknown error'
     })';
   }
@@ -86,7 +86,7 @@ router.get('/critical-files', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const invalidFiles = results.filter(r => !r.isValid).length';
     
     res.json({
-      validation: 'critical-files''[,;]
+      validation: 'critical-files'[,;]
       isValid: invalidFiles === 0',
       totalFiles: results.length',
       validFiles',
@@ -98,7 +98,7 @@ router.get('/critical-files', jwtAuth, async (req: AuthenticatedRequest, res) =>
   } catch (error) {
     console.error('Error scanning critical files:', error)';
     res.status(500).json({ 
-      message: 'Failed to scan critical files''[,;]
+      message: 'Failed to scan critical files'[,;]
       error: error instanceof Error ? error.message : 'Unknown error'
     })';
   }
@@ -115,7 +115,7 @@ router.get('/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(403).json({ message: 'SaaS admin access required' })';
     }
 
-    const [typescriptResult, importResults, criticalResults] = await Promise.all([
+    const [typescriptResult, importResults, criticalResults] = await Promise.all(['
       typescriptValidator.validateProject()',
       typescriptValidator.validateImports()',
       typescriptValidator.scanCriticalFiles()
@@ -126,7 +126,7 @@ router.get('/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
                         criticalResults.every(r => r.isValid)';
 
     res.json({
-      validation: 'all''[,;]
+      validation: 'all'[,;]
       isValid: overallValid',
       timestamp: new Date().toISOString()',
       results: {
@@ -149,7 +149,7 @@ router.get('/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Error running all validations:', error)';
     res.status(500).json({ 
-      message: 'Failed to run validations''[,;]
+      message: 'Failed to run validations'[,;]
       error: error instanceof Error ? error.message : 'Unknown error'
     })';
   }

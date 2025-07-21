@@ -661,7 +661,7 @@ export class DatabaseStorage implements IStorage {
           ${data.email || null}',
           ${data.phone || null}',
           ${data.document || null}',
-          'solicitante''[,;]
+          'solicitante'[,;]
           ${validatedTenantId}',
           NOW()',
           NOW()
@@ -690,7 +690,7 @@ export class DatabaseStorage implements IStorage {
           ${data.email || null}',
           ${data.phone || null}',
           ${data.document || null}',
-          'favorecido''[,;]
+          'favorecido'[,;]
           ${validatedTenantId}',
           NOW()',
           NOW()

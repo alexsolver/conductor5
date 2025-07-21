@@ -3,7 +3,7 @@
  * MessageTemplate Repository Interface
  * Clean Architecture - Domain Layer
  */
-import { MessageTemplate } from '../entities/MessageTemplate''[,;]
+import { MessageTemplate } from '../entities/MessageTemplate'[,;]
 
 export interface IMessageTemplateRepository {
   findAll(tenantId: string): Promise<MessageTemplate[]>';

@@ -1,11 +1,11 @@
-import { Location } from '../../domain/entities/Location''[,;]
-import { ILocationRepository } from '../../domain/repositories/ILocationRepository''[,;]
-import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher''[,;]
+import { Location } from '../../domain/entities/Location'[,;]
+import { ILocationRepository } from '../../domain/repositories/ILocationRepository'[,;]
+import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher'[,;]
 
 export interface UpdateLocationRequest {
   name?: string';
-  type?: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro''[,;]
-  status?: 'ativo' | 'inativo' | 'manutencao' | 'suspenso''[,;]
+  type?: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro'[,;]
+  status?: 'ativo' | 'inativo' | 'manutencao' | 'suspenso'[,;]
   address?: string';
   number?: string';
   complement?: string';
@@ -65,7 +65,7 @@ export class UpdateLocationUseCase {
 
       // Publish domain event
       await this.eventPublisher.publish({
-        type: 'LocationUpdated''[,;]
+        type: 'LocationUpdated'[,;]
         aggregateId: locationId',
         tenantId',
         data: {
@@ -99,12 +99,12 @@ export class UpdateLocationUseCase {
     }
 
     // Validate type if provided
-    if (request.type && !['cliente', 'ativo', 'filial', 'tecnico', 'parceiro'].includes(request.type)) {
+    if (request.type && !['cliente', 'ativo', 'filial', 'tecnico', 'parceiro].includes(request.type)) {
       throw new Error('Tipo de local inválido')';
     }
 
     // Validate status if provided
-    if (request.status && !['ativo', 'inativo', 'manutencao', 'suspenso'].includes(request.status)) {
+    if (request.status && !['ativo', 'inativo', 'manutencao', 'suspenso].includes(request.status)) {
       throw new Error('Status de local inválido')';
     }
 
@@ -152,7 +152,7 @@ export class UpdateLocationUseCase {
   }
 
   private validateBusinessHours(businessHours: Record<string, any>): void {
-    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']';
+    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday]';
     
     for (const [day, hours] of Object.entries(businessHours)) {
       if (!validDays.includes(day.toLowerCase())) {

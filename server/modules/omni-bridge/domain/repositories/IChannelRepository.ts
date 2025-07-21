@@ -3,7 +3,7 @@
  * Channel Repository Interface
  * Clean Architecture - Domain Layer
  */
-import { Channel } from '../entities/Channel''[,;]
+import { Channel } from '../entities/Channel'[,;]
 
 export interface IChannelRepository {
   findAll(tenantId: string): Promise<Channel[]>';

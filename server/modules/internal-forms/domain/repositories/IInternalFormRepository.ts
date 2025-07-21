@@ -1,5 +1,5 @@
 
-import { InternalForm } from '../entities/InternalForm''[,;]
+import { InternalForm } from '../entities/InternalForm'[,;]
 
 export interface IInternalFormRepository {
   create(form: InternalForm): Promise<InternalForm>';

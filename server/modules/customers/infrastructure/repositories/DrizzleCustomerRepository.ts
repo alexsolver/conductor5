@@ -4,11 +4,11 @@
  * Implements ICustomerRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, sql, or } from 'drizzle-orm''[,;]
-import { Customer } from '../../domain/entities/Customer''[,;]
-import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository''[,;]
-import { customers } from '@shared/schema''[,;]
-import { db } from '../../../../db''[,;]
+import { eq, and, ilike, count, sql, or } from 'drizzle-orm'[,;]
+import { Customer } from '../../domain/entities/Customer'[,;]
+import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository'[,;]
+import { customers } from '@shared/schema'[,;]
+import { db } from '../../../../db'[,;]
 
 type CustomerDbRow = typeof customers.$inferSelect';
 type CustomerDbInsert = typeof customers.$inferInsert';

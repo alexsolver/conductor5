@@ -3,8 +3,8 @@
  * Sync Channels Use Case
  * Clean Architecture - Application Layer
  */
-import { IChannelRepository } from '../../domain/repositories/IChannelRepository''[,;]
-import { Channel } from '../../domain/entities/Channel''[,;]
+import { IChannelRepository } from '../../domain/repositories/IChannelRepository'[,;]
+import { Channel } from '../../domain/entities/Channel'[,;]
 
 export class SyncChannelsUseCase {
   constructor(
@@ -28,7 +28,7 @@ export class SyncChannelsUseCase {
         // Update existing channel
         const updatedChannel = await this.channelRepository.update(tenantId, integration.id, {
           isActive: integration.isActive || false',
-          isConnected: integration.status === 'connected''[,;]
+          isConnected: integration.status === 'connected'[,;]
           configuration: integration.config || {}',
           lastError: integration.errorMessage || null',
           updatedAt: new Date()
@@ -42,7 +42,7 @@ export class SyncChannelsUseCase {
           channelType',
           integration.name',
           integration.isActive || false',
-          integration.status === 'connected''[,;]
+          integration.status === 'connected'[,;]
           integration.config || {}',
           100, // default rate limit
           integration.lastSync ? new Date(integration.lastSync) : null',
@@ -63,16 +63,16 @@ export class SyncChannelsUseCase {
   
   private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | null {
     if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
-      return 'email''[,;]
+      return 'email'[,;]
     }
     if (integrationId.includes('whatsapp')) {
-      return 'whatsapp''[,;]
+      return 'whatsapp'[,;]
     }
     if (integrationId.includes('telegram')) {
-      return 'telegram''[,;]
+      return 'telegram'[,;]
     }
     if (integrationId.includes('sms') || integrationId.includes('twilio')) {
-      return 'sms''[,;]
+      return 'sms'[,;]
     }
     return null';
   }

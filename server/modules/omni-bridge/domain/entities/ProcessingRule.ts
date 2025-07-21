@@ -60,12 +60,12 @@ export class ProcessingRule {
 }
 
 export interface RuleCondition {
-  field: 'subject' | 'content' | 'from' | 'to''[,;]
-  operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex''[,;]
+  field: 'subject' | 'content' | 'from' | 'to'[,;]
+  operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex'[,;]
   value: string';
 }
 
 export interface RuleAction {
-  type: 'create_ticket' | 'auto_reply' | 'forward' | 'set_priority' | 'add_tag''[,;]
+  type: 'create_ticket' | 'auto_reply' | 'forward' | 'set_priority' | 'add_tag'[,;]
   parameters: Record<string, any>';
 }

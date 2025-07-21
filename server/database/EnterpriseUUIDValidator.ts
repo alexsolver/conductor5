@@ -169,7 +169,7 @@ export class EnterpriseUUIDValidator {
   // ===========================
   analyzeUUID(uuid: string | null | undefined): {
     isValid: boolean';
-    format: 'strict' | 'relaxed' | 'invalid''[,;]
+    format: 'strict' | 'relaxed' | 'invalid'[,;]
     version?: number';
     variant?: string';
     issues: string[]';
@@ -177,11 +177,11 @@ export class EnterpriseUUIDValidator {
     const issues: string[] = []';
     
     if (!uuid) {
-      return { isValid: false, format: 'invalid', issues: ['UUID is null or undefined'] }';
+      return { isValid: false, format: 'invalid', issues: ['UUID is null or undefined] }';
     }
     
     if (typeof uuid !== 'string') {
-      return { isValid: false, format: 'invalid', issues: ['UUID is not a string'] }';
+      return { isValid: false, format: 'invalid', issues: ['UUID is not a string] }';
     }
     
     if (uuid.length !== 36) {

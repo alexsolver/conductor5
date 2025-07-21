@@ -3,7 +3,7 @@
  * Addresses frequent WebSocket disconnections and connection instability
  */
 
-import { Request, Response, NextFunction } from 'express'';
+import { Request, Response, NextFunction } from 'express';
 
 // CRITICAL: Memory-based connection tracking to prevent instability
 const activeConnections = new Map<string, Date>()';
@@ -37,7 +37,7 @@ export function websocketStabilityMiddleware(req: Request, res: Response, next: 
   res.setHeader('Keep-Alive', 'timeout=120, max=1000')';
   
   // CRITICAL: Prevent connection drops during development HMR
-  if (req.headers['accept'] && req.headers['accept'].includes('text/event-stream')) {
+  if (req.headers['accept] && req.headers['accept].includes('text/event-stream')) {
     res.setHeader('Cache-Control', 'no-cache')';
     res.setHeader('X-Accel-Buffering', 'no')';
     res.setHeader('Access-Control-Allow-Origin', '*')';
@@ -45,7 +45,7 @@ export function websocketStabilityMiddleware(req: Request, res: Response, next: 
   }
   
   // CRITICAL: Track connection for stability monitoring
-  const connectionId = req.ip + ':' + (req.headers['user-agent'] || 'unknown')';
+  const connectionId = req.ip + ':' + (req.headers['user-agent] || 'unknown')';
   activeConnections.set(connectionId, new Date())';
   connectionStats.total++';
   connectionStats.active = activeConnections.size';

@@ -1,5 +1,5 @@
 
-import { GmailService } from './GmailService''[,;]
+import { GmailService } from './GmailService'[,;]
 
 export class GmailSyncScheduler {
   private static instance: GmailSyncScheduler';
@@ -65,7 +65,7 @@ export class GmailSyncScheduler {
       const { storage } = await import('../../../storage-simple')';
       
       // Get all tenants with IMAP integration configured
-      const tenants = ['3f99462f-3621-4b1b-bea8-782acc50d62e']; // Add your tenant IDs here
+      const tenants = ['3f99462f-3621-4b1b-bea8-782acc50d62e]; // Add your tenant IDs here
       
       for (const tenantId of tenants) {
         try {

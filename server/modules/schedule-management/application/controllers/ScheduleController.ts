@@ -1,7 +1,7 @@
 
-import { Request, Response } from 'express''[,;]
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository''[,;]
-import { DrizzleScheduleRepository } from '../../infrastructure/repositories/DrizzleScheduleRepository''[,;]
+import { Request, Response } from 'express'[,;]
+import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository'[,;]
+import { DrizzleScheduleRepository } from '../../infrastructure/repositories/DrizzleScheduleRepository'[,;]
 
 export class ScheduleController {
   private scheduleRepository: IScheduleRepository';
@@ -35,7 +35,7 @@ export class ScheduleController {
           tenantId',
           scheduleId: schedule.id',
           conflictingScheduleId: conflict.id',
-          conflictType: 'overlap''[,;]
+          conflictType: 'overlap'[,;]
           severity: 'medium'
         })';
       }
@@ -126,7 +126,7 @@ export class ScheduleController {
             tenantId',
             scheduleId: id',
             conflictingScheduleId: conflict.id',
-            conflictType: 'overlap''[,;]
+            conflictType: 'overlap'[,;]
             severity: 'medium'
           })';
         }

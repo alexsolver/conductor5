@@ -1,345 +1,251 @@
-import { Request, Response, NextFunction, Router } from 'express'';
-import crypto from 'crypto'';
+import { Request, Response, NextFunction, Router } from 'express';
+import crypto from 'crypto';
 
 export interface CSPDirectives {
-  'default-src'?: string[]';
-  'script-src'?: string[]';
-  'style-src'?: string[]';
-  'img-src'?: string[]';
-  'font-src'?: string[]';
-  'connect-src'?: string[]';
-  'media-src'?: string[]';
-  'object-src'?: string[]';
-  'frame-src'?: string[]';
-  'worker-src'?: string[]';
-  'child-src'?: string[]';
-  'form-action'?: string[]';
-  'frame-ancestors'?: string[]';
-  'base-uri'?: string[]';
-  'manifest-src'?: string[]';
-  'prefetch-src'?: string[]';
-  'upgrade-insecure-requests'?: boolean';
-  'block-all-mixed-content'?: boolean';
-  'report-uri'?: string[]';
-  'report-to'?: string[]';
+  'default-src'?: string[];
+  'script-src'?: string[];
+  'style-src'?: string[];
+  'img-src'?: string[];
+  'font-src'?: string[];
+  'connect-src'?: string[];
+  'media-src'?: string[];
+  'object-src'?: string[];
+  'frame-src'?: string[];
+  'worker-src'?: string[];
+  'child-src'?: string[];
+  'form-action'?: string[];
+  'frame-ancestors'?: string[];
+  'base-uri'?: string[];
+  'manifest-src'?: string[];
+  'prefetch-src'?: string[];
+  'upgrade-insecure-requests'?: boolean;
+  'block-all-mixed-content'?: boolean;
+  'report-uri'?: string[];
+  'report-to'?: string[];
 }
 
 export class CSPBuilder {
-  private directives: CSPDirectives = {}';
+  private directives: CSPDirectives = {};
   
   constructor(baseDirectives?: CSPDirectives) {
     if (baseDirectives) {
-      this.directives = { ...baseDirectives }';
+      this.directives = { ...baseDirectives };
     }
   }
 
   addDirective(directive: keyof CSPDirectives, values: string[] | boolean): CSPBuilder {
     if (typeof values === 'boolean') {
-      this.directives[directive] = values';
+      (this.directives[directive] as any) = values;
     } else {
-      this.directives[directive] = [
-        ...(this.directives[directive] as string[] || [])',
+      (this.directives[directive] as any) = ['
+        ...(this.directives[directive] as string[] || []),
         ...values
-      ]';
+      ];
     }
-    return this';
+    return this;
   }
 
   removeDirective(directive: keyof CSPDirectives): CSPBuilder {
-    delete this.directives[directive]';
-    return this';
+    delete this.directives[directive];
+    return this;
   }
 
   build(): string {
-    const parts: string[] = []';
+    const parts: string[] = [];
     
     Object.entries(this.directives).forEach(([key, value]) => {
       if (typeof value === 'boolean' && value) {
-        parts.push(key)';
+        parts.push(key);
       } else if (Array.isArray(value) && value.length > 0) {
-        parts.push(`${key} ${value.join(' ')}`)';
+        parts.push(`${key} ${value.join(' ')}`);
       }
-    })';
+    });
 
-    return parts.join('; ')';
+    return parts.join('; ');
   }
 }
 
 // Environment-specific CSP configurations
 export const CSP_CONFIGS = {
   development: {
-    'default-src': ["'self'"]',
-    'script-src': [
-      "'self'"',
-      "'unsafe-inline'"',
-      "'unsafe-eval'"',
-      'https://unpkg.com'';
-      'https://cdn.jsdelivr.net'';
-      'https://cdnjs.cloudflare.com'';
-      'blob:'';
-      'data:'
-    ]',
-    'style-src': [
-      "'self'"',
-      "'unsafe-inline'"',
-      'https://fonts.googleapis.com'';
-      'https://cdn.jsdelivr.net'';
-      'https://unpkg.com'
-    ]',
-    'img-src': [
-      "'self'"',
-      'data:'';
-      'blob:'';
-      'https:'';
-      'http:'
-    ]',
-    'font-src': [
-      "'self'"',
-      'https://fonts.gstatic.com'';
-      'https://cdn.jsdelivr.net'';
-      'data:'
-    ]',
-    'connect-src': [
-      "'self'"',
-      'ws:'';
-      'wss:'';
-      'https:'';
-      'http:'
-    ]',
-    'media-src': ["'self'", 'data:', 'blob:']',
-    'object-src': ["'none'"]',
-    'frame-src': [
-      "'self'"',
-      'https://www.youtube.com'';
-      'https://player.vimeo.com'
-    ]',
-    'worker-src': ["'self'", 'blob:']',
-    'child-src': ["'self'", 'blob:']',
-    'form-action': ["'self'"]',
-    'frame-ancestors': ["'none'"]',
-    'base-uri': ["'self'"]',
-    'manifest-src': ["'self'"]',
-    'report-uri': ['/api/csp-report']
-  }',
-
+    'default-src': ["'self'"],
+    'script-src': ['
+      "'self'",
+      "'unsafe-inline'",
+      "'unsafe-eval'",
+      "blob:",
+      "*.replit.dev",
+      "*.replit.app",
+      "ws://localhost:*",
+      "wss://localhost:*"
+    ],
+    'style-src': ['
+      "'self'",
+      "'unsafe-inline'",
+      "*.googleapis.com",
+      "*.gstatic.com"
+    ],
+    'img-src': ['
+      "'self'",
+      "data:",
+      "blob:",
+      "*.replit.dev",
+      "*.replit.app",
+      "*.unsplash.com",
+      "*.googleapis.com"
+    ],
+    'font-src': ['
+      "'self'",
+      "*.googleapis.com",
+      "*.gstatic.com",
+      "data:"
+    ],
+    'connect-src': ['
+      "'self'",
+      "ws://localhost:*",
+      "wss://localhost:*",
+      "*.replit.dev",
+      "*.replit.app",
+      "*.googleapis.com",
+      "*.google.com"
+    ],
+    'worker-src': ['
+      "'self'",
+      "blob:"
+    ],
+    'frame-src': ['
+      "'self'",
+      "*.replit.dev",
+      "*.replit.app"
+    ]
+  },
   production: {
-    'default-src': ["'self'"]',
-    'script-src': [
-      "'self'"',
-      "'nonce-{NONCE}'"',
-      'https://unpkg.com'';
-      'https://cdn.jsdelivr.net'
-    ]',
-    'style-src': [
-      "'self'"',
-      "'nonce-{NONCE}'"',
-      'https://fonts.googleapis.com'
-    ]',
-    'img-src': [
-      "'self'"',
-      'data:'';
-      'https:'
-    ]',
-    'font-src': [
-      "'self'"',
-      'https://fonts.gstatic.com'';
-      'data:'
-    ]',
-    'connect-src': [
-      "'self'"',
-      'wss:'';
-      'https:'
-    ]',
-    'media-src': ["'self'"]',
-    'object-src': ["'none'"]',
-    'frame-src': [
-      "'self'"',
-      'https://www.youtube.com'';
-      'https://player.vimeo.com'
-    ]',
-    'worker-src': ["'self'"]',
-    'child-src': ["'self'"]',
-    'form-action': ["'self'"]',
-    'frame-ancestors': ["'none'"]',
-    'base-uri': ["'self'"]',
-    'manifest-src': ["'self'"]',
-    'upgrade-insecure-requests': true',
-    'block-all-mixed-content': true',
-    'report-uri': ['/api/csp-report']
+    'default-src': ["'self'"],
+    'script-src': ['
+      "'self'",
+      "'wasm-unsafe-eval'",
+      "blob:",
+      "*.replit.app"
+    ],
+    'style-src': ['
+      "'self'",
+      "'unsafe-inline'",
+      "*.googleapis.com",
+      "*.gstatic.com"
+    ],
+    'img-src': ['
+      "'self'",
+      "data:",
+      "blob:",
+      "*.replit.app",
+      "*.unsplash.com",
+      "*.googleapis.com"
+    ],
+    'font-src': ['
+      "'self'",
+      "*.googleapis.com",
+      "*.gstatic.com",
+      "data:"
+    ],
+    'connect-src': ['
+      "'self'",
+      "wss://*.replit.app",
+      "*.replit.app",
+      "*.googleapis.com",
+      "*.google.com"
+    ],
+    'worker-src': ['
+      "'self'",
+      "blob:"
+    ],
+    'frame-ancestors': ["'none'"],
+    'upgrade-insecure-requests': true,
+    'block-all-mixed-content': true
   }
-}';
+};
 
-// CSP violation reporting
-export interface CSPViolation {
-  'document-uri': string';
-  'referrer': string';
-  'blocked-uri': string';
-  'violated-directive': string';
-  'effective-directive': string';
-  'original-policy': string';
-  'disposition': string';
-  'script-sample': string';
-  'status-code': number';
-  'line-number'?: number';
-  'column-number'?: number';
-  'source-file'?: string';
+// Generate nonce for inline scripts and styles
+export function generateNonce(): string {
+  return crypto.randomBytes(16).toString('base64');
 }
 
-export class CSPReporter {
-  private violations: CSPViolation[] = []';
-  private maxViolations = 1000';
-
-  reportViolation(violation: CSPViolation): void {
-    this.violations.push({
-      ...violation',
-      timestamp: new Date().toISOString()
-    } as any)';
-
-    // Keep only recent violations
-    if (this.violations.length > this.maxViolations) {
-      this.violations = this.violations.slice(-this.maxViolations)';
-    }
-
-    // Log violation for monitoring
-    console.warn('CSP Violation:', {
-      directive: violation['violated-directive']',
-      blockedUri: violation['blocked-uri']',
-      documentUri: violation['document-uri']
-    })';
-  }
-
-  getViolations(limit?: number): CSPViolation[] {
-    return limit ? this.violations.slice(-limit) : this.violations';
-  }
-
-  getViolationStats(): Record<string, number> {
-    const stats: Record<string, number> = {}';
-    
-    this.violations.forEach(violation => {
-      const directive = violation['violated-directive']';
-      stats[directive] = (stats[directive] || 0) + 1';
-    })';
-
-    return stats';
-  }
-
-  clearViolations(): void {
-    this.violations = []';
-  }
-}
-
-export const cspReporter = new CSPReporter()';
-
-// Main CSP middleware
-export function createCSPMiddleware(options: {
-  environment?: 'development' | 'production'';
-  customDirectives?: CSPDirectives';
-  reportOnly?: boolean';
-  nonce?: boolean';
-} = {}) {
-  const {
-    environment = process.env.NODE_ENV === 'production' ? 'production' : 'development'';
-    customDirectives = {}',
-    reportOnly = false',
-    nonce = false
-  } = options';
-
+// CSP middleware factory
+export function createCSPMiddleware(customConfig?: CSPDirectives) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const baseConfig = CSP_CONFIGS[environment]';
-    const builder = new CSPBuilder(baseConfig)';
-
-    // Add custom directives
-    Object.entries(customDirectives).forEach(([key, value]) => {
-      if (value !== undefined) {
-        builder.addDirective(key as keyof CSPDirectives, value)';
-      }
-    })';
-
-    // Generate nonce if requested
-    if (nonce) {
-      const nonceValue = generateNonce()';
-      req.cspNonce = nonceValue';
-      
-      // Replace nonce placeholder in script-src and style-src
-      const policy = builder.build().replace(/{NONCE}/g, nonceValue)';
-      
-      const headerName = reportOnly ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy'';
-      res.setHeader(headerName, policy)';
-    } else {
-      const policy = builder.build()';
-      const headerName = reportOnly ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy'';
-      res.setHeader(headerName, policy)';
+    const environment = process.env.NODE_ENV || 'development';
+    const baseConfig = CSP_CONFIGS[environment as keyof typeof CSP_CONFIGS] || CSP_CONFIGS.development;
+    
+    // Generate nonce for this request
+    const nonce = generateNonce();
+    res.locals.nonce = nonce;
+    
+    // Build CSP with custom configuration
+    const cspBuilder = new CSPBuilder(baseConfig);
+    
+    if (customConfig) {
+      Object.entries(customConfig).forEach(([directive, values]) => {
+        if (values !== undefined) {
+          cspBuilder.addDirective(directive as keyof CSPDirectives, values);
+        }
+      });
     }
-
-    // Add other security headers
-    res.setHeader('X-Content-Type-Options', 'nosniff')';
-    res.setHeader('X-Frame-Options', 'DENY')';
-    res.setHeader('X-XSS-Protection', '1; mode=block')';
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')';
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')';
-
-    if (environment === 'production') {
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')';
-    }
-
-    next()';
-  }';
+    
+    // Add nonce to script-src and style-src
+    cspBuilder.addDirective('script-src', [`'nonce-${nonce}'`]);
+    cspBuilder.addDirective('style-src', [`'nonce-${nonce}'`]);
+    
+    const cspHeader = cspBuilder.build();
+    res.setHeader('Content-Security-Policy', cspHeader);
+    
+    // Additional security headers
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    next();
+  };
 }
 
-// CSP violation reporting endpoint
-export function createCSPReportingEndpoint() {
-  return (req: Request, res: Response) => {
-    try {
-      const report = req.body?.['csp-report']';
-      if (report) {
-        cspReporter.reportViolation(report)';
-      }
-      res.status(204).send()';
-    } catch (error) {
-      console.error('CSP report processing error:', error)';
-      res.status(400).json({ error: 'Invalid CSP report' })';
-    }
-  }';
-}
+// Default CSP middleware
+export const cspMiddleware = createCSPMiddleware();
 
-// CSP management endpoints
-export function createCSPManagementRoutes() {
-  const router = Router()';
+// Strict CSP for sensitive operations
+export const strictCSPMiddleware = createCSPMiddleware({
+  'script-src': ["'self'"],
+  'style-src': ["'self'", "'unsafe-inline'"],
+  'img-src': ["'self'", "data:"],
+  'connect-src': ["'self'"],
+  'font-src': ["'self'"],
+  'object-src': ["'none'"],
+  'frame-src': ["'none'"],
+  'frame-ancestors': ["'none'"],
+  'base-uri': ["'self'"],
+  'form-action': ["'self'"]
+});
 
-  // Get violation reports
-  router.get('/violations', (req: Request, res: Response) => {
-    const limit = parseInt(req.query.limit as string) || undefined';
-    const violations = cspReporter.getViolations(limit)';
-    res.json({ violations })';
-  })';
+// Relaxed CSP for development/admin panels
+export const relaxedCSPMiddleware = createCSPMiddleware({
+  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+  'style-src': ["'self'", "'unsafe-inline'"],
+  'img-src': ["'self'", "data:", "blob:", "*"],
+  'connect-src': ["'self'", "*"]
+});
 
-  // Get violation statistics
-  router.get('/stats', (req: Request, res: Response) => {
-    const stats = cspReporter.getViolationStats()';
-    res.json({ stats })';
-  })';
+// CSP reporting endpoint
+export const cspReportRouter = Router();
 
-  // Clear violations
-  router.delete('/violations', (req: Request, res: Response) => {
-    cspReporter.clearViolations()';
-    res.json({ message: 'Violations cleared' })';
-  })';
-
-  return router';
-}
-
-// Utility functions
-function generateNonce(): string {
-  return crypto.randomBytes(16).toString('base64')';
-}
-
-// Extend Express Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      cspNonce?: string';
-    }
+cspReportRouter.post('/csp-report', (req: Request, res: Response) => {
+  try {
+    const report = req.body;
+    console.warn('CSP Violation Report:', JSON.stringify(report, null, 2));
+    
+    // Here you could log to your monitoring system
+    // Example: logger.warn('CSP Violation', { report, userAgent: req.get('User-Agent') });
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error processing CSP report:', error);
+    res.status(400).json({ error: 'Invalid report format' });
   }
-}
-
-export default createCSPMiddleware';
+});

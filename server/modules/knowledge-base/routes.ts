@@ -116,7 +116,7 @@ knowledgeBaseRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, re
     }
 
     // This would be implemented with full-text search in a real database
-    const searchResults = [
+    const searchResults = ['
       {
         id: "1"',
         title: "Getting Started with Conductor"',

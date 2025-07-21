@@ -8,20 +8,20 @@ export interface TicketCreateProps {
   tenantId: string';
   customerId: string';
   callerId: string';
-  callerType: 'user' | 'customer''[,;]
+  callerType: 'user' | 'customer'[,;]
   subject: string';
   description: string';
   shortDescription?: string';
   category?: string';
   subcategory?: string';
-  priority: 'low' | 'medium' | 'high' | 'urgent''[,;]
-  impact?: 'low' | 'medium' | 'high''[,;]
-  urgency?: 'low' | 'medium' | 'high''[,;]
+  priority: 'low' | 'medium' | 'high' | 'urgent'[,;]
+  impact?: 'low' | 'medium' | 'high'[,;]
+  urgency?: 'low' | 'medium' | 'high'[,;]
   state?: string';
   status?: string';
   assignedToId?: string';
   beneficiaryId?: string';
-  beneficiaryType?: 'user' | 'customer''[,;]
+  beneficiaryType?: 'user' | 'customer'[,;]
   assignmentGroup?: string';
   location?: string';
   contactType?: string';
@@ -44,16 +44,16 @@ export class Ticket {
     private readonly tenantId: string',
     private readonly customerId: string',
     private readonly callerId: string',
-    private readonly callerType: 'user' | 'customer''[,;]
+    private readonly callerType: 'user' | 'customer'[,;]
     private subject: string',
     private description: string',
     private readonly number: string',
     private shortDescription: string',
     private category: string',
     private subcategory: string',
-    private priority: 'low' | 'medium' | 'high' | 'urgent''[,;]
-    private impact: 'low' | 'medium' | 'high''[,;]
-    private urgency: 'low' | 'medium' | 'high''[,;]
+    private priority: 'low' | 'medium' | 'high' | 'urgent'[,;]
+    private impact: 'low' | 'medium' | 'high'[,;]
+    private urgency: 'low' | 'medium' | 'high'[,;]
     private state: string',
     private status: string',
     private assignedToId: string | null',
@@ -108,15 +108,15 @@ export class Ticket {
 
   // Business rules
   canBeAssigned(): boolean {
-    return this.state !== 'closed' && this.state !== 'resolved''[,;]
+    return this.state !== 'closed' && this.state !== 'resolved'[,;]
   }
 
   canBeResolved(): boolean {
-    return this.state === 'in_progress' || this.state === 'open''[,;]
+    return this.state === 'in_progress' || this.state === 'open'[,;]
   }
 
   canBeClosed(): boolean {
-    return this.state === 'resolved' || this.state === 'in_progress''[,;]
+    return this.state === 'resolved' || this.state === 'in_progress'[,;]
   }
 
   isOverdue(): boolean {
@@ -176,19 +176,19 @@ export class Ticket {
       props.description.trim()',
       ticketNumber',
       props.shortDescription?.trim() || props.subject.trim()',
-      props.category || 'general''[,;]
-      props.subcategory || ''[,;]
+      props.category || 'general'[,;]
+      props.subcategory || '[,;]
       props.priority',
-      props.impact || 'medium''[,;]
-      props.urgency || 'medium''[,;]
-      props.state || 'open''[,;]
-      props.status || 'open''[,;]
+      props.impact || 'medium'[,;]
+      props.urgency || 'medium'[,;]
+      props.state || 'open'[,;]
+      props.status || 'open'[,;]
       props.assignedToId || null',
       props.beneficiaryId || null',
       props.beneficiaryType || null',
       props.assignmentGroup || null',
       props.location || null',
-      props.contactType || 'email''[,;]
+      props.contactType || 'email'[,;]
       props.businessImpact || null',
       props.symptoms || null',
       props.workaround || null',
@@ -278,8 +278,8 @@ export class Ticket {
       this.priority',
       this.impact',
       this.urgency',
-      'resolved''[,;]
-      'resolved''[,;]
+      'resolved'[,;]
+      'resolved'[,;]
       this.assignedToId',
       this.beneficiaryId',
       this.beneficiaryType',
@@ -327,8 +327,8 @@ export class Ticket {
       this.priority',
       this.impact',
       this.urgency',
-      'closed''[,;]
-      'closed''[,;]
+      'closed'[,;]
+      'closed'[,;]
       this.assignedToId',
       this.beneficiaryId',
       this.beneficiaryType',

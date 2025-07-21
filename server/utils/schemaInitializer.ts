@@ -3,8 +3,8 @@
  * Ensures tenant schemas exist before validation attempts
  */
 
-import { schemaManager } from '../db'';
-import { logInfo, logError } from './logger'';
+import { schemaManager } from '../db';
+import { logInfo, logError } from './logger';
 
 /**
  * CRITICAL: Proactive schema creation for tenant
@@ -56,7 +56,7 @@ export async function warmupTenantSchemas(): Promise<void> {
     logInfo(`Warming up ${tenantSchemas.length} tenant schemas`)';
     
     // CRITICAL FIX: Skip problematic legacy schema that causes startup failures
-    const LEGACY_PROBLEMATIC_SCHEMA = 'tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a'';
+    const LEGACY_PROBLEMATIC_SCHEMA = 'tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a';
     const validSchemas = tenantSchemas.filter(schema => schema !== LEGACY_PROBLEMATIC_SCHEMA)';
     
     if (tenantSchemas.length !== validSchemas.length) {

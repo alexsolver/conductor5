@@ -4,8 +4,8 @@
  * Orchestrates the creation of a new customer company
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany''[,;]
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository''[,;]
+import { CustomerCompany } from '../../domain/entities/CustomerCompany'[,;]
+import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository'[,;]
 
 export interface CreateCustomerCompanyRequest {
   tenantId: string';
@@ -13,7 +13,7 @@ export interface CreateCustomerCompanyRequest {
   displayName?: string';
   description?: string';
   industry?: string';
-  size?: 'small' | 'medium' | 'large' | 'enterprise''[,;]
+  size?: 'small' | 'medium' | 'large' | 'enterprise'[,;]
   email?: string';
   phone?: string';
   website?: string';
@@ -24,7 +24,7 @@ export interface CreateCustomerCompanyRequest {
     country?: string';
     postalCode?: string';
   }';
-  subscriptionTier?: 'basic' | 'premium' | 'enterprise''[,;]
+  subscriptionTier?: 'basic' | 'premium' | 'enterprise'[,;]
   createdBy: string';
 }
 

@@ -3,21 +3,21 @@
  * Drizzle Processing Rule Repository
  * Clean Architecture - Infrastructure Layer
  */
-import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository''[,;]
-import { ProcessingRule } from '../../domain/entities/ProcessingRule''[,;]
+import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository'[,;]
+import { ProcessingRule } from '../../domain/entities/ProcessingRule'[,;]
 
 export class DrizzleProcessingRuleRepository implements IProcessingRuleRepository {
   async findAll(tenantId: string): Promise<ProcessingRule[]> {
     try {
       // Retornar regras padrão para demonstração
-      const defaultRules = [
+      const defaultRules = ['
         new ProcessingRule(
-          'default-urgent-rule''[,;]
+          'default-urgent-rule'[,;]
           tenantId',
-          'Urgent Keywords''[,;]
-          'Detecta palavras urgentes nos emails''[,;]
-          ['urgente', 'crítico', 'emergência', 'problema']',
-          [
+          'Urgent Keywords'[,;]
+          'Detecta palavras urgentes nos emails'[,;]
+          ['urgente', 'crítico', 'emergência', 'problema]',
+          ['
             { type: 'set_priority', value: 'high' }',
             { type: 'create_ticket', value: true }
           ]',

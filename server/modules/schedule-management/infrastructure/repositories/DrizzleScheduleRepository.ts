@@ -1,9 +1,9 @@
 
-import { and, eq, gte, lte, ne, or } from 'drizzle-orm''[,;]
-import { db } from '../../../../db''[,;]
-import { schedules, scheduleAvailability, scheduleConflicts } from '../../../../../shared/schema''[,;]
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository''[,;]
-import { Schedule, ScheduleAvailability, ScheduleConflict } from '../../domain/entities/Schedule''[,;]
+import { and, eq, gte, lte, ne, or } from 'drizzle-orm'[,;]
+import { db } from '../../../../db'[,;]
+import { schedules, scheduleAvailability, scheduleConflicts } from '../../../../../shared/schema'[,;]
+import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository'[,;]
+import { Schedule, ScheduleAvailability, ScheduleConflict } from '../../domain/entities/Schedule'[,;]
 
 export class DrizzleScheduleRepository implements IScheduleRepository {
   async create(scheduleData: Omit<Schedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<Schedule> {

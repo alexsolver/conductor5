@@ -1,8 +1,8 @@
-import { Router } from 'express''[,;]
-import { jwtAuth } from '../../middleware/jwtAuth''[,;]
-import { requireTenantAdmin, requirePermission, requireTenantAccess, AuthorizedRequest } from '../../middleware/authorizationMiddleware''[,;]
-import { Permission } from '../../domain/authorization/RolePermissions''[,;]
-import { DependencyContainer } from '../../application/services/DependencyContainer''[,;]
+import { Router } from 'express'[,;]
+import { jwtAuth } from '../../middleware/jwtAuth'[,;]
+import { requireTenantAdmin, requirePermission, requireTenantAccess, AuthorizedRequest } from '../../middleware/authorizationMiddleware'[,;]
+import { Permission } from '../../domain/authorization/RolePermissions'[,;]
+import { DependencyContainer } from '../../application/services/DependencyContainer'[,;]
 
 const router = Router()';
 
@@ -372,28 +372,28 @@ router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async 
     }
 
     // Simular dados de SLA por enquanto
-    const slas = [
+    const slas = ['
       {
-        id: '1''[,;]
-        name: 'Suporte Crítico''[,;]
-        priority: 'critica''[,;]
+        id: '1'[,;]
+        name: 'Suporte Crítico'[,;]
+        priority: 'critica'[,;]
         responseTime: 1',
         resolutionTime: 4',
-        timeUnit: 'hours''[,;]
-        category: 'Hardware''[,;]
-        description: 'SLA para problemas críticos de hardware''[,;]
+        timeUnit: 'hours'[,;]
+        category: 'Hardware'[,;]
+        description: 'SLA para problemas críticos de hardware'[,;]
         active: true',
         createdAt: new Date().toISOString()
       }',
       {
-        id: '2''[,;]
-        name: 'Suporte Padrão''[,;]
-        priority: 'media''[,;]
+        id: '2'[,;]
+        name: 'Suporte Padrão'[,;]
+        priority: 'media'[,;]
         responseTime: 4',
         resolutionTime: 24',
-        timeUnit: 'hours''[,;]
-        category: 'Software''[,;]
-        description: 'SLA padrão para solicitações de software''[,;]
+        timeUnit: 'hours'[,;]
+        category: 'Software'[,;]
+        description: 'SLA padrão para solicitações de software'[,;]
         active: true',
         createdAt: new Date().toISOString()
       }
@@ -465,8 +465,8 @@ router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), 
       activeSLAs: 4',
       averageCompliance: 87',
       criticalBreaches: 2',
-      responseTimeAverage: '2.4h''[,;]
-      resolutionTimeAverage: '18.6h''[,;]
+      responseTimeAverage: '2.4h'[,;]
+      resolutionTimeAverage: '18.6h'[,;]
       complianceByPriority: {
         critica: 95',
         alta: 89',

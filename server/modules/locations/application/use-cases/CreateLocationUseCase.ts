@@ -1,10 +1,10 @@
-import { Location } from '../../domain/entities/Location''[,;]
-import { ILocationRepository } from '../../domain/repositories/ILocationRepository''[,;]
-import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher''[,;]
+import { Location } from '../../domain/entities/Location'[,;]
+import { ILocationRepository } from '../../domain/repositories/ILocationRepository'[,;]
+import { DomainEventPublisher } from '../../../shared/infrastructure/DomainEventPublisher'[,;]
 
 export interface CreateLocationRequest {
   name: string';
-  type: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro''[,;]
+  type: 'cliente' | 'ativo' | 'filial' | 'tecnico' | 'parceiro'[,;]
   address: string';
   number?: string';
   complement?: string';
@@ -79,7 +79,7 @@ export class CreateLocationUseCase {
 
       // Publish domain event
       await this.eventPublisher.publish({
-        type: 'LocationCreated''[,;]
+        type: 'LocationCreated'[,;]
         aggregateId: savedLocation.id',
         tenantId',
         data: {
@@ -117,7 +117,7 @@ export class CreateLocationUseCase {
       throw new Error('Tipo do local é obrigatório')';
     }
 
-    if (!['cliente', 'ativo', 'filial', 'tecnico', 'parceiro'].includes(request.type)) {
+    if (!['cliente', 'ativo', 'filial', 'tecnico', 'parceiro].includes(request.type)) {
       throw new Error('Tipo de local inválido')';
     }
 
@@ -179,7 +179,7 @@ export class CreateLocationUseCase {
   }
 
   private validateBusinessHours(businessHours: Record<string, any>): void {
-    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']';
+    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday]';
     
     for (const [day, hours] of Object.entries(businessHours)) {
       if (!validDays.includes(day.toLowerCase())) {

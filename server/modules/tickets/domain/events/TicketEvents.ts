@@ -18,7 +18,7 @@ export abstract class DomainEvent implements IDomainEvent {
 
 export class TicketCreated extends DomainEvent {
   get eventName(): string {
-    return 'ticket.created''[,;]
+    return 'ticket.created'[,;]
   }
 
   constructor(
@@ -30,7 +30,7 @@ export class TicketCreated extends DomainEvent {
       priority: string';
       caller?: { id: string; type: 'user' | 'customer'; name: string }';
       beneficiary?: { id: string; type: 'user' | 'customer'; name: string }';
-      serviceType: 'auto' | 'proxy' | 'internal' | 'hybrid''[,;]
+      serviceType: 'auto' | 'proxy' | 'internal' | 'hybrid'[,;]
     }
   ) {
     super(aggregateId, tenantId)';
@@ -39,7 +39,7 @@ export class TicketCreated extends DomainEvent {
 
 export class TicketAssigned extends DomainEvent {
   get eventName(): string {
-    return 'ticket.assigned''[,;]
+    return 'ticket.assigned'[,;]
   }
 
   constructor(
@@ -59,7 +59,7 @@ export class TicketAssigned extends DomainEvent {
 
 export class TicketResolved extends DomainEvent {
   get eventName(): string {
-    return 'ticket.resolved''[,;]
+    return 'ticket.resolved'[,;]
   }
 
   constructor(
@@ -79,7 +79,7 @@ export class TicketResolved extends DomainEvent {
 
 export class TicketEscalated extends DomainEvent {
   get eventName(): string {
-    return 'ticket.escalated''[,;]
+    return 'ticket.escalated'[,;]
   }
 
   constructor(

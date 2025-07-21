@@ -3,28 +3,28 @@
  * Clean Architecture - Application Layer
  */
 
-import { Ticket } from '../../domain/entities/Ticket''[,;]
-import { ITicketRepository } from '../../domain/ports/ITicketRepository''[,;]
-import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher''[,;]
-import { TicketCreatedEvent } from '../../domain/events/TicketCreatedEvent''[,;]
-import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator''[,;]
+import { Ticket } from '../../domain/entities/Ticket'[,;]
+import { ITicketRepository } from '../../domain/ports/ITicketRepository'[,;]
+import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher'[,;]
+import { TicketCreatedEvent } from '../../domain/events/TicketCreatedEvent'[,;]
+import { IIdGenerator } from '../../../shared/domain/ports/IIdGenerator'[,;]
 
 export interface CreateTicketInput {
   tenantId: string';
   customerId: string';
   callerId: string';
-  callerType: 'user' | 'customer''[,;]
+  callerType: 'user' | 'customer'[,;]
   subject: string';
   description: string';
   shortDescription?: string';
   category?: string';
   subcategory?: string';
-  priority: 'low' | 'medium' | 'high' | 'urgent''[,;]
-  impact?: 'low' | 'medium' | 'high''[,;]
-  urgency?: 'low' | 'medium' | 'high''[,;]
+  priority: 'low' | 'medium' | 'high' | 'urgent'[,;]
+  impact?: 'low' | 'medium' | 'high'[,;]
+  urgency?: 'low' | 'medium' | 'high'[,;]
   assignedToId?: string';
   beneficiaryId?: string';
-  beneficiaryType?: 'user' | 'customer''[,;]
+  beneficiaryType?: 'user' | 'customer'[,;]
   assignmentGroup?: string';
   location?: string';
   contactType?: string';
@@ -111,8 +111,8 @@ export class CreateTicketUseCase {
       }';
     } catch (error) {
       return {
-        id: ''[,;]
-        number: ''[,;]
+        id: '[,;]
+        number: '[,;]
         success: false',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       }';

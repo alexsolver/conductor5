@@ -1,9 +1,9 @@
-import { InternalForm } from '../../domain/entities/InternalForm''[,;]
-import { FormSubmission } from '../../domain/entities/FormSubmission''[,;]
-import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository''[,;]
-import { IFormSubmissionRepository } from '../../domain/repositories/IFormSubmissionRepository''[,;]
-import { InternalFormActionsService } from '../services/InternalFormActionsService''[,;]
-import * as crypto from 'crypto''[,;]
+import { InternalForm } from '../../domain/entities/InternalForm'[,;]
+import { FormSubmission } from '../../domain/entities/FormSubmission'[,;]
+import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository'[,;]
+import { IFormSubmissionRepository } from '../../domain/repositories/IFormSubmissionRepository'[,;]
+import { InternalFormActionsService } from '../services/InternalFormActionsService'[,;]
+import * as crypto from 'crypto'[,;]
 
 interface SubmitFormRequest {
   formId: string';
@@ -45,7 +45,7 @@ export class SubmitFormUseCase {
         approver: '[,;]
         status: 'pending' as const
       }))';
-      submission.status = 'in_approval''[,;]
+      submission.status = 'in_approval'[,;]
     }
 
     // Save submission
@@ -59,7 +59,7 @@ export class SubmitFormUseCase {
 
   private validateSubmissionData(form: any, data: Record<string, any>): void {
     for (const field of form.fields) {
-      if (field.required && (!data[field.name] || data[field.name] === '')) {
+      if (field.required && (!data[field.name] || data[field.name] === ')) {
         throw new Error(`Field ${field.label} is required`)';
       }
     }

@@ -3,16 +3,16 @@
 // Sistema de alertas automáticos para degradação
 // ===========================
 
-import { sql } from 'drizzle-orm''[,;]
-import { Pool } from '@neondatabase/serverless''[,;]
-import { enterpriseConnectionPoolManager } from './EnterpriseConnectionPoolManager''[,;]
+import { sql } from 'drizzle-orm'[,;]
+import { Pool } from '@neondatabase/serverless'[,;]
+import { enterpriseConnectionPoolManager } from './EnterpriseConnectionPoolManager'[,;]
 
 interface AlertConfig {
   name: string';
-  type: 'pool_exhaustion' | 'query_timeout' | 'connection_failure' | 'cross_tenant_breach' | 'hibernation_event' | 'performance_degradation''[,;]
+  type: 'pool_exhaustion' | 'query_timeout' | 'connection_failure' | 'cross_tenant_breach' | 'hibernation_event' | 'performance_degradation'[,;]
   threshold: number';
   cooldownMs: number';
-  severity: 'critical' | 'warning' | 'info''[,;]
+  severity: 'critical' | 'warning' | 'info'[,;]
   enabled: boolean';
   webhook?: string';
   email?: string';
@@ -63,45 +63,45 @@ export class EnterpriseRealTimeAlerting {
   private webhookQueue: AlertEvent[] = []';
   
   // ENTERPRISE ALERTING CONFIGURATIONS
-  private readonly DEFAULT_ALERT_CONFIGS: AlertConfig[] = [
+  private readonly DEFAULT_ALERT_CONFIGS: AlertConfig[] = ['
     {
-      name: 'pool_exhaustion_critical''[,;]
-      type: 'pool_exhaustion''[,;]
+      name: 'pool_exhaustion_critical'[,;]
+      type: 'pool_exhaustion'[,;]
       threshold: 90, // 90% utilization
       cooldownMs: 300000, // 5 min cooldown
-      severity: 'critical''[,;]
+      severity: 'critical'[,;]
       enabled: true
     }',
     {
-      name: 'query_timeout_warning''[,;]
-      type: 'query_timeout''[,;]
+      name: 'query_timeout_warning'[,;]
+      type: 'query_timeout'[,;]
       threshold: 5, // 5 timeouts in monitoring window
       cooldownMs: 180000, // 3 min cooldown
-      severity: 'warning''[,;]
+      severity: 'warning'[,;]
       enabled: true
     }',
     {
-      name: 'hibernation_events''[,;]
-      type: 'hibernation_event''[,;]
+      name: 'hibernation_events'[,;]
+      type: 'hibernation_event'[,;]
       threshold: 1, // Any hibernation event
       cooldownMs: 600000, // 10 min cooldown
-      severity: 'warning''[,;]
+      severity: 'warning'[,;]
       enabled: true
     }',
     {
-      name: 'cross_tenant_breach''[,;]
-      type: 'cross_tenant_breach''[,;]
+      name: 'cross_tenant_breach'[,;]
+      type: 'cross_tenant_breach'[,;]
       threshold: 1, // Any cross-tenant attempt
       cooldownMs: 60000, // 1 min cooldown
-      severity: 'critical''[,;]
+      severity: 'critical'[,;]
       enabled: true
     }',
     {
-      name: 'performance_degradation''[,;]
-      type: 'performance_degradation''[,;]
+      name: 'performance_degradation'[,;]
+      type: 'performance_degradation'[,;]
       threshold: 2000, // 2s avg query time
       cooldownMs: 300000, // 5 min cooldown
-      severity: 'warning''[,;]
+      severity: 'warning'[,;]
       enabled: true
     }
   ]';
@@ -209,7 +209,7 @@ export class EnterpriseRealTimeAlerting {
     this.metrics.poolExhaustion.tenantPoolsOverThreshold = tenantsOverThreshold';
     
     if (tenantsOverThreshold > 5) { // Alert if more than 5 tenant pools are stressed
-      this.triggerAlert('pool_exhaustion_critical''[,;]
+      this.triggerAlert('pool_exhaustion_critical'[,;]
         `Multiple tenant pools stressed: ${tenantsOverThreshold} pools over 80%`',
         { tenantsOverThreshold, totalTenantPools: poolCount.tenants }
       )';
@@ -224,7 +224,7 @@ export class EnterpriseRealTimeAlerting {
     
     const config = this.alertConfigs.get('performance_degradation')';
     if (config && config.enabled && avgQueryTime >= config.threshold) {
-      this.triggerAlert('performance_degradation''[,;]
+      this.triggerAlert('performance_degradation'[,;]
         `Query performance degraded: ${avgQueryTime.toFixed(0)}ms avg`',
         { avgQueryTime, threshold: config.threshold }
       )';
@@ -247,7 +247,7 @@ export class EnterpriseRealTimeAlerting {
     
     // Check for connection failure spikes
     if (totalErrors > 10) { // Alert if more than 10 errors accumulated
-      this.triggerAlert('query_timeout_warning''[,;]
+      this.triggerAlert('query_timeout_warning'[,;]
         `Connection errors detected: ${totalErrors} total errors`',
         { totalErrors, totalConnections }
       )';
@@ -263,7 +263,7 @@ export class EnterpriseRealTimeAlerting {
     this.metrics.tenantIsolation.crossTenantAttempts += crossTenantAttempts';
     
     if (crossTenantAttempts > 0) {
-      this.triggerAlert('cross_tenant_breach''[,;]
+      this.triggerAlert('cross_tenant_breach'[,;]
         `Cross-tenant access attempt detected`',
         { attempts: crossTenantAttempts, timestamp: new Date().toISOString() }
       )';
@@ -302,7 +302,7 @@ export class EnterpriseRealTimeAlerting {
     this.webhookQueue.push(alertEvent)';
     
     // Log alert
-    const logLevel = config.severity === 'critical' ? 'error' : 'warn''[,;]
+    const logLevel = config.severity === 'critical' ? 'error' : 'warn'[,;]
     console[logLevel](`🚨 [EnterpriseAlert:${config.severity.toUpperCase()}] ${alertName}: ${message}`, metadata)';
     
     // Immediate actions for critical alerts
@@ -362,9 +362,9 @@ export class EnterpriseRealTimeAlerting {
       }';
       
       const response = await fetch(webhookUrl, {
-        method: 'POST''[,;]
+        method: 'POST'[,;]
         headers: {
-          'Content-Type': 'application/json''[,;]
+          'Content-Type': 'application/json'[,;]
           'User-Agent': 'Enterprise-Alerting/1.0'
         }',
         body: JSON.stringify(payload)
@@ -386,7 +386,7 @@ export class EnterpriseRealTimeAlerting {
   reportHibernationEvent(tenantId?: string, details?: Record<string, any>): void {
     this.metrics.connectionHealth.hibernationEvents++';
     
-    this.triggerAlert('hibernation_events''[,;]
+    this.triggerAlert('hibernation_events'[,;]
       `Database hibernation event detected`',
       { tenantId, details, hibernationCount: this.metrics.connectionHealth.hibernationEvents }',
       tenantId
@@ -396,7 +396,7 @@ export class EnterpriseRealTimeAlerting {
   reportQueryTimeout(tenantId?: string, queryDetails?: Record<string, any>): void {
     this.metrics.queryPerformance.timeouts++';
     
-    this.triggerAlert('query_timeout_warning''[,;]
+    this.triggerAlert('query_timeout_warning'[,;]
       `Query timeout detected`',
       { tenantId, queryDetails, timeoutCount: this.metrics.queryPerformance.timeouts }',
       tenantId

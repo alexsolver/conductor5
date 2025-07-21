@@ -1,26 +1,26 @@
-import fs from 'fs/promises''[,;]
-import path from 'path''[,;]
-import { exec } from 'child_process''[,;]
-import { promisify } from 'util''[,;]
-import crypto from 'crypto''[,;]
-import { SecurityAnalyzer } from './integrity/SecurityAnalyzer''[,;]
-import { CodeQualityAnalyzer } from './integrity/CodeQualityAnalyzer''[,;]
+import fs from 'fs/promises'[,;]
+import path from 'path'[,;]
+import { exec } from 'child_process'[,;]
+import { promisify } from 'util'[,;]
+import crypto from 'crypto'[,;]
+import { SecurityAnalyzer } from './integrity/SecurityAnalyzer'[,;]
+import { CodeQualityAnalyzer } from './integrity/CodeQualityAnalyzer'[,;]
 
 const execAsync = promisify(exec)';
 
 interface ModuleFile {
   path: string';
-  type: 'frontend' | 'backend' | 'shared' | 'config''[,;]
+  type: 'frontend' | 'backend' | 'shared' | 'config'[,;]
   size: number';
   lastModified: string';
-  integrity: 'healthy' | 'warning' | 'error''[,;]
+  integrity: 'healthy' | 'warning' | 'error'[,;]
   dependencies: string[]';
   checksum: string';
   issues?: FileIssue[]';
 }
 
 interface FileIssue {
-  type: 'warning' | 'error''[,;]
+  type: 'warning' | 'error'[,;]
   line?: number';
   description: string';
   problemFound: string';
@@ -37,14 +37,14 @@ interface ModuleInfo {
     e2e: number';
   }';
   healthScore: number';
-  status: 'healthy' | 'warning' | 'error''[,;]
+  status: 'healthy' | 'warning' | 'error'[,;]
 }
 
 interface IntegrityCheck {
   id: string';
   timestamp: string';
-  type: 'pre-change' | 'post-change' | 'scheduled' | 'full' | 'quick' | 'module''[,;]
-  status: 'running' | 'completed' | 'failed''[,;]
+  type: 'pre-change' | 'post-change' | 'scheduled' | 'full' | 'quick' | 'module'[,;]
+  status: 'running' | 'completed' | 'failed'[,;]
   modules: {
     name: string';
     passed: number';
@@ -58,7 +58,7 @@ interface IntegrityCheck {
     warnings: number';
   }';
   affectedFiles?: string[]';
-  riskLevel: 'low' | 'medium' | 'high' | 'critical''[,;]
+  riskLevel: 'low' | 'medium' | 'high' | 'critical'[,;]
 }
 
 export class IntegrityControlService {
@@ -69,106 +69,106 @@ export class IntegrityControlService {
   // Module definitions with their file patterns
   private moduleDefinitions = {
     auth: {
-      name: 'Authentication & Authorization''[,;]
-      description: 'Sistema de autenticação JWT, autorização RBAC e segurança''[,;]
-      patterns: [
-        'server/middleware/jwtAuth.ts''[,;]
-        'server/middleware/authorizationMiddleware.ts''[,;]
-        'server/modules/auth/**/*''[,;]
-        'client/src/hooks/useAuth.tsx''[,;]
-        'client/src/lib/authUtils.ts''[,;]
+      name: 'Authentication & Authorization'[,;]
+      description: 'Sistema de autenticação JWT, autorização RBAC e segurança'[,;]
+      patterns: ['
+        'server/middleware/jwtAuth.ts'[,;]
+        'server/middleware/authorizationMiddleware.ts'[,;]
+        'server/modules/auth/**/*'[,;]
+        'client/src/hooks/useAuth.tsx'[,;]
+        'client/src/lib/authUtils.ts'[,;]
         'server/services/AuthService.ts'
       ]
     }',
     customers: {
-      name: 'Customer Management''[,;]
-      description: 'Gerenciamento de clientes com schema multi-tenant''[,;]
-      patterns: [
-        'server/modules/customers/**/*''[,;]
-        'client/src/pages/Customers*.tsx''[,;]
-        'client/src/pages/CustomersTable.tsx''[,;]
+      name: 'Customer Management'[,;]
+      description: 'Gerenciamento de clientes com schema multi-tenant'[,;]
+      patterns: ['
+        'server/modules/customers/**/*'[,;]
+        'client/src/pages/Customers*.tsx'[,;]
+        'client/src/pages/CustomersTable.tsx'[,;]
         'server/infrastructure/repositories/DrizzleCustomerRepository.ts'
       ]
     }',
     tickets: {
-      name: 'Ticket System''[,;]
-      description: 'Sistema de tickets ServiceNow-style com funcionalidades avançadas''[,;]
-      patterns: [
-        'server/modules/tickets/**/*''[,;]
-        'client/src/pages/Tickets*.tsx''[,;]
-        'client/src/pages/TicketsTable.tsx''[,;]
+      name: 'Ticket System'[,;]
+      description: 'Sistema de tickets ServiceNow-style com funcionalidades avançadas'[,;]
+      patterns: ['
+        'server/modules/tickets/**/*'[,;]
+        'client/src/pages/Tickets*.tsx'[,;]
+        'client/src/pages/TicketsTable.tsx'[,;]
         'server/infrastructure/repositories/DrizzleTicketRepository.ts'
       ]
     }',
     dashboard: {
-      name: 'Dashboard & Analytics''[,;]
-      description: 'Dashboard principal com métricas e análises em tempo real''[,;]
-      patterns: [
-        'server/modules/dashboard/**/*''[,;]
-        'client/src/pages/Dashboard.tsx''[,;]
-        'client/src/pages/Analytics.tsx''[,;]
+      name: 'Dashboard & Analytics'[,;]
+      description: 'Dashboard principal com métricas e análises em tempo real'[,;]
+      patterns: ['
+        'server/modules/dashboard/**/*'[,;]
+        'client/src/pages/Dashboard.tsx'[,;]
+        'client/src/pages/Analytics.tsx'[,;]
         'server/services/DashboardService.ts'
       ]
     }',
     database: {
-      name: 'Database & Schema Management''[,;]
-      description: 'Gerenciamento de esquemas multi-tenant e persistência''[,;]
-      patterns: [
-        'server/db.ts''[,;]
-        'server/storage.ts''[,;]
-        'shared/schema.ts''[,;]
-        'drizzle.config.ts''[,;]
+      name: 'Database & Schema Management'[,;]
+      description: 'Gerenciamento de esquemas multi-tenant e persistência'[,;]
+      patterns: ['
+        'server/db.ts'[,;]
+        'server/storage.ts'[,;]
+        'shared/schema.ts'[,;]
+        'drizzle.config.ts'[,;]
         'server/infrastructure/repositories/**/*'
       ]
     }',
     api: {
-      name: 'API & Routes''[,;]
-      description: 'Rotas da API, middleware e comunicação cliente-servidor''[,;]
-      patterns: [
-        'server/routes.ts''[,;]
-        'server/routes/**/*''[,;]
-        'server/middleware/**/*''[,;]
+      name: 'API & Routes'[,;]
+      description: 'Rotas da API, middleware e comunicação cliente-servidor'[,;]
+      patterns: ['
+        'server/routes.ts'[,;]
+        'server/routes/**/*'[,;]
+        'server/middleware/**/*'[,;]
         'client/src/lib/queryClient.ts'
       ]
     }',
     shared: {
-      name: 'Shared Components''[,;]
-      description: 'Componentes compartilhados, tipos e utilitários''[,;]
-      patterns: [
-        'shared/**/*''[,;]
-        'client/src/components/**/*''[,;]
-        'client/src/lib/**/*''[,;]
+      name: 'Shared Components'[,;]
+      description: 'Componentes compartilhados, tipos e utilitários'[,;]
+      patterns: ['
+        'shared/**/*'[,;]
+        'client/src/components/**/*'[,;]
+        'client/src/lib/**/*'[,;]
         'client/src/utils/**/*'
       ]
     }',
     security: {
-      name: 'Security & Compliance''[,;]
-      description: 'Segurança, CSP, rate limiting e conformidade''[,;]
-      patterns: [
-        'server/middleware/securityMiddleware.ts''[,;]
-        'server/middleware/cspMiddleware.ts''[,;]
-        'server/middleware/rateLimiterMiddleware.ts''[,;]
-        'server/services/SecurityService.ts''[,;]
+      name: 'Security & Compliance'[,;]
+      description: 'Segurança, CSP, rate limiting e conformidade'[,;]
+      patterns: ['
+        'server/middleware/securityMiddleware.ts'[,;]
+        'server/middleware/cspMiddleware.ts'[,;]
+        'server/middleware/rateLimiterMiddleware.ts'[,;]
+        'server/services/SecurityService.ts'[,;]
         'client/src/pages/SecuritySettings.tsx'
       ]
     }',
     admin: {
-      name: 'Admin Interfaces''[,;]
-      description: 'Interfaces administrativas SaaS e Tenant''[,;]
-      patterns: [
-        'client/src/pages/SaasAdmin*.tsx''[,;]
-        'client/src/pages/TenantAdmin*.tsx''[,;]
-        'server/routes/saasAdminRoutes.ts''[,;]
+      name: 'Admin Interfaces'[,;]
+      description: 'Interfaces administrativas SaaS e Tenant'[,;]
+      patterns: ['
+        'client/src/pages/SaasAdmin*.tsx'[,;]
+        'client/src/pages/TenantAdmin*.tsx'[,;]
+        'server/routes/saasAdminRoutes.ts'[,;]
         'server/routes/tenantAdminRoutes.ts'
       ]
     }',
     i18n: {
-      name: 'Internationalization''[,;]
-      description: 'Sistema de internacionalização e localização''[,;]
-      patterns: [
-        'client/src/i18n/**/*''[,;]
-        'client/src/pages/TranslationManager.tsx''[,;]
-        'server/routes/translationRoutes.ts''[,;]
+      name: 'Internationalization'[,;]
+      description: 'Sistema de internacionalização e localização'[,;]
+      patterns: ['
+        'client/src/i18n/**/*'[,;]
+        'client/src/pages/TranslationManager.tsx'[,;]
+        'server/routes/translationRoutes.ts'[,;]
         'server/routes/localizationRoutes.ts'
       ]
     }
@@ -287,10 +287,10 @@ export class IntegrityControlService {
   }
 
   private determineFileType(filePath: string): 'frontend' | 'backend' | 'shared' | 'config' {
-    if (filePath.startsWith('client/')) return 'frontend''[,;]
-    if (filePath.startsWith('server/')) return 'backend''[,;]
-    if (filePath.startsWith('shared/')) return 'shared''[,;]
-    return 'config''[,;]
+    if (filePath.startsWith('client/')) return 'frontend'[,;]
+    if (filePath.startsWith('server/')) return 'backend'[,;]
+    if (filePath.startsWith('shared/')) return 'shared'[,;]
+    return 'config'[,;]
   }
 
   private async extractDependencies(content: string, filePath: string): Promise<string[]> {
@@ -353,7 +353,7 @@ export class IntegrityControlService {
                                functionBlock.includes('await')';
               
               issues.push({
-                type: isCritical ? 'error' : 'warning''[,;]
+                type: isCritical ? 'error' : 'warning'[,;]
                 line: lineIndex + 1',
                 description: `Função async ${isCritical ? 'crítica ' : '}sem tratamento de erro`',
                 problemFound: `Função async "${match}" sem try/catch`',
@@ -364,7 +364,7 @@ export class IntegrityControlService {
         }
 
         // Check for hardcoded values that should be environment variables
-        const hardcodedPatterns = [
+        const hardcodedPatterns = ['
           { pattern: /(https?:\/\/localhost:\d+)/g, type: 'URL local hardcoded', severity: 'warning' }',
           { pattern: /(api_key|secret|password)\s*[:=]\s*['"][^'"]+['"]/gi, type: 'Credenciais hardcoded', severity: 'error' }',
           { pattern: /port\s*[:=]\s*\d{4,5}/gi, type: 'Porta hardcoded', severity: 'warning' }',
@@ -378,7 +378,7 @@ export class IntegrityControlService {
               const lines = content.split('\n')';
               const lineIndex = lines.findIndex(line => line.includes(match))';
               issues.push({
-                type: severity as 'error' | 'warning''[,;]
+                type: severity as 'error' | 'warning'[,;]
                 line: lineIndex + 1',
                 description: `${type} encontrado`',
                 problemFound: match',
@@ -389,7 +389,7 @@ export class IntegrityControlService {
         })';
 
         // Check for input validation vulnerabilities
-        const inputValidationIssues = [
+        const inputValidationIssues = ['
           { pattern: /req\.(body|query|params)\.[^;]*(?!.*validate|.*zod|.*joi)/g, desc: 'Input sem validação detectado' }',
           { pattern: /parseInt\(req\.(body|query|params)/g, desc: 'parseInt em input sem validação' }',
           { pattern: /JSON\.parse\(req\.(body|query|params)/g, desc: 'JSON.parse em input sem validação' }',
@@ -403,7 +403,7 @@ export class IntegrityControlService {
               const lines = content.split('\n')';
               const lineIndex = lines.findIndex(line => line.includes(match))';
               issues.push({
-                type: 'error''[,;]
+                type: 'error'[,;]
                 line: lineIndex + 1',
                 description: desc',
                 problemFound: match',
@@ -415,7 +415,7 @@ export class IntegrityControlService {
 
         // Check for SQL injection vulnerabilities with improved detection
         if (content.includes('SELECT') || content.includes('INSERT') || content.includes('UPDATE') || content.includes('DELETE')) {
-          const sqlInjectionPatterns = [
+          const sqlInjectionPatterns = ['
             // Template literals with variables in SQL
             { pattern: /sql`[^`]*\$\{[^}]+\}[^`]*(SELECT|INSERT|UPDATE|DELETE)/gi, severity: 'error' }',
             // String concatenation in SQL
@@ -433,9 +433,9 @@ export class IntegrityControlService {
                 const lines = content.split('\n')';
                 const lineIndex = lines.findIndex(line => line.includes(match.substring(0, 50)))';
                 issues.push({
-                  type: severity as 'error' | 'warning''[,;]
+                  type: severity as 'error' | 'warning'[,;]
                   line: lineIndex + 1',
-                  description: 'Vulnerabilidade de SQL injection detectada''[,;]
+                  description: 'Vulnerabilidade de SQL injection detectada'[,;]
                   problemFound: match.substring(0, 100) + (match.length > 100 ? '...' : ')',
                   correctionPrompt: `CRÍTICO: Corrija a vulnerabilidade de SQL injection no arquivo ${filePath} linha ${lineIndex + 1}. Substitua por: 1) Use ilike() para buscas ao invés de sql\`ILIKE\`, 2) Use eq(), ne(), inArray() para comparações, 3) Use count() ao invés de sql\`count(*)\`, 4) Use sql.identifier() para nomes de schema/tabela seguros.`
                 })';
@@ -452,9 +452,9 @@ export class IntegrityControlService {
               const lines = content.split('\n')';
               const lineIndex = lines.findIndex(line => line.includes(importStatement))';
               issues.push({
-                type: 'error''[,;]
+                type: 'error'[,;]
                 line: lineIndex + 1',
-                description: 'Violação da regra de dependência - Domain importando Infrastructure''[,;]
+                description: 'Violação da regra de dependência - Domain importando Infrastructure'[,;]
                 problemFound: importStatement',
                 correctionPrompt: `Corrija a violação de Clean Architecture no arquivo ${filePath} linha ${lineIndex + 1}. A camada Domain não deve importar Infrastructure. Mova a lógica para a camada Application ou crie uma interface na camada Domain que seja implementada na Infrastructure.`
               })';
@@ -463,7 +463,7 @@ export class IntegrityControlService {
         }
 
         // Check for security vulnerabilities - Unsafe file operations
-        const unsafeFileOperations = [
+        const unsafeFileOperations = ['
           { pattern: /fs\.readFile\([^,)]*\$\{[^}]+\}/g, desc: 'Operação de arquivo insegura com input dinâmico' }',
           { pattern: /fs\.writeFile\([^,)]*\$\{[^}]+\}/g, desc: 'Escrita de arquivo insegura com input dinâmico' }',
           { pattern: /path\.join\([^)]*\$\{[^}]+\}/g, desc: 'Path traversal potencial com input dinâmico' }',
@@ -477,7 +477,7 @@ export class IntegrityControlService {
               const lines = content.split('\n')';
               const lineIndex = lines.findIndex(line => line.includes(match))';
               issues.push({
-                type: 'error''[,;]
+                type: 'error'[,;]
                 line: lineIndex + 1',
                 description: desc',
                 problemFound: match',
@@ -499,7 +499,7 @@ export class IntegrityControlService {
               const lines = content.split('\n')';
               const lineIndex = lines.findIndex(line => line.includes(match))';
               issues.push({
-                type: 'error''[,;]
+                type: 'error'[,;]
                 line: lineIndex + 1',
                 description: desc',
                 problemFound: match',
@@ -510,7 +510,7 @@ export class IntegrityControlService {
         })';
 
         // Check for authentication/authorization vulnerabilities
-        const authVulnerabilities = [
+        const authVulnerabilities = ['
           { pattern: /jwt\.sign\([^,)]*,\s*['"][^'"]*['"](?!\s*,\s*\{[^}]*expiresIn)/g, desc: 'JWT sem expiração configurada' }',
           { pattern: /bcrypt\.hash\([^,)]*,\s*[1-9](?![0-9])\)/g, desc: 'Bcrypt com salt rounds insuficientes (< 10)' }',
           { pattern: /req\.session\.[^=]*=.*req\.(body|query|params)/g, desc: 'Sessão definida diretamente com input do usuário' }
@@ -523,7 +523,7 @@ export class IntegrityControlService {
               const lines = content.split('\n')';
               const lineIndex = lines.findIndex(line => line.includes(match))';
               issues.push({
-                type: 'error''[,;]
+                type: 'error'[,;]
                 line: lineIndex + 1',
                 description: desc',
                 problemFound: match',
@@ -538,8 +538,8 @@ export class IntegrityControlService {
       const lineCount = content.split('\n').length';
       if (lineCount > 500) {
         issues.push({
-          type: 'warning''[,;]
-          description: 'Arquivo muito grande''[,;]
+          type: 'warning'[,;]
+          description: 'Arquivo muito grande'[,;]
           problemFound: `${lineCount} linhas de código`',
           correctionPrompt: `Refatore o arquivo ${filePath} que tem ${lineCount} linhas. Divida em módulos menores, extraia funções auxiliares ou separe responsabilidades em arquivos diferentes seguindo o princípio da responsabilidade única.`
         })';
@@ -554,10 +554,10 @@ export class IntegrityControlService {
       return { status, issues }';
     } catch (error) {
       return {
-        status: 'error''[,;]
+        status: 'error'[,;]
         issues: [{
-          type: 'error''[,;]
-          description: 'Erro ao analisar arquivo''[,;]
+          type: 'error'[,;]
+          description: 'Erro ao analisar arquivo'[,;]
           problemFound: error.message',
           correctionPrompt: `Corrija o erro de sintaxe no arquivo ${filePath}: ${error.message}. Verifique a sintaxe do TypeScript e corrija problemas de formatação.`
         }]
@@ -594,7 +594,7 @@ export class IntegrityControlService {
 
   private async getModuleTests(moduleName: string): Promise<{ unit: number; integration: number; e2e: number }> {
     // Simulate test counting - in a real system, this would scan for actual test files
-    const testPatterns = [
+    const testPatterns = ['
       `**/${moduleName}/**/*.test.ts`',
       `**/${moduleName}/**/*.spec.ts`',
       `**/tests/**/${moduleName}/**/*.ts`
@@ -632,9 +632,9 @@ export class IntegrityControlService {
 
   private determineModuleStatus(healthScore: number, files: ModuleFile[]): 'healthy' | 'warning' | 'error' {
     const hasErrors = files.some(f => f.integrity === 'error')';
-    if (hasErrors || healthScore < 60) return 'error''[,;]
-    if (healthScore < 85) return 'warning''[,;]
-    return 'healthy''[,;]
+    if (hasErrors || healthScore < 60) return 'error'[,;]
+    if (healthScore < 85) return 'warning'[,;]
+    return 'healthy'[,;]
   }
 
   async getIntegrityChecks(): Promise<IntegrityCheck[]> {
@@ -662,7 +662,7 @@ export class IntegrityControlService {
       id: checkId',
       timestamp',
       type: type as any',
-      status: 'running''[,;]
+      status: 'running'[,;]
       modules: []',
       summary: {
         totalTests: 0',
@@ -720,10 +720,10 @@ export class IntegrityControlService {
       }';
       
       check.riskLevel = this.calculateRiskLevel(failedTests, warnings, totalTests)';
-      check.status = 'completed''[,;]
+      check.status = 'completed'[,;]
       
     } catch (error) {
-      check.status = 'failed''[,;]
+      check.status = 'failed'[,;]
       console.error('Integrity check failed:', error)';
     }
   }
@@ -732,10 +732,10 @@ export class IntegrityControlService {
     const failureRate = failed / total';
     const warningRate = warnings / total';
     
-    if (failureRate > 0.2) return 'critical''[,;]
-    if (failureRate > 0.1 || warningRate > 0.3) return 'high''[,;]
-    if (failureRate > 0.05 || warningRate > 0.15) return 'medium''[,;]
-    return 'low''[,;]
+    if (failureRate > 0.2) return 'critical'[,;]
+    if (failureRate > 0.1 || warningRate > 0.3) return 'high'[,;]
+    if (failureRate > 0.05 || warningRate > 0.15) return 'medium'[,;]
+    return 'low'[,;]
   }
 
   async createBackup(): Promise<string> {
@@ -747,11 +747,11 @@ export class IntegrityControlService {
       await fs.mkdir(path.dirname(backupPath), { recursive: true })';
       
       // Create a backup by copying critical files
-      const criticalPaths = [
-        'server/''[,;]
-        'client/src/''[,;]
-        'shared/''[,;]
-        'package.json''[,;]
+      const criticalPaths = ['
+        'server/'[,;]
+        'client/src/'[,;]
+        'shared/'[,;]
+        'package.json'[,;]
         'tsconfig.json'
       ]';
       
@@ -867,9 +867,9 @@ export class IntegrityControlService {
       approved: risks.length === 0',
       risks',
       warnings',
-      recommendations: [
-        'Create backup before applying changes''[,;]
-        'Run full test suite after changes''[,;]
+      recommendations: ['
+        'Create backup before applying changes'[,;]
+        'Run full test suite after changes'[,;]
         'Monitor system health for 24 hours post-deployment'
       ]
     }';
@@ -881,7 +881,7 @@ export class IntegrityControlService {
       syntaxValid: true',
       testsPass: true',
       noRegressions: true',
-      performanceImpact: 'minimal' as 'minimal' | 'moderate' | 'significant''[,;]
+      performanceImpact: 'minimal' as 'minimal' | 'moderate' | 'significant'[,;]
       recommendedActions: [] as string[]
     }';
     
@@ -937,13 +937,13 @@ export class IntegrityControlService {
     const recentChecks = this.checks.slice(0, 5)';
     
     return {
-      trend: 'stable' as 'improving' | 'stable' | 'degrading''[,;]
+      trend: 'stable' as 'improving' | 'stable' | 'degrading'[,;]
       recentChanges: recentChecks.length',
-      riskAssessment: 'low' as 'low' | 'medium' | 'high''[,;]
+      riskAssessment: 'low' as 'low' | 'medium' | 'high'[,;]
       criticalIssues: 0',
-      recommendedActions: [
-        'Continue current testing practices''[,;]
-        'Monitor module dependencies regularly''[,;]
+      recommendedActions: ['
+        'Continue current testing practices'[,;]
+        'Monitor module dependencies regularly'[,;]
         'Schedule weekly integrity checks'
       ]
     }';

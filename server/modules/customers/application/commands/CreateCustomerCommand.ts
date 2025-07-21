@@ -4,11 +4,11 @@
  * Clean Architecture - Application Layer
  */
 
-import { ICommand, ICommandHandler } from '../../../shared/application/cqrs/ICommand''[,;]
-import { CreateCustomerUseCase, CreateCustomerInput, CreateCustomerOutput } from '../usecases/CreateCustomerUseCase''[,;]
+import { ICommand, ICommandHandler } from '../../../shared/application/cqrs/ICommand'[,;]
+import { CreateCustomerUseCase, CreateCustomerInput, CreateCustomerOutput } from '../usecases/CreateCustomerUseCase'[,;]
 
 export class CreateCustomerCommand implements ICommand<CreateCustomerOutput> {
-  public readonly commandName = 'CreateCustomerCommand''[,;]
+  public readonly commandName = 'CreateCustomerCommand'[,;]
 
   constructor(
     public readonly tenantId: string',

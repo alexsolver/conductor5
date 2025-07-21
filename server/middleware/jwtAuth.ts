@@ -1,134 +1,133 @@
 // JWT Authentication Middleware - Clean Architecture
-import { Request, Response, NextFunction } from 'express'';
-import { DependencyContainer } from '../application/services/DependencyContainer'';
+import { Request, Response, NextFunction } from 'express';
+import { DependencyContainer } from '../application/services/DependencyContainer';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    id: string';
-    email: string';
-    role: string';
-    tenantId: string | null';
-  }';
+    id: string;
+    email: string;
+    role: string;
+    tenantId: string | null;
+  };
   tenant?: any; // Add tenant property for compatibility
 }
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization';
+    const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Access token required' })';
+      return res.status(401).json({ message: 'Access token required' });
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    const container = DependencyContainer.getInstance()';
-    const tokenService = container.tokenService';
+    const container = DependencyContainer.getInstance();
+    const tokenService = container.tokenService;
     
     // Verify JWT token
-    const payload = tokenService.verifyAccessToken(token)';
+    const payload = tokenService.verifyAccessToken(token);
     if (!payload) {
-      return res.status(401).json({ message: 'Invalid or expired token' })';
+      return res.status(401).json({ message: 'Invalid or expired token' });
     }
 
     // Verify user exists and is active
-    const userRepository = container.userRepository';
-    const user = await userRepository.findById(payload.userId)';
+    const userRepository = container.userRepository;
+    const user = await userRepository.findById(payload.userId);
     
     if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'User not found or inactive' })';
+      return res.status(401).json({ message: 'User not found or inactive' });
     }
 
     // Add user context to request
     req.user = {
-      id: user.id',
-      email: user.email',
-      role: user.role',
+      id: user.id,
+      email: user.email,
+      role: user.role,
       tenantId: user.tenantId
-    }';
+    };
 
-    next()';
+    next();
   } catch (error) {
-    const { logError } = await import('../utils/logger')';
+    const { logError } = await import('../utils/logger');
     logError('JWT authentication failed', error, { 
       method: req.method, 
-      url: req.url',
+      url: req.url,
       userAgent: req.get('User-Agent')
-    })';
-    return res.status(401).json({ message: 'Authentication failed' })';
+    });
+    return res.status(401).json({ message: 'Authentication failed' });
   }
-}';
+};
 
 // Optional auth middleware (doesn't fail if no token)
 export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization';
+    const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next(); // Continue without user context
     }
 
-    const token = authHeader.substring(7)';
-    const container = DependencyContainer.getInstance()';
-    const tokenService = container.tokenService';
+    const token = authHeader.substring(7);
+    const container = DependencyContainer.getInstance();
+    const tokenService = container.tokenService;
     
-    const payload = tokenService.verifyAccessToken(token)';
+    const payload = tokenService.verifyAccessToken(token);
     if (payload) {
-      const userRepository = container.userRepository';
-      const user = await userRepository.findById(payload.userId)';
+      const userRepository = container.userRepository;
+      const user = await userRepository.findById(payload.userId);
       
       if (user && user.isActive) {
         req.user = {
-          id: user.id',
-          email: user.email',
-          role: user.role',
+          id: user.id,
+          email: user.email,
+          role: user.role,
           tenantId: user.tenantId
-        }';
+        };
       }
     }
 
-    next()';
+    next();
   } catch (error) {
-    // Log but don't fail the request
-    const { logWarn } = await import('../utils/logger')';
-    logWarn('Optional JWT authentication warning', { 
-      error: error instanceof Error ? error.message : 'Unknown error'',
+    const { logError } = await import('../utils/logger');
+    logError('Optional JWT authentication failed', error, { 
       method: req.method, 
-      url: req.url 
-    })';
-    next()';
+      url: req.url
+    });
+    next(); // Continue without authentication
   }
-}';
+};
 
-// Role-based authorization middleware
-export const requireRole = (...roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' })';
-    }
+// Admin role authorization middleware
+export const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  next();
+};
 
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Insufficient permissions' })';
-    }
+// Manager role authorization middleware  
+export const requireManager = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (!req.user || !['admin', 'manager].includes(req.user.role)) {
+    return res.status(403).json({ message: 'Manager access required' });
+  }
+  next();
+};
 
-    next()';
-  }';
-}';
-
-// Tenant access middleware
-export const requireTenantAccess = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+// Tenant-based authorization middleware
+export const requireTenantAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const tenantId = req.params.tenantId || req.query.tenantId;
+  
   if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' })';
+    return res.status(401).json({ message: 'Authentication required' });
   }
-
-  // Admin users can access all tenants
+  
   if (req.user.role === 'admin') {
-    return next()';
+    return next(); // Admins have access to all tenants
   }
-
-  // Check if user has access to their tenant
-  if (!req.user.tenantId) {
-    return res.status(403).json({ message: 'No tenant access' })';
+  
+  if (req.user.tenantId !== tenantId) {
+    return res.status(403).json({ message: 'Tenant access denied' });
   }
-
-  next()';
-}';
+  
+  next();
+};

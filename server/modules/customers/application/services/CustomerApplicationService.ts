@@ -4,10 +4,10 @@
  * Orchestrates multiple use cases and provides a clean API
  */
 
-import { CreateCustomerUseCase, CreateCustomerInput, CreateCustomerOutput } from '../usecases/CreateCustomerUseCase''[,;]
-import { GetCustomersUseCase, GetCustomersInput, GetCustomersOutput } from '../usecases/GetCustomersUseCase''[,;]
-import { UpdateCustomerUseCase, UpdateCustomerInput, UpdateCustomerOutput } from '../usecases/UpdateCustomerUseCase''[,;]
-import { DeleteCustomerUseCase, DeleteCustomerInput, DeleteCustomerOutput } from '../usecases/DeleteCustomerUseCase''[,;]
+import { CreateCustomerUseCase, CreateCustomerInput, CreateCustomerOutput } from '../usecases/CreateCustomerUseCase'[,;]
+import { GetCustomersUseCase, GetCustomersInput, GetCustomersOutput } from '../usecases/GetCustomersUseCase'[,;]
+import { UpdateCustomerUseCase, UpdateCustomerInput, UpdateCustomerOutput } from '../usecases/UpdateCustomerUseCase'[,;]
+import { DeleteCustomerUseCase, DeleteCustomerInput, DeleteCustomerOutput } from '../usecases/DeleteCustomerUseCase'[,;]
 
 export class CustomerApplicationService {
   constructor(

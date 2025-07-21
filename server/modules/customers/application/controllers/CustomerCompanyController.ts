@@ -4,12 +4,12 @@
  * Handles HTTP requests for customer company operations
  */
 
-import { Request, Response } from 'express''[,;]
-import { z } from 'zod''[,;]
-import { CreateCustomerCompanyUseCase } from '../use-cases/CreateCustomerCompanyUseCase''[,;]
-import { GetCustomerCompaniesUseCase } from '../use-cases/GetCustomerCompaniesUseCase''[,;]
-import { UpdateCustomerCompanyUseCase } from '../use-cases/UpdateCustomerCompanyUseCase''[,;]
-import { ManageCustomerCompanyMembershipUseCase } from '../use-cases/ManageCustomerCompanyMembershipUseCase''[,;]
+import { Request, Response } from 'express'[,;]
+import { z } from 'zod'[,;]
+import { CreateCustomerCompanyUseCase } from '../use-cases/CreateCustomerCompanyUseCase'[,;]
+import { GetCustomerCompaniesUseCase } from '../use-cases/GetCustomerCompaniesUseCase'[,;]
+import { UpdateCustomerCompanyUseCase } from '../use-cases/UpdateCustomerCompanyUseCase'[,;]
+import { ManageCustomerCompanyMembershipUseCase } from '../use-cases/ManageCustomerCompanyMembershipUseCase'[,;]
 
 // Request validation schemas
 const createCustomerCompanySchema = z.object({
@@ -17,7 +17,7 @@ const createCustomerCompanySchema = z.object({
   displayName: z.string().max(255).optional()',
   description: z.string().optional()',
   industry: z.string().max(100).optional()',
-  size: z.enum(['startup', 'small', 'medium', 'large', 'enterprise']).optional()',
+  size: z.enum(['startup', 'small', 'medium', 'large', 'enterprise]).optional()',
   email: z.string().email().optional()',
   phone: z.string().max(50).optional()',
   website: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
@@ -30,21 +30,21 @@ const createCustomerCompanySchema = z.object({
     country: z.string().optional()',
     postalCode: z.string().optional()',
   }).optional()',
-  subscriptionTier: z.enum(['basic', 'premium', 'enterprise']).optional()',
+  subscriptionTier: z.enum(['basic', 'premium', 'enterprise]).optional()',
 })';
 
 const updateCustomerCompanySchema = createCustomerCompanySchema.partial().extend({
-  contractType: z.enum(['monthly', 'yearly', 'custom']).optional()',
+  contractType: z.enum(['monthly', 'yearly', 'custom]).optional()',
   maxUsers: z.number().min(1).optional()',
   maxTickets: z.number().min(1).optional()',
-  status: z.enum(['active', 'inactive', 'suspended', 'trial']).optional()',
+  status: z.enum(['active', 'inactive', 'suspended', 'trial]).optional()',
   isActive: z.boolean().optional()',
 })';
 
 const addMembershipSchema = z.object({
   customerId: z.string().uuid()',
   companyId: z.string().uuid()',
-  role: z.enum(['member', 'admin', 'owner', 'contact']).optional()',
+  role: z.enum(['member', 'admin', 'owner', 'contact]).optional()',
   title: z.string().max(255).optional()',
   department: z.string().max(255).optional()',
   permissions: z.object({
@@ -58,7 +58,7 @@ const addMembershipSchema = z.object({
 })';
 
 const updateMembershipSchema = z.object({
-  role: z.enum(['member', 'admin', 'owner', 'contact']).optional()',
+  role: z.enum(['member', 'admin', 'owner', 'contact]).optional()',
   title: z.string().max(255).optional()',
   department: z.string().max(255).optional()',
   permissions: z.object({
@@ -75,9 +75,9 @@ const updateMembershipSchema = z.object({
 const queryParamsSchema = z.object({
   search: z.string().optional()',
   industry: z.string().optional()',
-  size: z.enum(['startup', 'small', 'medium', 'large', 'enterprise']).optional()',
-  status: z.enum(['active', 'inactive', 'suspended', 'trial']).optional()',
-  subscriptionTier: z.enum(['basic', 'premium', 'enterprise']).optional()',
+  size: z.enum(['startup', 'small', 'medium', 'large', 'enterprise]).optional()',
+  status: z.enum(['active', 'inactive', 'suspended', 'trial]).optional()',
+  subscriptionTier: z.enum(['basic', 'premium', 'enterprise]).optional()',
   isActive: z.string().transform((val) => val === 'true' ? true : val === 'false' ? false : undefined).optional()',
   page: z.string().transform(Number).pipe(z.number().min(1)).optional()',
   limit: z.string().transform(Number).pipe(z.number().min(1).max(100)).optional()',
@@ -154,7 +154,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false',
-          message: 'Validation error''[,;]
+          message: 'Validation error'[,;]
           errors: error.errors',
         })';
         return';
@@ -162,7 +162,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false',
-        message: error.message || 'Failed to create customer company''[,;]
+        message: error.message || 'Failed to create customer company'[,;]
       })';
     }
   }
@@ -218,7 +218,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false',
-          message: 'Validation error''[,;]
+          message: 'Validation error'[,;]
           errors: error.errors',
         })';
         return';
@@ -226,7 +226,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false',
-        message: 'Failed to retrieve customer companies''[,;]
+        message: 'Failed to retrieve customer companies'[,;]
       })';
     }
   }
@@ -243,7 +243,7 @@ export class CustomerCompanyController {
       if (!id) {
         res.status(400).json({
           success: false',
-          message: 'Company ID is required''[,;]
+          message: 'Company ID is required'[,;]
         })';
         return';
       }
@@ -258,7 +258,7 @@ export class CustomerCompanyController {
       if (result.companies.length === 0) {
         res.status(404).json({
           success: false',
-          message: 'Company not found''[,;]
+          message: 'Company not found'[,;]
         })';
         return';
       }
@@ -298,7 +298,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false',
-        message: 'Failed to retrieve customer company''[,;]
+        message: 'Failed to retrieve customer company'[,;]
       })';
     }
   }
@@ -361,7 +361,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false',
-          message: 'Validation error''[,;]
+          message: 'Validation error'[,;]
           errors: error.errors',
         })';
         return';
@@ -369,7 +369,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false',
-        message: error.message || 'Failed to update customer company''[,;]
+        message: error.message || 'Failed to update customer company'[,;]
       })';
     }
   }
@@ -393,7 +393,7 @@ export class CustomerCompanyController {
       if (companies.companies.length === 0) {
         res.status(404).json({
           success: false',
-          message: 'Company not found''[,;]
+          message: 'Company not found'[,;]
         })';
         return';
       }
@@ -401,7 +401,7 @@ export class CustomerCompanyController {
       // Delete functionality implementation in progress - requires cleanup of related data
       res.status(501).json({
         success: false',
-        message: 'Delete functionality not implemented yet''[,;]
+        message: 'Delete functionality not implemented yet'[,;]
       })';
     } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger')';
@@ -413,7 +413,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false',
-        message: 'Failed to delete customer company''[,;]
+        message: 'Failed to delete customer company'[,;]
       })';
     }
   }
@@ -468,7 +468,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false',
-          message: 'Validation error''[,;]
+          message: 'Validation error'[,;]
           errors: error.errors',
         })';
         return';
@@ -476,7 +476,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false',
-        message: error.message || 'Failed to add membership''[,;]
+        message: error.message || 'Failed to add membership'[,;]
       })';
     }
   }
@@ -530,7 +530,7 @@ export class CustomerCompanyController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false',
-          message: 'Validation error''[,;]
+          message: 'Validation error'[,;]
           errors: error.errors',
         })';
         return';
@@ -538,7 +538,7 @@ export class CustomerCompanyController {
 
       res.status(400).json({
         success: false',
-        message: error.message || 'Failed to update membership''[,;]
+        message: error.message || 'Failed to update membership'[,;]
       })';
     }
   }
@@ -585,7 +585,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false',
-        message: 'Failed to retrieve customer memberships''[,;]
+        message: 'Failed to retrieve customer memberships'[,;]
       })';
     }
   }
@@ -632,7 +632,7 @@ export class CustomerCompanyController {
 
       res.status(500).json({
         success: false',
-        message: 'Failed to retrieve company memberships''[,;]
+        message: 'Failed to retrieve company memberships'[,;]
       })';
     }
   }

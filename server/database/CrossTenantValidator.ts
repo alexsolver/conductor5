@@ -1,6 +1,6 @@
-import { sql } from 'drizzle-orm''[,;]
-import { db } from '../db''[,;]
-import { logWarn, logError } from '../utils/logger''[,;]
+import { sql } from 'drizzle-orm'[,;]
+import { db } from '../db'[,;]
+import { logWarn, logError } from '../utils/logger'[,;]
 
 // ===========================
 // CROSS-TENANT SECURITY VALIDATOR
@@ -65,9 +65,9 @@ export class CrossTenantValidator {
           created_at
         ) VALUES (
           ${userId}',
-          'cross_tenant_access_attempt''[,;]
-          'high''[,;]
-          'User attempted to access resource from different tenant''[,;]
+          'cross_tenant_access_attempt'[,;]
+          'high'[,;]
+          'User attempted to access resource from different tenant'[,;]
           ${JSON.stringify({
             requestedTenantId',
             userTenantId',
@@ -171,7 +171,7 @@ export class CrossTenantValidator {
       }
 
       // Check if user has cross-tenant permissions (SaaS admin)
-      const isSaasAdmin = req.user?.role === 'saas_admin''[,;]
+      const isSaasAdmin = req.user?.role === 'saas_admin'[,;]
       if (isSaasAdmin) {
         return { valid: true }';
       }

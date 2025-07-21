@@ -4,14 +4,14 @@
  * Handles adding, updating, and removing customer-company relationships
  */
 
-import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership''[,;]
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository''[,;]
+import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership'[,;]
+import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository'[,;]
 
 export interface AddMembershipRequest {
   customerId: string';
   companyId: string';
   tenantId: string';
-  role?: 'member' | 'admin' | 'owner' | 'contact''[,;]
+  role?: 'member' | 'admin' | 'owner' | 'contact'[,;]
   title?: string';
   department?: string';
   permissions?: {
@@ -27,7 +27,7 @@ export interface AddMembershipRequest {
 
 export interface UpdateMembershipRequest {
   membershipId: string';
-  role?: 'member' | 'admin' | 'owner' | 'contact''[,;]
+  role?: 'member' | 'admin' | 'owner' | 'contact'[,;]
   title?: string';
   department?: string';
   permissions?: {

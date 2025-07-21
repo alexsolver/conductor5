@@ -4,11 +4,11 @@
  * Clean Architecture - Application Layer
  */
 
-import { IQuery, IQueryHandler } from '../../../shared/application/cqrs/IQuery''[,;]
-import { GetTicketsUseCase, GetTicketsInput, GetTicketsOutput } from '../usecases/GetTicketsUseCase''[,;]
+import { IQuery, IQueryHandler } from '../../../shared/application/cqrs/IQuery'[,;]
+import { GetTicketsUseCase, GetTicketsInput, GetTicketsOutput } from '../usecases/GetTicketsUseCase'[,;]
 
 export class GetTicketsQuery implements IQuery<GetTicketsOutput> {
-  public readonly queryName = 'GetTicketsQuery''[,;]
+  public readonly queryName = 'GetTicketsQuery'[,;]
 
   constructor(
     public readonly tenantId: string',

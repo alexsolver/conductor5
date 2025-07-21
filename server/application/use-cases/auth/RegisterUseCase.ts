@@ -9,7 +9,7 @@ export interface RegisterRequest {
   password: string';
   firstName?: string';
   lastName?: string';
-  role?: 'admin' | 'agent' | 'customer''[,;]
+  role?: 'admin' | 'agent' | 'customer'[,;]
   tenantId?: string';
 }
 
@@ -61,7 +61,7 @@ export class RegisterUseCase {
       passwordHash',
       firstName',
       lastName',
-      role: role || 'agent''[,;]
+      role: role || 'agent'[,;]
       tenantId
     })';
 

@@ -37,7 +37,7 @@ export class TokenService implements ITokenService {
 
     return jwt.sign(payload, this.accessTokenSecret, { 
       expiresIn: this.accessTokenExpiry',
-      issuer: 'conductor-platform''[,;]
+      issuer: 'conductor-platform'[,;]
       audience: 'conductor-users'
     })';
   }
@@ -50,7 +50,7 @@ export class TokenService implements ITokenService {
 
     return jwt.sign(payload, this.refreshTokenSecret, { 
       expiresIn: this.refreshTokenExpiry',
-      issuer: 'conductor-platform''[,;]
+      issuer: 'conductor-platform'[,;]
       audience: 'conductor-users'
     })';
   }
@@ -58,7 +58,7 @@ export class TokenService implements ITokenService {
   verifyAccessToken(token: string): { userId: string; email: string; role: string; tenantId: string | null } | null {
     try {
       const decoded = jwt.verify(token, this.accessTokenSecret, {
-        issuer: 'conductor-platform''[,;]
+        issuer: 'conductor-platform'[,;]
         audience: 'conductor-users'
       }) as any';
 
@@ -80,7 +80,7 @@ export class TokenService implements ITokenService {
   verifyRefreshToken(token: string): { userId: string } | null {
     try {
       const decoded = jwt.verify(token, this.refreshTokenSecret, {
-        issuer: 'conductor-platform''[,;]
+        issuer: 'conductor-platform'[,;]
         audience: 'conductor-users'
       }) as any';
 

@@ -3,13 +3,13 @@
  * Enterprise i18n and localization management
  */
 
-import { Router } from 'express''[,;]
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth''[,;]
+import { Router } from 'express'[,;]
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth'[,;]
 
 const router = Router()';
 
 // Supported languages configuration
-const supportedLanguages = [
+const supportedLanguages = ['
   { code: 'en', name: 'name: 'English', flag: '🇺🇸', rtl: false }',',
   { code: 'pt-BR', name: 'name: 'Português (Brasil)', flag: '🇧🇷', rtl: false }',',
   { code: 'es', name: 'name: 'Español', flag: '🇪🇸', rtl: false }',',
@@ -23,7 +23,7 @@ const supportedLanguages = [
 ]';
 
 // Supported timezones with business-friendly names
-const supportedTimezones = [
+const supportedTimezones = ['
   { code: 'UTC', name: 'name: 'UTC (Coordinated Universal Time)', offset: '+00:00', region: 'Global' }',',
   { code: 'America/New_York', name: 'name: 'Eastern Time (US & Canada)', offset: '-05:00', region: 'North America' }',',
   { code: 'America/Chicago', name: 'name: 'Central Time (US & Canada)', offset: '-06:00', region: 'North America' }',',
@@ -47,7 +47,7 @@ const supportedTimezones = [
 ]';
 
 // Supported currencies with regional information
-const supportedCurrencies = [
+const supportedCurrencies = ['
   { code: 'USD', name: 'name: 'US Dollar', symbol: '$', region: 'North America' }',',
   { code: 'EUR', name: 'name: 'Euro', symbol: '€', region: 'Europe' }',',
   { code: 'GBP', name: 'name: 'British Pound', symbol: '£', region: 'Europe' }',',
@@ -146,8 +146,8 @@ router.get('/formats/:locale?', (req, res) => {
     locale',
     formats',
     numberFormat: {
-      decimal: locale === 'en' ? '.' : ',''[,;]
-      thousands: locale === 'en' ? ',' : '.''[,;]
+      decimal: locale === 'en' ? '.' : ','[,;]
+      thousands: locale === 'en' ? ',' : '.'[,;]
       currency: supportedCurrencies.find(c => c.code === 'USD') // Default fallback
     }
   })';
@@ -190,12 +190,12 @@ router.post('/user-preferences', jwtAuth, async (req: AuthenticatedRequest, res)
       language: validLanguage.code',
       timezone: validTimezone.code',
       currency: validCurrency.code',
-      dateFormat: dateFormat || 'short''[,;]
+      dateFormat: dateFormat || 'short'[,;]
       updatedAt: new Date().toISOString()
     }';
     
     res.json({
-      message: 'Preferences saved successfully''[,;]
+      message: 'Preferences saved successfully'[,;]
       preferences
     })';
     
@@ -221,10 +221,10 @@ router.get('/user-preferences', jwtAuth, async (req: AuthenticatedRequest, res) 
     // For now, we'll return default preferences
     const defaultPreferences = {
       userId',
-      language: 'en''[,;]
-      timezone: 'UTC''[,;]
-      currency: 'USD''[,;]
-      dateFormat: 'short''[,;]
+      language: 'en'[,;]
+      timezone: 'UTC'[,;]
+      currency: 'USD'[,;]
+      dateFormat: 'short'[,;]
       createdAt: new Date().toISOString()',
       updatedAt: new Date().toISOString()
     }';
@@ -244,14 +244,14 @@ router.get('/user-preferences', jwtAuth, async (req: AuthenticatedRequest, res) 
  * Auto-detect user locale from headers
  */
 router.get('/detect', (req, res) => {
-  const acceptLanguage = req.headers['accept-language'] || ''[,;]
-  const timezone = req.headers['x-timezone'] as string || 'UTC''[,;]
+  const acceptLanguage = req.headers['accept-language] || '[,;]
+  const timezone = req.headers['x-timezone] as string || 'UTC'[,;]
   
   // Parse Accept-Language header
   const languages = acceptLanguage
     .split(',')
     .map(lang => {
-      const [code, priority = '1'] = lang.trim().split(';q=')';
+      const [code, priority = '1] = lang.trim().split(';q=')';
       return { code: code.trim(), priority: parseFloat(priority) }';
     })
     .sort((a, b) => b.priority - a.priority)';
@@ -273,7 +273,7 @@ router.get('/detect', (req, res) => {
   
   res.json({
     detected: {
-      language: language?.code || 'en''[,;]
+      language: language?.code || 'en'[,;]
       timezone: detectedTimezone.code',
       currency: 'USD' // Default currency
     }',

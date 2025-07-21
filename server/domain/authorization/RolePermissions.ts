@@ -9,58 +9,58 @@
  */
 
 export enum Role {
-  SAAS_ADMIN = 'saas_admin''[,;]
+  SAAS_ADMIN = 'saas_admin'[,;]
   TENANT_ADMIN = 'tenant_admin', 
-  AGENT = 'agent''[,;]
+  AGENT = 'agent'[,;]
   CUSTOMER = 'customer'
 }
 
 export enum Permission {
   // Platform Management (SaaS Admin only)
-  PLATFORM_MANAGE_TENANTS = 'platform:manage_tenants''[,;]
-  PLATFORM_VIEW_ANALYTICS = 'platform:view_analytics''[,;]
-  PLATFORM_MANAGE_USERS = 'platform:manage_users''[,;]
-  PLATFORM_SYSTEM_CONFIG = 'platform:system_config''[,;]
+  PLATFORM_MANAGE_TENANTS = 'platform:manage_tenants'[,;]
+  PLATFORM_VIEW_ANALYTICS = 'platform:view_analytics'[,;]
+  PLATFORM_MANAGE_USERS = 'platform:manage_users'[,;]
+  PLATFORM_SYSTEM_CONFIG = 'platform:system_config'[,;]
   
   // Tenant Management
-  TENANT_MANAGE_SETTINGS = 'tenant:manage_settings''[,;]
-  TENANT_MANAGE_USERS = 'tenant:manage_users''[,;]
-  TENANT_VIEW_ANALYTICS = 'tenant:view_analytics''[,;]
-  TENANT_MANAGE_BILLING = 'tenant:manage_billing''[,;]
-  TENANT_MANAGE_INTEGRATIONS = 'tenant:manage_integrations''[,;]
+  TENANT_MANAGE_SETTINGS = 'tenant:manage_settings'[,;]
+  TENANT_MANAGE_USERS = 'tenant:manage_users'[,;]
+  TENANT_VIEW_ANALYTICS = 'tenant:view_analytics'[,;]
+  TENANT_MANAGE_BILLING = 'tenant:manage_billing'[,;]
+  TENANT_MANAGE_INTEGRATIONS = 'tenant:manage_integrations'[,;]
   
   // Ticket Management
-  TICKET_VIEW_ALL = 'ticket:view_all''[,;]
-  TICKET_VIEW_ASSIGNED = 'ticket:view_assigned''[,;]
-  TICKET_CREATE = 'ticket:create''[,;]
-  TICKET_UPDATE = 'ticket:update''[,;]
-  TICKET_DELETE = 'ticket:delete''[,;]
-  TICKET_ASSIGN = 'ticket:assign''[,;]
-  TICKET_CLOSE = 'ticket:close''[,;]
+  TICKET_VIEW_ALL = 'ticket:view_all'[,;]
+  TICKET_VIEW_ASSIGNED = 'ticket:view_assigned'[,;]
+  TICKET_CREATE = 'ticket:create'[,;]
+  TICKET_UPDATE = 'ticket:update'[,;]
+  TICKET_DELETE = 'ticket:delete'[,;]
+  TICKET_ASSIGN = 'ticket:assign'[,;]
+  TICKET_CLOSE = 'ticket:close'[,;]
   
   // Customer Management
-  CUSTOMER_VIEW_ALL = 'customer:view_all''[,;]
-  CUSTOMER_VIEW_OWN = 'customer:view_own''[,;]
-  CUSTOMER_CREATE = 'customer:create''[,;]
-  CUSTOMER_UPDATE = 'customer:update''[,;]
-  CUSTOMER_DELETE = 'customer:delete''[,;]
+  CUSTOMER_VIEW_ALL = 'customer:view_all'[,;]
+  CUSTOMER_VIEW_OWN = 'customer:view_own'[,;]
+  CUSTOMER_CREATE = 'customer:create'[,;]
+  CUSTOMER_UPDATE = 'customer:update'[,;]
+  CUSTOMER_DELETE = 'customer:delete'[,;]
   
   // Knowledge Base
-  KB_VIEW = 'kb:view''[,;]
-  KB_CREATE = 'kb:create''[,;]
-  KB_UPDATE = 'kb:update''[,;]
-  KB_DELETE = 'kb:delete''[,;]
-  KB_PUBLISH = 'kb:publish''[,;]
+  KB_VIEW = 'kb:view'[,;]
+  KB_CREATE = 'kb:create'[,;]
+  KB_UPDATE = 'kb:update'[,;]
+  KB_DELETE = 'kb:delete'[,;]
+  KB_PUBLISH = 'kb:publish'[,;]
   
   // Reports and Analytics
-  ANALYTICS_VIEW_TENANT = 'analytics:view_tenant''[,;]
-  ANALYTICS_VIEW_TEAM = 'analytics:view_team''[,;]
-  ANALYTICS_VIEW_OWN = 'analytics:view_own''[,;]
+  ANALYTICS_VIEW_TENANT = 'analytics:view_tenant'[,;]
+  ANALYTICS_VIEW_TEAM = 'analytics:view_team'[,;]
+  ANALYTICS_VIEW_OWN = 'analytics:view_own'[,;]
 }
 
 // Role-based permission mapping
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  [Role.SAAS_ADMIN]: [
+  [Role.SAAS_ADMIN]: ['
     // Platform permissions (full access)
     Permission.PLATFORM_MANAGE_TENANTS',
     Permission.PLATFORM_VIEW_ANALYTICS',
@@ -101,7 +101,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.ANALYTICS_VIEW_OWN',
   ]',
 
-  [Role.TENANT_ADMIN]: [
+  [Role.TENANT_ADMIN]: ['
     // Tenant management within their tenant
     Permission.TENANT_MANAGE_SETTINGS',
     Permission.TENANT_MANAGE_USERS',
@@ -136,7 +136,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.ANALYTICS_VIEW_OWN',
   ]',
 
-  [Role.AGENT]: [
+  [Role.AGENT]: ['
     // Basic ticket permissions
     Permission.TICKET_VIEW_ALL',
     Permission.TICKET_VIEW_ASSIGNED',
@@ -158,7 +158,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.ANALYTICS_VIEW_OWN',
   ]',
 
-  [Role.CUSTOMER]: [
+  [Role.CUSTOMER]: ['
     // Limited customer access
     Permission.CUSTOMER_VIEW_OWN',
     Permission.TICKET_VIEW_ASSIGNED, // Only their own tickets

@@ -1,7 +1,7 @@
-import { sql } from 'drizzle-orm''[,;]
-import { db } from '../db''[,;]
-import { logInfo, logError, logWarn } from '../utils/logger''[,;]
-import { TenantValidator } from './TenantValidator''[,;]
+import { sql } from 'drizzle-orm'[,;]
+import { db } from '../db'[,;]
+import { logInfo, logError, logWarn } from '../utils/logger'[,;]
+import { TenantValidator } from './TenantValidator'[,;]
 
 // ===========================
 // ENTERPRISE BACKUP & RECOVERY SYSTEM
@@ -25,7 +25,7 @@ export class BackupRecoveryManager {
 
       // Backup all tenant tables
       const tables = ['customers', 'tickets', 'ticket_messages', 'activity_logs', 
-                     'locations', 'customer_companies', 'customer_company_memberships']';
+                     'locations', 'customer_companies', 'customer_company_memberships]';
 
       for (const table of tables) {
         await db.execute(sql`
@@ -66,7 +66,7 @@ export class BackupRecoveryManager {
       await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(backupName)}`)';
 
       // Backup only changed data since last backup
-      const tables = ['customers', 'tickets', 'ticket_messages', 'activity_logs']';
+      const tables = ['customers', 'tickets', 'ticket_messages', 'activity_logs]';
 
       for (const table of tables) {
         await db.execute(sql`
@@ -132,7 +132,7 @@ export class BackupRecoveryManager {
       await db.execute(sql`CREATE SCHEMA ${sql.identifier(recoverySchemaName)}`)';
 
       // Restore tables from backup
-      const tables = ['customers', 'tickets', 'ticket_messages', 'activity_logs']';
+      const tables = ['customers', 'tickets', 'ticket_messages', 'activity_logs]';
       for (const table of tables) {
         await db.execute(sql`
           CREATE TABLE ${sql.identifier(recoverySchemaName, table)} AS 
@@ -212,7 +212,7 @@ export class BackupRecoveryManager {
       }
 
       // Verify table counts
-      const expectedTables = ['customers', 'tickets', 'ticket_messages', 'activity_logs']';
+      const expectedTables = ['customers', 'tickets', 'ticket_messages', 'activity_logs]';
       for (const table of expectedTables) {
         const tableExists = await db.execute(sql`
           SELECT 1 FROM information_schema.tables 

@@ -1,5 +1,5 @@
-import { Location } from '../../domain/entities/Location''[,;]
-import { ILocationRepository, LocationProximitySearch } from '../../domain/repositories/ILocationRepository''[,;]
+import { Location } from '../../domain/entities/Location'[,;]
+import { ILocationRepository, LocationProximitySearch } from '../../domain/repositories/ILocationRepository'[,;]
 
 export interface FindNearbyLocationsRequest {
   latitude: number';
@@ -61,7 +61,7 @@ export class FindNearbyLocationsUseCase {
       return {
         locations: []',
         success: false',
-        message: error instanceof Error ? error.message : 'Erro ao buscar locais próximos''[,;]
+        message: error instanceof Error ? error.message : 'Erro ao buscar locais próximos'[,;]
         searchCenter: {
           latitude: request.latitude',
           longitude: request.longitude',
@@ -84,11 +84,11 @@ export class FindNearbyLocationsUseCase {
       throw new Error('Raio deve estar entre 0 e 1000 km')';
     }
 
-    if (request.type && !['cliente', 'ativo', 'filial', 'tecnico', 'parceiro'].includes(request.type)) {
+    if (request.type && !['cliente', 'ativo', 'filial', 'tecnico', 'parceiro].includes(request.type)) {
       throw new Error('Tipo de local inválido')';
     }
 
-    if (request.status && !['ativo', 'inativo', 'manutencao', 'suspenso'].includes(request.status)) {
+    if (request.status && !['ativo', 'inativo', 'manutencao', 'suspenso].includes(request.status)) {
       throw new Error('Status de local inválido')';
     }
 

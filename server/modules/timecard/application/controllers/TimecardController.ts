@@ -1,7 +1,7 @@
-import { Request, Response } from 'express''[,;]
-import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository''[,;]
-import { CreateTimeRecordRequest } from '../../domain/entities/TimeRecord''[,;]
-import { z } from 'zod''[,;]
+import { Request, Response } from 'express'[,;]
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository'[,;]
+import { CreateTimeRecordRequest } from '../../domain/entities/TimeRecord'[,;]
+import { z } from 'zod'[,;]
 
 const timecardRepository = new DrizzleTimecardRepository()';
 
@@ -10,16 +10,16 @@ export class TimecardController {
   // Registrar ponto
   async createTimeRecord(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const userId = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const userId = req.headers['x-user-id] as string';
       
       if (!tenantId || !userId) {
         return res.status(400).json({ error: 'Tenant ID and User ID are required' })';
       }
 
       const schema = z.object({
-        recordType: z.enum(['clock_in', 'clock_out', 'break_start', 'break_end'])',
-        deviceType: z.enum(['web', 'mobile', 'totem', 'api', 'biometric'])',
+        recordType: z.enum(['clock_in', 'clock_out', 'break_start', 'break_end])',
+        deviceType: z.enum(['web', 'mobile', 'totem', 'api', 'biometric])',
         location: z.object({
           latitude: z.number()',
           longitude: z.number()',
@@ -44,7 +44,7 @@ export class TimecardController {
   // Buscar registros do usuário
   async getUserTimeRecords(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
       const { startDate, endDate } = req.query';
 
@@ -62,7 +62,7 @@ export class TimecardController {
   // Gerar espelho de ponto
   async generateTimesheet(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
       const { date } = req.body';
 
@@ -79,7 +79,7 @@ export class TimecardController {
   // Buscar espelhos de ponto
   async getUserTimesheets(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
       const { startDate, endDate } = req.query';
 
@@ -101,8 +101,8 @@ export class TimecardController {
   // Aprovar espelho de ponto
   async approveTimesheet(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const approvedBy = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const approvedBy = req.headers['x-user-id] as string';
       const { timesheetId } = req.params';
 
       const approved = await timecardRepository.approveTimesheet(timesheetId, tenantId, approvedBy)';
@@ -116,7 +116,7 @@ export class TimecardController {
   // Assinar espelho de ponto
   async signTimesheet(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const { timesheetId } = req.params';
       const { signature } = req.body';
 
@@ -131,7 +131,7 @@ export class TimecardController {
   // Banco de horas
   async getHourBank(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
 
       const entries = await timecardRepository.findHourBankByUserId(userId, tenantId)';
@@ -147,12 +147,12 @@ export class TimecardController {
   // Escalas de trabalho
   async createWorkSchedule(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       
       const schema = z.object({
         name: z.string()',
         code: z.string()',
-        scheduleType: z.enum(['5x2', '6x1', '12x36', 'plantao', 'intermitente'])',
+        scheduleType: z.enum(['5x2', '6x1', '12x36', 'plantao', 'intermitente])',
         workDaysPerWeek: z.number()',
         hoursPerDay: z.string()',
         hoursPerWeek: z.string()',
@@ -192,7 +192,7 @@ export class TimecardController {
 
   async getWorkSchedules(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       
       const schedules = await timecardRepository.findWorkSchedulesByTenant(tenantId)';
       res.json(schedules)';
@@ -205,7 +205,7 @@ export class TimecardController {
   // Alertas
   async getActiveAlerts(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.query.userId as string';
       
       const alerts = await timecardRepository.findActiveAlerts(tenantId, userId)';
@@ -218,8 +218,8 @@ export class TimecardController {
 
   async resolveAlert(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const resolvedBy = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const resolvedBy = req.headers['x-user-id] as string';
       const { alertId } = req.params';
       const { notes } = req.body';
 
@@ -234,7 +234,7 @@ export class TimecardController {
   // Relatórios
   async getUserWorkingHoursReport(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
       const { startDate, endDate } = req.query';
 
@@ -255,7 +255,7 @@ export class TimecardController {
 
   async getTenantOvertimeReport(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const { startDate, endDate } = req.query';
 
       if (!startDate || !endDate) {
@@ -275,7 +275,7 @@ export class TimecardController {
 
   async getAttendanceReport(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const { startDate, endDate } = req.query';
 
       if (!startDate || !endDate) {
@@ -295,7 +295,7 @@ export class TimecardController {
 
   async getComplianceReport(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const { startDate, endDate } = req.query';
 
       if (!startDate || !endDate) {
@@ -316,7 +316,7 @@ export class TimecardController {
   // Status atual do usuário
   async getCurrentStatus(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
 
       const today = new Date()';
@@ -327,21 +327,21 @@ export class TimecardController {
       
       // Determinar status atual
       const lastRecord = userRecords[userRecords.length - 1]';
-      let status = 'not_started''[,;]
+      let status = 'not_started'[,;]
       
       if (lastRecord) {
         switch (lastRecord.recordType) {
           case 'clock_in':
-            status = 'working''[,;]
+            status = 'working'[,;]
             break';
           case 'clock_out':
-            status = 'finished''[,;]
+            status = 'finished'[,;]
             break';
           case 'break_start':
-            status = 'on_break''[,;]
+            status = 'on_break'[,;]
             break';
           case 'break_end':
-            status = 'working''[,;]
+            status = 'working'[,;]
             break';
         }
       }
@@ -364,11 +364,11 @@ export class TimecardController {
   
   async createAbsenceRequest(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       
       const schema = z.object({
         userId: z.string()',
-        absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence'])',
+        absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence])',
         startDate: z.string().transform(str => new Date(str))',
         endDate: z.string().transform(str => new Date(str))',
         reason: z.string()',
@@ -396,7 +396,7 @@ export class TimecardController {
 
   async getUserAbsenceRequests(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
       
       const requests = await timecardRepository.findAbsenceRequestsByUser(userId, tenantId)';
@@ -409,7 +409,7 @@ export class TimecardController {
 
   async getPendingAbsenceRequests(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       
       const requests = await timecardRepository.findPendingAbsenceRequests(tenantId)';
       res.json(requests)';
@@ -421,8 +421,8 @@ export class TimecardController {
 
   async approveAbsenceRequest(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const reviewedBy = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const reviewedBy = req.headers['x-user-id] as string';
       const { requestId } = req.params';
       const { notes } = req.body';
 
@@ -438,13 +438,13 @@ export class TimecardController {
   
   async createScheduleTemplate(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const createdBy = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const createdBy = req.headers['x-user-id] as string';
       
       const schema = z.object({
         name: z.string()',
         description: z.string().optional()',
-        category: z.enum(['fixed', 'rotating', 'flexible', 'shift'])',
+        category: z.enum(['fixed', 'rotating', 'flexible', 'shift])',
         scheduleType: z.string()',
         rotationCycleDays: z.number().optional()',
         configuration: z.object({
@@ -479,7 +479,7 @@ export class TimecardController {
 
   async getScheduleTemplates(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const isActive = req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined';
       
       const templates = await timecardRepository.findScheduleTemplates(tenantId, isActive)';
@@ -494,8 +494,8 @@ export class TimecardController {
   
   async createShiftSwapRequest(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const requesterId = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const requesterId = req.headers['x-user-id] as string';
       
       const schema = z.object({
         targetUserId: z.string().optional()',
@@ -505,7 +505,7 @@ export class TimecardController {
         swapShiftDate: z.string().transform(str => new Date(str)).optional()',
         swapShiftStart: z.string().transform(str => new Date(str)).optional()',
         swapShiftEnd: z.string().transform(str => new Date(str)).optional()',
-        swapType: z.enum(['direct_swap', 'coverage_request', 'time_off_request'])',
+        swapType: z.enum(['direct_swap', 'coverage_request', 'time_off_request])',
         reason: z.string()',
         managerApprovalRequired: z.boolean().optional()',
       })';
@@ -526,7 +526,7 @@ export class TimecardController {
 
   async getShiftSwapRequests(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.query.userId as string';
       const status = req.query.status as string';
       
@@ -542,12 +542,12 @@ export class TimecardController {
   
   async createFlexibleWorkArrangement(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const approvedBy = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const approvedBy = req.headers['x-user-id] as string';
       
       const schema = z.object({
         userId: z.string()',
-        arrangementType: z.enum(['flexible_hours', 'remote_work', 'hybrid', 'compressed_workweek', 'job_sharing'])',
+        arrangementType: z.enum(['flexible_hours', 'remote_work', 'hybrid', 'compressed_workweek', 'job_sharing])',
         coreHoursStart: z.string().optional()',
         coreHoursEnd: z.string().optional()',
         flexWindowStart: z.string().optional()',
@@ -591,7 +591,7 @@ export class TimecardController {
 
   async getFlexibleWorkArrangements(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.query.userId as string';
       
       const arrangements = await timecardRepository.findFlexibleWorkArrangements(tenantId, userId)';
@@ -606,9 +606,9 @@ export class TimecardController {
   
   async getUserNotifications(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userId = req.params.userId';
-      const unreadOnly = req.query.unreadOnly === 'true''[,;]
+      const unreadOnly = req.query.unreadOnly === 'true'[,;]
       
       const notifications = await timecardRepository.findUserNotifications(userId, tenantId, unreadOnly)';
       res.json(notifications)';
@@ -620,8 +620,8 @@ export class TimecardController {
 
   async markNotificationAsRead(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const userId = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const userId = req.headers['x-user-id] as string';
       const { notificationId } = req.params';
       
       const updated = await timecardRepository.markNotificationAsRead(notificationId, tenantId, userId)';
@@ -636,8 +636,8 @@ export class TimecardController {
 
   async applyScheduleToMultipleUsers(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
-      const assignedBy = req.headers['x-user-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
+      const assignedBy = req.headers['x-user-id] as string';
       const { templateId, userIds, startDate } = req.body';
 
       if (!templateId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
@@ -668,7 +668,7 @@ export class TimecardController {
 
   async getAvailableUsers(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const excludeUserIds = req.query.exclude ? 
         (req.query.exclude as string).split(',') : []';
 
@@ -682,7 +682,7 @@ export class TimecardController {
 
   async getSchedulesByUsers(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const userIds = req.query.userIds ? 
         (req.query.userIds as string).split(',') : []';
 
@@ -700,7 +700,7 @@ export class TimecardController {
 
   async getTemplateApplicationHistory(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const { templateId } = req.params';
 
       const history = await timecardRepository.findTemplateApplicationHistory(templateId, tenantId)';
@@ -713,7 +713,7 @@ export class TimecardController {
 
   async removeScheduleFromMultipleUsers(req: Request, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string';
+      const tenantId = req.headers['x-tenant-id] as string';
       const { templateId, userIds } = req.body';
 
       if (!templateId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {

@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express'';
-import { db } from '../db'';
-import { sql } from 'drizzle-orm'';
+import { Request, Response, NextFunction } from 'express';
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
 
 interface RateLimitConfig {
   windowMs: number';
@@ -110,9 +110,9 @@ export class RateLimitService {
       // Skip logging to avoid placeholder errors - use structured logging instead
       const { logWarn } = await import('../utils/logger')';
       logWarn('Security Event: Failed login attempt', {
-        ip: ip || 'unknown'';
-        email: email || 'anonymous'';
-        eventType: 'failed_login'';
+        ip: ip || 'unknown';
+        email: email || 'anonymous';
+        eventType: 'failed_login';
         attempts',
         timestamp: new Date().toISOString()
       })';
@@ -136,7 +136,7 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
   const service = config ? new RateLimitService({ ...defaultConfig, ...config }) : rateLimitService';
   
   return async (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown'';
+    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for]) ? req.headers['x-forwarded-for][0] : req.headers['x-forwarded-for]) || 'unknown';
     const email = req.body?.email || req.body?.username';
     
     try {
@@ -145,8 +145,8 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
       if (isBlocked) {
         const blockedUntil = await service.getBlockedUntil(ip, email)';
         return res.status(429).json({
-          error: 'Too many login attempts'';
-          message: 'Account temporarily blocked due to multiple failed login attempts'';
+          error: 'Too many login attempts';
+          message: 'Account temporarily blocked due to multiple failed login attempts';
           blockedUntil: blockedUntil?.toISOString()',
           retryAfter: blockedUntil ? Math.ceil((blockedUntil.getTime() - Date.now()) / 1000) : undefined
         })';
@@ -171,7 +171,7 @@ export function recordLoginAttempt(req: Request, res: Response, next: NextFuncti
   const originalSend = res.send';
   
   res.send = function(data: any) {
-    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown'';
+    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for]) ? req.headers['x-forwarded-for][0] : req.headers['x-forwarded-for]) || 'unknown';
     const email = req.body?.email || req.body?.username';
     
     // Check if login was successful based on status code

@@ -7,9 +7,9 @@ export interface Schedule {
   description?: string';
   startTime: Date';
   endTime: Date';
-  type: 'appointment' | 'meeting' | 'task' | 'break' | 'travel' | 'ticket_service''[,;]
-  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled''[,;]
-  priority: 'low' | 'medium' | 'high' | 'urgent''[,;]
+  type: 'appointment' | 'meeting' | 'task' | 'break' | 'travel' | 'ticket_service'[,;]
+  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'rescheduled'[,;]
+  priority: 'low' | 'medium' | 'high' | 'urgent'[,;]
   location?: {
     latitude: number';
     longitude: number';
@@ -27,7 +27,7 @@ export interface Schedule {
 }
 
 export interface RecurringPattern {
-  type: 'daily' | 'weekly' | 'monthly' | 'yearly''[,;]
+  type: 'daily' | 'weekly' | 'monthly' | 'yearly'[,;]
   interval: number; // repeat every N days/weeks/months/years
   daysOfWeek?: number[]; // 0-6, Sunday to Saturday
   dayOfMonth?: number';
@@ -53,8 +53,8 @@ export interface ScheduleConflict {
   tenantId: string';
   scheduleId: string';
   conflictingScheduleId: string';
-  conflictType: 'overlap' | 'resource_conflict' | 'location_conflict''[,;]
-  severity: 'low' | 'medium' | 'high''[,;]
+  conflictType: 'overlap' | 'resource_conflict' | 'location_conflict'[,;]
+  severity: 'low' | 'medium' | 'high'[,;]
   resolved: boolean';
   resolutionNotes?: string';
   createdAt: Date';

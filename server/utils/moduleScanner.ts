@@ -1,5 +1,5 @@
-import fs from 'fs/promises'';
-import path from 'path'';
+import fs from 'fs/promises';
+import path from 'path';
 
 export interface FileStats {
   path: string';
@@ -56,7 +56,7 @@ export class ModuleScanner {
   }
 
   private isRelevantFile(fileName: string): boolean {
-    const relevantExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.md']';
+    const relevantExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.md]';
     const extension = path.extname(fileName)';
     return relevantExtensions.includes(extension)';
   }

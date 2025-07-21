@@ -3,27 +3,27 @@
  * Advanced WebSocket connection stability management
  */
 
-import { Server } from 'http'';
+import { Server } from 'http';
 
 interface ConnectionStats {
-  active: number';
-  total: number';
-  errors: number';
-  reconnects: number';
-  lastReconnect: Date | null';
+  active: number;
+  total: number;
+  errors: number;
+  reconnects: number;
+  lastReconnect: Date | null;
 }
 
 class ConnectionStabilizer {
   private stats: ConnectionStats = {
-    active: 0',
-    total: 0',
-    errors: 0',
-    reconnects: 0',
+    active: 0,
+    total: 0,
+    errors: 0,
+    reconnects: 0,
     lastReconnect: null
-  }';
+  };
 
-  private connectionIds = new Set<string>()';
-  private reconnectTimer: NodeJS.Timeout | null = null';
+  private connectionIds = new Set<string>();
+  private reconnectTimer: NodeJS.Timeout | null = null;
 
   /**
    * CRITICAL: Initialize connection stabilizer with enhanced monitoring
@@ -31,105 +31,111 @@ class ConnectionStabilizer {
   public initialize(server: Server): void {
     // Enhanced connection monitoring
     server.on('connection', (socket) => {
-      const connectionId = `${socket.remoteAddress}:${socket.remotePort}:${Date.now()}`';
-      this.connectionIds.add(connectionId)';
-      this.stats.active++';
-      this.stats.total++';
+      const connectionId = `${socket.remoteAddress}:${socket.remotePort}:${Date.now()}`;
+      this.connectionIds.add(connectionId);
+      this.stats.active++;
+      this.stats.total++;
 
       // CRITICAL: Enhanced socket configuration for stability
       socket.setKeepAlive(true, 60000); // 1 minute keep-alive
-      socket.setTimeout(300000); // 5 minute timeout (increased)
+      socket.setTimeout(120000); // 2 minute timeout
       socket.setNoDelay(true); // Disable Nagle's algorithm
 
-      // Monitor socket health
       socket.on('error', (error) => {
-        this.stats.errors++';
-        if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE' && error.code !== 'ETIMEDOUT') {
-          console.warn(`[Connection Error] ${error.code}: ${error.message}`)';
-        }
-      })';
+        this.stats.errors++;
+        this.connectionIds.delete(connectionId);
+        this.stats.active--;
+        console.warn(`Connection error for ${connectionId}:`, error.message);
+      });
 
       socket.on('close', () => {
-        this.connectionIds.delete(connectionId)';
-        this.stats.active = Math.max(0, this.stats.active - 1)';
-      })';
+        this.connectionIds.delete(connectionId);
+        this.stats.active--;
+      });
 
       socket.on('timeout', () => {
-        console.warn('[Connection Timeout] Socket timed out, closing gracefully')';
-        socket.destroy()';
-      })';
-    })';
+        console.warn(`Connection timeout for ${connectionId}`);
+        socket.destroy();
+      });
+    });
 
-    // CRITICAL: Proactive reconnection monitoring
-    this.startReconnectionMonitoring()';
-
-    // CRITICAL: Enhanced server error handling
-    server.on('error', (error) => {
-      this.stats.errors++';
-      if (error.code === 'EADDRINUSE') {
-        console.error('[Server Error] Port already in use')';
-        process.exit(1)';
-      } else if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
-        console.error('[Server Error]', error.message)';
-      }
-    })';
-
-    console.log('[Connection Stabilizer] Initialized with enhanced monitoring')';
+    // Monitor connection health
+    setInterval(() => {
+      this.monitorHealth();
+    }, 30000); // Check every 30 seconds
   }
 
   /**
-   * CRITICAL: Monitor and handle reconnections proactively
+   * Monitor overall connection health and trigger reconnections if needed
    */
-  private startReconnectionMonitoring(): void {
+  private monitorHealth(): void {
+    const errorRate = this.stats.errors / Math.max(this.stats.total, 1);
+    
+    if (errorRate > 0.1) { // More than 10% error rate
+      console.warn('High error rate detected:', {
+        errors: this.stats.errors,
+        total: this.stats.total,
+        errorRate: (errorRate * 100).toFixed(2) + '%'
+      });
+      
+      this.triggerStabilization();
+    }
+  }
+
+  /**
+   * Trigger stabilization procedures
+   */
+  private triggerStabilization(): void {
     if (this.reconnectTimer) {
-      clearInterval(this.reconnectTimer)';
+      return; // Already stabilizing
     }
 
-    this.reconnectTimer = setInterval(() => {
-      // Check for potential connection issues
-      if (this.stats.errors > 10) {
-        this.stats.reconnects++';
-        this.stats.lastReconnect = new Date()';
-        this.stats.errors = 0; // Reset error count
-        
-        console.log('[Connection Stabilizer] High error rate detected, stabilizing...')';
-      }
+    console.log('Triggering connection stabilization...');
+    this.stats.reconnects++;
+    this.stats.lastReconnect = new Date();
 
-      // Log connection health every 5 minutes
-      if (this.stats.total % 50 === 0 && this.stats.total > 0) {
-        console.log(`[Connection Health] Active: ${this.stats.active}, Total: ${this.stats.total}, Errors: ${this.stats.errors}`)';
-      }
-    }, 60000); // Check every minute
+    // Reset error counter after stabilization attempt
+    this.reconnectTimer = setTimeout(() => {
+      this.stats.errors = 0;
+      this.reconnectTimer = null;
+      console.log('Connection stabilization completed');
+    }, 5000);
   }
 
   /**
-   * CRITICAL: Get connection statistics
+   * Get current connection statistics
    */
   public getStats(): ConnectionStats {
-    return { ...this.stats }';
+    return { ...this.stats };
   }
 
   /**
-   * CRITICAL: Force connection stabilization
+   * Reset statistics
    */
-  public stabilize(): void {
-    this.stats.reconnects++';
-    this.stats.lastReconnect = new Date()';
-    this.stats.errors = 0';
-    console.log('[Connection Stabilizer] Manual stabilization triggered')';
+  public resetStats(): void {
+    this.stats = {
+      active: this.connectionIds.size,
+      total: 0,
+      errors: 0,
+      reconnects: 0,
+      lastReconnect: null
+    };
   }
 
   /**
-   * CRITICAL: Cleanup on shutdown
+   * Cleanup resources
    */
-  public cleanup(): void {
+  public destroy(): void {
     if (this.reconnectTimer) {
-      clearInterval(this.reconnectTimer)';
-      this.reconnectTimer = null';
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
-    this.connectionIds.clear()';
-    console.log('[Connection Stabilizer] Cleanup completed')';
+    this.connectionIds.clear();
+    this.resetStats();
   }
 }
 
-export const connectionStabilizer = new ConnectionStabilizer()';
+// Export singleton instance
+export const connectionStabilizer = new ConnectionStabilizer();
+
+export default connectionStabilizer;

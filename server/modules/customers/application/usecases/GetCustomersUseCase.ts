@@ -3,8 +3,8 @@
  * Clean Architecture - Application Layer
  */
 
-import { Customer } from '../../domain/entities/Customer''[,;]
-import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository''[,;]
+import { Customer } from '../../domain/entities/Customer'[,;]
+import { ICustomerRepository, CustomerFilter } from '../../domain/ports/ICustomerRepository'[,;]
 
 export interface GetCustomersInput {
   tenantId: string';
@@ -38,7 +38,7 @@ export class GetCustomersUseCase {
         offset: input.offset || 0
       }';
 
-      const [customers, total] = await Promise.all([
+      const [customers, total] = await Promise.all(['
         this.customerRepository.findMany(filter)',
         this.customerRepository.count({
           tenantId: filter.tenantId',

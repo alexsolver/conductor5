@@ -4,7 +4,7 @@
  * Generates UUIDs without direct crypto dependency in domain
  */
 
-import { IIdGenerator } from '../../domain/ports/IIdGenerator''[,;]
+import { IIdGenerator } from '../../domain/ports/IIdGenerator'[,;]
 
 export class UuidGenerator implements IIdGenerator {
   generate(): string {

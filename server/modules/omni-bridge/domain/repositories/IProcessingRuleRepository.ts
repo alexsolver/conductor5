@@ -3,7 +3,7 @@
  * ProcessingRule Repository Interface
  * Clean Architecture - Domain Layer
  */
-import { ProcessingRule } from '../entities/ProcessingRule''[,;]
+import { ProcessingRule } from '../entities/ProcessingRule'[,;]
 
 export interface IProcessingRuleRepository {
   findAll(tenantId: string): Promise<ProcessingRule[]>';

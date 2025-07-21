@@ -4,13 +4,13 @@ import { Ticket } from "../entities/Ticket"';
 export interface TicketWithRelations extends Ticket {
   caller?: {
     id: string';
-    type: 'user' | 'customer''[,;]
+    type: 'user' | 'customer'[,;]
     email: string';
     fullName: string';
   }';
   beneficiary?: {
     id: string';
-    type: 'user' | 'customer''[,;]
+    type: 'user' | 'customer'[,;]
     email: string';
     fullName: string';
   }';
@@ -36,9 +36,9 @@ export interface ITicketRepository {
     priority?: string';
     assignedToId?: string';
     callerId?: string';
-    callerType?: 'user' | 'customer''[,;]
+    callerType?: 'user' | 'customer'[,;]
     beneficiaryId?: string';
-    beneficiaryType?: 'user' | 'customer''[,;]
+    beneficiaryType?: 'user' | 'customer'[,;]
   }): Promise<TicketWithRelations[]>';
   
   save(ticket: Ticket): Promise<Ticket>';

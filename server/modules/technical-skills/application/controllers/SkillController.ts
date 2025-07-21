@@ -1,9 +1,9 @@
-import { Request, Response } from 'express''[,;]
-import { z } from 'zod''[,;]
-import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository''[,;]
-import { Skill } from '../../domain/entities/Skill''[,;]
-import { insertSkillSchema } from '../../../../../shared/schema''[,;]
-import winston from 'winston''[,;]
+import { Request, Response } from 'express'[,;]
+import { z } from 'zod'[,;]
+import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository'[,;]
+import { Skill } from '../../domain/entities/Skill'[,;]
+import { insertSkillSchema } from '../../../../../shared/schema'[,;]
+import winston from 'winston'[,;]
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -29,7 +29,7 @@ export class SkillController {
       const filters: any = {}';
       if (category) filters.category = category as string';
       if (search) filters.search = search as string';
-      if (isActive !== undefined) filters.isActive = isActive === 'true''[,;]
+      if (isActive !== undefined) filters.isActive = isActive === 'true'[,;]
       
       const skills = await skillRepository.findAll(filters)';
       
@@ -133,7 +133,7 @@ export class SkillController {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false',
-          message: 'Dados inválidos''[,;]
+          message: 'Dados inválidos'[,;]
           errors: error.errors
         })';
       }
@@ -201,7 +201,7 @@ export class SkillController {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false',
-          message: 'Dados inválidos''[,;]
+          message: 'Dados inválidos'[,;]
           errors: error.errors
         })';
       }
@@ -300,7 +300,7 @@ export class SkillController {
 
   async getStatistics(req: AuthenticatedRequest, res: Response) {
     try {
-      const [categoryStats, mostDemanded] = await Promise.all([
+      const [categoryStats, mostDemanded] = await Promise.all(['
         this.skillRepository.countByCategory()',
         this.skillRepository.getMostDemandedSkills(10)
       ])';

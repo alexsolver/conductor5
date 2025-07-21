@@ -1,0 +1,109 @@
+/**
+ * CRITICAL FIX: Temporary Files Cleaner
+ * Removes temporary files that can cause watch instability
+ */
+
+import fs from 'fs';
+import path from 'path';
+
+const TEMP_FILE_PATTERNS = [
+  /\.tmp$/,
+  /\.temp$/,
+  /~$/,
+  /\.swp$/,
+  /\.swo$/,
+  /\.log$/,
+  /\.cache$/,
+  /node_modules\/\.cache/,
+  /\.vite/,
+  /dist\//,
+];
+
+const TEMP_DIRECTORIES = [
+  'node_modules/.cache',
+  'node_modules/.vite',
+  'dist',
+  '.cache',
+  'temp',
+  'tmp'
+];
+
+/**
+ * CRITICAL: Clean temporary files that cause watch instability
+ */
+export async function cleanTemporaryFiles(): Promise<number> {
+  let cleanedCount = 0;
+  const rootDir = process.cwd();
+
+  try {
+    // Clean temporary directories
+    for (const dirName of TEMP_DIRECTORIES) {
+      const dirPath = path.join(rootDir, dirName);
+      if (fs.existsSync(dirPath)) {
+        try {
+          await fs.promises.rm(dirPath, { recursive: true, force: true });
+          cleanedCount++;
+          console.log(`Cleaned directory: ${dirPath}`);
+        } catch (error) {
+          console.warn(`Failed to clean directory ${dirPath}:`, error);
+        }
+      }
+    }
+
+    // Clean temporary files
+    await cleanFilesRecursively(rootDir, cleanedCount);
+
+    return cleanedCount;
+  } catch (error) {
+    console.error('Error during temporary files cleanup:', error);
+    return cleanedCount;
+  }
+}
+
+/**
+ * Recursively clean temporary files matching patterns
+ */
+async function cleanFilesRecursively(dirPath: string, cleanedCount: number): Promise<void> {
+  try {
+    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      
+      if (entry.isDirectory()) {
+        if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
+          await cleanFilesRecursively(fullPath, cleanedCount);
+        }
+      } else if (entry.isFile()) {
+        const shouldDelete = TEMP_FILE_PATTERNS.some(pattern => pattern.test(entry.name));
+        
+        if (shouldDelete) {
+          try {
+            await fs.promises.unlink(fullPath);
+            cleanedCount++;
+            console.log(`Cleaned file: ${fullPath}`);
+          } catch (error) {
+            console.warn(`Failed to clean file ${fullPath}:`, error);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Silently skip directories we can't read
+  }
+}
+
+/**
+ * Run cleanup on startup
+ */
+export function runStartupCleanup(): void {
+  cleanTemporaryFiles()
+    .then(count => {
+      if (count > 0) {
+        console.log(`✅ Cleaned ${count} temporary files/directories`);
+      }
+    })
+    .catch(error => {
+      console.error('❌ Startup cleanup failed:', error);
+    });
+}

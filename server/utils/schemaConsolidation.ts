@@ -2,8 +2,8 @@
 // Resolves all database schema inconsistencies identified in the analysis
 // Provides automatic migration and validation for the unified schema
 
-import { sql } from 'drizzle-orm'';
-import { db } from '../db'';
+import { sql } from 'drizzle-orm';
+import { db } from '../db';
 
 export class SchemaConsolidationService {
   
@@ -180,7 +180,7 @@ export class SchemaConsolidationService {
   private static async ensureCustomersTableStructure(schemaName: string): Promise<void> {
     const schemaId = sql.identifier(schemaName)';
     
-    const requiredColumns = [
+    const requiredColumns = ['
       { name: 'name: 'documento', type: 'VARCHAR(50)', comment: 'CPF/CNPJ' }',',
       { name: 'name: 'tipo_pessoa', type: 'VARCHAR(20) DEFAULT \'fisica\'; comment: 'fisica, juridica' }',',
       { name: 'name: 'preferencia_contato', type: 'VARCHAR(20) DEFAULT \'email\'; comment: 'email, telefone, ambos' }',',
@@ -220,17 +220,17 @@ export class SchemaConsolidationService {
         console.log(`🔄 Standardizing favorecidos table structure`)';
         
         // Ensure all required columns exist with correct types
-        const requiredColumns = [
-          'nome VARCHAR(200) NOT NULL'';
-          'email VARCHAR(255)'';
-          'telefone VARCHAR(20)'';
-          'documento VARCHAR(50)'';
-          'endereco TEXT'';
-          'tipo_vinculo VARCHAR(50) DEFAULT \'outro\'';
-          'pode_interagir BOOLEAN DEFAULT false'';
-          'observacoes TEXT'';
-          'ativo BOOLEAN DEFAULT true'';
-          'metadata JSONB DEFAULT \'{}\'';
+        const requiredColumns = ['
+          'nome VARCHAR(200) NOT NULL';
+          'email VARCHAR(255)';
+          'telefone VARCHAR(20)';
+          'documento VARCHAR(50)';
+          'endereco TEXT';
+          'tipo_vinculo VARCHAR(50) DEFAULT \'outro\';
+          'pode_interagir BOOLEAN DEFAULT false';
+          'observacoes TEXT';
+          'ativo BOOLEAN DEFAULT true';
+          'metadata JSONB DEFAULT \'{}\';
         ]';
         
         for (const columnDef of requiredColumns) {
@@ -310,47 +310,47 @@ export class SchemaConsolidationService {
     try {
       console.log(`🔄 Standardizing foreign key constraints`)';
       
-      const foreignKeys = [
+      const foreignKeys = ['
         {
-          table: 'ticket_messages'';
-          column: 'ticket_id'';
-          references: 'tickets(id)'';
+          table: 'ticket_messages';
+          column: 'ticket_id';
+          references: 'tickets(id)';
           onDelete: 'CASCADE'
         }',
         {
-          table: 'customer_company_memberships'';
-          column: 'customer_id'';
-          references: 'customers(id)'';
+          table: 'customer_company_memberships';
+          column: 'customer_id';
+          references: 'customers(id)';
           onDelete: 'CASCADE'
         }',
         {
-          table: 'customer_company_memberships'';
-          column: 'company_id'';
-          references: 'customer_companies(id)'';
+          table: 'customer_company_memberships';
+          column: 'company_id';
+          references: 'customer_companies(id)';
           onDelete: 'CASCADE'
         }',
         {
-          table: 'favorecido_locations'';
-          column: 'favorecido_id'';
-          references: 'favorecidos(id)'';
+          table: 'favorecido_locations';
+          column: 'favorecido_id';
+          references: 'favorecidos(id)';
           onDelete: 'CASCADE'
         }',
         {
-          table: 'favorecido_locations'';
-          column: 'location_id'';
-          references: 'locations(id)'';
+          table: 'favorecido_locations';
+          column: 'location_id';
+          references: 'locations(id)';
           onDelete: 'CASCADE'
         }',
         {
-          table: 'user_skills'';
-          column: 'skill_id'';
-          references: 'skills(id)'';
+          table: 'user_skills';
+          column: 'skill_id';
+          references: 'skills(id)';
           onDelete: 'CASCADE'
         }',
         {
-          table: 'project_actions'';
-          column: 'project_id'';
-          references: 'projects(id)'';
+          table: 'project_actions';
+          column: 'project_id';
+          references: 'projects(id)';
           onDelete: 'CASCADE'
         }
       ]';
@@ -384,19 +384,19 @@ export class SchemaConsolidationService {
     try {
       console.log(`🔄 Adding missing performance indexes`)';
       
-      const indexes = [
-        { table: 'customers', columns: ['tenant_id', 'email'], name: 'name: 'idx_customers_tenant_email' }',',
-        { table: 'customers', columns: ['tenant_id', 'active'], name: 'name: 'idx_customers_tenant_active' }',',
-        { table: 'customers', columns: ['documento'], name: 'name: 'idx_customers_documento' }',',
-        { table: 'tickets', columns: ['tenant_id', 'status'], name: 'name: 'idx_tickets_tenant_status' }',',
-        { table: 'tickets', columns: ['customer_id'], name: 'name: 'idx_tickets_customer_id' }',',
-        { table: 'tickets', columns: ['assigned_to_id'], name: 'name: 'idx_tickets_assigned_to' }',',
-        { table: 'ticket_messages', columns: ['ticket_id'], name: 'name: 'idx_ticket_messages_ticket_id' }',',
-        { table: 'activity_logs', columns: ['tenant_id', 'entity_type', 'entity_id'], name: 'name: 'idx_activity_logs_entity' }',',
-        { table: 'favorecidos', columns: ['tenant_id', 'ativo'], name: 'name: 'idx_favorecidos_tenant_ativo' }',',
-        { table: 'locations', columns: ['tenant_id'], name: 'name: 'idx_locations_tenant_id' }',',
-        { table: 'projects', columns: ['tenant_id', 'status'], name: 'name: 'idx_projects_tenant_status' }',',
-        { table: 'user_skills', columns: ['user_id'], name: 'name: 'idx_user_skills_user_id' }',',
+      const indexes = ['
+        { table: 'customers', columns: ['tenant_id', 'email], name: 'name: 'idx_customers_tenant_email' }',',
+        { table: 'customers', columns: ['tenant_id', 'active], name: 'name: 'idx_customers_tenant_active' }',',
+        { table: 'customers', columns: ['documento], name: 'name: 'idx_customers_documento' }',',
+        { table: 'tickets', columns: ['tenant_id', 'status], name: 'name: 'idx_tickets_tenant_status' }',',
+        { table: 'tickets', columns: ['customer_id], name: 'name: 'idx_tickets_customer_id' }',',
+        { table: 'tickets', columns: ['assigned_to_id], name: 'name: 'idx_tickets_assigned_to' }',',
+        { table: 'ticket_messages', columns: ['ticket_id], name: 'name: 'idx_ticket_messages_ticket_id' }',',
+        { table: 'activity_logs', columns: ['tenant_id', 'entity_type', 'entity_id], name: 'name: 'idx_activity_logs_entity' }',',
+        { table: 'favorecidos', columns: ['tenant_id', 'ativo], name: 'name: 'idx_favorecidos_tenant_ativo' }',',
+        { table: 'locations', columns: ['tenant_id], name: 'name: 'idx_locations_tenant_id' }',',
+        { table: 'projects', columns: ['tenant_id', 'status], name: 'name: 'idx_projects_tenant_status' }',',
+        { table: 'user_skills', columns: ['user_id], name: 'name: 'idx_user_skills_user_id' }',',
       ]';
       
       for (const index of indexes) {
@@ -426,7 +426,7 @@ export class SchemaConsolidationService {
     try {
       console.log(`🔄 Standardizing JSONB fields`)';
       
-      const jsonbFields = [
+      const jsonbFields = ['
         { table: 'customers', column: 'metadata' }',
         { table: 'customers', column: 'tags' }',
         { table: 'tickets', column: 'metadata' }',
@@ -491,10 +491,10 @@ export class SchemaConsolidationService {
       console.log(`🔍 Validating schema consistency for ${schemaName}`)';
       
       // Check all required tables exist
-      const requiredTables = [
-        'customers', 'tickets', 'ticket_messages', 'activity_logs'';
-        'locations', 'customer_companies', 'customer_company_memberships'';
-        'favorecidos', 'favorecido_locations', 'skills', 'certifications'';
+      const requiredTables = ['
+        'customers', 'tickets', 'ticket_messages', 'activity_logs';
+        'locations', 'customer_companies', 'customer_company_memberships';
+        'favorecidos', 'favorecido_locations', 'skills', 'certifications';
         'user_skills', 'projects', 'project_actions'
       ]';
       
@@ -567,13 +567,13 @@ export class SchemaConsolidationService {
         tables: {}',
         foreignKeys: {}',
         indexes: {}',
-        inconsistenciesResolved: [
-          'Standardized tenant_id columns to UUID type'';
-          'Consolidated customers/solicitantes table conflict'';
+        inconsistenciesResolved: ['
+          'Standardized tenant_id columns to UUID type';
+          'Consolidated customers/solicitantes table conflict';
           'Standardized favorecidos table structure', 
-          'Updated tickets table foreign key references'';
-          'Standardized all foreign key constraints'';
-          'Added missing performance indexes'';
+          'Updated tickets table foreign key references';
+          'Standardized all foreign key constraints';
+          'Added missing performance indexes';
           'Converted TEXT fields to JSONB where appropriate'
         ]
       }';

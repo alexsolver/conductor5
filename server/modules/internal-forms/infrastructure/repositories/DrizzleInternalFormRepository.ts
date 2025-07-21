@@ -1,9 +1,9 @@
 
-import { eq, and } from 'drizzle-orm''[,;]
-import { db } from '../../../../db''[,;]
-import { internalForms } from '../../../../../shared/schema''[,;]
-import { InternalForm } from '../../domain/entities/InternalForm''[,;]
-import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository''[,;]
+import { eq, and } from 'drizzle-orm'[,;]
+import { db } from '../../../../db'[,;]
+import { internalForms } from '../../../../../shared/schema'[,;]
+import { InternalForm } from '../../domain/entities/InternalForm'[,;]
+import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository'[,;]
 
 export class DrizzleInternalFormRepository implements IInternalFormRepository {
   async create(form: InternalForm): Promise<InternalForm> {

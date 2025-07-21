@@ -3,8 +3,8 @@
  * Clean Architecture - Infrastructure Layer
  */
 
-import { IDomainEventPublisher } from '../domain/IDomainEventPublisher''[,;]
-import { IDomainEvent } from '../domain/IDomainEvent''[,;]
+import { IDomainEventPublisher } from '../domain/IDomainEventPublisher'[,;]
+import { IDomainEvent } from '../domain/IDomainEvent'[,;]
 
 export class DomainEventPublisher implements IDomainEventPublisher {
   private eventHandlers = new Map<string, Array<(event: IDomainEvent) => Promise<void>>>()';

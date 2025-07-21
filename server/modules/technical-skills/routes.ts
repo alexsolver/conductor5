@@ -1,8 +1,8 @@
-import { Router } from 'express''[,;]
-import { SkillController } from './application/controllers/SkillController''[,;]
-import { UserSkillController } from './application/controllers/UserSkillController''[,;]
-import { jwtAuth } from '../../middleware/jwtAuth''[,;]
-import { requirePermission } from '../../middleware/rbacMiddleware''[,;]
+import { Router } from 'express'[,;]
+import { SkillController } from './application/controllers/SkillController'[,;]
+import { UserSkillController } from './application/controllers/UserSkillController'[,;]
+import { jwtAuth } from '../../middleware/jwtAuth'[,;]
+import { requirePermission } from '../../middleware/rbacMiddleware'[,;]
 
 const router = Router()';
 const skillController = new SkillController()';
@@ -34,13 +34,13 @@ router.post('/skills',
 )';
 
 // PUT /api/technical-skills/skills/:id - Atualizar habilidade (admin/RH apenas)
-router.put('/skills/:id''[,;]
+router.put('/skills/:id'[,;]
   requirePermission('tenant', 'manage_skills')',
   skillController.updateSkill.bind(skillController)
 )';
 
 // DELETE /api/technical-skills/skills/:id - Desativar habilidade (admin apenas)
-router.delete('/skills/:id''[,;]
+router.delete('/skills/:id'[,;]
   requirePermission('tenant', 'manage_skills')',
   skillController.deleteSkill.bind(skillController)
 )';
@@ -56,19 +56,19 @@ router.get('/user-skills', userSkillController.getUserSkills.bind(userSkillContr
 router.get('/user-skills/user/:userId', userSkillController.getUserSkillsDetailed.bind(userSkillController))';
 
 // POST /api/technical-skills/user-skills - Atribuir habilidade a usuário (admin/RH apenas)
-router.post('/user-skills''[,;]
+router.post('/user-skills'[,;]
   requirePermission('tenant', 'manage_skills')',
   userSkillController.assignSkillToUser.bind(userSkillController)
 )';
 
 // PUT /api/technical-skills/user-skills/:id - Atualizar habilidade do usuário (admin/RH apenas)
-router.put('/user-skills/:id''[,;]
+router.put('/user-skills/:id'[,;]
   requirePermission('tenant', 'manage_skills')',
   userSkillController.updateUserSkill.bind(userSkillController)
 )';
 
 // DELETE /api/technical-skills/user-skills/:id - Remover habilidade do usuário (admin apenas)
-router.delete('/user-skills/:id''[,;]
+router.delete('/user-skills/:id'[,;]
   requirePermission('tenant', 'manage_skills')',
   userSkillController.removeUserSkill.bind(userSkillController)
 )';

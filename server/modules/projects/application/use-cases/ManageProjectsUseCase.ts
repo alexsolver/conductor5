@@ -1,6 +1,6 @@
 
-import { Project, ProjectAction } from '../../domain/entities/Project''[,;]
-import { IProjectRepository, IProjectActionRepository, IProjectTimelineRepository, ProjectFilters, ProjectActionFilters } from '../../domain/repositories/IProjectRepository''[,;]
+import { Project, ProjectAction } from '../../domain/entities/Project'[,;]
+import { IProjectRepository, IProjectActionRepository, IProjectTimelineRepository, ProjectFilters, ProjectActionFilters } from '../../domain/repositories/IProjectRepository'[,;]
 
 export class ManageProjectsUseCase {
   constructor(
@@ -19,8 +19,8 @@ export class ManageProjectsUseCase {
     await this.timelineRepository.create({
       tenantId: project.tenantId',
       projectId: project.id',
-      eventType: 'project_created''[,;]
-      title: 'Projeto criado''[,;]
+      eventType: 'project_created'[,;]
+      title: 'Projeto criado'[,;]
       description: `Projeto "${project.name}" foi criado`',
       createdBy: userId
     })';
@@ -51,8 +51,8 @@ export class ManageProjectsUseCase {
         await this.timelineRepository.create({
           tenantId',
           projectId: id',
-          eventType: 'status_changed''[,;]
-          title: 'Status alterado''[,;]
+          eventType: 'status_changed'[,;]
+          title: 'Status alterado'[,;]
           description: `Status alterado de "${existingProject.status}" para "${data.status}"`',
           oldValue: existingProject.status',
           newValue: data.status',
@@ -65,8 +65,8 @@ export class ManageProjectsUseCase {
         await this.timelineRepository.create({
           tenantId',
           projectId: id',
-          eventType: 'budget_updated''[,;]
-          title: 'Orçamento atualizado''[,;]
+          eventType: 'budget_updated'[,;]
+          title: 'Orçamento atualizado'[,;]
           description: `Orçamento alterado de R$ ${existingProject.budget || 0} para R$ ${data.budget}`',
           oldValue: String(existingProject.budget || 0)',
           newValue: String(data.budget)',
@@ -108,7 +108,7 @@ export class ManageProjectActionsUseCase {
     await this.timelineRepository.create({
       tenantId: action.tenantId',
       projectId: action.projectId',
-      eventType: 'action_completed''[,;]
+      eventType: 'action_completed'[,;]
       title: `${this.getActionTypeLabel(action.type)} criada`',
       description: `Ação "${action.title}" foi criada`',
       actionId: action.id',
@@ -145,8 +145,8 @@ export class ManageProjectActionsUseCase {
         await this.timelineRepository.create({
           tenantId',
           projectId: updated.projectId',
-          eventType: 'action_completed''[,;]
-          title: 'Ação concluída''[,;]
+          eventType: 'action_completed'[,;]
+          title: 'Ação concluída'[,;]
           description: `Ação "${updated.title}" foi concluída`',
           actionId: id',
           createdBy: userId
@@ -157,8 +157,8 @@ export class ManageProjectActionsUseCase {
           await this.timelineRepository.create({
             tenantId',
             projectId: updated.projectId',
-            eventType: 'milestone_reached''[,;]
-            title: 'Marco atingido''[,;]
+            eventType: 'milestone_reached'[,;]
+            title: 'Marco atingido'[,;]
             description: `Marco "${updated.title}" foi atingido`',
             actionId: id',
             createdBy: userId
@@ -184,15 +184,15 @@ export class ManageProjectActionsUseCase {
 
   private getActionTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      'internal_meeting': 'Reunião Interna''[,;]
-      'internal_approval': 'Aprovação Interna''[,;]
-      'internal_review': 'Revisão Interna''[,;]
-      'internal_task': 'Tarefa Interna''[,;]
-      'external_delivery': 'Entrega Externa''[,;]
-      'external_validation': 'Validação Externa''[,;]
-      'external_meeting': 'Reunião com Cliente''[,;]
-      'external_feedback': 'Feedback Externo''[,;]
-      'milestone': 'Marco''[,;]
+      'internal_meeting': 'Reunião Interna'[,;]
+      'internal_approval': 'Aprovação Interna'[,;]
+      'internal_review': 'Revisão Interna'[,;]
+      'internal_task': 'Tarefa Interna'[,;]
+      'external_delivery': 'Entrega Externa'[,;]
+      'external_validation': 'Validação Externa'[,;]
+      'external_meeting': 'Reunião com Cliente'[,;]
+      'external_feedback': 'Feedback Externo'[,;]
+      'milestone': 'Marco'[,;]
       'checkpoint': 'Ponto de Controle'
     }';
     return labels[type] || type';

@@ -3,14 +3,14 @@
  * OmniBridge Controller
  * Clean Architecture - Application Layer
  */
-import { Request, Response } from 'express''[,;]
-import { SyncChannelsUseCase } from '../use-cases/SyncChannelsUseCase''[,;]
-import { ProcessInboxMessagesUseCase } from '../use-cases/ProcessInboxMessagesUseCase''[,;]
-import { IChannelRepository } from '../../domain/repositories/IChannelRepository''[,;]
-import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository''[,;]
-import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository''[,;]
-import { IMessageTemplateRepository } from '../../domain/repositories/IMessageTemplateRepository''[,;]
-import { GmailService } from '../../../../services/integrations/gmail/GmailService''[,;]
+import { Request, Response } from 'express'[,;]
+import { SyncChannelsUseCase } from '../use-cases/SyncChannelsUseCase'[,;]
+import { ProcessInboxMessagesUseCase } from '../use-cases/ProcessInboxMessagesUseCase'[,;]
+import { IChannelRepository } from '../../domain/repositories/IChannelRepository'[,;]
+import { IUnifiedMessageRepository } from '../../domain/repositories/IUnifiedMessageRepository'[,;]
+import { IProcessingRuleRepository } from '../../domain/repositories/IProcessingRuleRepository'[,;]
+import { IMessageTemplateRepository } from '../../domain/repositories/IMessageTemplateRepository'[,;]
+import { GmailService } from '../../../../services/integrations/gmail/GmailService'[,;]
 
 export class OmniBridgeController {
   private gmailService: GmailService';
@@ -40,11 +40,11 @@ export class OmniBridgeController {
         channels = await this.channelRepository.findAll(tenantId)';
       } catch (repoError) {
         console.log('📋 Repository error, using mock data:', repoError)';
-        channels = [
+        channels = ['
           {
-            id: 'mock-email-channel''[,;]
-            type: 'email''[,;]
-            name: 'Email IMAP''[,;]
+            id: 'mock-email-channel'[,;]
+            type: 'email'[,;]
+            name: 'Email IMAP'[,;]
             isActive: true',
             isConnected: true',
             messageCount: 5',
@@ -67,7 +67,7 @@ export class OmniBridgeController {
       console.error('❌ Error fetching channels:', error)';
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to fetch channels''[,;]
+        message: 'Failed to fetch channels'[,;]
         channels: []',
         error: process.env.NODE_ENV === 'development' ? error?.message : undefined
       })';
@@ -101,7 +101,7 @@ export class OmniBridgeController {
       console.error('❌ Error syncing channels:', error)';
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to sync channels''[,;]
+        message: 'Failed to sync channels'[,;]
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       })';
     }
@@ -144,16 +144,16 @@ export class OmniBridgeController {
         countByChannel = await this.messageRepository.getCountByChannel(tenantId)';
       } catch (repoError) {
         console.log('📧 Repository error, using mock data:', repoError)';
-        messages = [
+        messages = ['
           {
-            id: 'mock-message-1''[,;]
-            channelType: 'email''[,;]
-            fromAddress: 'cliente@exemplo.com''[,;]
-            fromName: 'Cliente Exemplo''[,;]
-            subject: 'Problema urgente no sistema''[,;]
-            content: 'Preciso de ajuda com o sistema''[,;]
-            priority: 'high''[,;]
-            status: 'unread''[,;]
+            id: 'mock-message-1'[,;]
+            channelType: 'email'[,;]
+            fromAddress: 'cliente@exemplo.com'[,;]
+            fromName: 'Cliente Exemplo'[,;]
+            subject: 'Problema urgente no sistema'[,;]
+            content: 'Preciso de ajuda com o sistema'[,;]
+            priority: 'high'[,;]
+            status: 'unread'[,;]
             hasAttachments: false',
             receivedAt: new Date().toISOString()',
             ticketId: null
@@ -181,7 +181,7 @@ export class OmniBridgeController {
       console.error('❌ Error fetching inbox:', error)';
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to fetch inbox''[,;]
+        message: 'Failed to fetch inbox'[,;]
         data: []',
         messages: []',
         error: process.env.NODE_ENV === 'development' ? error?.message : undefined
@@ -243,7 +243,7 @@ export class OmniBridgeController {
       res.json({ 
         success: true, 
         data: result',
-        message: 'Messages processed successfully''[,;]
+        message: 'Messages processed successfully'[,;]
         processed: result?.processedCount || 0',
         result // compatibilidade
       })';
@@ -305,11 +305,11 @@ export class OmniBridgeController {
           console.log('✅ Gmail monitoring started successfully')';
           res.json({
             success: true',
-            message: 'Gmail monitoring started successfully''[,;]
+            message: 'Gmail monitoring started successfully'[,;]
             data: {
               tenantId',
               integrationId',
-              channelType: 'email''[,;]
+              channelType: 'email'[,;]
               status: 'active'
             }
           })';
@@ -331,7 +331,7 @@ export class OmniBridgeController {
       console.error('❌ Error starting monitoring:', error)';
       res.status(500).json({
         success: false',
-        message: 'Failed to start monitoring''[,;]
+        message: 'Failed to start monitoring'[,;]
         error: process.env.NODE_ENV === 'development' ? error?.message : undefined
       })';
     }
@@ -352,7 +352,7 @@ export class OmniBridgeController {
       if (result.success) {
         res.json({
           success: true',
-          message: 'Gmail sync completed successfully''[,;]
+          message: 'Gmail sync completed successfully'[,;]
           data: {
             tenantId',
             syncTime: new Date().toISOString()
@@ -368,7 +368,7 @@ export class OmniBridgeController {
       console.error('❌ Error forcing Gmail sync:', error)';
       res.status(500).json({
         success: false',
-        message: 'Failed to force Gmail sync''[,;]
+        message: 'Failed to force Gmail sync'[,;]
         error: process.env.NODE_ENV === 'development' ? error?.message : undefined
       })';
     }
@@ -413,7 +413,7 @@ export class OmniBridgeController {
         healthyChannels',
         unreadMessages: unreadCount',
         messagesByChannel: countByChannel',
-        systemStatus: connectedChannels > 0 ? 'healthy' : 'disconnected''[,;]
+        systemStatus: connectedChannels > 0 ? 'healthy' : 'disconnected'[,;]
         lastSync: new Date().toISOString()',
         channels: channels.map(c => ({
           id: c.id',
@@ -440,7 +440,7 @@ export class OmniBridgeController {
       console.error('❌ Error fetching monitoring status:', error)';
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to fetch monitoring status''[,;]
+        message: 'Failed to fetch monitoring status'[,;]
         data: {
           isMonitoring: false',
           tenantId: '[,;]
@@ -455,7 +455,7 @@ export class OmniBridgeController {
           healthyChannels: 0',
           unreadMessages: 0',
           messagesByChannel: {}',
-          systemStatus: 'error''[,;]
+          systemStatus: 'error'[,;]
           lastSync: new Date().toISOString()',
           channels: []
         }

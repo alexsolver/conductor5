@@ -1,0 +1,303 @@
+/**
+ * Enhanced WebSocket Stability Middleware
+ * Provides comprehensive WebSocket connection management and stability
+ */
+
+import { Server } from 'http';
+import WebSocket from 'ws';
+import { logInfo, logError } from '../utils/logger';
+
+interface WebSocketConnection {
+  id: string;
+  socket: WebSocket;
+  lastPing: number;
+  isAlive: boolean;
+  metadata: {
+    userAgent?: string;
+    ip?: string;
+    tenantId?: string;
+  };
+}
+
+export class EnhancedWebSocketStabilizer {
+  private connections: Map<string, WebSocketConnection> = new Map();
+  private pingInterval: NodeJS.Timeout | null = null;
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  private wss: WebSocket.Server | null = null;
+
+  constructor(
+    private server: Server,
+    private options = {
+      pingInterval: 30000, // 30 seconds
+      connectionTimeout: 60000, // 1 minute
+      maxConnections: 1000,
+      cleanupInterval: 300000 // 5 minutes
+    }
+  ) {}
+
+  initialize(): void {
+    try {
+      this.wss = new WebSocket.Server({ 
+        server: this.server,
+        verifyClient: (info) => this.verifyClient(info)
+      });
+
+      this.wss.on('connection', (socket, request) => {
+        this.handleConnection(socket, request);
+      });
+
+      this.startPingInterval();
+      this.startCleanupInterval();
+
+      logInfo('Enhanced WebSocket Stabilizer initialized successfully');
+    } catch (error) {
+      logError('Failed to initialize Enhanced WebSocket Stabilizer', error);
+    }
+  }
+
+  private verifyClient(info: any): boolean {
+    // Basic rate limiting per IP
+    const connectionsFromIP = Array.from(this.connections.values())
+      .filter(conn => conn.metadata.ip === info.req.socket.remoteAddress);
+    
+    if (connectionsFromIP.length > 10) {
+      logError('Too many connections from IP', { ip: info.req.socket.remoteAddress });
+      return false;
+    }
+
+    // Check total connections
+    if (this.connections.size >= this.options.maxConnections) {
+      logError('Maximum connections reached', { current: this.connections.size });
+      return false;
+    }
+
+    return true;
+  }
+
+  private handleConnection(socket: WebSocket, request: any): void {
+    const connectionId = this.generateConnectionId();
+    const connection: WebSocketConnection = {
+      id: connectionId,
+      socket,
+      lastPing: Date.now(),
+      isAlive: true,
+      metadata: {
+        userAgent: request.headers['user-agent'],
+        ip: request.socket.remoteAddress,
+        tenantId: this.extractTenantId(request)
+      }
+    };
+
+    this.connections.set(connectionId, connection);
+
+    socket.on('pong', () => {
+      connection.isAlive = true;
+      connection.lastPing = Date.now();
+    });
+
+    socket.on('message', (data) => {
+      this.handleMessage(connection, data);
+    });
+
+    socket.on('close', () => {
+      this.connections.delete(connectionId);
+      logInfo('WebSocket connection closed', { connectionId });
+    });
+
+    socket.on('error', (error) => {
+      logError('WebSocket connection error', error, { connectionId });
+      this.connections.delete(connectionId);
+    });
+
+    logInfo('WebSocket connection established', { 
+      connectionId, 
+      totalConnections: this.connections.size 
+    });
+  }
+
+  private handleMessage(connection: WebSocketConnection, data: WebSocket.Data): void {
+    try {
+      const message = JSON.parse(data.toString());
+      
+      // Update connection activity
+      connection.lastPing = Date.now();
+      connection.isAlive = true;
+
+      // Handle different message types
+      switch (message.type) {
+        case 'ping':
+          connection.socket.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+          break;
+        case 'subscribe':
+          this.handleSubscription(connection, message);
+          break;
+        case 'unsubscribe':
+          this.handleUnsubscription(connection, message);
+          break;
+        default:
+          logInfo('Unknown WebSocket message type', { type: message.type });
+      }
+    } catch (error) {
+      logError('Error handling WebSocket message', error, { 
+        connectionId: connection.id 
+      });
+    }
+  }
+
+  private handleSubscription(connection: WebSocketConnection, message: any): void {
+    // Implement subscription logic based on your needs
+    logInfo('WebSocket subscription', { 
+      connectionId: connection.id,
+      channel: message.channel 
+    });
+  }
+
+  private handleUnsubscription(connection: WebSocketConnection, message: any): void {
+    // Implement unsubscription logic based on your needs
+    logInfo('WebSocket unsubscription', { 
+      connectionId: connection.id,
+      channel: message.channel 
+    });
+  }
+
+  private startPingInterval(): void {
+    this.pingInterval = setInterval(() => {
+      this.connections.forEach((connection) => {
+        if (!connection.isAlive) {
+          logInfo('Terminating inactive WebSocket connection', { 
+            connectionId: connection.id 
+          });
+          connection.socket.terminate();
+          this.connections.delete(connection.id);
+          return;
+        }
+
+        connection.isAlive = false;
+        connection.socket.ping();
+      });
+    }, this.options.pingInterval);
+  }
+
+  private startCleanupInterval(): void {
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      const staleConnections: string[] = [];
+
+      this.connections.forEach((connection, id) => {
+        if (now - connection.lastPing > this.options.connectionTimeout) {
+          staleConnections.push(id);
+        }
+      });
+
+      staleConnections.forEach(id => {
+        const connection = this.connections.get(id);
+        if (connection) {
+          logInfo('Cleaning up stale WebSocket connection', { connectionId: id });
+          connection.socket.terminate();
+          this.connections.delete(id);
+        }
+      });
+
+      if (staleConnections.length > 0) {
+        logInfo('Cleaned up stale connections', { 
+          cleaned: staleConnections.length,
+          remaining: this.connections.size 
+        });
+      }
+    }, this.options.cleanupInterval);
+  }
+
+  private generateConnectionId(): string {
+    return `ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private extractTenantId(request: any): string | undefined {
+    // Extract tenant ID from query params, headers, or JWT token
+    return request.url?.includes('tenantId=') 
+      ? new URL(request.url, 'http://localhost').searchParams.get('tenantId') || undefined
+      : undefined;
+  }
+
+  broadcast(message: any, filter?: (connection: WebSocketConnection) => boolean): void {
+    const messageStr = JSON.stringify(message);
+    let sentCount = 0;
+
+    this.connections.forEach((connection) => {
+      if (connection.socket.readyState === WebSocket.OPEN) {
+        if (!filter || filter(connection)) {
+          connection.socket.send(messageStr);
+          sentCount++;
+        }
+      }
+    });
+
+    logInfo('WebSocket broadcast sent', { 
+      message: message.type || 'unknown',
+      sentTo: sentCount,
+      totalConnections: this.connections.size 
+    });
+  }
+
+  getConnectionStats(): {
+    total: number;
+    byTenant: Record<string, number>;
+    byIP: Record<string, number>;
+  } {
+    const stats = {
+      total: this.connections.size,
+      byTenant: {} as Record<string, number>,
+      byIP: {} as Record<string, number>
+    };
+
+    this.connections.forEach((connection) => {
+      // Count by tenant
+      const tenantId = connection.metadata.tenantId || 'unknown';
+      stats.byTenant[tenantId] = (stats.byTenant[tenantId] || 0) + 1;
+
+      // Count by IP
+      const ip = connection.metadata.ip || 'unknown';
+      stats.byIP[ip] = (stats.byIP[ip] || 0) + 1;
+    });
+
+    return stats;
+  }
+
+  destroy(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+    }
+
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+
+    this.connections.forEach((connection) => {
+      connection.socket.terminate();
+    });
+
+    this.connections.clear();
+
+    if (this.wss) {
+      this.wss.close();
+    }
+
+    logInfo('Enhanced WebSocket Stabilizer destroyed');
+  }
+}
+
+// Export singleton instance
+let stabilizer: EnhancedWebSocketStabilizer | null = null;
+
+export function initializeWebSocketStabilizer(server: Server): EnhancedWebSocketStabilizer {
+  if (stabilizer) {
+    stabilizer.destroy();
+  }
+
+  stabilizer = new EnhancedWebSocketStabilizer(server);
+  stabilizer.initialize();
+  return stabilizer;
+}
+
+export function getWebSocketStabilizer(): EnhancedWebSocketStabilizer | null {
+  return stabilizer;
+}

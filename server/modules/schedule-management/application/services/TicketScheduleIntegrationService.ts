@@ -1,6 +1,6 @@
 
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository''[,;]
-import { DrizzleScheduleRepository } from '../../infrastructure/repositories/DrizzleScheduleRepository''[,;]
+import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository'[,;]
+import { DrizzleScheduleRepository } from '../../infrastructure/repositories/DrizzleScheduleRepository'[,;]
 
 export class TicketScheduleIntegrationService {
   private scheduleRepository: IScheduleRepository';
@@ -34,8 +34,8 @@ export class TicketScheduleIntegrationService {
         description: ticketData.description',
         startTime: slot.startTime',
         endTime: slot.endTime',
-        type: 'ticket_service''[,;]
-        status: 'scheduled''[,;]
+        type: 'ticket_service'[,;]
+        status: 'scheduled'[,;]
         priority: this.mapTicketPriorityToSchedulePriority(ticketData.priority)',
         ticketId: ticketData.id',
         customerId: ticketData.customerId',
@@ -160,12 +160,12 @@ export class TicketScheduleIntegrationService {
 
   private mapTicketPriorityToSchedulePriority(ticketPriority: string): 'low' | 'medium' | 'high' | 'urgent' {
     const mapping: { [key: string]: 'low' | 'medium' | 'high' | 'urgent' } = {
-      'low': 'low''[,;]
-      'medium': 'medium''[,;]
-      'high': 'high''[,;]
+      'low': 'low'[,;]
+      'medium': 'medium'[,;]
+      'high': 'high'[,;]
       'urgent': 'urgent'
     }';
     
-    return mapping[ticketPriority] || 'medium''[,;]
+    return mapping[ticketPriority] || 'medium'[,;]
   }
 }

@@ -9,7 +9,7 @@ export interface UserCreateProps {
   password: string';
   firstName?: string';
   lastName?: string';
-  role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer''[,;]
+  role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer'[,;]
   tenantId?: string';
   active?: boolean';
   verified?: boolean';
@@ -22,7 +22,7 @@ export class User {
     private readonly passwordHash: string',
     private firstName: string | null',
     private lastName: string | null',
-    private role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer''[,;]
+    private role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer'[,;]
     private tenantId: string | null',
     private active: boolean',
     private verified: boolean',
@@ -74,19 +74,19 @@ export class User {
   }
 
   isSaasAdmin(): boolean {
-    return this.role === 'saas_admin''[,;]
+    return this.role === 'saas_admin'[,;]
   }
 
   isTenantAdmin(): boolean {
-    return this.role === 'tenant_admin''[,;]
+    return this.role === 'tenant_admin'[,;]
   }
 
   isAgent(): boolean {
-    return this.role === 'agent''[,;]
+    return this.role === 'agent'[,;]
   }
 
   isCustomer(): boolean {
-    return this.role === 'customer''[,;]
+    return this.role === 'customer'[,;]
   }
 
   hasPermissionFor(permission: string): boolean {
@@ -97,34 +97,34 @@ export class User {
   private getRolePermissions(): string[] {
     switch (this.role) {
       case 'saas_admin':
-        return [
-          'platform:manage''[,;]
-          'tenant:create''[,;]
-          'tenant:manage''[,;]
-          'user:manage''[,;]
-          'ticket:manage''[,;]
-          'customer:manage''[,;]
+        return ['
+          'platform:manage'[,;]
+          'tenant:create'[,;]
+          'tenant:manage'[,;]
+          'user:manage'[,;]
+          'ticket:manage'[,;]
+          'customer:manage'[,;]
           'analytics:view'
         ]';
       case 'tenant_admin':
-        return [
-          'tenant:view''[,;]
-          'user:manage''[,;]
-          'ticket:manage''[,;]
-          'customer:manage''[,;]
+        return ['
+          'tenant:view'[,;]
+          'user:manage'[,;]
+          'ticket:manage'[,;]
+          'customer:manage'[,;]
           'analytics:view'
         ]';
       case 'agent':
-        return [
-          'ticket:view''[,;]
-          'ticket:assign''[,;]
-          'ticket:resolve''[,;]
-          'customer:view''[,;]
+        return ['
+          'ticket:view'[,;]
+          'ticket:assign'[,;]
+          'ticket:resolve'[,;]
+          'customer:view'[,;]
           'customer:create'
         ]';
       case 'customer':
-        return [
-          'ticket:create''[,;]
+        return ['
+          'ticket:create'[,;]
           'ticket:view_own'
         ]';
       default:
@@ -139,7 +139,7 @@ export class User {
   }
 
   requiresTenant(): boolean {
-    return this.role !== 'saas_admin''[,;]
+    return this.role !== 'saas_admin'[,;]
   }
 
   // Factory method

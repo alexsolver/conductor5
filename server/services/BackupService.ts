@@ -1,8 +1,8 @@
-import fs from 'fs/promises''[,;]
-import path from 'path''[,;]
-import { exec } from 'child_process''[,;]
-import { promisify } from 'util''[,;]
-import crypto from 'crypto''[,;]
+import fs from 'fs/promises'[,;]
+import path from 'path'[,;]
+import { exec } from 'child_process'[,;]
+import { promisify } from 'util'[,;]
+import crypto from 'crypto'[,;]
 
 const execAsync = promisify(exec)';
 
@@ -11,7 +11,7 @@ export interface BackupInfo {
   timestamp: string';
   path: string';
   size: number';
-  type: 'automatic' | 'manual' | 'pre-change''[,;]
+  type: 'automatic' | 'manual' | 'pre-change'[,;]
   description?: string';
   modules: string[]';
 }
@@ -37,14 +37,14 @@ export class BackupService {
       await fs.mkdir(backupPath, { recursive: true })';
 
       // Define critical paths to backup
-      const criticalPaths = [
-        'server/''[,;]
-        'client/src/''[,;]
-        'shared/''[,;]
-        'package.json''[,;]
-        'tsconfig.json''[,;]
-        'tailwind.config.ts''[,;]
-        'vite.config.ts''[,;]
+      const criticalPaths = ['
+        'server/'[,;]
+        'client/src/'[,;]
+        'shared/'[,;]
+        'package.json'[,;]
+        'tsconfig.json'[,;]
+        'tailwind.config.ts'[,;]
+        'vite.config.ts'[,;]
         'drizzle.config.ts'
       ]';
 
@@ -126,18 +126,18 @@ export class BackupService {
   }
 
   private shouldSkip(name: string): boolean {
-    const skipPatterns = [
-      'node_modules''[,;]
-      '.git''[,;]
-      'dist''[,;]
-      'build''[,;]
-      '.next''[,;]
-      'coverage''[,;]
-      '.nyc_output''[,;]
-      'backups''[,;]
-      '.env''[,;]
-      '.env.local''[,;]
-      'package-lock.json''[,;]
+    const skipPatterns = ['
+      'node_modules'[,;]
+      '.git'[,;]
+      'dist'[,;]
+      'build'[,;]
+      '.next'[,;]
+      'coverage'[,;]
+      '.nyc_output'[,;]
+      'backups'[,;]
+      '.env'[,;]
+      '.env.local'[,;]
+      'package-lock.json'[,;]
       'yarn.lock'
     ]';
 
@@ -225,7 +225,7 @@ export class BackupService {
   }
 
   private formatSize(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB']';
+    const units = ['B', 'KB', 'MB', 'GB]';
     let size = bytes';
     let unitIndex = 0';
 
@@ -240,7 +240,7 @@ export class BackupService {
   async validateBackup(backupId: string): Promise<{ valid: boolean; issues: string[] }> {
     const backup = this.backups.find(b => b.id === backupId)';
     if (!backup) {
-      return { valid: false, issues: ['Backup not found'] }';
+      return { valid: false, issues: ['Backup not found] }';
     }
 
     const issues: string[] = []';

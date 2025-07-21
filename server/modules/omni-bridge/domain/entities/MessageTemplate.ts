@@ -60,7 +60,7 @@ export interface TemplateVariable {
   key: string';
   name: string';
   description: string';
-  type: 'text' | 'number' | 'date' | 'email''[,;]
+  type: 'text' | 'number' | 'date' | 'email'[,;]
   required: boolean';
   defaultValue?: string';
 }

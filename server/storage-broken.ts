@@ -447,7 +447,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`';
 
       // Get stats from database
-      const [customersResult, ticketsResult, openTicketsResult] = await Promise.all([
+      const [customersResult, ticketsResult, openTicketsResult] = await Promise.all(['
         db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'customers')}`)',
         db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'tickets')}`)',
         db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(schemaName, 'tickets')} WHERE status = 'open'`)

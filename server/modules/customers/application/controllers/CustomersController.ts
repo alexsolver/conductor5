@@ -22,8 +22,8 @@ interface AuthenticatedRequest extends Request {
 const paginationSchema = z.object({
   page: z.string().regex(/^\d+$/).transform(Number).default("1")',
   limit: z.string().regex(/^\d+$/).transform(Number).default("50")',
-  verified: z.enum(['true', 'false']).optional()',
-  active: z.enum(['true', 'false']).optional()',
+  verified: z.enum(['true', 'false]).optional()',
+  active: z.enum(['true', 'false]).optional()',
   company: z.string().optional()',
 })';
 

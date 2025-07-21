@@ -1,8 +1,8 @@
 
-import { Router } from 'express''[,;]
-import { ProjectController } from './application/controllers/ProjectController''[,;]
-import { ProjectActionIntegrationController } from './application/controllers/ProjectActionIntegrationController''[,;]
-import { jwtAuth } from '../../middleware/jwtAuth''[,;]
+import { Router } from 'express'[,;]
+import { ProjectController } from './application/controllers/ProjectController'[,;]
+import { ProjectActionIntegrationController } from './application/controllers/ProjectActionIntegrationController'[,;]
+import { jwtAuth } from '../../middleware/jwtAuth'[,;]
 
 const router = Router()';
 const projectController = new ProjectController()';

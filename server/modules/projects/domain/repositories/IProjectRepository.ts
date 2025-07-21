@@ -1,5 +1,5 @@
 
-import { Project, ProjectAction, ProjectTimeline } from '../entities/Project''[,;]
+import { Project, ProjectAction, ProjectTimeline } from '../entities/Project'[,;]
 
 export interface ProjectFilters {
   status?: string';

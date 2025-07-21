@@ -3,8 +3,8 @@
  * Clean Architecture - Application Layer
  */
 
-import { Ticket } from '../../domain/entities/Ticket''[,;]
-import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository''[,;]
+import { Ticket } from '../../domain/entities/Ticket'[,;]
+import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository'[,;]
 
 export interface GetTicketsInput {
   tenantId: string';
@@ -48,7 +48,7 @@ export class GetTicketsUseCase {
         offset: input.offset || 0
       }';
 
-      const [tickets, total] = await Promise.all([
+      const [tickets, total] = await Promise.all(['
         this.ticketRepository.findMany(filter)',
         this.ticketRepository.count({
           tenantId: filter.tenantId',
