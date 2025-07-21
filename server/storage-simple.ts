@@ -972,6 +972,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
         SET status = ${status}, updated_at = NOW()
         WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
       `);
@@ -1000,22 +1001,28 @@ export class DatabaseStorage implements IStorage {
       const tableExists = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} 
+          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
         );
       `);
 
       if (!tableExists.rows?.[0]?.exists) {
+        console.log(`🔧 Creating integrations table for tenant ${validatedTenantId}`);
         await this.createDefaultIntegrations(validatedTenantId);
       }
 
       const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${validatedTenantId}
         ORDER BY created_at DESC
       `);
 
       if (result.rows && result.rows.length === 0) {
+        console.log(`🔧 No integrations found, creating defaults for tenant ${validatedTenantId}`);
         await this.createDefaultIntegrations(validatedTenantId);
         // Re-fetch after creating defaults
         const newResult = await tenantDb.execute(sql`
+          SELECT * FROM ${sql.identifier(schemaName)}.integrations
+          WHERE tenant_id = ${validatedTenantId}
           ORDER BY created_at DESC
         `);
         return newResult.rows || [];
@@ -1034,7 +1041,8 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        WHERE id = ${integrationId}
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
 
