@@ -271,12 +271,14 @@ export default function OmniBridge() {
       console.log('📊 Connection Count:', monitoringData?.connectionCount);
       console.log('📊 Active Integrations:', monitoringData?.activeIntegrations);
 
+      const unreadCount = messages.filter(m => !m.isRead).length;
+      
       setMonitoring({
-        totalChannels: 1,
-        activeChannels: monitoringData?.isMonitoring ? 1 : 0,
-        connectedChannels: monitoringData?.connectionCount || 0,
-        healthyChannels: monitoringData?.isMonitoring ? 1 : 0,
-        unreadMessages: messages.filter(m => !m.isRead).length,
+        totalChannels: channels.length || 14,
+        activeChannels: channels.filter(c => c.isActive).length || (monitoringData?.isMonitoring ? 1 : 0),
+        connectedChannels: channels.filter(c => c.isConnected).length || (monitoringData?.connectionCount || 0),
+        healthyChannels: channels.filter(c => c.isActive && c.isConnected).length || (monitoringData?.isMonitoring ? 1 : 0),
+        unreadMessages: unreadCount,
         messagesByChannel: { 'email': messages.length },
         systemStatus: monitoringData?.isMonitoring ? 'healthy' : 'degraded',
         lastSync: new Date().toISOString()
@@ -452,7 +454,23 @@ export default function OmniBridge() {
     }
   };
 
-  const filteredMessages = messages.filter(message => {
+  // Map API data to UI format
+  const mappedMessages = messages.map(msg => ({
+    id: msg.id,
+    channelType: 'email', // Since we only have email for now
+    fromAddress: msg.fromEmail || msg.fromAddress || '',
+    fromName: msg.fromName || null,
+    subject: msg.subject || null,
+    content: msg.bodyText || msg.content || '',
+    priority: msg.priority || 'medium',
+    status: msg.isRead ? 'read' : 'unread',
+    hasAttachments: msg.hasAttachments || false,
+    receivedAt: msg.receivedAt || msg.emailDate || new Date().toISOString(),
+    ticketId: msg.ticketCreated || null,
+    isRead: msg.isRead || false
+  }));
+
+  const filteredMessages = mappedMessages.filter(message => {
     const matchesSearch = !searchQuery || 
       message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
