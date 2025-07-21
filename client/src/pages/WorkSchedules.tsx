@@ -90,7 +90,15 @@ export default function WorkSchedules() {
     try {
       const newSchedule: WorkSchedule = {
         id: (schedules.length + 1).toString(),
-        ...formData,
+        userId: formData.userId,
+        scheduleType: formData.scheduleType as '5x2' | '6x1' | '12x36' | 'shift' | 'flexible' | 'intermittent',
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        workDays: formData.workDays,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        breakDurationMinutes: formData.breakDurationMinutes,
+        isActive: formData.isActive,
         userName: users.find(u => u.id === formData.userId)?.name || ''
       };
 
@@ -328,8 +336,8 @@ export default function WorkSchedules() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={scheduleMutation.isPending}>
-                  {scheduleMutation.isPending ? 'Salvando...' : 'Salvar'}
+                <Button type="submit">
+                  Salvar
                 </Button>
               </div>
             </form>
@@ -385,8 +393,7 @@ export default function WorkSchedules() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deleteMutation.mutate(schedule.id)}
-                      disabled={deleteMutation.isPending}
+                      onClick={() => handleDeleteSchedule(schedule.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
