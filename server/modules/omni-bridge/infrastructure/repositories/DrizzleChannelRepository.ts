@@ -73,12 +73,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
             hasConfig: !!integration.config,
             configKeys: parsedConfig ? Object.keys(parsedConfig) : [],
             parsedConfig: parsedConfig,
-            hasValidImapConfig: parsedConfig ? await this.hasValidImapConfig(parsedConfig) : undefined,
-            emailsTableExists: await this.checkEmailsTableExists()
+            hasValidImapConfig: parsedConfig ? this.hasValidImapConfig(parsedConfig) : undefined,
+            emailsTableExists: this.checkEmailsTableExists()
           });
 
           const hasValidConfig = parsedConfig && this.hasValidImapConfig(parsedConfig);
-          const emailsTableExists = await this.checkEmailsTableExists();
+          const emailsTableExists = this.checkEmailsTableExists();
           const isConnected = integration.status === 'connected' && hasValidConfig && emailsTableExists;
 
           return new Channel(
@@ -219,7 +219,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
     return 'email'; // default for communication integrations
   }
 
-  private async hasValidImapConfig(config: any): Promise<boolean> {
+  private hasValidImapConfig(config: any): boolean {
     const isValid = !!(
       config?.emailAddress &&
       config?.password &&
@@ -238,7 +238,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
     return isValid;
   }
 
-  private async checkEmailsTableExists(): Promise<boolean> {
+  private checkEmailsTableExists(): boolean {
     // Implement your logic to check if the emails table exists
     // For example, query the database schema
     return true; // Replace with your actual check
