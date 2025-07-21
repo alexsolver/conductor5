@@ -27,11 +27,11 @@ interface SearchResult {
 export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
   const [selectedLat, setSelectedLat] = useState(initialLat);
   const [selectedLng, setSelectedLng] = useState(initialLng);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(');
   const [isSearching, setIsSearching] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [mapCenter, setMapCenter] = useState({ lat: initialLat, lng: initialLng });
-  const [searchResult, setSearchResult] = useState<string>('');
+  const [searchResult, setSearchResult] = useState<string>(');
   const { toast } = useToast();
 
   // Initialize search query with address data

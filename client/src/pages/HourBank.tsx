@@ -78,7 +78,7 @@ export default function HourBank() {
     const absHours = Math.abs(hours);
     const hoursInt = Math.floor(absHours);
     const minutes = Math.round((absHours - hoursInt) * 60);
-    return `${hours < 0 ? '-' : ''}${hoursInt}h${minutes > 0 ? ` ${minutes}m` : ''}`;
+    return `${hours < 0 ? '-' : '}${hoursInt}h${minutes > 0 ? ` ${minutes}m` : '}`;
   };
 
   const getBalanceColor = (balance: number) => {
@@ -330,7 +330,7 @@ export default function HourBank() {
                         </div>
                         <div className="text-right">
                           <div className={`font-medium ${movementTypeColors[movement.movementType]}`}>
-                            {movement.movementType === 'credit' ? '+' : movement.movementType === 'debit' ? '-' : ''}
+                            {movement.movementType === 'credit' ? '+' : movement.movementType === 'debit' ? '-' : '}
                             {formatHours(movement.hours)}
                           </div>
                           <Badge variant="outline">

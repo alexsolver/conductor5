@@ -255,22 +255,22 @@ export class ProjectActionTicketIntegrationService {
   private generateTicketDescription(action: ProjectAction, projectName: string): string {
     const lines = [
       `Este ticket foi criado automaticamente a partir de uma ação do projeto "${projectName}".`,
-      '',
+      ',
       `**Tipo da Ação:** ${action.type}`,
       `**Status Original:** ${action.status}`,
       `**Prioridade:** ${action.priority}`,
     ];
 
     if (action.description) {
-      lines.push('', '**Descrição Original:**', action.description);
+      lines.push(', '**Descrição Original:**', action.description);
     }
 
     if (action.notes) {
-      lines.push('', '**Notas:**', action.notes);
+      lines.push(', '**Notas:**', action.notes);
     }
 
     if (action.estimatedHours) {
-      lines.push('', `**Horas Estimadas:** ${action.estimatedHours}h`);
+      lines.push(', `**Horas Estimadas:** ${action.estimatedHours}h`);
     }
 
     if (action.dueDate) {

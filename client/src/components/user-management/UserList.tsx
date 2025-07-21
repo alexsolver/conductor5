@@ -202,7 +202,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
                       {user.firstName || user.lastName 
-                        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                        ? `${user.firstName || '} ${user.lastName || '}`.trim()
                         : t("userManagement.noName", "Sem nome")
                       }
                     </TableCell>
@@ -277,7 +277,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
               {t("userManagement.userDetails", "Detalhes do Usuário")}
             </DialogTitle>
             <DialogDescription>
-              {selectedUser && `${selectedUser.firstName || ''} ${selectedUser.lastName || ''}`.trim() || selectedUser?.email}
+              {selectedUser && `${selectedUser.firstName || '} ${selectedUser.lastName || '}`.trim() || selectedUser?.email}
             </DialogDescription>
           </DialogHeader>
 

@@ -88,7 +88,7 @@ export class EnterpriseUUIDValidator {
       throw new Error(`Invalid schema name format: ${schemaName}`);
     }
     
-    const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+    const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
     
     if (!this.validateTenantId(tenantId)) {
       throw new Error(`Invalid tenant ID extracted from schema: ${tenantId}`);

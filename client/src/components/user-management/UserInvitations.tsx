@@ -191,7 +191,7 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
                     </TableCell>
                     <TableCell className="text-sm">
                       {invitation.invitedByUser 
-                        ? `${invitation.invitedByUser.firstName || ''} ${invitation.invitedByUser.lastName || ''}`.trim() || invitation.invitedByUser.email
+                        ? `${invitation.invitedByUser.firstName || '} ${invitation.invitedByUser.lastName || '}`.trim() || invitation.invitedByUser.email
                         : t("userManagement.system", "Sistema")
                       }
                     </TableCell>

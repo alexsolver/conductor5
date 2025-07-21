@@ -140,7 +140,7 @@ export class CreateTicketUseCase {
       savedTicket.id,
       savedTicket.tenantId,
       {
-        number: savedTicket.number || '',
+        number: savedTicket.number || ',
         subject: savedTicket.subject,
         priority: savedTicket.priority,
         caller: caller ? { id: caller.id, type: caller.type, name: caller.fullName } : undefined,

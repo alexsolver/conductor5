@@ -157,7 +157,7 @@ export class ConnectionPoolManager {
   }
 
   private async evictLeastRecentlyUsed(): Promise<void> {
-    let oldestTenant = '';
+    let oldestTenant = ';
     let oldestTime = Date.now();
 
     for (const [tenantId, connection] of this.tenantPools.entries()) {

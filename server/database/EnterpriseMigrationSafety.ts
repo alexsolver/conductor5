@@ -164,9 +164,9 @@ export class EnterpriseMigrationSafety {
                   data_type ||
                   case when character_maximum_length is not null 
                     then '(' || character_maximum_length || ')'
-                    else ''
+                    else '
                   end ||
-                  case when is_nullable = 'NO' then ' NOT NULL' else '' end
+                  case when is_nullable = 'NO' then ' NOT NULL' else ' end
                 ),
                 ', '
               ) || ');' as ddl
@@ -194,7 +194,7 @@ export class EnterpriseMigrationSafety {
             const columns = Object.keys(row);
             const values = Object.values(row).map(val => 
               val === null ? 'NULL' : 
-              typeof val === 'string' ? `'${val.replace(/'/g, "''")}'` :
+              typeof val === 'string' ? `'${val.replace(/'/g, "'")}'` :
               val
             );
             
@@ -230,7 +230,7 @@ export class EnterpriseMigrationSafety {
   // MIGRAÇÃO ATÔMICA
   // ===========================
   private async executeAtomicMigration(schemaName: string): Promise<{ tables: string[] }> {
-    const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+    const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
     const migratedTables: string[] = [];
 
     // TRANSAÇÃO ATÔMICA - TUDO OU NADA

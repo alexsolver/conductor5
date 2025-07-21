@@ -206,7 +206,7 @@ export class IntelligentCacheManager<T = any> {
     
     for (const [key, entry] of this.cache.entries()) {
       let score = 0;
-      let reason = '';
+      let reason = ';
       
       // TTL factor (higher = more likely to evict)
       if (entry.ttl) {

@@ -200,7 +200,7 @@ export default function SchemaConsolidation() {
               variant="outline"
               disabled={statusLoading}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${statusLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 mr-2 ${statusLoading ? 'animate-spin' : '}`} />
               Refresh Status
             </Button>
             
@@ -209,7 +209,7 @@ export default function SchemaConsolidation() {
               disabled={isConsolidating || consolidationMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <PlayCircle className={`h-4 w-4 mr-2 ${isConsolidating ? 'animate-spin' : ''}`} />
+              <PlayCircle className={`h-4 w-4 mr-2 ${isConsolidating ? 'animate-spin' : '}`} />
               {isConsolidating ? 'Consolidating...' : 'Run Schema Consolidation'}
             </Button>
           </div>

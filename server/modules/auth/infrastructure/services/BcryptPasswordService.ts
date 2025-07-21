@@ -19,7 +19,7 @@ export class BcryptPasswordService implements IPasswordService {
 
   generateSecurePassword(length = 16): string {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let result = '';
+    let result = ';
     
     // Ensure at least one character from each category
     const categories = [
@@ -40,7 +40,7 @@ export class BcryptPasswordService implements IPasswordService {
     }
     
     // Shuffle the result
-    return result.split('').sort(() => Math.random() - 0.5).join('');
+    return result.split(').sort(() => Math.random() - 0.5).join(');
   }
 
   validatePasswordStrength(password: string): {

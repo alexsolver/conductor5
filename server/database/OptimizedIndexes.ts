@@ -74,11 +74,11 @@ export class OptimizedIndexStrategy {
         // Full-text search indexes
         {
           name: `idx_${tenantSchema}_customers_search`,
-          sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_customers_search ON ${tenantSchema}.customers USING GIN (to_tsvector('portuguese', coalesce(name, '') || ' ' || coalesce(email, '')))`
+          sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_customers_search ON ${tenantSchema}.customers USING GIN (to_tsvector('portuguese', coalesce(name, ') || ' ' || coalesce(email, ')))`
         },
         {
           name: `idx_${tenantSchema}_tickets_search`,
-          sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_tickets_search ON ${tenantSchema}.tickets USING GIN (to_tsvector('portuguese', coalesce(subject, '') || ' ' || coalesce(description, '')))`
+          sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_tickets_search ON ${tenantSchema}.tickets USING GIN (to_tsvector('portuguese', coalesce(subject, ') || ' ' || coalesce(description, ')))`
         }
       ];
 

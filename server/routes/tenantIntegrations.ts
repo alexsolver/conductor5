@@ -198,30 +198,30 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
     // Prepare configuration for storage (store actual values, not masked)
     const configData = {
       // OAuth2 fields
-      clientId: clientId || '',
-      clientSecret: clientSecret || '',
-      redirectUri: redirectUri || '',
+      clientId: clientId || ',
+      clientSecret: clientSecret || ',
+      redirectUri: redirectUri || ',
       // Traditional fields
-      apiKey: apiKey || '',
-      apiSecret: apiSecret || '',
-      webhookUrl: webhookUrl || '',
-      accessToken: accessToken || '',
-      refreshToken: refreshToken || '',
+      apiKey: apiKey || ',
+      apiSecret: apiSecret || ',
+      webhookUrl: webhookUrl || ',
+      accessToken: accessToken || ',
+      refreshToken: refreshToken || ',
       // IMAP specific fields
       imapServer: imapServer || 'imap.gmail.com',
       imapPort: parseInt(imapPort || '993') || 993,
-      emailAddress: emailAddress || '',
-      password: password || '',
+      emailAddress: emailAddress || ',
+      password: password || ',
       useSSL: useSSL !== false,
       imapSecurity: req.body.imapSecurity || 'SSL/TLS',
       // Compatibility fields
       serverHost: imapServer || 'imap.gmail.com',
       serverPort: parseInt(imapPort || '993') || 993,
-      username: emailAddress || '',
+      username: emailAddress || ',
       // Dropbox specific fields
-      dropboxAppKey: dropboxAppKey || '',
-      dropboxAppSecret: dropboxAppSecret || '',
-      dropboxAccessToken: dropboxAccessToken || '',
+      dropboxAppKey: dropboxAppKey || ',
+      dropboxAppSecret: dropboxAppSecret || ',
+      dropboxAccessToken: dropboxAccessToken || ',
       backupFolder: backupFolder || '/Backups/Conductor',
       enabled: enabled !== false,
       settings: settings || {},
@@ -240,25 +240,25 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       integrationId,
       tenantId,
       // OAuth2 fields (masked)
-      clientId: clientId ? '***' + clientId.slice(-4) : '',
-      clientSecret: clientSecret ? '***' + clientSecret.slice(-4) : '',
+      clientId: clientId ? '***' + clientId.slice(-4) : ',
+      clientSecret: clientSecret ? '***' + clientSecret.slice(-4) : ',
       redirectUri,
       // Traditional fields (masked)
-      apiKey: apiKey ? '***' + apiKey.slice(-4) : '',
-      apiSecret: apiSecret ? '***' + apiSecret.slice(-4) : '',
+      apiKey: apiKey ? '***' + apiKey.slice(-4) : ',
+      apiSecret: apiSecret ? '***' + apiSecret.slice(-4) : ',
       webhookUrl,
-      accessToken: accessToken ? '***' + accessToken.slice(-4) : '',
-      refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : '',
+      accessToken: accessToken ? '***' + accessToken.slice(-4) : ',
+      refreshToken: refreshToken ? '***' + refreshToken.slice(-4) : ',
       // IMAP specific fields (masked)
       imapServer,
       imapPort,
       emailAddress,
-      password: password ? '***' + password.slice(-4) : '',
+      password: password ? '***' + password.slice(-4) : ',
       useSSL,
       // Dropbox specific fields (masked)
-      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : '',
-      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : '',
-      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : '',
+      dropboxAppKey: dropboxAppKey ? '***' + dropboxAppKey.slice(-4) : ',
+      dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : ',
+      dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : ',
       backupFolder,
       enabled: enabled !== false,
       settings: settings || {},
@@ -289,13 +289,13 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
     }
 
     // Simular teste da integração
-    let testResult = { success: false, error: '', details: {} };
+    let testResult = { success: false, error: ', details: {} };
 
     switch (integrationId) {
       case 'email-smtp':
         testResult = { 
           success: true, 
-          error: '', 
+          error: ', 
           details: { 
             server: 'smtp.gmail.com',
             port: '587',
@@ -307,7 +307,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       case 'whatsapp-business':
         testResult = { 
           success: true, 
-          error: '', 
+          error: ', 
           details: { 
             phoneNumber: '+55 11 99999-9999',
             status: 'verified',
@@ -319,7 +319,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       case 'slack':
         testResult = { 
           success: true, 
-          error: '', 
+          error: ', 
           details: { 
             workspace: 'empresa-workspace',
             channels: ['#suporte', '#alertas'],
@@ -367,7 +367,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                 
                 testResult = { 
                   success: true, 
-                  error: '', 
+                  error: ', 
                   details: { 
                     server: config.imapServer,
                     port: config.imapPort || 993,
@@ -403,7 +403,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       case 'dropbox-personal':
         testResult = { 
           success: true, 
-          error: '', 
+          error: ', 
           details: { 
             accountInfo: 'Personal Account',
             usedSpace: '2.5 GB',
@@ -417,7 +417,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       case 'webhooks':
         testResult = { 
           success: true, 
-          error: '', 
+          error: ', 
           details: { 
             url: 'https://exemplo.com/webhook',
             responseTime: '120ms',
@@ -429,7 +429,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       default:
         testResult = { 
           success: true, 
-          error: '', 
+          error: ', 
           details: { 
             status: 'integration test successful',
             timestamp: new Date().toISOString()
@@ -460,8 +460,8 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
-    let authUrl = '';
-    let scopes = '';
+    let authUrl = ';
+    let scopes = ';
     
     // Generate OAuth2 URLs based on integration type
     if (integrationId === 'gmail-oauth2') {

@@ -78,7 +78,7 @@ export default function Locations() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false);
   const [tempCoordinates, setTempCoordinates] = useState<{lat: number, lng: number} | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const { toast } = useToast();
@@ -87,13 +87,13 @@ export default function Locations() {
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationFormSchema),
     defaultValues: {
-      name: '',
+      name: ',
       type: 'cliente',
       status: 'ativo',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
+      address: ',
+      city: ',
+      state: ',
+      zipCode: ',
       country: 'Brasil',
       timezone: 'America/Sao_Paulo',
       requiresAuthorization: false,
@@ -155,7 +155,7 @@ export default function Locations() {
 
   // CEP search functionality
   const handleCepSearch = async (event: any) => {
-    const cep = event.target?.value || '';
+    const cep = event.target?.value || ';
     if (!cep || cep.length < 8) return;
 
     try {
@@ -164,11 +164,11 @@ export default function Locations() {
 
       if (result.success && result.data) {
         // Auto-fill form with CEP data
-        form.setValue('address', result.data.address || '');
-        form.setValue('neighborhood', result.data.neighborhood || '');
-        form.setValue('city', result.data.city || '');
-        form.setValue('state', result.data.state || '');
-        form.setValue('zipCode', result.data.zipCode || '');
+        form.setValue('address', result.data.address || ');
+        form.setValue('neighborhood', result.data.neighborhood || ');
+        form.setValue('city', result.data.city || ');
+        form.setValue('state', result.data.state || ');
+        form.setValue('zipCode', result.data.zipCode || ');
         
         // Set coordinates if available
         if (result.data.latitude && result.data.longitude) {
@@ -429,7 +429,7 @@ export default function Locations() {
                                   type="number" 
                                   step="any"
                                   {...field}
-                                  value={field.value || ''}
+                                  value={field.value || '}
                                   onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                                 />
                                 <Button
@@ -469,7 +469,7 @@ export default function Locations() {
                                   type="number" 
                                   step="any"
                                   {...field}
-                                  value={field.value || ''}
+                                  value={field.value || '}
                                   onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                                 />
                                 <Button

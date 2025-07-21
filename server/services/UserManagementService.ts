@@ -2,34 +2,26 @@ import { schemaManager } from '../db';
 import { storageSimple } from '../storage-simple';
 import { db } from '../db';
 import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
-import { 
-  userGroups, 
-  userGroupMemberships, 
-  customRoles, 
-  userRoleAssignments, 
-  userPermissionOverrides,
-  userInvitations,
-  userStatusTypes,
-  userActivityLog,
-  activeSessions,
-  type UserGroup,
-  type InsertUserGroup,
-  type UserGroupMembership,
-  type InsertUserGroupMembership,
-  type CustomRole,
-  type InsertCustomRole,
-  type UserRoleAssignment,
-  type InsertUserRoleAssignment,
-  type UserPermissionOverride,
-  type InsertUserPermissionOverride,
-  type UserInvitation,
-  type InsertUserInvitation,
-  type UserActivityLog,
-  type InsertUserActivityLog,
-  type ActiveSession,
-  type InsertActiveSession
-} from '@shared/schema/user-management';
-import { users, tenants } from '@shared/schema/base';
+import { users, tenants } from '@shared/schema';
+
+// TODO: User management tables need to be added to unified schema
+// Temporary types until user management is integrated
+type UserGroup = any;
+type InsertUserGroup = any;
+type UserGroupMembership = any;
+type InsertUserGroupMembership = any;
+type CustomRole = any;
+type InsertCustomRole = any;
+type UserRoleAssignment = any;
+type InsertUserRoleAssignment = any;
+type UserPermissionOverride = any;
+type InsertUserPermissionOverride = any;
+type UserInvitation = any;
+type InsertUserInvitation = any;
+type UserActivityLog = any;
+type InsertUserActivityLog = any;
+type ActiveSession = any;
+type InsertActiveSession = any;
 import { PERMISSIONS } from '../middleware/rbacMiddleware';
 import { nanoid } from 'nanoid';
 import crypto from 'crypto';

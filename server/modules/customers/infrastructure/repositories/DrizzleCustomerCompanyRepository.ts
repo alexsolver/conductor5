@@ -12,7 +12,8 @@ import {
   CustomerCompanyFilter,
   CustomerCompanyMembershipFilter 
 } from '../../domain/ports/ICustomerCompanyRepository';
-import { getTenantSpecificSchema } from '@shared/schema/tenant-specific';
+// TODO: getTenantSpecificSchema needs to be added to unified schema
+// import { getTenantSpecificSchema } from '@shared/schema';
 import { schemaManager } from '../../../../db';
 
 // Types will be inferred dynamically from tenant schema
@@ -25,7 +26,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
-    const escapedId = id.replace(/'/g, "''");
+    const escapedId = id.replace(/'/g, "'");
     const sqlQuery = `
       SELECT * FROM ${schemaName}.customer_companies 
       WHERE id = '${escapedId}'
@@ -51,7 +52,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Escape the name parameter to prevent SQL injection
-    const escapedName = name.replace(/'/g, "''");
+    const escapedName = name.replace(/'/g, "'");
     const sqlQuery = `
       SELECT * FROM ${schemaName}.customer_companies 
       WHERE name = '${escapedName}'
@@ -77,7 +78,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
 
     // Use direct SQL with schema-qualified table name to bypass Drizzle schema issues
-    let whereClause = '';
+    let whereClause = ';
     const params: any[] = [];
     let paramIndex = 1;
 
@@ -119,7 +120,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
     let sqlQuery = `
       SELECT * FROM ${schemaName}.customer_companies 
-      ${whereClause ? `WHERE ${whereClause}` : ''}
+      ${whereClause ? `WHERE ${whereClause}` : '}
       ORDER BY created_at DESC
     `;
 
@@ -152,7 +153,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
     if (existingCompany) {
       // Update existing company - using direct SQL
-      const escapedId = company.getId().replace(/'/g, "''");
+      const escapedId = company.getId().replace(/'/g, "'");
       const now = new Date().toISOString();
       
       // Debug logs removed for production security
@@ -162,7 +163,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         if (value === null || value === undefined) {
           return 'NULL';
         }
-        return `'${String(value).replace(/'/g, "''")}'`;
+        return `'${String(value).replace(/'/g, "'")}'`;
       };
       
       const sqlQuery = `
@@ -200,7 +201,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         if (value === null || value === undefined) {
           return 'NULL';
         }
-        return `'${String(value).replace(/'/g, "''")}'`;
+        return `'${String(value).replace(/'/g, "'")}'`;
       };
       
       const sqlQuery = `
@@ -253,7 +254,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
 
     // Use direct SQL with schema-qualified table name to bypass Drizzle schema issues
-    let whereClause = '';
+    let whereClause = ';
     const params: any[] = [];
     let paramIndex = 1;
 
@@ -296,7 +297,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const sqlQuery = `
       SELECT COUNT(*) as count 
       FROM ${schemaName}.customer_companies 
-      ${whereClause ? `WHERE ${whereClause}` : ''}
+      ${whereClause ? `WHERE ${whereClause}` : '}
     `;
 
     try {

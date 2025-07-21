@@ -41,7 +41,7 @@ export class MockDataDetector {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = lines[lineNumber - 1]?.trim() || '';
+        const lineContent = lines[lineNumber - 1]?.trim() || ';
         
         // Skip lines that are legitimate implementations
         if (lineContent.includes('return this.toDomainEntity') ||
@@ -68,7 +68,7 @@ export class MockDataDetector {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = lines[lineNumber - 1]?.trim() || '';
+        const lineContent = lines[lineNumber - 1]?.trim() || ';
         
         // Skip if it's in comments, tests, or legitimate code
         if (lineContent.includes('//') || 
@@ -95,7 +95,7 @@ export class MockDataDetector {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = lines[lineNumber - 1]?.trim() || '';
+        const lineContent = lines[lineNumber - 1]?.trim() || ';
         
         issues.push({
           type: 'disabled_button',

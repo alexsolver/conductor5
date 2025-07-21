@@ -86,7 +86,7 @@ export class ProcessInboxMessagesUseCase {
   private matchesRule(message: any, rule: any): boolean {
     try {
       // Simple keyword matching - would be more sophisticated in real implementation
-      const content = `${message.subject || ''} ${message.content || ''}`.toLowerCase();
+      const content = `${message.subject || '} ${message.content || '}`.toLowerCase();
       return rule.keywords && rule.keywords.some((keyword: string) => 
         content.includes(keyword.toLowerCase())
       );

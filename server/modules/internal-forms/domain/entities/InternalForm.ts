@@ -9,21 +9,21 @@ export class InternalForm {
     public actions: any[] = [],
     public approvalFlow?: any[],
     public isActive: boolean = true,
-    public readonly createdBy: string = '',
+    public readonly createdBy: string = ',
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
   ) {}
 
   validate(): void {
-    if (!this.name || this.name.trim() === '') {
+    if (!this.name || this.name.trim() === ') {
       throw new Error('Form name is required');
     }
     
-    if (!this.tenantId || this.tenantId.trim() === '') {
+    if (!this.tenantId || this.tenantId.trim() === ') {
       throw new Error('Tenant ID is required');
     }
     
-    if (!this.category || this.category.trim() === '') {
+    if (!this.category || this.category.trim() === ') {
       throw new Error('Category is required');
     }
     

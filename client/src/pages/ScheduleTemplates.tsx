@@ -62,8 +62,8 @@ export default function ScheduleTemplates() {
   const form = useForm<ScheduleTemplateFormData>({
     resolver: zodResolver(scheduleTemplateSchema),
     defaultValues: {
-      name: '',
-      description: '',
+      name: ',
+      description: ',
       category: 'fixed',
       scheduleType: '5x2',
       rotationCycleDays: undefined,
@@ -135,7 +135,7 @@ export default function ScheduleTemplates() {
     const totalMinutes = endMinutes - startMinutes - breakDuration;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    return `${hours}h${minutes > 0 ? `${minutes}m` : ''}`;
+    return `${hours}h${minutes > 0 ? `${minutes}m` : '}`;
   };
 
   if (isLoading) {

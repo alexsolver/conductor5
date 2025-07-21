@@ -3,13 +3,34 @@ import { z } from 'zod';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware';
 import { userManagementService } from '../services/UserManagementService';
-import { 
-  insertUserGroupSchema, 
-  insertCustomRoleSchema, 
-  insertUserRoleAssignmentSchema,
-  insertUserPermissionOverrideSchema,
-  insertUserInvitationSchema
-} from '@shared/schema/user-management';
+
+// Temporary schemas until user-management tables are added to unified schema
+const insertUserGroupSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  permissions: z.array(z.string()),
+});
+
+const insertCustomRoleSchema = z.object({
+  name: z.string(),
+  permissions: z.array(z.string()),
+});
+
+const insertUserRoleAssignmentSchema = z.object({
+  userId: z.string(),
+  roleId: z.string(),
+});
+
+const insertUserPermissionOverrideSchema = z.object({
+  userId: z.string(),
+  permission: z.string(),
+  granted: z.boolean(),
+});
+
+const insertUserInvitationSchema = z.object({
+  email: z.string().email(),
+  role: z.string(),
+});
 
 const router = Router();
 

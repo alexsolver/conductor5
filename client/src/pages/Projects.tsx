@@ -78,7 +78,7 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState<ProjectStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -87,24 +87,24 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState('grid');
   const [newProject, setNewProject] = useState({
-    name: '',
-    description: '',
+    name: ',
+    description: ',
     status: 'planning' as const,
     priority: 'medium' as const,
-    startDate: '',
-    endDate: '',
-    estimatedHours: '',
-    budget: ''
+    startDate: ',
+    endDate: ',
+    estimatedHours: ',
+    budget: '
   });
   const [editProject, setEditProject] = useState({
-    name: '',
-    description: '',
+    name: ',
+    description: ',
     status: 'planning' as const,
     priority: 'medium' as const,
-    startDate: '',
-    endDate: '',
-    estimatedHours: '',
-    budget: ''
+    startDate: ',
+    endDate: ',
+    estimatedHours: ',
+    budget: '
   });
 
   useEffect(() => {
@@ -180,14 +180,14 @@ export default function Projects() {
         });
         setShowCreateDialog(false);
         setNewProject({
-          name: '',
-          description: '',
+          name: ',
+          description: ',
           status: 'planning',
           priority: 'medium',
-          startDate: '',
-          endDate: '',
-          estimatedHours: '',
-          budget: ''
+          startDate: ',
+          endDate: ',
+          estimatedHours: ',
+          budget: '
         });
         fetchProjects();
         fetchStats();
@@ -281,13 +281,13 @@ export default function Projects() {
     setSelectedProject(project);
     setEditProject({
       name: project.name,
-      description: project.description || '',
+      description: project.description || ',
       status: project.status,
       priority: project.priority,
-      startDate: project.startDate ? project.startDate.split('T')[0] : '',
-      endDate: project.endDate ? project.endDate.split('T')[0] : '',
-      estimatedHours: project.estimatedHours?.toString() || '',
-      budget: project.budget?.toString() || ''
+      startDate: project.startDate ? project.startDate.split('T')[0] : ',
+      endDate: project.endDate ? project.endDate.split('T')[0] : ',
+      estimatedHours: project.estimatedHours?.toString() || ',
+      budget: project.budget?.toString() || '
     });
     setShowEditDialog(true);
   };
@@ -809,7 +809,7 @@ export default function Projects() {
       </Tabs>
 
       {/* Projects List */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ${activeTab !== 'grid' ? 'hidden' : ''}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ${activeTab !== 'grid' ? 'hidden' : '}`}>
         {filteredProjects.map((project) => (
           <Card key={project.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>

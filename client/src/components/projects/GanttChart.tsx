@@ -54,7 +54,7 @@ const priorityColors = {
   critical: 'border-red-500'
 };
 
-export function GanttChart({ projects, viewMode = 'weeks', className = '' }: GanttChartProps) {
+export function GanttChart({ projects, viewMode = 'weeks', className = ' }: GanttChartProps) {
   const [currentViewMode, setCurrentViewMode] = useState<'days' | 'weeks' | 'months'>(viewMode);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -175,7 +175,7 @@ export function GanttChart({ projects, viewMode = 'weeks', className = '' }: Gan
   });
 
   const GanttContent = ({ isFullscreen = false }: { isFullscreen?: boolean }) => (
-    <div className={`space-y-4 ${isFullscreen ? 'h-full' : ''}`}>
+    <div className={`space-y-4 ${isFullscreen ? 'h-full' : '}`}>
       {/* Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">

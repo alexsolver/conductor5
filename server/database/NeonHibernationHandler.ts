@@ -70,7 +70,7 @@ export class NeonHibernationHandler {
       'database is hibernating'
     ];
 
-    const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || '';
+    const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || ';
     return hibernationSignals.some(signal => errorMessage.includes(signal));
   }
 

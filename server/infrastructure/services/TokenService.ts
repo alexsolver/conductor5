@@ -13,7 +13,7 @@ export class TokenService implements ITokenService {
     // Generate secure random bytes for development - more secure than hardcoded values
     const randomBytes = Array.from({ length: 64 }, () => 
       Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
-    ).join('');
+    ).join(');
     return `dev-${type}-${randomBytes}-${Date.now()}`;
   }
 

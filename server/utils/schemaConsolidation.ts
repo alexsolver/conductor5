@@ -182,10 +182,10 @@ export class SchemaConsolidationService {
     
     const requiredColumns = [
       { name: 'documento', type: 'VARCHAR(50)', comment: 'CPF/CNPJ' },
-      { name: 'tipo_pessoa', type: 'VARCHAR(20) DEFAULT \'fisica\'', comment: 'fisica, juridica' },
-      { name: 'preferencia_contato', type: 'VARCHAR(20) DEFAULT \'email\'', comment: 'email, telefone, ambos' },
-      { name: 'idioma', type: 'VARCHAR(10) DEFAULT \'pt-BR\'', comment: 'Language preference' },
-      { name: 'timezone', type: 'VARCHAR(50) DEFAULT \'America/Sao_Paulo\'', comment: 'Timezone' },
+      { name: 'tipo_pessoa', type: 'VARCHAR(20) DEFAULT \'fisica\', comment: 'fisica, juridica' },
+      { name: 'preferencia_contato', type: 'VARCHAR(20) DEFAULT \'email\', comment: 'email, telefone, ambos' },
+      { name: 'idioma', type: 'VARCHAR(10) DEFAULT \'pt-BR\', comment: 'Language preference' },
+      { name: 'timezone', type: 'VARCHAR(50) DEFAULT \'America/Sao_Paulo\', comment: 'Timezone' },
       { name: 'observacoes', type: 'TEXT', comment: 'Additional notes' },
     ];
     
@@ -226,11 +226,11 @@ export class SchemaConsolidationService {
           'telefone VARCHAR(20)',
           'documento VARCHAR(50)',
           'endereco TEXT',
-          'tipo_vinculo VARCHAR(50) DEFAULT \'outro\'',
+          'tipo_vinculo VARCHAR(50) DEFAULT \'outro\',
           'pode_interagir BOOLEAN DEFAULT false',
           'observacoes TEXT',
           'ativo BOOLEAN DEFAULT true',
-          'metadata JSONB DEFAULT \'{}\'',
+          'metadata JSONB DEFAULT \'{}\',
         ];
         
         for (const columnDef of requiredColumns) {
@@ -457,7 +457,7 @@ export class SchemaConsolidationService {
               ALTER TABLE ${schemaName}.${field.table} 
               ALTER COLUMN ${field.column} 
               TYPE JSONB USING CASE 
-                WHEN ${field.column} IS NULL OR ${field.column} = '' 
+                WHEN ${field.column} IS NULL OR ${field.column} = ' 
                 THEN '{}'::JSONB 
                 ELSE ${field.column}::JSONB 
               END

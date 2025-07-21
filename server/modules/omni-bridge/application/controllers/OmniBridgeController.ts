@@ -443,7 +443,7 @@ export class OmniBridgeController {
         message: 'Failed to fetch monitoring status',
         data: {
           isMonitoring: false,
-          tenantId: '',
+          tenantId: ',
           connectionCount: 0,
           activeIntegrations: [],
           message: 'Monitoramento inativo'

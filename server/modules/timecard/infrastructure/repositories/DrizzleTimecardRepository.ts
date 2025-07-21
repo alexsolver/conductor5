@@ -10,7 +10,7 @@ import {
   shiftSwapRequests,
   flexibleWorkArrangements,
   scheduleNotifications
-} from '@shared/schema/timecard';
+} from '@shared/schema';
 import { 
   TimeRecord, 
   CreateTimeRecordRequest, 
@@ -119,7 +119,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       .returning();
 
     // Criar log de auditoria
-    await this.createAuditLog(tenantId, 'time_record', id, 'update', data.adjustedBy || '', oldRecord[0], updateData);
+    await this.createAuditLog(tenantId, 'time_record', id, 'update', data.adjustedBy || ', oldRecord[0], updateData);
 
     return updatedRecord as TimeRecord;
   }
@@ -135,7 +135,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
 
     if (oldRecord.length > 0) {
       // Criar log de auditoria
-      await this.createAuditLog(tenantId, 'time_record', id, 'delete', '', oldRecord[0], null);
+      await this.createAuditLog(tenantId, 'time_record', id, 'delete', ', oldRecord[0], null);
     }
   }
 

@@ -196,7 +196,7 @@ async function runSchemaConsolidationTests() {
     
     console.log(`Overall Result: ${allTestsPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`);
     console.log(`Tests Passed: ${passedTests}/${totalTests}`);
-    console.log('');
+    console.log(');
     
     testResults.forEach((result, index) => {
       const status = result.passed ? '✅' : '❌';

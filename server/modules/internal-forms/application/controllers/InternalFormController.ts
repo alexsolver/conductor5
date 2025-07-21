@@ -90,7 +90,7 @@ export class InternalFormController {
       } else if (status) {
         submissions = await this.submissionRepository.findByStatus(status as string, tenantId);
       } else {
-        submissions = await this.submissionRepository.findByUser('', tenantId); // All submissions
+        submissions = await this.submissionRepository.findByUser(', tenantId); // All submissions
       }
 
       res.json(submissions);

@@ -48,7 +48,7 @@ export class CreateCustomerUseCase {
 
       if (existingCustomer) {
         return {
-          id: '',
+          id: ',
           success: false,
           error: 'Customer with this email already exists'
         };
@@ -93,7 +93,7 @@ export class CreateCustomerUseCase {
       };
     } catch (error) {
       return {
-        id: '',
+        id: ',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };

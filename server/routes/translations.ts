@@ -203,7 +203,7 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
         translations[lang] = langTranslations;
         
         // Extract all keys recursively
-        const extractKeys = (obj: any, prefix = '') => {
+        const extractKeys = (obj: any, prefix = ') => {
           Object.keys(obj).forEach(key => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
             if (typeof obj[key] === 'object' && obj[key] !== null) {

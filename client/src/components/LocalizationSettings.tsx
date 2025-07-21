@@ -22,7 +22,7 @@ interface LocalizationSettingsProps {
 export function LocalizationSettings({ 
   variant = 'full', 
   showHeader = true,
-  className = '' 
+  className = ' 
 }: LocalizationSettingsProps) {
   const { t } = useTranslation();
   const {

@@ -6,7 +6,7 @@
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
 import { schemaManager } from '../../../db';
-import { emails } from '@shared/schema/tenant-specific';
+import { emails } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 interface GmailConfig {
@@ -348,7 +348,7 @@ export class GmailService {
           // Extract email address from "Name <email>" format
           const fromMatch = from.match(/<(.+?)>/) || [null, from];
           const fromEmail = fromMatch[1] || from;
-          const fromName = from.replace(/<.*>/, '').trim().replace(/"/g, '') || null;
+          const fromName = from.replace(/<.*>/, ').trim().replace(/"/g, ') || null;
 
           // Detect priority based on keywords
           let priority = 'medium';

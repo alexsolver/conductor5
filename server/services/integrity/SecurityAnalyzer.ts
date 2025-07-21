@@ -177,7 +177,7 @@ export class SecurityAnalyzer {
       const matches = content.matchAll(pattern);
       for (const match of matches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
-        const lineContent = content.substring(0, match.index).split('\n')[lineNumber - 1] || '';
+        const lineContent = content.substring(0, match.index).split('\n')[lineNumber - 1] || ';
         
         // Skip if it's a secure fallback pattern or environment variable usage
         if (lineContent.includes('process.env.') ||
@@ -241,7 +241,7 @@ export class SecurityAnalyzer {
   private static extractFunctionBlock(content: string, startIndex: number): string | null {
     let braceCount = 0;
     let inFunction = false;
-    let functionBlock = '';
+    let functionBlock = ';
     
     for (let i = startIndex; i < content.length; i++) {
       const char = content[i];

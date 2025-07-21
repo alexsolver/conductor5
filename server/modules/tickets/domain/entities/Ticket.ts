@@ -177,7 +177,7 @@ export class Ticket {
       ticketNumber,
       props.shortDescription?.trim() || props.subject.trim(),
       props.category || 'general',
-      props.subcategory || '',
+      props.subcategory || ',
       props.priority,
       props.impact || 'medium',
       props.urgency || 'medium',

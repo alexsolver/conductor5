@@ -50,11 +50,11 @@ export class ProcessingRule {
 
   private getMessageValue(field: string, message: UnifiedMessage): string {
     switch (field) {
-      case 'subject': return message.subject || '';
+      case 'subject': return message.subject || ';
       case 'content': return message.content;
       case 'from': return message.fromAddress;
       case 'to': return message.toAddress;
-      default: return '';
+      default: return ';
     }
   }
 }

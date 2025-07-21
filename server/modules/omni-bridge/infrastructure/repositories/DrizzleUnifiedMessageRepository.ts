@@ -33,7 +33,7 @@ export class DrizzleUnifiedMessageRepository implements IUnifiedMessageRepositor
         fromAddress: email.fromEmail || email.from_email,
         fromName: email.fromName || email.from_name,
         subject: email.subject,
-        content: email.bodyText || email.body_text || email.bodyHtml || email.body_html || '',
+        content: email.bodyText || email.body_text || email.bodyHtml || email.body_html || ',
         priority: (email.priority || 'medium') as 'low' | 'medium' | 'high' | 'urgent',
         status: email.isRead || email.is_read ? 'read' : 'unread' as 'unread' | 'read' | 'archived' | 'processed',
         hasAttachments: email.hasAttachments || email.has_attachments || false,

@@ -38,8 +38,8 @@ export class DrizzlePersonRepository implements IPersonRepository {
         const userPeople: Person[] = userResults.map(user => ({
           id: user.id,
           type: 'user' as const,
-          email: user.email || '',
-          fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Unknown User',
+          email: user.email || ',
+          fullName: `${user.firstName || '} ${user.lastName || '}`.trim() || user.email || 'Unknown User',
           firstName: user.firstName || undefined,
           lastName: user.lastName || undefined,
         }));
@@ -72,8 +72,8 @@ export class DrizzlePersonRepository implements IPersonRepository {
         const customerPeople: Person[] = customerResults.map(customer => ({
           id: customer.id,
           type: 'customer' as const,
-          email: customer.email || '',
-          fullName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email || 'Unknown Customer',
+          email: customer.email || ',
+          fullName: `${customer.firstName || '} ${customer.lastName || '}`.trim() || customer.email || 'Unknown Customer',
           firstName: customer.firstName || undefined,
           lastName: customer.lastName || undefined,
         }));
@@ -106,8 +106,8 @@ export class DrizzlePersonRepository implements IPersonRepository {
         return {
           id: user.id,
           type: 'user',
-          email: user.email || '',
-          fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Unknown User',
+          email: user.email || ',
+          fullName: `${user.firstName || '} ${user.lastName || '}`.trim() || user.email || 'Unknown User',
           firstName: user.firstName || undefined,
           lastName: user.lastName || undefined,
         };
@@ -127,8 +127,8 @@ export class DrizzlePersonRepository implements IPersonRepository {
         return {
           id: customer.id,
           type: 'customer',
-          email: customer.email || '',
-          fullName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email || 'Unknown Customer',
+          email: customer.email || ',
+          fullName: `${customer.firstName || '} ${customer.lastName || '}`.trim() || customer.email || 'Unknown Customer',
           firstName: customer.firstName || undefined,
           lastName: customer.lastName || undefined,
         };

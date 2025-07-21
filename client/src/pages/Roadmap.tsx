@@ -733,7 +733,7 @@ export default function Roadmap() {
                         </div>
                         {item.estimatedHours && (
                           <div className="text-gray-500">
-                            {item.completedHours ? `${item.completedHours}/` : ''}{item.estimatedHours}h
+                            {item.completedHours ? `${item.completedHours}/` : '}{item.estimatedHours}h
                           </div>
                         )}
                       </div>

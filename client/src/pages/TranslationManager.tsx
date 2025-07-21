@@ -58,7 +58,7 @@ export default function TranslationManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(');
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [newKeyDialog, setNewKeyDialog] = useState(false);
 
@@ -299,7 +299,7 @@ export default function TranslationManager() {
                         
                         {typeof currentValue === 'string' ? (
                           <Textarea
-                            value={currentValue || ''}
+                            value={currentValue || '}
                             onChange={(e) => {
                               const newTranslations = { ...form.getValues('translations') };
                               setNestedValue(newTranslations, key, e.target.value);

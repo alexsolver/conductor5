@@ -86,7 +86,7 @@ export class EnhancedUUIDValidator {
       
       return {
         valid: false,
-        normalized: '',
+        normalized: ',
         errors: validation.errors
       };
     }
@@ -102,7 +102,7 @@ export class EnhancedUUIDValidator {
   // NORMALIZAÇÃO SEGURA
   // ===========================
   normalizeTenantId(tenantId: string): string {
-    if (!tenantId) return '';
+    if (!tenantId) return ';
     
     // Convert to lowercase and remove any whitespace
     const normalized = tenantId.toLowerCase().trim();

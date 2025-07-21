@@ -136,7 +136,7 @@ export class ManageCustomerCompanyMembershipUseCase {
         // Get tenant ID from the customer's memberships
         const allMemberships = await this.customerCompanyRepository.findMembershipsByCustomer(
           updatedMembership.getCustomerId(),
-          '' // We'll need to handle tenant context better
+          ' // We'll need to handle tenant context better
         );
         
         for (const membership of allMemberships) {

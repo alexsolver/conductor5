@@ -416,7 +416,7 @@ export class DatabaseStorage implements IStorage {
             ...ticket,
             customer: customer ? { ...customer, tenantId } : {
               id: ticket.customer_id || 'unknown',
-              fullName: `ID: ${(ticket.customer_id || '').slice(-8)}`,
+              fullName: `ID: ${(ticket.customer_id || ').slice(-8)}`,
               email: 'unknown@example.com',
               tenantId
             },

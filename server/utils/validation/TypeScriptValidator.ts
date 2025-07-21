@@ -214,7 +214,7 @@ export class TypeScriptValidator {
    * Parse TypeScript compiler output for errors
    */
   private parseTypescriptOutput(output: string): string[] {
-    if (!output || output.trim() === '') return [];
+    if (!output || output.trim() === ') return [];
     
     const lines = output.split('\n');
     const errors: string[] = [];
@@ -232,7 +232,7 @@ export class TypeScriptValidator {
    * Parse TypeScript compiler output for warnings
    */
   private parseTypescriptWarnings(output: string): string[] {
-    if (!output || output.trim() === '') return [];
+    if (!output || output.trim() === ') return [];
     
     const lines = output.split('\n');
     const warnings: string[] = [];
@@ -250,7 +250,7 @@ export class TypeScriptValidator {
    * Parse import/export errors
    */
   private parseImportErrors(output: string): { filePath: string; message: string }[] {
-    if (!output || output.trim() === '') return [];
+    if (!output || output.trim() === ') return [];
     
     const lines = output.split('\n');
     const errors: { filePath: string; message: string }[] = [];

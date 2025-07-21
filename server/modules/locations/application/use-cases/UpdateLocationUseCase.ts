@@ -111,7 +111,7 @@ export class UpdateLocationUseCase {
     // Validate ZIP code if provided
     if (request.zipCode !== undefined) {
       const zipCodeRegex = /^\d{5}-?\d{3}$/;
-      const cleanZipCode = request.zipCode.replace(/\D/g, '');
+      const cleanZipCode = request.zipCode.replace(/\D/g, ');
       if (!zipCodeRegex.test(cleanZipCode)) {
         throw new Error('CEP deve ter formato válido (00000-000)');
       }

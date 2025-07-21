@@ -10,7 +10,7 @@ export class CodeQualityAnalyzer {
     if (todoMatches) {
       todoMatches.forEach(match => {
         const lineIndex = lines.findIndex(line => line.includes(match));
-        const matchingLine = lineIndex >= 0 ? lines[lineIndex] : '';
+        const matchingLine = lineIndex >= 0 ? lines[lineIndex] : ';
         
         // Skip documentation TODOs and planned improvements that are not critical
         if (matchingLine.includes('// TODO: Future enhancement') ||
@@ -68,10 +68,10 @@ export class CodeQualityAnalyzer {
     if (consoleMatches) {
       consoleMatches.forEach(match => {
         const lineIndex = lines.findIndex(line => line.includes(match));
-        const matchingLine = lineIndex >= 0 ? lines[lineIndex] : '';
+        const matchingLine = lineIndex >= 0 ? lines[lineIndex] : ';
         
         // Skip legitimate console usage: development checks, error handling, structured logging
-        if (matchingLine.includes('NODE_ENV === \'development\'') ||
+        if (matchingLine.includes('NODE_ENV === \'development\') ||
             matchingLine.includes('process.env.NODE_ENV') ||
             matchingLine.includes('DEBUG') ||
             matchingLine.includes('console.info(') ||

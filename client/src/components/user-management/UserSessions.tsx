@@ -154,7 +154,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
 
   const filteredSessions = sessionsData?.sessions?.filter(session => 
     session.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${session.user?.firstName || ''} ${session.user?.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${session.user?.firstName || '} ${session.user?.lastName || '}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     session.ipAddress?.includes(searchTerm) ||
     session.location?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -263,7 +263,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                         <div>
                           <div className="font-medium">
                             {session.user 
-                              ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim() || session.user.email
+                              ? `${session.user.firstName || '} ${session.user.lastName || '}`.trim() || session.user.email
                               : t("userManagement.unknownUser", "Usuário desconhecido")
                             }
                           </div>

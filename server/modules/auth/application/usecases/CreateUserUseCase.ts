@@ -42,7 +42,7 @@ export class CreateUserUseCase {
       const existingUser = await this.userRepository.findByEmail(input.email);
       if (existingUser) {
         return {
-          id: '',
+          id: ',
           success: false,
           error: 'User with this email already exists'
         };
@@ -84,7 +84,7 @@ export class CreateUserUseCase {
       };
     } catch (error) {
       return {
-        id: '',
+        id: ',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };

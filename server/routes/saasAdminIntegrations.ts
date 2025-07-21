@@ -147,7 +147,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
     }
 
     // Simular teste da integração
-    let testResult = { success: false, error: '', details: {} };
+    let testResult = { success: false, error: ', details: {} };
 
     switch (integrationId) {
       case 'openai':
@@ -155,7 +155,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
         if (config.apiKey.startsWith('sk-')) {
           testResult = { 
             success: true, 
-            error: '', 
+            error: ', 
             details: { 
               model: 'gpt-4',
               maxTokens: config.maxTokens,
@@ -176,7 +176,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
         if (config.apiKey.length > 10) {
           testResult = { 
             success: true, 
-            error: '', 
+            error: ', 
             details: { 
               model: 'deepseek-chat',
               maxTokens: config.maxTokens
@@ -196,7 +196,7 @@ router.post('/:integrationId/test', async (req: AuthorizedRequest, res) => {
         if (config.apiKey.length > 10) {
           testResult = { 
             success: true, 
-            error: '', 
+            error: ', 
             details: { 
               model: 'gemini-pro',
               maxTokens: config.maxTokens

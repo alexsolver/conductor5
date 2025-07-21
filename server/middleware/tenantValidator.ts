@@ -2,9 +2,9 @@
 import { Request, Response, NextFunction } from 'express';
 // Simple logger replacement
 const logger = {
-  warn: (message: string, meta?: any) => console.warn(message, meta || ''),
-  error: (message: string, meta?: any) => console.error(message, meta || ''),
-  debug: (message: string, meta?: any) => console.debug(message, meta || ''),
+  warn: (message: string, meta?: any) => console.warn(message, meta || '),
+  error: (message: string, meta?: any) => console.error(message, meta || '),
+  debug: (message: string, meta?: any) => console.debug(message, meta || '),
 };
 
 export interface TenantValidatedRequest extends Request {

@@ -65,7 +65,7 @@ export async function warmupTenantSchemas(): Promise<void> {
 
     // Warm up each schema in parallel (limited concurrency)
     const warmupPromises = validSchemas.slice(0, 10).map(async (schemaName) => {
-      const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+      const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
       try {
         await ensureTenantSchemaExists(tenantId);
       } catch (error) {

@@ -117,7 +117,7 @@ export class Location {
 
     // Validate ZIP code format (Brazilian format)
     const zipCodeRegex = /^\d{5}-?\d{3}$/;
-    if (!zipCodeRegex.test(zipCode.replace(/\D/g, ''))) {
+    if (!zipCodeRegex.test(zipCode.replace(/\D/g, '))) {
       throw new Error('CEP deve ter formato válido (00000-000)');
     }
 
@@ -129,7 +129,7 @@ export class Location {
       address.trim(),
       city.trim(),
       state.trim(),
-      zipCode.replace(/\D/g, '').replace(/(\d{5})(\d{3})/, '$1-$2'),
+      zipCode.replace(/\D/g, ').replace(/(\d{5})(\d{3})/, '$1-$2'),
       additionalData?.status || 'ativo',
       additionalData?.latitude,
       additionalData?.longitude,

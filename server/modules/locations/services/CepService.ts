@@ -38,7 +38,7 @@ export class CepService {
   }> {
     try {
       // Remove caracteres especiais do CEP
-      const cleanCep = cep.replace(/\D/g, '');
+      const cleanCep = cep.replace(/\D/g, ');
       
       if (cleanCep.length !== 8) {
         return {

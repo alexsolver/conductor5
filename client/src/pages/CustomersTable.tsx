@@ -87,7 +87,7 @@ export default function CustomersTable() {
   // Location management states
   const [isLocationManagerOpen, setIsLocationManagerOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [selectedCustomerIdForLocations, setSelectedCustomerIdForLocations] = useState<string>('');
+  const [selectedCustomerIdForLocations, setSelectedCustomerIdForLocations] = useState<string>(');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -627,7 +627,7 @@ export default function CustomersTable() {
                           {(customer.firstName || customer.first_name || 'U').charAt(0)}{(customer.lastName || customer.last_name || 'U').charAt(0)}
                         </div>
                         <div>
-                          <div className="font-medium">{customer.fullName || `${customer.firstName || customer.first_name || ''} ${customer.lastName || customer.last_name || ''}`.trim() || 'Unnamed Customer'}</div>
+                          <div className="font-medium">{customer.fullName || `${customer.firstName || customer.first_name || '} ${customer.lastName || customer.last_name || '}`.trim() || 'Unnamed Customer'}</div>
                           <div className="text-sm text-gray-500">ID: {customer.id.slice(-8)}</div>
                         </div>
                       </div>
@@ -749,7 +749,7 @@ export default function CustomersTable() {
         isOpen={isLocationManagerOpen}
         onClose={() => {
           setIsLocationManagerOpen(false);
-          setSelectedCustomerIdForLocations('');
+          setSelectedCustomerIdForLocations(');
         }}
         onAddNewLocation={() => {
           setIsLocationManagerOpen(false);
@@ -761,7 +761,7 @@ export default function CustomersTable() {
         isOpen={isLocationModalOpen}
         onClose={() => {
           setIsLocationModalOpen(false);
-          setSelectedCustomerIdForLocations('');
+          setSelectedCustomerIdForLocations(');
         }}
         onSuccess={() => {
           setIsLocationModalOpen(false);

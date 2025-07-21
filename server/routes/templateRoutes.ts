@@ -78,8 +78,8 @@ async function applyTemplateToCSS(template: Template): Promise<void> {
     );
     
     // Update gradient variables based on template style
-    let gradientPrimary = '';
-    let gradientSecondary = '';
+    let gradientPrimary = ';
+    let gradientSecondary = ';
     
     switch (template.style) {
       case 'corporate':

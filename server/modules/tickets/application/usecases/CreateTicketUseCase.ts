@@ -111,8 +111,8 @@ export class CreateTicketUseCase {
       };
     } catch (error) {
       return {
-        id: '',
-        number: '',
+        id: ',
+        number: ',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };

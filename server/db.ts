@@ -755,7 +755,7 @@ export class SchemaManager {
   // Create tenant-specific tables using parameterized queries for security
   private async createTenantTables(schemaName: string): Promise<void> {
     // CRITICAL FIX: Extract tenantId from schemaName for proper variable scope
-    const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+    const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
     
     // CRITICAL FIX: Check if tables exist and need migration
     const tablesExist = await this.tablesExist(schemaName);
@@ -1540,7 +1540,7 @@ export class SchemaManager {
   private async simpleMigrateLegacyTables(schemaName: string): Promise<void> {
     try {
       // Extract tenant_id from schema name for migration
-      const tenantId = schemaName.replace('tenant_', '').replace(/_/g, '-');
+      const tenantId = schemaName.replace('tenant_', ').replace(/_/g, '-');
 
       // CRITICAL FIX: Use raw SQL for complex migration queries to avoid parameter binding issues
       const migrationQueries = [

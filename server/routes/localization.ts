@@ -244,7 +244,7 @@ router.get('/user-preferences', jwtAuth, async (req: AuthenticatedRequest, res) 
  * Auto-detect user locale from headers
  */
 router.get('/detect', (req, res) => {
-  const acceptLanguage = req.headers['accept-language'] || '';
+  const acceptLanguage = req.headers['accept-language'] || ';
   const timezone = req.headers['x-timezone'] as string || 'UTC';
   
   // Parse Accept-Language header

@@ -42,7 +42,7 @@ export class SubmitFormUseCase {
     if (form.approvalFlow?.length) {
       submission.approvals = form.approvalFlow.map((approval: any) => ({
         level: approval.level,
-        approver: '',
+        approver: ',
         status: 'pending' as const
       }));
       submission.status = 'in_approval';
@@ -59,7 +59,7 @@ export class SubmitFormUseCase {
 
   private validateSubmissionData(form: any, data: Record<string, any>): void {
     for (const field of form.fields) {
-      if (field.required && (!data[field.name] || data[field.name] === '')) {
+      if (field.required && (!data[field.name] || data[field.name] === ')) {
         throw new Error(`Field ${field.label} is required`);
       }
     }

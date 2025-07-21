@@ -22,7 +22,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    let text = '';
+    let text = ';
     try {
       text = await res.text();
     } catch (e) {

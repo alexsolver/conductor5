@@ -355,9 +355,9 @@ export class IntegrityControlService {
               issues.push({
                 type: isCritical ? 'error' : 'warning',
                 line: lineIndex + 1,
-                description: `Função async ${isCritical ? 'crítica ' : ''}sem tratamento de erro`,
+                description: `Função async ${isCritical ? 'crítica ' : '}sem tratamento de erro`,
                 problemFound: `Função async "${match}" sem try/catch`,
-                correctionPrompt: `${isCritical ? 'CRÍTICO: ' : ''}Adicione tratamento de erro adequado na função async no arquivo ${filePath} linha ${lineIndex + 1}. Envolva o código em try/catch e implemente tratamento apropriado para erros potenciais${isCritical ? ', especialmente para operações de banco de dados e autenticação' : ''}.`
+                correctionPrompt: `${isCritical ? 'CRÍTICO: ' : '}Adicione tratamento de erro adequado na função async no arquivo ${filePath} linha ${lineIndex + 1}. Envolva o código em try/catch e implemente tratamento apropriado para erros potenciais${isCritical ? ', especialmente para operações de banco de dados e autenticação' : '}.`
               });
             }
           });
@@ -382,7 +382,7 @@ export class IntegrityControlService {
                 line: lineIndex + 1,
                 description: `${type} encontrado`,
                 problemFound: match,
-                correctionPrompt: `${severity === 'error' ? 'CRÍTICO: ' : ''}Mova o valor hardcoded "${match}" no arquivo ${filePath} linha ${lineIndex + 1} para uma variável de ambiente. Crie uma variável no .env e use process.env.VARIABLE_NAME para acessá-la.`
+                correctionPrompt: `${severity === 'error' ? 'CRÍTICO: ' : '}Mova o valor hardcoded "${match}" no arquivo ${filePath} linha ${lineIndex + 1} para uma variável de ambiente. Crie uma variável no .env e use process.env.VARIABLE_NAME para acessá-la.`
               });
             });
           }
@@ -436,7 +436,7 @@ export class IntegrityControlService {
                   type: severity as 'error' | 'warning',
                   line: lineIndex + 1,
                   description: 'Vulnerabilidade de SQL injection detectada',
-                  problemFound: match.substring(0, 100) + (match.length > 100 ? '...' : ''),
+                  problemFound: match.substring(0, 100) + (match.length > 100 ? '...' : '),
                   correctionPrompt: `CRÍTICO: Corrija a vulnerabilidade de SQL injection no arquivo ${filePath} linha ${lineIndex + 1}. Substitua por: 1) Use ilike() para buscas ao invés de sql\`ILIKE\`, 2) Use eq(), ne(), inArray() para comparações, 3) Use count() ao invés de sql\`count(*)\`, 4) Use sql.identifier() para nomes de schema/tabela seguros.`
                 });
               });
@@ -568,7 +568,7 @@ export class IntegrityControlService {
   private extractFunctionBlock(content: string, startIndex: number): string | null {
     let braceCount = 0;
     let inFunction = false;
-    let functionBlock = '';
+    let functionBlock = ';
     
     for (let i = startIndex; i < content.length; i++) {
       const char = content[i];

@@ -114,24 +114,24 @@ export default function TenantAdminIntegrations() {
     defaultValues: {
       enabled: false,
       useSSL: false,
-      apiKey: '',
-      apiSecret: '',
-      webhookUrl: '',
-      clientId: '',
-      clientSecret: '',
-      redirectUri: '',
-      tenantId: '',
-      serverHost: '',
-      serverPort: '',
-      username: '',
-      password: '',
-      imapServer: '',
-      imapPort: '',
+      apiKey: ',
+      apiSecret: ',
+      webhookUrl: ',
+      clientId: ',
+      clientSecret: ',
+      redirectUri: ',
+      tenantId: ',
+      serverHost: ',
+      serverPort: ',
+      username: ',
+      password: ',
+      imapServer: ',
+      imapPort: ',
       imapSecurity: 'SSL/TLS',
-      emailAddress: '',
-      dropboxAppKey: '',
-      dropboxAppSecret: '',
-      dropboxAccessToken: '',
+      emailAddress: ',
+      dropboxAppKey: ',
+      dropboxAppSecret: ',
+      dropboxAccessToken: ',
       backupFolder: '/Backups/Conductor',
     },
   });
@@ -469,24 +469,24 @@ export default function TenantAdminIntegrations() {
         const formValues = {
           enabled: config.enabled === true,
           useSSL: config.useSSL !== false, // Default to true
-          apiKey: config.apiKey ? '••••••••' : '', // Mascarar API key
-          apiSecret: config.apiSecret ? '••••••••' : '', // Mascarar API secret
-          webhookUrl: config.webhookUrl || '',
-          clientId: config.clientId || '',
-          clientSecret: config.clientSecret ? '••••••••' : '', // Mascarar Client secret
-          redirectUri: config.redirectUri || '',
-          tenantId: config.tenantId || '',
-          serverHost: config.serverHost || config.imapServer || '',
+          apiKey: config.apiKey ? '••••••••' : ', // Mascarar API key
+          apiSecret: config.apiSecret ? '••••••••' : ', // Mascarar API secret
+          webhookUrl: config.webhookUrl || ',
+          clientId: config.clientId || ',
+          clientSecret: config.clientSecret ? '••••••••' : ', // Mascarar Client secret
+          redirectUri: config.redirectUri || ',
+          tenantId: config.tenantId || ',
+          serverHost: config.serverHost || config.imapServer || ',
           serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
-          username: config.username || config.emailAddress || '',
-          password: config.password ? '••••••••' : '', // CRÍTICO: Mascarar senha
+          username: config.username || config.emailAddress || ',
+          password: config.password ? '••••••••' : ', // CRÍTICO: Mascarar senha
           imapServer: config.imapServer || 'imap.gmail.com',
           imapPort: config.imapPort ? config.imapPort.toString() : '993',
           imapSecurity: config.imapSecurity || 'SSL/TLS',
-          emailAddress: config.emailAddress || '',
-          dropboxAppKey: config.dropboxAppKey || '',
-          dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
-          dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
+          emailAddress: config.emailAddress || ',
+          dropboxAppKey: config.dropboxAppKey || ',
+          dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : ', // Mascarar Dropbox secret
+          dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : ', // Mascarar access token
           backupFolder: config.backupFolder || '/Backups/Conductor'
         };
 
@@ -502,24 +502,24 @@ export default function TenantAdminIntegrations() {
         configForm.reset({
           enabled: false,
           useSSL: true,
-          apiKey: '',
-          apiSecret: '',
-          webhookUrl: '',
-          clientId: '',
-          clientSecret: '',
-          redirectUri: '',
-          tenantId: '',
-          serverHost: '',
-          serverPort: integration.id === 'imap-email' ? '993' : '',
-          username: '',
-          password: '',
-          imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
+          apiKey: ',
+          apiSecret: ',
+          webhookUrl: ',
+          clientId: ',
+          clientSecret: ',
+          redirectUri: ',
+          tenantId: ',
+          serverHost: ',
+          serverPort: integration.id === 'imap-email' ? '993' : ',
+          username: ',
+          password: ',
+          imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : ',
           imapPort: '993',
           imapSecurity: 'SSL/TLS',
-          emailAddress: '',
-          dropboxAppKey: '',
-          dropboxAppSecret: '',
-          dropboxAccessToken: '',
+          emailAddress: ',
+          dropboxAppKey: ',
+          dropboxAppSecret: ',
+          dropboxAccessToken: ',
           backupFolder: '/Backups/Conductor'
         });
       }
@@ -529,24 +529,24 @@ export default function TenantAdminIntegrations() {
       configForm.reset({
         enabled: false,
         useSSL: true,
-        apiKey: '',
-        apiSecret: '',
-        webhookUrl: '',
-        clientId: '',
-        clientSecret: '',
-        redirectUri: '',
-        tenantId: '',
-        serverHost: '',
-        serverPort: integration.id === 'imap-email' ? '993' : '',
-        username: '',
-        password: '',
-        imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
+        apiKey: ',
+        apiSecret: ',
+        webhookUrl: ',
+        clientId: ',
+        clientSecret: ',
+        redirectUri: ',
+        tenantId: ',
+        serverHost: ',
+        serverPort: integration.id === 'imap-email' ? '993' : ',
+        username: ',
+        password: ',
+        imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : ',
         imapPort: '993',
         imapSecurity: 'SSL/TLS',
-        emailAddress: '',
-        dropboxAppKey: '',
-        dropboxAppSecret: '',
-        dropboxAccessToken: '',
+        emailAddress: ',
+        dropboxAppKey: ',
+        dropboxAppSecret: ',
+        dropboxAccessToken: ',
         backupFolder: '/Backups/Conductor'
       });
     }
@@ -591,14 +591,14 @@ export default function TenantAdminIntegrations() {
           // Garantir que campos IMAP estejam presentes
           imapServer: data.imapServer || 'imap.gmail.com',
           imapPort: parseInt(data.imapPort || '993') || 993,
-          emailAddress: data.emailAddress || '',
-          password: data.password || '',
+          emailAddress: data.emailAddress || ',
+          password: data.password || ',
           useSSL: data.useSSL !== false,
           enabled: data.enabled === true,
           // Manter compatibilidade com outros campos
           serverHost: data.imapServer || 'imap.gmail.com',
           serverPort: parseInt(data.imapPort || '993') || 993,
-          username: data.emailAddress || ''
+          username: data.emailAddress || '
         };
       }
       saveConfigMutation.mutate({

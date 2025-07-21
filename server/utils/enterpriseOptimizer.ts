@@ -88,7 +88,7 @@ export class EnterpriseOptimizer {
       const tenantSchemas = await this.getAllTenantSchemas();
       
       for (const schema of tenantSchemas) {
-        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        const tenantId = schema.replace('tenant_', ').replace(/_/g, '-');
         await enterpriseIndexManager.createTenantOptimizedIndexes(tenantId);
         await enterpriseIndexManager.analyzeAllTables(tenantId);
       }
@@ -109,7 +109,7 @@ export class EnterpriseOptimizer {
       const tenantSchemas = await this.getAllTenantSchemas();
       
       for (const schema of tenantSchemas) {
-        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        const tenantId = schema.replace('tenant_', ').replace(/_/g, '-');
         
         // Validação robusta usando novo sistema
         const { schemaManager } = await import('../db');
@@ -304,7 +304,7 @@ export class EnterpriseOptimizer {
       // Analyze index usage for all tenants
       const tenantSchemas = await this.getAllTenantSchemas();
       for (const schema of tenantSchemas) {
-        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        const tenantId = schema.replace('tenant_', ').replace(/_/g, '-');
         await enterpriseQueryOptimizer.analyzeIndexUsage(tenantId);
       }
       
@@ -323,7 +323,7 @@ export class EnterpriseOptimizer {
       // Validate all tenant schemas
       const tenantSchemas = await this.getAllTenantSchemas();
       for (const schema of tenantSchemas) {
-        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        const tenantId = schema.replace('tenant_', ').replace(/_/g, '-');
         const isValid = await enterpriseMigrationManager.validateSchemaIntegrity(tenantId);
         
         if (!isValid) {
@@ -364,7 +364,7 @@ export class EnterpriseOptimizer {
       // Initialize default quotas for all tenants
       const tenantSchemas = await this.getAllTenantSchemas();
       for (const schema of tenantSchemas) {
-        const tenantId = schema.replace('tenant_', '').replace(/_/g, '-');
+        const tenantId = schema.replace('tenant_', ').replace(/_/g, '-');
         tenantResourceManager.setTenantQuota(tenantId, 'enterprise'); // Default to enterprise
       }
       
@@ -382,7 +382,7 @@ export class EnterpriseOptimizer {
       
       // Validate all existing tenant IDs
       const tenantSchemas = await this.getAllTenantSchemas();
-      const tenantIds = tenantSchemas.map(schema => schema.replace('tenant_', '').replace(/_/g, '-'));
+      const tenantIds = tenantSchemas.map(schema => schema.replace('tenant_', ').replace(/_/g, '-'));
       
       const validation = enhancedUUIDValidator.validateMultipleTenantIds(tenantIds);
       
