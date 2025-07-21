@@ -290,13 +290,14 @@ export const projects = pgTable("projects", {
   actualCost: decimal("actual_cost").default("0"), // FIXED: DB field name
   projectManagerId: uuid("project_manager_id"),
   clientId: uuid("client_id"), // FIXED: DB field name
-  teamMemberIds: uuid("team_member_ids").array().default('{}'), // FIXED: Array type
-  tags: text("tags").array().default('{}'), // FIXED: Array type
+  teamMemberIds: uuid("team_member_ids").array().default([]), // FIXED: Array type
+  tags: text("tags").array().default([]), // FIXED: Array type
   customFields: jsonb("custom_fields").default('{}'), // FIXED: DB field name
   metadata: jsonb("metadata").default('{}'),
   createdBy: uuid("created_by").notNull(),
   updatedBy: uuid("updated_by").notNull(),
   managerId: uuid("manager_id"), // FIXED: Additional DB field
+  isActive: boolean("is_active").default(true), // FIXED: Added missing active field
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -316,15 +317,15 @@ export const projectActions = pgTable("project_actions", {
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours").default(0),
   assignedToId: uuid("assigned_to_id"), // FIXED: DB field name
-  responsibleIds: uuid("responsible_ids").array().default('{}'), // FIXED: Array type
+  responsibleIds: uuid("responsible_ids").array().default([]), // FIXED: Array type
   clientContactId: uuid("client_contact_id"), // FIXED: DB field
   externalReference: varchar("external_reference", { length: 255 }), // FIXED: DB field
   deliveryMethod: varchar("delivery_method", { length: 255 }), // FIXED: DB field
-  dependsOnActionIds: uuid("depends_on_action_ids").array().default('{}'), // FIXED: Array type
-  blockedByActionIds: uuid("blocked_by_action_ids").array().default('{}'), // FIXED: Array type
+  dependsOnActionIds: uuid("depends_on_action_ids").array().default([]), // FIXED: Array type
+  blockedByActionIds: uuid("blocked_by_action_ids").array().default([]), // FIXED: Array type
   priority: varchar("priority", { length: 20 }).default("medium"),
-  tags: text("tags").array().default('{}'), // FIXED: Array type
-  attachments: text("attachments").array().default('{}'), // FIXED: Array type
+  tags: text("tags").array().default([]), // FIXED: Array type
+  attachments: text("attachments").array().default([]), // FIXED: Array type
   notes: text("notes"),
   relatedTicketId: uuid("related_ticket_id"), // FIXED: DB field
   canConvertToTicket: varchar("can_convert_to_ticket", { length: 10 }).default("true"), // FIXED: DB field
