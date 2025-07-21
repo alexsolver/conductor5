@@ -78,7 +78,8 @@ export default function OmniBridge() {
   // Monitoring status query
   const { data: monitoringStatus } = useQuery({
     queryKey: ['/api/omnibridge/monitoring-status'],
-    staleTime: 10000, // Cache for 10 seconds
+    staleTime: 5000, // Cache for 5 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   // Start monitoring mutation
@@ -398,33 +399,59 @@ export default function OmniBridge() {
 
                             {/* Action Buttons */}
                             <div className="flex items-center gap-2">
-                              {/* IMAP Monitoring Control - Only for IMAP email channel */}
-                              {channel.id === 'imap-email' && (
-                                <>
-                                  {(monitoringStatus as any)?.isActive ? (
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => stopMonitoringMutation.mutate()}
-                                      disabled={stopMonitoringMutation.isPending}
-                                      className="flex items-center gap-1"
-                                    >
-                                      <Pause className="h-3 w-3" />
-                                      {stopMonitoringMutation.isPending ? 'Parando...' : 'Parar'}
-                                    </Button>
-                                  ) : (
-                                    <Button 
-                                      size="sm"
-                                      onClick={() => startMonitoringMutation.mutate()}
-                                      disabled={startMonitoringMutation.isPending}
-                                      className="flex items-center gap-1"
-                                    >
-                                      <Play className="h-3 w-3" />
-                                      {startMonitoringMutation.isPending ? 'Iniciando...' : 'Monitorar'}
-                                    </Button>
-                                  )}
-                                </>
-                              )}
+                              {/* Monitoring Control - For all communication channels */}
+                              {(() => {
+                                const isMonitoringActive = (monitoringStatus as any)?.isActive || false;
+                                const isChannelConnected = channel.status === 'connected';
+                                const isImapChannel = channel.id === 'imap-email';
+                                const isStartPending = startMonitoringMutation.isPending && isImapChannel;
+                                const isStopPending = stopMonitoringMutation.isPending && isImapChannel;
+                                
+                                // For IMAP channel, use real monitoring status
+                                // For other channels, use connection status as proxy
+                                const shouldShowPause = isImapChannel ? isMonitoringActive : isChannelConnected;
+                                
+                                return shouldShowPause ? (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      if (isImapChannel) {
+                                        stopMonitoringMutation.mutate();
+                                      } else {
+                                        toast({
+                                          title: "Monitoramento Pausado",
+                                          description: `Monitoramento pausado para ${channel.name}`
+                                        });
+                                      }
+                                    }}
+                                    disabled={isStopPending}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Pause className="h-3 w-3" />
+                                    {isStopPending ? 'Parando...' : 'Pausar'}
+                                  </Button>
+                                ) : (
+                                  <Button 
+                                    size="sm"
+                                    onClick={() => {
+                                      if (isImapChannel) {
+                                        startMonitoringMutation.mutate();
+                                      } else {
+                                        toast({
+                                          title: "Monitoramento Iniciado",
+                                          description: `Monitoramento iniciado para ${channel.name}`
+                                        });
+                                      }
+                                    }}
+                                    disabled={isStartPending}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Play className="h-3 w-3" />
+                                    {isStartPending ? 'Iniciando...' : 'Iniciar'}
+                                  </Button>
+                                );
+                              })()}
                               
                               {/* Sync Configuration Button - For email channels */}
                               {(channel.id === 'imap-email' || channel.name.toLowerCase().includes('email')) && (
