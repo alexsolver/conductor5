@@ -73,7 +73,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
             hasConfig: !!integration.config,
             configKeys: parsedConfig ? Object.keys(parsedConfig) : [],
             parsedConfig: parsedConfig,
-            hasValidImapConfig: parsedConfig ? this.hasValidImapConfig(parsedConfig) : undefined,
+            hasValidImapConfig: parsedConfig ? await this.hasValidImapConfig(parsedConfig) : undefined,
             emailsTableExists: await this.checkEmailsTableExists()
           });
 
@@ -219,7 +219,7 @@ export class DrizzleChannelRepository implements IChannelRepository {
     return 'email'; // default for communication integrations
   }
 
-  private hasValidImapConfig(config: any): boolean {
+  private async hasValidImapConfig(config: any): Promise<boolean> {
     const isValid = !!(
       config?.emailAddress &&
       config?.password &&
