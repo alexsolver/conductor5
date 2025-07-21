@@ -841,7 +841,7 @@ export class DatabaseStorage implements IStorage {
       return result.rows?.[0];
     } catch (error) {
       logError('Error creating ticket template', error, { tenantId, templateData });
-      throw error.
+      throw error;
     }
   }
 
