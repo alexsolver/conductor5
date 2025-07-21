@@ -497,6 +497,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Timecard Routes temporarily removed due to syntax issues
 
+  // OmniBridge Auto-Start Routes
+  app.post('/api/omnibridge/start-monitoring', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
+      
+      res.json({ 
+        message: "OmniBridge monitoring started successfully",
+        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring()
+      });
+    } catch (error) {
+      console.error('Error starting OmniBridge monitoring:', error);
+      res.status(500).json({ message: "Failed to start monitoring" });
+    }
+  });
+
+  app.post('/api/omnibridge/stop-monitoring', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      await omniBridgeAutoStart.stopAllMonitoring(tenantId);
+      
+      res.json({ message: "OmniBridge monitoring stopped successfully" });
+    } catch (error) {
+      console.error('Error stopping OmniBridge monitoring:', error);
+      res.status(500).json({ message: "Failed to stop monitoring" });
+    }
+  });
+
+  app.get('/api/omnibridge/monitoring-status', jwtAuth, requireTenantAccess, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+      
+      res.json({ 
+        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
+        isActive: omniBridgeAutoStart.getActiveMonitoring().length > 0
+      });
+    } catch (error) {
+      console.error('Error getting monitoring status:', error);
+      res.status(500).json({ message: "Failed to get status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

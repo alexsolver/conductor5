@@ -37,31 +37,86 @@ import {
   FileText,
   Workflow,
   Hash,
-  MessageSquare
+  MessageSquare,
+  RefreshCw
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function OmniBridge() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('channels');
   const [refreshKey, setRefreshKey] = useState(0);
+  const queryClient = useQueryClient();
 
   // Use only real APIs - no mock data
   const { data: integrationsData, isLoading: integrationsLoading, refetch: refetchIntegrations } = useQuery({
     queryKey: ['/api/tenant-admin/integrations'],
     staleTime: 0, // Always refetch
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache (updated from cacheTime)
   });
 
   const { data: inboxData, isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
     queryKey: ['/api/email-config/inbox'],
     staleTime: 0, // Always refetch
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache (updated from cacheTime)
   });
 
-  // Transform real data for display
-  const channels = integrationsData?.integrations || [];
-  const inbox = inboxData?.messages || [];
+  // Monitoring status query
+  const { data: monitoringStatus } = useQuery({
+    queryKey: ['/api/omnibridge/monitoring-status'],
+    staleTime: 10000, // Cache for 10 seconds
+  });
+
+  // Start monitoring mutation
+  const startMonitoringMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/omnibridge/start-monitoring', {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Monitoramento Iniciado",
+        description: "O sistema começou a monitorar as integrações IMAP configuradas e a popular o inbox automaticamente."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/monitoring-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email-config/inbox'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao Iniciar Monitoramento",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Stop monitoring mutation  
+  const stopMonitoringMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/omnibridge/stop-monitoring', {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Monitoramento Parado",
+        description: "O sistema parou de monitorar as integrações IMAP."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/monitoring-status'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao Parar Monitoramento",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Transform real data for display - ONLY communication integrations
+  const allChannels = (integrationsData as any)?.integrations || [];
+  const channels = allChannels.filter((integration: any) => 
+    integration.category === 'Comunicação'
+  );
+  const inbox = (inboxData as any)?.messages || [];
 
   // Auto-refresh data every 30 seconds
   useEffect(() => {
@@ -134,7 +189,35 @@ export default function OmniBridge() {
             <Activity className="h-4 w-4 text-green-600" />
             <span className="text-sm text-green-600 font-medium">Sistema Ativo</span>
           </div>
+          
+          {/* IMAP Monitoring Control */}
+          <div className="flex items-center gap-2">
+            {(monitoringStatus as any)?.isActive ? (
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => stopMonitoringMutation.mutate()}
+                disabled={stopMonitoringMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <Pause className="h-4 w-4" />
+                {stopMonitoringMutation.isPending ? 'Parando...' : 'Parar Monitoramento'}
+              </Button>
+            ) : (
+              <Button 
+                size="sm"
+                onClick={() => startMonitoringMutation.mutate()}
+                disabled={startMonitoringMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <Play className="h-4 w-4" />
+                {startMonitoringMutation.isPending ? 'Iniciando...' : 'Iniciar Monitoramento IMAP'}
+              </Button>
+            )}
+          </div>
+
           <Button 
+            variant="outline"
             onClick={() => {
               refetchIntegrations();
               refetchInbox();

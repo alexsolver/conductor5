@@ -19,6 +19,7 @@ Preferred communication style: Simple, everyday language.
 - Integração real com APIs de tenant integrations e email inbox existentes
 - Interface moderna com 5 abas: Canais, Inbox, Regras, Templates, Analytics
 - Sistema de auto-refresh a cada 30 segundos para dados em tempo real
+- **FILTRO APLICADO: Apenas 7 integrações de comunicação exibidas** (conforme solicitação)
 
 ✅ **FUNCIONALIDADES EMPRESARIAIS AVANÇADAS:**
 - Gerenciamento de canais com health monitoring e teste de conectividade
@@ -29,9 +30,10 @@ Preferred communication style: Simple, everyday language.
 
 ✅ **INTEGRAÇÃO COM SISTEMA EXISTENTE:**
 - Dados reais de integrações carregados via /api/tenant-admin/integrations
+- **7 canais de comunicação ativos**: Gmail OAuth2, Outlook OAuth2, IMAP Email (connected), Email SMTP, WhatsApp Business, Slack, Twilio SMS
 - Mensagens do inbox carregadas via /api/email-config/inbox
 - Transformação inteligente de dados entre formatos de API
-- Fallback gracioso para dados demo em caso de erro de API
+- Zero mock data - apenas dados reais das APIs
 
 ### July 21, 2025 - MULTILOCATION ENTERPRISE SYSTEM WITH COMPLETE UI IMPLEMENTATION ✅ INTERNATIONAL EXPANSION READY
 
