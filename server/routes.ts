@@ -468,6 +468,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch metrics' });
     }
   });
+
+  // OmniBridge channels endpoint - integrates with existing integrations
+  app.get('/api/omnibridge/channels', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const pool = schemaManager.getPool();
+      
+      // Get tenant integrations
+      const integrationResult = await pool.query(
+        `SELECT * FROM integrations WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      // Transform integrations into channels format
+      const channels = integrationResult.rows.map((integration: any) => ({
+        id: integration.id,
+        name: integration.name,
+        type: integration.type.toLowerCase(),
+        icon: getChannelIcon(integration.type),
+        isConnected: integration.status === 'connected',
+        status: integration.status || 'disconnected',
+        lastActivity: integration.last_activity || null,
+        config: integration.config || {},
+        description: getChannelDescription(integration.type)
+      }));
+
+      res.json({ channels });
+    } catch (error) {
+      console.error('Error fetching OmniBridge channels:', error);
+      res.status(500).json({ error: 'Failed to fetch channels' });
+    }
+  });
+
+  // Helper functions for channel transformation
+  function getChannelIcon(type: string): string {
+    const iconMap: Record<string, string> = {
+      'IMAP Email': 'Mail',
+      'Gmail OAuth2': 'Mail',
+      'Outlook OAuth2': 'Mail', 
+      'Email SMTP': 'Mail',
+      'WhatsApp Business': 'MessageCircle',
+      'Twilio SMS': 'MessageSquare',
+      'Telegram Bot': 'Send',
+      'Facebook Messenger': 'MessageCircle',
+      'Web Chat': 'Globe',
+      'Zapier': 'Zap',
+      'Webhooks': 'Webhook',
+      'CRM Integration': 'Database',
+      'SSO/SAML': 'Shield',
+      'Chatbot IA': 'Bot'
+    };
+    return iconMap[type] || 'Settings';
+  }
+
+  function getChannelDescription(type: string): string {
+    const descMap: Record<string, string> = {
+      'IMAP Email': 'Recebimento de emails via protocolo IMAP',
+      'Gmail OAuth2': 'Integração OAuth2 com Gmail',
+      'Outlook OAuth2': 'Integração OAuth2 com Outlook',
+      'Email SMTP': 'Envio de emails via protocolo SMTP',
+      'WhatsApp Business': 'API oficial do WhatsApp Business',
+      'Twilio SMS': 'Envio e recebimento de SMS via Twilio',
+      'Telegram Bot': 'Bot para comunicação via Telegram',
+      'Facebook Messenger': 'Integração com Facebook Messenger',
+      'Web Chat': 'Widget de chat para websites',
+      'Zapier': 'Automações via Zapier',
+      'Webhooks': 'Recebimento de webhooks externos',
+      'CRM Integration': 'Sincronização com sistemas CRM',
+      'SSO/SAML': 'Autenticação única empresarial',
+      'Chatbot IA': 'Assistente virtual com IA'
+    };
+    return descMap[type] || 'Canal de comunicação';
+  }
   
   // Geolocation detection and formatting routes  
   // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue

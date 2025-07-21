@@ -172,7 +172,7 @@ export default function OmniBridge() {
         throw new Error('Token de autenticação não encontrado');
       }
 
-      const response = await fetch('/api/tenant-admin/integrations', {
+      const response = await fetch('/api/omnibridge/channels', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -183,37 +183,31 @@ export default function OmniBridge() {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      if (response.ok) {
-        const data = await response.json();
-        const integrations = data.integrations || [];
-        
-        // Transform integrations to channels
-        const channelData = integrations
-          .filter((integration: any) => 
-            ['Comunicação', 'Communication'].includes(integration.category)
-          )
-          .map((integration: any) => ({
-            id: integration.id,
-            type: getChannelTypeFromName(integration.name),
-            name: integration.name,
-            isActive: integration.is_active,
-            isConnected: integration.connection_status === 'connected',
-            messageCount: Math.floor(Math.random() * 200), // Real data would come from metrics API
-            errorCount: integration.connection_status === 'error' ? Math.floor(Math.random() * 10) : 0,
-            health: getHealthFromStatus(integration.connection_status),
-            status: integration.connection_status || 'disconnected',
-            performance: {
-              latency: Math.floor(Math.random() * 300) + 50,
-              uptime: 95 + Math.random() * 5
-            },
-            rateLimiting: {
-              currentUsage: Math.floor(Math.random() * 80),
-              maxRequests: 100
-            }
-          }));
-          
-        setChannels(channelData);
-      }
+      const data = await response.json();
+      const channelsFromAPI = data.channels || [];
+      
+      // Transform the API data to match our Channel interface
+      const transformedChannels = channelsFromAPI.map((channel: any) => ({
+        id: channel.id,
+        type: channel.type,
+        name: channel.name,
+        isActive: channel.isConnected,
+        isConnected: channel.isConnected,
+        messageCount: 0, // Will be populated by metrics
+        errorCount: 0,
+        health: channel.isConnected ? 'healthy' as const : 'error' as const,
+        status: channel.status,
+        performance: {
+          latency: 100,
+          uptime: 99.0
+        },
+        rateLimiting: {
+          currentUsage: 0,
+          maxRequests: 1000
+        }
+      }));
+      
+      setChannels(transformedChannels);
     } catch (error) {
       console.error('Erro ao carregar canais:', error);
       setChannels([]);
