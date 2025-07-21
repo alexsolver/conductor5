@@ -209,80 +209,211 @@ export default function MultilocationAdmin() {
         </TabsContent>
 
         <TabsContent value="markets" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Seleção e Visualização de Mercado */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Mercado Selecionado</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Selecione um mercado para visualizar e editar suas configurações
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="market-select">Mercado</Label>
+                  <Select value={selectedMarket} onValueChange={setSelectedMarket}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um mercado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {markets.map((market) => (
+                        <SelectItem key={market.marketCode} value={market.marketCode}>
+                          {market.marketCode} - {market.currencyCode}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {marketConfig && !configLoading && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Informações Básicas</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">País:</span>
+                          <p className="font-mono">{marketConfig.config.countryCode}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Idioma:</span>
+                          <p className="font-mono">{marketConfig.config.languageCode}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Moeda:</span>
+                          <p className="font-mono">{marketConfig.config.currencyCode}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Status:</span>
+                          <Badge variant={markets.find(m => m.marketCode === selectedMarket)?.isActive ? "default" : "secondary"}>
+                            {markets.find(m => m.marketCode === selectedMarket)?.isActive ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Formulário de Configuração */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurar Mercado</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure as opções do mercado selecionado
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {marketConfig && !configLoading ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="country-code">Código do País</Label>
+                        <Input 
+                          id="country-code" 
+                          value={marketConfig.config.countryCode} 
+                          placeholder="BR, US, GB..."
+                          maxLength={2}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="language-code">Código do Idioma</Label>
+                        <Input 
+                          id="language-code" 
+                          value={marketConfig.config.languageCode} 
+                          placeholder="pt-BR, en-US..."
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="currency-code">Código da Moeda</Label>
+                      <Select value={marketConfig.config.currencyCode}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
+                          <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                          <SelectItem value="EUR">EUR - Euro</SelectItem>
+                          <SelectItem value="GBP">GBP - Libra Esterlina</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="market-status">Status do Mercado</Label>
+                      <Select value={markets.find(m => m.marketCode === selectedMarket)?.isActive ? "active" : "inactive"}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Ativo</SelectItem>
+                          <SelectItem value="inactive">Inativo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Formato de Data</h4>
+                      <Select value={marketConfig.config.displayConfig?.dateFormat || "dd/MM/yyyy"}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dd/MM/yyyy">DD/MM/AAAA (Brasileiro)</SelectItem>
+                          <SelectItem value="MM/dd/yyyy">MM/DD/AAAA (Americano)</SelectItem>
+                          <SelectItem value="yyyy-MM-dd">AAAA-MM-DD (ISO)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Formato de Número</h4>
+                      <Select value={marketConfig.config.displayConfig?.numberFormat || "pt-BR"}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pt-BR">1.234,56 (Brasileiro)</SelectItem>
+                          <SelectItem value="en-US">1,234.56 (Americano)</SelectItem>
+                          <SelectItem value="en-GB">1,234.56 (Britânico)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex gap-2 pt-4">
+                      <Button className="flex-1">
+                        Salvar Configurações
+                      </Button>
+                      <Button variant="outline">
+                        Restaurar Padrão
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Selecione um mercado para configurar
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Criar Novo Mercado */}
           <Card>
             <CardHeader>
-              <CardTitle>Configuração de Mercado</CardTitle>
+              <CardTitle>Adicionar Novo Mercado</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Selecione um mercado para visualizar suas configurações
+                Configure um novo mercado internacional
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="market-select">Mercado</Label>
-                    <Select value={selectedMarket} onValueChange={setSelectedMarket}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um mercado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {markets.map((market) => (
-                          <SelectItem key={market.marketCode} value={market.marketCode}>
-                            {market.marketCode} - {market.currencyCode}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {marketConfig && !configLoading && (
-                    <div className="space-y-3">
-                      <Separator />
-                      <h4 className="font-medium">Informações do Mercado</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Código do País:</span>
-                          <span className="font-mono">{marketConfig.config.countryCode}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Idioma:</span>
-                          <span className="font-mono">{marketConfig.config.languageCode}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Moeda:</span>
-                          <span className="font-mono">{marketConfig.config.currencyCode}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="new-market-code">Código do Mercado</Label>
+                  <Input id="new-market-code" placeholder="CA, AU, JP..." maxLength={2} />
                 </div>
-
-                <div className="space-y-4">
-                  {marketConfig && marketConfig.config.displayConfig && (
-                    <div>
-                      <h4 className="font-medium mb-2">Formato de Exibição</h4>
-                      <div className="space-y-2 text-sm p-3 bg-gray-50 rounded">
-                        <div className="flex justify-between">
-                          <span>Data:</span>
-                          <span className="font-mono">{marketConfig.config.displayConfig.dateFormat}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Número:</span>
-                          <span className="font-mono">{marketConfig.config.displayConfig.numberFormat}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Exemplo:</span>
-                          <span>
-                            {(1234.56).toLocaleString(marketConfig.config.displayConfig.numberFormat, {
-                              style: 'currency',
-                              currency: marketConfig.config.currencyCode
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <Label htmlFor="new-country-code">País</Label>
+                  <Input id="new-country-code" placeholder="CA, AU, JP..." maxLength={2} />
                 </div>
+                <div>
+                  <Label htmlFor="new-language-code">Idioma</Label>
+                  <Input id="new-language-code" placeholder="en-CA, en-AU, ja-JP..." />
+                </div>
+                <div>
+                  <Label htmlFor="new-currency-code">Moeda</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CAD">CAD - Dólar Canadense</SelectItem>
+                      <SelectItem value="AUD">AUD - Dólar Australiano</SelectItem>
+                      <SelectItem value="JPY">JPY - Iene Japonês</SelectItem>
+                      <SelectItem value="CHF">CHF - Franco Suíço</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button>
+                  Criar Mercado
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -387,32 +518,273 @@ export default function MultilocationAdmin() {
         </TabsContent>
 
         <TabsContent value="validation" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Configuração de Campos Legais */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Campos Legais por Mercado</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure campos específicos para compliance legal
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Mercado: {selectedMarket}</Label>
+                </div>
+
+                {selectedMarket === 'BR' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="cpf-validation">Validação CPF</Label>
+                      <Select defaultValue="required">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="cnpj-validation">Validação CNPJ</Label>
+                      <Select defaultValue="required">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="rg-validation">Validação RG</Label>
+                      <Select defaultValue="optional">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {selectedMarket === 'US' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="ssn-validation">Validação SSN</Label>
+                      <Select defaultValue="required">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="ein-validation">Validação EIN</Label>
+                      <Select defaultValue="optional">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {selectedMarket === 'EU' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="vat-validation">Validação VAT</Label>
+                      <Select defaultValue="required">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="nif-validation">Validação NIF</Label>
+                      <Select defaultValue="optional">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="required">Obrigatório</SelectItem>
+                          <SelectItem value="optional">Opcional</SelectItem>
+                          <SelectItem value="disabled">Desabilitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-4">
+                  <Button className="flex-1">
+                    Salvar Validações
+                  </Button>
+                  <Button variant="outline">
+                    Testar Regras
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configuração de Aliases de Campos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Aliases de Campos</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure mapeamentos de campos entre mercados
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <Label>Mapeamentos para {selectedMarket}</Label>
+                  
+                  {selectedMarket === 'BR' && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">CPF →</span>
+                        <Input defaultValue="tax_id" placeholder="Campo internacional" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">CNPJ →</span>
+                        <Input defaultValue="business_tax_id" placeholder="Campo internacional" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">RG →</span>
+                        <Input defaultValue="national_id" placeholder="Campo internacional" />
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMarket === 'US' && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">SSN →</span>
+                        <Input defaultValue="tax_id" placeholder="Campo internacional" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">EIN →</span>
+                        <Input defaultValue="business_tax_id" placeholder="Campo internacional" />
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMarket === 'EU' && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">VAT →</span>
+                        <Input defaultValue="tax_id" placeholder="Campo internacional" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <span className="text-sm">NIF →</span>
+                        <Input defaultValue="national_id" placeholder="Campo internacional" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button className="flex-1">
+                    Salvar Aliases
+                  </Button>
+                  <Button variant="outline">
+                    Adicionar Campo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Teste de Validação */}
           <Card>
             <CardHeader>
-              <CardTitle>Regras de Validação por Mercado</CardTitle>
+              <CardTitle>Teste de Validação</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Teste as regras de validação configuradas
+              </p>
             </CardHeader>
             <CardContent>
-              {marketConfig && marketConfig.config.validationRules && (
-                <div className="space-y-4">
-                  <h4 className="font-medium">Mercado: {selectedMarket}</h4>
-                  <div className="p-4 border rounded-lg bg-gray-50">
-                    <pre className="text-sm overflow-x-auto">
-                      {JSON.stringify(marketConfig.config.validationRules, null, 2)}
-                    </pre>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="test-field">Campo para Teste</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um campo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedMarket === 'BR' && (
+                        <>
+                          <SelectItem value="cpf">CPF</SelectItem>
+                          <SelectItem value="cnpj">CNPJ</SelectItem>
+                          <SelectItem value="rg">RG</SelectItem>
+                        </>
+                      )}
+                      {selectedMarket === 'US' && (
+                        <>
+                          <SelectItem value="ssn">SSN</SelectItem>
+                          <SelectItem value="ein">EIN</SelectItem>
+                        </>
+                      )}
+                      {selectedMarket === 'EU' && (
+                        <>
+                          <SelectItem value="vat">VAT</SelectItem>
+                          <SelectItem value="nif">NIF</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
 
-              {marketConfig && marketConfig.config.legalFields && (
-                <div className="space-y-4">
-                  <h4 className="font-medium">Campos Legais</h4>
-                  <div className="p-4 border rounded-lg bg-blue-50">
-                    <pre className="text-sm overflow-x-auto">
-                      {JSON.stringify(marketConfig.config.legalFields, null, 2)}
-                    </pre>
-                  </div>
+                <div>
+                  <Label htmlFor="test-value">Valor para Teste</Label>
+                  <Input 
+                    id="test-value" 
+                    placeholder={
+                      selectedMarket === 'BR' ? "000.000.000-00" :
+                      selectedMarket === 'US' ? "123-45-6789" :
+                      "GB123456789"
+                    }
+                  />
                 </div>
-              )}
+
+                <div className="flex items-end">
+                  <Button className="w-full">
+                    Validar
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 border rounded-lg bg-green-50 hidden" id="validation-result">
+                <p className="text-sm text-green-600">
+                  ✓ Validação passou para o campo selecionado
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
