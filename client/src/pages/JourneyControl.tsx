@@ -202,7 +202,9 @@ export default function JourneyControl() {
   };
 
   const getElapsedTime = (startTime: string) => {
+    if (!startTime) return '--:--';
     const start = new Date(startTime);
+    if (isNaN(start.getTime())) return '--:--';
     const now = new Date();
     const duration = intervalToDuration({ start, end: now });
     return formatDuration(duration, { locale: ptBR });
@@ -231,7 +233,7 @@ export default function JourneyControl() {
                 <div className="flex items-center gap-4">
                   {getStatusBadge(currentJourney.status)}
                   <span className="text-sm text-gray-600">
-                    Iniciada em {format(new Date(currentJourney.startTime), 'HH:mm', { locale: ptBR })}
+                    Iniciada em {currentJourney.startTime ? format(new Date(currentJourney.startTime), 'HH:mm', { locale: ptBR }) : '--:--'}
                   </span>
                   <span className="font-medium">
                     Tempo decorrido: {getElapsedTime(currentJourney.startTime)}
