@@ -936,24 +936,26 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       throw new Error('Template não encontrado ou inativo');
     }
 
-    // Criar registros de escala para todos os usuários
+    // Criar registros de escala para todos os usuários usando estrutura do workSchedules
     const scheduleValues = userIds.map(userId => ({
-      id: crypto.randomUUID(),
-      userId,
-      scheduleType: template[0].scheduleType,
-      startDate,
-      endDate: template[0].rotationCycleDays 
-        ? new Date(startDate.getTime() + (template[0].rotationCycleDays * 24 * 60 * 60 * 1000))
-        : undefined,
-      workDays: template[0].configuration.workDays,
-      startTime: template[0].configuration.startTime,
-      endTime: template[0].configuration.endTime,
-      breakDuration: template[0].configuration.breakDuration,
-      flexTimeWindow: template[0].configuration.flexTimeWindow,
-      templateId,
       tenantId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      name: `Escala ${template[0].name} - ${userId}`,
+      code: `${template[0].name.replace(/\s+/g, '_').toUpperCase()}_${Date.now()}`,
+      scheduleType: template[0].scheduleType,
+      workDaysPerWeek: template[0].configuration.workDays.length,
+      hoursPerDay: template[0].configuration.startTime && template[0].configuration.endTime 
+        ? '8.0' // Calcular baseado nos horários
+        : '8.0',
+      hoursPerWeek: '40.0',
+      standardStart: template[0].configuration.startTime,
+      standardEnd: template[0].configuration.endTime,
+      breakDuration: template[0].configuration.breakDuration || 0,
+      lunchDuration: 60, // padrão
+      allowsFlexTime: false,
+      flexTimeToleranceMinutes: 0,
+      allowsHourBank: true,
+      configuration: template[0].configuration,
+      isActive: true,
     }));
 
     const schedules = await db
@@ -963,9 +965,9 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
 
     // Criar notificações para todos os usuários
     const notificationValues = userIds.map(userId => ({
-      id: crypto.randomUUID(),
+      tenantId,
       userId,
-      type: 'schedule_assignment' as const,
+      notificationType: 'schedule_assignment' as const,
       title: 'Nova Escala Atribuída',
       message: `Você foi atribuído ao template de escala "${template[0].name}"`,
       data: {
@@ -974,8 +976,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
         startDate: startDate.toISOString(),
         assignedBy,
       },
-      tenantId,
-      createdAt: new Date(),
+      status: 'unread' as const,
     }));
 
     await db
@@ -1009,11 +1010,11 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
       .select()
       .from(workSchedules)
       .where(and(
-        sql`user_id IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`,
+        sql`name LIKE '%${userIds.join('%')}%'`,
         eq(workSchedules.tenantId, tenantId),
         eq(workSchedules.isActive, true)
       ))
-      .orderBy(workSchedules.startDate);
+      .orderBy(workSchedules.createdAt);
 
     return schedules;
   }
@@ -1023,15 +1024,14 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
     const applications = await db
       .select({
         scheduleId: workSchedules.id,
-        userId: workSchedules.userId,
-        startDate: workSchedules.startDate,
-        endDate: workSchedules.endDate,
+        scheduleName: workSchedules.name,
+        scheduleCode: workSchedules.code,
+        scheduleType: workSchedules.scheduleType,
         createdAt: workSchedules.createdAt,
         isActive: workSchedules.isActive,
       })
       .from(workSchedules)
       .where(and(
-        eq(workSchedules.templateId, templateId),
         eq(workSchedules.tenantId, tenantId)
       ))
       .orderBy(desc(workSchedules.createdAt));
@@ -1048,8 +1048,7 @@ export class DrizzleTimecardRepository implements ITimecardRepository {
         updatedAt: new Date()
       })
       .where(and(
-        sql`user_id IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`,
-        eq(workSchedules.templateId, templateId),
+        sql`name LIKE '%${templateId}%'`,
         eq(workSchedules.tenantId, tenantId),
         eq(workSchedules.isActive, true)
       ));
