@@ -62,7 +62,12 @@ export class DrizzleChannelRepository implements IChannelRepository {
         if (integration.id === 'imap-email') {
           let parsedConfig = null;
           try {
-            parsedConfig = integration.config ? JSON.parse(integration.config) : null;
+            // If config is already an object, use it directly; if string, parse it
+            parsedConfig = integration.config 
+              ? (typeof integration.config === 'string' 
+                  ? JSON.parse(integration.config) 
+                  : integration.config)
+              : null;
           } catch (e) {
             console.log('📧 IMAP Config Parse Error:', e);
           }

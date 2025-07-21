@@ -6,7 +6,7 @@
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
 import { schemaManager } from '../../../db';
-import { InsertOmnibridgeInboxMessage } from '@shared/schema';
+import { emails } from '@shared/schema/tenant-specific';
 import { eq } from 'drizzle-orm';
 
 interface GmailConfig {
@@ -327,42 +327,67 @@ export class GmailService {
           const headers = email.headers || {};
           const messageId = headers['message-id'] ? headers['message-id'][0] : `gmail-${Date.now()}-${Math.random()}`;
           
-          // Note: Skip duplicate check for now since we need the table reference
-          // In production, this would check against existing messages
+          // Check for duplicates - skip if already exists
+          const existing = await tenantDb.select().from(emails).where(eq(emails.messageId, messageId)).limit(1);
+          if (existing.length > 0) {
+            console.log(`⏭️ Email already exists: ${messageId}`);
+            continue;
+          }
 
           const from = headers.from ? headers.from[0] : 'unknown@gmail.com';
           const to = headers.to ? headers.to[0] : 'alexsolver@gmail.com';
           const subject = headers.subject ? headers.subject[0] : '(No Subject)';
           const date = headers.date ? new Date(headers.date[0]) : new Date();
 
+          // Filter old emails (temporarily allowing 2019+ for testing)
+          if (date.getFullYear() < 2019) {
+            console.log(`⏭️ Skipping very old email from ${date.getFullYear()}: ${subject}`);
+            continue;
+          }
+          
+          // Show which year we're processing
+          console.log(`📅 Processing email from ${date.getFullYear()}: ${subject}`);
+
           // Extract email address from "Name <email>" format
           const fromMatch = from.match(/<(.+?)>/) || [null, from];
           const fromEmail = fromMatch[1] || from;
           const fromName = from.replace(/<.*>/, '').trim().replace(/"/g, '') || null;
 
-          const messageData: InsertOmnibridgeInboxMessage = {
+          // Detect priority based on keywords
+          let priority = 'medium';
+          const subjectLower = subject.toLowerCase();
+          if (subjectLower.includes('urgente') || subjectLower.includes('emergencia') || subjectLower.includes('crítico')) {
+            priority = 'high';
+          } else if (subjectLower.includes('baixa') || subjectLower.includes('info') || subjectLower.includes('fyi')) {
+            priority = 'low';
+          }
+
+          const emailData = {
+            id: `email-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             tenantId,
             messageId,
-            channelId,
-            channelType: 'email',
-            fromContact: fromEmail,
-            fromName: fromName || undefined,
-            toContact: to,
+            fromEmail,
+            fromName: fromName || null,
+            toEmail: to,
             subject,
-            bodyText: `Email received via Gmail Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nThis is a real email message.`,
-            direction: 'inbound',
-            priority: 'normal',
+            bodyText: `Email received via Gmail IMAP Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nThis is a real email message captured from Gmail.`,
+            bodyHtml: null,
+            priority,
             isRead: false,
             isProcessed: false,
-            isArchived: false,
-            needsResponse: true,
-            receivedAt: date,
+            emailDate: date,
+            receivedAt: new Date(),
             hasAttachments: false,
-            attachmentCount: 0
+            attachmentCount: 0,
+            emailHeaders: JSON.stringify(headers),
+            attachmentDetails: '[]',
+            ccEmails: '[]',
+            bccEmails: '[]'
           };
 
-          // Note: Insert would be done via repository in production
-          console.log(`✅ Would process email: ${subject}`);
+          // Insert into emails table
+          await tenantDb.insert(emails).values(emailData);
+          console.log(`✅ Email saved to database: ${subject} (Priority: ${priority})`);
         } catch (error) {
           console.error('Error processing individual email:', error);
         }
