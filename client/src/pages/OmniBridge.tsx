@@ -166,10 +166,10 @@ export default function OmniBridge() {
       }
       return { success: true, channelId, intervalMinutes };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Configuração de Sync Atualizada",
-        description: `Intervalo de sincronização configurado para ${data.intervalMinutes} minutos.`
+        description: `Intervalo de sincronização configurado para ${data.intervalMinutes || 30} minutos.`
       });
       setSyncConfigOpen(false);
     },
