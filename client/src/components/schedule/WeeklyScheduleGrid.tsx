@@ -1,6 +1,9 @@
-import React from 'react';
-import { format, addDays, parseISO, startOfWeek, endOfWeek } from 'date-fns';
+import React, { useState } from 'react';
+import { format, addDays, addHours, addMinutes, startOfDay, parseISO, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 interface Schedule {
   id: string;
@@ -44,8 +47,54 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   onScheduleClick,
   onTimeSlotClick,
 }) => {
+  const [searchAgent, setSearchAgent] = useState('');
+  const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('hoje');
+
   // Generate 14 days starting from selected date
   const days = Array.from({ length: 14 }, (_, i) => addDays(startDate, i));
+
+  // Generate time slots based on selected filter
+  const getTimeSlots = () => {
+    switch (timeFilter) {
+      case '2min':
+        return Array.from({ length: 24 }, (_, i) => {
+          const hour = Math.floor(i / 12) + 6; // Start from 6:00
+          const minute = (i % 12) * 5; // 5-minute intervals
+          return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        });
+      
+      case '10min':
+        return Array.from({ length: 60 }, (_, i) => {
+          const hour = Math.floor(i / 6) + 6; // Start from 6:00
+          const minute = (i % 6) * 10; // 10-minute intervals
+          return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        });
+      
+      case '30min':
+        return Array.from({ length: 36 }, (_, i) => {
+          const hour = Math.floor(i / 2) + 6; // Start from 6:00
+          const minute = (i % 2) * 30; // 30-minute intervals
+          return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        });
+      
+      case '1hora':
+        return Array.from({ length: 18 }, (_, i) => {
+          const hour = i + 6; // Start from 6:00 to 23:00
+          return `${hour.toString().padStart(2, '0')}:00`;
+        });
+      
+      case '24horas':
+        return ['06:00', '12:00', '18:00', '24:00']; // 4 key times
+      
+      default: // 'hoje'
+        return Array.from({ length: 18 }, (_, i) => {
+          const hour = i + 6; // From 6:00 to 23:00
+          return `${hour.toString().padStart(2, '0')}:00`;
+        });
+    }
+  };
+
+  const timeSlots = getTimeSlots();
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -57,139 +106,206 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
     }
   };
 
-  const getSchedulesForDay = (agentId: string, day: Date, type: 'planned' | 'actual') => {
+  // Filter agents by search
+  const filteredAgents = agents.filter(agent => 
+    agent.name.toLowerCase().includes(searchAgent.toLowerCase()) ||
+    agent.email.toLowerCase().includes(searchAgent.toLowerCase())
+  );
+
+  const getActivityType = (activityTypeId: string) => {
+    return activityTypes.find(type => type.id === activityTypeId);
+  };
+
+  const getSchedulesForDayAndTime = (agentId: string, day: Date, timeSlot: string, type: 'planned' | 'actual') => {
     return schedules.filter(schedule => {
       if (!schedule.agentId || !schedule.type || !schedule.startDateTime) return false;
       
       const scheduleStart = parseISO(schedule.startDateTime);
+      const scheduleHour = scheduleStart.getHours();
+      const scheduleMinute = scheduleStart.getMinutes();
+      const timeSlotTime = timeSlot.split(':');
+      const timeSlotHour = parseInt(timeSlotTime[0]);
+      const timeSlotMinute = parseInt(timeSlotTime[1]);
       
       // Match agent ID (handle both UUID formats)
       const agentMatch = schedule.agentId === agentId || 
                         schedule.agentId.startsWith(agentId.substring(0, 8));
       
-      return agentMatch &&
-             schedule.type === type &&
-             scheduleStart.getDate() === day.getDate() &&
-             scheduleStart.getMonth() === day.getMonth() &&
-             scheduleStart.getFullYear() === day.getFullYear();
+      // Check if schedule is on the same day
+      const dayMatch = scheduleStart.getDate() === day.getDate() &&
+                      scheduleStart.getMonth() === day.getMonth() &&
+                      scheduleStart.getFullYear() === day.getFullYear();
+      
+      // Check if schedule time overlaps with time slot
+      const timeMatch = scheduleHour === timeSlotHour && Math.abs(scheduleMinute - timeSlotMinute) < 30;
+      
+      return agentMatch && schedule.type === type && dayMatch && timeMatch;
     });
   };
 
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Agenda 14 Dias - {format(startDate, 'dd/MM/yyyy', { locale: ptBR })} até {format(addDays(startDate, 13), 'dd/MM/yyyy', { locale: ptBR })}
-        </h3>
-      </div>
-
-      {/* Days header */}
-      <div className="border-b border-gray-200">
-        <div className="flex">
-          <div className="w-48 flex-shrink-0 p-3 bg-gray-50 border-r font-medium text-sm">
-            Técnicos
+    <div className="flex h-full bg-gray-50">
+      {/* Left Sidebar - Time Filters and Agent Search */}
+      <div className="w-64 bg-white border-r border-gray-200 p-4 space-y-4">
+        {/* Time Filter Buttons */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700">Filtro de Tempo</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {(['hoje', '2min', '10min', '30min', '1hora', '24horas'] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setTimeFilter(filter)}
+                className={`px-3 py-2 text-xs rounded-md font-medium transition-colors ${
+                  timeFilter === filter
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {filter === 'hoje' ? 'Hoje' : filter}
+              </button>
+            ))}
           </div>
-          {days.map((day, index) => (
-            <div key={index} className="flex-1 min-w-20 p-2 text-center border-r last:border-r-0">
-              <div className="text-xs font-medium text-gray-900">
-                {format(day, 'dd/MM')}
+        </div>
+
+        {/* Agent Search */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700">Buscar Técnicos</h3>
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Buscar técnico..."
+              value={searchAgent}
+              onChange={(e) => setSearchAgent(e.target.value)}
+              className="pl-9 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Filtered Agents List */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700">Técnicos ({filteredAgents.length})</h3>
+          <div className="space-y-1 max-h-96 overflow-y-auto">
+            {filteredAgents.map((agent) => (
+              <div
+                key={agent.id}
+                className="p-2 text-sm bg-gray-50 rounded border"
+              >
+                <div className="font-medium text-gray-900">{agent.name}</div>
+                <div className="text-xs text-gray-500">{agent.email}</div>
               </div>
-              <div className="text-xs text-gray-600">
-                {format(day, 'EEE', { locale: ptBR })}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="overflow-x-auto">
-        <div className="flex">
-          {/* Left sidebar with agent list */}
-          <div className="w-48 flex-shrink-0 border-r bg-gray-50">
-            {agents.map((agent) => (
-              <div key={agent.id} className="border-b">
-                {/* Planned row */}
-                <div className="h-12 px-3 py-2 bg-white border-b border-gray-100 flex items-center">
-                  <div className="text-sm">
-                    <div className="font-medium text-gray-900 text-xs">{agent.name}</div>
-                    <div className="text-xs text-green-600">Previsto</div>
-                  </div>
-                </div>
-                
-                {/* Actual row */}
-                <div className="h-12 px-3 py-2 bg-gray-50 flex items-center">
-                  <div className="text-sm">
-                    <div className="font-medium text-gray-700 text-xs">{agent.name}</div>
-                    <div className="text-xs text-blue-600">Realizado</div>
-                  </div>
-                </div>
+      {/* Main Grid - Days as Columns, Hours as Rows */}
+      <div className="flex-1 overflow-auto">
+        <div className="min-w-max bg-white">
+          {/* Header with Days */}
+          <div className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+            <div className="grid" style={{ gridTemplateColumns: `120px repeat(${days.length}, 100px)` }}>
+              <div className="p-3 border-r border-gray-200">
+                <div className="text-sm font-semibold text-gray-900">Horários</div>
               </div>
-            ))}
+              {days.map((day, index) => (
+                <div key={index} className="p-3 border-r border-gray-200 text-center">
+                  <div className="text-xs text-gray-500">
+                    {format(day, 'eee', { locale: ptBR }).toUpperCase()}
+                  </div>
+                  <div className="text-sm font-semibold text-gray-900">
+                    {format(day, 'dd/MM', { locale: ptBR })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Days grid */}
-          <div className="flex flex-1">
-            {days.map((day, dayIndex) => (
-              <div key={dayIndex} className="flex-1 min-w-20 border-r last:border-r-0">
-                {agents.map((agent) => {
-                  const plannedSchedules = getSchedulesForDay(agent.id, day, 'planned');
-                  const actualSchedules = getSchedulesForDay(agent.id, day, 'actual');
-                  
-                  return (
-                    <div key={agent.id} className="border-b">
-                      {/* Planned row */}
-                      <div 
-                        className="h-12 relative bg-green-50 border-b border-gray-100 cursor-pointer hover:bg-green-100 p-1"
-                        onClick={() => onTimeSlotClick(day, format(day, 'dd/MM'), agent.id)}
-                      >
-                        {plannedSchedules.map((schedule, index) => (
-                          <div
-                            key={schedule.id}
-                            className={`mb-1 last:mb-0 text-white text-xs rounded px-1 py-0.5 cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
-                            style={{ fontSize: '10px' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onScheduleClick(schedule);
-                            }}
-                            title={`${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`}
-                          >
-                            <span className="truncate block">
-                              {schedule.title.substring(0, 8)}...
-                            </span>
-                          </div>
-                        ))}
+          {/* Time Slots as Rows */}
+          {timeSlots.map((timeSlot) => (
+            <div key={timeSlot} className="border-b border-gray-100">
+              {/* Time Label */}
+              <div className="grid" style={{ gridTemplateColumns: `120px repeat(${days.length}, 100px)` }}>
+                <div className="p-3 border-r border-gray-200 bg-gray-50">
+                  <div className="text-sm font-medium text-gray-900">{timeSlot}</div>
+                </div>
+                
+                {/* Day Columns */}
+                {days.map((day, dayIndex) => (
+                  <div key={dayIndex} className="border-r border-gray-200">
+                    {/* Each Agent gets two mini-rows: Planned and Actual */}
+                    {filteredAgents.map((agent, agentIndex) => (
+                      <div key={agent.id} className="border-b border-gray-100 last:border-b-0">
+                        {/* Planned Row */}
+                        <div 
+                          className="p-1 bg-green-50 min-h-[30px] relative text-xs cursor-pointer hover:bg-green-100"
+                          onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
+                        >
+                          {getSchedulesForDayAndTime(agent.id, day, timeSlot, 'planned').map((schedule) => {
+                            const activityType = getActivityType(schedule.activityTypeId);
+                            return (
+                              <div
+                                key={schedule.id}
+                                className="absolute inset-1 rounded text-white text-xs p-1 cursor-pointer hover:opacity-80 flex items-center justify-center"
+                                style={{ backgroundColor: activityType?.color || '#3b82f6' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onScheduleClick(schedule);
+                                }}
+                              >
+                                <Badge variant="secondary" className="text-xs">
+                                  {schedule.priority === 'urgent' ? 'U' : 
+                                   schedule.priority === 'high' ? 'H' : 
+                                   schedule.priority === 'low' ? 'L' : 'M'}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                          {agentIndex === 0 && (
+                            <div className="absolute -left-20 top-1 text-xs text-green-600 font-medium">
+                              P
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Actual Row */}
+                        <div 
+                          className="p-1 bg-blue-50 min-h-[30px] relative text-xs cursor-pointer hover:bg-blue-100"
+                          onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
+                        >
+                          {getSchedulesForDayAndTime(agent.id, day, timeSlot, 'actual').map((schedule) => {
+                            const activityType = getActivityType(schedule.activityTypeId);
+                            return (
+                              <div
+                                key={schedule.id}
+                                className="absolute inset-1 rounded text-white text-xs p-1 cursor-pointer hover:opacity-80 flex items-center justify-center"
+                                style={{ backgroundColor: activityType?.color || '#3b82f6' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onScheduleClick(schedule);
+                                }}
+                              >
+                                <Badge variant="secondary" className="text-xs">
+                                  {schedule.priority === 'urgent' ? 'U' : 
+                                   schedule.priority === 'high' ? 'H' : 
+                                   schedule.priority === 'low' ? 'L' : 'M'}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                          {agentIndex === 0 && (
+                            <div className="absolute -left-20 top-1 text-xs text-blue-600 font-medium">
+                              R
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      
-                      {/* Actual row */}
-                      <div 
-                        className="h-12 relative bg-blue-50 cursor-pointer hover:bg-blue-100 p-1"
-                        onClick={() => onTimeSlotClick(day, format(day, 'dd/MM'), agent.id)}
-                      >
-                        {actualSchedules.map((schedule, index) => (
-                          <div
-                            key={schedule.id}
-                            className={`mb-1 last:mb-0 text-white text-xs rounded px-1 py-0.5 cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
-                            style={{ fontSize: '10px', opacity: 0.7 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onScheduleClick(schedule);
-                            }}
-                            title={`${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`}
-                          >
-                            <span className="truncate block">
-                              {schedule.title.substring(0, 8)}...
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                    ))}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
