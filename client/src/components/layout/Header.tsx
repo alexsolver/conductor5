@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock } from "lucide-react";
+import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -43,6 +43,15 @@ export function Header() {
             >
               <Calendar className="h-5 w-5" />
               <span className="font-medium">Agenda</span>
+            </Button>
+          </Link>
+          <Link href="/projects">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
+            >
+              <Folder className="h-5 w-5" />
+              <span className="font-medium">Projetos</span>
             </Button>
           </Link>
         </div>
