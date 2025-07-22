@@ -1424,17 +1424,6 @@ export default function TicketDetails() {
         return (
           <div className="space-y-4">
             
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-medium">Ticket #{ticket.ticketNumber}</span>
-              <div className="flex gap-2">
-                <Badge className={getPriorityColor(ticket.priority)}>
-                  {ticket.priority}
-                </Badge>
-                <Badge className={getStatusColor(ticket.status)}>
-                  {ticket.status}
-                </Badge>
-              </div>
-            </div>
 
             <FormField
               control={form.control}
