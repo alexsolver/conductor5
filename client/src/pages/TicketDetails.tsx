@@ -73,6 +73,7 @@ export default function TicketDetails() {
   const [tags, setTags] = useState<string[]>([]);
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
   const [agentPassword, setAgentPassword] = useState("");
+  const [newTag, setNewTag] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Basic information - consolidated into single tab
@@ -851,47 +852,141 @@ export default function TicketDetails() {
         <div className="p-4 h-full">
           {/* Ticket Summary */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">SEGUIDORES</h3>
+            <h3 className="text-sm font-semibold text-gray-600 mb-2">Seguidores</h3>
             <div className="space-y-2">
               {followers.length > 0 ? (
                 followers.map((followerId, index) => {
                   const user = users?.users?.find((u: any) => u.id === followerId);
                   return (
-                    <div key={index} className="text-sm text-gray-700">
-                      {user?.name || followerId}
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">
+                        {user?.name || followerId}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => setFollowers(followers.filter((_, i) => i !== index))}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                   );
                 })
               ) : (
                 <div className="text-sm text-gray-500">Nenhum seguidor</div>
               )}
+              
+              <Select onValueChange={(value) => {
+                if (value && !followers.includes(value)) {
+                  setFollowers([...followers, value]);
+                }
+              }}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="+ Adicionar agente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users?.users?.filter((user: any) => !followers.includes(user.id)).map((user: any) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           {/* Tags Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Tags</h3>
-            <div className="flex flex-wrap gap-1">
-              {tags.length > 0 ? (
-                tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">Nenhuma tag</div>
-              )}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1">
+                {tags.length > 0 ? (
+                  tags.map((tag, index) => (
+                    <div key={index} className="flex items-center">
+                      <Badge variant="outline" className="text-xs">
+                        {tag}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 ml-1"
+                          onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      </Badge>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-500">Nenhuma tag</div>
+                )}
+              </div>
+              
+              <div className="flex gap-1">
+                <Input
+                  type="text"
+                  placeholder="Nova tag"
+                  className="h-7 text-xs"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
+                      setTags([...tags, newTag.trim()]);
+                      setNewTag('');
+                    }
+                  }}
+                />
+                <Button
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    if (newTag.trim() && !tags.includes(newTag.trim())) {
+                      setTags([...tags, newTag.trim()]);
+                      setNewTag('');
+                    }
+                  }}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Priority Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Prioridade</h3>
-            <div className="text-sm">
-              <Badge className={getPriorityColor(ticket.priority)}>
-                {ticket.priority}
-              </Badge>
-            </div>
+            <Select 
+              value={ticket.priority || "medium"} 
+              onValueChange={(value) => {
+                // Atualizar prioridade do ticket
+                updateTicketMutation.mutate({
+                  id: ticket.id,
+                  priority: value
+                });
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue>
+                  <Badge className={getPriorityColor(ticket.priority)}>
+                    {ticket.priority}
+                  </Badge>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">
+                  <Badge className={getPriorityColor("low")}>Baixa</Badge>
+                </SelectItem>
+                <SelectItem value="medium">
+                  <Badge className={getPriorityColor("medium")}>Média</Badge>
+                </SelectItem>
+                <SelectItem value="high">
+                  <Badge className={getPriorityColor("high")}>Alta</Badge>
+                </SelectItem>
+                <SelectItem value="critical">
+                  <Badge className={getPriorityColor("critical")}>Crítica</Badge>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Status Section */}
@@ -996,7 +1091,7 @@ export default function TicketDetails() {
       {/* Right Sidebar - Navigation Tabs */}
       <div className="w-80 bg-white border-l flex-shrink-0 h-full overflow-y-auto">
         <div className="p-4 border-b">
-          <h3 className="font-semibold text-lg">Navegação</h3>
+          <h3 className="font-semibold text-lg">Explorar</h3>
         </div>
         <div className="p-2 space-y-1">
           {/* Informações Tab */}
@@ -1009,7 +1104,7 @@ export default function TicketDetails() {
             }`}
           >
             <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">Informações</span>
+            <span className="text-sm font-medium">Detalhes</span>
           </button>
 
           {/* Campos Especiais */}
