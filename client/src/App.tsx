@@ -65,7 +65,6 @@ import AgendaManager from "./pages/AgendaManager";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
-import { ConnectivityChecker } from "./components/ConnectivityChecker";
 
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -94,12 +93,9 @@ function AppRouter() {
 
   // Show main app if authenticated
   return (
-    <>
-      <ConnectivityChecker />
-      <AppShell>
-        <Switch>
+    <AppShell>
+      <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/edit/:id" component={TicketEdit} />
         <Route path="/solicitantes" component={CustomersTable} />
@@ -149,10 +145,11 @@ function AppRouter() {
         <Route path="/holiday-calendar" component={HolidayCalendar} />
         <Route path="/agenda-manager" component={AgendaManager} />
         <Route path="/omnibridge" component={OmniBridge} />
+
+        <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>
-    </>
   );
 }
 

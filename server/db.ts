@@ -135,14 +135,6 @@ export const schemaManager = {
   async createTenantSchema(tenantId: string) {
     console.log(`✅ Tenant schema creation skipped for ${tenantId} in simplified mode`);
     return true;
-  },
-  
-  getPool() {
-    return pool;
-  },
-  
-  getSchemaName(tenantId: string): string {
-    return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 };
 

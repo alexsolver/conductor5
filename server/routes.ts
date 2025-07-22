@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and mount localization routes
   const localizationRoutes = await import('./routes/localization');
   app.use('/api/localization', localizationRoutes.default);
-
+  
   // Import and mount multilocation routes (enterprise international support)
   const multilocationRoutes = await import('./routes/multilocation');
   app.use('/api/multilocation', multilocationRoutes.default);
@@ -234,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { tenantId } = req.params;
 
       // Initialize tenant schema
-      await schemaManager.ensureTenantExists(tenantId);
+      await unifiedSchemaManager.initializeTenantSchema(tenantId);
 
       res.json({ message: `Schema initialized for tenant ${tenantId}` });
     } catch (error) {
@@ -266,8 +266,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Note: Customer locations functionality requires implementation of customerLocations table in schema
-      // For now, return empty array until locations are properly implemented
-      const locations: any[] = [];
+      // For now, return locations associated with the tenant
+      const locations = await unifiedStorage.getLocations ? await unifiedStorage.getLocations(tenantId) : [];
 
       res.json({ locations });
     } catch (error) {
@@ -320,26 +320,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
-
+  
   // Holiday routes for journey control system
   app.use('/api/holidays', holidayRoutes);
-
+  
   // Global multilocation API endpoints
   app.get('/api/multilocation/markets', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       const pool = schemaManager.getPool();
-
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
+      
       const result = await pool.query(
         `SELECT * FROM "${schemaManager.getSchemaName(tenantId)}"."market_localization" WHERE tenant_id = $1 AND is_active = true ORDER BY market_code`,
         [tenantId]
       );
 
-      const markets = result.rows.map((row: any) => ({
+      const markets = result.rows.map(row => ({
         marketCode: row.market_code,
         countryCode: row.country_code,
         languageCode: row.language_code,
@@ -358,11 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { marketCode } = req.params;
       const tenantId = req.user?.tenantId;
       const pool = schemaManager.getPool();
-
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
+      
       const result = await pool.query(
         `SELECT * FROM "${schemaManager.getSchemaName(tenantId)}"."market_localization" WHERE tenant_id = $1 AND market_code = $2`,
         [tenantId, marketCode]
@@ -394,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/geolocation/convert-currency', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { amount, from, to } = req.body;
-
+      
       // Get exchange rate from database
       const pool = schemaManager.getPool();
       const result = await pool.query(
@@ -430,10 +422,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to convert currency' });
     }
   });
-
+  
   // Global multilocation routes  
   // app.use('/api/multilocation', multilocationRoutes); // Temporarily disabled due to module export issue
-
+  
   // Removed duplicate OmniBridge routes - now defined earlier before middleware
 
   // Helper functions for channel transformation
@@ -476,10 +468,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
     return descMap[type] || 'Canal de comunicação';
   }
-
+  
   // Geolocation detection and formatting routes  
   // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
-
+  
   // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
 
 
@@ -581,13 +573,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Start Gmail service monitoring
       const { GmailService } = await import('./services/integrations/gmail/GmailService');
       const gmailService = new GmailService();
-
+      
       const result = await gmailService.startEmailMonitoring(tenantId, imapIntegration.id);
-
+      
       if (result.success) {
         // Update integration status to connected
         await unifiedStorage.updateTenantIntegrationStatus(tenantId, imapIntegration.id, 'connected');
-
+        
         res.json({
           success: true,
           message: "Monitoramento IMAP iniciado com sucesso",
@@ -624,12 +616,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Stop Gmail service monitoring
       const { GmailService } = await import('./services/integrations/gmail/GmailService');
       const gmailService = new GmailService();
-
+      
       await gmailService.stopEmailMonitoring(tenantId);
-
+      
       // Update integration status to disconnected
       await unifiedStorage.updateTenantIntegrationStatus(tenantId, imapIntegration.id, 'disconnected');
-
+      
       res.json({
         success: true,
         message: "Monitoramento IMAP parado com sucesso",
@@ -660,7 +652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🚀 Starting OmniBridge monitoring for tenant: ${tenantId}`);
       await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
-
+      
       res.json({ 
         message: "OmniBridge monitoring started successfully",
         activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
@@ -683,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🛑 Stopping OmniBridge monitoring for tenant: ${tenantId}`);
       await omniBridgeAutoStart.stopAllMonitoring(tenantId);
-
+      
       res.json({ 
         message: "OmniBridge monitoring stopped successfully",
         isActive: false
@@ -697,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/omnibridge/monitoring-status', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-
+      
       const activeMonitoring = omniBridgeAutoStart.getActiveMonitoring();
       res.json({ 
         activeMonitoring,
@@ -707,11 +699,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error getting monitoring status:', error);
       res.status(500).json({ message: "Failed to get status" });
     }
-  });
-
-  // Health check endpoint
-  app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   const httpServer = createServer(app);
