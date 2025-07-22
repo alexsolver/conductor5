@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, subDays, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, User, MapPin, Filter, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +37,7 @@ interface Schedule {
 
 const AgendaManager: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [view, setView] = useState<'day' | 'week' | 'month'>('week');
+  const [view] = useState<'day' | 'week' | 'month'>('week');
   const [selectedAgentId, setSelectedAgentId] = useState<string>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
@@ -86,9 +86,9 @@ const AgendaManager: React.FC = () => {
     queryKey: ['/api/customers'],
   });
 
-  const activityTypes: ActivityType[] = activityTypesData?.activityTypes || [];
-  const schedules: Schedule[] = schedulesData?.schedules || [];
-  const customers: any[] = customersData?.customers || [];
+  const activityTypes: ActivityType[] = (activityTypesData as any)?.activityTypes || [];
+  const schedules: Schedule[] = (schedulesData as any)?.schedules || [];
+  const customers: any[] = (customersData as any)?.customers || [];
 
   // Mock agents data (since we don't have a user management module yet)
   const mockAgents = [
@@ -246,47 +246,20 @@ const AgendaManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation and View Controls */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-2">
-          <Button 
-            variant={view === 'day' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setView('day')}
-          >
-            Dia
-          </Button>
-          <Button 
-            variant={view === 'week' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setView('week')}
-          >
-            Semana
-          </Button>
-          <Button 
-            variant={view === 'month' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setView('month')}
-          >
-            Mês
-          </Button>
+      {/* Date Navigation */}
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => setSelectedDate(subDays(selectedDate, 1))}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          <span className="font-medium">
+            {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
+          </span>
         </div>
-
-        {/* Week Navigation */}
-        {view === 'week' && (
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="text-sm font-medium">
-              {format(startOfWeek(selectedDate, { locale: ptBR }), 'dd/MM', { locale: ptBR })} - {' '}
-              {format(endOfWeek(selectedDate, { locale: ptBR }), 'dd/MM/yyyy', { locale: ptBR })}
-            </div>
-            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+        <Button variant="outline" size="sm" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Main Layout - Always Grid View */}

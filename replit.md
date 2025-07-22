@@ -31,9 +31,10 @@ Preferred communication style: Simple, everyday language.
 
 ✅ **INTERFACE LIMPA IMPLEMENTADA:**
 - Removidos os 4 cards de estatísticas conforme solicitação do usuário
+- Removidos botões de visualização (dia/semana/mês) deixando apenas seletor de data
 - Layout focado exclusivamente na grade visual de agendamentos
 - Header simplificado com controles essenciais (Bulk edit, Generate, Publish)
-- Sistema de busca de agentes funcional na sidebar
+- Alinhamento perfeito entre caixas de técnicos e linha do tempo horizontal
 
 ✅ **COMPONENTES VISUAIS FINALIZADOS:**
 - ScheduleModal.tsx: Modal completo para criação/edição com validação Zod

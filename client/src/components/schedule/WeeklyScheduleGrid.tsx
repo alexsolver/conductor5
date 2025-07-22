@@ -182,24 +182,11 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
       <div className="flex">
         {/* Left Sidebar */}
         <div className="w-40 border-r bg-gray-50">
-          {/* Group Toggle */}
-          <div className="p-2 border-b">
+          {/* Group Toggle - Same height as time header */}
+          <div className="p-2 border-b bg-gray-50" style={{ height: '36px' }}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">By group</span>
               <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">104</span>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="p-2 border-b">
-            <div className="relative">
-              <Search className="absolute left-2 top-2 h-3 w-3 text-gray-400" />
-              <Input
-                placeholder="Search by name or email"
-                value={searchAgent}
-                onChange={(e) => setSearchAgent(e.target.value)}
-                className="pl-7 text-xs h-6"
-              />
             </div>
           </div>
 
@@ -208,7 +195,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             {filteredAgents.map((agent, index) => (
               <div 
                 key={agent.id} 
-                className="flex items-center p-2 text-xs border-b bg-gray-50" 
+                className="flex items-center px-2 text-xs border-b bg-gray-50" 
                 style={{ height: '40px' }}
               >
                 <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs mr-2">
@@ -223,11 +210,11 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
         {/* Main Grid */}
         <div className="flex-1 overflow-x-auto">
           {/* Time Header - Hourly from 09:00 to 23:00 */}
-          <div className="bg-gray-50 border-b flex text-xs">
+          <div className="bg-gray-50 border-b flex text-xs" style={{ height: '36px' }}>
             {Array.from({ length: 15 }, (_, i) => {
               const hour = 9 + i;
               return (
-                <div key={hour} className="w-12 px-1 py-2 text-center border-r text-xs">
+                <div key={hour} className="w-12 px-1 py-2 text-center border-r text-xs flex items-center justify-center">
                   {`${hour.toString().padStart(2, '0')}:00`}
                 </div>
               );
