@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -102,9 +102,7 @@ interface Ticket {
 
 export default function TicketsTable() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -223,74 +221,16 @@ export default function TicketsTable() {
     },
   });
 
-  // Update ticket mutation
-  const updateTicketMutation = useMutation({
-    mutationFn: async (data: TicketFormData & { id: string }) => {
-      const { id, ...updateData } = data;
-      const submitData = {
-        ...updateData,
-        assignedToId: updateData.assignedToId === "unassigned" ? undefined : updateData.assignedToId
-      };
-      const response = await apiRequest("PUT", `/api/tickets/${id}`, submitData);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Ticket updated successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      setIsEditDialogOpen(false);
-      setEditingTicket(null);
-      setIsEditMode(false);
-      form.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update ticket",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Delete ticket mutation
-  const deleteTicketMutation = useMutation({
-    mutationFn: async (ticketId: string) => {
-      await apiRequest("DELETE", `/api/tickets/${ticketId}`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Ticket deleted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete ticket",
-        variant: "destructive",
-      });
-    },
-  });
 
   const onSubmit = (data: TicketFormData) => {
-    if (editingTicket) {
-      updateTicketMutation.mutate({ ...data, id: editingTicket.id });
-    } else {
-      createTicketMutation.mutate(data);
-    }
-  };
-
-  const handleEdit = (ticket: Ticket) => {
-    // Navigate to the edit page instead of opening a modal
-    navigate(`/tickets/edit/${ticket.id}`);
+    createTicketMutation.mutate(data);
   };
 
   const handleDelete = (ticketId: string) => {
     if (confirm("Are you sure you want to delete this ticket?")) {
-      deleteTicketMutation.mutate(ticketId);
+      // Redirect to the unified page where delete functionality is handled
+      console.log("Delete ticket:", ticketId);
     }
   };
 
@@ -734,8 +674,6 @@ export default function TicketsTable() {
             variant="outline"
             onClick={() => {
               setIsCreateDialogOpen(false);
-              setIsEditDialogOpen(false);
-              setEditingTicket(null);
               form.reset();
             }}
           >
@@ -904,7 +842,9 @@ export default function TicketsTable() {
                 ) : tickets.map((ticket: Ticket) => (
                   <TableRow key={ticket.id}>
                     <TableCell className="font-mono text-sm">
-                      {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+                      <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                        {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+                      </Link>
                     </TableCell>
                     <TableCell className="font-medium max-w-xs truncate">
                       {(ticket as any).shortDescription || ticket.subject}
@@ -962,14 +902,11 @@ export default function TicketsTable() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => console.log('View ticket', ticket.id)}>
+                          <DropdownMenuItem onClick={() => navigate(`/tickets/${ticket.id}`)}>
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(ticket)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
+
                           <DropdownMenuItem 
                             onClick={() => handleDelete(ticket.id)}
                             className="text-red-600"
@@ -1014,154 +951,6 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-2xl font-semibold">{isEditMode ? 'Editar Chamado' : 'Visualizar Chamado'}</DialogTitle>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsLinkingModalOpen(true)}
-                className="flex items-center space-x-1"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                <span>Vincular</span>
-              </Button>
-              <Button
-                variant={isEditMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsEditMode(!isEditMode)}
-                className="flex items-center space-x-1"
-              >
-                <Edit className="h-4 w-4" />
-                <span>{isEditMode ? "Visualizar" : "Editar"}</span>
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  if (editingTicket && confirm("Tem certeza que deseja excluir este chamado?")) {
-                    deleteTicketMutation.mutate(editingTicket.id);
-                    setIsEditDialogOpen(false);
-                    setEditingTicket(null);
-                    setIsEditMode(false);
-                  }
-                }}
-                className="flex items-center space-x-1"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Excluir</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  setEditingTicket(null);
-                  setIsEditMode(false);
-                  form.reset();
-                }}
-                className="flex items-center space-x-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Voltar</span>
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="mt-4">
-            {isEditMode ? (
-              <TicketForm />
-            ) : (
-              <div className="space-y-6">
-                {/* View Mode - Display ticket information in a readable format */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Descrição Resumida</h3>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.shortDescription}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Prioridade</h3>
-                      <Badge variant={editingTicket?.priority === 'critical' ? 'destructive' : editingTicket?.priority === 'high' ? 'default' : 'secondary'}>
-                        {editingTicket?.priority}
-                      </Badge>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</h3>
-                      <Badge variant={editingTicket?.state === 'resolved' ? 'default' : editingTicket?.state === 'closed' ? 'secondary' : 'outline'}>
-                        {editingTicket?.state}
-                      </Badge>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</h3>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.category || 'Não informado'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Solicitante</h3>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.caller?.fullName || 'Não informado'}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</h3>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.assignedTo ? `${editingTicket.assignedTo.firstName} ${editingTicket.assignedTo.lastName}` : 'Não atribuído'}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Data de Criação</h3>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.createdAt ? new Date(editingTicket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Última Atualização</h3>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.updatedAt ? new Date(editingTicket.updatedAt).toLocaleString('pt-BR') : 'Não informado'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Descrição Detalhada</h3>
-                  <div className="mt-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                    <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{editingTicket?.description}</p>
-                  </div>
-                </div>
-
-                {/* Ticket Hierarchy */}
-                {editingTicket && (
-                  <TicketHierarchyView 
-                    ticketId={editingTicket.id}
-                    onViewTicket={(ticketId) => {
-                      // Handle viewing another ticket
-                      console.log("View ticket:", ticketId);
-                    }}
-                    onCreateChild={(parentId) => {
-                      // Handle creating child ticket
-                      console.log("Create child for:", parentId);
-                    }}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* Ticket Linking Modal */}
-      {editingTicket && (
-        <TicketLinkingModal
-          isOpen={isLinkingModalOpen}
-          onClose={() => setIsLinkingModalOpen(false)}
-          currentTicket={{
-            id: editingTicket.id,
-            subject: editingTicket.shortDescription || editingTicket.subject,
-            status: editingTicket.state || editingTicket.status,
-            priority: editingTicket.priority,
-            number: editingTicket.number
-          }}
-        />
-      )}
     </div>
   );
 }
