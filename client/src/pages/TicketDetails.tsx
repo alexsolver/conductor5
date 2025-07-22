@@ -494,25 +494,74 @@ export default function TicketDetails() {
 
               <FormField
                 control={form.control}
-                name="followerId"
+                name="tags"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Seguidor</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um agente" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Não atribuído</SelectItem>
-                        {users?.users?.map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Tags</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1">
+                            {tags.length > 0 ? (
+                              tags.map((tag, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {tag}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-4 w-4 p-0 ml-1"
+                                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                                  >
+                                    <X className="h-2 w-2" />
+                                  </Button>
+                                </Badge>
+                              ))
+                            ) : (
+                              <div className="text-sm text-gray-500">Nenhuma tag</div>
+                            )}
+                          </div>
+                          <div className="flex gap-1">
+                            <Input
+                              type="text"
+                              placeholder="Nova tag"
+                              className="h-7 text-xs"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
+                                  setTags([...tags, newTag.trim()]);
+                                  setNewTag('');
+                                }
+                              }}
+                            />
+                            <Button
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                if (newTag.trim() && !tags.includes(newTag.trim())) {
+                                  setTags([...tags, newTag.trim()]);
+                                  setNewTag('');
+                                }
+                              }}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {tags.length > 0 ? (
+                            tags.map((tag, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))
+                          ) : (
+                            <div className="text-sm text-gray-500">Nenhuma tag</div>
+                          )}
+                        </div>
+                      )}
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -582,28 +631,58 @@ export default function TicketDetails() {
               />
             </div>
 
+            {/* Categoria */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">CATEGORIA</h3>
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="hardware">Hardware</SelectItem>
+                        <SelectItem value="software">Software</SelectItem>
+                        <SelectItem value="network">Rede</SelectItem>
+                        <SelectItem value="access">Acesso</SelectItem>
+                        <SelectItem value="not_specified">Não especificada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
               
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoria</FormLabel>
+                      <FormLabel>Status</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a categoria" />
+                            <SelectValue placeholder="Selecione o status" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="hardware">Hardware</SelectItem>
-                          <SelectItem value="software">Software</SelectItem>
-                          <SelectItem value="network">Rede</SelectItem>
-                          <SelectItem value="access">Acesso</SelectItem>
+                          <SelectItem value="open">Aberto</SelectItem>
+                          <SelectItem value="in_progress">Em Progresso</SelectItem>
+                          <SelectItem value="pending">Pendente</SelectItem>
+                          <SelectItem value="resolved">Resolvido</SelectItem>
+                          <SelectItem value="closed">Fechado</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -613,21 +692,51 @@ export default function TicketDetails() {
 
                 <FormField
                   control={form.control}
-                  name="subcategory"
+                  name="assignedToId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subcategoria</FormLabel>
+                      <FormLabel>Atribuído a</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a subcategoria" />
+                            <SelectValue placeholder="Selecione o responsável" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="printer">Impressora</SelectItem>
-                          <SelectItem value="computer">Computador</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="system">Sistema</SelectItem>
+                          <SelectItem value="unassigned">Não atribuído</SelectItem>
+                          {users?.users?.map((user: any) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <FormField
+                  control={form.control}
+                  name="followerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Seguidor</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum seguidor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum seguidor</SelectItem>
+                          {users?.users?.map((user: any) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -637,21 +746,47 @@ export default function TicketDetails() {
 
                 <FormField
                   control={form.control}
-                  name="contactType"
+                  name="callerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Contato</FormLabel>
+                      <FormLabel>Solicitante *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Tipo de contato" />
+                            <SelectValue placeholder="Selecione o solicitante" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Telefone</SelectItem>
-                          <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                          <SelectItem value="chat">Chat</SelectItem>
+                          {customers.map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.id}>
+                              {customer.firstName} {customer.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Localização</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a localização" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="matriz">Matriz</SelectItem>
+                          <SelectItem value="filial1">Filial 1</SelectItem>
+                          <SelectItem value="filial2">Filial 2</SelectItem>
+                          <SelectItem value="remoto">Remoto</SelectItem>
+                          <SelectItem value="not_specified">Não especificado</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -661,59 +796,42 @@ export default function TicketDetails() {
               </div>
             </div>
 
-            {/* Detalhes */}
+            {/* Sintomas */}
             <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">DETALHES</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="symptoms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sintomas</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Textarea {...field} rows={3} placeholder="Descreva os sintomas..." />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não informado'}</div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="workaround"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Solução Temporária</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Textarea {...field} rows={3} placeholder="Descreva a solução temporária..." />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não informado'}</div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">SINTOMAS</h3>
               <FormField
                 control={form.control}
-                name="businessImpact"
+                name="symptoms"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Impacto no Negócio</FormLabel>
+                    <FormLabel>Sintomas</FormLabel>
                     <FormControl>
                       {isEditMode ? (
-                        <Textarea {...field} rows={2} placeholder="Descreva o impacto no negócio..." />
+                        <Textarea {...field} rows={3} placeholder="Não especificado" />
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded min-h-[60px]">{field.value || 'Não informado'}</div>
+                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não especificado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Solução Temporária */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">SOLUÇÃO TEMPORÁRIA</h3>
+              <FormField
+                control={form.control}
+                name="workaround"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Solução Temporária</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={3} placeholder="Não especificado" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não especificado'}</div>
                       )}
                     </FormControl>
                     <FormMessage />
@@ -850,144 +968,11 @@ export default function TicketDetails() {
       {/* Left Sidebar - Fixa */}
       <div className="w-72 bg-white border-r flex-shrink-0 h-full overflow-y-auto">
         <div className="p-4 h-full">
-          {/* Ticket Summary */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Seguidores</h3>
-            <div className="space-y-2">
-              {followers.length > 0 ? (
-                followers.map((followerId, index) => {
-                  const user = users?.users?.find((u: any) => u.id === followerId);
-                  return (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">
-                        {user?.name || followerId}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setFollowers(followers.filter((_, i) => i !== index))}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-sm text-gray-500">Nenhum seguidor</div>
-              )}
-              
-              <Select onValueChange={(value) => {
-                if (value && !followers.includes(value)) {
-                  setFollowers([...followers, value]);
-                }
-              }}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="+ Adicionar agente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users?.users?.filter((user: any) => !followers.includes(user.id)).map((user: any) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          {/* Tags Section */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Tags</h3>
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-1">
-                {tags.length > 0 ? (
-                  tags.map((tag, index) => (
-                    <div key={index} className="flex items-center">
-                      <Badge variant="outline" className="text-xs">
-                        {tag}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 ml-1"
-                          onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                        >
-                          <X className="h-2 w-2" />
-                        </Button>
-                      </Badge>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-gray-500">Nenhuma tag</div>
-                )}
-              </div>
-              
-              <div className="flex gap-1">
-                <Input
-                  type="text"
-                  placeholder="Nova tag"
-                  className="h-7 text-xs"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
-                      setTags([...tags, newTag.trim()]);
-                      setNewTag('');
-                    }
-                  }}
-                />
-                <Button
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => {
-                    if (newTag.trim() && !tags.includes(newTag.trim())) {
-                      setTags([...tags, newTag.trim()]);
-                      setNewTag('');
-                    }
-                  }}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
 
-          {/* Priority Section */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Prioridade</h3>
-            <Select 
-              value={ticket.priority || "medium"} 
-              onValueChange={(value) => {
-                // Atualizar prioridade do ticket
-                updateTicketMutation.mutate({
-                  id: ticket.id,
-                  priority: value
-                });
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue>
-                  <Badge className={getPriorityColor(ticket.priority)}>
-                    {ticket.priority}
-                  </Badge>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">
-                  <Badge className={getPriorityColor("low")}>Baixa</Badge>
-                </SelectItem>
-                <SelectItem value="medium">
-                  <Badge className={getPriorityColor("medium")}>Média</Badge>
-                </SelectItem>
-                <SelectItem value="high">
-                  <Badge className={getPriorityColor("high")}>Alta</Badge>
-                </SelectItem>
-                <SelectItem value="critical">
-                  <Badge className={getPriorityColor("critical")}>Crítica</Badge>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+
+
+
 
           {/* Status Section */}
           <div className="mb-6">
