@@ -654,9 +654,9 @@ export default function TicketsTable() {
           <Button
             type="submit"
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-            disabled={createTicketMutation.isPending || updateTicketMutation.isPending}
+            disabled={createTicketMutation.isPending}
           >
-            {createTicketMutation.isPending || updateTicketMutation.isPending 
+            {createTicketMutation.isPending 
               ? "Creating..." 
               : "Create Ticket"
             }
