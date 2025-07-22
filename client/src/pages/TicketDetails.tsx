@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,8 @@ import { z } from "zod";
 import { 
   ArrowLeft, Edit, Save, X, Trash2, Eye, ChevronRight, ChevronLeft,
   Paperclip, FileText, MessageSquare, History, Settings,
-  User, Users, Tag, AlertCircle, FileIcon
+  User, Users, Tag, AlertCircle, FileIcon, Upload, Plus, Send,
+  Clock, Download, ExternalLink, Filter, MoreVertical, Trash
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -54,14 +57,29 @@ export default function TicketDetails() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("basico");
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [attachments, setAttachments] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState("");
+  const [communications, setCommunications] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [internalActions, setInternalActions] = useState([]);
+  const [showInternalActionModal, setShowInternalActionModal] = useState(false);
+  const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Tab configuration
-  const tabs = [
+  // Basic tabs configuration
+  const basicTabs = [
     { id: "basico", label: "Básico", icon: FileText },
     { id: "assignment", label: "Atribuição", icon: User },
     { id: "classification", label: "Classificação", icon: Tag },
     { id: "details", label: "Detalhes", icon: AlertCircle },
     { id: "people", label: "Pessoas", icon: Users },
+  ];
+
+  // Special functionality tabs
+  const specialTabs = [
     { id: "attachments", label: "Anexos", icon: Paperclip },
     { id: "notes", label: "Notas", icon: FileText },
     { id: "communications", label: "Comunicação", icon: MessageSquare },
@@ -98,6 +116,78 @@ export default function TicketDetails() {
   });
 
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+
+  // File upload handlers
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleFiles = (files: FileList) => {
+    Array.from(files).forEach(file => {
+      if (file.size > 200 * 1024 * 1024) { // 200MB limit
+        toast({
+          title: "Arquivo muito grande",
+          description: "O arquivo deve ter no máximo 200MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const newAttachment = {
+        id: Date.now() + Math.random(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date(),
+        description: "",
+        file: file
+      };
+      
+      setAttachments(prev => [...prev, newAttachment]);
+    });
+  };
+
+  const addNote = () => {
+    if (!newNote.trim()) return;
+    
+    const note = {
+      id: Date.now(),
+      content: newNote,
+      createdAt: new Date(),
+      createdBy: "Usuário Atual"
+    };
+    
+    setNotes(prev => [...prev, note]);
+    setNewNote("");
+  };
+
+  const removeAttachment = (id: number) => {
+    setAttachments(prev => prev.filter(att => att.id !== id));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   // Form setup
   const form = useForm<TicketFormData>({
@@ -140,6 +230,105 @@ export default function TicketDetails() {
         symptoms: ticket.symptoms || "",
         workaround: ticket.workaround || "",
       });
+      
+      // Simulate communication data
+      setCommunications([
+        {
+          id: 1,
+          type: "email",
+          channel: "Email",
+          from: "cliente@empresa.com",
+          to: "suporte@conductor.com",
+          subject: "Problema no sistema",
+          content: "Estou enfrentando dificuldades para acessar o sistema. Poderia me ajudar?",
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          status: "received"
+        },
+        {
+          id: 2,
+          type: "whatsapp",
+          channel: "WhatsApp",
+          from: "Suporte Conductor",
+          to: "Cliente",
+          content: "Oi! Recebemos seu email sobre o problema de acesso. Vamos verificar isso para você.",
+          timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
+          status: "sent"
+        },
+        {
+          id: 3,
+          type: "call",
+          channel: "Telefone",
+          from: "Suporte Conductor",
+          to: "Cliente",
+          content: "Ligação de 15 minutos para diagnóstico do problema",
+          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+          status: "completed"
+        }
+      ]);
+
+      // Simulate history data
+      setHistory([
+        {
+          id: 1,
+          action: "Ticket criado",
+          user: "Sistema",
+          timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+          type: "system",
+          details: "Ticket aberto automaticamente via email",
+          changes: {
+            status: { from: null, to: "open" },
+            priority: { from: null, to: "medium" }
+          }
+        },
+        {
+          id: 2,
+          action: "Atribuído ao agente",
+          user: "João Silva",
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          type: "human",
+          details: "Ticket atribuído para análise técnica"
+        },
+        {
+          id: 3,
+          action: "Status alterado",
+          user: "Maria Santos",
+          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+          type: "human",
+          details: "Mudança de status para em progresso",
+          changes: {
+            status: { from: "open", to: "in_progress" }
+          }
+        }
+      ]);
+
+      // Simulate internal actions data
+      setInternalActions([
+        {
+          id: "ACT-2025-001",
+          type: "investigation",
+          agent: "João Silva",
+          group: "Suporte Técnico",
+          status: "completed",
+          description: "Investigação completa do problema de conectividade com análise de logs do sistema",
+          timeSpent: "3.5",
+          startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toLocaleString('pt-BR'),
+          endTime: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toLocaleString('pt-BR'),
+          linkedItems: "Ticket #456, Log #789",
+          hasFile: true
+        },
+        {
+          id: "ACT-2025-002",
+          type: "repair",
+          agent: "Maria Santos",
+          group: "Infraestrutura",
+          status: "in-progress",
+          description: "Reparo da configuração de rede e reinstalação de drivers",
+          timeSpent: "2.0",
+          startTime: new Date(Date.now() - 1 * 60 * 60 * 1000).toLocaleString('pt-BR'),
+          linkedItems: "Equipamento #123",
+          hasFile: false
+        }
+      ]);
     }
   }, [ticket, form]);
 
@@ -329,24 +518,54 @@ export default function TicketDetails() {
         <div className="p-4 border-b">
           <h3 className="font-semibold text-lg">Navegação</h3>
         </div>
-        <div className="p-2">
-          {tabs.map((tab) => {
-            const IconComponent = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                  activeTab === tab.id 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <IconComponent className="h-4 w-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
-              </button>
-            );
-          })}
+        <div className="p-2 space-y-6">
+          {/* Basic Tabs Section */}
+          <div>
+            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-3">
+              Informações Básicas
+            </h4>
+            {basicTabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === tab.id 
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Special Features Section */}
+          <div>
+            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-3">
+              Campos Especiais
+            </h4>
+            {specialTabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === tab.id 
+                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -764,61 +983,640 @@ export default function TicketDetails() {
 
       case "attachments":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Anexos</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Paperclip className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">Funcionalidade de anexos em desenvolvimento</p>
-              <p className="text-sm text-gray-400">Suporte para uploads até 200MB</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">📎 Anexos</h2>
+              <Badge variant="outline" className="text-xs">
+                {attachments.length} arquivo(s)
+              </Badge>
             </div>
+            
+            {/* Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-lg font-medium text-gray-700 mb-2">
+                Arraste arquivos aqui ou clique para selecionar
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Suporte para qualquer tipo de arquivo até 200MB
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Selecionar Arquivos
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => e.target.files && handleFiles(e.target.files)}
+              />
+            </div>
+
+            {/* Attachments List */}
+            {attachments.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-medium text-gray-700">Arquivos Anexados</h3>
+                {attachments.map((attachment: any) => (
+                  <Card key={attachment.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileIcon className="h-8 w-8 text-blue-500" />
+                        <div>
+                          <p className="font-medium text-gray-900">{attachment.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {formatFileSize(attachment.size)} • 
+                            Enviado em {attachment.uploadedAt.toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => removeAttachment(attachment.id)}
+                        >
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Description Field */}
+                    <div className="mt-3">
+                      <label className="text-sm font-medium text-gray-600">Descrição (opcional):</label>
+                      <Input
+                        placeholder="Adicione uma descrição para este arquivo..."
+                        className="mt-1"
+                        value={attachment.description}
+                        onChange={(e) => {
+                          setAttachments(prev => 
+                            prev.map(att => 
+                              att.id === attachment.id 
+                                ? { ...att, description: e.target.value }
+                                : att
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         );
 
       case "notes":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Notas</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">Sistema de notas em desenvolvimento</p>
-              <p className="text-sm text-gray-400">Notas múltiplas com categorização</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">📝 Notas</h2>
+              <Badge variant="outline" className="text-xs">
+                {notes.length} nota(s)
+              </Badge>
             </div>
+
+            {/* Add New Note */}
+            <Card className="p-4">
+              <h3 className="font-medium text-gray-700 mb-3">Adicionar Nova Nota</h3>
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Digite sua nota aqui..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+                <div className="flex justify-end">
+                  <Button onClick={addNote} disabled={!newNote.trim()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Nota
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Notes Timeline */}
+            {notes.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-700">Timeline de Notas</h3>
+                <div className="space-y-3">
+                  {notes.map((note: any) => (
+                    <Card key={note.id} className="p-4 border-l-4 border-l-blue-400">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {note.createdBy}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {note.createdAt.toLocaleString('pt-BR')}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setNotes(prev => prev.filter(n => n.id !== note.id))}
+                        >
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {notes.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>Nenhuma nota adicionada ainda</p>
+                <p className="text-sm">Use o formulário acima para adicionar a primeira nota</p>
+              </div>
+            )}
           </div>
         );
 
       case "communications":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Comunicação</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">Timeline de comunicação em desenvolvimento</p>
-              <p className="text-sm text-gray-400">Email, WhatsApp, telefone e chat</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">💬 Comunicação</h2>
+              <Badge variant="outline" className="text-xs">
+                {communications.length} interação(ões)
+              </Badge>
             </div>
+
+            {/* Communication Timeline */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 mb-4">
+                <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="text-xs">Email</Badge>
+                  <Badge variant="secondary" className="text-xs">WhatsApp</Badge>
+                  <Badge variant="secondary" className="text-xs">Telefone</Badge>
+                </div>
+              </div>
+
+              {communications.map((comm: any) => (
+                <Card key={comm.id} className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Channel Icon */}
+                    <div className={`p-2 rounded-full ${
+                      comm.type === 'email' ? 'bg-blue-100 text-blue-600' :
+                      comm.type === 'whatsapp' ? 'bg-green-100 text-green-600' :
+                      comm.type === 'call' ? 'bg-purple-100 text-purple-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {comm.type === 'email' && <MessageSquare className="h-4 w-4" />}
+                      {comm.type === 'whatsapp' && <Send className="h-4 w-4" />}
+                      {comm.type === 'call' && <Clock className="h-4 w-4" />}
+                    </div>
+
+                    {/* Communication Content */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {comm.channel}
+                          </Badge>
+                          <span className="text-sm font-medium text-gray-800">
+                            {comm.from} → {comm.to}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {comm.timestamp.toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+
+                      {comm.subject && (
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Assunto: {comm.subject}
+                        </p>
+                      )}
+
+                      <p className="text-gray-800 text-sm mb-2">{comm.content}</p>
+
+                      <div className="flex items-center justify-between">
+                        <Badge 
+                          variant={comm.status === 'sent' ? 'default' : 
+                                  comm.status === 'received' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {comm.status === 'sent' ? 'Enviado' :
+                           comm.status === 'received' ? 'Recebido' :
+                           comm.status === 'completed' ? 'Concluído' : comm.status}
+                        </Badge>
+                        <Button variant="ghost" size="sm">
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+
+              {/* Quick Reply Section */}
+              <Card className="p-4 border-dashed border-2">
+                <h4 className="font-medium text-gray-700 mb-3">Resposta Rápida</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Email
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Send className="h-4 w-4 mr-2" />
+                      WhatsApp
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Clock className="h-4 w-4 mr-2" />
+                      Ligar
+                    </Button>
+                  </div>
+                  <Textarea
+                    placeholder="Digite sua mensagem aqui..."
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <div className="flex justify-end">
+                    <Button>
+                      <Send className="h-4 w-4 mr-2" />
+                      Enviar
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {communications.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <MessageSquare className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>Nenhuma comunicação registrada ainda</p>
+                <p className="text-sm">As interações aparecerão aqui automaticamente</p>
+              </div>
+            )}
           </div>
         );
 
       case "history":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Histórico</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <History className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">Histórico completo em desenvolvimento</p>
-              <p className="text-sm text-gray-400">Timeline de todas as ações</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">📜 Histórico</h2>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-xs">
+                  {history.length} ação(ões)
+                </Badge>
+                <div className="flex rounded-lg border p-1">
+                  <Button
+                    variant={historyViewMode === 'simple' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setHistoryViewMode('simple')}
+                    className="text-xs px-3 py-1"
+                  >
+                    Simples
+                  </Button>
+                  <Button
+                    variant={historyViewMode === 'advanced' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setHistoryViewMode('advanced')}
+                    className="text-xs px-3 py-1"
+                  >
+                    Avançado
+                  </Button>
+                </div>
+              </div>
             </div>
+
+            {/* History Timeline */}
+            <div className="space-y-4">
+              {history.map((entry: any, index: number) => (
+                <div key={entry.id} className="flex gap-4">
+                  {/* Timeline Line */}
+                  <div className="flex flex-col items-center">
+                    <div className={`w-3 h-3 rounded-full ${
+                      entry.type === 'system' ? 'bg-blue-500' : 'bg-green-500'
+                    }`} />
+                    {index < history.length - 1 && (
+                      <div className="w-0.5 bg-gray-200 flex-1 mt-2" />
+                    )}
+                  </div>
+
+                  {/* Entry Content */}
+                  <Card className="flex-1 p-4">
+                    {historyViewMode === 'simple' ? (
+                      /* Simple View */
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-800">{entry.action}</span>
+                          <span className="text-xs text-gray-500">
+                            {entry.timestamp.toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={entry.type === 'system' ? 'secondary' : 'outline'}
+                            className="text-xs"
+                          >
+                            {entry.user}
+                          </Badge>
+                          {entry.details && (
+                            <span className="text-sm text-gray-600">{entry.details}</span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      /* Advanced View */
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-800">{entry.action}</span>
+                            <Badge 
+                              variant={entry.type === 'system' ? 'secondary' : 'outline'}
+                              className="text-xs"
+                            >
+                              {entry.type === 'system' ? '🤖 Sistema' : '👤 Humano'}
+                            </Badge>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {entry.timestamp.toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-600">Por:</span>
+                          <Badge variant="outline" className="text-xs">
+                            {entry.user}
+                          </Badge>
+                        </div>
+
+                        {entry.details && (
+                          <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                            {entry.details}
+                          </p>
+                        )}
+
+                        {entry.changes && (
+                          <div className="space-y-2">
+                            <span className="text-xs font-medium text-gray-600">Alterações:</span>
+                            {Object.entries(entry.changes).map(([field, change]: [string, any]) => (
+                              <div key={field} className="text-xs bg-yellow-50 p-2 rounded border-l-2 border-yellow-400">
+                                <strong>{field}:</strong> 
+                                {change.from ? (
+                                  <span className="ml-1">
+                                    <span className="text-red-600">"{change.from}"</span> → <span className="text-green-600">"{change.to}"</span>
+                                  </span>
+                                ) : (
+                                  <span className="ml-1 text-green-600">"{change.to}"</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                </div>
+              ))}
+            </div>
+
+            {history.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <History className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>Nenhum histórico disponível ainda</p>
+                <p className="text-sm">As ações aparecerão aqui automaticamente</p>
+              </div>
+            )}
           </div>
         );
 
       case "internal-actions":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Ações Internas</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">Sistema de ações internas em desenvolvimento</p>
-              <p className="text-sm text-gray-400">Formulários complexos com relacionamentos</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {internalActions.length} ação(ões)
+                </Badge>
+                <Dialog open={showInternalActionModal} onOpenChange={setShowInternalActionModal}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Ação
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Nova Ação Interna</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-2 gap-6 py-4">
+                      {/* Left Column */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="action-id">ID da Ação *</Label>
+                          <Input id="action-id" placeholder="ACT-2025-001" />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="action-type">Tipo de Ação *</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="investigation">Investigação</SelectItem>
+                              <SelectItem value="repair">Reparo</SelectItem>
+                              <SelectItem value="analysis">Análise</SelectItem>
+                              <SelectItem value="documentation">Documentação</SelectItem>
+                              <SelectItem value="escalation">Escalação</SelectItem>
+                              <SelectItem value="follow-up">Follow-up</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="action-agent">Agente Responsável *</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o agente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="agent1">João Silva</SelectItem>
+                              <SelectItem value="agent2">Maria Santos</SelectItem>
+                              <SelectItem value="agent3">Pedro Costa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="action-group">Grupo Responsável</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o grupo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="support">Suporte Técnico</SelectItem>
+                              <SelectItem value="network">Infraestrutura</SelectItem>
+                              <SelectItem value="security">Segurança</SelectItem>
+                              <SelectItem value="development">Desenvolvimento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor="start-time">Início *</Label>
+                            <Input id="start-time" type="datetime-local" />
+                          </div>
+                          <div>
+                            <Label htmlFor="end-time">Fim</Label>
+                            <Input id="end-time" type="datetime-local" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="linked-items">Itens Relacionados</Label>
+                          <Textarea 
+                            id="linked-items" 
+                            placeholder="Ex: Ticket #123, Problema #456"
+                            rows={2}
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="time-spent">Tempo Gasto (horas)</Label>
+                          <Input 
+                            id="time-spent" 
+                            type="number" 
+                            step="0.5" 
+                            placeholder="Ex: 2.5"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="action-status">Status *</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pendente</SelectItem>
+                              <SelectItem value="in-progress">Em Progresso</SelectItem>
+                              <SelectItem value="completed">Concluída</SelectItem>
+                              <SelectItem value="cancelled">Cancelada</SelectItem>
+                              <SelectItem value="on-hold">Em Espera</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="action-file">Arquivo de Apoio</Label>
+                          <Input id="action-file" type="file" />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Máximo 50MB. Formatos: PDF, DOC, XLS, IMG
+                          </p>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="action-description">Descrição da Ação *</Label>
+                          <Textarea 
+                            id="action-description" 
+                            placeholder="Descreva detalhadamente a ação realizada..."
+                            rows={4}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                      <Button variant="outline" onClick={() => setShowInternalActionModal(false)}>
+                        Cancelar
+                      </Button>
+                      <Button>
+                        <Save className="h-4 w-4 mr-2" />
+                        Salvar Ação
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
+
+            {/* Actions List */}
+            {internalActions.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-700">Ações Registradas</h3>
+                {internalActions.map((action: any) => (
+                  <Card key={action.id} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {action.id}
+                          </Badge>
+                          <Badge className="text-xs">
+                            {action.type}
+                          </Badge>
+                          <Badge 
+                            variant={action.status === 'completed' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {action.status}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-gray-800">{action.description}</p>
+                        
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span>👤 {action.agent}</span>
+                          <span>⏱️ {action.timeSpent}h</span>
+                          <span>📅 {action.startTime}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {internalActions.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Settings className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>Nenhuma ação interna registrada ainda</p>
+                <p className="text-sm">Use o botão "Nova Ação" para adicionar a primeira ação</p>
+              </div>
+            )}
           </div>
         );
 

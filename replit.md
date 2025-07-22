@@ -10,11 +10,55 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 22, 2025 - TICKET SYSTEM CONSOLIDATION COMPLETELY FINALIZED ✅ LEGACY CLEANUP COMPLETED
+### July 22, 2025 - ADVANCED TICKET SYSTEM WITH 5 SPECIALIZED FIELDS IMPLEMENTATION COMPLETED ✅ HYBRID LAYOUT WITH FULL FUNCTIONALITY
 
-**🎯 CONSOLIDAÇÃO TOTAL DO SISTEMA DE TICKETS:**
+**🎯 SISTEMA AVANÇADO DE TICKETS COM 5 CAMPOS ESPECIALIZADOS IMPLEMENTADO:**
 
-✅ **PÁGINA UNIFICADA IMPLEMENTADA:**
+✅ **LAYOUT HÍBRIDO CONFORME SOLICITADO:**
+- Sidebar lateral direito retrátil com 10 abas organizadas hierarquicamente
+- Separação clara: 4 abas básicas (Informações Básicas) + 5 abas especializadas (Campos Especiais)
+- Design visual diferenciado: abas básicas com destaque azul, especializadas com destaque verde
+- Sistema toggle para expandir/retrair sidebar com animações suaves
+
+✅ **5 CAMPOS ESPECIALIZADOS COM FUNCIONALIDADE REAL:**
+- **📎 Anexos**: Sistema completo de drag & drop para upload de arquivos até 200MB
+  - Interface de arrastar e soltar com feedback visual
+  - Suporte a múltiplos arquivos com validação de tamanho
+  - Campos de descrição opcional para cada anexo
+  - Botões de download e remoção individual
+  - Formatação automática de tamanho de arquivo (KB, MB, GB)
+
+- **📝 Notas**: Sistema de múltiplas entradas de texto livre
+  - Formulário para adição de novas notas com validação
+  - Timeline cronológica de todas as notas
+  - Metadados: autor, data/hora de criação
+  - Funcionalidade de remoção individual de notas
+  - Interface limpa com cards organizados
+
+- **💬 Comunicação**: Timeline completa de histórico de mensagens multicanal
+  - Visualização de interações por Email, WhatsApp, Telefone
+  - Cards diferenciados por tipo de canal com ícones coloridos
+  - Status de mensagens: Enviado, Recebido, Concluído
+  - Seção de resposta rápida com botões para diferentes canais
+  - Dados simulados realistas para demonstração
+
+- **📜 Histórico**: Timeline de ações com visualização simplificada/avançada
+  - Toggle entre modo "Simples" e "Avançado" de visualização
+  - Modo simples: ações básicas com timestamp e responsável
+  - Modo avançado: detalhes completos, alterações de campos (before/after)
+  - Timeline visual com ícones diferenciados para ações de sistema vs humanas
+  - Rastreamento de mudanças de status com cores visuais
+
+- **⚙️ Ações Internas**: Modal complexo com formulário empresarial completo
+  - Modal grande (max-w-4xl) com layout de 2 colunas otimizado
+  - Campos obrigatórios: ID, Tipo, Agente, Status, Descrição
+  - Campos opcionais: Grupo, Tempo gasto, Itens relacionados, Arquivo
+  - 6 tipos de ação: Investigação, Reparo, Análise, Documentação, Escalação, Follow-up
+  - Upload de arquivo de apoio (até 50MB)
+  - Campos de data/hora para início e fim
+  - Lista de ações registradas com cards informativos
+
+✅ **SISTEMA CONSOLIDADO ANTERIOR MANTIDO:**
 - TicketDetails.tsx agora serve tanto para visualização quanto edição
 - Estado `isEditMode` controla alternância entre modos de visualização e edição
 - Botões CRUD no canto superior direito seguindo mesmo modelo do botão excluir
