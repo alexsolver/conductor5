@@ -14,7 +14,9 @@ Preferred communication style: Simple, everyday language.
 
 ✅ **NAVIGATION RESTRUCTURE:**
 - Moved Tickets link from sidebar to header next to Dashboard link
-- Updated navigation layout for better accessibility
+- Moved "Agenda de Campo" link from sidebar to header and renamed it to "Agenda"
+- Header now contains three primary navigation links: Dashboard, Tickets, and Agenda
+- Updated navigation layout for better accessibility and streamlined user experience
 - Fixed JSX syntax error in Header component that was preventing app startup
 
 ✅ **APPLICATION DEBUGGING AND FIXES:**

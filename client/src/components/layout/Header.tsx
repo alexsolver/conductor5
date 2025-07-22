@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bell, Menu, BarChart3, Ticket } from "lucide-react";
+import { Bell, Menu, BarChart3, Ticket, Calendar } from "lucide-react";
 import { Link } from "wouter";
 
 export function Header() {
@@ -30,6 +30,15 @@ export function Header() {
             >
               <Ticket className="h-5 w-5" />
               <span className="font-medium">Tickets</span>
+            </Button>
+          </Link>
+          <Link href="/agenda-manager">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
+            >
+              <Calendar className="h-5 w-5" />
+              <span className="font-medium">Agenda</span>
             </Button>
           </Link>
         </div>
