@@ -297,8 +297,9 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
       
       // Fallback to email_inbox table if emails table doesn't exist
       try {
+        const fallbackSchemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
         const fallbackResult = await db.execute(sql`
-          SELECT * FROM ${sql.identifier(schemaName)}.email_inbox
+          SELECT * FROM ${sql.identifier(fallbackSchemaName)}.email_inbox
           WHERE tenant_id = ${tenantId}
           ORDER BY created_at DESC
         `);

@@ -234,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { tenantId } = req.params;
 
       // Initialize tenant schema
-      await unifiedSchemaManager.initializeTenantSchema(tenantId);
+      await schemaManager.ensureTenantExists(tenantId);
 
       res.json({ message: `Schema initialized for tenant ${tenantId}` });
     } catch (error) {
@@ -266,8 +266,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Note: Customer locations functionality requires implementation of customerLocations table in schema
-      // For now, return locations associated with the tenant
-      const locations = await unifiedStorage.getLocations ? await unifiedStorage.getLocations(tenantId) : [];
+      // For now, return empty array until locations are properly implemented
+      const locations: any[] = [];
 
       res.json({ locations });
     } catch (error) {
@@ -330,12 +330,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = req.user?.tenantId;
       const pool = schemaManager.getPool();
 
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
       const result = await pool.query(
         `SELECT * FROM "${schemaManager.getSchemaName(tenantId)}"."market_localization" WHERE tenant_id = $1 AND is_active = true ORDER BY market_code`,
         [tenantId]
       );
 
-      const markets = result.rows.map(row => ({
+      const markets = result.rows.map((row: any) => ({
         marketCode: row.market_code,
         countryCode: row.country_code,
         languageCode: row.language_code,
@@ -354,6 +358,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { marketCode } = req.params;
       const tenantId = req.user?.tenantId;
       const pool = schemaManager.getPool();
+
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
 
       const result = await pool.query(
         `SELECT * FROM "${schemaManager.getSchemaName(tenantId)}"."market_localization" WHERE tenant_id = $1 AND market_code = $2`,
