@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder } from "lucide-react";
+import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -96,9 +96,9 @@ export function Header() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
+                  <Link href="/profile" className="flex items-center">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Meu Perfil</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

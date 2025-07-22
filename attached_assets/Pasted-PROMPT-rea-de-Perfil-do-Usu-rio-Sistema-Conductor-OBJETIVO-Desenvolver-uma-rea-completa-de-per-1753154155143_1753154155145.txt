@@ -1,0 +1,108 @@
+PROMPT: Área de Perfil do Usuário - Sistema Conductor
+OBJETIVO:
+Desenvolver uma área completa de perfil do usuário que permita visualização e edição de informações pessoais, habilidades técnicas, preferências e configurações de conta, integrada ao sistema multi-tenant existente.
+
+COMPONENTES A IMPLEMENTAR:
+
+1. Página Principal do Perfil (UserProfile.tsx)
+Layout responsivo com sidebar de navegação e área principal
+Tabs para diferentes seções: Informações Pessoais, Habilidades, Segurança, Preferências, Atividades
+Avatar com upload de imagem
+Breadcrumb navigation
+Loading states e error handling
+2. Seções do Perfil:
+A) Informações Pessoais:
+
+Nome completo (firstName, lastName)
+Email (não editável se verificado)
+Telefone, cargo, departamento
+Localização/timezone
+Bio/descrição pessoal
+Data de nascimento
+Endereço completo
+B) Habilidades Técnicas:
+
+Integração com o módulo TechnicalSkills existente
+Visualização das habilidades do usuário com níveis
+Gráfico de radar das competências
+Progresso em cada categoria
+Histórico de evoluções
+Certificações anexadas
+C) Configurações de Conta:
+
+Preferências de idioma (integração com i18n)
+Timezone e formato de data
+Notificações (email, push, in-app)
+Tema da interface
+Configurações de privacidade
+D) Segurança:
+
+Alteração de senha
+Histórico de logins
+Sessões ativas (integração com UserSessions)
+Autenticação 2FA (se disponível)
+Logs de atividade de segurança
+E) Atividade Recente:
+
+Tickets criados/resolvidos
+Projetos participados
+Horas trabalhadas (integração com Timecard)
+Interações recentes
+3. Backend - API Routes:
+GET /api/user/profile - Buscar perfil completo
+PUT /api/user/profile - Atualizar informações
+POST /api/user/avatar - Upload de avatar
+GET /api/user/activity - Atividade recente
+PUT /api/user/preferences - Atualizar preferências
+PUT /api/user/security - Configurações de segurança
+4. Integrações Necessárias:
+Com módulos existentes:
+
+UserManagement: dados base do usuário
+TechnicalSkills: habilidades e competências
+Localization: preferências de idioma/timezone
+UserSessions: sessões ativas
+UserActivity: logs de atividade
+Timecard: horas trabalhadas
+5. Componentes Reutilizáveis:
+ProfileHeader.tsx - Cabeçalho com avatar e info básica
+ProfileSection.tsx - Container para seções
+SkillsChart.tsx - Gráfico de habilidades
+ActivityTimeline.tsx - Timeline de atividades
+SecuritySettings.tsx - Configurações de segurança
+PreferencesForm.tsx - Formulário de preferências
+6. Validações e Regras de Negócio:
+Usuários só podem editar próprio perfil (exceto admins)
+Validação de email único no tenant
+Upload de avatar com limite de tamanho
+Campos obrigatórios por role
+Auditoria de alterações
+7. UI/UX Requirements:
+Design consistente com sistema existente
+Responsivo para mobile/desktop
+Estados de loading durante uploads
+Confirmação para alterações críticas
+Tooltips explicativos
+Progress indicators para preenchimento
+8. Permissões por Role:
+customer: visualização limitada, edição básica
+agent: perfil completo com habilidades
+tenant_admin: pode ver perfis da equipe
+saas_admin: acesso completo a todos os perfis
+9. Considerações Técnicas:
+Usar react-hook-form para formulários
+Implementar cache inteligente com React Query
+Upload de arquivos com progress
+Validação client-side e server-side
+Internacionalização completa
+Testes unitários e integração
+10. Rota e Navegação:
+Adicionar /profile ao sistema de rotas
+Link no Header dropdown do usuário
+Botão "Ver Perfil" em UserList para admins
+Integração com sidebar navigation
+ARQUITETURA:
+Seguir Clean Architecture existente, criando use cases específicos para perfil, mantendo separação de responsabilidades e integração com infrastructure layer do Drizzle ORM.
+
+RESULTADO ESPERADO:
+Uma área completa de perfil que seja o hub central para o usuário gerenciar suas informações, visualizar seu progresso e configurar preferências, totalmente integrada ao ecossistema multi-tenant existente.

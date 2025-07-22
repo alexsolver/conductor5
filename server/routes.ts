@@ -33,6 +33,7 @@ import holidayRoutes from './routes/HolidayController';
 // Removed: journeyRoutes - functionality eliminated from system
 import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
+import { userProfileRoutes } from './routes/userProfileRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -248,6 +249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User management routes
   app.use('/api/user-management', userManagementRoutes);
+
+  // User profile routes
+  app.use('/api/user', jwtAuth, userProfileRoutes);
 
   // Tenant admin team management routes
   app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
