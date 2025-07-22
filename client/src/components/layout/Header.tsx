@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, BarChart3 } from "lucide-react";
+import { Link } from "wouter";
 
 export function Header() {
   return (
@@ -11,7 +12,20 @@ export function Header() {
         <Menu className="h-5 w-5" />
       </Button>
       
-      <div className="flex-1 px-4 flex justify-end items-center">
+      <div className="flex-1 px-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <Link href="/">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
+            >
+              <BarChart3 className="h-5 w-5" />
+              <span className="font-medium">Dashboard</span>
+            </Button>
+          </Link>
+        </div>
+        
+        <div className="flex items-center">
         <div className="flex items-center space-x-4">
           {/* Notifications */}
           <Button

@@ -60,7 +60,6 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "Dashboard", href: "/", icon: BarChart3, current: true },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { 
     name: "Projetos", 
