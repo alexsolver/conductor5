@@ -90,27 +90,12 @@ const AgendaManager: React.FC = () => {
   const schedules: Schedule[] = (schedulesData as any)?.schedules || [];
   const customers: any[] = (customersData as any)?.customers || [];
 
-  // Mock agents data (since we don't have a user management module yet)
-  const mockAgents = [
-    {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'Carlos Silva',
-      email: 'carlos@conductor.com',
-      profileImageUrl: undefined,
-    },
-    {
-      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      name: 'Ana Santos',
-      email: 'ana@conductor.com',
-      profileImageUrl: undefined,
-    },
-    {
-      id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
-      name: 'Roberto Lima',
-      email: 'roberto@conductor.com',
-      profileImageUrl: undefined,
-    },
-  ];
+  // Fetch real agents from the system
+  const { data: agentsData, isLoading: isLoadingAgents } = useQuery({
+    queryKey: ['/api/user-management/users'],
+  });
+
+  const agents = (agentsData as any)?.users || [];
 
   const getActivityTypeById = (id: string) => {
     return activityTypes.find(type => type.id === id);
@@ -216,7 +201,7 @@ const AgendaManager: React.FC = () => {
     }
   };
 
-  if (isLoadingActivityTypes || isLoadingSchedules || isLoadingCustomers) {
+  if (isLoadingActivityTypes || isLoadingSchedules || isLoadingCustomers || isLoadingAgents) {
     return (
       <div className="p-4">
         <div className="flex items-center justify-center h-64">
@@ -267,7 +252,7 @@ const AgendaManager: React.FC = () => {
         <WeeklyScheduleGrid
           schedules={schedules}
           activityTypes={activityTypes}
-          agents={mockAgents}
+          agents={agents}
           selectedDate={selectedDate}
           onScheduleClick={handleScheduleClick}
           onTimeSlotClick={handleTimeSlotClick}
@@ -282,7 +267,7 @@ const AgendaManager: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveSchedule}
         schedule={editingSchedule}
-        agents={mockAgents}
+        agents={agents}
         customers={customers}
         activityTypes={activityTypes}
         defaultDate={newScheduleDefaults.date}

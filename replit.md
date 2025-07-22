@@ -42,6 +42,12 @@ Preferred communication style: Simple, everyday language.
 - Sistema interativo: clique em slots vazios para criar, clique em blocos para editar
 - Labels dos blocos: U (urgente), H (alta), L (baixa), Tx/I/M/S (tipos de atividade)
 
+✅ **INTERFACE LIMPA E AGENTES REAIS IMPLEMENTADOS:**
+- Removidas informações do rodapé: "All workstreams", números aleatórios e "Billing: 0 scheduled"
+- Substituídos agentes mockados por agentes reais do sistema via API /api/user-management/users
+- Corrigido erro SelectItem com valor vazio alterando "value=''" para "value='none'"
+- Sistema agora usa dados autênticos de usuários cadastrados no tenant
+
 **🚀 RESULTADO FINAL:**
 - ✅ Layout visual 100% idêntico à imagem de referência fornecida
 - ✅ Cada técnico perfeitamente alinhado com sua linha do tempo horizontal

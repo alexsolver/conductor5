@@ -252,7 +252,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhum cliente</SelectItem>
+                        <SelectItem value="none">Nenhum cliente</SelectItem>
                         {customers.map((customer) => (
                           <SelectItem key={customer.id} value={customer.id}>
                             {customer.firstName} {customer.lastName}

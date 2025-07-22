@@ -277,20 +277,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             ))}
           </div>
           
-          {/* Bottom Summary */}
-          <div className="bg-gray-50 text-xs border-t">
-            <div className="flex p-2">
-              <div className="w-24 font-medium">All workstreams</div>
-              {Array.from({ length: 15 }, (_, i) => (
-                <div key={i} className="w-12 text-center">{Math.floor(Math.random() * 10)}</div>
-              ))}
-            </div>
-            <div className="p-2 text-xs text-gray-600 space-y-1">
-              <div>● Billing: 0 scheduled</div>
-              <div>● Email: 0 scheduled</div>
-              <div>● Phone: 0 scheduled</div>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
