@@ -7,7 +7,7 @@ import { useLocalization } from "@/hooks/useLocalization";
 export default function Dashboard() {
   const { t } = useTranslation();
   const { formatDate, formatNumber } = useLocalization();
-  
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     retry: false,
