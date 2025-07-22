@@ -1,6 +1,6 @@
 // Drizzle Schedule Repository - Infrastructure Layer
 import { eq, and, gte, lte, desc, asc, inArray, like, sql } from 'drizzle-orm';
-import { db, pool } from '../../../../db';
+import { db } from '../../../../db';
 import { 
   schedules, 
   activityTypes, 
@@ -62,60 +62,43 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
   }
 
   async getSchedulesByDateRange(tenantId: string, startDate: Date, endDate: Date): Promise<ScheduleEntity[]> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const results = await db
+      .select({
+        schedule: schedules,
+        agent: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          profileImageUrl: users.profileImageUrl,
+        },
+        customer: {
+          id: customers.id,
+          firstName: customers.firstName,
+          lastName: customers.lastName,
+          email: customers.email,
+        },
+        activityType: activityTypes,
+      })
+      .from(schedules)
+      .leftJoin(users, eq(schedules.agentId, users.id))
+      .leftJoin(customers, eq(schedules.customerId, customers.id))
+      .leftJoin(activityTypes, eq(schedules.activityTypeId, activityTypes.id))
+      .where(
+        and(
+          eq(schedules.tenantId, tenantId),
+          gte(schedules.startDateTime, startDate),
+          lte(schedules.endDateTime, endDate)
+        )
+      )
+      .orderBy(asc(schedules.startDateTime));
     
-    const query = `
-      SELECT 
-        s.id, s.tenant_id, s.agent_id, s.customer_id, s.activity_type_id,
-        s.title, s.description, s.start_datetime, s.end_datetime, s.duration,
-        s.status, s.priority, s.location_address, s.coordinates,
-        s.internal_notes, s.client_notes, s.estimated_travel_time,
-        s.actual_start_time, s.actual_end_time, s.is_recurring,
-        s.recurring_pattern, s.parent_schedule_id, s.created_at, s.updated_at,
-        u.first_name as agent_first_name, u.last_name as agent_last_name,
-        u.email as agent_email, u.profile_image_url as agent_profile_image_url,
-        c.first_name as customer_first_name, c.last_name as customer_last_name,
-        c.email as customer_email,
-        at.name as activity_type_name, at.color as activity_type_color,
-        at.category as activity_type_category
-      FROM ${schemaName}.schedules s
-      LEFT JOIN public.users u ON s.agent_id = u.id
-      LEFT JOIN ${schemaName}.customers c ON s.customer_id = c.id
-      LEFT JOIN ${schemaName}.activity_types at ON s.activity_type_id = at.id
-      WHERE s.tenant_id = $1 
-        AND s.start_datetime >= $2 
-        AND s.end_datetime <= $3
-      ORDER BY s.start_datetime ASC
-    `;
-    
-    const result = await pool.query(query, [tenantId, startDate, endDate]);
-    
-    return result.rows.map(row => ({
-      id: row.id,
-      tenantId: row.tenant_id,
-      agentId: row.agent_id,
-      customerId: row.customer_id,
-      activityTypeId: row.activity_type_id,
-      title: row.title,
-      description: row.description,
-      startDateTime: row.start_datetime,
-      endDateTime: row.end_datetime,
-      duration: row.duration,
-      status: row.status,
-      priority: row.priority,
-      locationAddress: row.location_address,
-      coordinates: row.coordinates ? JSON.parse(row.coordinates) : null,
-      internalNotes: row.internal_notes,
-      clientNotes: row.client_notes,
-      estimatedTravelTime: row.estimated_travel_time,
-      actualStartTime: row.actual_start_time,
-      actualEndTime: row.actual_end_time,
-      isRecurring: row.is_recurring,
-      recurringPattern: row.recurring_pattern ? JSON.parse(row.recurring_pattern) : null,
-      parentScheduleId: row.parent_schedule_id,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    }));
+    return results.map(item => ({
+      ...this.mapScheduleToEntity(item.schedule),
+      agent: item.agent,
+      customer: item.customer,
+      activityType: item.activityType ? this.mapActivityTypeToEntity(item.activityType) : null,
+    })) as any;
   }
 
   async getSchedulesByCustomer(customerId: string, tenantId: string): Promise<ScheduleEntity[]> {
@@ -164,29 +147,13 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
   }
 
   async getActivityTypes(tenantId: string): Promise<ActivityTypeEntity[]> {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const results = await db
+      .select()
+      .from(activityTypes)
+      .where(and(eq(activityTypes.tenantId, tenantId), eq(activityTypes.isActive, true)))
+      .orderBy(asc(activityTypes.name));
     
-    const query = `
-      SELECT id, tenant_id, name, description, color, duration, category, is_active, created_at, updated_at 
-      FROM ${schemaName}.activity_types 
-      WHERE tenant_id = $1 AND is_active = true 
-      ORDER BY name ASC
-    `;
-    
-    const result = await pool.query(query, [tenantId]);
-    
-    return result.rows.map(row => ({
-      id: row.id,
-      tenantId: row.tenant_id,
-      name: row.name,
-      description: row.description,
-      color: row.color,
-      duration: row.duration,
-      category: row.category,
-      isActive: row.is_active,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    }));
+    return results.map(this.mapActivityTypeToEntity);
   }
 
   async getActivityTypeById(id: string, tenantId: string): Promise<ActivityTypeEntity | null> {
