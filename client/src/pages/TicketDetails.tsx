@@ -1099,14 +1099,67 @@ export default function TicketDetails() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <h1 className="text-xl font-semibold">Ticket #</h1>
-                <Badge className={getPriorityColor(ticket.priority)}>
-                  {ticket.priority}
-                </Badge>
-                <Badge className={getStatusColor(ticket.status)}>
-                  {ticket.status}
-                </Badge>
+                
+                {/* Priority and Status Fields */}
+                {isEditMode ? (
+                  <div className="flex items-center gap-2">
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="w-24 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="low">low</SelectItem>
+                              <SelectItem value="medium">medium</SelectItem>
+                              <SelectItem value="high">high</SelectItem>
+                              <SelectItem value="critical">critical</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="w-32 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="open">open</SelectItem>
+                              <SelectItem value="in_progress">in_progress</SelectItem>
+                              <SelectItem value="pending">pending</SelectItem>
+                              <SelectItem value="resolved">resolved</SelectItem>
+                              <SelectItem value="closed">closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Badge className={getPriorityColor(ticket.priority)}>
+                      {ticket.priority}
+                    </Badge>
+                    <Badge className={getStatusColor(ticket.status)}>
+                      {ticket.status}
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -1440,136 +1493,12 @@ export default function TicketDetails() {
             />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prioridade</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Baixa</SelectItem>
-                            <SelectItem value="medium">Média</SelectItem>
-                            <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Crítica</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
 
 
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="open">Aberto</SelectItem>
-                            <SelectItem value="in_progress">Em Progresso</SelectItem>
-                            <SelectItem value="pending">Pendente</SelectItem>
-                            <SelectItem value="resolved">Resolvido</SelectItem>
-                            <SelectItem value="closed">Fechado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          <Badge className={getStatusColor(field.value)}>
-                            {field.value}
-                          </Badge>
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
-            {/* Seguidor e TAGs */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="followers"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Seguidor</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select 
-                          value={followers.length > 0 ? followers[0] : ""} 
-                          onValueChange={(value) => setFollowers(value ? [value] : [])}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um agente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(users?.users || []).map((user: any) => (
-                              <SelectItem key={user.id} value={user.id}>
-                                {user.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          {followers.length > 0 ? (
-                            <Badge variant="outline">{users?.users?.find((u: any) => u.id === followers[0])?.name || followers[0]}</Badge>
-                          ) : (
-                            "Nenhum seguidor"
-                          )}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>TAGs</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input 
-                          placeholder="Digite tags separadas por vírgula"
-                          value={tags.join(", ")}
-                          onChange={(e) => setTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
-                        />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded flex items-center gap-2 flex-wrap">
-                          {tags.length > 0 ? tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary">{tag}</Badge>
-                          )) : "Nenhuma tag"}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             {/* Atribuição */}
             <div className="grid grid-cols-2 gap-4">
