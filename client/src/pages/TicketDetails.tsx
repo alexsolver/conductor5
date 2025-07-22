@@ -802,174 +802,7 @@ export default function TicketDetails() {
               </div>
             </div>
 
-            {/* Datas/Tempo */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">DATAS E TEMPO</h3>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Data/Hora de Criação:</span>
-                    <span>{ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Vencimento:</span>
-                    <span>{ticket.dueDate ? new Date(ticket.dueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Vencimento Original:</span>
-                    <span>{ticket.originalDueDate ? new Date(ticket.originalDueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Vencimento Acionamento:</span>
-                    <span>{ticket.triggerDate ? new Date(ticket.triggerDate).toLocaleString('pt-BR') : 'Não informado'}</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Resolução:</span>
-                    <span>{ticket.resolutionDate ? new Date(ticket.resolutionDate).toLocaleString('pt-BR') : 'Não resolvido'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Fechamento:</span>
-                    <span>{ticket.closedDate ? new Date(ticket.closedDate).toLocaleString('pt-BR') : 'Não fechado'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dia(s) no status:</span>
-                    <span>
-                      <Badge variant="outline" className="text-xs">
-                        {ticket.status} - {ticket.daysInStatus || 0} dia(s)
-                      </Badge>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Favorecido */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">FAVORECIDO</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-xs text-gray-500">Nome:</label>
-                    <div className="text-sm">{ticket.favorecido?.name || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">E-mail:</label>
-                    <div className="text-sm">{ticket.favorecido?.email || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Telefone:</label>
-                    <div className="text-sm">{ticket.favorecido?.phone || 'Não informado'}</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-xs text-gray-500">Celular:</label>
-                    <div className="text-sm">{ticket.favorecido?.cellPhone || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">RG:</label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-auto p-1 text-xs"
-                      onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.rg', type: 'rg'})}
-                    >
-                      ••••••••••• (clique para ver)
-                    </Button>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">CPF/CNPJ:</label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-auto p-1 text-xs"
-                      onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.cpf', type: 'cpf'})}
-                    >
-                      ••••••••••••••• (clique para ver)
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Solicitante */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">SOLICITANTE</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-xs text-gray-500">Nome:</label>
-                    <div className="text-sm">{ticket.customer?.name || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">E-mail:</label>
-                    <div className="text-sm">{ticket.customer?.email || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Telefone:</label>
-                    <div className="text-sm">{ticket.customer?.phone || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">RG:</label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-auto p-1 text-xs"
-                      onClick={() => setShowPasswordDialog({open: true, field: 'customer.rg', type: 'rg'})}
-                    >
-                      ••••••••••• (clique para ver)
-                    </Button>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">CPF/CNPJ:</label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-auto p-1 text-xs"
-                      onClick={() => setShowPasswordDialog({open: true, field: 'customer.cpf', type: 'cpf'})}
-                    >
-                      ••••••••••••••• (clique para ver)
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-xs text-gray-500">Endereço:</label>
-                    <div className="text-sm">{ticket.customer?.address || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Número:</label>
-                    <div className="text-sm">{ticket.customer?.addressNumber || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Complemento:</label>
-                    <div className="text-sm">{ticket.customer?.complement || 'Não informado'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Bairro:</label>
-                    <div className="text-sm">{ticket.customer?.neighborhood || 'Não informado'}</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-500">Cidade:</label>
-                      <div className="text-sm">{ticket.customer?.city || 'Não informado'}</div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500">CEP:</label>
-                      <div className="text-sm">{ticket.customer?.zipCode || 'Não informado'}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         );
 
@@ -1197,6 +1030,158 @@ export default function TicketDetails() {
               </button>
             );
           })}
+        </div>
+
+        {/* Quadro Informativo */}
+        <div className="border-t mt-4">
+          <div className="p-4 bg-gray-50 rounded-b-lg">
+            {/* Datas/Tempo */}
+            <div className="mb-6">
+              <h4 className="text-xs font-semibold text-gray-700 mb-3">DATAS E TEMPO</h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Data/Hora de Criação:</span>
+                  <span className="text-gray-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Vencimento:</span>
+                  <span className="text-gray-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Vencimento Original:</span>
+                  <span className="text-gray-900 font-medium">{ticket.originalDueDate ? new Date(ticket.originalDueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Vencimento Acionamento:</span>
+                  <span className="text-gray-900 font-medium">{ticket.triggerDate ? new Date(ticket.triggerDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Resolução:</span>
+                  <span className="text-gray-900 font-medium">{ticket.resolutionDate ? new Date(ticket.resolutionDate).toLocaleString('pt-BR') : 'Não resolvido'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Fechamento:</span>
+                  <span className="text-gray-900 font-medium">{ticket.closedDate ? new Date(ticket.closedDate).toLocaleString('pt-BR') : 'Não fechado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Dia(s) no status:</span>
+                  <Badge variant="outline" className="text-xs">
+                    {ticket.status} - {ticket.daysInStatus || 0} dia(s)
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Favorecido */}
+            <div className="mb-6">
+              <h4 className="text-xs font-semibold text-gray-700 mb-3">FAVORECIDO</h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Nome:</span>
+                  <span className="text-gray-900 font-medium">{ticket.favorecido?.name || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">E-mail:</span>
+                  <span className="text-gray-900 font-medium">{ticket.favorecido?.email || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">RG:</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto p-1 text-xs hover:bg-gray-100"
+                    onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.rg', type: 'rg'})}
+                  >
+                    ••••••••••• (clique)
+                  </Button>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">CPF/CNPJ:</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto p-1 text-xs hover:bg-gray-100"
+                    onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.cpf', type: 'cpf'})}
+                  >
+                    ••••••••••••••• (clique)
+                  </Button>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Telefone:</span>
+                  <span className="text-gray-900 font-medium">{ticket.favorecido?.phone || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Celular:</span>
+                  <span className="text-gray-900 font-medium">{ticket.favorecido?.cellPhone || 'Não informado'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Solicitante */}
+            <div>
+              <h4 className="text-xs font-semibold text-gray-700 mb-3">SOLICITANTE</h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Nome:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.name || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">E-mail:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.email || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">RG:</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto p-1 text-xs hover:bg-gray-100"
+                    onClick={() => setShowPasswordDialog({open: true, field: 'customer.rg', type: 'rg'})}
+                  >
+                    ••••••••••• (clique)
+                  </Button>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">CPF/CNPJ:</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto p-1 text-xs hover:bg-gray-100"
+                    onClick={() => setShowPasswordDialog({open: true, field: 'customer.cpf', type: 'cpf'})}
+                  >
+                    ••••••••••••••• (clique)
+                  </Button>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Telefone:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.phone || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Endereço:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.address || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Número:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.addressNumber || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Complemento:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.complement || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Bairro:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.neighborhood || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Cidade:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.city || 'Não informado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">CEP:</span>
+                  <span className="text-gray-900 font-medium">{ticket.customer?.zipCode || 'Não informado'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
