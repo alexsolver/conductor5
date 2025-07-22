@@ -1,15 +1,63 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Search, MoreHorizontal, Edit, Eye, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { PersonSelector } from "@/components/PersonSelector";
+import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
+import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
+
+// Schema for ticket creation/editing - ServiceNow style
+const ticketSchema = z.object({
+  // Basic Fields
+  shortDescription: z.string().min(1, "Short description is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  impact: z.enum(["low", "medium", "high"]).optional(),
+  urgency: z.enum(["low", "medium", "high"]).optional(),
+  state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
+  
+  // Assignment Fields - Enhanced for flexible person referencing
+  callerId: z.string().min(1, "Solicitante é obrigatório"),
+  callerType: z.enum(["user", "customer"]).default("customer"),
+  beneficiaryId: z.string().optional(), // Optional - defaults to callerId
+  beneficiaryType: z.enum(["user", "customer"]).optional(),
+
+  assignedToId: z.string().optional(),
+  assignmentGroup: z.string().optional(),
+  location: z.string().optional(),
+  
+  // Communication Fields
+  contactType: z.enum(["email", "phone", "self_service", "chat"]).optional(),
+  
+  // Business Fields
+  businessImpact: z.string().optional(),
+  symptoms: z.string().optional(),
+  workaround: z.string().optional(),
+  
+  // Legacy compatibility
+  subject: z.string().min(1, "Subject is required"),
+  status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
+  tags: z.array(z.string()).default([]),
+});
+
+type TicketFormData = z.infer<typeof ticketSchema>;
 
 interface Ticket {
   id: string;
@@ -19,8 +67,11 @@ interface Ticket {
   priority: string;
   createdAt: string;
   updatedAt: string;
+  // Enhanced person referencing
   callerId: string;
   callerType: 'user' | 'customer';
+  beneficiaryId?: string;
+  beneficiaryType?: 'user' | 'customer';
   customer?: {
     id: string;
     firstName: string;
@@ -28,9 +79,19 @@ interface Ticket {
     email: string;
     fullName: string;
   };
-  customer_first_name?: string;
-  customer_last_name?: string;
-  customer_email?: string;
+  // Related persons (populated by join)
+  caller?: {
+    id: string;
+    type: 'user' | 'customer';
+    email: string;
+    fullName: string;
+  };
+  beneficiary?: {
+    id: string;
+    type: 'user' | 'customer';
+    email: string;
+    fullName: string;
+  };
   assignedTo?: {
     id: string;
     firstName: string;
@@ -40,95 +101,664 @@ interface Ticket {
 }
 
 export default function TicketsTable() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
-  // Fetch tickets
+  // Fetch tickets with pagination and filters
   const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
     queryKey: ["/api/tickets"],
-    queryFn: () => apiRequest('GET', '/api/tickets'),
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+      });
+      
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter);
+      }
+      if (priorityFilter !== "all") {
+        params.append("priority", priorityFilter);
+      }
+      
+      const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
+      return response.json();
+    },
+    retry: 3,
   });
 
-  const tickets = (ticketsData as any)?.tickets || [];
+  // Legacy customer system removed - using PersonSelector for modern person management
 
-  // Filter tickets
-  const filteredTickets = useMemo(() => {
-    return tickets.filter((ticket: Ticket) => {
-      const matchesSearch = 
-        ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${ticket.customer_first_name || ''} ${ticket.customer_last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
-      const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
-      
-      return matchesSearch && matchesStatus && matchesPriority;
-    });
-  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+  // Fetch users for assignment
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/tenant-admin/users"],
+    retry: 3,
+  });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTickets = filteredTickets.slice(startIndex, startIndex + itemsPerPage);
+  const tickets = ticketsData?.tickets || [];
+  const pagination = ticketsData?.pagination || { total: 0, totalPages: 0 };
+  // Legacy customers array removed
+  const users = usersData?.users || [];
+
+  // Debug logging
+  console.log('TicketsTable - Data:', {
+    ticketsError,
+    isLoading,
+    ticketsCount: tickets.length,
+    customersCount: 0, // Legacy system removed
+    usersCount: users.length,
+    hasToken: !!localStorage.getItem('accessToken')
+  });
+
+  // Form setup
+  const form = useForm<TicketFormData>({
+    resolver: zodResolver(ticketSchema),
+    defaultValues: {
+      shortDescription: "",
+      description: "",
+      category: "",
+      subcategory: "",
+      priority: "medium",
+      impact: "medium",
+      urgency: "medium",
+      state: "new",
+      callerId: "",
+      callerType: "customer",
+      beneficiaryId: "",
+      beneficiaryType: "customer",
+
+      assignedToId: "unassigned",
+      assignmentGroup: "",
+      location: "",
+      contactType: "email",
+      businessImpact: "",
+      symptoms: "",
+      workaround: "",
+      subject: "",
+      status: "open",
+      tags: [],
+    },
+  });
+
+  // Create ticket mutation
+  const createTicketMutation = useMutation({
+    mutationFn: async (data: TicketFormData) => {
+      const submitData = {
+        ...data,
+        assignedToId: data.assignedToId === "unassigned" ? undefined : data.assignedToId,
+        // Ensure beneficiary defaults to caller if not set
+        beneficiaryId: data.beneficiaryId || data.callerId,
+        beneficiaryType: data.beneficiaryType || data.callerType,
+      };
+      const response = await apiRequest("POST", "/api/tickets", submitData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Ticket created successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create ticket",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update ticket mutation
+  const updateTicketMutation = useMutation({
+    mutationFn: async (data: TicketFormData & { id: string }) => {
+      const { id, ...updateData } = data;
+      const submitData = {
+        ...updateData,
+        assignedToId: updateData.assignedToId === "unassigned" ? undefined : updateData.assignedToId
+      };
+      const response = await apiRequest("PUT", `/api/tickets/${id}`, submitData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Ticket updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      setIsEditDialogOpen(false);
+      setEditingTicket(null);
+      setIsEditMode(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update ticket",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete ticket mutation
+  const deleteTicketMutation = useMutation({
+    mutationFn: async (ticketId: string) => {
+      await apiRequest("DELETE", `/api/tickets/${ticketId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Ticket deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete ticket",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: TicketFormData) => {
+    if (editingTicket) {
+      updateTicketMutation.mutate({ ...data, id: editingTicket.id });
+    } else {
+      createTicketMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (ticket: Ticket) => {
+    // Navigate to the edit page instead of opening a modal
+    navigate(`/tickets/edit/${ticket.id}`);
+  };
+
+  const handleDelete = (ticketId: string) => {
+    if (confirm("Are you sure you want to delete this ticket?")) {
+      deleteTicketMutation.mutate(ticketId);
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority?.toLowerCase()) {
-      case "urgent": 
-      case "critical": 
-        return "bg-red-100 text-red-800 border-red-200";
-      case "high": 
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "medium": 
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "low": 
-        return "bg-green-100 text-green-800 border-green-200";
-      default: 
-        return "bg-gray-100 text-gray-800 border-gray-200";
+    switch (priority) {
+      case "urgent": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "high": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
+      case "medium": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "low": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "open": 
-      case "new":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "in_progress": 
-      case "in progress":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "resolved": 
-        return "bg-green-100 text-green-800 border-green-200";
-      case "closed": 
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default: 
-        return "bg-gray-100 text-gray-800 border-gray-200";
+    switch (status) {
+      case "open": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "in_progress": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+      case "resolved": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "closed": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
+  // Reset page when filters change
+  const filteredData = useMemo(() => {
+    setCurrentPage(1);
+    return tickets;
+  }, [searchTerm, statusFilter, priorityFilter]);
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const TicketForm = () => (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Basic Information</h3>
+          
+          <FormField
+            control={form.control}
+            name="shortDescription"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Short Description *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Brief summary of the issue" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Detailed Description *</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Detailed description of the problem or request"
+                    className="min-h-[100px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="hardware">Hardware</SelectItem>
+                      <SelectItem value="software">Software</SelectItem>
+                      <SelectItem value="network">Network</SelectItem>
+                      <SelectItem value="security">Security</SelectItem>
+                      <SelectItem value="access">Access Request</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="subcategory"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subcategory</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Specific subcategory" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Priority & Impact */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Priority & Impact</h3>
+          
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="impact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Impact</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select impact" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="urgency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Urgency</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select urgency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Assignment */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Assignment</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="callerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Solicitante (Caller) *</FormLabel>
+                  <FormControl>
+                    <PersonSelector
+                      value={field.value}
+                      onValueChange={(personId, personType) => {
+                        field.onChange(personId);
+                        form.setValue('callerType', personType);
+                        // Auto-set legacy customer field if caller is customer
+                        if (personType === 'customer') {
+                          form.setValue('customerId', personId);
+                        }
+                        // Auto-set beneficiary to caller if not already set
+                        if (!form.getValues('beneficiaryId')) {
+                          form.setValue('beneficiaryId', personId);
+                          form.setValue('beneficiaryType', personType);
+                        }
+                      }}
+                      placeholder="Buscar solicitante..."
+                      allowedTypes={['user', 'customer']}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="beneficiaryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Favorecido (Beneficiary)</FormLabel>
+                  <FormControl>
+                    <PersonSelector
+                      value={field.value}
+                      onValueChange={(personId, personType) => {
+                        field.onChange(personId);
+                        form.setValue('beneficiaryType', personType);
+                      }}
+                      placeholder="Buscar favorecido (opcional)..."
+                      allowedTypes={['user', 'customer']}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign to Agent</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select agent" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {users.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignmentGroup"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assignment Group</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select group" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="level1">Level 1 Support</SelectItem>
+                      <SelectItem value="level2">Level 2 Support</SelectItem>
+                      <SelectItem value="level3">Level 3 Support</SelectItem>
+                      <SelectItem value="network">Network Team</SelectItem>
+                      <SelectItem value="security">Security Team</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Physical location" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contactType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Type</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select contact type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="phone">Phone</SelectItem>
+                      <SelectItem value="chat">Chat</SelectItem>
+                      <SelectItem value="self_service">Self Service</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Business Impact */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
+          
+          <FormField
+            control={form.control}
+            name="businessImpact"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Business Impact</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Describe the business impact"
+                    className="min-h-[80px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="symptoms"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Symptoms</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Observed symptoms"
+                      className="min-h-[80px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workaround"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workaround</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Temporary solution or workaround"
+                      className="min-h-[80px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Legacy Fields (Hidden but mapped) */}
+        <FormField
+          control={form.control}
+          name="subject"
+          render={({ field }) => (
+            <input type="hidden" {...field} value={form.watch("shortDescription")} />
+          )}
+        />
+
+        {editingTicket && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Status</h3>
+            <FormField
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setIsCreateDialogOpen(false);
+              setIsEditDialogOpen(false);
+              setEditingTicket(null);
+              form.reset();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            disabled={createTicketMutation.isPending || updateTicketMutation.isPending}
+          >
+            {createTicketMutation.isPending || updateTicketMutation.isPending 
+              ? (editingTicket ? "Updating..." : "Creating...") 
+              : (editingTicket ? "Update Ticket" : "Create Ticket")
+            }
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
         <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
       </div>
@@ -136,224 +766,402 @@ export default function TicketsTable() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Header with filters - inspired by the image */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4">
-          <div className="flex flex-wrap items-center gap-4 mb-4">
-            {/* Filter buttons like in the image */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Todos os Chamados</span>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                Nova visualização
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center ml-[20px] mr-[20px]">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+        </div>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              New Ticket
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="flex flex-row items-center justify-between">
+              <DialogTitle className="text-2xl font-semibold">Create New Ticket</DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsCreateDialogOpen(false);
+                  form.reset();
+                }}
+                className="h-8 w-8 p-0"
+              >
+                ×
               </Button>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                <Filter className="h-4 w-4 mr-1" />
-                Editar visualização
-              </Button>
+            </DialogHeader>
+            <div className="mt-4">
+              <TicketForm />
             </div>
-            
-            <div className="flex-1" />
-            
-            {/* Action buttons like in the image */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Listagem</span>
-              <Button variant="outline" size="sm" className="bg-red-500 hover:bg-red-600 text-white border-red-500">
-                Buscar
-              </Button>
-              <Button variant="outline" size="sm" className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500">
-                Nova Chamada
-              </Button>
-              <Button variant="outline" size="sm" className="bg-orange-500 hover:bg-orange-600 text-white border-orange-500">
-                Editar
-              </Button>
-              <Button variant="outline" size="sm" className="bg-green-500 hover:bg-green-600 text-white border-green-500">
-                Ações Múltiplas
-              </Button>
-            </div>
-          </div>
-
-          {/* Search bar */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
+          </DialogContent>
+        </Dialog>
+      </div>
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Pesquisar..."
+                placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button variant="ghost" size="sm">
-              <Search className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Table - inspired by the image layout */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50 dark:bg-gray-800">
-              <TableHead className="w-20">Identificação</TableHead>
-              <TableHead className="w-40">Data de criação</TableHead>
-              <TableHead className="flex-1">Resumo</TableHead>
-              <TableHead className="w-32">Ambiente</TableHead>
-              <TableHead className="w-24">Status</TableHead>
-              <TableHead className="w-24">Situação</TableHead>
-              <TableHead className="w-24">Prioridade</TableHead>
-              <TableHead className="w-32">Status SLA</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-2">Carregando chamados...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : paginatedTickets.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  Nenhum chamado encontrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedTickets.map((ticket: Ticket, index: number) => (
-                <TableRow 
-                  key={ticket.id} 
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                  onClick={() => navigate(`/tickets/edit/${ticket.id}`)}
-                >
-                  <TableCell className="font-mono text-sm font-medium">
-                    {21867 + index}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <div>{formatDate(ticket.createdAt)}</div>
-                    <div className="text-gray-500">{formatTime(ticket.createdAt)}</div>
-                  </TableCell>
-                  <TableCell className="max-w-xs">
-                    <div className="font-medium truncate">
-                      {ticket.subject}
-                    </div>
-                    <div className="text-sm text-gray-500 truncate">
-                      {ticket.description}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <div>LANGUAGE</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      className={`${getStatusColor(ticket.status)} text-xs px-2 py-1 rounded-full font-medium`}
-                    >
-                      {ticket.status === 'open' ? 'Aberto' :
-                       ticket.status === 'in_progress' ? 'Em Andamento' :
-                       ticket.status === 'resolved' ? 'Concluído' :
-                       ticket.status === 'closed' ? 'Fechado' : ticket.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">-</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      className={`${getPriorityColor(ticket.priority)} text-xs px-2 py-1 rounded-full font-medium`}
-                    >
-                      {ticket.priority === 'high' ? 'Média' :
-                       ticket.priority === 'medium' ? 'Baixa' :
-                       ticket.priority === 'low' ? 'Baixa' :
-                       ticket.priority === 'urgent' ? 'Crítica' : ticket.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">-</span>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-
-        {/* Pagination like in the image */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            Exibindo 1 até {Math.min(itemsPerPage, filteredTickets.length)} de {filteredTickets.length} linhas
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={itemsPerPage.toString()} onValueChange={(value) => console.log(value)}>
-              <SelectTrigger className="w-16 h-8">
-                <SelectValue />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-700 dark:text-gray-300">registros por página</span>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priority</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("all");
+              setPriorityFilter("all");
+            }}>
+              Clear Filters
+            </Button>
           </div>
+        </CardContent>
+      </Card>
+      {/* Tickets Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Tickets ({pagination.total})</span>
+            <span className="text-sm font-normal text-gray-500">
+              Page {currentPage} of {pagination.totalPages}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Number</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>State</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Impact</TableHead>
+                  <TableHead>Assigned To</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center py-8">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                        <span className="ml-2">Loading tickets...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : tickets.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                      {ticketsError ? (
+                        <div>
+                          <p>Error loading tickets: {ticketsError.message}</p>
+                          <p className="text-sm mt-1">Check console for details</p>
+                        </div>
+                      ) : (
+                        "No tickets found"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ) : tickets.map((ticket: Ticket) => (
+                  <TableRow key={ticket.id}>
+                    <TableCell className="font-mono text-sm">
+                      {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+                    </TableCell>
+                    <TableCell className="font-medium max-w-xs truncate">
+                      {(ticket as any).shortDescription || ticket.subject}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {ticket.customer_first_name && ticket.customer_last_name 
+                            ? `${ticket.customer_first_name} ${ticket.customer_last_name}`
+                            : ticket.customer?.fullName || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {ticket.customer_email || ticket.customer?.email || 'N/A'}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {(ticket as any).category || 'Other'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor((ticket as any).state || ticket.status)}>
+                        {((ticket as any).state || ticket.status).replace('_', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getPriorityColor(ticket.priority)}>
+                        {ticket.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {(ticket as any).impact || 'Medium'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {ticket.assignedTo ? (
+                        <div>
+                          <div className="font-medium">{ticket.assignedTo.firstName} {ticket.assignedTo.lastName}</div>
+                          <div className="text-sm text-gray-500">{ticket.assignedTo.email}</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Unassigned</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(ticket.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => console.log('View ticket', ticket.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(ticket)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(ticket.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          
+          {/* Pagination */}
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, pagination.total)} of {pagination.total} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                disabled={currentPage === pagination.totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="text-2xl font-semibold">{isEditMode ? 'Editar Chamado' : 'Visualizar Chamado'}</DialogTitle>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsLinkingModalOpen(true)}
+                className="flex items-center space-x-1"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span>Vincular</span>
+              </Button>
+              <Button
+                variant={isEditMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className="flex items-center space-x-1"
+              >
+                <Edit className="h-4 w-4" />
+                <span>{isEditMode ? "Visualizar" : "Editar"}</span>
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  if (editingTicket && confirm("Tem certeza que deseja excluir este chamado?")) {
+                    deleteTicketMutation.mutate(editingTicket.id);
+                    setIsEditDialogOpen(false);
+                    setEditingTicket(null);
+                    setIsEditMode(false);
+                  }
+                }}
+                className="flex items-center space-x-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Excluir</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingTicket(null);
+                  setIsEditMode(false);
+                  form.reset();
+                }}
+                className="flex items-center space-x-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Voltar</span>
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="mt-4">
+            {isEditMode ? (
+              <TicketForm />
+            ) : (
+              <div className="space-y-6">
+                {/* View Mode - Display ticket information in a readable format */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Descrição Resumida</h3>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.shortDescription}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Prioridade</h3>
+                      <Badge variant={editingTicket?.priority === 'critical' ? 'destructive' : editingTicket?.priority === 'high' ? 'default' : 'secondary'}>
+                        {editingTicket?.priority}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</h3>
+                      <Badge variant={editingTicket?.state === 'resolved' ? 'default' : editingTicket?.state === 'closed' ? 'secondary' : 'outline'}>
+                        {editingTicket?.state}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</h3>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.category || 'Não informado'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Solicitante</h3>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.caller?.fullName || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</h3>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.assignedTo ? `${editingTicket.assignedTo.firstName} ${editingTicket.assignedTo.lastName}` : 'Não atribuído'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Data de Criação</h3>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.createdAt ? new Date(editingTicket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Última Atualização</h3>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{editingTicket?.updatedAt ? new Date(editingTicket.updatedAt).toLocaleString('pt-BR') : 'Não informado'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Descrição Detalhada</h3>
+                  <div className="mt-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{editingTicket?.description}</p>
+                  </div>
+                </div>
 
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const page = i + 1;
-              return (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className="h-8 w-8 p-0"
-                >
-                  {page}
-                </Button>
-              );
-            })}
-            
-            {totalPages > 5 && (
-              <>
-                <span className="text-sm text-gray-500">...</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="h-8 w-8 p-0"
-                >
-                  {totalPages}
-                </Button>
-              </>
+                {/* Ticket Hierarchy */}
+                {editingTicket && (
+                  <TicketHierarchyView 
+                    ticketId={editingTicket.id}
+                    onViewTicket={(ticketId) => {
+                      // Handle viewing another ticket
+                      console.log("View ticket:", ticketId);
+                    }}
+                    onCreateChild={(parentId) => {
+                      // Handle creating child ticket
+                      console.log("Create child for:", parentId);
+                    }}
+                  />
+                )}
+              </div>
             )}
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
+      {/* Ticket Linking Modal */}
+      {editingTicket && (
+        <TicketLinkingModal
+          isOpen={isLinkingModalOpen}
+          onClose={() => setIsLinkingModalOpen(false)}
+          currentTicket={{
+            id: editingTicket.id,
+            subject: editingTicket.shortDescription || editingTicket.subject,
+            status: editingTicket.state || editingTicket.status,
+            priority: editingTicket.priority,
+            number: editingTicket.number
+          }}
+        />
+      )}
     </div>
   );
 }
