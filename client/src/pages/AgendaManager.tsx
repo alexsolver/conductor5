@@ -79,7 +79,7 @@ const AgendaManager: React.FC = () => {
   
   // Calculate date range based on view
   const getDateRange = () => {
-    if (view === 'week') {
+    if (view === 'agenda') {
       const start = startOfWeek(selectedDate, { locale: ptBR });
       const end = endOfWeek(selectedDate, { locale: ptBR });
       return { 
@@ -111,21 +111,21 @@ const AgendaManager: React.FC = () => {
     queryFn: () => apiRequest('GET', '/api/schedule/activity-types'),
   });
   
-  const activityTypes = activityTypesData?.activityTypes || [];
+  const activityTypes = (activityTypesData as any)?.activityTypes || [];
 
   const { data: agentsData, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/user-management/users'],
     queryFn: () => apiRequest('GET', '/api/user-management/users'),
   });
   
-  const agents = agentsData?.users || [];
+  const agents = (agentsData as any)?.users || [];
 
   const { data: customersData } = useQuery({
     queryKey: ['/api/customers'],
     queryFn: () => apiRequest('GET', '/api/customers'),
   });
   
-  const customers = customersData?.customers || [];
+  const customers = (customersData as any)?.customers || [];
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -162,7 +162,7 @@ const AgendaManager: React.FC = () => {
     setNewScheduleDefaults({});
   };
 
-  const handleModalSuccess = () => {
+  const handleModalSave = (data: Schedule) => {
     queryClient.invalidateQueries({ queryKey: ['/api/schedule/schedules'] });
     handleModalClose();
     toast({
@@ -200,7 +200,7 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os clientes</SelectItem>
-                  {customers?.map((customer) => (
+                  {Array.isArray(customers) && customers.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
                     </SelectItem>
@@ -252,7 +252,7 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
-                  {agents?.map((agent) => (
+                  {Array.isArray(agents) && agents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.name}
                     </SelectItem>
@@ -343,7 +343,7 @@ const AgendaManager: React.FC = () => {
       <div className="mb-6">
         {view === 'timeline' ? (
           <TimelineScheduleGrid
-            schedules={schedules}
+            schedules={schedules as Schedule[]}
             activityTypes={activityTypes}
             agents={agents}
             selectedDate={selectedDate}
@@ -352,7 +352,7 @@ const AgendaManager: React.FC = () => {
           />
         ) : (
           <WeeklyScheduleGrid
-            schedules={schedules}
+            schedules={schedules as Schedule[]}
             activityTypes={activityTypes}
             agents={agents}
             startDate={selectedDate}
@@ -366,7 +366,7 @@ const AgendaManager: React.FC = () => {
       <ScheduleModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
+        onSave={handleModalSave}
         schedule={editingSchedule}
         defaultDate={newScheduleDefaults.date}
         defaultTime={newScheduleDefaults.time}

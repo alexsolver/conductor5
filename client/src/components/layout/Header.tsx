@@ -26,16 +26,17 @@ export function Header() {
         </div>
         
         <div className="flex items-center">
-        <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="relative text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800"></span>
-          </Button>
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800"></span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>
