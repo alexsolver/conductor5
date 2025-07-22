@@ -13,7 +13,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
-import TicketEdit from "./pages/TicketEdit";
+import TicketDetails from "./pages/TicketDetails";
 import CustomersTable from "./pages/CustomersTable";
 import FavorecidosTable from "./pages/FavorecidosTable";
 import Locations from "./pages/Locations";
@@ -99,7 +99,7 @@ function AppRouter() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
-        <Route path="/tickets/edit/:id" component={TicketEdit} />
+        <Route path="/tickets/:id" component={TicketDetails} />
         <Route path="/solicitantes" component={CustomersTable} />
         <Route path="/tenant-admin/solicitantes" component={CustomersTable} />
         <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
