@@ -638,35 +638,7 @@ export default function TicketsTable() {
           )}
         />
 
-        {editingTicket && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Status</h3>
-            <FormField
-              control={form.control}
-              name="state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
+
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
           <Button
@@ -685,8 +657,8 @@ export default function TicketsTable() {
             disabled={createTicketMutation.isPending || updateTicketMutation.isPending}
           >
             {createTicketMutation.isPending || updateTicketMutation.isPending 
-              ? (editingTicket ? "Updating..." : "Creating...") 
-              : (editingTicket ? "Update Ticket" : "Create Ticket")
+              ? "Creating..." 
+              : "Create Ticket"
             }
           </Button>
         </div>
