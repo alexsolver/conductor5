@@ -71,7 +71,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
         s.status, s.priority, s.location_address, s.coordinates,
         s.internal_notes, s.client_notes, s.estimated_travel_time,
         s.actual_start_time, s.actual_end_time, s.is_recurring,
-        s.recurring_pattern, s.parent_schedule_id, s.created_at, s.updated_at,
+        s.recurring_pattern, s.parent_schedule_id, s.type, s.created_at, s.updated_at,
         u.first_name as agent_first_name, u.last_name as agent_last_name,
         u.email as agent_email, u.profile_image_url as agent_profile_image_url,
         c.first_name as customer_first_name, c.last_name as customer_last_name,
@@ -113,6 +113,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       isRecurring: row.is_recurring,
       recurringPattern: row.recurring_pattern ? JSON.parse(row.recurring_pattern) : null,
       parentScheduleId: row.parent_schedule_id,
+      type: row.type || 'planned',
       createdAt: row.created_at,
       updatedAt: row.updated_at
     }));

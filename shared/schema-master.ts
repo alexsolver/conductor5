@@ -544,6 +544,7 @@ export const schedules = pgTable("schedules", {
   isRecurring: boolean("is_recurring").default(false),
   recurringPattern: jsonb("recurring_pattern"), // {type: 'daily'|'weekly'|'monthly', interval: number}
   parentScheduleId: uuid("parent_schedule_id"), // For recurring schedules
+  type: varchar("type", { length: 20 }).default("planned").notNull(), // planned, actual
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

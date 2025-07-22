@@ -25,6 +25,7 @@ export interface ScheduleEntity {
     interval: number;
   };
   parentScheduleId?: string;
+  type: 'planned' | 'actual';
   createdAt: Date;
   updatedAt: Date;
 }
