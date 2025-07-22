@@ -1034,150 +1034,135 @@ export default function TicketDetails() {
 
         {/* Quadro Informativo */}
         <div className="border-t mt-4">
-          <div className="p-4 bg-gray-50 rounded-b-lg">
-            {/* Datas/Tempo */}
-            <div className="mb-6">
-              <h4 className="text-xs font-semibold text-gray-700 mb-3">DATAS E TEMPO</h4>
-              <div className="space-y-2 text-xs">
+          <div className="p-3 bg-gray-50 rounded-b-lg">
+            {/* Datas/Tempo - Destacado */}
+            <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
+              <h4 className="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                DATAS E TEMPO
+              </h4>
+              <div className="grid grid-cols-1 gap-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Data/Hora de Criação:</span>
-                  <span className="text-gray-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</span>
+                  <span className="text-blue-700">Criação:</span>
+                  <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Vencimento:</span>
-                  <span className="text-gray-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                  <span className="text-blue-700">Vencimento:</span>
+                  <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Vencimento Original:</span>
-                  <span className="text-gray-900 font-medium">{ticket.originalDueDate ? new Date(ticket.originalDueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Vencimento Acionamento:</span>
-                  <span className="text-gray-900 font-medium">{ticket.triggerDate ? new Date(ticket.triggerDate).toLocaleString('pt-BR') : 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Resolução:</span>
-                  <span className="text-gray-900 font-medium">{ticket.resolutionDate ? new Date(ticket.resolutionDate).toLocaleString('pt-BR') : 'Não resolvido'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Fechamento:</span>
-                  <span className="text-gray-900 font-medium">{ticket.closedDate ? new Date(ticket.closedDate).toLocaleString('pt-BR') : 'Não fechado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Dia(s) no status:</span>
-                  <Badge variant="outline" className="text-xs">
-                    {ticket.status} - {ticket.daysInStatus || 0} dia(s)
+                  <span className="text-blue-700">Status:</span>
+                  <Badge variant="outline" className="text-xs h-4">
+                    {ticket.status} - {ticket.daysInStatus || 0}d
                   </Badge>
                 </div>
               </div>
             </div>
 
-            {/* Favorecido */}
-            <div className="mb-6">
-              <h4 className="text-xs font-semibold text-gray-700 mb-3">FAVORECIDO</h4>
-              <div className="space-y-2 text-xs">
+            {/* Favorecido - Compacto */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-xs font-semibold text-gray-700">FAVORECIDO</h4>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
+                      🔐 Dados Sensíveis
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Verificação de Segurança</DialogTitle>
+                      <DialogDescription>
+                        Digite sua senha para acessar dados sensíveis do favorecido
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        type="password"
+                        placeholder="Digite sua senha"
+                        value={agentPassword}
+                        onChange={(e) => setAgentPassword(e.target.value)}
+                      />
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">RG:</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.favorecido?.rg || 'Não informado') : '••••••••••'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">CPF/CNPJ:</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.favorecido?.cpf || 'Não informado') : '•••••••••••••••'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Nome:</span>
-                  <span className="text-gray-900 font-medium">{ticket.favorecido?.name || 'Não informado'}</span>
+                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.favorecido?.name || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">E-mail:</span>
-                  <span className="text-gray-900 font-medium">{ticket.favorecido?.email || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">RG:</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-auto p-1 text-xs hover:bg-gray-100"
-                    onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.rg', type: 'rg'})}
-                  >
-                    ••••••••••• (clique)
-                  </Button>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">CPF/CNPJ:</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-auto p-1 text-xs hover:bg-gray-100"
-                    onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.cpf', type: 'cpf'})}
-                  >
-                    ••••••••••••••• (clique)
-                  </Button>
+                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.favorecido?.email || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Telefone:</span>
-                  <span className="text-gray-900 font-medium">{ticket.favorecido?.phone || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Celular:</span>
-                  <span className="text-gray-900 font-medium">{ticket.favorecido?.cellPhone || 'Não informado'}</span>
+                  <span className="text-gray-900 font-medium">{ticket.favorecido?.phone || 'N/A'}</span>
                 </div>
               </div>
             </div>
 
-            {/* Solicitante */}
+            {/* Solicitante - Compacto */}
             <div>
-              <h4 className="text-xs font-semibold text-gray-700 mb-3">SOLICITANTE</h4>
-              <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-xs font-semibold text-gray-700">SOLICITANTE</h4>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
+                      🔐 Dados Sensíveis
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Verificação de Segurança</DialogTitle>
+                      <DialogDescription>
+                        Digite sua senha para acessar dados sensíveis do solicitante
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        type="password"
+                        placeholder="Digite sua senha"
+                        value={agentPassword}
+                        onChange={(e) => setAgentPassword(e.target.value)}
+                      />
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">RG:</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.customer?.rg || 'Não informado') : '••••••••••'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">CPF/CNPJ:</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.customer?.cpf || 'Não informado') : '•••••••••••••••'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Nome:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.name || 'Não informado'}</span>
+                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.customer?.name || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">E-mail:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.email || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">RG:</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-auto p-1 text-xs hover:bg-gray-100"
-                    onClick={() => setShowPasswordDialog({open: true, field: 'customer.rg', type: 'rg'})}
-                  >
-                    ••••••••••• (clique)
-                  </Button>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">CPF/CNPJ:</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-auto p-1 text-xs hover:bg-gray-100"
-                    onClick={() => setShowPasswordDialog({open: true, field: 'customer.cpf', type: 'cpf'})}
-                  >
-                    ••••••••••••••• (clique)
-                  </Button>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Telefone:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.phone || 'Não informado'}</span>
+                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.customer?.email || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Endereço:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.address || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Número:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.addressNumber || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Complemento:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.complement || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Bairro:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.neighborhood || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Cidade:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.city || 'Não informado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">CEP:</span>
-                  <span className="text-gray-900 font-medium">{ticket.customer?.zipCode || 'Não informado'}</span>
+                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.customer?.address || 'N/A'}, {ticket.customer?.addressNumber || ''}</span>
                 </div>
               </div>
             </div>
