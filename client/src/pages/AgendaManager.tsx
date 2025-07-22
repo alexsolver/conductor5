@@ -37,7 +37,7 @@ interface Schedule {
 
 const AgendaManager: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [view, setView] = useState<'day' | 'week' | 'month'>('week');
+  const [view, setView] = useState<'day' | 'week' | 'month'>('day');
   const [selectedAgentId, setSelectedAgentId] = useState<string>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
@@ -52,20 +52,11 @@ const AgendaManager: React.FC = () => {
   
   // Calculate date range based on view
   const getDateRange = () => {
-    if (view === 'week') {
-      const start = startOfWeek(selectedDate, { locale: ptBR });
-      const end = endOfWeek(selectedDate, { locale: ptBR });
-      return { 
-        startDate: format(start, 'yyyy-MM-dd'),
-        endDate: format(end, 'yyyy-MM-dd')
-      };
-    }
-    // For now, default to week view
-    const start = startOfWeek(selectedDate, { locale: ptBR });
-    const end = endOfWeek(selectedDate, { locale: ptBR });
+    // For day view, show only the selected day
+    const dayStart = format(selectedDate, 'yyyy-MM-dd');
     return { 
-      startDate: format(start, 'yyyy-MM-dd'),
-      endDate: format(end, 'yyyy-MM-dd')
+      startDate: dayStart,
+      endDate: dayStart
     };
   };
 
@@ -249,82 +240,58 @@ const AgendaManager: React.FC = () => {
       {/* Navigation and View Controls */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-2">
-          <Button 
-            variant={view === 'day' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setView('day')}
-          >
+          <Button variant="default" size="sm">
             Dia
-          </Button>
-          <Button 
-            variant={view === 'week' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setView('week')}
-          >
-            Semana
-          </Button>
-          <Button 
-            variant={view === 'month' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setView('month')}
-          >
-            Mês
           </Button>
         </div>
 
-        {/* Week Navigation */}
-        {view === 'week' && (
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="text-sm font-medium">
-              {format(startOfWeek(selectedDate, { locale: ptBR }), 'dd/MM', { locale: ptBR })} - {' '}
-              {format(endOfWeek(selectedDate, { locale: ptBR }), 'dd/MM/yyyy', { locale: ptBR })}
-            </div>
-            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+        {/* Day Navigation */}
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={() => setSelectedDate(prev => new Date(prev.getTime() - 24 * 60 * 60 * 1000))}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-sm font-medium">
+            {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
           </div>
-        )}
+          <Button variant="outline" size="sm" onClick={() => setSelectedDate(prev => new Date(prev.getTime() + 24 * 60 * 60 * 1000))}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Main Layout */}
       <div className="mb-6">
         {/* Main Content - Full Width */}
         <div className="w-full">
-          {view === 'week' ? (
-            <WeeklyScheduleGrid
-              schedules={schedules}
-              activityTypes={activityTypes}
-              agents={mockAgents}
-              selectedDate={selectedDate}
-              onScheduleClick={handleScheduleClick}
-              onTimeSlotClick={handleTimeSlotClick}
-            />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Agent Sidebar for non-week views */}
-              <div className="lg:col-span-1">
-                <AgentList
-                  agents={mockAgents}
-                  schedules={schedules}
-                  selectedDate={selectedDate}
-                  onAgentSelect={setSelectedAgentId}
-                  selectedAgentId={selectedAgentId}
-                />
-              </div>
-              <div className="lg:col-span-3">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Lista de Agendamentos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {schedules.map((schedule) => {
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Agent Sidebar for daily view */}
+            <div className="lg:col-span-1">
+              <AgentList
+                agents={mockAgents}
+                schedules={schedules}
+                selectedDate={selectedDate}
+                onAgentSelect={setSelectedAgentId}
+                selectedAgentId={selectedAgentId}
+              />
+            </div>
+            <div className="lg:col-span-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Agendamentos do Dia - {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {schedules.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Calendar className="h-12 w-12 mx-auto mb-4" />
+                        <p>Nenhum agendamento para este dia</p>
+                      </div>
+                    ) : (
+                      schedules.map((schedule) => {
                         const activityType = getActivityTypeById(schedule.activityTypeId);
+                        const agent = mockAgents.find(a => a.id === schedule.agentId);
                         return (
-                          <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)}`}>
+                          <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)} cursor-pointer hover:shadow-md transition-shadow`} onClick={() => handleScheduleClick(schedule)}>
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
@@ -334,18 +301,44 @@ const AgendaManager: React.FC = () => {
                                      schedule.status === 'in_progress' ? 'Em Progresso' :
                                      schedule.status === 'completed' ? 'Concluído' : 'Cancelado'}
                                   </Badge>
+                                  {activityType && (
+                                    <Badge variant="outline" style={{ backgroundColor: activityType.color + '20', color: activityType.color }}>
+                                      {activityType.name}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-600 mb-2">
+                                  {schedule.description}
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    {formatTime(schedule.startDateTime)} - {formatTime(schedule.endDateTime)}
+                                  </div>
+                                  {agent && (
+                                    <div className="flex items-center gap-1">
+                                      <User className="h-4 w-4" />
+                                      {agent.name}
+                                    </div>
+                                  )}
+                                  {schedule.locationAddress && (
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="h-4 w-4" />
+                                      {schedule.locationAddress}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
                           </div>
                         );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                      })
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
