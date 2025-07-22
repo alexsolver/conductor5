@@ -53,8 +53,6 @@ interface Customer {
   email: string;
   phone?: string;
   tenantId: string;
-  customerId?: string;
-  activityTypeId: string;
 }
 
 const AgendaManager: React.FC = () => {
@@ -108,20 +106,26 @@ const AgendaManager: React.FC = () => {
     enabled: !!startDate && !!endDate,
   });
 
-  const { data: activityTypes = [], isLoading: activityTypesLoading } = useQuery({
+  const { data: activityTypesData, isLoading: activityTypesLoading } = useQuery({
     queryKey: ['/api/schedule/activity-types'],
     queryFn: () => apiRequest('GET', '/api/schedule/activity-types'),
   });
+  
+  const activityTypes = activityTypesData?.activityTypes || [];
 
-  const { data: agents = [], isLoading: agentsLoading } = useQuery({
+  const { data: agentsData, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/user-management/users'],
     queryFn: () => apiRequest('GET', '/api/user-management/users'),
   });
+  
+  const agents = agentsData?.users || [];
 
-  const { data: customers = [] } = useQuery({
+  const { data: customersData } = useQuery({
     queryKey: ['/api/customers'],
     queryFn: () => apiRequest('GET', '/api/customers'),
   });
+  
+  const customers = customersData?.customers || [];
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -196,7 +200,7 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os clientes</SelectItem>
-                  {customers.map((customer) => (
+                  {customers?.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
                     </SelectItem>
@@ -248,7 +252,7 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
-                  {agents.map((agent) => (
+                  {agents?.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.name}
                     </SelectItem>

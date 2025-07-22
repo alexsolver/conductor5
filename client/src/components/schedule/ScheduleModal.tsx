@@ -156,7 +156,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
     onClose();
   };
 
-  const selectedActivityType = activityTypes.find(type => type.id === form.watch('activityTypeId'));
+  const selectedActivityType = activityTypes?.find?.(type => type.id === form.watch('activityTypeId'));
 
   // Update duration when activity type changes
   React.useEffect(() => {
@@ -227,7 +227,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {agents.map((agent) => (
+                        {agents?.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
                             {agent.name}
                           </SelectItem>
@@ -253,7 +253,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">Nenhum cliente</SelectItem>
-                        {customers.map((customer) => (
+                        {customers?.map((customer) => (
                           <SelectItem key={customer.id} value={customer.id}>
                             {customer.firstName} {customer.lastName}
                           </SelectItem>
@@ -280,7 +280,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {activityTypes.map((type) => (
+                      {activityTypes?.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
                           <div className="flex items-center">
                             <div 
