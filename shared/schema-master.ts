@@ -88,19 +88,35 @@ export const customers = pgTable("customers", {
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  title: varchar("title", { length: 500 }).notNull(),
+  subject: varchar("subject", { length: 500 }).notNull(),
   description: text("description"),
-  status: varchar("status", { length: 50 }).default("open"),      // CONTEXTUAL: Support workflow starts "open"
   priority: varchar("priority", { length: 20 }).default("medium"),
-  customerId: uuid("customer_id").references(() => customers.id),
-  assignedToId: uuid("assigned_to_id").references(() => users.id), // Fixed: string → UUID FK
+  status: varchar("status", { length: 50 }).default("open"),
+  impact: varchar("impact", { length: 20 }).default("medium"),
+  urgency: varchar("urgency", { length: 20 }).default("medium"),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  symptoms: text("symptoms"),
+  workaround: text("workaround"),
+  businessImpact: text("business_impact"),
+  callerId: uuid("caller_id").references(() => customers.id),
+  callerType: varchar("caller_type", { length: 50 }).default("customer"),
+  beneficiaryId: uuid("beneficiary_id").references(() => customers.id),
+  beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
+  assignedToId: uuid("assigned_to_id").references(() => users.id),
+  assignmentGroup: varchar("assignment_group", { length: 100 }),
+  location: varchar("location", { length: 100 }),
+  followerId: uuid("follower_id").references(() => users.id),
+  followers: text("followers").array(),
+  tags: text("tags").array(),
+  contactType: varchar("contact_type", { length: 50 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
   index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
-  index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
 ]);
 
 // Ticket Messages table - Critical indexes added for performance
