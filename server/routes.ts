@@ -13,7 +13,7 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
-import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
+
 import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
@@ -257,8 +257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Team management routes
   app.use('/api/team-management', jwtAuth, teamManagementRoutes);
 
-  // Tenant admin team management routes
-  app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
+
 
   // Ticket relationships routes
   app.use('/api/tickets', ticketRelationshipsRoutes);

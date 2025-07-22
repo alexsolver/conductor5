@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+
+// Import user management components from old system
+import { UserList } from "@/components/user-management/UserList";
+import { UserGroups } from "@/components/user-management/UserGroups";
+import { CustomRoles } from "@/components/user-management/CustomRoles";
+import { UserInvitations } from "@/components/user-management/UserInvitations";
+import { UserActivity } from "@/components/user-management/UserActivity";
+import { UserSessions } from "@/components/user-management/UserSessions";
+import { CreateUserDialog } from "@/components/user-management/CreateUserDialog";
+import { InviteUserDialog } from "@/components/user-management/InviteUserDialog";
 import { 
   Users, 
   UserCheck, 
@@ -41,17 +51,23 @@ import {
   XCircle,
   AlertCircle,
   User,
-  Globe
+  Globe,
+  Monitor
 } from "lucide-react";
 import { Link } from "wouter";
 
 export default function TeamManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClientInstance = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  
+  // Dialog states for user management
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showInviteUser, setShowInviteUser] = useState(false);
 
   // Fetch team overview data
   const { data: teamOverview, isLoading: overviewLoading } = useQuery({
@@ -81,6 +97,19 @@ export default function TeamManagement() {
   const { data: skillsMatrix } = useQuery({
     queryKey: ['/api/team-management/skills-matrix'],
     enabled: !!user,
+  });
+
+  // Fetch old system data for consolidated functionality
+  const { data: tenantStats, isLoading: tenantStatsLoading } = useQuery({
+    queryKey: ["/api/tenant-admin/team/stats"],
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const { data: tenantMembers, isLoading: tenantMembersLoading } = useQuery({
+    queryKey: ["/api/tenant-admin/team/members"],
+    enabled: !!user,
+    refetchInterval: 60000,
   });
 
   // Filter team members
@@ -118,13 +147,23 @@ export default function TeamManagement() {
           <p className="text-gray-600 dark:text-gray-400">Sistema integrado de gestão de recursos humanos</p>
         </div>
         <div className="flex space-x-2">
+          <Button 
+            onClick={() => setShowCreateUser(true)}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Criar Usuário
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setShowInviteUser(true)}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Convidar Usuário
+          </Button>
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Exportar
-          </Button>
-          <Button>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Adicionar Membro
           </Button>
         </div>
       </div>
@@ -190,34 +229,46 @@ export default function TeamManagement() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview" className="flex items-center space-x-2">
-            <BarChart3 className="h-4 w-4" />
-            <span>Visão Geral</span>
+        <TabsList className="grid w-full grid-cols-10">
+          <TabsTrigger value="overview" className="flex items-center space-x-1">
+            <BarChart3 className="h-3 w-3" />
+            <span className="text-xs">Visão Geral</span>
           </TabsTrigger>
-          <TabsTrigger value="members" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>Membros</span>
+          <TabsTrigger value="members" className="flex items-center space-x-1">
+            <Users className="h-3 w-3" />
+            <span className="text-xs">Membros</span>
           </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center space-x-2">
-            <Target className="h-4 w-4" />
-            <span>Performance</span>
+          <TabsTrigger value="groups" className="flex items-center space-x-1">
+            <Building className="h-3 w-3" />
+            <span className="text-xs">Grupos</span>
           </TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center space-x-2">
-            <Award className="h-4 w-4" />
-            <span>Habilidades</span>
+          <TabsTrigger value="roles" className="flex items-center space-x-1">
+            <Shield className="h-3 w-3" />
+            <span className="text-xs">Papéis</span>
           </TabsTrigger>
-          <TabsTrigger value="schedules" className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4" />
-            <span>Escalas</span>
+          <TabsTrigger value="invitations" className="flex items-center space-x-1">
+            <Mail className="h-3 w-3" />
+            <span className="text-xs">Convites</span>
           </TabsTrigger>
-          <TabsTrigger value="absence" className="flex items-center space-x-2">
-            <Clock className="h-4 w-4" />
-            <span>Ausências</span>
+          <TabsTrigger value="sessions" className="flex items-center space-x-1">
+            <Monitor className="h-3 w-3" />
+            <span className="text-xs">Sessões</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center space-x-2">
-            <TrendingUp className="h-4 w-4" />
-            <span>Analytics</span>
+          <TabsTrigger value="activity" className="flex items-center space-x-1">
+            <Activity className="h-3 w-3" />
+            <span className="text-xs">Atividade</span>
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="flex items-center space-x-1">
+            <Target className="h-3 w-3" />
+            <span className="text-xs">Performance</span>
+          </TabsTrigger>
+          <TabsTrigger value="skills" className="flex items-center space-x-1">
+            <Award className="h-3 w-3" />
+            <span className="text-xs">Habilidades</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center space-x-1">
+            <TrendingUp className="h-3 w-3" />
+            <span className="text-xs">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -542,6 +593,31 @@ export default function TeamManagement() {
           </Card>
         </TabsContent>
 
+        {/* Groups Tab */}
+        <TabsContent value="groups" className="space-y-4">
+          <UserGroups tenantAdmin={true} />
+        </TabsContent>
+
+        {/* Roles Tab */}
+        <TabsContent value="roles" className="space-y-4">
+          <CustomRoles tenantAdmin={true} />
+        </TabsContent>
+
+        {/* Invitations Tab */}
+        <TabsContent value="invitations" className="space-y-4">
+          <UserInvitations tenantAdmin={true} />
+        </TabsContent>
+
+        {/* Sessions Tab */}
+        <TabsContent value="sessions" className="space-y-4">
+          <UserSessions tenantAdmin={true} />
+        </TabsContent>
+
+        {/* Activity Tab */}
+        <TabsContent value="activity" className="space-y-4">
+          <UserActivity tenantAdmin={true} />
+        </TabsContent>
+
         {/* Schedules Tab */}
         <TabsContent value="schedules">
           <Card>
@@ -665,6 +741,18 @@ export default function TeamManagement() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* User Management Dialogs */}
+      <CreateUserDialog 
+        open={showCreateUser} 
+        onOpenChange={setShowCreateUser}
+        tenantAdmin={true}
+      />
+      <InviteUserDialog 
+        open={showInviteUser} 
+        onOpenChange={setShowInviteUser}
+        tenantAdmin={true}
+      />
     </div>
   );
 }
