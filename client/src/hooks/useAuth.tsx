@@ -51,11 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
       const token = localStorage.getItem('accessToken');
+      console.log('Auth check - token exists:', !!token);
+      
       if (!token) {
+        console.log('No token found, returning null');
         return null;
       }
       
       try {
+        console.log('Making auth request...');
         const response = await fetch('/api/auth/user', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -64,8 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           credentials: 'include',
         });
         
+        console.log('Auth response status:', response.status);
+        
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
+            console.log('Auth failed, removing token');
             localStorage.removeItem('accessToken');
             return null;
           }
@@ -74,9 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         const userData = await response.json();
+        console.log('Auth successful, user data:', userData);
         return userData || null;
       } catch (error) {
-        // Auth query error handled by UI
+        console.error('Auth query error:', error);
         localStorage.removeItem('accessToken');
         return null;
       }
