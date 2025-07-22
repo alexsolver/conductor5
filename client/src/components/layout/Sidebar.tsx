@@ -18,6 +18,7 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Zap,
   Map,
   MapPin,
@@ -46,6 +47,11 @@ import {
   Calendar,
   Globe2
 } from "lucide-react";
+
+interface SidebarProps {
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+}
 
 // Base navigation with proper types
 const baseNavigation: Array<{
@@ -132,7 +138,7 @@ const secondaryNavigation = [
   { name: "Help & Support", href: "/help", icon: HelpCircle },
 ];
 
-export function Sidebar() {
+export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
@@ -171,7 +177,9 @@ export function Sidebar() {
   };
 
   return (
-    <div className="hidden lg:flex lg:w-64 lg:flex-col">
+    <div className={`hidden lg:flex lg:flex-col transition-all duration-300 ${
+      collapsed ? 'lg:w-16' : 'lg:w-64'
+    }`}>
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto" style={{
         background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
         color: 'white'
@@ -182,7 +190,20 @@ export function Sidebar() {
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3">
               <Zap className="w-5 h-5 text-purple-600" />
             </div>
-            <h1 className="text-xl font-bold text-white">Conductor</h1>
+            {!collapsed && (
+              <h1 className="text-xl font-bold text-white">Conductor</h1>
+            )}
+          </div>
+          {/* Toggle Button */}
+          <div className="ml-auto">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleCollapse}
+              className="h-8 w-8 p-0 text-white hover:bg-white hover:bg-opacity-10"
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
           </div>
         </div>
 
@@ -197,11 +218,13 @@ export function Sidebar() {
                 <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center mr-2">
                   <span className="text-xs font-semibold text-purple-600">AC</span>
                 </div>
-                <span className="text-sm font-medium text-white">
-                  {tenantData?.name || 'Carregando...'}
-                </span>
+                {!collapsed && (
+                  <span className="text-sm font-medium text-white">
+                    {tenantData?.name || 'Carregando...'}
+                  </span>
+                )}
               </div>
-              <ChevronDown className="w-4 h-4 text-white" />
+              {!collapsed && <ChevronDown className="w-4 h-4 text-white" />}
             </div>
           </div>
         </div>
@@ -213,6 +236,29 @@ export function Sidebar() {
             if (item.children) {
               const isOpen = openMenus[item.name] || false;
               const hasActiveChild = item.children.some(child => location === child.href);
+              
+              // In collapsed mode, don't show submenu items
+              if (collapsed) {
+                return (
+                  <div key={item.name} className="relative group">
+                    <div className={cn(
+                      "flex items-center justify-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                      hasActiveChild
+                        ? "text-white"
+                        : "text-white hover:bg-white hover:bg-opacity-10"
+                    )} style={hasActiveChild ? {
+                      backgroundColor: 'var(--accent)',
+                      color: 'white'
+                    } : {}}
+                    title={item.name}>
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {item.badge && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
               
               return (
                 <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
@@ -268,6 +314,32 @@ export function Sidebar() {
             // If item has no children, render as simple link
             if (!item.href) return null; // Skip items without href
             const isActive = location === item.href;
+            
+            // In collapsed mode, show only icons
+            if (collapsed) {
+              return (
+                <Link key={item.name} href={item.href}>
+                  <div className={cn(
+                    "group flex items-center justify-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer relative",
+                    isActive
+                      ? "text-white"
+                      : "text-white hover:bg-white hover:bg-opacity-10"
+                  )} style={isActive ? {
+                    backgroundColor: 'var(--accent)',
+                    color: 'white'
+                  } : {}}
+                  title={item.name}>
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    {item.badge && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-white">{item.badge}</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            }
+            
             return (
               <Link key={item.name} href={item.href}>
                 <div className={cn(
