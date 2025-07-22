@@ -50,13 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        return null;
+      }
+      
       try {
-        const token = localStorage.getItem('accessToken');
-        
-        if (!token) {
-          return null;
-        }
-        
         const response = await fetch('/api/auth/user', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,22 +67,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('accessToken');
+            return null;
           }
+          console.warn(`Auth check failed: ${response.status}`);
           return null;
         }
         
         const userData = await response.json();
         return userData || null;
       } catch (error) {
+        // Auth query error handled by UI
         localStorage.removeItem('accessToken');
         return null;
       }
     },
     retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   const loginMutation = useMutation({
