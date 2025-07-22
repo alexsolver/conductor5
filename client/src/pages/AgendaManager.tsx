@@ -289,64 +289,16 @@ const AgendaManager: React.FC = () => {
         )}
       </div>
 
-      {/* Main Layout */}
+      {/* Main Layout - Always Grid View */}
       <div className="mb-6">
-        {/* Main Content - Full Width */}
-        <div className="w-full">
-          {view === 'week' ? (
-            <WeeklyScheduleGrid
-              schedules={schedules}
-              activityTypes={activityTypes}
-              agents={mockAgents}
-              selectedDate={selectedDate}
-              onScheduleClick={handleScheduleClick}
-              onTimeSlotClick={handleTimeSlotClick}
-            />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Agent Sidebar for non-week views */}
-              <div className="lg:col-span-1">
-                <AgentList
-                  agents={mockAgents}
-                  schedules={schedules}
-                  selectedDate={selectedDate}
-                  onAgentSelect={setSelectedAgentId}
-                  selectedAgentId={selectedAgentId}
-                />
-              </div>
-              <div className="lg:col-span-3">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Lista de Agendamentos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {schedules.map((schedule) => {
-                        const activityType = getActivityTypeById(schedule.activityTypeId);
-                        return (
-                          <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)}`}>
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-medium text-gray-900">{schedule.title}</h3>
-                                  <Badge className={getStatusColor(schedule.status)}>
-                                    {schedule.status === 'scheduled' ? 'Agendado' :
-                                     schedule.status === 'in_progress' ? 'Em Progresso' :
-                                     schedule.status === 'completed' ? 'Concluído' : 'Cancelado'}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-        </div>
+        <WeeklyScheduleGrid
+          schedules={schedules}
+          activityTypes={activityTypes}
+          agents={mockAgents}
+          selectedDate={selectedDate}
+          onScheduleClick={handleScheduleClick}
+          onTimeSlotClick={handleTimeSlotClick}
+        />
       </div>
 
 
