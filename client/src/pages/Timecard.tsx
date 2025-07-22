@@ -46,6 +46,25 @@ export default function Timecard() {
     todayRecords: [],
   });
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Query para obter status atual
+  const { data: statusData } = useQuery({
+    queryKey: ['/api/timecard/current-status'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/current-status');
+      return await response.json();
+    },
+    enabled: true,
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+  });
+
+  // Atualizar estado local quando dados chegarem
+  useEffect(() => {
+    if (statusData) {
+      setCurrentStatus(statusData);
+    }
+  }, [statusData]);
 
   // Obter localização do usuário
   useEffect(() => {
@@ -65,23 +84,41 @@ export default function Timecard() {
   // Mutation para registrar ponto
   const recordMutation = useMutation({
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
-      return await apiRequest('POST', '/api/timecard/records', data);
+      const response = await apiRequest('POST', '/api/timecard/records', data);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log('Registro de ponto bem-sucedido:', result);
       toast({
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      // Simular atualização do status
-      setCurrentStatus(prev => ({
-        ...prev,
-        status: prev.status === 'not_started' ? 'working' : 'finished'
-      }));
+      // Atualizar status baseado no tipo de registro
+      setCurrentStatus(prev => {
+        let newStatus = prev.status;
+        if (result.recordType === 'clock_in') {
+          newStatus = 'working';
+        } else if (result.recordType === 'break_start') {
+          newStatus = 'on_break';
+        } else if (result.recordType === 'break_end') {
+          newStatus = 'working';
+        } else if (result.recordType === 'clock_out') {
+          newStatus = 'finished';
+        }
+        return {
+          ...prev,
+          status: newStatus,
+          todayRecords: [...prev.todayRecords, result]
+        };
+      });
+      // Invalidar cache para atualizar dados
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
     },
     onError: (error) => {
+      console.error('Erro ao registrar ponto:', error);
       toast({
         title: 'Erro ao registrar ponto',
-        description: 'Tente novamente em alguns instantes.',
+        description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },

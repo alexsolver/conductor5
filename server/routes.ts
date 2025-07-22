@@ -31,7 +31,7 @@ import holidayRoutes from './routes/HolidayController';
 // import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
 
 // Removed: journeyRoutes - functionality eliminated from system
-// import timecardRoutes from './routes/timecardRoutes'; // Temporarily removed
+import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -700,6 +700,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get status" });
     }
   });
+
+  // Timecard routes - Registro de Ponto
+  app.use('/api/timecard', jwtAuth, timecardRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

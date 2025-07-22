@@ -8,6 +8,7 @@ const timecardController = new TimecardController();
 router.post('/records', timecardController.createTimeRecord.bind(timecardController));
 router.get('/users/:userId/records', timecardController.getUserTimeRecords.bind(timecardController));
 router.get('/users/:userId/status', timecardController.getCurrentStatus.bind(timecardController));
+router.get('/current-status', timecardController.getCurrentStatus.bind(timecardController));
 
 // Timesheets - Espelho de Ponto
 router.post('/users/:userId/timesheets/generate', timecardController.generateTimesheet.bind(timecardController));
