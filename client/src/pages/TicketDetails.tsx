@@ -56,7 +56,7 @@ export default function TicketDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("informacoes");
   const [dragActive, setDragActive] = useState(false);
