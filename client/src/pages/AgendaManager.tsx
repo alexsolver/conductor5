@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useQuery } from '@tanstack/react-query';
-import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, User, MapPin, Filter, Plus, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, MapPin, Filter, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import WeeklyScheduleGrid from '@/components/schedule/WeeklyScheduleGrid';
+import AgentList from '@/components/schedule/AgentList';
+import ScheduleModal from '@/components/schedule/ScheduleModal';
 
 interface ActivityType {
   id: string;
@@ -33,6 +38,17 @@ interface Schedule {
 const AgendaManager: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
+  const [selectedAgentId, setSelectedAgentId] = useState<string>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
+  const [newScheduleDefaults, setNewScheduleDefaults] = useState<{
+    date?: Date;
+    time?: string;
+    agentId?: string;
+  }>({});
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Calculate date range based on view
   const getDateRange = () => {
@@ -65,8 +81,36 @@ const AgendaManager: React.FC = () => {
     queryKey: ['/api/schedule/schedules', startDate, endDate],
   });
 
+  // Fetch customers
+  const { data: customersData, isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
   const activityTypes: ActivityType[] = activityTypesData?.activityTypes || [];
   const schedules: Schedule[] = schedulesData?.schedules || [];
+  const customers: any[] = customersData?.customers || [];
+
+  // Mock agents data (since we don't have a user management module yet)
+  const mockAgents = [
+    {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      name: 'Carlos Silva',
+      email: 'carlos@conductor.com',
+      profileImageUrl: undefined,
+    },
+    {
+      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      name: 'Ana Santos',
+      email: 'ana@conductor.com',
+      profileImageUrl: undefined,
+    },
+    {
+      id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
+      name: 'Roberto Lima',
+      email: 'roberto@conductor.com',
+      profileImageUrl: undefined,
+    },
+  ];
 
   const getActivityTypeById = (id: string) => {
     return activityTypes.find(type => type.id === id);
@@ -99,7 +143,80 @@ const AgendaManager: React.FC = () => {
     return format(new Date(dateTime), 'dd/MM/yyyy', { locale: ptBR });
   };
 
-  if (isLoadingActivityTypes || isLoadingSchedules) {
+  // Navigation functions
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    setSelectedDate(prev => direction === 'next' ? addWeeks(prev, 1) : subWeeks(prev, 1));
+  };
+
+  // Modal handlers
+  const handleTimeSlotClick = (date: Date, time: string, agentId: string) => {
+    setNewScheduleDefaults({ date, time, agentId });
+    setEditingSchedule(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleScheduleClick = (schedule: Schedule) => {
+    setEditingSchedule(schedule);
+    setNewScheduleDefaults({});
+    setIsModalOpen(true);
+  };
+
+  const handleNewSchedule = () => {
+    setEditingSchedule(undefined);
+    setNewScheduleDefaults({});
+    setIsModalOpen(true);
+  };
+
+  // Mutations
+  const createScheduleMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', '/api/schedule/schedules', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule/schedules'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Agendamento criado com sucesso',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao criar agendamento',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateScheduleMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('PUT', `/api/schedule/schedules/${data.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule/schedules'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Agendamento atualizado com sucesso',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao atualizar agendamento',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleSaveSchedule = (scheduleData: any) => {
+    if (editingSchedule) {
+      updateScheduleMutation.mutate({ ...scheduleData, id: editingSchedule.id });
+    } else {
+      createScheduleMutation.mutate(scheduleData);
+    }
+  };
+
+  if (isLoadingActivityTypes || isLoadingSchedules || isLoadingCustomers) {
     return (
       <div className="p-4">
         <div className="flex items-center justify-center h-64">
@@ -110,7 +227,7 @@ const AgendaManager: React.FC = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -122,36 +239,150 @@ const AgendaManager: React.FC = () => {
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={handleNewSchedule}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Agendamento
           </Button>
         </div>
       </div>
 
-      {/* View Controls */}
-      <div className="flex gap-2 mb-6">
-        <Button 
-          variant={view === 'day' ? 'default' : 'outline'} 
-          size="sm"
-          onClick={() => setView('day')}
-        >
-          Dia
-        </Button>
-        <Button 
-          variant={view === 'week' ? 'default' : 'outline'} 
-          size="sm"
-          onClick={() => setView('week')}
-        >
-          Semana
-        </Button>
-        <Button 
-          variant={view === 'month' ? 'default' : 'outline'} 
-          size="sm"
-          onClick={() => setView('month')}
-        >
-          Mês
-        </Button>
+      {/* Navigation and View Controls */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-2">
+          <Button 
+            variant={view === 'day' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setView('day')}
+          >
+            Dia
+          </Button>
+          <Button 
+            variant={view === 'week' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setView('week')}
+          >
+            Semana
+          </Button>
+          <Button 
+            variant={view === 'month' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setView('month')}
+          >
+            Mês
+          </Button>
+        </div>
+
+        {/* Week Navigation */}
+        {view === 'week' && (
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-sm font-medium">
+              {format(startOfWeek(selectedDate, { locale: ptBR }), 'dd/MM', { locale: ptBR })} - {' '}
+              {format(endOfWeek(selectedDate, { locale: ptBR }), 'dd/MM/yyyy', { locale: ptBR })}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Main Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        {/* Agent Sidebar */}
+        <div className="lg:col-span-1">
+          <AgentList
+            agents={mockAgents}
+            schedules={schedules}
+            selectedDate={selectedDate}
+            onAgentSelect={setSelectedAgentId}
+            selectedAgentId={selectedAgentId}
+          />
+        </div>
+
+        {/* Main Content */}
+        <div className="lg:col-span-3">
+          {view === 'week' ? (
+            <WeeklyScheduleGrid
+              schedules={schedules}
+              activityTypes={activityTypes}
+              agents={mockAgents}
+              selectedDate={selectedDate}
+              onScheduleClick={handleScheduleClick}
+              onTimeSlotClick={handleTimeSlotClick}
+            />
+          ) : (
+            // Fallback to list view for day/month
+            <Card>
+              <CardHeader>
+                <CardTitle>Lista de Agendamentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {schedules.map((schedule) => {
+                    const activityType = getActivityTypeById(schedule.activityTypeId);
+                    return (
+                      <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)}`}>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-medium text-gray-900">{schedule.title}</h3>
+                              <Badge className={getStatusColor(schedule.status)}>
+                                {schedule.status === 'scheduled' ? 'Agendado' :
+                                 schedule.status === 'in_progress' ? 'Em Progresso' :
+                                 schedule.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                              </Badge>
+                              <Badge variant="outline">
+                                {schedule.priority === 'high' ? 'Alta' :
+                                 schedule.priority === 'medium' ? 'Média' : 'Baixa'} Prioridade
+                              </Badge>
+                            </div>
+                            
+                            {schedule.description && (
+                              <p className="text-gray-600 mb-2">{schedule.description}</p>
+                            )}
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <div className="flex items-center">
+                                <Clock className="h-4 w-4 mr-1" />
+                                {formatDate(schedule.startDateTime)} às {formatTime(schedule.startDateTime)} - {formatTime(schedule.endDateTime)}
+                              </div>
+                              
+                              {activityType && (
+                                <div className="flex items-center">
+                                  <div 
+                                    className="w-3 h-3 rounded-full mr-1"
+                                    style={{ backgroundColor: activityType.color }}
+                                  />
+                                  {activityType.name}
+                                </div>
+                              )}
+                              
+                              {schedule.locationAddress && (
+                                <div className="flex items-center">
+                                  <MapPin className="h-4 w-4 mr-1" />
+                                  {schedule.locationAddress}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleScheduleClick(schedule)}>
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -209,115 +440,19 @@ const AgendaManager: React.FC = () => {
         </Card>
       </div>
 
-      {/* Activity Types */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Calendar className="h-5 w-5 mr-2" />
-            Tipos de Atividade Disponíveis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {activityTypes.map((type) => (
-              <div key={type.id} className="flex items-center p-3 border rounded-lg">
-                <div 
-                  className="w-4 h-4 rounded-full mr-3"
-                  style={{ backgroundColor: type.color }}
-                />
-                <div>
-                  <p className="font-medium">{type.name}</p>
-                  <p className="text-sm text-gray-600">{type.duration}min - {type.category}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Schedules List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Clock className="h-5 w-5 mr-2" />
-            Agendamentos ({startDate} a {endDate})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {schedules.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Nenhum agendamento encontrado para este período</p>
-              <p className="text-sm text-gray-500 mt-2">
-                Clique em "Novo Agendamento" para criar um
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {schedules.map((schedule) => {
-                const activityType = getActivityTypeById(schedule.activityTypeId);
-                return (
-                  <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)}`}>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-medium text-gray-900">{schedule.title}</h3>
-                          <Badge className={getStatusColor(schedule.status)}>
-                            {schedule.status === 'scheduled' ? 'Agendado' :
-                             schedule.status === 'in_progress' ? 'Em Progresso' :
-                             schedule.status === 'completed' ? 'Concluído' : 'Cancelado'}
-                          </Badge>
-                          <Badge variant="outline">
-                            {schedule.priority === 'high' ? 'Alta' :
-                             schedule.priority === 'medium' ? 'Média' : 'Baixa'} Prioridade
-                          </Badge>
-                        </div>
-                        
-                        {schedule.description && (
-                          <p className="text-gray-600 mb-2">{schedule.description}</p>
-                        )}
-                        
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {formatDate(schedule.startDateTime)} às {formatTime(schedule.startDateTime)} - {formatTime(schedule.endDateTime)}
-                          </div>
-                          
-                          {activityType && (
-                            <div className="flex items-center">
-                              <div 
-                                className="w-3 h-3 rounded-full mr-1"
-                                style={{ backgroundColor: activityType.color }}
-                              />
-                              {activityType.name}
-                            </div>
-                          )}
-                          
-                          {schedule.locationAddress && (
-                            <div className="flex items-center">
-                              <MapPin className="h-4 w-4 mr-1" />
-                              {schedule.locationAddress}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          Editar
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Detalhes
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Schedule Modal */}
+      <ScheduleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveSchedule}
+        schedule={editingSchedule}
+        agents={mockAgents}
+        customers={customers}
+        activityTypes={activityTypes}
+        defaultDate={newScheduleDefaults.date}
+        defaultTime={newScheduleDefaults.time}
+        defaultAgentId={newScheduleDefaults.agentId}
+      />
     </div>
   );
 };
