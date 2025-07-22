@@ -76,6 +76,7 @@ export const CSP_CONFIGS = {
       'https://unpkg.com',
       'https://cdn.jsdelivr.net',
       'https://cdnjs.cloudflare.com',
+      'https://replit.com',
       'blob:',
       'data:'
     ],
