@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, subDays, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, User, MapPin, Filter, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -39,7 +39,7 @@ interface Schedule {
 }
 
 const AgendaManager: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 6, 22)); // 22 de julho de 2025
   const [view] = useState<'timeline' | 'agenda'>('timeline');
   const [selectedAgentId, setSelectedAgentId] = useState<string>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -244,12 +244,7 @@ const AgendaManager: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestão de Agenda</h1>
           <p className="text-gray-600">Controle de cronogramas e agendamentos de campo</p>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={handleNewSchedule}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Agendamento
-          </Button>
-        </div>
+
       </div>
 
       {/* Filters Section */}
@@ -336,16 +331,16 @@ const AgendaManager: React.FC = () => {
       {/* Date Navigation and View Toggle */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => setSelectedDate(subDays(selectedDate, 14))}>
+          <Button variant="outline" size="sm" onClick={() => setSelectedDate(subWeeks(selectedDate, 2))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className="font-medium">
-              {format(selectedDate, 'dd \\d\\e MMMM \\d\\e yyyy', { locale: ptBR })}
+              {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
             </span>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setSelectedDate(addDays(selectedDate, 14))}>
+          <Button variant="outline" size="sm" onClick={() => setSelectedDate(addWeeks(selectedDate, 2))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
