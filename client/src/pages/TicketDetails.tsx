@@ -1100,7 +1100,7 @@ export default function TicketDetails() {
                 Voltar
               </Button>
               <div className="flex items-center gap-4">
-                <h1 className="text-xl font-semibold">Ticket #</h1>
+                <h1 className="text-xl font-semibold">Ticket #{ticket.ticketNumber}</h1>
                 
                 {/* Priority and Status Fields */}
                 {isEditMode ? (
