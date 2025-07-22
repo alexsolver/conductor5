@@ -440,24 +440,24 @@ export default function TicketDetails() {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="h-screen flex bg-gray-50 relative">
+      {/* Toggle Button - Fixed position, always visible */}
+      <div className="fixed left-2 top-20 z-50">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+          className="h-10 w-10 p-0 rounded-full bg-white border shadow-lg hover:bg-gray-50 hover:shadow-xl transition-shadow"
+          title={leftSidebarOpen ? "Fechar sidebar" : "Abrir sidebar"}
+        >
+          {leftSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        </Button>
+      </div>
+
       {/* Left Sidebar */}
       <div className={`fixed left-0 top-0 h-full bg-white border-r transition-all duration-300 z-30 ${
         leftSidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-72'
       }`}>
-        {/* Toggle Button - Always visible */}
-        <div className={`absolute top-6 z-40 transition-all duration-300 ${
-          leftSidebarOpen ? '-right-3' : 'right-[-30px]'
-        }`}>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            className="h-8 w-8 p-0 rounded-full bg-white border shadow-md hover:bg-gray-50"
-          >
-            {leftSidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
-        </div>
 
         {leftSidebarOpen && (
           <div className="p-4 h-full overflow-y-auto">
