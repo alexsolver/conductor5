@@ -493,21 +493,23 @@ export default function TicketDetails() {
 
               <FormField
                 control={form.control}
-                name="urgency"
+                name="followerId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Urgência</FormLabel>
+                    <FormLabel>Seguidor</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a urgência" />
+                          <SelectValue placeholder="Selecione um agente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="critical">Crítica</SelectItem>
+                        <SelectItem value="unassigned">Não atribuído</SelectItem>
+                        {users?.users?.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -516,30 +518,458 @@ export default function TicketDetails() {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="open">Aberto</SelectItem>
+                        <SelectItem value="in_progress">Em Progresso</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="resolved">Resolvido</SelectItem>
+                        <SelectItem value="closed">Fechado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
+                      {isEditMode ? (
+                        <Input 
+                          {...field} 
+                          placeholder="Digite as tags separadas por vírgula"
+                          onChange={(e) => {
+                            const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+                            field.onChange(tags);
+                            setTags(tags);
+                          }}
+                          value={Array.isArray(field.value) ? field.value.join(', ') : field.value}
+                        />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[40px] flex flex-wrap gap-1">
+                          {(Array.isArray(field.value) ? field.value : []).map((tag: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {(!field.value || field.value.length === 0) && (
+                            <span className="text-gray-500 text-sm">Nenhuma tag</span>
+                          )}
+                        </div>
+                      )}
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="open">Aberto</SelectItem>
-                      <SelectItem value="in_progress">Em Progresso</SelectItem>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="resolved">Resolvido</SelectItem>
-                      <SelectItem value="closed">Fechado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Classificação */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="hardware">Hardware</SelectItem>
+                          <SelectItem value="software">Software</SelectItem>
+                          <SelectItem value="network">Rede</SelectItem>
+                          <SelectItem value="access">Acesso</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="subcategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcategoria</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a subcategoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="printer">Impressora</SelectItem>
+                          <SelectItem value="computer">Computador</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="system">Sistema</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contactType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Contato</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Tipo de contato" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Telefone</SelectItem>
+                          <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                          <SelectItem value="chat">Chat</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Detalhes */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">DETALHES</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="symptoms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sintomas</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Textarea {...field} rows={3} placeholder="Descreva os sintomas..." />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não informado'}</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="workaround"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Solução Temporária</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Textarea {...field} rows={3} placeholder="Descreva a solução temporária..." />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não informado'}</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="businessImpact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Impacto no Negócio</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={2} placeholder="Descreva o impacto no negócio..." />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[60px]">{field.value || 'Não informado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Atribuição */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">ATRIBUIÇÃO</h3>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="assignedToId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Responsável</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o responsável" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Não atribuído</SelectItem>
+                          {users?.users?.map((user: any) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="assignmentGroup"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo de Atribuição</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o grupo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="support">Suporte Técnico</SelectItem>
+                          <SelectItem value="network">Infraestrutura</SelectItem>
+                          <SelectItem value="security">Segurança</SelectItem>
+                          <SelectItem value="development">Desenvolvimento</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Localização</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a localização" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="matriz">Matriz</SelectItem>
+                          <SelectItem value="filial1">Filial 1</SelectItem>
+                          <SelectItem value="filial2">Filial 2</SelectItem>
+                          <SelectItem value="remoto">Remoto</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Datas/Tempo */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">DATAS E TEMPO</h3>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Data/Hora de Criação:</span>
+                    <span>{ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'Não informado'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Vencimento:</span>
+                    <span>{ticket.dueDate ? new Date(ticket.dueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Vencimento Original:</span>
+                    <span>{ticket.originalDueDate ? new Date(ticket.originalDueDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Vencimento Acionamento:</span>
+                    <span>{ticket.triggerDate ? new Date(ticket.triggerDate).toLocaleString('pt-BR') : 'Não informado'}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Resolução:</span>
+                    <span>{ticket.resolutionDate ? new Date(ticket.resolutionDate).toLocaleString('pt-BR') : 'Não resolvido'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Fechamento:</span>
+                    <span>{ticket.closedDate ? new Date(ticket.closedDate).toLocaleString('pt-BR') : 'Não fechado'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Dia(s) no status:</span>
+                    <span>
+                      <Badge variant="outline" className="text-xs">
+                        {ticket.status} - {ticket.daysInStatus || 0} dia(s)
+                      </Badge>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Favorecido */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">FAVORECIDO</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-gray-500">Nome:</label>
+                    <div className="text-sm">{ticket.favorecido?.name || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">E-mail:</label>
+                    <div className="text-sm">{ticket.favorecido?.email || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">Telefone:</label>
+                    <div className="text-sm">{ticket.favorecido?.phone || 'Não informado'}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-gray-500">Celular:</label>
+                    <div className="text-sm">{ticket.favorecido?.cellPhone || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">RG:</label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-auto p-1 text-xs"
+                      onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.rg', type: 'rg'})}
+                    >
+                      ••••••••••• (clique para ver)
+                    </Button>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">CPF/CNPJ:</label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-auto p-1 text-xs"
+                      onClick={() => setShowPasswordDialog({open: true, field: 'favorecido.cpf', type: 'cpf'})}
+                    >
+                      ••••••••••••••• (clique para ver)
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Solicitante */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">SOLICITANTE</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-gray-500">Nome:</label>
+                    <div className="text-sm">{ticket.customer?.name || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">E-mail:</label>
+                    <div className="text-sm">{ticket.customer?.email || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">Telefone:</label>
+                    <div className="text-sm">{ticket.customer?.phone || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">RG:</label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-auto p-1 text-xs"
+                      onClick={() => setShowPasswordDialog({open: true, field: 'customer.rg', type: 'rg'})}
+                    >
+                      ••••••••••• (clique para ver)
+                    </Button>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">CPF/CNPJ:</label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-auto p-1 text-xs"
+                      onClick={() => setShowPasswordDialog({open: true, field: 'customer.cpf', type: 'cpf'})}
+                    >
+                      ••••••••••••••• (clique para ver)
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-gray-500">Endereço:</label>
+                    <div className="text-sm">{ticket.customer?.address || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">Número:</label>
+                    <div className="text-sm">{ticket.customer?.addressNumber || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">Complemento:</label>
+                    <div className="text-sm">{ticket.customer?.complement || 'Não informado'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500">Bairro:</label>
+                    <div className="text-sm">{ticket.customer?.neighborhood || 'Não informado'}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500">Cidade:</label>
+                      <div className="text-sm">{ticket.customer?.city || 'Não informado'}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500">CEP:</label>
+                      <div className="text-sm">{ticket.customer?.zipCode || 'Não informado'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
@@ -736,7 +1166,7 @@ export default function TicketDetails() {
           <h3 className="font-semibold text-lg">Navegação</h3>
         </div>
         <div className="p-2 space-y-1">
-          {/* Basic Tab */}
+          {/* Informações Tab */}
           <button
             onClick={() => setActiveTab("informacoes")}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
@@ -749,7 +1179,7 @@ export default function TicketDetails() {
             <span className="text-sm font-medium">Informações</span>
           </button>
 
-          {/* Special Tabs */}
+          {/* Campos Especiais */}
           {specialTabs.map((tab) => {
             const IconComponent = tab.icon;
             return (
@@ -769,6 +1199,56 @@ export default function TicketDetails() {
           })}
         </div>
       </div>
+      
+      {/* Password Dialog for Sensitive Fields */}
+      <Dialog open={showPasswordDialog.open} onOpenChange={(open) => setShowPasswordDialog({...showPasswordDialog, open})}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verificação de Segurança</DialogTitle>
+            <DialogDescription>
+              Para visualizar informações sensíveis ({showPasswordDialog.type === 'rg' ? 'RG' : 'CPF/CNPJ'}), digite sua senha de agente:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="agent-password">Senha do Agente</Label>
+              <Input
+                id="agent-password"
+                type="password"
+                value={agentPassword}
+                onChange={(e) => setAgentPassword(e.target.value)}
+                placeholder="Digite sua senha"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowPasswordDialog({open: false, field: '', type: 'rg'});
+                setAgentPassword('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                // Aqui você faria a verificação da senha
+                // Por enquanto, apenas fechamos o modal
+                if (agentPassword) {
+                  alert(`Dados sensíveis revelados para o campo: ${showPasswordDialog.field}`);
+                  setShowPasswordDialog({open: false, field: '', type: 'rg'});
+                  setAgentPassword('');
+                } else {
+                  alert('Digite sua senha');
+                }
+              }}
+            >
+              Verificar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
