@@ -60,7 +60,6 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "Tickets", href: "/tickets", icon: Ticket },
   { 
     name: "Projetos", 
     icon: Folder,
