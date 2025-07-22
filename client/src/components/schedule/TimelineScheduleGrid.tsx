@@ -93,8 +93,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         });
       
       default: // 'hoje'
-        // Today from 6:00 to 22:00
-        return Array.from({ length: 17 }, (_, i) => {
+        // Today from 6:00 to 24:00
+        return Array.from({ length: 19 }, (_, i) => {
           const time = addHours(startOfDay(selectedDate), i + 6);
           return time;
         });
@@ -115,13 +115,21 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   const getSchedulesForTimeSlot = (agentId: string, timeSlot: Date, type: 'planned' | 'actual') => {
     return schedules.filter(schedule => {
+      if (!schedule.agentId || !schedule.type || !schedule.startDateTime) return false;
+      
       const scheduleStart = parseISO(schedule.startDateTime);
       const scheduleEnd = parseISO(schedule.endDateTime);
+      const timeSlotHour = timeSlot.getHours();
+      const scheduleHour = scheduleStart.getHours();
       
-      return schedule.agentId === agentId &&
+      // Match agent ID (handle both UUID formats)
+      const agentMatch = schedule.agentId === agentId || 
+                        schedule.agentId.startsWith(agentId.substring(0, 8));
+      
+      return agentMatch &&
              schedule.type === type &&
-             scheduleStart <= timeSlot &&
-             scheduleEnd > timeSlot;
+             scheduleHour === timeSlotHour &&
+             scheduleStart.getDate() === timeSlot.getDate();
     });
   };
 
@@ -239,13 +247,22 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
                     const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
                     
+                    // Working hours for visualization (8:00 - 18:00)
+                    const isWorkingHour = timeSlot.getHours() >= 8 && timeSlot.getHours() < 18;
+                    
                     return (
                       <div key={agent.id} className="border-b">
                         {/* Planned row - opaque background */}
                         <div 
-                          className="h-10 relative bg-green-50 border-b border-gray-100 cursor-pointer hover:bg-green-100"
+                          className={`h-10 relative border-b border-gray-100 cursor-pointer hover:bg-green-100 ${
+                            isWorkingHour ? 'bg-green-50' : 'bg-gray-100'
+                          }`}
                           onClick={() => onTimeSlotClick(timeSlot, formatTimeSlot(timeSlot), agent.id)}
                         >
+                          {/* Working hours background indicator */}
+                          {isWorkingHour && (
+                            <div className="absolute inset-x-0 bottom-0 h-1 bg-green-300"></div>
+                          )}
                           {plannedSchedules.map((schedule) => {
                             const activityType = getActivityType(schedule.activityTypeId);
                             return (
@@ -271,9 +288,15 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                         
                         {/* Actual row - clear background */}
                         <div 
-                          className="h-10 relative bg-blue-50 cursor-pointer hover:bg-blue-100"
+                          className={`h-10 relative cursor-pointer hover:bg-blue-100 ${
+                            isWorkingHour ? 'bg-blue-50' : 'bg-gray-100'
+                          }`}
                           onClick={() => onTimeSlotClick(timeSlot, formatTimeSlot(timeSlot), agent.id)}
                         >
+                          {/* Working hours background indicator */}
+                          {isWorkingHour && (
+                            <div className="absolute inset-x-0 bottom-0 h-1 bg-blue-300"></div>
+                          )}
                           {actualSchedules.map((schedule) => {
                             const activityType = getActivityType(schedule.activityTypeId);
                             return (
