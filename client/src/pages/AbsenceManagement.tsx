@@ -332,7 +332,7 @@ export default function AbsenceManagement() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Nenhum substituto</SelectItem>
+                          <SelectItem value="none">Nenhum substituto</SelectItem>
                           {users.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.firstName} {user.lastName}

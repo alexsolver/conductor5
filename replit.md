@@ -10,6 +10,21 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 22, 2025 - CRITICAL SELECT.ITEM BUG FIX COMPLETED ✅ ALL RUNTIME ERRORS RESOLVED
+
+**🎯 CORREÇÕES CRÍTICAS DE SELECT.ITEM IMPLEMENTADAS:**
+
+✅ **ERRO RUNTIME DE SELECT.ITEM RESOLVIDO:**
+- Corrigido erro "A <Select.Item /> must have a value prop that is not an empty string" em TicketDetails.tsx
+- SelectItem com value="" alterado para value="unassigned" na seleção de responsável
+- Corrigido SelectItem em AbsenceManagement.tsx alterando value="" para value="none" para substituto
+- Sistema agora funciona sem overlay de erro do Vite
+
+✅ **VALIDAÇÃO DE COMPONENTES SELECT PADRONIZADA:**
+- Todos os SelectItem agora possuem valores válidos não vazios
+- Mapeamento correto para exibição "Não atribuído" e "Nenhum substituto"
+- Funcionalidade mantida com valores válidos para o sistema
+
 ### July 22, 2025 - ADVANCED TICKET SYSTEM WITH 5 SPECIALIZED FIELDS IMPLEMENTATION COMPLETED ✅ HYBRID LAYOUT WITH FULL FUNCTIONALITY
 
 **🎯 SISTEMA AVANÇADO DE TICKETS COM 5 CAMPOS ESPECIALIZADOS IMPLEMENTADO:**

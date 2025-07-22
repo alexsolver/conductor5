@@ -786,7 +786,7 @@ export default function TicketDetails() {
                             <SelectValue placeholder="Selecione o responsável" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Não atribuído</SelectItem>
+                            <SelectItem value="unassigned">Não atribuído</SelectItem>
                             {(users?.users || []).map((user: any) => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.name}
