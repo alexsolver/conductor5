@@ -1105,50 +1105,30 @@ export default function TicketDetails() {
                 {/* Priority and Status Fields */}
                 {isEditMode ? (
                   <div className="flex items-center gap-2">
-                    <FormField
-                      control={form.control}
-                      name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="w-24 h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="low">low</SelectItem>
-                              <SelectItem value="medium">medium</SelectItem>
-                              <SelectItem value="high">high</SelectItem>
-                              <SelectItem value="critical">critical</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
+                    <Select onValueChange={(value) => form.setValue('priority', value)} defaultValue={ticket.priority}>
+                      <SelectTrigger className="w-24 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">low</SelectItem>
+                        <SelectItem value="medium">medium</SelectItem>
+                        <SelectItem value="high">high</SelectItem>
+                        <SelectItem value="critical">critical</SelectItem>
+                      </SelectContent>
+                    </Select>
                     
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="w-32 h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="open">open</SelectItem>
-                              <SelectItem value="in_progress">in_progress</SelectItem>
-                              <SelectItem value="pending">pending</SelectItem>
-                              <SelectItem value="resolved">resolved</SelectItem>
-                              <SelectItem value="closed">closed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
+                    <Select onValueChange={(value) => form.setValue('status', value)} defaultValue={ticket.status}>
+                      <SelectTrigger className="w-32 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">open</SelectItem>
+                        <SelectItem value="in_progress">in_progress</SelectItem>
+                        <SelectItem value="pending">pending</SelectItem>
+                        <SelectItem value="resolved">resolved</SelectItem>
+                        <SelectItem value="closed">closed</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
