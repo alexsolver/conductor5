@@ -50,16 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
-      const token = localStorage.getItem('accessToken');
-      console.log('Auth check - token exists:', !!token);
-      
-      if (!token) {
-        console.log('No token found, returning null');
-        return null;
-      }
-      
       try {
-        console.log('Making auth request...');
+        const token = localStorage.getItem('accessToken');
+        
+        if (!token) {
+          return null;
+        }
+        
         const response = await fetch('/api/auth/user', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,30 +65,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           credentials: 'include',
         });
         
-        console.log('Auth response status:', response.status);
-        
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
-            console.log('Auth failed, removing token');
             localStorage.removeItem('accessToken');
-            return null;
           }
-          console.warn(`Auth check failed: ${response.status}`);
           return null;
         }
         
         const userData = await response.json();
-        console.log('Auth successful, user data:', userData);
         return userData || null;
       } catch (error) {
-        console.error('Auth query error:', error);
         localStorage.removeItem('accessToken');
         return null;
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const loginMutation = useMutation({

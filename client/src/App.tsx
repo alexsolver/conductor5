@@ -69,16 +69,13 @@ import { AppShell } from "./components/layout/AppShell";
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  console.log('AppRouter - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated);
-
   // Show loading state
   if (isLoading) {
-    console.log('Showing loading state');
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
+          <span className="text-lg text-gray-600">Carregando...</span>
         </div>
       </div>
     );
@@ -86,13 +83,7 @@ function AppRouter() {
 
   // Show auth page if not authenticated
   if (!isAuthenticated) {
-    console.log('Showing auth page');
-    return (
-      <Switch>
-        <Route path="/auth" component={AuthPage} />
-        <Route component={AuthPage} />
-      </Switch>
-    );
+    return <AuthPage />;
   }
 
   // Show main app if authenticated
