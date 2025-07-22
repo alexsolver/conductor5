@@ -951,9 +951,54 @@ export default function TicketDetails() {
           {/* Solicitante Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Solicitante</h3>
-            <div className="text-sm text-gray-700">
-              {customers.find((c: any) => c.id === ticket.callerId)?.firstName} {customers.find((c: any) => c.id === ticket.callerId)?.lastName || 'Não especificado'}
-            </div>
+            {isEditMode ? (
+              <Select 
+                value={form.watch("callerId") || ""} 
+                onValueChange={(value) => form.setValue("callerId", value)}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <SelectValue placeholder="Selecionar solicitante" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers?.map((customer: any) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.firstName} {customer.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="text-sm text-gray-700">
+                {customers.find((c: any) => c.id === ticket.callerId)?.firstName} {customers.find((c: any) => c.id === ticket.callerId)?.lastName || 'Não especificado'}
+              </div>
+            )}
+          </div>
+
+          {/* Atribuído a Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-600 mb-2">Atribuído a</h3>
+            {isEditMode ? (
+              <Select 
+                value={form.watch("assignedToId") || ""} 
+                onValueChange={(value) => form.setValue("assignedToId", value)}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <SelectValue placeholder="Selecionar agente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Não atribuído</SelectItem>
+                  {users?.users?.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="text-sm text-gray-700">
+                {users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
+              </div>
+            )}
           </div>
 
           {/* Seguidores Section */}
