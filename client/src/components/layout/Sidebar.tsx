@@ -402,35 +402,7 @@ export function Sidebar() {
           </div>
         </nav>
 
-        {/* User Profile */}
-        <div className="flex-shrink-0 px-4 pb-4">
-          <div className="flex items-center rounded-lg p-3" style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.1)'
-          }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{
-              background: 'linear-gradient(135deg, var(--secondary), var(--accent))'
-            }}>
-              <span className="text-white text-sm font-semibold">
-                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
-              </p>
-              <p className="text-xs text-white text-opacity-80 truncate capitalize">{user?.role}</p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-white hover:text-opacity-80 p-1"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
