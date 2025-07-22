@@ -57,7 +57,7 @@ export default function TicketDetails() {
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Sidebar sempre fixa e visível
+  // Sidebar sempre fixa e visível - tab padrão é informações
   const [activeTab, setActiveTab] = useState("informacoes");
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -411,6 +411,148 @@ export default function TicketDetails() {
     }
   };
 
+  // Render tab content based on activeTab
+  function renderTabContent() {
+    switch (activeTab) {
+      case "informacoes":
+        return (
+          <div className="space-y-4">
+            
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-medium">Ticket #{ticket.ticketNumber}</span>
+              <div className="flex gap-2">
+                <Badge className={getPriorityColor(ticket.priority)}>
+                  {ticket.priority}
+                </Badge>
+                <Badge className={getStatusColor(ticket.status)}>
+                  {ticket.status}
+                </Badge>
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assunto *</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Input {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição *</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Textarea {...field} rows={4} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded min-h-[100px]">{field.value}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prioridade *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a prioridade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="urgency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Urgência</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a urgência" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="open">Aberto</SelectItem>
+                      <SelectItem value="in_progress">Em Progresso</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="resolved">Resolvido</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Funcionalidade em desenvolvimento</h2>
+            <p>Esta aba ainda está sendo desenvolvida.</p>
+          </div>
+        );
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="p-4">
@@ -544,13 +686,7 @@ export default function TicketDetails() {
             </div>
             
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                {sidebarOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-              </Button>
+
               
               {!isEditMode ? (
                 <>
@@ -594,42 +730,43 @@ export default function TicketDetails() {
         </div>
       </div>
 
-      {/* Right Sidebar */}
-      <div className={`fixed right-0 top-0 h-full bg-white border-l transition-all duration-300 ${
-        sidebarOpen ? 'w-80 translate-x-0' : 'w-80 translate-x-full'
-      }`}>
+      {/* Right Sidebar - Navigation Tabs */}
+      <div className="w-80 bg-white border-l flex-shrink-0 h-full overflow-y-auto">
         <div className="p-4 border-b">
           <h3 className="font-semibold text-lg">Navegação</h3>
         </div>
-        <div className="p-2 space-y-6">
-          {/* Basic Tabs Section */}
-          <div>
-            {/* Todas as Abas */}
-            {[
-              { id: "informacoes", label: "Informações", icon: User },
-              ...specialTabs
-            ].map((tab) => {
-              const IconComponent = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === tab.id 
-                      ? (tab.id === "informacoes" 
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                          : 'bg-green-50 text-green-700 border border-green-200')
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <IconComponent className="h-4 w-4" />
-                  <span className="text-sm font-medium">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="p-2 space-y-1">
+          {/* Basic Tab */}
+          <button
+            onClick={() => setActiveTab("informacoes")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "informacoes" 
+                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            <span className="text-sm font-medium">Informações</span>
+          </button>
 
-
+          {/* Special Tabs */}
+          {specialTabs.map((tab) => {
+            const IconComponent = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  activeTab === tab.id 
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                <IconComponent className="h-4 w-4" />
+                <span className="text-sm font-medium">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
