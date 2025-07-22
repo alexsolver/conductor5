@@ -33,6 +33,12 @@ Preferred communication style: Simple, everyday language.
 - Maintained all existing functionality while improving accessibility
 - Removed user profile section from sidebar completely for cleaner design
 
+✅ **TIMECARD NAVIGATION REORGANIZATION:**
+- Removed "Registro de Ponto" (Time Registration) link from sidebar navigation
+- Added time registration functionality as an option within the user profile dropdown in header
+- Consolidated navigation elements in header for improved user experience and cleaner interface
+- Maintained all timecard functionality while improving menu organization
+
 ✅ **TICKETS PAGE RESTORED:**
 - Restored tickets page to previous working version as requested by user
 - Reverted from ServiceNow-style interface back to original implementation

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings } from "lucide-react";
+import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -90,6 +90,12 @@ export function Header() {
                   <Link href="/settings" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/timecard" className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>Registro de Ponto</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
