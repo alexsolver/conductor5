@@ -56,6 +56,7 @@ export default function TicketDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("informacoes");
   const [dragActive, setDragActive] = useState(false);
@@ -440,8 +441,107 @@ export default function TicketDetails() {
 
   return (
     <div className="h-screen flex bg-gray-50">
+      {/* Left Sidebar */}
+      <div className={`fixed left-0 top-0 h-full bg-white border-r transition-all duration-300 z-30 ${
+        leftSidebarOpen ? 'w-72 translate-x-0' : 'w-12 -translate-x-60'
+      }`}>
+        {/* Toggle Button */}
+        <div className="absolute -right-3 top-6 z-40">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+            className="h-6 w-6 p-0 rounded-full bg-white border shadow-md"
+          >
+            {leftSidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          </Button>
+        </div>
+
+        {leftSidebarOpen && (
+          <div className="p-4 h-full overflow-y-auto">
+            {/* Ticket Summary */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">SEGUIDORES</h3>
+              <div className="space-y-2">
+                {followers.length > 0 ? (
+                  followers.map((followerId, index) => {
+                    const user = users?.users?.find((u: any) => u.id === followerId);
+                    return (
+                      <div key={index} className="text-sm text-gray-700">
+                        {user?.name || followerId}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-sm text-gray-500">Nenhum seguidor</div>
+                )}
+              </div>
+            </div>
+
+            {/* Tags Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Tags</h3>
+              <div className="flex flex-wrap gap-1">
+                {tags.length > 0 ? (
+                  tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-500">Nenhuma tag</div>
+                )}
+              </div>
+            </div>
+
+            {/* Priority Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Prioridade</h3>
+              <div className="text-sm">
+                <Badge className={getPriorityColor(ticket.priority)}>
+                  {ticket.priority}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Status Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Status de aprovação</h3>
+              <div className="text-sm text-gray-700">Normal</div>
+              <div className="mt-2 p-2 bg-teal-50 rounded text-xs text-teal-700">
+                ✓ Configurado em 2 minutos
+              </div>
+            </div>
+
+            {/* Custom Information */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Personalize as informações do seu ticket</h3>
+              <p className="text-xs text-gray-500 mb-3">
+                Use os campos de dados do ticket para calcular facilmente detalhes importantes.
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="text-xs">
+                  Ativar
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs">
+                  Descartar
+                </Button>
+              </div>
+            </div>
+
+            {/* Skills Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Habilidades</h3>
+              <div className="text-xs text-gray-500">Aplicar macro</div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Main Content Area */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'mr-80' : 'mr-0'}`}>
+      <div className={`flex-1 transition-all duration-300 ${
+        leftSidebarOpen ? 'ml-72' : 'ml-0'
+      } ${sidebarOpen ? 'mr-80' : 'mr-0'}`}>
         <div className="p-4 h-full">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
