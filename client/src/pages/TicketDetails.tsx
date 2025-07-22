@@ -29,7 +29,6 @@ const ticketFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "critical"]),
-  urgency: z.enum(["low", "medium", "high", "critical"]),
   impact: z.enum(["low", "medium", "high", "critical"]),
   status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
   category: z.string().optional(),
@@ -45,6 +44,8 @@ const ticketFormSchema = z.object({
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
+  followers: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;
@@ -56,26 +57,26 @@ export default function TicketDetails() {
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState("basico");
+  const [activeTab, setActiveTab] = useState("informacoes");
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [attachments, setAttachments] = useState([]);
-  const [notes, setNotes] = useState([]);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
-  const [communications, setCommunications] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [internalActions, setInternalActions] = useState([]);
+  const [communications, setCommunications] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
+  const [internalActions, setInternalActions] = useState<any[]>([]);
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
   const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
+  const [agentPassword, setAgentPassword] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Basic tabs configuration
+  // Basic information - consolidated into single tab
   const basicTabs = [
-    { id: "basico", label: "Básico", icon: FileText },
-    { id: "assignment", label: "Atribuição", icon: User },
-    { id: "classification", label: "Classificação", icon: Tag },
-    { id: "details", label: "Detalhes", icon: AlertCircle },
-    { id: "people", label: "Pessoas", icon: Users },
+    { id: "basico", label: "Informações", icon: FileText },
   ];
 
   // Special functionality tabs
@@ -521,10 +522,11 @@ export default function TicketDetails() {
         <div className="p-2 space-y-6">
           {/* Basic Tabs Section */}
           <div>
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-3">
-              Informações Básicas
-            </h4>
-            {basicTabs.map((tab) => {
+            {/* Todas as Abas */}
+            {[
+              { id: "informacoes", label: "Informações", icon: User },
+              ...specialTabs
+            ].map((tab) => {
               const IconComponent = tab.icon;
               return (
                 <button
@@ -532,7 +534,9 @@ export default function TicketDetails() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === tab.id 
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                      ? (tab.id === "informacoes" 
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                          : 'bg-green-50 text-green-700 border border-green-200')
                       : 'hover:bg-gray-50'
                   }`}
                 >
@@ -543,29 +547,7 @@ export default function TicketDetails() {
             })}
           </div>
 
-          {/* Special Features Section */}
-          <div>
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-3">
-              Campos Especiais
-            </h4>
-            {specialTabs.map((tab) => {
-              const IconComponent = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === tab.id 
-                      ? 'bg-green-50 text-green-700 border border-green-200' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <IconComponent className="h-4 w-4" />
-                  <span className="text-sm font-medium">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+
         </div>
       </div>
     </div>
@@ -574,10 +556,9 @@ export default function TicketDetails() {
   // Render tab content based on activeTab
   function renderTabContent() {
     switch (activeTab) {
-      case "basico":
+      case "informacoes":
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Informações Básicas</h2>
             
             <div className="flex items-center justify-between mb-4">
               <span className="font-medium">Ticket #{ticket.ticketNumber}</span>
@@ -627,7 +608,7 @@ export default function TicketDetails() {
               )}
             />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="priority"
@@ -656,33 +637,7 @@ export default function TicketDetails() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="urgency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Urgência</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Baixa</SelectItem>
-                            <SelectItem value="medium">Média</SelectItem>
-                            <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Crítica</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
 
               <FormField
                 control={form.control}
@@ -717,13 +672,75 @@ export default function TicketDetails() {
                 )}
               />
             </div>
-          </div>
-        );
 
-      case "assignment":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Atribuição</h2>
+            {/* Seguidor e TAGs */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="followers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Seguidor</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Select 
+                          value={followers.length > 0 ? followers[0] : ""} 
+                          onValueChange={(value) => setFollowers(value ? [value] : [])}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um agente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(users?.users || []).map((user: any) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">
+                          {followers.length > 0 ? (
+                            <Badge variant="outline">{users?.users?.find((u: any) => u.id === followers[0])?.name || followers[0]}</Badge>
+                          ) : (
+                            "Nenhum seguidor"
+                          )}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>TAGs</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input 
+                          placeholder="Digite tags separadas por vírgula"
+                          value={tags.join(", ")}
+                          onChange={(e) => setTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
+                        />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded flex items-center gap-2 flex-wrap">
+                          {tags.length > 0 ? tags.map((tag, index) => (
+                            <Badge key={index} variant="secondary">{tag}</Badge>
+                          )) : "Nenhuma tag"}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Atribuição */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -738,16 +755,16 @@ export default function TicketDetails() {
                             <SelectValue placeholder="Selecione o solicitante" />
                           </SelectTrigger>
                           <SelectContent>
-                            {customers.map((customer: any) => (
+                            {(customers?.customers || []).map((customer: any) => (
                               <SelectItem key={customer.id} value={customer.id}>
-                                {customer.name} ({customer.email})
+                                {customer.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       ) : (
                         <div className="p-2 bg-gray-50 rounded">
-                          {customers.find((c: any) => c.id === field.value)?.name || field.value}
+                          {customers?.customers?.find((c: any) => c.id === field.value)?.name || field.value}
                         </div>
                       )}
                     </FormControl>
@@ -761,7 +778,7 @@ export default function TicketDetails() {
                 name="assignedToId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Atribuído Para</FormLabel>
+                    <FormLabel>Atribuído a</FormLabel>
                     <FormControl>
                       {isEditMode ? (
                         <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
@@ -770,19 +787,16 @@ export default function TicketDetails() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="">Não atribuído</SelectItem>
-                            {Array.isArray(users) && users.map((user: any) => (
+                            {(users?.users || []).map((user: any) => (
                               <SelectItem key={user.id} value={user.id}>
-                                {user.name || user.email}
+                                {user.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       ) : (
                         <div className="p-2 bg-gray-50 rounded">
-                          {field.value ? 
-                            (Array.isArray(users) && users.find((u: any) => u.id === field.value)?.name) || field.value 
-                            : "Não atribuído"
-                          }
+                          {users?.users?.find((u: any) => u.id === field.value)?.name || field.value || "Não atribuído"}
                         </div>
                       )}
                     </FormControl>
@@ -790,33 +804,7 @@ export default function TicketDetails() {
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Localização</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Input {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case "classification":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Classificação</h2>
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="category"
@@ -825,9 +813,20 @@ export default function TicketDetails() {
                     <FormLabel>Categoria</FormLabel>
                     <FormControl>
                       {isEditMode ? (
-                        <Input {...field} />
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="hardware">Hardware</SelectItem>
+                            <SelectItem value="software">Software</SelectItem>
+                            <SelectItem value="rede">Rede</SelectItem>
+                            <SelectItem value="acesso">Acesso</SelectItem>
+                            <SelectItem value="outros">Outros</SelectItem>
+                          </SelectContent>
+                        </Select>
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value}</div>
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "Não especificada"}</div>
                       )}
                     </FormControl>
                     <FormMessage />
@@ -837,15 +836,15 @@ export default function TicketDetails() {
 
               <FormField
                 control={form.control}
-                name="subcategory"
+                name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Subcategoria</FormLabel>
+                    <FormLabel>Localização</FormLabel>
                     <FormControl>
                       {isEditMode ? (
-                        <Input {...field} />
+                        <Input {...field} placeholder="Digite a localização" />
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value}</div>
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "Não especificada"}</div>
                       )}
                     </FormControl>
                     <FormMessage />
@@ -854,129 +853,43 @@ export default function TicketDetails() {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="impact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Impacto no Negócio</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Baixo</SelectItem>
-                          <SelectItem value="medium">Médio</SelectItem>
-                          <SelectItem value="high">Alto</SelectItem>
-                          <SelectItem value="critical">Crítico</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
+            {/* Sintomas e Solução Temporária */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="symptoms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sintomas</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={3} placeholder="Descreva os sintomas do problema" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || "Não especificado"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      case "details":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Detalhes Técnicos</h2>
-            <FormField
-              control={form.control}
-              name="symptoms"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sintomas</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} rows={3} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="workaround"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Solução Temporária</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} rows={3} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case "people":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold mb-4">Informações de Pessoas</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-blue-200">
-                <CardHeader className="bg-blue-50">
-                  <CardTitle className="text-blue-800">Informações do Solicitante</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Nome:</label>
-                    <div className="p-2 bg-gray-50 rounded text-sm">
-                      {customers.find((c: any) => c.id === ticket.callerId)?.name || "N/A"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Email:</label>
-                    <div className="p-2 bg-gray-50 rounded text-sm">
-                      {customers.find((c: any) => c.id === ticket.callerId)?.email || "N/A"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Telefone:</label>
-                    <div className="p-2 bg-gray-50 rounded text-sm">
-                      {customers.find((c: any) => c.id === ticket.callerId)?.phone || "N/A"}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-purple-200">
-                <CardHeader className="bg-purple-50">
-                  <CardTitle className="text-purple-800">Datas e Controle</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Criado em:</label>
-                    <div className="p-2 bg-gray-50 rounded text-sm">
-                      {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : "N/A"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Última atualização:</label>
-                    <div className="p-2 bg-gray-50 rounded text-sm">
-                      {ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('pt-BR') : "N/A"}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <FormField
+                control={form.control}
+                name="workaround"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Solução Temporária</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={3} placeholder="Descreva alguma solução temporária" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || "Não especificado"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
         );
@@ -984,13 +897,6 @@ export default function TicketDetails() {
       case "attachments":
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">📎 Anexos</h2>
-              <Badge variant="outline" className="text-xs">
-                {attachments.length} arquivo(s)
-              </Badge>
-            </div>
-            
             {/* Upload Area */}
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -1000,21 +906,19 @@ export default function TicketDetails() {
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">
-                Arraste arquivos aqui ou clique para selecionar
-              </p>
-              <p className="text-sm text-gray-500 mb-4">
-                Suporte para qualquer tipo de arquivo até 200MB
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Selecionar Arquivos
-              </Button>
+              <div className="flex flex-col items-center gap-4 cursor-pointer">
+                <Upload className="h-12 w-12 text-gray-400" />
+                <div>
+                  <p className="text-lg font-medium text-gray-700">
+                    Arraste arquivos aqui ou clique para selecionar
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Máximo 200MB por arquivo. Todos os formatos aceitos.
+                  </p>
+                </div>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1027,53 +931,35 @@ export default function TicketDetails() {
             {/* Attachments List */}
             {attachments.length > 0 && (
               <div className="space-y-3">
-                <h3 className="font-medium text-gray-700">Arquivos Anexados</h3>
-                {attachments.map((attachment: any) => (
-                  <Card key={attachment.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileIcon className="h-8 w-8 text-blue-500" />
-                        <div>
-                          <p className="font-medium text-gray-900">{attachment.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {formatFileSize(attachment.size)} • 
-                            Enviado em {attachment.uploadedAt.toLocaleString('pt-BR')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => removeAttachment(attachment.id)}
-                        >
-                          <Trash className="h-4 w-4 text-red-500" />
-                        </Button>
+                <h3 className="text-lg font-medium">Anexos ({attachments.length})</h3>
+                {attachments.map((attachment) => (
+                  <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-gray-400" />
+                      <div>
+                        <p className="font-medium">{attachment.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {formatFileSize(attachment.size)} • Adicionado em {attachment.uploadedAt}
+                        </p>
+                        {attachment.description && (
+                          <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
+                        )}
                       </div>
                     </div>
-                    
-                    {/* Description Field */}
-                    <div className="mt-3">
-                      <label className="text-sm font-medium text-gray-600">Descrição (opcional):</label>
-                      <Input
-                        placeholder="Adicione uma descrição para este arquivo..."
-                        className="mt-1"
-                        value={attachment.description}
-                        onChange={(e) => {
-                          setAttachments(prev => 
-                            prev.map(att => 
-                              att.id === attachment.id 
-                                ? { ...att, description: e.target.value }
-                                : att
-                            )
-                          );
-                        }}
-                      />
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => removeAttachment(attachment.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
