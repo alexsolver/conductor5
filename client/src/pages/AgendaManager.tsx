@@ -181,7 +181,7 @@ const AgendaManager: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-2xl font-bold text-gray-900">
-                Gestão de Agenda
+                Agenda
               </CardTitle>
               <p className="text-gray-600 mt-1">
                 {view === 'timeline' ? 'Linha do Tempo' : 'Agenda 14 Dias'} - {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
