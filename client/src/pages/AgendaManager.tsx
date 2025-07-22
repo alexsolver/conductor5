@@ -290,20 +290,9 @@ const AgendaManager: React.FC = () => {
       </div>
 
       {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-        {/* Agent Sidebar */}
-        <div className="lg:col-span-1">
-          <AgentList
-            agents={mockAgents}
-            schedules={schedules}
-            selectedDate={selectedDate}
-            onAgentSelect={setSelectedAgentId}
-            selectedAgentId={selectedAgentId}
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="lg:col-span-3">
+      <div className="mb-6">
+        {/* Main Content - Full Width */}
+        <div className="w-full">
           {view === 'week' ? (
             <WeeklyScheduleGrid
               schedules={schedules}
@@ -314,73 +303,48 @@ const AgendaManager: React.FC = () => {
               onTimeSlotClick={handleTimeSlotClick}
             />
           ) : (
-            // Fallback to list view for day/month
-            <Card>
-              <CardHeader>
-                <CardTitle>Lista de Agendamentos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {schedules.map((schedule) => {
-                    const activityType = getActivityTypeById(schedule.activityTypeId);
-                    return (
-                      <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)}`}>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-gray-900">{schedule.title}</h3>
-                              <Badge className={getStatusColor(schedule.status)}>
-                                {schedule.status === 'scheduled' ? 'Agendado' :
-                                 schedule.status === 'in_progress' ? 'Em Progresso' :
-                                 schedule.status === 'completed' ? 'Concluído' : 'Cancelado'}
-                              </Badge>
-                              <Badge variant="outline">
-                                {schedule.priority === 'high' ? 'Alta' :
-                                 schedule.priority === 'medium' ? 'Média' : 'Baixa'} Prioridade
-                              </Badge>
-                            </div>
-                            
-                            {schedule.description && (
-                              <p className="text-gray-600 mb-2">{schedule.description}</p>
-                            )}
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                              <div className="flex items-center">
-                                <Clock className="h-4 w-4 mr-1" />
-                                {formatDate(schedule.startDateTime)} às {formatTime(schedule.startDateTime)} - {formatTime(schedule.endDateTime)}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Agent Sidebar for non-week views */}
+              <div className="lg:col-span-1">
+                <AgentList
+                  agents={mockAgents}
+                  schedules={schedules}
+                  selectedDate={selectedDate}
+                  onAgentSelect={setSelectedAgentId}
+                  selectedAgentId={selectedAgentId}
+                />
+              </div>
+              <div className="lg:col-span-3">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Lista de Agendamentos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {schedules.map((schedule) => {
+                        const activityType = getActivityTypeById(schedule.activityTypeId);
+                        return (
+                          <div key={schedule.id} className={`p-4 border rounded-lg ${getPriorityColor(schedule.priority)}`}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-medium text-gray-900">{schedule.title}</h3>
+                                  <Badge className={getStatusColor(schedule.status)}>
+                                    {schedule.status === 'scheduled' ? 'Agendado' :
+                                     schedule.status === 'in_progress' ? 'Em Progresso' :
+                                     schedule.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                                  </Badge>
+                                </div>
                               </div>
-                              
-                              {activityType && (
-                                <div className="flex items-center">
-                                  <div 
-                                    className="w-3 h-3 rounded-full mr-1"
-                                    style={{ backgroundColor: activityType.color }}
-                                  />
-                                  {activityType.name}
-                                </div>
-                              )}
-                              
-                              {schedule.locationAddress && (
-                                <div className="flex items-center">
-                                  <MapPin className="h-4 w-4 mr-1" />
-                                  {schedule.locationAddress}
-                                </div>
-                              )}
                             </div>
                           </div>
-                          
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleScheduleClick(schedule)}>
-                              Editar
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           )}
         </div>
       </div>

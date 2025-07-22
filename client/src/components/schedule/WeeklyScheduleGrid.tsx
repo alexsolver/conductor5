@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay, parseISO, startOfDay, addMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, MapPin, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface Schedule {
   id: string;
@@ -50,154 +50,224 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   onScheduleClick,
   onTimeSlotClick,
 }) => {
-  // Generate time slots (8:00 to 18:00 every hour)
-  const timeSlots = Array.from({ length: 11 }, (_, i) => {
-    const hour = 8 + i;
-    return `${hour.toString().padStart(2, '0')}:00`;
-  });
+  const [searchAgent, setSearchAgent] = useState('');
+
+  // Generate time slots (30-minute intervals from 9:00 to 23:00) 
+  const timeSlots = [];
+  for (let hour = 9; hour <= 23; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      timeSlots.push(time);
+    }
+  }
 
   // Generate week days starting from Monday
   const weekStart = startOfWeek(selectedDate, { locale: ptBR });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
+  // Filter agents by search
+  const filteredAgents = agents.filter(agent => 
+    agent.name.toLowerCase().includes(searchAgent.toLowerCase()) ||
+    agent.email.toLowerCase().includes(searchAgent.toLowerCase())
+  );
+
   const getActivityType = (activityTypeId: string) => {
     return activityTypes.find(type => type.id === activityTypeId);
   };
 
-  const getSchedulesForAgentAndSlot = (agentId: string, date: Date, timeSlot: string) => {
-    return schedules.filter(schedule => {
-      const scheduleDate = parseISO(schedule.startDateTime);
-      const scheduleHour = format(scheduleDate, 'HH:00');
+  const getScheduleForSlot = (agentId: string, date: Date, timeSlot: string) => {
+    const [hours, minutes] = timeSlot.split(':').map(Number);
+    const slotStart = new Date(date);
+    slotStart.setHours(hours, minutes, 0, 0);
+    const slotEnd = addMinutes(slotStart, 30);
+
+    return schedules.find(schedule => {
+      const scheduleStart = parseISO(schedule.startDateTime);
+      const scheduleEnd = parseISO(schedule.endDateTime);
+      
       return (
         schedule.agentId === agentId &&
-        isSameDay(scheduleDate, date) &&
-        scheduleHour === timeSlot
+        isSameDay(scheduleStart, date) &&
+        ((scheduleStart <= slotStart && scheduleEnd > slotStart) ||
+         (scheduleStart < slotEnd && scheduleEnd >= slotEnd) ||
+         (scheduleStart >= slotStart && scheduleEnd <= slotEnd))
       );
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'scheduled': return 'bg-blue-100 border-blue-300';
-      case 'in_progress': return 'bg-yellow-100 border-yellow-300';
-      case 'completed': return 'bg-green-100 border-green-300';
-      case 'cancelled': return 'bg-red-100 border-red-300';
-      default: return 'bg-gray-100 border-gray-300';
+  const getScheduleSpan = (schedule: any, date: Date) => {
+    const scheduleStart = parseISO(schedule.startDateTime);
+    const scheduleEnd = parseISO(schedule.endDateTime);
+    
+    if (!isSameDay(scheduleStart, date)) return { start: 0, span: 0 };
+    
+    const dayStart = startOfDay(date);
+    dayStart.setHours(9, 0, 0, 0); // Start at 9:00
+    
+    const startMinutes = Math.max(0, (scheduleStart.getTime() - dayStart.getTime()) / (1000 * 60));
+    const endMinutes = Math.min(14 * 60, (scheduleEnd.getTime() - dayStart.getTime()) / (1000 * 60)); // Max 14 hours (9:00-23:00)
+    
+    const startSlot = Math.floor(startMinutes / 30);
+    const endSlot = Math.ceil(endMinutes / 30);
+    
+    return {
+      start: startSlot,
+      span: Math.max(1, endSlot - startSlot)
+    };
+  };
+
+  const getScheduleColor = (activityTypeId: string, priority: string, status: string) => {
+    const activityType = getActivityType(activityTypeId);
+    
+    if (status === 'cancelled') {
+      return 'bg-gray-300 text-gray-700';
+    }
+    
+    if (status === 'completed') {
+      return 'bg-green-400 text-white';
+    }
+    
+    // Base colors by priority
+    switch (priority) {
+      case 'urgent':
+        return 'bg-red-500 text-white';
+      case 'high':
+        return 'bg-orange-400 text-white';
+      case 'medium':
+        return activityType ? `bg-green-400 text-white` : 'bg-blue-400 text-white';
+      case 'low':
+        return 'bg-yellow-400 text-gray-900';
+      default:
+        return 'bg-blue-400 text-white';
     }
   };
 
-  const getPriorityBorder = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'border-l-4 border-red-500';
-      case 'high': return 'border-l-4 border-orange-500';
-      case 'medium': return 'border-l-4 border-yellow-500';
-      case 'low': return 'border-l-4 border-green-500';
-      default: return 'border-l-4 border-gray-500';
+  const getScheduleLabel = (schedule: any) => {
+    const activityType = getActivityType(schedule.activityTypeId);
+    
+    // Priority indicators
+    if (schedule.priority === 'urgent') return 'U';
+    if (schedule.priority === 'high') return 'H';
+    if (schedule.priority === 'low') return 'L';
+    
+    // Activity type abbreviations
+    if (activityType) {
+      switch (activityType.category) {
+        case 'visita_tecnica': return 'Tx';
+        case 'instalacao': return 'I';
+        case 'manutencao': return 'M';
+        case 'suporte': return 'S';
+        default: return 'Tx';
+      }
     }
+    
+    return 'Tx';
   };
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden">
-      {/* Header with days */}
-      <div className="grid grid-cols-8 border-b">
-        <div className="p-4 bg-gray-50 border-r font-medium">
-          Agente / Horário
+    <div className="bg-white border overflow-hidden" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Header */}
+      <div className="bg-gray-50 p-3 border-b flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <span className="text-sm font-medium">Day</span>
+          <span className="text-sm">{format(selectedDate, 'EEE, MMM dd, yyyy', { locale: ptBR })}</span>
         </div>
-        {weekDays.map((day, index) => (
-          <div key={index} className="p-4 bg-gray-50 border-r last:border-r-0 text-center">
-            <div className="font-medium">{format(day, 'EEE', { locale: ptBR })}</div>
-            <div className="text-sm text-gray-600">{format(day, 'dd/MM', { locale: ptBR })}</div>
-          </div>
-        ))}
+        <div className="flex items-center space-x-2">
+          <span className="text-xs text-gray-600">Bulk edit</span>
+          <span className="text-xs text-gray-600">Generate</span>
+          <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">Publish</span>
+        </div>
       </div>
 
-      {/* Grid with time slots */}
-      <div className="max-h-96 overflow-y-auto">
-        {agents.map((agent) => (
-          <div key={agent.id}>
-            {/* Agent header */}
-            <div className="grid grid-cols-8 border-b bg-gray-25">
-              <div className="p-3 bg-gray-50 border-r flex items-center">
-                <div className="flex items-center space-x-2">
-                  {agent.profileImageUrl ? (
-                    <img 
-                      src={agent.profileImageUrl} 
-                      alt={agent.name}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                      {agent.name.charAt(0)}
-                    </div>
-                  )}
-                  <div>
-                    <div className="font-medium text-sm">{agent.name}</div>
-                    <div className="text-xs text-gray-500">{agent.email}</div>
-                  </div>
-                </div>
-              </div>
-              {weekDays.map((day, dayIndex) => (
-                <div key={dayIndex} className="p-2 border-r last:border-r-0 bg-gray-25">
-                  <div className="text-xs text-gray-500 text-center">
-                    {schedules.filter(s => 
-                      s.agentId === agent.id && 
-                      isSameDay(parseISO(s.startDateTime), day)
-                    ).length} agend.
-                  </div>
-                </div>
-              ))}
+      <div className="flex">
+        {/* Left Sidebar */}
+        <div className="w-48 border-r bg-gray-50">
+          {/* Group Toggle */}
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">By group</span>
+              <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">104</span>
             </div>
+          </div>
 
-            {/* Time slots for this agent */}
-            {timeSlots.map((timeSlot) => (
-              <div key={`${agent.id}-${timeSlot}`} className="grid grid-cols-8 border-b last:border-b-0">
-                <div className="p-2 bg-gray-50 border-r text-sm text-gray-600 flex items-center justify-center">
-                  {timeSlot}
+          {/* Search */}
+          <div className="p-3 border-b">
+            <div className="relative">
+              <Search className="absolute left-2 top-2 h-3 w-3 text-gray-400" />
+              <Input
+                placeholder="Search by name or email"
+                value={searchAgent}
+                onChange={(e) => setSearchAgent(e.target.value)}
+                className="pl-7 text-xs h-7"
+              />
+            </div>
+          </div>
+
+          {/* Agent List */}
+          <div className="max-h-96 overflow-y-auto">
+            {filteredAgents.map((agent, index) => (
+              <div key={agent.id} className="flex items-center p-2 border-b text-xs hover:bg-gray-100">
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs mr-2">
+                  {agent.name.charAt(0)}
                 </div>
+                <span className="font-medium">{agent.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Grid */}
+        <div className="flex-1 overflow-x-auto">
+          {/* Time Header */}
+          <div className="bg-gray-50 border-b flex text-xs">
+            {timeSlots.filter((_, i) => i % 2 === 0).map((timeSlot, index) => (
+              <div key={timeSlot} className="w-16 px-1 py-2 text-center border-r">
+                {timeSlot}
+              </div>
+            ))}
+          </div>
+
+          {/* Schedule Grid */}
+          <div className="relative">
+            {filteredAgents.map((agent, agentIndex) => (
+              <div key={agent.id} className="flex border-b" style={{ height: '40px' }}>
                 {weekDays.map((day, dayIndex) => {
-                  const daySchedules = getSchedulesForAgentAndSlot(agent.id, day, timeSlot);
+                  // Get all schedules for this agent on this day
+                  const daySchedules = schedules.filter(s => 
+                    s.agentId === agent.id && 
+                    isSameDay(parseISO(s.startDateTime), day)
+                  );
+                  
                   return (
-                    <div 
-                      key={dayIndex} 
-                      className="p-1 border-r last:border-r-0 min-h-[60px] cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => !daySchedules.length && onTimeSlotClick(day, timeSlot, agent.id)}
-                    >
-                      {daySchedules.map((schedule) => {
-                        const activityType = getActivityType(schedule.activityTypeId);
+                    <div key={dayIndex} className="relative flex" style={{ width: `${timeSlots.length * 8}px` }}>
+                      {/* Time slot grid background */}
+                      {timeSlots.map((timeSlot, slotIndex) => (
+                        <div
+                          key={`${day}-${timeSlot}`}
+                          className="w-8 h-full border-r border-gray-200 hover:bg-blue-50 cursor-pointer"
+                          onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
+                          style={{ borderRight: slotIndex % 2 === 1 ? '1px solid #e5e7eb' : '1px solid #f3f4f6' }}
+                        />
+                      ))}
+                      
+                      {/* Schedule blocks */}
+                      {daySchedules.map(schedule => {
+                        const { start, span } = getScheduleSpan(schedule, day);
+                        if (span === 0) return null;
+                        
                         return (
                           <div
                             key={schedule.id}
-                            className={`
-                              p-2 rounded text-xs cursor-pointer transition-all hover:shadow-sm
-                              ${getStatusColor(schedule.status)}
-                              ${getPriorityBorder(schedule.priority)}
-                            `}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onScheduleClick(schedule);
+                            className={`absolute top-1 rounded text-xs font-medium cursor-pointer hover:opacity-80 flex items-center justify-center ${getScheduleColor(schedule.activityTypeId, schedule.priority, schedule.status)}`}
+                            style={{
+                              left: `${start * 8}px`,
+                              width: `${span * 8 - 2}px`,
+                              height: '32px',
                             }}
+                            onClick={() => onScheduleClick(schedule)}
+                            title={`${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')} to ${format(parseISO(schedule.endDateTime), 'HH:mm')}`}
                           >
-                            <div className="font-medium truncate mb-1">{schedule.title}</div>
-                            <div className="flex items-center text-xs text-gray-600 mb-1">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {format(parseISO(schedule.startDateTime), 'HH:mm', { locale: ptBR })} - 
-                              {format(parseISO(schedule.endDateTime), 'HH:mm', { locale: ptBR })}
-                            </div>
-                            {activityType && (
-                              <div className="flex items-center">
-                                <div 
-                                  className="w-2 h-2 rounded-full mr-1"
-                                  style={{ backgroundColor: activityType.color }}
-                                />
-                                <span className="text-xs truncate">{activityType.name}</span>
-                              </div>
-                            )}
-                            {schedule.locationAddress && (
-                              <div className="flex items-center text-xs text-gray-500 mt-1">
-                                <MapPin className="w-3 h-3 mr-1" />
-                                <span className="truncate">{schedule.locationAddress.split(',')[0]}</span>
-                              </div>
-                            )}
+                            {getScheduleLabel(schedule)}
                           </div>
                         );
                       })}
@@ -207,7 +277,24 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
               </div>
             ))}
           </div>
-        ))}
+          
+          {/* Bottom Summary */}
+          <div className="bg-gray-50 text-xs">
+            <div className="flex border-b p-2">
+              <div className="w-32 font-medium">All workstreams</div>
+              {timeSlots.filter((_, i) => i % 4 === 0).map((timeSlot, index) => (
+                <div key={timeSlot} className="w-16 text-center">
+                  {Math.floor(Math.random() * 10)}
+                </div>
+              ))}
+            </div>
+            <div className="p-2 text-xs text-gray-600">
+              <div className="mb-1">● Billing: {schedules.filter(s => s.priority === 'high').length} scheduled</div>
+              <div className="mb-1">● Email: {schedules.filter(s => s.priority === 'medium').length} scheduled</div>
+              <div className="mb-1">● Phone: {schedules.filter(s => s.priority === 'low').length} scheduled</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
