@@ -690,59 +690,10 @@ export default function TicketDetails() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="assignedToId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Atribuído a</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o responsável" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="unassigned">Não atribuído</SelectItem>
-                          {users?.users?.map((user: any) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <FormField
-                  control={form.control}
-                  name="callerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Solicitante *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o solicitante" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {customers.map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.firstName} {customer.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+              <div className="grid grid-cols-1 gap-4 mt-4">
                 <FormField
                   control={form.control}
                   name="location"
