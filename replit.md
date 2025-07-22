@@ -10,17 +10,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 22, 2025 - VISUAL SCHEDULE GRID INTERFACE IMPLEMENTATION ✅ EXACT LAYOUT MATCHING USER SPECIFICATION
+### July 22, 2025 - HOURLY TIMELINE INTERFACE IMPLEMENTATION ✅ TIME-BASED COLUMN VISUALIZATION WITH FILTERS
 
-**🎯 INTERFACE DE GRADE VISUAL EXATAMENTE COMO SOLICITADO:**
+**🎯 INTERFACE TIMELINE COM COLUNAS HORÁRIAS CONFORME SOLICITADO:**
+
+✅ **LAYOUT BASEADO EM HORÁRIOS EM VEZ DE DIAS:**
+- TimelineScheduleGrid.tsx completamente reescrito para visualização por intervalos de tempo
+- Filtros de tempo implementados conforme imagem: Hoje, 2min, 10min, 30min, 1hora, 24horas
+- Colunas mostram horários (06:00-22:00) em vez de dias para melhor granularidade
+- Sistema responsivo que gera slots de tempo baseado no filtro selecionado
+- Header com botões de filtro estilizados conforme design fornecido
 
 ✅ **LAYOUT PERFEITAMENTE ALINHADO CONFORME IMAGEM DE REFERÊNCIA:**
-- WeeklyScheduleGrid.tsx reconstruído para reproduzir exatamente o layout da imagem
 - Técnicos/agentes perfeitamente alinhados com suas linhas do tempo horizontais
-- Grade horizontal com horários de 09:00 a 23:00 no cabeçalho superior
+- Cada técnico tem duas linhas: "Previsto" (fundo verde claro) e "Realizado" (fundo azul claro)
 - Blocos coloridos representando agendamentos posicionados precisamente
 - Sidebar esquerda com lista de agentes integrada e campo de busca
-- Design Zendesk-style matching exato com a interface de referência
+- Colunas de tempo com largura fixa de 64px para visualização consistente
 
 ✅ **ALINHAMENTO TÉCNICO-TIMELINE PERFEITO:**
 - Cada linha de técnico tem altura fixa de 40px para alinhamento preciso
