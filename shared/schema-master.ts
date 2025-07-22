@@ -594,6 +594,127 @@ export const scheduleConflicts = pgTable("schedule_conflicts", {
   resolvedAt: timestamp("resolved_at"),
 });
 
+// ========================================
+// TICKET ENHANCEMENT TABLES
+// ========================================
+
+// Ticket Attachments - File uploads up to 200MB
+export const ticketAttachments = pgTable("ticket_attachments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  originalFileName: varchar("original_file_name", { length: 255 }).notNull(),
+  fileSize: integer("file_size").notNull(), // bytes
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  description: text("description"),
+  uploadedBy: uuid("uploaded_by").references(() => users.id).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("ticket_attachments_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_attachments_tenant_created_idx").on(table.tenantId, table.createdAt),
+]);
+
+// Ticket Notes - Multiple text entries
+export const ticketNotes = pgTable("ticket_notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  content: text("content").notNull(),
+  noteType: varchar("note_type", { length: 50 }).default("general"), // general, internal, resolution, escalation
+  authorId: uuid("author_id").references(() => users.id).notNull(),
+  isPrivate: boolean("is_private").default(false), // internal notes vs public
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("ticket_notes_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_notes_tenant_created_idx").on(table.tenantId, table.createdAt),
+]);
+
+// Ticket Communications - Messages from different channels
+export const ticketCommunications = pgTable("ticket_communications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  channel: varchar("channel", { length: 50 }).notNull(), // email, whatsapp, telegram, sms, phone, chat
+  direction: varchar("direction", { length: 10 }).notNull(), // inbound, outbound
+  fromContact: varchar("from_contact", { length: 255 }).notNull(),
+  toContact: varchar("to_contact", { length: 255 }),
+  subject: varchar("subject", { length: 500 }),
+  content: text("content").notNull(),
+  messageId: varchar("message_id", { length: 255 }), // external system message ID
+  threadId: varchar("thread_id", { length: 255 }), // for grouping related messages
+  attachments: jsonb("attachments"), // array of attachment info
+  metadata: jsonb("metadata"), // channel-specific data
+  isRead: boolean("is_read").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("ticket_communications_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_communications_tenant_channel_idx").on(table.tenantId, table.channel),
+  index("ticket_communications_tenant_created_idx").on(table.tenantId, table.createdAt),
+  index("ticket_communications_thread_idx").on(table.tenantId, table.threadId),
+]);
+
+// Ticket History - Complete action timeline
+export const ticketHistory = pgTable("ticket_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  actionType: varchar("action_type", { length: 50 }).notNull(), // created, updated, assigned, status_changed, note_added, etc.
+  actorId: uuid("actor_id").references(() => users.id),
+  actorType: varchar("actor_type", { length: 50 }).default("user"), // user, system, automation
+  actorName: varchar("actor_name", { length: 255 }),
+  description: text("description").notNull(),
+  fieldChanges: jsonb("field_changes"), // before/after values
+  systemLogs: jsonb("system_logs"), // technical logs for advanced view
+  relatedEntityId: uuid("related_entity_id"), // ID of related object (note, attachment, etc.)
+  relatedEntityType: varchar("related_entity_type", { length: 50 }), // note, attachment, communication, etc.
+  isVisible: boolean("is_visible").default(true), // hide system events in simplified view
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("ticket_history_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_history_tenant_created_idx").on(table.tenantId, table.createdAt),
+  index("ticket_history_tenant_action_idx").on(table.tenantId, table.actionType),
+]);
+
+// Ticket Internal Actions - Complex actions with relationships
+export const ticketInternalActions = pgTable("ticket_internal_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  actionType: varchar("action_type", { length: 100 }).notNull(), // analysis, investigation, escalation, resolution, follow_up
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  agentId: uuid("agent_id").references(() => users.id).notNull(),
+  groupId: varchar("group_id", { length: 100 }), // working group
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  estimatedHours: decimal("estimated_hours", { precision: 5, scale: 2 }),
+  actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
+  status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, cancelled
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  linkedItemIds: jsonb("linked_item_ids"), // array of UUIDs for related items
+  linkedItemTypes: jsonb("linked_item_types"), // corresponding types for linked items
+  attachmentIds: jsonb("attachment_ids"), // array of attachment UUIDs
+  formData: jsonb("form_data"), // custom form responses
+  completionNotes: text("completion_notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("ticket_internal_actions_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_internal_actions_tenant_agent_idx").on(table.tenantId, table.agentId),
+  index("ticket_internal_actions_tenant_status_idx").on(table.tenantId, table.status),
+  index("ticket_internal_actions_tenant_created_idx").on(table.tenantId, table.createdAt),
+]);
+
 // Schedule types
 export type InsertActivityType = typeof activityTypes.$inferInsert;
 export type ActivityType = typeof activityTypes.$inferSelect;
@@ -603,3 +724,15 @@ export type InsertAgentAvailability = typeof agentAvailability.$inferInsert;
 export type AgentAvailability = typeof agentAvailability.$inferSelect;
 export type InsertScheduleSettings = typeof scheduleSettings.$inferInsert;
 export type ScheduleSettings = typeof scheduleSettings.$inferSelect;
+
+// Ticket Enhancement types
+export type InsertTicketAttachment = typeof ticketAttachments.$inferInsert;
+export type TicketAttachment = typeof ticketAttachments.$inferSelect;
+export type InsertTicketNote = typeof ticketNotes.$inferInsert;
+export type TicketNote = typeof ticketNotes.$inferSelect;
+export type InsertTicketCommunication = typeof ticketCommunications.$inferInsert;
+export type TicketCommunication = typeof ticketCommunications.$inferSelect;
+export type InsertTicketHistory = typeof ticketHistory.$inferInsert;
+export type TicketHistory = typeof ticketHistory.$inferSelect;
+export type InsertTicketInternalAction = typeof ticketInternalActions.$inferInsert;
+export type TicketInternalAction = typeof ticketInternalActions.$inferSelect;
