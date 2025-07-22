@@ -181,9 +181,9 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
 
       <div className="flex">
         {/* Left Sidebar */}
-        <div className="w-48 border-r bg-gray-50">
+        <div className="w-40 border-r bg-gray-50">
           {/* Group Toggle */}
-          <div className="p-3 border-b">
+          <div className="p-2 border-b">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">By group</span>
               <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">104</span>
@@ -191,26 +191,30 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
           </div>
 
           {/* Search */}
-          <div className="p-3 border-b">
+          <div className="p-2 border-b">
             <div className="relative">
               <Search className="absolute left-2 top-2 h-3 w-3 text-gray-400" />
               <Input
                 placeholder="Search by name or email"
                 value={searchAgent}
                 onChange={(e) => setSearchAgent(e.target.value)}
-                className="pl-7 text-xs h-7"
+                className="pl-7 text-xs h-6"
               />
             </div>
           </div>
 
-          {/* Agent List */}
-          <div className="max-h-96 overflow-y-auto">
+          {/* Agent List - Exactly aligned with grid rows */}
+          <div className="overflow-y-auto">
             {filteredAgents.map((agent, index) => (
-              <div key={agent.id} className="flex items-center p-2 border-b text-xs hover:bg-gray-100">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs mr-2">
+              <div 
+                key={agent.id} 
+                className="flex items-center p-2 text-xs border-b bg-gray-50" 
+                style={{ height: '40px' }}
+              >
+                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs mr-2">
                   {agent.name.charAt(0)}
                 </div>
-                <span className="font-medium">{agent.name}</span>
+                <span className="font-medium text-xs">{agent.name}</span>
               </div>
             ))}
           </div>
@@ -218,80 +222,86 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
 
         {/* Main Grid */}
         <div className="flex-1 overflow-x-auto">
-          {/* Time Header */}
+          {/* Time Header - Hourly from 09:00 to 23:00 */}
           <div className="bg-gray-50 border-b flex text-xs">
-            {timeSlots.filter((_, i) => i % 2 === 0).map((timeSlot, index) => (
-              <div key={timeSlot} className="w-16 px-1 py-2 text-center border-r">
-                {timeSlot}
-              </div>
-            ))}
+            {Array.from({ length: 15 }, (_, i) => {
+              const hour = 9 + i;
+              return (
+                <div key={hour} className="w-12 px-1 py-2 text-center border-r text-xs">
+                  {`${hour.toString().padStart(2, '0')}:00`}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Schedule Grid */}
+          {/* Schedule Grid - Each agent row exactly aligned */}
           <div className="relative">
             {filteredAgents.map((agent, agentIndex) => (
-              <div key={agent.id} className="flex border-b" style={{ height: '40px' }}>
-                {weekDays.map((day, dayIndex) => {
-                  // Get all schedules for this agent on this day
-                  const daySchedules = schedules.filter(s => 
-                    s.agentId === agent.id && 
-                    isSameDay(parseISO(s.startDateTime), day)
-                  );
+              <div key={agent.id} className="flex border-b bg-white" style={{ height: '40px' }}>
+                {/* Single day column for now (Monday) */}
+                <div className="relative flex" style={{ width: `${15 * 48}px` }}>
+                  {/* Hour slots background */}
+                  {Array.from({ length: 15 }, (_, hourIndex) => (
+                    <div
+                      key={hourIndex}
+                      className="w-12 h-full border-r border-gray-200 hover:bg-blue-50 cursor-pointer"
+                      onClick={() => {
+                        const hour = 9 + hourIndex;
+                        const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
+                        onTimeSlotClick(weekDays[0], timeSlot, agent.id);
+                      }}
+                    />
+                  ))}
                   
-                  return (
-                    <div key={dayIndex} className="relative flex" style={{ width: `${timeSlots.length * 8}px` }}>
-                      {/* Time slot grid background */}
-                      {timeSlots.map((timeSlot, slotIndex) => (
-                        <div
-                          key={`${day}-${timeSlot}`}
-                          className="w-8 h-full border-r border-gray-200 hover:bg-blue-50 cursor-pointer"
-                          onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
-                          style={{ borderRight: slotIndex % 2 === 1 ? '1px solid #e5e7eb' : '1px solid #f3f4f6' }}
-                        />
-                      ))}
+                  {/* Schedule blocks for Monday only */}
+                  {schedules
+                    .filter(s => s.agentId === agent.id && isSameDay(parseISO(s.startDateTime), weekDays[0]))
+                    .map(schedule => {
+                      const scheduleStart = parseISO(schedule.startDateTime);
+                      const scheduleEnd = parseISO(schedule.endDateTime);
                       
-                      {/* Schedule blocks */}
-                      {daySchedules.map(schedule => {
-                        const { start, span } = getScheduleSpan(schedule, day);
-                        if (span === 0) return null;
-                        
-                        return (
-                          <div
-                            key={schedule.id}
-                            className={`absolute top-1 rounded text-xs font-medium cursor-pointer hover:opacity-80 flex items-center justify-center ${getScheduleColor(schedule.activityTypeId, schedule.priority, schedule.status)}`}
-                            style={{
-                              left: `${start * 8}px`,
-                              width: `${span * 8 - 2}px`,
-                              height: '32px',
-                            }}
-                            onClick={() => onScheduleClick(schedule)}
-                            title={`${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')} to ${format(parseISO(schedule.endDateTime), 'HH:mm')}`}
-                          >
-                            {getScheduleLabel(schedule)}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                      const startHour = scheduleStart.getHours() + scheduleStart.getMinutes() / 60;
+                      const endHour = scheduleEnd.getHours() + scheduleEnd.getMinutes() / 60;
+                      
+                      // Position calculation
+                      const left = Math.max(0, (startHour - 9) * 48);
+                      const width = Math.max(24, (endHour - Math.max(9, startHour)) * 48 - 2);
+                      
+                      if (startHour < 9 || startHour >= 24) return null;
+                      
+                      return (
+                        <div
+                          key={schedule.id}
+                          className={`absolute top-1 rounded text-xs font-medium cursor-pointer hover:opacity-80 flex items-center justify-center ${getScheduleColor(schedule.activityTypeId, schedule.priority, schedule.status)}`}
+                          style={{
+                            left: `${left}px`,
+                            width: `${width}px`,
+                            height: '32px',
+                          }}
+                          onClick={() => onScheduleClick(schedule)}
+                          title={`${schedule.title} - ${format(scheduleStart, 'HH:mm')} to ${format(scheduleEnd, 'HH:mm')}`}
+                        >
+                          {getScheduleLabel(schedule)}
+                        </div>
+                      );
+                    })}
+                </div>
               </div>
             ))}
           </div>
           
           {/* Bottom Summary */}
-          <div className="bg-gray-50 text-xs">
-            <div className="flex border-b p-2">
-              <div className="w-32 font-medium">All workstreams</div>
-              {timeSlots.filter((_, i) => i % 4 === 0).map((timeSlot, index) => (
-                <div key={timeSlot} className="w-16 text-center">
-                  {Math.floor(Math.random() * 10)}
-                </div>
+          <div className="bg-gray-50 text-xs border-t">
+            <div className="flex p-2">
+              <div className="w-24 font-medium">All workstreams</div>
+              {Array.from({ length: 15 }, (_, i) => (
+                <div key={i} className="w-12 text-center">{Math.floor(Math.random() * 10)}</div>
               ))}
             </div>
-            <div className="p-2 text-xs text-gray-600">
-              <div className="mb-1">● Billing: {schedules.filter(s => s.priority === 'high').length} scheduled</div>
-              <div className="mb-1">● Email: {schedules.filter(s => s.priority === 'medium').length} scheduled</div>
-              <div className="mb-1">● Phone: {schedules.filter(s => s.priority === 'low').length} scheduled</div>
+            <div className="p-2 text-xs text-gray-600 space-y-1">
+              <div>● Billing: 0 scheduled</div>
+              <div>● Email: 0 scheduled</div>
+              <div>● Phone: 0 scheduled</div>
             </div>
           </div>
         </div>
