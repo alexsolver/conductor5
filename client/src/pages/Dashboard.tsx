@@ -8,7 +8,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { formatDate, formatNumber } = useLocalization();
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, error } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     retry: false,
   });
@@ -18,26 +18,33 @@ export default function Dashboard() {
     retry: false,
   });
 
+  // Loading state with timeout protection
   if (isLoading) {
     return (
-      <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
+      <div className="p-4">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sm text-gray-500">Carregando dashboard...</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-gray-200 rounded w-16"></div>
-              </CardContent>
-            </Card>
-          ))}
+      </div>
+    );
+  }
+
+  // Error state with fallback
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="text-center py-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Dashboard Indisponível</h2>
+          <p className="text-sm text-gray-500 mb-4">Não foi possível carregar os dados do dashboard.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Tentar Novamente
+          </button>
         </div>
       </div>
     );
