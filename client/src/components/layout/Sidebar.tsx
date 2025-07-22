@@ -108,6 +108,7 @@ const adminNavigation = [
     children: [
       { name: "Dashboard", href: "/tenant-admin", icon: BarChart3 },
       { name: "Gestão da Equipe", href: "/tenant-admin/team", icon: UserCog },
+      { name: "Gestão de Equipe Integrada", href: "/team-management", icon: Users },
       { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
       { name: "Workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "SLAs", href: "/tenant-admin/slas", icon: Target },

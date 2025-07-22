@@ -1,0 +1,101 @@
+Desenvolver um sistema completo e integrado de Gestão de Equipe para Workspace Admin, unificando todas as funcionalidades existentes e implementando recursos ausentes para criar uma plataforma enterprise de gestão de recursos humanos.
+
+ANÁLISE DO ESTADO ATUAL
+✅ FUNCIONALIDADES EXISTENTES:
+
+Gestão básica de usuários (CRUD)
+Sistema de convites de usuários
+Estatísticas básicas da equipe
+Gestão de papéis e permissões (RBAC)
+Sessões ativas de usuários
+Atividade de usuários
+Grupos de usuários
+Papéis customizados
+Interface de administração tenant
+❌ FUNCIONALIDADES AUSENTES/INCOMPLETAS:
+
+Gestão completa de perfil profissional
+Sistema de habilidades técnicas integrado
+Gestão de horários e escalas
+Controle de ponto e jornada
+Gestão de ausências e férias
+Avaliação de performance
+Banco de horas
+Calendário de feriados integrado
+Hierarquia organizacional
+Onboarding de funcionários
+Certificações e treinamentos
+Localização multi-site
+Analytics avançados de RH
+IMPLEMENTAÇÃO REQUERIDA
+1. UNIFICAÇÃO DE MÓDULOS EXISTENTES
+
+Integrar completamente o módulo TechnicalSkills com gestão de equipe
+Conectar AgendaManager para gestão de escalas de trabalho
+Unificar HolidayCalendar com controle de ausências
+Integrar Timecard para controle de ponto
+Conectar HourBank para gestão de banco de horas
+Unificar MultilocationAdmin para gestão multi-site
+Integrar UserProfile com dados profissionais completos
+2. NOVOS RECURSOS A IMPLEMENTAR
+
+Gestão de Performance: Sistema de avaliações, metas, KPIs individuais
+Hierarquia Organizacional: Estrutura de departamentos, cargos, reporting
+Onboarding Digital: Fluxo completo de integração de novos funcionários
+Gestão de Certificações: Tracking de certificações, renovações, treinamentos
+Analytics de RH: Dashboards avançados, relatórios de produtividade, turnover
+Gestão de Ausências: Solicitações, aprovações, histórico, políticas
+Planejamento de Recursos: Alocação de pessoas em projetos, capacidade
+Comunicação Interna: Sistema de notificações, anúncios, feedback
+Compliance e Auditoria: Logs de ações, relatórios regulatórios
+Mobile Integration: App móvel para check-in, solicitações, aprovações
+3. INTEGRAÇÕES NECESSÁRIAS
+
+Sistema de Tickets: Atribuição automática baseada em skills e disponibilidade
+Projetos: Alocação de recursos, tracking de tempo em projetos
+Knowledge Base: Contribuições por funcionário, expertise mapping
+OmniBridge: Integração com comunicação externa
+Compliance: Tracking de conformidade por funcionário
+Analytics: Métricas de produtividade e performance
+Geolocation: Controle de ponto por localização
+Security: Gestão de acessos e permissões avançadas
+4. DASHBOARD EXECUTIVO INTEGRADO
+
+Visão 360° da Equipe: Métricas consolidadas, alertas, tendências
+Gestão de Custos: Folha de pagamento, benefícios, overhead
+Planejamento Estratégico: Projeções, cenários, growth planning
+Compliance Dashboard: Status regulatório, auditoria, riscos
+Performance Analytics: Produtividade, satisfação, retenção
+5. RECURSOS AVANÇADOS
+
+AI-Powered Insights: Recomendações de alocação, predição de turnover
+Workflow Automation: Aprovações automáticas, escalações, notificações
+Self-Service Portal: Portal do funcionário para autogestão
+Document Management: Contratos, documentos pessoais, policies
+Integration Hub: Conectores com sistemas externos de RH/ERP
+6. ARQUITETURA DE DADOS
+
+Unificar todas as tabelas relacionadas a pessoas/usuários
+Criar views consolidadas para relatórios
+Implementar auditoria completa de mudanças
+Otimizar queries para performance
+Implementar cache inteligente para dashboards
+7. SEGURANÇA E COMPLIANCE
+
+LGPD/GDPR compliance para dados pessoais
+Encryption de dados sensíveis
+Audit trail completo
+Role-based access control granular
+Data retention policies
+ENTREGÁVEIS ESPERADOS:
+
+Interface unificada de Gestão de Equipe no Workspace Admin
+Todos os módulos existentes integrados e funcionais
+Novos recursos implementados com UX/UI consistente
+APIs RESTful completas para todas as funcionalidades
+Documentação técnica e manual do usuário
+Testes automatizados para todas as funcionalidades
+Dashboard executivo com métricas em tempo real
+Sistema de notificações e workflow automation
+Mobile-ready interfaces
+Compliance e auditoria completos

@@ -62,6 +62,7 @@ import MultilocationAdmin from "./pages/MultilocationAdmin";
 import HolidayCalendar from "./pages/HolidayCalendar";
 import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
+import TeamManagement from "./pages/TeamManagement";
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 
 // Components
@@ -147,6 +148,7 @@ function AppRouter() {
         <Route path="/agenda-manager" component={AgendaManager} />
         <Route path="/omnibridge" component={OmniBridge} />
         <Route path="/profile" component={UserProfile} />
+        <Route path="/team-management" component={TeamManagement} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />

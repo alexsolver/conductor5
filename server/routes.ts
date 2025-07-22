@@ -34,6 +34,7 @@ import holidayRoutes from './routes/HolidayController';
 import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 import { userProfileRoutes } from './routes/userProfileRoutes';
+import { teamManagementRoutes } from './routes/teamManagementRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -252,6 +253,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User profile routes
   app.use('/api/user', jwtAuth, userProfileRoutes);
+
+  // Team management routes
+  app.use('/api/team-management', jwtAuth, teamManagementRoutes);
 
   // Tenant admin team management routes
   app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
