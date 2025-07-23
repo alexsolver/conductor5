@@ -369,6 +369,56 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Update member data
+router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { user } = req;
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Update user data
+    const updatedMember = await db.update(users)
+      .set({
+        firstName: updateData.firstName || null,
+        lastName: updateData.lastName || null,
+        email: updateData.email,
+        phone: updateData.phone || null,
+        position: updateData.position || null,
+        departmentId: updateData.departmentId || null,
+        address: updateData.address || null,
+        city: updateData.city || null,
+        state: updateData.state || null,
+        zipCode: updateData.zipCode || null,
+        country: updateData.country || null,
+        hireDate: updateData.hireDate ? new Date(updateData.hireDate) : null,
+        salary: updateData.salary ? parseFloat(updateData.salary) : null,
+        employmentType: updateData.employmentType || null,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(users.id, id),
+        eq(users.tenantId, user.tenantId)
+      ));
+
+    if (updatedMember.length === 0) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Member updated successfully',
+      member: updatedMember[0]
+    });
+  } catch (error) {
+    console.error('Error updating member:', error);
+    res.status(500).json({ message: 'Failed to update member' });
+  }
+});
+
 // Invalidate cache when members are created/updated
 router.post('/members/refresh', async (req: AuthenticatedRequest, res) => {
   try {
