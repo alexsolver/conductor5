@@ -1,0 +1,519 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { 
+  Users, 
+  TrendingUp, 
+  Ticket, 
+  Settings, 
+  Building, 
+  Palette,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  Upload,
+  Save,
+  Loader2
+} from "lucide-react";
+
+// Schema para configurações de branding
+const brandingSchema = z.object({
+  companyName: z.string().min(1, "Nome da empresa é obrigatório"),
+  logoUrl: z.string().url().optional().or(z.literal("")),
+  primaryColor: z.string().min(1, "Cor primária é obrigatória"),
+  secondaryColor: z.string().min(1, "Cor secundária é obrigatória"),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  supportEmail: z.string().email("Email inválido").optional().or(z.literal("")),
+  supportPhone: z.string().optional(),
+  address: z.string().optional(),
+  description: z.string().optional(),
+  timezone: z.string().min(1, "Fuso horário é obrigatório"),
+  language: z.string().min(1, "Idioma é obrigatório"),
+});
+
+type BrandingFormData = z.infer<typeof brandingSchema>;
+
+export default function TenantAdminGeral() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Queries para dados do dashboard
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ["/api/tenant-admin/analytics"],
+  });
+
+  const { data: teamStats, isLoading: teamStatsLoading } = useQuery({
+    queryKey: ["/api/tenant-admin/team/stats"],
+  });
+
+  const { data: users, isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/tenant-admin/users"],
+  });
+
+  // Query para configurações de branding
+  const { data: brandingData, isLoading: brandingLoading } = useQuery({
+    queryKey: ["/api/tenant-admin/branding"],
+  });
+
+  // Form para branding
+  const form = useForm<BrandingFormData>({
+    resolver: zodResolver(brandingSchema),
+    defaultValues: {
+      companyName: (brandingData as any)?.companyName || "",
+      logoUrl: (brandingData as any)?.logoUrl || "",
+      primaryColor: (brandingData as any)?.primaryColor || "#3b82f6",
+      secondaryColor: (brandingData as any)?.secondaryColor || "#64748b",
+      websiteUrl: (brandingData as any)?.websiteUrl || "",
+      supportEmail: (brandingData as any)?.supportEmail || "",
+      supportPhone: (brandingData as any)?.supportPhone || "",
+      address: (brandingData as any)?.address || "",
+      description: (brandingData as any)?.description || "",
+      timezone: (brandingData as any)?.timezone || "America/Sao_Paulo",
+      language: (brandingData as any)?.language || "pt-BR",
+    },
+  });
+
+  // Mutation para salvar branding
+  const updateBrandingMutation = useMutation({
+    mutationFn: (data: BrandingFormData) =>
+      apiRequest("PUT", "/api/tenant-admin/branding", data),
+    onSuccess: () => {
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações de branding foram atualizadas com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/branding"] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar as configurações.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: BrandingFormData) => {
+    updateBrandingMutation.mutate(data);
+  };
+
+  // Cards de estatísticas do dashboard
+  const StatCard = ({ title, value, icon: Icon, trend }: any) => (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold">{value}</p>
+            {trend && (
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+{trend}%</span> vs mês anterior
+              </p>
+            )}
+          </div>
+          <Icon className="h-8 w-8 text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (analyticsLoading || teamStatsLoading || usersLoading || brandingLoading) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Geral</h1>
+          <p className="text-muted-foreground">
+            Dashboard e configurações gerais do workspace
+          </p>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="branding">Branding & Personalização</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          {/* Estatísticas principais */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Total de Clientes"
+              value={(analytics as any)?.totalCustomers || 0}
+              icon={Users}
+              trend={12}
+            />
+            <StatCard
+              title="Tickets Ativos"
+              value={(analytics as any)?.totalTickets || 0}
+              icon={Ticket}
+              trend={8}
+            />
+            <StatCard
+              title="Membros da Equipe"
+              value={(teamStats as any)?.totalMembers || 0}
+              icon={Building}
+              trend={5}
+            />
+            <StatCard
+              title="Taxa de Resolução"
+              value={`${(analytics as any)?.resolutionRate || 0}%`}
+              icon={TrendingUp}
+              trend={3}
+            />
+          </div>
+
+          {/* Seção de atividade recente */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Atividade da Equipe</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Membros ativos hoje</span>
+                    <Badge variant="secondary">{(teamStats as any)?.activeToday || 0}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Performance média</span>
+                    <Badge variant="outline">{(teamStats as any)?.averagePerformance || 0}%</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Novos membros (mês)</span>
+                    <Badge variant="default">{(teamStats as any)?.newMembersThisMonth || 0}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo de Tickets</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Abertos</span>
+                    <Badge variant="destructive">{(analytics as any)?.openTickets || 0}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Em progresso</span>
+                    <Badge variant="default">{(analytics as any)?.inProgressTickets || 0}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Resolvidos (mês)</span>
+                    <Badge variant="secondary">{(analytics as any)?.resolvedThisMonth || 0}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="branding" className="space-y-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Informações da Empresa */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="h-5 w-5" />
+                      Informações da Empresa
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome da Empresa</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Minha Empresa Ltda" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descrição</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descrição da empresa..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="websiteUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Site da Empresa</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://minhaempresa.com.br"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Configurações Visuais */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Palette className="h-5 w-5" />
+                      Configurações Visuais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="logoUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL do Logo</FormLabel>
+                          <FormControl>
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="https://exemplo.com/logo.png"
+                                {...field}
+                              />
+                              <Button type="button" variant="outline" size="icon">
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="primaryColor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cor Primária</FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Input type="color" {...field} className="w-16 h-10" />
+                                <Input {...field} placeholder="#3b82f6" />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="secondaryColor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cor Secundária</FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Input type="color" {...field} className="w-16 h-10" />
+                                <Input {...field} placeholder="#64748b" />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Informações de Contato */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Mail className="h-5 w-5" />
+                      Informações de Contato
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="supportEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email de Suporte</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email"
+                              placeholder="suporte@minhaempresa.com.br"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="supportPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone de Suporte</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="(11) 99999-9999"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Endereço</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Rua Exemplo, 123 - Bairro - Cidade/UF"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Configurações Regionais */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Configurações Regionais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="timezone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Fuso Horário</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o fuso horário" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="America/Sao_Paulo">América/São Paulo (BRT)</SelectItem>
+                              <SelectItem value="America/New_York">América/Nova York (EST)</SelectItem>
+                              <SelectItem value="Europe/London">Europa/Londres (GMT)</SelectItem>
+                              <SelectItem value="Asia/Tokyo">Ásia/Tóquio (JST)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Idioma</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o idioma" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                              <SelectItem value="en-US">English (US)</SelectItem>
+                              <SelectItem value="es-ES">Español</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  disabled={updateBrandingMutation.isPending}
+                  className="min-w-[120px]"
+                >
+                  {updateBrandingMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Salvar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

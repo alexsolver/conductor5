@@ -39,6 +39,7 @@ import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 import TenantAdminSLAs from "./pages/TenantAdminSLAs";
 import TenantAdminIntegrations from "./pages/TenantAdminIntegrations";
 import TenantAdminBranding from "./pages/TenantAdminBranding";
+import TenantAdminGeral from "./pages/TenantAdminGeral";
 import ModuleIntegrityControl from "./pages/ModuleIntegrityControl";
 import TicketConfiguration from "./pages/TicketConfiguration";
 import { UserManagement } from "./pages/UserManagement";
@@ -117,7 +118,7 @@ function AppRouter() {
         <Route path="/saas-admin/disaster-recovery" component={SaasAdminDisasterRecovery} />
         <Route path="/saas-admin/integrations" component={SaasAdminIntegrations} />
         <Route path="/tenant-admin" component={TenantAdmin} />
-
+        <Route path="/tenant-admin/geral" component={TenantAdminGeral} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />

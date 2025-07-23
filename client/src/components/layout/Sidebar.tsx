@@ -112,6 +112,7 @@ const adminNavigation = [
     icon: Settings, 
     roles: ['saas_admin', 'tenant_admin'],
     children: [
+      { name: "Geral", href: "/tenant-admin/geral", icon: BarChart3 },
       { name: "Dashboard", href: "/tenant-admin", icon: BarChart3 },
       { name: "Gestão de Equipe", href: "/team-management", icon: Users },
       { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
