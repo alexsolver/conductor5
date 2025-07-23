@@ -35,6 +35,7 @@ import timecardRoutes from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
+import contractRoutes from './routes/contractRoutes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -710,6 +711,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Timecard routes - Registro de Ponto
   app.use('/api/timecard', jwtAuth, timecardRoutes);
+
+  // Contract Management routes - Gestão de Contratos
+  app.use('/api/contracts', contractRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

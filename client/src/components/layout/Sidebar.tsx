@@ -115,6 +115,7 @@ const adminNavigation = [
       { name: "Geral", href: "/tenant-admin/geral", icon: BarChart3 },
       { name: "Dashboard", href: "/tenant-admin", icon: BarChart3 },
       { name: "Gestão de Equipe", href: "/team-management", icon: Users },
+      { name: "Gestão de Contratos", href: "/contract-management", icon: FileText },
       { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
       { name: "Workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "SLAs", href: "/tenant-admin/slas", icon: Target },

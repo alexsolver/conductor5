@@ -15,6 +15,8 @@ import {
   decimal,
   date,
   unique,
+  time,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -975,3 +977,382 @@ export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 
 // User Group schemas for validation
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
+
+// ========================================
+// CONTRACT MANAGEMENT TABLES
+// ========================================
+
+// Contracts table - Main contract records
+export const contracts = pgTable("contracts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractNumber: varchar("contract_number", { length: 100 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  customerId: uuid("customer_id").references(() => customers.id),
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id),
+  contractType: varchar("contract_type", { length: 50 }).notNull(), // maintenance, support, development, consultoria, sla
+  status: varchar("status", { length: 50 }).default("active"), // active, suspended, cancelled, in_renewal, expired
+  priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, critical
+  
+  // Financial Information
+  totalValue: decimal("total_value", { precision: 15, scale: 2 }),
+  monthlyValue: decimal("monthly_value", { precision: 15, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  
+  // Contract Dates
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  renewalDate: timestamp("renewal_date"),
+  lastRenewalDate: timestamp("last_renewal_date"),
+  signatureDate: timestamp("signature_date"),
+  
+  // Contract Management
+  managerId: uuid("manager_id").references(() => users.id), // Account manager
+  technicalManagerId: uuid("technical_manager_id").references(() => users.id),
+  locationId: uuid("location_id").references(() => locations.id),
+  
+  // Contract Hierarchy
+  parentContractId: uuid("parent_contract_id"), // For addendums and annexes
+  isMainContract: boolean("is_main_contract").default(true),
+  
+  // Renewal Settings
+  autoRenewal: boolean("auto_renewal").default(false),
+  renewalNoticeDays: integer("renewal_notice_days").default(30),
+  renewalTermMonths: integer("renewal_term_months").default(12),
+  
+  // Compliance and Risk
+  riskLevel: varchar("risk_level", { length: 20 }).default("low"), // low, medium, high, critical
+  complianceStatus: varchar("compliance_status", { length: 50 }).default("compliant"),
+  
+  // Additional Information
+  terms: text("terms"), // Special terms and conditions
+  notes: text("notes"),
+  tags: text("tags").array().default([]),
+  customFields: jsonb("custom_fields").default({}),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+}, (table) => [
+  index("contracts_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("contracts_tenant_status_idx").on(table.tenantId, table.status),
+  index("contracts_tenant_type_idx").on(table.tenantId, table.contractType),
+  index("contracts_tenant_dates_idx").on(table.tenantId, table.startDate, table.endDate),
+  index("contracts_tenant_renewal_idx").on(table.tenantId, table.renewalDate),
+  index("contracts_tenant_manager_idx").on(table.tenantId, table.managerId),
+  unique("contracts_tenant_number_unique").on(table.tenantId, table.contractNumber),
+]);
+
+// Contract SLAs table - Service Level Agreements
+export const contractSlas = pgTable("contract_slas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractId: uuid("contract_id").references(() => contracts.id, { onDelete: 'cascade' }).notNull(),
+  slaName: varchar("sla_name", { length: 255 }).notNull(),
+  slaType: varchar("sla_type", { length: 50 }).notNull(), // response_time, resolution_time, availability, performance
+  
+  // SLA Metrics
+  responseTime: integer("response_time"), // in minutes
+  resolutionTime: integer("resolution_time"), // in hours
+  availabilityPercent: decimal("availability_percent", { precision: 5, scale: 2 }), // 99.9%
+  upTimeHours: decimal("uptime_hours", { precision: 8, scale: 2 }),
+  
+  // Business Hours
+  businessHoursStart: time("business_hours_start").default("08:00"),
+  businessHoursEnd: time("business_hours_end").default("18:00"),
+  businessDays: text("business_days").array().default(["monday", "tuesday", "wednesday", "thursday", "friday"]),
+  includeWeekends: boolean("include_weekends").default(false),
+  includeHolidays: boolean("include_holidays").default(false),
+  
+  // Escalation Rules
+  escalationLevel1: integer("escalation_level1"), // minutes to escalate
+  escalationLevel2: integer("escalation_level2"),
+  escalationLevel3: integer("escalation_level3"),
+  escalationManagerId: uuid("escalation_manager_id").references(() => users.id),
+  
+  // Penalties and Bonuses
+  penaltyPercent: decimal("penalty_percent", { precision: 5, scale: 2 }),
+  bonusPercent: decimal("bonus_percent", { precision: 5, scale: 2 }),
+  penaltyCapPercent: decimal("penalty_cap_percent", { precision: 5, scale: 2 }), // Maximum penalty
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("contract_slas_tenant_contract_idx").on(table.tenantId, table.contractId),
+  index("contract_slas_tenant_type_idx").on(table.tenantId, table.slaType),
+  unique("contract_slas_contract_name_unique").on(table.contractId, table.slaName),
+]);
+
+// Contract Services table - Services included in contract
+export const contractServices = pgTable("contract_services", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractId: uuid("contract_id").references(() => contracts.id, { onDelete: 'cascade' }).notNull(),
+  serviceName: varchar("service_name", { length: 255 }).notNull(),
+  serviceType: varchar("service_type", { length: 50 }).notNull(), // maintenance, support, installation, consultation
+  serviceCategory: varchar("service_category", { length: 100 }),
+  
+  // Service Pricing
+  includedQuantity: integer("included_quantity"), // How many included in contract
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }), // Price per additional unit
+  billingType: varchar("billing_type", { length: 50 }).default("included"), // included, per_unit, hourly, fixed
+  
+  // Service Details
+  description: text("description"),
+  requirements: text("requirements"),
+  deliverables: text("deliverables"),
+  estimatedHours: decimal("estimated_hours", { precision: 8, scale: 2 }),
+  skillsRequired: text("skills_required").array().default([]),
+  
+  // SLA Association
+  slaId: uuid("sla_id").references(() => contractSlas.id),
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("contract_services_tenant_contract_idx").on(table.tenantId, table.contractId),
+  index("contract_services_tenant_type_idx").on(table.tenantId, table.serviceType),
+  index("contract_services_tenant_category_idx").on(table.tenantId, table.serviceCategory),
+]);
+
+// Contract Documents table - Document management
+export const contractDocuments = pgTable("contract_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractId: uuid("contract_id").references(() => contracts.id, { onDelete: 'cascade' }).notNull(),
+  documentName: varchar("document_name", { length: 255 }).notNull(),
+  documentType: varchar("document_type", { length: 50 }).notNull(), // contract, addendum, amendment, signature, certificate
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  fileSize: bigint("file_size", { mode: "number" }), // in bytes
+  mimeType: varchar("mime_type", { length: 100 }),
+  
+  // Versioning
+  version: varchar("version", { length: 20 }).default("1.0"),
+  isCurrentVersion: boolean("is_current_version").default(true),
+  previousVersionId: uuid("previous_version_id"),
+  
+  // Signature Information
+  requiresSignature: boolean("requires_signature").default(false),
+  signatureStatus: varchar("signature_status", { length: 50 }).default("pending"), // pending, signed, rejected, expired
+  signedDate: timestamp("signed_date"),
+  signedById: uuid("signed_by_id").references(() => users.id),
+  digitalSignatureId: varchar("digital_signature_id", { length: 255 }), // External signature service ID
+  
+  // Access Control
+  accessLevel: varchar("access_level", { length: 50 }).default("internal"), // public, internal, confidential, restricted
+  allowedUserIds: uuid("allowed_user_ids").array().default([]),
+  allowedRoles: text("allowed_roles").array().default([]),
+  
+  // Metadata
+  description: text("description"),
+  tags: text("tags").array().default([]),
+  expirationDate: timestamp("expiration_date"),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  uploadedById: uuid("uploaded_by_id").references(() => users.id),
+}, (table) => [
+  index("contract_documents_tenant_contract_idx").on(table.tenantId, table.contractId),
+  index("contract_documents_tenant_type_idx").on(table.tenantId, table.documentType),
+  index("contract_documents_signature_status_idx").on(table.signatureStatus),
+  index("contract_documents_current_version_idx").on(table.isCurrentVersion),
+]);
+
+// Contract Renewals table - Renewal history and management
+export const contractRenewals = pgTable("contract_renewals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractId: uuid("contract_id").references(() => contracts.id, { onDelete: 'cascade' }).notNull(),
+  renewalType: varchar("renewal_type", { length: 50 }).notNull(), // automatic, manual, renegotiated
+  
+  // Renewal Details
+  previousEndDate: timestamp("previous_end_date").notNull(),
+  newEndDate: timestamp("new_end_date").notNull(),
+  renewalDate: timestamp("renewal_date").defaultNow(),
+  termMonths: integer("term_months").notNull(),
+  
+  // Financial Changes
+  previousValue: decimal("previous_value", { precision: 15, scale: 2 }),
+  newValue: decimal("new_value", { precision: 15, scale: 2 }),
+  adjustmentPercent: decimal("adjustment_percent", { precision: 5, scale: 2 }),
+  adjustmentReason: varchar("adjustment_reason", { length: 255 }),
+  
+  // Approval Workflow
+  status: varchar("status", { length: 50 }).default("pending"), // pending, approved, rejected, executed
+  requestedById: uuid("requested_by_id").references(() => users.id),
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  requestDate: timestamp("request_date").defaultNow(),
+  approvalDate: timestamp("approval_date"),
+  
+  // Changes and Notes
+  changesFromPrevious: text("changes_from_previous"),
+  renewalNotes: text("renewal_notes"),
+  approvalNotes: text("approval_notes"),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("contract_renewals_tenant_contract_idx").on(table.tenantId, table.contractId),
+  index("contract_renewals_tenant_status_idx").on(table.tenantId, table.status),
+  index("contract_renewals_tenant_date_idx").on(table.tenantId, table.renewalDate),
+]);
+
+// Contract Billing table - Financial transactions and billing history
+export const contractBilling = pgTable("contract_billing", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractId: uuid("contract_id").references(() => contracts.id, { onDelete: 'cascade' }).notNull(),
+  billingPeriodStart: timestamp("billing_period_start").notNull(),
+  billingPeriodEnd: timestamp("billing_period_end").notNull(),
+  
+  // Billing Information
+  billingType: varchar("billing_type", { length: 50 }).notNull(), // monthly, quarterly, annual, one_time, usage_based
+  baseAmount: decimal("base_amount", { precision: 15, scale: 2 }).notNull(),
+  additionalCharges: decimal("additional_charges", { precision: 15, scale: 2 }).default('0'),
+  discountAmount: decimal("discount_amount", { precision: 15, scale: 2 }).default('0'),
+  penaltyAmount: decimal("penalty_amount", { precision: 15, scale: 2 }).default('0'),
+  bonusAmount: decimal("bonus_amount", { precision: 15, scale: 2 }).default('0'),
+  totalAmount: decimal("total_amount", { precision: 15, scale: 2 }).notNull(),
+  
+  // Tax Information
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }),
+  taxAmount: decimal("tax_amount", { precision: 15, scale: 2 }),
+  
+  // Payment Information
+  invoiceNumber: varchar("invoice_number", { length: 100 }),
+  dueDate: timestamp("due_date"),
+  paymentStatus: varchar("payment_status", { length: 50 }).default("pending"), // pending, paid, overdue, cancelled
+  paymentDate: timestamp("payment_date"),
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  
+  // Additional Services
+  additionalServices: jsonb("additional_services").default([]), // Array of extra services billed
+  usageMetrics: jsonb("usage_metrics").default({}), // Usage-based billing metrics
+  
+  // Billing Notes
+  billingNotes: text("billing_notes"),
+  paymentNotes: text("payment_notes"),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  generatedById: uuid("generated_by_id").references(() => users.id),
+}, (table) => [
+  index("contract_billing_tenant_contract_idx").on(table.tenantId, table.contractId),
+  index("contract_billing_tenant_period_idx").on(table.tenantId, table.billingPeriodStart, table.billingPeriodEnd),
+  index("contract_billing_tenant_status_idx").on(table.tenantId, table.paymentStatus),
+  index("contract_billing_due_date_idx").on(table.dueDate),
+]);
+
+// Contract Equipment table - Equipment/assets covered by contract
+export const contractEquipment = pgTable("contract_equipment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  contractId: uuid("contract_id").references(() => contracts.id, { onDelete: 'cascade' }).notNull(),
+  equipmentName: varchar("equipment_name", { length: 255 }).notNull(),
+  equipmentType: varchar("equipment_type", { length: 100 }),
+  manufacturer: varchar("manufacturer", { length: 100 }),
+  model: varchar("model", { length: 100 }),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  assetTag: varchar("asset_tag", { length: 100 }),
+  
+  // Location and Installation
+  installationLocationId: uuid("installation_location_id").references(() => locations.id),
+  installationDate: timestamp("installation_date"),
+  installationNotes: text("installation_notes"),
+  
+  // Coverage Details
+  coverageType: varchar("coverage_type", { length: 50 }).default("full"), // full, parts_only, labor_only, preventive
+  warrantyEndDate: timestamp("warranty_end_date"),
+  maintenanceSchedule: varchar("maintenance_schedule", { length: 50 }), // monthly, quarterly, semi_annual, annual
+  
+  // Equipment Status
+  status: varchar("status", { length: 50 }).default("active"), // active, inactive, replaced, removed
+  replacementDate: timestamp("replacement_date"),
+  replacementReason: text("replacement_reason"),
+  
+  // Technical Information
+  specifications: jsonb("specifications").default({}),
+  maintenanceHistory: jsonb("maintenance_history").default([]),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("contract_equipment_tenant_contract_idx").on(table.tenantId, table.contractId),
+  index("contract_equipment_tenant_type_idx").on(table.tenantId, table.equipmentType),
+  index("contract_equipment_serial_idx").on(table.serialNumber),
+  index("contract_equipment_location_idx").on(table.installationLocationId),
+]);
+
+// Contract type definitions and validation schemas
+export type InsertContract = typeof contracts.$inferInsert;
+export type Contract = typeof contracts.$inferSelect;
+export type InsertContractSla = typeof contractSlas.$inferInsert;
+export type ContractSla = typeof contractSlas.$inferSelect;
+export type InsertContractService = typeof contractServices.$inferInsert;
+export type ContractService = typeof contractServices.$inferSelect;
+export type InsertContractDocument = typeof contractDocuments.$inferInsert;
+export type ContractDocument = typeof contractDocuments.$inferSelect;
+export type InsertContractRenewal = typeof contractRenewals.$inferInsert;
+export type ContractRenewal = typeof contractRenewals.$inferSelect;
+export type InsertContractBilling = typeof contractBilling.$inferInsert;
+export type ContractBilling = typeof contractBilling.$inferSelect;
+export type InsertContractEquipment = typeof contractEquipment.$inferInsert;
+export type ContractEquipment = typeof contractEquipment.$inferSelect;
+
+// Contract validation schemas
+export const insertContractSchema = createInsertSchema(contracts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+});
+
+export const insertContractSlaSchema = createInsertSchema(contractSlas).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContractServiceSchema = createInsertSchema(contractServices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContractDocumentSchema = createInsertSchema(contractDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  uploadedById: true,
+});
+
+export const insertContractRenewalSchema = createInsertSchema(contractRenewals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContractBillingSchema = createInsertSchema(contractBilling).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  generatedById: true,
+});
+
+export const insertContractEquipmentSchema = createInsertSchema(contractEquipment).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
