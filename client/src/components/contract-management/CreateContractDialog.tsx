@@ -64,18 +64,44 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   });
 
   // Fetch customers for dropdown
-  const { data: customers = [] } = useQuery({
+  const { data: customersData } = useQuery({
     queryKey: ['/api/customers'],
+    queryFn: () => fetch('/api/customers', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json()),
   });
 
   // Fetch users for manager dropdown
-  const { data: users = [] } = useQuery({
+  const { data: usersData } = useQuery({
     queryKey: ['/api/user-management/users'],
+    queryFn: () => fetch('/api/user-management/users', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json()),
   });
 
+  // Ensure data is always arrays
+  const customers = Array.isArray(customersData) ? customersData : 
+                   customersData?.customers ? customersData.customers : [];
+  const users = Array.isArray(usersData) ? usersData : 
+               usersData?.users ? usersData.users : [];
+
   const createContractMutation = useMutation({
-    mutationFn: (data: CreateContractFormData) => 
-      apiRequest('POST', '/api/contracts/contracts', data),
+    mutationFn: (data: CreateContractFormData) => {
+      return fetch('/api/contracts/contracts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }).then(res => res.json());
+    },
     onSuccess: () => {
       toast({
         title: 'Sucesso',
@@ -249,7 +275,8 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {customers.map((customer: any) => (
+                        <SelectItem value="none">Nenhum cliente</SelectItem>
+                        {Array.isArray(customers) && customers.map((customer: any) => (
                           <SelectItem key={customer.id} value={customer.id}>
                             {customer.name}
                           </SelectItem>
@@ -274,7 +301,8 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {users.map((user: any) => (
+                        <SelectItem value="none">Nenhum gerente</SelectItem>
+                        {Array.isArray(users) && users.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name}
                           </SelectItem>

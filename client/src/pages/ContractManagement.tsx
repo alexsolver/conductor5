@@ -52,7 +52,10 @@ export default function ContractManagement() {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         'Content-Type': 'application/json'
       }
-    }).then(res => res.json()),
+    }).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch stats');
+      return res.json();
+    }),
   });
 
   // Fetch contracts with filters
@@ -70,7 +73,10 @@ export default function ContractManagement() {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json'
         }
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) throw new Error('Failed to fetch contracts');
+        return res.json();
+      });
     },
   });
 
