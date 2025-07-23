@@ -70,11 +70,81 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const updateGroupMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
+      return apiRequest("PUT", `/api/user-management/groups/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      setEditingGroup(null);
+      setFormData({ name: "", description: "" });
+      toast({
+        title: t("userManagement.success", "Sucesso"),
+        description: t("userManagement.groupUpdated", "Grupo atualizado com sucesso"),
+      });
+    },
+    onError: () => {
+      toast({
+        title: t("userManagement.error", "Erro"),
+        description: t("userManagement.groupUpdateError", "Erro ao atualizar grupo"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/user-management/groups/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      toast({
+        title: t("userManagement.success", "Sucesso"),
+        description: t("userManagement.groupDeleted", "Grupo excluído com sucesso"),
+      });
+    },
+    onError: () => {
+      toast({
+        title: t("userManagement.error", "Erro"),
+        description: t("userManagement.groupDeleteError", "Erro ao excluir grupo"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    
     createGroupMutation.mutate(formData);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !editingGroup) return;
+    updateGroupMutation.mutate({ 
+      id: editingGroup.id, 
+      data: formData 
+    });
+  };
+
+  const handleEditClick = (group: UserGroup) => {
+    setEditingGroup(group);
+    setFormData({
+      name: group.name,
+      description: group.description || ""
+    });
+  };
+
+  const handleDeleteClick = (group: UserGroup) => {
+    if (window.confirm(`Tem certeza que deseja excluir o grupo "${group.name}"?`)) {
+      deleteGroupMutation.mutate(group.id);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setShowCreateDialog(false);
+    setEditingGroup(null);
+    setFormData({ name: "", description: "" });
   };
 
   return (
@@ -94,7 +164,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleCreateSubmit}>
               <DialogHeader>
                 <DialogTitle>{t("userManagement.createGroup", "Criar Grupo")}</DialogTitle>
                 <DialogDescription>
@@ -127,7 +197,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setShowCreateDialog(false)}
+                  onClick={handleCloseDialog}
                 >
                   {t("common.cancel", "Cancelar")}
                 </Button>
@@ -138,6 +208,60 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   {createGroupMutation.isPending 
                     ? t("common.creating", "Criando...") 
                     : t("common.create", "Criar")
+                  }
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Dialog de Edição */}
+        <Dialog open={!!editingGroup} onOpenChange={() => setEditingGroup(null)}>
+          <DialogContent>
+            <form onSubmit={handleEditSubmit}>
+              <DialogHeader>
+                <DialogTitle>{t("userManagement.editGroup", "Editar Grupo")}</DialogTitle>
+                <DialogDescription>
+                  {t("userManagement.editGroupDesc", "Atualize as informações do grupo")}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">{t("userManagement.groupName", "Nome do Grupo")}</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder={t("userManagement.groupNamePlaceholder", "Ex: Suporte Técnico")}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">{t("userManagement.description", "Descrição")}</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder={t("userManagement.descriptionPlaceholder", "Descrição opcional do grupo")}
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCloseDialog}
+                >
+                  {t("common.cancel", "Cancelar")}
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateGroupMutation.isPending || !formData.name.trim()}
+                >
+                  {updateGroupMutation.isPending 
+                    ? t("common.updating", "Atualizando...") 
+                    : t("common.update", "Atualizar")
                   }
                 </Button>
               </DialogFooter>
@@ -177,10 +301,20 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     {group.memberships?.length || 0} membros
                   </div>
                   <div className="flex items-center space-x-1">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditClick(group)}
+                      title={t("userManagement.editGroup", "Editar Grupo")}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeleteClick(group)}
+                      title={t("userManagement.deleteGroup", "Excluir Grupo")}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
