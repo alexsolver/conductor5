@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { UserList } from "@/components/user-management/UserList";
 import { UserGroups } from "@/components/user-management/UserGroups";
-import { CustomRoles } from "@/components/user-management/CustomRoles";
+import CustomRoles from "@/components/user-management/CustomRoles";
 import { UserInvitations } from "@/components/user-management/UserInvitations";
 import { UserActivity } from "@/components/user-management/UserActivity";
 import { UserSessions } from "@/components/user-management/UserSessions";

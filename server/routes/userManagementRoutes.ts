@@ -166,6 +166,36 @@ router.delete('/groups/:groupId',
   }
 );
 
+// Get all users for tenant (for role/group management)
+router.get('/users', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      
+      // Get users from database
+      const users = await db.select({
+        id: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        role: usersTable.role,
+        isActive: usersTable.isActive
+      })
+      .from(usersTable)
+      .where(and(
+        eq(usersTable.tenantId, tenantId),
+        eq(usersTable.isActive, true)
+      ));
+      
+      res.json({ users });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  }
+);
+
 // ============= GROUP MEMBERS ROUTES =============
 
 // Get group members
@@ -274,6 +304,273 @@ router.delete('/groups/:groupId/members/:userId',
     } catch (error) {
       console.error('Error removing user from group:', error);
       res.status(500).json({ message: 'Failed to remove user from group' });
+    }
+  }
+);
+
+// ============= ROLES MANAGEMENT ROUTES =============
+
+// Get all roles for tenant
+router.get('/roles', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      
+      // Mock roles data - TODO: implement real database query
+      const roles = [
+        {
+          id: '1',
+          name: 'Administrador de Workspace',
+          description: 'Controle total sobre o workspace',
+          permissions: ['workspace.manage', 'user.create', 'user.edit', 'user.delete', 'tickets.manage'],
+          isActive: true,
+          isSystem: true,
+          userCount: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: 'Agente de Suporte',
+          description: 'Acesso para atendimento ao cliente',
+          permissions: ['tickets.view', 'tickets.create', 'tickets.edit', 'customers.view'],
+          isActive: true,
+          isSystem: false,
+          userCount: 3,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      res.json({ roles });
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      res.status(500).json({ message: 'Failed to fetch roles' });
+    }
+  }
+);
+
+// Get permissions catalog
+router.get('/permissions', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // Mock permissions data based on workspace categories
+      const permissions = [
+        // Administração do Workspace
+        { id: 'workspace.manage', name: 'Gerenciar Workspace', category: 'workspace_admin', description: 'Controle total do workspace', level: 'workspace' },
+        { id: 'workspace.configure', name: 'Configurar Workspace', category: 'workspace_admin', description: 'Alterar configurações', level: 'workspace' },
+        { id: 'workspace.security', name: 'Configurações de Segurança', category: 'workspace_admin', description: 'Definir políticas de segurança', level: 'workspace' },
+        { id: 'workspace.integrations', name: 'Gerenciar Integrações', category: 'workspace_admin', description: 'Configurar integrações', level: 'workspace' },
+        
+        // Gestão de Usuários e Acesso  
+        { id: 'user.view', name: 'Visualizar Usuários', category: 'user_access', description: 'Ver lista de usuários', level: 'workspace' },
+        { id: 'user.create', name: 'Criar Usuários', category: 'user_access', description: 'Adicionar novos usuários', level: 'workspace' },
+        { id: 'user.edit', name: 'Editar Usuários', category: 'user_access', description: 'Modificar dados dos usuários', level: 'workspace' },
+        { id: 'user.delete', name: 'Excluir Usuários', category: 'user_access', description: 'Remover usuários', level: 'workspace' },
+        { id: 'groups.manage', name: 'Gerenciar Grupos', category: 'user_access', description: 'Administrar grupos de usuários', level: 'workspace' },
+        { id: 'sessions.monitor', name: 'Monitorar Sessões', category: 'user_access', description: 'Ver sessões ativas', level: 'workspace' },
+        
+        // Atendimento ao Cliente
+        { id: 'tickets.view', name: 'Visualizar Tickets', category: 'customer_support', description: 'Ver tickets de suporte', level: 'workspace' },
+        { id: 'tickets.create', name: 'Criar Tickets', category: 'customer_support', description: 'Abrir novos tickets', level: 'workspace' },
+        { id: 'tickets.edit', name: 'Editar Tickets', category: 'customer_support', description: 'Modificar tickets', level: 'workspace' },
+        { id: 'tickets.delete', name: 'Excluir Tickets', category: 'customer_support', description: 'Remover tickets', level: 'workspace' },
+        { id: 'tickets.assign', name: 'Atribuir Tickets', category: 'customer_support', description: 'Designar responsáveis', level: 'workspace' },
+        { id: 'tickets.manage', name: 'Gerenciar Tickets', category: 'customer_support', description: 'Controle total sobre tickets', level: 'workspace' },
+        
+        // Gestão de Clientes
+        { id: 'customers.view', name: 'Visualizar Clientes', category: 'customer_management', description: 'Ver dados dos clientes', level: 'workspace' },
+        { id: 'customers.create', name: 'Criar Clientes', category: 'customer_management', description: 'Adicionar novos clientes', level: 'workspace' },
+        { id: 'customers.edit', name: 'Editar Clientes', category: 'customer_management', description: 'Modificar dados dos clientes', level: 'workspace' },
+        { id: 'customers.delete', name: 'Excluir Clientes', category: 'customer_management', description: 'Remover clientes', level: 'workspace' },
+        
+        // Base de Conhecimento
+        { id: 'kb.view', name: 'Visualizar KB', category: 'knowledge_base', description: 'Acessar base de conhecimento', level: 'workspace' },
+        { id: 'kb.create', name: 'Criar Artigos KB', category: 'knowledge_base', description: 'Adicionar artigos', level: 'workspace' },
+        { id: 'kb.edit', name: 'Editar KB', category: 'knowledge_base', description: 'Modificar artigos', level: 'workspace' },
+        { id: 'kb.manage', name: 'Gerenciar KB', category: 'knowledge_base', description: 'Controle total da KB', level: 'workspace' },
+        
+        // Recursos Humanos e Equipe
+        { id: 'hr.view', name: 'Visualizar RH', category: 'hr_team', description: 'Ver dados de RH', level: 'workspace' },
+        { id: 'hr.performance', name: 'Gerenciar Performance', category: 'hr_team', description: 'Avaliar desempenho', level: 'workspace' },
+        { id: 'hr.skills', name: 'Matriz de Habilidades', category: 'hr_team', description: 'Gerenciar habilidades', level: 'workspace' },
+        { id: 'hr.absence', name: 'Gestão de Ausências', category: 'hr_team', description: 'Aprovar férias e licenças', level: 'workspace' },
+        
+        // Timecard e Ponto
+        { id: 'timecard.view', name: 'Visualizar Ponto', category: 'timecard', description: 'Ver registros de ponto', level: 'workspace' },
+        { id: 'timecard.manage', name: 'Gerenciar Ponto', category: 'timecard', description: 'Administrar registros', level: 'workspace' },
+        { id: 'timecard.approve', name: 'Aprovar Horas', category: 'timecard', description: 'Aprovar registros de horas', level: 'workspace' },
+        
+        // Projetos e Tarefas
+        { id: 'projects.view', name: 'Visualizar Projetos', category: 'projects', description: 'Ver projetos', level: 'workspace' },
+        { id: 'projects.create', name: 'Criar Projetos', category: 'projects', description: 'Adicionar projetos', level: 'workspace' },
+        { id: 'projects.edit', name: 'Editar Projetos', category: 'projects', description: 'Modificar projetos', level: 'workspace' },
+        { id: 'projects.manage', name: 'Gerenciar Projetos', category: 'projects', description: 'Controle total de projetos', level: 'workspace' },
+        
+        // Analytics e Relatórios
+        { id: 'analytics.view', name: 'Visualizar Analytics', category: 'analytics', description: 'Acessar relatórios', level: 'workspace' },
+        { id: 'analytics.create', name: 'Criar Relatórios', category: 'analytics', description: 'Gerar relatórios customizados', level: 'workspace' },
+        
+        // Configurações e Personalização
+        { id: 'settings.view', name: 'Visualizar Configurações', category: 'settings', description: 'Ver configurações', level: 'workspace' },
+        { id: 'settings.edit', name: 'Editar Configurações', category: 'settings', description: 'Modificar configurações', level: 'workspace' },
+        { id: 'settings.branding', name: 'Personalizar Branding', category: 'settings', description: 'Alterar visual', level: 'workspace' },
+        
+        // Compliance e Segurança
+        { id: 'compliance.view', name: 'Visualizar Compliance', category: 'compliance', description: 'Ver logs de auditoria', level: 'workspace' },
+        { id: 'compliance.manage', name: 'Gerenciar Compliance', category: 'compliance', description: 'Administrar conformidade', level: 'workspace' }
+      ];
+      
+      res.json({ permissions });
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      res.status(500).json({ message: 'Failed to fetch permissions' });
+    }
+  }
+);
+
+// Create role
+router.post('/roles', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { name, description, permissions } = req.body;
+      const tenantId = req.user!.tenantId;
+      
+      if (!name || !Array.isArray(permissions)) {
+        return res.status(400).json({ message: 'Name and permissions are required' });
+      }
+      
+      // Mock creation - TODO: implement real database insert
+      const newRole = {
+        id: Date.now().toString(),
+        name,
+        description: description || '',
+        permissions,
+        isActive: true,
+        isSystem: false,
+        userCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log(`Creating role "${name}" with ${permissions.length} permissions for tenant ${tenantId}`);
+      
+      res.status(201).json({ role: newRole });
+    } catch (error) {
+      console.error('Error creating role:', error);
+      res.status(500).json({ message: 'Failed to create role' });
+    }
+  }
+);
+
+// Update role
+router.put('/roles/:roleId', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { roleId } = req.params;
+      const { name, description, permissions } = req.body;
+      const tenantId = req.user!.tenantId;
+      
+      // Mock update - TODO: implement real database update
+      const updatedRole = {
+        id: roleId,
+        name: name || 'Updated Role',
+        description: description || '',
+        permissions: permissions || [],
+        isActive: true,
+        isSystem: false,
+        userCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log(`Updating role ${roleId} for tenant ${tenantId}`);
+      
+      res.json({ role: updatedRole });
+    } catch (error) {
+      console.error('Error updating role:', error);
+      res.status(500).json({ message: 'Failed to update role' });
+    }
+  }
+);
+
+// Delete role
+router.delete('/roles/:roleId', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { roleId } = req.params;
+      const tenantId = req.user!.tenantId;
+      
+      // Mock deletion - TODO: implement real database soft delete
+      console.log(`Deleting role ${roleId} for tenant ${tenantId}`);
+      
+      res.json({ message: 'Role deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      res.status(500).json({ message: 'Failed to delete role' });
+    }
+  }
+);
+
+// Assign user to role
+router.post('/roles/:roleId/users', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { roleId } = req.params;
+      const { userId } = req.body;
+      const tenantId = req.user!.tenantId;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'userId is required' });
+      }
+      
+      // Mock assignment - TODO: implement real database insert
+      console.log(`Assigning user ${userId} to role ${roleId} for tenant ${tenantId}`);
+      
+      res.status(201).json({ 
+        message: 'User assigned to role successfully',
+        roleId,
+        userId 
+      });
+    } catch (error) {
+      console.error('Error assigning user to role:', error);
+      res.status(500).json({ message: 'Failed to assign user to role' });
+    }
+  }
+);
+
+// Remove user from role
+router.delete('/roles/:roleId/users/:userId', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { roleId, userId } = req.params;
+      const tenantId = req.user!.tenantId;
+      
+      // Mock removal - TODO: implement real database delete
+      console.log(`Removing user ${userId} from role ${roleId} for tenant ${tenantId}`);
+      
+      res.json({ 
+        message: 'User removed from role successfully',
+        roleId,
+        userId 
+      });
+    } catch (error) {
+      console.error('Error removing user from role:', error);
+      res.status(500).json({ message: 'Failed to remove user from role' });
     }
   }
 );

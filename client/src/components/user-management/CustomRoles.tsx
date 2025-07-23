@@ -1,11 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,210 +12,497 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Shield, Edit, Trash2, Copy } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Shield, 
+  Users, 
+  User,
+  UserPlus,
+  UserMinus,
+  Settings,
+  Eye,
+  Lock,
+  Unlock,
+  CheckCircle,
+  XCircle,
+  AlertTriangle
+} from "lucide-react";
 
-interface Permission {
-  category: string;
-  resource: string;
-  action: string;
-  description: string;
-}
-
-interface CustomRole {
+interface Role {
   id: string;
   name: string;
   description?: string;
-  basedOnRole?: string;
-  permissions: Array<{ resource: string; action: string; conditions?: Record<string, any> }>;
+  permissions: string[];
   isActive: boolean;
   isSystem: boolean;
+  userCount?: number;
   createdAt: string;
+  updatedAt: string;
 }
+
+interface Permission {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  level: 'workspace' | 'tenant' | 'user';
+}
+
+interface RoleAssignment {
+  userId: string;
+  roleId: string;
+  assignedAt: string;
+}
+
+const PERMISSION_CATEGORIES = {
+  'workspace_admin': 'Administração do Workspace',
+  'user_access': 'Gestão de Usuários e Acesso',
+  'customer_support': 'Atendimento ao Cliente',
+  'customer_management': 'Gestão de Clientes',
+  'knowledge_base': 'Base de Conhecimento',
+  'hr_team': 'Recursos Humanos e Equipe',
+  'timecard': 'Timecard e Ponto',
+  'projects': 'Projetos e Tarefas',
+  'analytics': 'Analytics e Relatórios',
+  'settings': 'Configurações e Personalização',
+  'multilocation': 'Localização e Multilocation',
+  'compliance': 'Compliance e Segurança'
+};
+
+const PERMISSION_LEVELS = {
+  'view': 'Visualizar',
+  'create': 'Criar',
+  'edit': 'Editar',
+  'delete': 'Excluir',
+  'manage': 'Administrar',
+  'configure': 'Configurar'
+};
 
 interface CustomRolesProps {
   tenantAdmin?: boolean;
 }
 
-export function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
+export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    basedOnRole: "",
-    permissions: [] as Array<{ resource: string; action: string }>
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+  // Queries
+  const { data: rolesData, isLoading } = useQuery({
+    queryKey: ['/api/user-management/roles'],
+    select: (data: any) => data?.roles || []
   });
 
-  const { data: rolesData, isLoading: rolesLoading } = useQuery<{ roles: CustomRole[] }>({
-    queryKey: ["/api/user-management/roles", { includeSystem: true }],
+  const { data: permissionsData } = useQuery({
+    queryKey: ['/api/user-management/permissions'],
+    select: (data: any) => data?.permissions || []
   });
 
-  const { data: permissionsData } = useQuery<{ permissions: Permission[] }>({
-    queryKey: ["/api/user-management/permissions"],
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/user-management/users'],
+    select: (data: any) => data?.users || []
   });
 
-  const { data: systemRolesData } = useQuery<{ roles: Array<{ name: string; displayName: string; description: string }> }>({
-    queryKey: ["/api/user-management/system-roles"],
-  });
-
+  // Mutations
   const createRoleMutation = useMutation({
-    mutationFn: async (data: { name: string; description?: string; basedOnRole?: string; permissions: Array<{ resource: string; action: string }> }) => {
-      return apiRequest("/api/user-management/roles", {
-        method: "POST",
-        body: data
-      });
-    },
+    mutationFn: (data: any) => apiRequest('POST', '/api/user-management/roles', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/roles"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       setShowCreateDialog(false);
-      setFormData({ name: "", description: "", basedOnRole: "", permissions: [] });
+      setFormData({ name: "", description: "" });
+      setSelectedPermissions([]);
       toast({
-        title: t("userManagement.success", "Sucesso"),
-        description: t("userManagement.roleCreated", "Papel customizado criado com sucesso"),
+        title: "Sucesso",
+        description: "Papel criado com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: t("userManagement.error", "Erro"),
-        description: t("userManagement.roleCreateError", "Erro ao criar papel customizado"),
+        title: "Erro",
+        description: "Erro ao criar papel",
         variant: "destructive",
       });
     },
   });
 
-  const handlePermissionToggle = (permission: Permission, checked: boolean) => {
-    const permissionKey = { resource: permission.resource, action: permission.action };
-    
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        permissions: [...prev.permissions, permissionKey]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        permissions: prev.permissions.filter(p => 
-          !(p.resource === permission.resource && p.action === permission.action)
-        )
-      }));
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      apiRequest('PUT', `/api/user-management/roles/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
+      setEditingRole(null);
+      setFormData({ name: "", description: "" });
+      setSelectedPermissions([]);
+      toast({
+        title: "Sucesso",
+        description: "Papel atualizado com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar papel",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: (roleId: string) => apiRequest('DELETE', `/api/user-management/roles/${roleId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
+      toast({
+        title: "Sucesso",
+        description: "Papel excluído com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir papel",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const assignUserToRoleMutation = useMutation({
+    mutationFn: ({ roleId, userId }: { roleId: string; userId: string }) =>
+      apiRequest('POST', `/api/user-management/roles/${roleId}/users`, { userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
+      toast({
+        title: "Sucesso",
+        description: "Usuário atribuído ao papel com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atribuir usuário ao papel",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeUserFromRoleMutation = useMutation({
+    mutationFn: ({ roleId, userId }: { roleId: string; userId: string }) =>
+      apiRequest('DELETE', `/api/user-management/roles/${roleId}/users/${userId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
+      toast({
+        title: "Sucesso",
+        description: "Usuário removido do papel com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover usuário do papel",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handlers
+  const handleCreateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) return;
+    createRoleMutation.mutate({
+      ...formData,
+      permissions: selectedPermissions
+    });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !editingRole) return;
+    updateRoleMutation.mutate({ 
+      id: editingRole.id, 
+      data: {
+        ...formData,
+        permissions: selectedPermissions
+      }
+    });
+  };
+
+  const handleEditClick = (role: Role) => {
+    setEditingRole(role);
+    setFormData({
+      name: role.name,
+      description: role.description || ""
+    });
+    setSelectedPermissions(role.permissions || []);
+  };
+
+  const handleDeleteClick = (role: Role) => {
+    if (window.confirm(`Tem certeza que deseja excluir o papel "${role.name}"?`)) {
+      deleteRoleMutation.mutate(role.id);
     }
   };
 
-  const isPermissionSelected = (permission: Permission) => {
-    return formData.permissions.some(p => 
-      p.resource === permission.resource && p.action === permission.action
+  const handleCloseDialog = () => {
+    setShowCreateDialog(false);
+    setEditingRole(null);
+    setFormData({ name: "", description: "" });
+    setSelectedPermissions([]);
+    setSelectedUsers([]);
+  };
+
+  const handlePermissionToggle = (permissionId: string) => {
+    setSelectedPermissions(prev =>
+      prev.includes(permissionId)
+        ? prev.filter(id => id !== permissionId)
+        : [...prev, permissionId]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
-    
-    createRoleMutation.mutate(formData);
+  const handleAssignUserToRole = (userId: string) => {
+    if (editingRole) {
+      assignUserToRoleMutation.mutate({ roleId: editingRole.id, userId });
+    }
   };
 
-  const groupedPermissions = permissionsData?.permissions?.reduce((acc, permission) => {
+  const handleRemoveUserFromRole = (userId: string) => {
+    if (editingRole) {
+      removeUserFromRoleMutation.mutate({ roleId: editingRole.id, userId });
+    }
+  };
+
+  const groupedPermissions = permissionsData?.reduce((acc: any, permission: Permission) => {
     if (!acc[permission.category]) {
       acc[permission.category] = [];
     }
     acc[permission.category].push(permission);
     return acc;
-  }, {} as Record<string, Permission[]>) || {};
+  }, {}) || {};
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">{t("userManagement.customRoles", "Papéis Customizados")}</h3>
+          <h3 className="text-lg font-medium">Papéis e Permissões</h3>
           <p className="text-sm text-muted-foreground">
-            {t("userManagement.customRolesDesc", "Crie papéis customizados com permissões específicas para sua organização")}
+            Gerencie papéis customizados e permissões granulares para o workspace
           </p>
         </div>
+        
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              {t("userManagement.createRole", "Criar Papel")}
+              Criar Papel
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <form onSubmit={handleSubmit}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <form onSubmit={handleCreateSubmit}>
               <DialogHeader>
-                <DialogTitle>{t("userManagement.createRole", "Criar Papel Customizado")}</DialogTitle>
+                <DialogTitle>Criar Novo Papel</DialogTitle>
                 <DialogDescription>
-                  {t("userManagement.createRoleDesc", "Defina um novo papel com permissões específicas")}
+                  Defina um novo papel com permissões específicas
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">{t("userManagement.roleName", "Nome do Papel")}</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder={t("userManagement.roleNamePlaceholder", "Ex: Supervisor de Suporte")}
-                      required
-                    />
+              
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+                  <TabsTrigger value="permissions">Permissões</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome do Papel</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Ex: Administrador de Tickets"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Descrição</Label>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Descrição do papel e suas responsabilidades"
+                        rows={3}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="basedOnRole">{t("userManagement.basedOnRole", "Baseado em")}</Label>
-                    <select 
-                      id="basedOnRole"
-                      value={formData.basedOnRole}
-                      onChange={(e) => setFormData({ ...formData, basedOnRole: e.target.value })}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="none">{t("userManagement.selectBaseRole", "Selecionar papel base")}</option>
-                      {systemRolesData?.roles?.map((role) => (
-                        <option key={role.name} value={role.name}>
-                          {role.displayName}
-                        </option>
+                </TabsContent>
+                
+                <TabsContent value="permissions" className="space-y-4">
+                  <ScrollArea className="h-96">
+                    <div className="space-y-6">
+                      {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                        <div key={category} className="space-y-3">
+                          <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                            {PERMISSION_CATEGORIES[category as keyof typeof PERMISSION_CATEGORIES] || category}
+                          </h4>
+                          <div className="space-y-2">
+                            {(permissions as Permission[]).map((permission) => (
+                              <div key={permission.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`perm-${permission.id}`}
+                                  checked={selectedPermissions.includes(permission.id)}
+                                  onCheckedChange={() => handlePermissionToggle(permission.id)}
+                                />
+                                <Label
+                                  htmlFor={`perm-${permission.id}`}
+                                  className="text-sm font-normal cursor-pointer"
+                                >
+                                  {permission.name}
+                                  {permission.description && (
+                                    <span className="text-xs text-muted-foreground block">
+                                      {permission.description}
+                                    </span>
+                                  )}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                          <Separator />
+                        </div>
                       ))}
-                    </select>
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+              
+              <DialogFooter className="mt-6">
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createRoleMutation.isPending || !formData.name.trim()}>
+                  {createRoleMutation.isPending ? "Criando..." : "Criar Papel"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de Edição com Abas */}
+        <Dialog open={!!editingRole} onOpenChange={() => setEditingRole(null)}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Papel</DialogTitle>
+              <DialogDescription>
+                Gerencie informações do papel, permissões e usuários associados
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Tabs defaultValue="info" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="info" className="flex items-center space-x-2">
+                  <Edit className="h-4 w-4" />
+                  <span>Informações</span>
+                </TabsTrigger>
+                <TabsTrigger value="permissions" className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4" />
+                  <span>Permissões</span>
+                </TabsTrigger>
+                <TabsTrigger value="users" className="flex items-center space-x-2">
+                  <Users className="h-4 w-4" />
+                  <span>Usuários</span>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Aba Informações */}
+              <TabsContent value="info" className="space-y-4">
+                <form onSubmit={handleEditSubmit}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Nome do Papel</Label>
+                      <Input
+                        id="edit-name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Ex: Administrador de Tickets"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-description">Descrição</Label>
+                      <Textarea
+                        id="edit-description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Descrição do papel e suas responsabilidades"
+                        rows={3}
+                      />
+                    </div>
                   </div>
+                  
+                  <div className="flex justify-end space-x-2 mt-6">
+                    <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={updateRoleMutation.isPending || !formData.name.trim()}>
+                      {updateRoleMutation.isPending ? "Atualizando..." : "Atualizar"}
+                    </Button>
+                  </div>
+                </form>
+              </TabsContent>
+
+              {/* Aba Permissões */}
+              <TabsContent value="permissions" className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-medium">Permissões do Papel</h4>
+                  <Badge variant="outline">
+                    {selectedPermissions.length} permissões selecionadas
+                  </Badge>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="description">{t("userManagement.description", "Descrição")}</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={t("userManagement.roleDescriptionPlaceholder", "Descrição do papel e suas responsabilidades")}
-                    rows={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("userManagement.permissions", "Permissões")}</Label>
-                  <ScrollArea className="h-64 border rounded-md p-4">
+                <ScrollArea className="h-96 border rounded-lg p-4">
+                  <div className="space-y-6">
                     {Object.entries(groupedPermissions).map(([category, permissions]) => (
                       <div key={category} className="space-y-3">
-                        <h4 className="font-semibold text-sm">{category}</h4>
-                        <div className="space-y-2 ml-4">
-                          {permissions.map((permission) => (
-                            <div key={`${permission.resource}-${permission.action}`} className="flex items-center space-x-2">
+                        <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                          {PERMISSION_CATEGORIES[category as keyof typeof PERMISSION_CATEGORIES] || category}
+                        </h4>
+                        <div className="space-y-2">
+                          {(permissions as Permission[]).map((permission) => (
+                            <div key={permission.id} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`${permission.resource}-${permission.action}`}
-                                checked={isPermissionSelected(permission)}
-                                onCheckedChange={(checked) => handlePermissionToggle(permission, !!checked)}
+                                id={`edit-perm-${permission.id}`}
+                                checked={selectedPermissions.includes(permission.id)}
+                                onCheckedChange={() => handlePermissionToggle(permission.id)}
                               />
-                              <Label 
-                                htmlFor={`${permission.resource}-${permission.action}`}
-                                className="text-sm font-normal cursor-pointer"
+                              <Label
+                                htmlFor={`edit-perm-${permission.id}`}
+                                className="text-sm font-normal cursor-pointer flex-1"
                               >
-                                <span className="font-medium">{permission.action}</span> em <span className="text-muted-foreground">{permission.resource}</span>
-                                <p className="text-xs text-muted-foreground">{permission.description}</p>
+                                {permission.name}
+                                {permission.description && (
+                                  <span className="text-xs text-muted-foreground block">
+                                    {permission.description}
+                                  </span>
+                                )}
                               </Label>
                             </div>
                           ))}
@@ -225,59 +510,122 @@ export function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         <Separator />
                       </div>
                     ))}
-                  </ScrollArea>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.permissions.length} permissões selecionadas
-                  </p>
+                  </div>
+                </ScrollArea>
+
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => {
+                      if (editingRole) {
+                        updateRoleMutation.mutate({ 
+                          id: editingRole.id, 
+                          data: { permissions: selectedPermissions }
+                        });
+                      }
+                    }}
+                    disabled={updateRoleMutation.isPending}
+                  >
+                    {updateRoleMutation.isPending ? "Atualizando..." : "Salvar Permissões"}
+                  </Button>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setShowCreateDialog(false)}
-                >
-                  {t("common.cancel", "Cancelar")}
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createRoleMutation.isPending || !formData.name.trim()}
-                >
-                  {createRoleMutation.isPending 
-                    ? t("common.creating", "Criando...") 
-                    : t("common.create", "Criar")
-                  }
-                </Button>
-              </DialogFooter>
-            </form>
+              </TabsContent>
+
+              {/* Aba Usuários */}
+              <TabsContent value="users" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium">Atribuir Usuários ao Papel</h4>
+                    <Badge variant="outline">
+                      {editingRole?.userCount || 0} usuários atribuídos
+                    </Badge>
+                  </div>
+
+                  <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div className="space-y-2">
+                      {Array.isArray(usersData) && usersData.length > 0 ? (
+                        usersData.map((user: any) => {
+                          const hasRole = false; // TODO: Check if user has this role
+                          return (
+                            <div 
+                              key={user.id} 
+                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white font-semibold text-xs">
+                                    {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">{user.name || 'Nome não informado'}</p>
+                                  <p className="text-xs text-gray-500">{user.email}</p>
+                                  <p className="text-xs text-gray-400">{user.role || 'Função não informada'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {hasRole ? (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleRemoveUserFromRole(user.id)}
+                                    disabled={removeUserFromRoleMutation.isPending}
+                                  >
+                                    <UserMinus className="h-3 w-3 mr-1" />
+                                    Remover
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAssignUserToRole(user.id)}
+                                    disabled={assignUserToRoleMutation.isPending}
+                                  >
+                                    <UserPlus className="h-3 w-3 mr-1" />
+                                    Atribuir
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p>Nenhum usuário disponível</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button type="button" onClick={handleCloseDialog}>
+                      Concluir
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
 
-      {rolesLoading ? (
+      {isLoading ? (
         <div className="text-center py-8">
-          {t("common.loading", "Carregando...")}
+          Carregando papéis...
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {rolesData?.roles?.map((role) => (
+          {Array.isArray(rolesData) && rolesData.map((role: Role) => (
             <Card key={role.id}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{role.name}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    {role.isSystem && (
-                      <Badge variant="outline">
-                        {t("userManagement.systemRole", "Sistema")}
-                      </Badge>
-                    )}
-                    <Badge variant={role.isActive ? "default" : "secondary"}>
-                      {role.isActive 
-                        ? t("userManagement.active", "Ativo")
-                        : t("userManagement.inactive", "Inativo")
-                      }
-                    </Badge>
-                  </div>
+                  <CardTitle className="text-base flex items-center space-x-2">
+                    <Shield className="h-4 w-4" />
+                    <span>{role.name}</span>
+                  </CardTitle>
+                  <Badge variant={role.isActive ? "default" : "secondary"}>
+                    {role.isActive ? "Ativo" : "Inativo"}
+                  </Badge>
                 </div>
                 {role.description && (
                   <CardDescription className="text-sm">
@@ -285,52 +633,51 @@ export function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                   </CardDescription>
                 )}
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Shield className="mr-1 h-4 w-4" />
-                    {role.permissions.length} permissões
-                  </div>
-                  {role.basedOnRole && (
-                    <div className="text-sm text-muted-foreground">
-                      Baseado em: {role.basedOnRole}
-                    </div>
-                  )}
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Permissões:</span>
+                  <Badge variant="outline">
+                    {role.permissions?.length || 0}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Usuários:</span>
+                  <Badge variant="outline">
+                    {role.userCount || 0}
+                  </Badge>
+                </div>
+                
+                {role.isSystem && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Lock className="h-3 w-3 mr-1" />
+                    Papel do Sistema
+                  </Badge>
+                )}
+                
+                <div className="flex space-x-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditClick(role)}
+                    className="flex-1"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Editar
+                  </Button>
                   {!role.isSystem && (
-                    <div className="flex items-center justify-end space-x-1 pt-2">
-                      <Button variant="ghost" size="sm">
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteClick(role)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      )}
-
-      {rolesData?.roles?.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Shield className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
-              {t("userManagement.noCustomRoles", "Nenhum papel customizado foi criado ainda")}
-            </p>
-            <Button 
-              className="mt-4" 
-              onClick={() => setShowCreateDialog(true)}
-            >
-              {t("userManagement.createFirstRole", "Criar primeiro papel")}
-            </Button>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
