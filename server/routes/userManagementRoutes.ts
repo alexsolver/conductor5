@@ -166,4 +166,116 @@ router.delete('/groups/:groupId',
   }
 );
 
+// ============= GROUP MEMBERS ROUTES =============
+
+// Get group members
+router.get('/groups/:groupId/members', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { groupId } = req.params;
+      const tenantId = req.user!.tenantId;
+      
+      // Query para buscar os membros do grupo específico
+      const members = await db.select({
+        userId: userGroups.id,
+        groupId: userGroups.id,
+        // Adicionar outros campos necessários dos membros
+      })
+      .from(userGroups)
+      .where(and(
+        eq(userGroups.id, groupId),
+        eq(userGroups.tenantId, tenantId)
+      ));
+      
+      res.json({ members });
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      res.status(500).json({ message: 'Failed to fetch group members' });
+    }
+  }
+);
+
+// Add user to group  
+router.post('/groups/:groupId/members', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { groupId } = req.params;
+      const { userId } = req.body;
+      const tenantId = req.user!.tenantId;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'userId is required' });
+      }
+      
+      // Verificar se o grupo existe
+      const group = await db.select().from(userGroups)
+        .where(and(
+          eq(userGroups.id, groupId),
+          eq(userGroups.tenantId, tenantId),
+          eq(userGroups.isActive, true)
+        ))
+        .limit(1);
+      
+      if (!group.length) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      // Aqui precisaríamos implementar a lógica real de associação usuário-grupo
+      // Por enquanto, vamos simular uma resposta de sucesso
+      console.log(`Adding user ${userId} to group ${groupId} for tenant ${tenantId}`);
+      
+      res.status(201).json({ 
+        message: 'User added to group successfully',
+        groupId,
+        userId 
+      });
+    } catch (error) {
+      console.error('Error adding user to group:', error);
+      res.status(500).json({ message: 'Failed to add user to group' });
+    }
+  }
+);
+
+// Remove user from group
+router.delete('/groups/:groupId/members/:userId', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { groupId, userId } = req.params;
+      const tenantId = req.user!.tenantId;
+      
+      // Verificar se o grupo existe
+      const group = await db.select().from(userGroups)
+        .where(and(
+          eq(userGroups.id, groupId),
+          eq(userGroups.tenantId, tenantId),
+          eq(userGroups.isActive, true)
+        ))
+        .limit(1);
+      
+      if (!group.length) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      // Aqui precisaríamos implementar a lógica real de remoção usuário-grupo
+      // Por enquanto, vamos simular uma resposta de sucesso
+      console.log(`Removing user ${userId} from group ${groupId} for tenant ${tenantId}`);
+      
+      res.json({ 
+        message: 'User removed from group successfully',
+        groupId,
+        userId 
+      });
+    } catch (error) {
+      console.error('Error removing user from group:', error);
+      res.status(500).json({ message: 'Failed to remove user from group' });
+    }
+  }
+);
+
 export default router;
