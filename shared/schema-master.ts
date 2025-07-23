@@ -260,6 +260,20 @@ export const userSkills = pgTable("user_skills", {
   index("user_skills_experience_idx").on(table.tenantId, table.yearsOfExperience),
 ]);
 
+// User Groups table - Group management for team organization
+export const userGroups = pgTable("user_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique("user_groups_tenant_name_unique").on(table.tenantId, table.name),
+  index("user_groups_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
 // Favorecidos table (Brazilian beneficiaries) - Nomenclature standardized and constraints added
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -810,5 +824,19 @@ export type TicketInternalAction = typeof ticketInternalActions.$inferSelect;
 // HR/Team Management types
 export type InsertDepartment = typeof departments.$inferInsert;
 export type Department = typeof departments.$inferSelect;
+export type InsertUserGroup = typeof userGroups.$inferInsert;
+export type UserGroup = typeof userGroups.$inferSelect;
 export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+
+// User Group schemas for validation
+export const insertUserGroupSchema = createInsertSchema(userGroups).omit({
+  id: true,
+  tenantId: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserGroupSchema = insertUserGroupSchema.partial();
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;

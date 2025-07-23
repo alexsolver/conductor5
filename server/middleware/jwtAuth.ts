@@ -8,6 +8,8 @@ export interface AuthenticatedRequest extends Request {
     email: string;
     role: string;
     tenantId: string | null;
+    permissions: any[];
+    attributes: Record<string, any>;
   };
   tenant?: any; // Add tenant property for compatibility
 }
@@ -38,13 +40,28 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
-    // Add user context to request
+    // Add user context to request - with permissions
+    const { RBACService } = await import('./rbacMiddleware');
+    const rbacInstance = RBACService.getInstance();
+    const permissions = rbacInstance.getRolePermissions(user.role);
+    
     req.user = {
       id: user.id,
       email: user.email,
       role: user.role,
-      tenantId: user.tenantId
+      tenantId: user.tenantId,
+      permissions: permissions,
+      attributes: {}
     };
+
+    // Debug: Uncomment for troubleshooting permission issues
+    // console.log('🔑 JWT Debug - User authenticated with permissions:', {
+    //   id: user.id,
+    //   email: user.email, 
+    //   role: user.role,
+    //   tenantId: user.tenantId,
+    //   permissionsCount: permissions.length
+    // });
 
     next();
   } catch (error) {

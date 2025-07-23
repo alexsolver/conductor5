@@ -45,6 +45,7 @@ export const PERMISSIONS = {
     MANAGE_USERS: { resource: 'tenant', action: 'manage_users' },
     VIEW_ANALYTICS: { resource: 'tenant', action: 'view_analytics' },
     MANAGE_BILLING: { resource: 'tenant', action: 'manage_billing' },
+    CONFIGURE_INTEGRATIONS: { resource: 'tenant', action: 'configure_integrations' },
   },
   
   // Ticket permissions
@@ -175,11 +176,15 @@ export class RBACService {
     return RBACService.instance;
   }
 
+  getRolePermissions(role: string): Permission[] {
+    return ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS] || [];
+  }
+
   async getUserPermissions(userId: string, tenantId?: string): Promise<Permission[]> {
     const user = await storageSimple.getUser(userId);
     if (!user) return [];
 
-    const rolePermissions = ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS] || [];
+    const rolePermissions = this.getRolePermissions(user.role);
     
     // Filter permissions based on tenant context
     if (tenantId && user.tenantId !== tenantId && user.role !== 'saas_admin') {
