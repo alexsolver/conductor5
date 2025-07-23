@@ -1,4 +1,4 @@
-import { db } from "../../../../db";
+import { getTenantDb } from "../../../../db-tenant";
 import { 
   activityTypes, 
   parts, 
@@ -22,6 +22,7 @@ import { PartsServicesRepository } from "../../domain/repositories/PartsServices
 export class DrizzlePartsServicesRepository implements PartsServicesRepository {
   // ===== ACTIVITY TYPES =====
   async createActivityType(data: InsertActivityType): Promise<ActivityType> {
+    const db = getTenantDb(data.tenantId);
     const [activityType] = await db
       .insert(activityTypes)
       .values(data)
@@ -30,6 +31,7 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
   }
 
   async findActivityTypes(tenantId: string): Promise<ActivityType[]> {
+    const db = getTenantDb(tenantId);
     return await db
       .select()
       .from(activityTypes)
@@ -41,6 +43,7 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
   }
 
   async findActivityTypeById(id: string, tenantId: string): Promise<ActivityType | null> {
+    const db = getTenantDb(tenantId);
     const [activityType] = await db
       .select()
       .from(activityTypes)
@@ -52,6 +55,7 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
   }
 
   async updateActivityType(id: string, tenantId: string, data: Partial<InsertActivityType>): Promise<ActivityType | null> {
+    const db = getTenantDb(tenantId);
     const [activityType] = await db
       .update(activityTypes)
       .set({ ...data, updatedAt: new Date() })
@@ -139,16 +143,15 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
     return part;
   }
 
-  async deletePart(id: string, tenantId: string): Promise<Part> {
-    const [part] = await db
+  async deletePart(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
       .update(parts)
       .set({ isActive: false, updatedAt: new Date() })
       .where(and(
         eq(parts.id, id),
         eq(parts.tenantId, tenantId)
-      ))
-      .returning();
-    return part;
+      ));
+    return result.rowCount > 0;
   }
 
   async getPartsCount(tenantId: string): Promise<number> {
@@ -215,16 +218,15 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
     return serviceKit;
   }
 
-  async deleteServiceKit(id: string, tenantId: string): Promise<ServiceKit> {
-    const [serviceKit] = await db
+  async deleteServiceKit(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
       .update(serviceKits)
       .set({ isActive: false, updatedAt: new Date() })
       .where(and(
         eq(serviceKits.id, id),
         eq(serviceKits.tenantId, tenantId)
-      ))
-      .returning();
-    return serviceKit;
+      ));
+    return result.rowCount > 0;
   }
 
   async getServiceKitsCount(tenantId: string): Promise<number> {
@@ -262,7 +264,7 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
         eq(inventory.tenantId, tenantId),
         filters?.partId ? eq(inventory.partId, filters.partId) : undefined,
         filters?.locationId ? eq(inventory.locationId, filters.locationId) : undefined,
-        filters?.lowStock ? sql`${inventory.quantity} <= ${inventory.reorderPoint}` : undefined
+        filters?.lowStock ? sql`${inventory.currentStock} <= ${inventory.reorderPoint}` : undefined
       ))
       .orderBy(desc(inventory.createdAt))
       .limit(filters?.limit || 50)
@@ -307,7 +309,7 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
     const [inventoryItem] = await db
       .update(inventory)
       .set({ 
-        quantity: sql`${inventory.quantity} + ${adjustment}`,
+        currentStock: sql`${inventory.currentStock} + ${adjustment}`,
         lastMovementDate: new Date(),
         updatedAt: new Date()
       })
@@ -371,16 +373,15 @@ export class DrizzlePartsServicesRepository implements PartsServicesRepository {
     return supplier;
   }
 
-  async deleteSupplier(id: string, tenantId: string): Promise<Supplier> {
-    const [supplier] = await db
+  async deleteSupplier(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
       .update(suppliers)
       .set({ isActive: false, updatedAt: new Date() })
       .where(and(
         eq(suppliers.id, id),
         eq(suppliers.tenantId, tenantId)
-      ))
-      .returning();
-    return supplier;
+      ));
+    return result.rowCount > 0;
   }
 
   async getSuppliersCount(tenantId: string): Promise<number> {

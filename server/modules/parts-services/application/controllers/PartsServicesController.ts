@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DrizzlePartsServicesRepository } from '../../infrastructure/repositories/DrizzlePartsServicesRepository';
+import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository';
 import { 
   insertPartSchema, 
   insertSupplierSchema, 
@@ -21,10 +21,10 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class PartsServicesController {
-  private repository: DrizzlePartsServicesRepository;
+  private repository: DirectPartsServicesRepository;
 
   constructor() {
-    this.repository = new DrizzlePartsServicesRepository();
+    this.repository = new DirectPartsServicesRepository();
   }
 
   // ===== ACTIVITY TYPES =====
@@ -71,19 +71,17 @@ export class PartsServicesController {
         return res.status(401).json({ error: 'Tenant ID required' });
       }
 
-      const data = insertPartSchema.parse({
+      const data = {
         ...req.body,
+        tenantId,
         createdById: req.user?.id,
         updatedById: req.user?.id
-      });
+      };
       
       const part = await this.repository.createPart(tenantId, data);
       res.status(201).json(part);
     } catch (error) {
       console.error('Error creating part:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation error', details: error.errors });
-      }
       res.status(500).json({ error: 'Internal server error' });
     }
   };
