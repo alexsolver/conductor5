@@ -50,10 +50,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   const createGroupMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
-      return apiRequest("/api/user-management/groups", {
-        method: "POST",
-        body: data
-      });
+      return apiRequest("POST", "/api/user-management/groups", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
