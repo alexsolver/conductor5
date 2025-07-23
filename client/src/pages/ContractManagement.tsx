@@ -20,7 +20,7 @@ interface Contract {
   currency: string;
   startDate: string;
   endDate: string;
-  customerName?: string;
+  customerCompanyName?: string;
   managerName?: string;
   description?: string;
   isActive: boolean;

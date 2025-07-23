@@ -25,7 +25,7 @@ const createContractSchema = z.object({
   contractType: z.string().min(1, 'Tipo de contrato é obrigatório'),
   status: z.string().default('draft'),
   priority: z.string().default('medium'),
-  customerId: z.string().optional(),
+  customerCompanyId: z.string().optional(),
   managerId: z.string().optional(),
   totalValue: z.number().min(0, 'Valor deve ser maior que zero'),
   currency: z.string().default('BRL'),
@@ -56,17 +56,23 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
+      contractNumber: '',
+      title: '',
+      description: '',
+      contractType: 'service',
       status: 'draft',
       priority: 'medium',
       currency: 'BRL',
       totalValue: 0,
+      customerCompanyId: '',
+      managerId: '',
     },
   });
 
-  // Fetch customers for dropdown
-  const { data: customersData } = useQuery({
-    queryKey: ['/api/customers'],
-    queryFn: () => fetch('/api/customers', {
+  // Fetch customer companies for dropdown
+  const { data: customerCompaniesData } = useQuery({
+    queryKey: ['/api/customer-companies'],
+    queryFn: () => fetch('/api/customer-companies', {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         'Content-Type': 'application/json'
@@ -86,8 +92,8 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   });
 
   // Ensure data is always arrays
-  const customers = Array.isArray(customersData) ? customersData : 
-                   customersData?.customers ? customersData.customers : [];
+  const customerCompanies = Array.isArray(customerCompaniesData) ? customerCompaniesData : 
+                           customerCompaniesData?.companies ? customerCompaniesData.companies : [];
   const users = Array.isArray(usersData) ? usersData : 
                usersData?.users ? usersData.users : [];
 
@@ -264,21 +270,21 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="customerId"
+                name="customerCompanyId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cliente</FormLabel>
+                    <FormLabel>Empresa Contratante *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cliente" />
+                          <SelectValue placeholder="Selecione a empresa contratante" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">Nenhum cliente</SelectItem>
-                        {Array.isArray(customers) && customers.map((customer: any) => (
-                          <SelectItem key={customer.id} value={customer.id}>
-                            {customer.name}
+                        <SelectItem value="none">Nenhuma empresa</SelectItem>
+                        {Array.isArray(customerCompanies) && customerCompanies.map((company: any) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name} {company.cnpj ? `(${company.cnpj})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
