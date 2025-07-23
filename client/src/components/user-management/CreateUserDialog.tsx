@@ -125,6 +125,10 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       return apiRequest("POST", "/api/user-management/users", data);
     },
     onSuccess: () => {
+      // Invalidate both user management and team management queries
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team-management/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team-management/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/stats"] });
       onOpenChange(false);

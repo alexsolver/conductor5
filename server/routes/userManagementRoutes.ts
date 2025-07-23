@@ -6,6 +6,7 @@ import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
 import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -23,6 +24,85 @@ router.get('/users',
     } catch (error) {
       console.error('Error fetching users:', error);
       res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  }
+);
+
+// Create new user
+router.post('/users', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userData = req.body;
+      
+      // Gerar senha temporária se não fornecida
+      const tempPassword = userData.password || Math.random().toString(36).slice(-8);
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      
+      // Criar usuário com dados completos
+      const newUser = await db.insert(usersTable)
+        .values({
+          id: crypto.randomUUID(),
+          email: userData.email,
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          passwordHash: hashedPassword,
+          role: userData.role || 'agent',
+          tenantId: tenantId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          // Dados HR/Endereço
+          integrationCode: userData.integrationCode || null,
+          alternativeEmail: userData.alternativeEmail || null,
+          cellPhone: userData.cellPhone || null,
+          phone: userData.phone || null,
+          ramal: userData.ramal || null,
+          timeZone: userData.timeZone || 'America/Sao_Paulo',
+          vehicleType: userData.vehicleType || null,
+          cpfCnpj: userData.cpfCnpj || null,
+          supervisorIds: userData.supervisorIds || [],
+          // Endereço
+          cep: userData.cep || null,
+          country: userData.country || 'Brasil',
+          state: userData.state || null,
+          city: userData.city || null,
+          streetAddress: userData.streetAddress || null,
+          houseType: userData.houseType || null,
+          houseNumber: userData.houseNumber || null,
+          complement: userData.complement || null,
+          neighborhood: userData.neighborhood || null,
+          // Dados RH
+          employeeCode: userData.employeeCode || null,
+          pis: userData.pis || null,
+          cargo: userData.cargo || null,
+          ctps: userData.ctps || null,
+          serieNumber: userData.serieNumber || null,
+          admissionDate: userData.admissionDate ? new Date(userData.admissionDate) : null,
+          costCenter: userData.costCenter || null,
+          // Campos padrão
+          status: 'active',
+          performance: 75
+        })
+        .returning();
+      
+      console.log(`✅ User created successfully: ${userData.email} (ID: ${newUser[0].id})`);
+      
+      res.status(201).json({ 
+        message: 'User created successfully',
+        user: newUser[0],
+        tempPassword: userData.sendInvitation ? null : tempPassword // Só retorna se não enviar convite
+      });
+    } catch (error) {
+      console.error('❌ Error creating user:', error);
+      if (error.code === '23505') { // Violação de unique constraint
+        res.status(409).json({ message: 'Email already exists' });
+      } else {
+        res.status(500).json({ message: 'Failed to create user' });
+      }
     }
   }
 );
