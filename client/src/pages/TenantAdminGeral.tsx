@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -75,24 +75,81 @@ export default function TenantAdminGeral() {
   const form = useForm<BrandingFormData>({
     resolver: zodResolver(brandingSchema),
     defaultValues: {
-      companyName: (brandingData as any)?.companyName || "",
-      logoUrl: (brandingData as any)?.logoUrl || "",
-      primaryColor: (brandingData as any)?.primaryColor || "#3b82f6",
-      secondaryColor: (brandingData as any)?.secondaryColor || "#64748b",
-      websiteUrl: (brandingData as any)?.websiteUrl || "",
-      supportEmail: (brandingData as any)?.supportEmail || "",
-      supportPhone: (brandingData as any)?.supportPhone || "",
-      address: (brandingData as any)?.address || "",
-      description: (brandingData as any)?.description || "",
-      timezone: (brandingData as any)?.timezone || "America/Sao_Paulo",
-      language: (brandingData as any)?.language || "pt-BR",
+      companyName: "",
+      logoUrl: "",
+      primaryColor: "#3b82f6",
+      secondaryColor: "#64748b",
+      websiteUrl: "",
+      supportEmail: "",
+      supportPhone: "",
+      address: "",
+      description: "",
+      timezone: "America/Sao_Paulo",
+      language: "pt-BR",
     },
   });
 
+  // Atualizar valores do formulário quando os dados chegarem
+  React.useEffect(() => {
+    if (brandingData?.settings) {
+      const settings = brandingData.settings;
+      form.reset({
+        companyName: settings.customization?.companyName || "",
+        logoUrl: settings.logo?.url || "",
+        primaryColor: settings.colors?.primary || "#3b82f6",
+        secondaryColor: settings.colors?.secondary || "#64748b",
+        websiteUrl: settings.customization?.helpUrl || "",
+        supportEmail: settings.customization?.supportEmail || "",
+        supportPhone: settings.customization?.supportPhone || "",
+        address: settings.customization?.address || "",
+        description: settings.customization?.welcomeMessage || "",
+        timezone: settings.localization?.timezone || "America/Sao_Paulo",
+        language: settings.localization?.language || "pt-BR",
+      });
+    }
+  }, [brandingData, form]);
+
   // Mutation para salvar branding
   const updateBrandingMutation = useMutation({
-    mutationFn: (data: BrandingFormData) =>
-      apiRequest("PUT", "/api/tenant-admin/branding", data),
+    mutationFn: (data: BrandingFormData) => {
+      // Transformar os dados do formulário para a estrutura esperada pelo backend
+      const brandingSettings = {
+        logo: {
+          url: data.logoUrl,
+          displayName: data.companyName,
+          width: "120px",
+          height: "40px"
+        },
+        colors: {
+          primary: data.primaryColor,
+          secondary: data.secondaryColor,
+          accent: "#8B5CF6",
+          background: "#FFFFFF",
+          surface: "#F8FAFC",
+          text: "#1E293B",
+          muted: "#64748B"
+        },
+        customization: {
+          companyName: data.companyName,
+          welcomeMessage: data.description,
+          footerText: "",
+          supportEmail: data.supportEmail,
+          supportPhone: data.supportPhone,
+          address: data.address,
+          helpUrl: data.websiteUrl,
+          showPoweredBy: true
+        },
+        localization: {
+          timezone: data.timezone,
+          language: data.language,
+          dateFormat: "dd/MM/yyyy",
+          timeFormat: "24h",
+          currency: "BRL"
+        }
+      };
+      
+      return apiRequest("PUT", "/api/tenant-admin/branding", { settings: brandingSettings });
+    },
     onSuccess: () => {
       toast({
         title: "Configurações salvas",
