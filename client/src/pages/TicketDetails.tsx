@@ -23,6 +23,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 
 // Form schema
 const ticketFormSchema = z.object({
@@ -49,6 +51,63 @@ const ticketFormSchema = z.object({
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;
+
+// Rich Text Editor Component
+function RichTextEditor({ value, onChange, disabled = false }: { value: string, onChange: (value: string) => void, disabled?: boolean }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+    ],
+    content: value || '',
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+    editable: !disabled,
+  });
+
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className={`border rounded-md ${disabled ? 'bg-gray-50' : 'bg-white'}`}>
+      {!disabled && (
+        <div className="flex gap-2 p-2 border-b bg-gray-50">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={editor.isActive('bold') ? 'bg-gray-200' : ''}
+          >
+            <strong>B</strong>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={editor.isActive('italic') ? 'bg-gray-200' : ''}
+          >
+            <em>I</em>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
+          >
+            • Lista
+          </Button>
+        </div>
+      )}
+      <div className="min-h-[100px] p-3">
+        <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
 
 export default function TicketDetails() {
   const { id } = useParams<{ id: string }>();
@@ -1410,9 +1469,13 @@ export default function TicketDetails() {
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
                     {isEditMode ? (
-                      <Textarea {...field} rows={4} />
+                      <RichTextEditor 
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        disabled={false}
+                      />
                     ) : (
-                      <div className="p-2 bg-gray-50 rounded min-h-[100px]">{field.value}</div>
+                      <div className="p-2 bg-gray-50 rounded min-h-[100px]" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
                     )}
                   </FormControl>
                   <FormMessage />
@@ -1420,7 +1483,7 @@ export default function TicketDetails() {
               )}
             />
 
-            {/* Atribuição */}
+            {/* Atribuição - Campos lado a lado conforme imagem */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -1432,7 +1495,7 @@ export default function TicketDetails() {
                       {isEditMode ? (
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o solicitante" />
+                            <SelectValue placeholder="Não especificado" />
                           </SelectTrigger>
                           <SelectContent>
                             {(customers?.customers || []).map((customer: any) => (
@@ -1443,8 +1506,8 @@ export default function TicketDetails() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          {customers?.customers?.find((c: any) => c.id === field.value)?.name || field.value || 'Não especificado'}
+                        <div className="text-sm text-gray-700">
+                          {customers?.customers?.find((c: any) => c.id === field.value)?.name || 'Não especificado'}
                         </div>
                       )}
                     </FormControl>
@@ -1463,7 +1526,7 @@ export default function TicketDetails() {
                       {isEditMode ? (
                         <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o responsável" />
+                            <SelectValue placeholder="Não atribuído" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="unassigned">Não atribuído</SelectItem>
@@ -1475,7 +1538,7 @@ export default function TicketDetails() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded">
+                        <div className="text-sm text-gray-700">
                           {users?.users?.find((u: any) => u.id === field.value)?.name || 'Não atribuído'}
                         </div>
                       )}
