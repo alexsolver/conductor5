@@ -4,7 +4,7 @@ import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware';
 import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
-import { userGroups, insertUserGroupSchema, updateUserGroupSchema } from '@shared/schema';
+import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 const router = Router();
@@ -207,16 +207,14 @@ router.get('/groups/:groupId/members',
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
       
-      // Query para buscar os membros do grupo específico
-      const members = await db.select({
-        userId: userGroups.id,
-        groupId: userGroups.id,
-        // Adicionar outros campos necessários dos membros
-      })
-      .from(userGroups)
+      // Query para buscar os membros do grupo específico com informações do usuário
+      const members = await db.select()
+      .from(userGroupMemberships)
+      .innerJoin(usersTable, eq(userGroupMemberships.userId, usersTable.id))
       .where(and(
-        eq(userGroups.id, groupId),
-        eq(userGroups.tenantId, tenantId)
+        eq(userGroupMemberships.tenantId, tenantId),
+        eq(userGroupMemberships.groupId, groupId),
+        eq(userGroupMemberships.isActive, true)
       ));
       
       res.json({ members });
@@ -254,14 +252,50 @@ router.post('/groups/:groupId/members',
         return res.status(404).json({ message: 'Group not found' });
       }
       
-      // Aqui precisaríamos implementar a lógica real de associação usuário-grupo
-      // Por enquanto, vamos simular uma resposta de sucesso
-      console.log(`Adding user ${userId} to group ${groupId} for tenant ${tenantId}`);
+      // Verificar se o usuário existe
+      const user = await db.select().from(usersTable)
+        .where(and(
+          eq(usersTable.id, userId),
+          eq(usersTable.tenantId, tenantId),
+          eq(usersTable.isActive, true)
+        ))
+        .limit(1);
+      
+      if (!user.length) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Verificar se a associação já existe
+      const existingMembership = await db.select().from(userGroupMemberships)
+        .where(and(
+          eq(userGroupMemberships.tenantId, tenantId),
+          eq(userGroupMemberships.userId, userId),
+          eq(userGroupMemberships.groupId, groupId),
+          eq(userGroupMemberships.isActive, true)
+        ))
+        .limit(1);
+      
+      if (existingMembership.length) {
+        return res.status(409).json({ message: 'User is already a member of this group' });
+      }
+      
+      // Criar a associação usuário-grupo
+      const [membership] = await db.insert(userGroupMemberships)
+        .values({
+          tenantId,
+          userId,
+          groupId,
+          role: 'member',
+          addedById: req.user!.id,
+          isActive: true
+        })
+        .returning();
+      
+      console.log(`Successfully added user ${userId} to group ${groupId} for tenant ${tenantId}`);
       
       res.status(201).json({ 
         message: 'User added to group successfully',
-        groupId,
-        userId 
+        membership
       });
     } catch (error) {
       console.error('Error adding user to group:', error);
@@ -292,14 +326,37 @@ router.delete('/groups/:groupId/members/:userId',
         return res.status(404).json({ message: 'Group not found' });
       }
       
-      // Aqui precisaríamos implementar a lógica real de remoção usuário-grupo
-      // Por enquanto, vamos simular uma resposta de sucesso
-      console.log(`Removing user ${userId} from group ${groupId} for tenant ${tenantId}`);
+      // Verificar se a associação existe
+      const existingMembership = await db.select().from(userGroupMemberships)
+        .where(and(
+          eq(userGroupMemberships.tenantId, tenantId),
+          eq(userGroupMemberships.userId, userId),
+          eq(userGroupMemberships.groupId, groupId),
+          eq(userGroupMemberships.isActive, true)
+        ))
+        .limit(1);
+      
+      if (!existingMembership.length) {
+        return res.status(404).json({ message: 'User is not a member of this group' });
+      }
+      
+      // Remover a associação (soft delete)
+      const [removedMembership] = await db.update(userGroupMemberships)
+        .set({
+          isActive: false
+        })
+        .where(and(
+          eq(userGroupMemberships.tenantId, tenantId),
+          eq(userGroupMemberships.userId, userId),
+          eq(userGroupMemberships.groupId, groupId)
+        ))
+        .returning();
+      
+      console.log(`Successfully removed user ${userId} from group ${groupId} for tenant ${tenantId}`);
       
       res.json({ 
         message: 'User removed from group successfully',
-        groupId,
-        userId 
+        membership: removedMembership
       });
     } catch (error) {
       console.error('Error removing user from group:', error);

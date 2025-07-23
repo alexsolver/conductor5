@@ -103,6 +103,100 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// NOTE: userGroups, userGroupMemberships and departments tables are defined later in the file
+
+// Performance Evaluations table (public schema)
+export const performanceEvaluations = pgTable("performance_evaluations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  periodStart: date("period_start").notNull(),
+  periodEnd: date("period_end").notNull(),
+  score: decimal("score", { precision: 5, scale: 2 }),
+  goals: jsonb("goals").default([]),
+  completedGoals: integer("completed_goals").default(0),
+  feedback: text("feedback"),
+  evaluatorId: uuid("evaluator_id").references(() => users.id),
+  status: varchar("status", { length: 20 }).default("draft"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("performance_evaluations_tenant_user_idx").on(table.tenantId, table.userId),
+  index("performance_evaluations_period_idx").on(table.periodStart, table.periodEnd),
+  unique("performance_evaluations_unique_period").on(table.tenantId, table.userId, table.periodStart, table.periodEnd),
+]);
+
+// Approval Requests table (public schema)
+export const approvalRequests = pgTable("approval_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  requesterId: uuid("requester_id").references(() => users.id).notNull(),
+  approverId: uuid("approver_id").references(() => users.id),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: varchar("status", { length: 20 }).default("pending"),
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  data: jsonb("data").default({}),
+  requestedAmount: decimal("requested_amount", { precision: 10, scale: 2 }),
+  approvedAmount: decimal("approved_amount", { precision: 10, scale: 2 }),
+  requestedDate: date("requested_date"),
+  approvedDate: date("approved_date"),
+  comments: text("comments"),
+  attachments: jsonb("attachments").default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_requests_tenant_requester_idx").on(table.tenantId, table.requesterId),
+  index("approval_requests_tenant_approver_idx").on(table.tenantId, table.approverId),
+  index("approval_requests_status_idx").on(table.status),
+  index("approval_requests_type_idx").on(table.type),
+]);
+
+// User Sessions table (public schema)
+export const userSessions = pgTable("user_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  sessionToken: varchar("session_token", { length: 255 }).unique().notNull(),
+  deviceType: varchar("device_type", { length: 50 }),
+  browser: varchar("browser", { length: 100 }),
+  operatingSystem: varchar("operating_system", { length: 100 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  location: jsonb("location"),
+  userAgent: text("user_agent"),
+  isActive: boolean("is_active").default(true),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("user_sessions_tenant_user_idx").on(table.tenantId, table.userId),
+  index("user_sessions_active_idx").on(table.isActive, table.lastActivity),
+  index("user_sessions_token_idx").on(table.sessionToken),
+]);
+
+// User Activity Logs table (public schema)
+export const userActivityLogs = pgTable("user_activity_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  resourceType: varchar("resource_type", { length: 50 }),
+  resourceId: uuid("resource_id"),
+  description: text("description"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  deviceInfo: jsonb("device_info"),
+  location: jsonb("location"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("user_activity_logs_tenant_user_idx").on(table.tenantId, table.userId),
+  index("user_activity_logs_action_idx").on(table.action),
+  index("user_activity_logs_resource_idx").on(table.resourceType, table.resourceId),
+  index("user_activity_logs_created_idx").on(table.createdAt),
+]);
+
 // ========================================
 // TENANT-SPECIFIC SCHEMA TABLES
 // ========================================
@@ -306,6 +400,22 @@ export const userGroups = pgTable("user_groups", {
   index("user_groups_tenant_active_idx").on(table.tenantId, table.isActive),
 ]);
 
+// User Group Memberships table - Many-to-many relationship between users and groups
+export const userGroupMemberships = pgTable("user_group_memberships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  groupId: uuid("group_id").references(() => userGroups.id, { onDelete: 'cascade' }).notNull(),
+  role: varchar("role", { length: 50 }).default("member"), // member, admin, moderator
+  isActive: boolean("is_active").default(true),
+  addedAt: timestamp("added_at").defaultNow(),
+  addedById: uuid("added_by_id").references(() => users.id),
+}, (table) => [
+  unique("user_group_memberships_unique").on(table.tenantId, table.userId, table.groupId),
+  index("user_group_memberships_tenant_user_idx").on(table.tenantId, table.userId),
+  index("user_group_memberships_tenant_group_idx").on(table.tenantId, table.groupId),
+]);
+
 // Favorecidos table (Brazilian beneficiaries) - Nomenclature standardized and constraints added
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -412,6 +522,8 @@ export const insertCustomerCompanySchema = createInsertSchema(customerCompanies)
 export const insertSkillSchema = createInsertSchema(skills);
 export const insertCertificationSchema = createInsertSchema(certifications);
 export const insertUserSkillSchema = createInsertSchema(userSkills);
+export const insertUserGroupSchema = createInsertSchema(userGroups);
+export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships);
 export const insertFavorecidoSchema = createInsertSchema(favorecidos);
 export const insertProjectSchema = createInsertSchema(projects);
 export const insertProjectActionSchema = createInsertSchema(projectActions);
@@ -862,13 +974,4 @@ export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 
 // User Group schemas for validation
-export const insertUserGroupSchema = createInsertSchema(userGroups).omit({
-  id: true,
-  tenantId: true,
-  isActive: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
-export type PerformanceMetric = typeof performanceMetrics.$inferSelect;

@@ -101,7 +101,7 @@ export default function TeamManagement() {
   });
 
   // Fetch skills matrix
-  const { data: skillsMatrix } = useQuery({
+  const { data: skillsMatrix, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/team-management/skills-matrix'],
     enabled: !!user,
   });
@@ -331,18 +331,33 @@ export default function TeamManagement() {
                 <CardDescription>Membros ativos por departamento</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
-                  <div key={dept.name} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Building className="h-4 w-4 text-gray-500" />
-                      <span className="font-medium">{dept.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">{dept.count}</span>
-                      <Progress value={dept.percentage} className="w-20" />
-                    </div>
+                {overviewLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      </div>
+                    ))}
                   </div>
-                )) : []}
+                ) : (
+                  Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
+                    <div key={dept.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Building className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">{dept.name}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">{dept.count}</span>
+                        <Progress value={dept.percentage} className="w-20" />
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="text-center py-4 text-gray-500">
+                      Nenhum departamento encontrado
+                    </div>
+                  )
+                )}
               </CardContent>
             </Card>
 
@@ -353,15 +368,36 @@ export default function TeamManagement() {
                 <CardDescription>Últimas ações da equipe</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {Array.isArray(teamOverview?.recentActivities) ? teamOverview.recentActivities.map((activity: any, index: number) => (
-                  <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <Activity className="h-4 w-4 text-blue-500" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{activity.description}</p>
-                      <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                    </div>
+                {overviewLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="flex-1 space-y-1">
+                          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )) : []}
+                ) : (
+                  Array.isArray(teamOverview?.recentActivities) ? teamOverview.recentActivities.map((activity: any, index: number) => (
+                    <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <Activity className="h-4 w-4 text-blue-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{activity.description}</p>
+                        <p className="text-xs text-gray-500">
+                          {activity.user && `${activity.user} - `}
+                          {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="text-center py-4 text-gray-500">
+                      Nenhuma atividade recente
+                    </div>
+                  )
+                )}
               </CardContent>
             </Card>
 
@@ -372,20 +408,35 @@ export default function TeamManagement() {
                 <CardDescription>Competências da equipe</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Array.isArray(skillsMatrix?.topSkills) ? skillsMatrix.topSkills.map((skill: any) => (
-                  <div key={skill.name} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Award className="h-4 w-4 text-yellow-500" />
-                      <span className="font-medium">{skill.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">{skill.experts} experts</span>
-                      <Badge variant={skill.level === 'high' ? 'default' : 'secondary'}>
-                        {skill.level}
-                      </Badge>
-                    </div>
+                {skillsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      </div>
+                    ))}
                   </div>
-                )) : []}
+                ) : (
+                  Array.isArray(skillsMatrix?.topSkills) ? skillsMatrix.topSkills.map((skill: any) => (
+                    <div key={skill.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Award className="h-4 w-4 text-yellow-500" />
+                        <span className="font-medium">{skill.name}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">{skill.count} pessoas</span>
+                        <Badge variant={skill.level === 'Avançado' ? 'default' : 'secondary'}>
+                          {skill.level}
+                        </Badge>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="text-center py-4 text-gray-500">
+                      Nenhuma habilidade encontrada
+                    </div>
+                  )
+                )}
               </CardContent>
             </Card>
 

@@ -1,0 +1,101 @@
+Analisando todo o módulo de gestão de equipe no sistema, vou mapear todos os campos do frontend que não estão conectados ao banco de dados:
+
+ANÁLISE COMPLETA DO MÓDULO GESTÃO DE EQUIPE
+📊 CAMPOS FRONTEND SEM CONEXÃO COM BANCO DE DADOS:
+1. TeamManagement.tsx - Dados Mockados/Não Persistidos:
+🔴 CAMPOS CRÍTICOS SEM PERSISTÊNCIA:
+
+teamStats.totalMembers - Dados calculados sem campo específico
+teamStats.activeToday - Não existe tracking de atividade diária
+teamStats.pendingApprovals - Não há tabela de aprovações
+teamStats.averagePerformance - Sem sistema de métricas de performance
+🔴 DEPARTAMENTOS E POSIÇÕES:
+
+member.department - Campo não existe na tabela users
+member.position - Campo não existe na tabela users
+teamOverview.departments[] - Estrutura departamental não modelada
+🔴 PERFORMANCE E HABILIDADES:
+
+performanceData.individuals[].performance - Sem tabela de avaliações
+performanceData.goals[] - Sem sistema de metas
+skillsMatrix.topSkills[] - Dados mockados, não conectados às habilidades técnicas
+2. UserGroups.tsx - Funcionalidades Parciais:
+🟡 CAMPOS EXISTENTES MAS INCOMPLETOS:
+
+group.description - Campo existe mas interface não salva adequadamente
+group.permissions[] - Sistema de permissões existe mas não é utilizado
+groupStats.memberCount - Calculado em tempo real, sem cache
+3. CustomRoles.tsx - Sistema de Papéis:
+🔴 PAPÉIS CUSTOMIZADOS SEM IMPLEMENTAÇÃO:
+
+customRole.permissions[] - Definições de permissões personalizadas
+customRole.description - Descrições detalhadas de papéis
+customRole.level - Hierarquia de papéis não implementada
+4. UserActivity.tsx - Logs de Atividade:
+🔴 ATIVIDADES NÃO RASTREADAS:
+
+activity.action - Tipos de ação específicos não categorizados
+activity.ipAddress - Tracking de IP não implementado
+activity.deviceInfo - Informações de dispositivo não coletadas
+activity.location - Geolocalização de atividades não salva
+5. UserSessions.tsx - Gestão de Sessões:
+🟡 DADOS PARCIAIS DE SESSÃO:
+
+session.deviceType - Não detectado e salvo
+session.browser - Informações de navegador não persistidas
+session.location - Localização geográfica não rastreada
+📋 TABELAS DE BANCO NECESSÁRIAS MAS AUSENTES:
+1. Departamentos e Estrutura Organizacional:
+-- TABELA AUSENTE: departments
+CREATE TABLE departments (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  manager_id UUID REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+-- TABELA AUSENTE: user_departments  
+CREATE TABLE user_departments (
+  user_id UUID REFERENCES users(id),
+  department_id UUID REFERENCES departments(id),
+  position VARCHAR(100),
+  start_date DATE,
+  PRIMARY KEY (user_id, department_id)
+);
+2. Sistema de Performance:
+-- TABELA AUSENTE: performance_evaluations
+CREATE TABLE performance_evaluations (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  user_id UUID REFERENCES users(id),
+  period_start DATE,
+  period_end DATE,
+  score DECIMAL(3,2),
+  goals JSONB,
+  feedback TEXT,
+  evaluator_id UUID REFERENCES users(id)
+);
+3. Sistema de Aprovações:
+-- TABELA AUSENTE: approval_requests
+CREATE TABLE approval_requests (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  requester_id UUID REFERENCES users(id),
+  approver_id UUID REFERENCES users(id),
+  type VARCHAR(50),
+  status VARCHAR(20) DEFAULT 'pending',
+  data JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+🔧 CAMPOS USERS AUSENTES NO BANCO:
+Campos necessários na tabela users que não existem:
+
+department_id - Referência ao departamento
+position - Cargo/posição
+hire_date - Data de contratação
+manager_id - Referência ao gestor
+phone - Telefone corporativo
+location - Localização de trabalho
+skills - Habilidades principais
+performance_score - Score de performance atual
