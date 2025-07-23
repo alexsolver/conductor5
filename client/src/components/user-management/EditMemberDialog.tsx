@@ -86,7 +86,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     if (member) {
       const memberGroupIds = Array.isArray(member.groupIds) ? member.groupIds : [];
       setSelectedGroups(memberGroupIds);
-      
+
       form.reset({
         firstName: member.firstName || "",
         lastName: member.lastName || "",
@@ -170,13 +170,13 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                 <Briefcase className="h-4 w-4" />
                 <span>Dados RH</span>
               </TabsTrigger>
-              <TabsTrigger value="groups" className="flex items-center space-x-2">
-                <Users className="h-4 w-4" />
-                <span>Grupos</span>
-              </TabsTrigger>
               <TabsTrigger value="documents" className="flex items-center space-x-2">
                 <FileText className="h-4 w-4" />
                 <span>Documentos</span>
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="flex items-center space-x-2">
+                <Users className="h-4 w-4" />
+                <span>Grupos</span>
               </TabsTrigger>
             </TabsList>
 
@@ -368,6 +368,21 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </Card>
             </TabsContent>
 
+            {/* Documents Tab */}
+            <TabsContent value="documents" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Documentos e Grupos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center text-gray-500 py-8">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p>Gestão de documentos e grupos será implementada em breve</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* Groups Tab */}
             <TabsContent value="groups" className="space-y-4">
               <Card>
@@ -416,7 +431,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                         </div>
                       ))}
                     </div>
-                    
+
                     {selectedGroups.length > 0 && (
                       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                         <Label className="text-sm font-medium text-blue-900">
@@ -434,7 +449,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                         </div>
                       </div>
                     )}
-                    
+
                     {(!groupsData?.groups || groupsData.groups.length === 0) && (
                       <div className="text-center text-gray-500 py-8">
                         <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -442,21 +457,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                         <p className="text-sm">Crie grupos no painel de administração</p>
                       </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Documents Tab */}
-            <TabsContent value="documents" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Documentos e Grupos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center text-gray-500 py-8">
-                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p>Gestão de documentos e grupos será implementada em breve</p>
                   </div>
                 </CardContent>
               </Card>
