@@ -127,6 +127,8 @@ export default function TicketDetails() {
   const [history, setHistory] = useState<any[]>([]);
   const [internalActions, setInternalActions] = useState<any[]>([]);
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
+  const [externalActions, setExternalActions] = useState<any[]>([]);
+  const [showExternalActionModal, setShowExternalActionModal] = useState(false);
   const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
   const [followers, setFollowers] = useState<any[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -389,6 +391,37 @@ export default function TicketDetails() {
           startTime: new Date(Date.now() - 1 * 60 * 60 * 1000).toLocaleString('pt-BR'),
           linkedItems: "Equipamento #123",
           hasFile: false
+        }
+      ]);
+
+      // Simulate external actions data
+      setExternalActions([
+        {
+          id: "EXT-2025-001",
+          type: "vendor_contact",
+          agent: "Pedro Costa",
+          vendor: "Microsoft Support",
+          status: "completed",
+          description: "Contato com suporte da Microsoft para resolução de problema de licenciamento",
+          timeSpent: "1.5",
+          startTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toLocaleString('pt-BR'),
+          endTime: new Date(Date.now() - 3 * 60 * 60 * 1000).toLocaleString('pt-BR'),
+          linkedItems: "Licença #MS-456",
+          hasFile: true,
+          contactMethod: "phone"
+        },
+        {
+          id: "EXT-2025-002",
+          type: "customer_followup",
+          agent: "Ana Silva",
+          vendor: "Cliente Externo",
+          status: "pending",
+          description: "Follow-up com cliente sobre validação da solução implementada",
+          timeSpent: "0.5",
+          startTime: new Date(Date.now() - 30 * 60 * 1000).toLocaleString('pt-BR'),
+          linkedItems: "Email #789",
+          hasFile: false,
+          contactMethod: "email"
         }
       ]);
     }
@@ -1238,24 +1271,78 @@ export default function TicketDetails() {
             <span className="text-sm font-medium">Detalhes</span>
           </button>
 
-          {/* Campos Especiais */}
-          {specialTabs.map((tab) => {
-            const IconComponent = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                  activeTab === tab.id 
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <IconComponent className="h-4 w-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
-              </button>
-            );
-          })}
+          {/* Campos Especiais - Nova ordem */}
+          <button
+            onClick={() => setActiveTab("communications")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "communications" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span className="text-sm font-medium">Comunicação</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("attachments")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "attachments" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <Paperclip className="h-4 w-4" />
+            <span className="text-sm font-medium">Anexos</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("notes")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "notes" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            <span className="text-sm font-medium">Notas</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("internal-actions")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "internal-actions" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <Settings className="h-4 w-4" />
+            <span className="text-sm font-medium">Ações Internas</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("external-actions")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "external-actions" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span className="text-sm font-medium">Ações Externas</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "history" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <History className="h-4 w-4" />
+            <span className="text-sm font-medium">Histórico</span>
+          </button>
         </div>
 
         {/* Quadro Informativo */}
@@ -1757,7 +1844,7 @@ export default function TicketDetails() {
                 </div>
               </div>
 
-              {communications.map((comm: any) => (
+              {communications.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className="p-4">
                   <div className="flex items-start gap-4">
                     {/* Channel Icon */}
@@ -1890,7 +1977,7 @@ export default function TicketDetails() {
 
             {/* History Timeline */}
             <div className="space-y-4">
-              {history.map((entry: any, index: number) => (
+              {history.slice().reverse().map((entry: any, index: number) => (
                 <div key={entry.id} className="flex gap-4">
                   {/* Timeline Line */}
                   <div className="flex flex-col items-center">
@@ -2198,6 +2285,231 @@ export default function TicketDetails() {
                 <Settings className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                 <p>Nenhuma ação interna registrada ainda</p>
                 <p className="text-sm">Use o botão "Nova Ação" para adicionar a primeira ação</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case "external-actions":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">🌐 Ações Externas</h2>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {externalActions.length} ação(ões)
+                </Badge>
+                <Dialog open={showExternalActionModal} onOpenChange={setShowExternalActionModal}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Ação Externa
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Nova Ação Externa</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-2 gap-6 py-4">
+                      {/* Left Column */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="external-action-id">ID da Ação *</Label>
+                          <Input id="external-action-id" placeholder="EXT-2025-001" />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-action-type">Tipo de Ação *</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="vendor_contact">Contato com Fornecedor</SelectItem>
+                              <SelectItem value="customer_followup">Follow-up Cliente</SelectItem>
+                              <SelectItem value="partner_coordination">Coordenação Parceiro</SelectItem>
+                              <SelectItem value="external_validation">Validação Externa</SelectItem>
+                              <SelectItem value="compliance_check">Verificação Compliance</SelectItem>
+                              <SelectItem value="regulatory_contact">Contato Regulatório</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-action-agent">Agente Responsável *</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o agente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="agent1">João Silva</SelectItem>
+                              <SelectItem value="agent2">Maria Santos</SelectItem>
+                              <SelectItem value="agent3">Pedro Costa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-vendor">Fornecedor/Parceiro</Label>
+                          <Input id="external-vendor" placeholder="Nome do fornecedor ou parceiro" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor="external-start-time">Início *</Label>
+                            <Input id="external-start-time" type="datetime-local" />
+                          </div>
+                          <div>
+                            <Label htmlFor="external-end-time">Fim</Label>
+                            <Input id="external-end-time" type="datetime-local" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="external-contact-method">Método de Contato</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Como foi o contato?" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="email">Email</SelectItem>
+                              <SelectItem value="phone">Telefone</SelectItem>
+                              <SelectItem value="meeting">Reunião</SelectItem>
+                              <SelectItem value="portal">Portal</SelectItem>
+                              <SelectItem value="chat">Chat</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-linked-items">Itens Relacionados</Label>
+                          <Textarea 
+                            id="external-linked-items" 
+                            placeholder="Ex: Contrato #123, Email #456"
+                            rows={2}
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-time-spent">Tempo Gasto (horas)</Label>
+                          <Input 
+                            id="external-time-spent" 
+                            type="number" 
+                            step="0.5" 
+                            placeholder="Ex: 1.5"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-action-status">Status *</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pendente</SelectItem>
+                              <SelectItem value="in-progress">Em Progresso</SelectItem>
+                              <SelectItem value="completed">Concluída</SelectItem>
+                              <SelectItem value="cancelled">Cancelada</SelectItem>
+                              <SelectItem value="waiting-response">Aguardando Resposta</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-action-file">Arquivo de Apoio</Label>
+                          <Input id="external-action-file" type="file" />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Máximo 50MB. Contratos, emails, evidências
+                          </p>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="external-action-description">Descrição da Ação *</Label>
+                          <Textarea 
+                            id="external-action-description" 
+                            placeholder="Descreva detalhadamente a ação externa realizada..."
+                            rows={4}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                      <Button variant="outline" onClick={() => setShowExternalActionModal(false)}>
+                        Cancelar
+                      </Button>
+                      <Button>
+                        <Save className="h-4 w-4 mr-2" />
+                        Salvar Ação Externa
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {/* External Actions List */}
+            {externalActions.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-700">Ações Externas Registradas</h3>
+                {externalActions.map((action: any) => (
+                  <Card key={action.id} className="p-4 border-l-4 border-l-orange-400">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {action.id}
+                          </Badge>
+                          <Badge className="text-xs bg-orange-100 text-orange-800">
+                            {action.type}
+                          </Badge>
+                          <Badge 
+                            variant={action.status === 'completed' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {action.status}
+                          </Badge>
+                          {action.contactMethod && (
+                            <Badge variant="outline" className="text-xs">
+                              📞 {action.contactMethod}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <p className="text-sm text-gray-800">{action.description}</p>
+                        
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span>👤 {action.agent}</span>
+                          <span>🏢 {action.vendor}</span>
+                          <span>⏱️ {action.timeSpent}h</span>
+                          <span>📅 {action.startTime}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {externalActions.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <ExternalLink className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>Nenhuma ação externa registrada ainda</p>
+                <p className="text-sm">Use o botão "Nova Ação Externa" para adicionar a primeira ação</p>
               </div>
             )}
           </div>
