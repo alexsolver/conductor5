@@ -67,6 +67,8 @@ export default function TeamManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterRole, setFilterRole] = useState("all");
+  const [filterGroup, setFilterGroup] = useState("all");
   
   // Dialog states for user management
   const [showCreateUser, setShowCreateUser] = useState(false);
@@ -117,14 +119,23 @@ export default function TeamManagement() {
     refetchInterval: 60000,
   });
 
+  // Fetch groups for filter
+  const { data: groupsData } = useQuery({
+    queryKey: ['/api/user-management/groups'],
+    enabled: !!user,
+  });
+
   // Filter team members
   const filteredMembers = Array.isArray(teamMembers) ? teamMembers.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === "all" || member.department === filterDepartment;
     const matchesStatus = filterStatus === "all" || member.status === filterStatus;
+    const matchesRole = filterRole === "all" || member.role === filterRole;
+    const matchesGroup = filterGroup === "all" || 
+                        (Array.isArray(member.groupIds) && member.groupIds.includes(filterGroup));
     
-    return matchesSearch && matchesDepartment && matchesStatus;
+    return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
   }) : [];
 
   // Mutation to toggle member status
@@ -437,8 +448,8 @@ export default function TeamManagement() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+                <div className="lg:col-span-2">
                   <Label htmlFor="search">Buscar membros</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -458,11 +469,42 @@ export default function TeamManagement() {
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os Departamentos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="engineering">Engenharia</SelectItem>
                       <SelectItem value="sales">Vendas</SelectItem>
                       <SelectItem value="support">Suporte</SelectItem>
-                      <SelectItem value="hr">Recursos Humanos</SelectItem>
+                      <SelectItem value="hr">RH</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="role">Função</Label>
+                  <Select value={filterRole} onValueChange={setFilterRole}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="tenant_admin">Admin</SelectItem>
+                      <SelectItem value="agent">Agente</SelectItem>
+                      <SelectItem value="supervisor">Supervisor</SelectItem>
+                      <SelectItem value="manager">Gerente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="group">Grupo</Label>
+                  <Select value={filterGroup} onValueChange={setFilterGroup}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {groupsData?.groups?.map((group: any) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -473,7 +515,7 @@ export default function TeamManagement() {
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="active">Ativo</SelectItem>
                       <SelectItem value="inactive">Inativo</SelectItem>
                       <SelectItem value="pending">Pendente</SelectItem>
