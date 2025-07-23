@@ -482,94 +482,134 @@ export default function TeamManagement() {
                 </div>
               </div>
 
-              {/* Members Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredMembers.map((member: any) => (
-                  <Card key={member.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
-                          <span className="text-white font-semibold">
+              {/* Members List */}
+              <div className="bg-white dark:bg-gray-800 border rounded-lg">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="col-span-3">Membro</div>
+                  <div className="col-span-2">Posição</div>
+                  <div className="col-span-2">Departamento</div>
+                  <div className="col-span-2">Email</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-2 text-right">Ações</div>
+                </div>
+
+                {/* Table Body */}
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredMembers.map((member: any) => (
+                    <div key={member.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                      {/* Member Info */}
+                      <div className="col-span-3 flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-semibold text-sm">
                             {member.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                             {member.name}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                            {member.position}
-                          </p>
                           <p className="text-xs text-gray-500 truncate">
-                            {member.department}
+                            ID: {member.id.slice(-8)}
                           </p>
-                          
-                          <div className="flex items-center space-x-4 mt-2">
-                            <div className="flex items-center space-x-1">
-                              <Mail className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-600 truncate">
-                                {member.email}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between mt-3">
-                            <Badge 
-                              variant={
-                                member.status === 'active' ? 'default' : 
-                                member.status === 'inactive' ? 'destructive' : 'secondary'
-                              }
-                            >
-                              {member.status}
-                            </Badge>
-                            <div className="flex items-center space-x-1">
-                              {member.status === 'active' && (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              )}
-                              {member.status === 'inactive' && (
-                                <XCircle className="h-4 w-4 text-red-500" />
-                              )}
-                              {member.status === 'pending' && (
-                                <AlertCircle className="h-4 w-4 text-yellow-500" />
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditMember(member)}
-                              className="flex-1"
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Editar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={member.status === 'active' ? 'destructive' : 'default'}
-                              onClick={() => handleToggleMemberStatus(member)}
-                              className="flex-1"
-                            >
-                              {member.status === 'active' ? (
-                                <>
-                                  <UserX className="h-3 w-3 mr-1" />
-                                  Desativar
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="h-3 w-3 mr-1" />
-                                  Ativar
-                                </>
-                              )}
-                            </Button>
-                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+
+                      {/* Position */}
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-sm text-gray-900 dark:text-gray-300 truncate">
+                          {member.position || 'Não informado'}
+                        </span>
+                      </div>
+
+                      {/* Department */}
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {member.department || 'Geral'}
+                        </span>
+                      </div>
+
+                      {/* Email */}
+                      <div className="col-span-2 flex items-center">
+                        <div className="flex items-center space-x-1 min-w-0">
+                          <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {member.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="col-span-1 flex items-center">
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={
+                              member.status === 'active' ? 'default' : 
+                              member.status === 'inactive' ? 'destructive' : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {member.status === 'active' ? 'Ativo' : 
+                             member.status === 'inactive' ? 'Inativo' : 'Pendente'}
+                          </Badge>
+                          {member.status === 'active' && (
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                          )}
+                          {member.status === 'inactive' && (
+                            <XCircle className="h-3 w-3 text-red-500" />
+                          )}
+                          {member.status === 'pending' && (
+                            <AlertCircle className="h-3 w-3 text-yellow-500" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="col-span-2 flex items-center justify-end space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditMember(member)}
+                          className="h-8"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={member.status === 'active' ? 'destructive' : 'default'}
+                          onClick={() => handleToggleMemberStatus(member)}
+                          className="h-8"
+                        >
+                          {member.status === 'active' ? (
+                            <>
+                              <UserX className="h-3 w-3 mr-1" />
+                              Desativar
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="h-3 w-3 mr-1" />
+                              Ativar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Empty State */}
+                {filteredMembers.length === 0 && (
+                  <div className="p-8 text-center">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      Nenhum membro encontrado
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Ajuste os filtros ou adicione novos membros à equipe.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {filteredMembers.length === 0 && (
