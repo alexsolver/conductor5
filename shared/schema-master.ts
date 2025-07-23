@@ -979,6 +979,531 @@ export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
 
 // ========================================
+// PARTS AND SERVICES MANAGEMENT TABLES
+// ========================================
+
+// Parts table - Main parts/components catalog
+export const parts = pgTable("parts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  partNumber: varchar("part_number", { length: 100 }).notNull(), // Internal code
+  manufacturerPartNumber: varchar("manufacturer_part_number", { length: 100 }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(),
+  subcategory: varchar("subcategory", { length: 100 }),
+  
+  // Technical Specifications
+  specifications: jsonb("specifications"), // dimensions, weight, materials, voltage, power
+  images: text("images").array(), // Array of image URLs
+  manuals: text("manuals").array(), // Array of manual/documentation URLs
+  barcode: varchar("barcode", { length: 100 }),
+  
+  // Commercial Information
+  costPrice: decimal("cost_price", { precision: 15, scale: 2 }),
+  margin: decimal("margin", { precision: 5, scale: 2 }), // Percentage
+  salePrice: decimal("sale_price", { precision: 15, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  
+  // Classification
+  abcClassification: varchar("abc_classification", { length: 1 }), // A, B, C
+  criticality: varchar("criticality", { length: 20 }).default("medium"), // low, medium, high, critical
+  obsolescenceStatus: varchar("obsolescence_status", { length: 50 }).default("active"), // active, obsolete, discontinued
+  
+  // Interchangeable Parts
+  interchangeableParts: uuid("interchangeable_parts").array(), // Array of part IDs
+  alternativeSuppliers: uuid("alternative_suppliers").array(), // Array of supplier IDs
+  
+  // Status and Audit
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+}, (table) => [
+  index("parts_tenant_part_number_idx").on(table.tenantId, table.partNumber),
+  index("parts_tenant_category_idx").on(table.tenantId, table.category),
+  index("parts_tenant_barcode_idx").on(table.tenantId, table.barcode),
+  index("parts_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Inventory/Stock table - Multi-location inventory control
+export const inventory = pgTable("inventory", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
+  locationId: uuid("location_id").references(() => locations.id),
+  
+  // Stock Levels
+  currentStock: integer("current_stock").default(0),
+  minimumStock: integer("minimum_stock").default(0),
+  maximumStock: integer("maximum_stock").default(0),
+  reorderPoint: integer("reorder_point").default(0),
+  economicOrderQuantity: integer("economic_order_quantity").default(0),
+  
+  // Reserved and Available
+  reservedStock: integer("reserved_stock").default(0),
+  availableStock: integer("available_stock").default(0),
+  consignedStock: integer("consigned_stock").default(0),
+  
+  // Traceability
+  lotNumbers: text("lot_numbers").array(),
+  serialNumbers: text("serial_numbers").array(),
+  expiryDates: timestamp("expiry_dates").array(),
+  
+  // Status and Audit
+  lastCountDate: timestamp("last_count_date"),
+  lastMovementDate: timestamp("last_movement_date"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("inventory_tenant_part_idx").on(table.tenantId, table.partId),
+  index("inventory_tenant_location_idx").on(table.tenantId, table.locationId),
+  index("inventory_tenant_reorder_idx").on(table.tenantId, table.reorderPoint),
+  unique("inventory_tenant_part_location_unique").on(table.tenantId, table.partId, table.locationId),
+]);
+
+// Stock Movements table - All inventory transactions
+export const stockMovements = pgTable("stock_movements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
+  inventoryId: uuid("inventory_id").references(() => inventory.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Movement Details
+  movementType: varchar("movement_type", { length: 50 }).notNull(), // in, out, transfer, adjustment, return
+  quantity: integer("quantity").notNull(),
+  unitCost: decimal("unit_cost", { precision: 15, scale: 2 }),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  
+  // References
+  referenceType: varchar("reference_type", { length: 50 }), // purchase_order, service_order, transfer, adjustment
+  referenceId: uuid("reference_id"), // ID of the reference document
+  fromLocationId: uuid("from_location_id").references(() => locations.id),
+  toLocationId: uuid("to_location_id").references(() => locations.id),
+  
+  // Traceability
+  lotNumber: varchar("lot_number", { length: 100 }),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  expiryDate: timestamp("expiry_date"),
+  
+  // Documentation
+  documentNumber: varchar("document_number", { length: 100 }),
+  notes: text("notes"),
+  
+  // Audit
+  movementDate: timestamp("movement_date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("stock_movements_tenant_part_idx").on(table.tenantId, table.partId),
+  index("stock_movements_tenant_date_idx").on(table.tenantId, table.movementDate),
+  index("stock_movements_tenant_type_idx").on(table.tenantId, table.movementType),
+]);
+
+// Suppliers table - Supplier management
+export const suppliers = pgTable("suppliers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  name: varchar("name", { length: 255 }).notNull(),
+  displayName: varchar("display_name", { length: 255 }),
+  description: text("description"),
+  supplierType: varchar("supplier_type", { length: 50 }).notNull(), // manufacturer, distributor, service_provider
+  
+  // Legal Information
+  taxId: varchar("tax_id", { length: 50 }), // CNPJ/CPF
+  legalName: varchar("legal_name", { length: 255 }),
+  
+  // Contact Information
+  email: varchar("email", { length: 255 }),
+  phone: varchar("phone", { length: 20 }),
+  website: varchar("website", { length: 255 }),
+  
+  // Address
+  address: jsonb("address"), // Full address object
+  
+  // Commercial Information
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  creditLimit: decimal("credit_limit", { precision: 15, scale: 2 }),
+  
+  // Performance Metrics
+  rating: decimal("rating", { precision: 3, scale: 2 }), // 0.00 to 5.00
+  totalPurchases: decimal("total_purchases", { precision: 15, scale: 2 }).default('0'),
+  onTimeDeliveryRate: decimal("on_time_delivery_rate", { precision: 5, scale: 2 }),
+  qualityRating: decimal("quality_rating", { precision: 3, scale: 2 }),
+  
+  // Status and Audit
+  status: varchar("status", { length: 50 }).default("active"), // active, inactive, suspended, blocked
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+}, (table) => [
+  index("suppliers_tenant_name_idx").on(table.tenantId, table.name),
+  index("suppliers_tenant_status_idx").on(table.tenantId, table.status),
+  index("suppliers_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Supplier Catalog table - Products offered by suppliers
+export const supplierCatalog = pgTable("supplier_catalog", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  supplierId: uuid("supplier_id").references(() => suppliers.id, { onDelete: 'cascade' }).notNull(),
+  partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Supplier Information
+  supplierPartNumber: varchar("supplier_part_number", { length: 100 }),
+  supplierDescription: text("supplier_description"),
+  
+  // Pricing
+  unitPrice: decimal("unit_price", { precision: 15, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  minimumOrderQuantity: integer("minimum_order_quantity").default(1),
+  
+  // Terms
+  leadTime: integer("lead_time"), // Days
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  warranty: varchar("warranty", { length: 100 }),
+  
+  // Status
+  isPreferred: boolean("is_preferred").default(false),
+  isActive: boolean("is_active").default(true),
+  validFrom: timestamp("valid_from").defaultNow(),
+  validTo: timestamp("valid_to"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("supplier_catalog_tenant_supplier_idx").on(table.tenantId, table.supplierId),
+  index("supplier_catalog_tenant_part_idx").on(table.tenantId, table.partId),
+  index("supplier_catalog_tenant_preferred_idx").on(table.tenantId, table.isPreferred),
+  unique("supplier_catalog_tenant_supplier_part_unique").on(table.tenantId, table.supplierId, table.partId),
+]);
+
+// Purchase Orders table - Purchase order management
+export const purchaseOrders = pgTable("purchase_orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Order Information
+  orderNumber: varchar("order_number", { length: 100 }).notNull(),
+  supplierId: uuid("supplier_id").references(() => suppliers.id).notNull(),
+  requestedById: uuid("requested_by_id").references(() => users.id),
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  
+  // Order Details
+  orderType: varchar("order_type", { length: 50 }).default("normal"), // normal, emergency, scheduled
+  priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, urgent
+  
+  // Financial
+  subtotal: decimal("subtotal", { precision: 15, scale: 2 }).default('0'),
+  taxAmount: decimal("tax_amount", { precision: 15, scale: 2 }).default('0'),
+  totalAmount: decimal("total_amount", { precision: 15, scale: 2 }).default('0'),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  
+  // Dates
+  orderDate: timestamp("order_date").defaultNow(),
+  expectedDeliveryDate: timestamp("expected_delivery_date"),
+  deliveryDate: timestamp("delivery_date"),
+  
+  // Status
+  status: varchar("status", { length: 50 }).default("draft"), // draft, sent, confirmed, partial, delivered, cancelled
+  
+  // Terms and Notes
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  deliveryTerms: varchar("delivery_terms", { length: 100 }),
+  notes: text("notes"),
+  
+  // Receiving Information
+  deliveryLocationId: uuid("delivery_location_id").references(() => locations.id),
+  receivedById: uuid("received_by_id").references(() => users.id),
+  receivingNotes: text("receiving_notes"),
+  
+  // Audit
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+}, (table) => [
+  index("purchase_orders_tenant_number_idx").on(table.tenantId, table.orderNumber),
+  index("purchase_orders_tenant_supplier_idx").on(table.tenantId, table.supplierId),
+  index("purchase_orders_tenant_status_idx").on(table.tenantId, table.status),
+  index("purchase_orders_tenant_date_idx").on(table.tenantId, table.orderDate),
+  unique("purchase_orders_tenant_number_unique").on(table.tenantId, table.orderNumber),
+]);
+
+// Purchase Order Items table - Items in purchase orders
+export const purchaseOrderItems = pgTable("purchase_order_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  purchaseOrderId: uuid("purchase_order_id").references(() => purchaseOrders.id, { onDelete: 'cascade' }).notNull(),
+  partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Item Details
+  quantity: integer("quantity").notNull(),
+  unitPrice: decimal("unit_price", { precision: 15, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 15, scale: 2 }).notNull(),
+  
+  // Receiving
+  quantityReceived: integer("quantity_received").default(0),
+  quantityPending: integer("quantity_pending").default(0),
+  
+  // Item Specifications
+  supplierPartNumber: varchar("supplier_part_number", { length: 100 }),
+  description: text("description"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("purchase_order_items_tenant_order_idx").on(table.tenantId, table.purchaseOrderId),
+  index("purchase_order_items_tenant_part_idx").on(table.tenantId, table.partId),
+]);
+
+// Service Kits table - Predefined parts kits for services
+export const serviceKits = pgTable("service_kits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Kit Information
+  kitName: varchar("kit_name", { length: 255 }).notNull(),
+  description: text("description"),
+  kitType: varchar("kit_type", { length: 50 }).notNull(), // preventive, corrective, installation, emergency
+  
+  // Application
+  equipmentTypes: text("equipment_types").array(), // What equipment this kit applies to
+  serviceTypes: text("service_types").array(), // What service types use this kit
+  
+  // Pricing
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  salePrice: decimal("sale_price", { precision: 15, scale: 2 }),
+  
+  // Status and Audit
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+}, (table) => [
+  index("service_kits_tenant_name_idx").on(table.tenantId, table.kitName),
+  index("service_kits_tenant_type_idx").on(table.tenantId, table.kitType),
+  index("service_kits_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Service Kit Items table - Parts included in service kits
+export const serviceKitItems = pgTable("service_kit_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  serviceKitId: uuid("service_kit_id").references(() => serviceKits.id, { onDelete: 'cascade' }).notNull(),
+  partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Quantity and Specifications
+  quantity: integer("quantity").notNull(),
+  isOptional: boolean("is_optional").default(false),
+  alternativePartIds: uuid("alternative_part_ids").array(), // Alternative parts for this item
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("service_kit_items_tenant_kit_idx").on(table.tenantId, table.serviceKitId),
+  index("service_kit_items_tenant_part_idx").on(table.tenantId, table.partId),
+  unique("service_kit_items_tenant_kit_part_unique").on(table.tenantId, table.serviceKitId, table.partId),
+]);
+
+// Price Lists table - Unit price lists (LPU)
+export const priceLists = pgTable("price_lists", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // List Information
+  listName: varchar("list_name", { length: 255 }).notNull(),
+  description: text("description"),
+  version: varchar("version", { length: 20 }).notNull(),
+  
+  // Application
+  applicationType: varchar("application_type", { length: 50 }).notNull(), // customer, contract, region, general
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id),
+  contractId: uuid("contract_id").references(() => contracts.id),
+  region: varchar("region", { length: 100 }),
+  
+  // Validity
+  validFrom: timestamp("valid_from").defaultNow(),
+  validTo: timestamp("valid_to"),
+  isActive: boolean("is_active").default(true),
+  
+  // Automatic Application
+  autoApplyToOrders: boolean("auto_apply_to_orders").default(false),
+  autoApplyToQuotes: boolean("auto_apply_to_quotes").default(false),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+}, (table) => [
+  index("price_lists_tenant_name_idx").on(table.tenantId, table.listName),
+  index("price_lists_tenant_validity_idx").on(table.tenantId, table.validFrom, table.validTo),
+  index("price_lists_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("price_lists_tenant_customer_idx").on(table.tenantId, table.customerCompanyId),
+]);
+
+// Price List Items table - Items in price lists
+export const priceListItems = pgTable("price_list_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  priceListId: uuid("price_list_id").references(() => priceLists.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Item Reference
+  itemType: varchar("item_type", { length: 50 }).notNull(), // part, service, labor, travel, kit
+  partId: uuid("part_id").references(() => parts.id),
+  serviceKitId: uuid("service_kit_id").references(() => serviceKits.id),
+  itemCode: varchar("item_code", { length: 100 }),
+  itemDescription: varchar("item_description", { length: 255 }),
+  
+  // Pricing
+  unitPrice: decimal("unit_price", { precision: 15, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  
+  // Volume Discounts
+  minimumQuantity: integer("minimum_quantity").default(1),
+  maximumQuantity: integer("maximum_quantity"),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).default('0'),
+  
+  // Special Pricing
+  marginPercentage: decimal("margin_percentage", { precision: 5, scale: 2 }),
+  specialPrice: decimal("special_price", { precision: 15, scale: 2 }),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("price_list_items_tenant_list_idx").on(table.tenantId, table.priceListId),
+  index("price_list_items_tenant_part_idx").on(table.tenantId, table.partId),
+  index("price_list_items_tenant_type_idx").on(table.tenantId, table.itemType),
+]);
+
+// Parts and Services Type Definitions
+export type InsertPart = typeof parts.$inferInsert;
+export type Part = typeof parts.$inferSelect;
+export type InsertInventory = typeof inventory.$inferInsert;
+export type Inventory = typeof inventory.$inferSelect;
+export type InsertStockMovement = typeof stockMovements.$inferInsert;
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type InsertSupplier = typeof suppliers.$inferInsert;
+export type Supplier = typeof suppliers.$inferSelect;
+export type InsertSupplierCatalog = typeof supplierCatalog.$inferInsert;
+export type SupplierCatalog = typeof supplierCatalog.$inferSelect;
+export type InsertPurchaseOrder = typeof purchaseOrders.$inferInsert;
+export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
+export type InsertPurchaseOrderItem = typeof purchaseOrderItems.$inferInsert;
+export type PurchaseOrderItem = typeof purchaseOrderItems.$inferSelect;
+export type InsertServiceKit = typeof serviceKits.$inferInsert;
+export type ServiceKit = typeof serviceKits.$inferSelect;
+export type InsertServiceKitItem = typeof serviceKitItems.$inferInsert;
+export type ServiceKitItem = typeof serviceKitItems.$inferSelect;
+export type InsertPriceList = typeof priceLists.$inferInsert;
+export type PriceList = typeof priceLists.$inferSelect;
+export type InsertPriceListItem = typeof priceListItems.$inferInsert;
+export type PriceListItem = typeof priceListItems.$inferSelect;
+
+// Parts and Services Validation Schemas
+export const insertPartSchema = createInsertSchema(parts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+});
+
+export const insertInventorySchema = createInsertSchema(inventory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStockMovementSchema = createInsertSchema(stockMovements).omit({
+  id: true,
+  createdAt: true,
+  createdById: true,
+});
+
+export const insertSupplierSchema = createInsertSchema(suppliers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+});
+
+export const insertSupplierCatalogSchema = createInsertSchema(supplierCatalog).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+});
+
+export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+});
+
+export const insertPurchaseOrderItemSchema = createInsertSchema(purchaseOrderItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertServiceKitSchema = createInsertSchema(serviceKits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+});
+
+export const insertServiceKitItemSchema = createInsertSchema(serviceKitItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPriceListSchema = createInsertSchema(priceLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+});
+
+export const insertPriceListItemSchema = createInsertSchema(priceListItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Update schemas for parts and services
+export const updatePartSchema = insertPartSchema.partial();
+export const updateInventorySchema = insertInventorySchema.partial();
+export const updateSupplierSchema = insertSupplierSchema.partial();
+export const updatePurchaseOrderSchema = insertPurchaseOrderSchema.partial();
+export const updateServiceKitSchema = insertServiceKitSchema.partial();
+export const updatePriceListSchema = insertPriceListSchema.partial();
+
+// ========================================
 // CONTRACT MANAGEMENT TABLES
 // ========================================
 

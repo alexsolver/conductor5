@@ -1,0 +1,125 @@
+Desenvolta o módulo de peças e serviços seguinto a estrutura sistêmica da ferramenta e integrando-se com os módulos necessários
+
+Requisitos obrigatórios:
+
+- Comece criando as tabelas no banco de dados
+- Não crie dados mock. Todos os dados devem estar, desde o inicio criados nobanco
+- Não crie botões sem função ou não operacionais
+- Use o padrão crud completo
+- teste tudo antes de finalizar a entrega
+
+🔧 Módulo de Peças e Serviços
+1. GESTÃO DE PEÇAS
+
+Cadastro e Informações Técnicas:
+•	Código interno e do fabricante
+•	Descrição, categoria e subcategoria
+•	Especificações técnicas: dimensões, peso, materiais, voltagem, potência
+•	Imagens, manuais e documentação técnica
+•	Código de barras (geração e leitura)
+
+Comercial:
+•	Preço de custo, margem, preço de venda
+•	Fornecedores alternativos
+•	Classificação ABC (valor/criticidade)
+•	Gestão de obsolescência
+•	Peças intercambiáveis
+ 
+📦 
+2. CONTROLE DE ESTOQUE
+
+Gestão e Operações:
+•	Estoque multi-localização
+•	Níveis de estoque (mínimo, máximo, ponto de reposição, lote econômico)
+•	Movimentações: entrada, saída, transferências, devoluções
+•	Inventário físico (contagem cíclica e geral)
+•	Reservas para serviços programados
+•	Estoque consignado
+
+Rastreabilidade e Kits:
+•	Lotes, números de série, validade
+•	Kits de serviço por tipo de manutenção
+ 
+🤝 
+3. GESTÃO DE FORNECEDORES
+•	Cadastro de fornecedores (com integração a sistema existente)
+•	Catálogo de produtos dos fornecedores
+•	Solicitação de cotações múltiplas
+•	Histórico de compras (preço, prazo, qualidade)
+•	Contratos de fornecimento (com integração ao módulo de contratos)
+•	Avaliação de performance dos fornecedores
+•	Portal do fornecedor
+ 
+🛒 
+4. PLANEJAMENTO E COMPRAS
+•	Análise de demanda (histórico e sazonalidade)
+•	Ponto de reposição automático
+•	Compras programadas
+•	Ordens de compra (manual/automática com aprovações)
+•	Recebimento (conferência, notas fiscais, controle de qualidade)
+•	Compras emergenciais
+•	Análise de custos e TCO (Total Cost of Ownership)
+ 
+🔁 
+5. INTEGRAÇÃO COM SERVIÇOS
+•	Aplicação em ordens de serviço (OS)
+•	Peças por modelo/marca de equipamento
+•	Histórico de utilização por cliente/equipamento
+•	Garantia e RMA das peças
+•	Kits de peças por plano de manutenção preventiva
+•	Consulta de estoque via mobile (para técnicos)
+•	Sugestões automáticas de peças com base no tipo de serviço
+ 
+🚚 
+6. LOGÍSTICA E DISTRIBUIÇÃO
+•	Transferência entre unidades, técnicos, clientes
+•	Expedição e controle de envios
+•	Devolução de peças
+•	Cross-docking (fornecedor → cliente direto)
+ 
+📋 
+7. CONTROLE DE ATIVOS
+•	Cadastro de ativos com hierarquia (máquina > componente > peça)
+•	Geolocalização e rastreio de movimentação
+•	Histórico completo de manutenção
+•	Medidores e ciclo de vida (horímetro, km, tempo de uso)
+•	Garantias e contratos vinculados
+•	Etiquetas com QR code ou RFID
+•	Vínculo com OS, peças, custos e tempo parado
+ 
+💰 
+8. LISTA DE PREÇOS UNITÁRIOS (LPU)
+
+Tabelas e Versões:
+•	Múltiplas LPUs por cliente, contrato, centro de custo
+•	Versão, vigência e periodicidade
+•	Itens diversos: peças, serviços, deslocamentos, horas técnicas
+
+Aplicações e Financeiro:
+•	Aplicação automática em OS/orçamentos
+•	Comparação entre valor estimado vs. executado
+•	Geração de orçamentos e faturas com base na LPU
+ 
+💵 
+9. FUNCIONALIDADES AVANÇADAS DE PREÇO
+•	Tabelas de preços por tenant
+•	Versionamento, validade, segmentação (cliente, região, canal)
+•	Preço unitário por item + descontos por escala
+•	Margens automáticas e preços especiais
+•	Histórico de alterações e simulação de preços
+ 
+✅ 
+10. COMPLIANCE E AUDITORIA
+•	Rastreabilidade completa (integração com sistema de auditoria)
+•	Controle de acesso (RBAC/ABAC)
+•	Logs de auditoria e relatórios regulatórios
+•	Certificações de qualidade e processos de recall
+•	Compliance ambiental (resíduos, reciclagem)
+ 
+🚀 
+11. DIFERENCIAIS AVANÇADOS
+•	Simulador de orçamento com LPU
+•	Dashboards operacionais e financeiros (consumo, custo por ativo, lucratividade por cliente)
+•	APIs de integração com ERP e contabilidade
+•	Controle de lote e validade (ex: equipamentos médicos)
+•	Offline-first (funciona offline e sincroniza depois)
