@@ -40,28 +40,43 @@ interface ContractStats {
 export default function ContractManagement() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
   // Fetch contract statistics
   const { data: stats, isLoading: statsLoading } = useQuery<ContractStats>({
     queryKey: ['/api/contracts/dashboard/stats'],
+    queryFn: () => fetch('/api/contracts/dashboard/stats', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json()),
   });
 
   // Fetch contracts with filters
-  const { data: contracts = [], isLoading: contractsLoading, refetch } = useQuery<Contract[]>({
+  const { data: contractsData, isLoading: contractsLoading, refetch } = useQuery<any>({
     queryKey: ['/api/contracts/contracts', statusFilter, typeFilter, priorityFilter, searchTerm],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (statusFilter) params.append('status', statusFilter);
-      if (typeFilter) params.append('contractType', typeFilter);
-      if (priorityFilter) params.append('priority', priorityFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (typeFilter && typeFilter !== 'all') params.append('contractType', typeFilter);
+      if (priorityFilter && priorityFilter !== 'all') params.append('priority', priorityFilter);
       if (searchTerm) params.append('search', searchTerm);
       
-      return fetch(`/api/contracts/contracts?${params.toString()}`).then(res => res.json());
+      return fetch(`/api/contracts/contracts?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      }).then(res => res.json());
     },
   });
+
+  // Ensure contracts is always an array
+  const contracts = Array.isArray(contractsData) ? contractsData : 
+                   contractsData?.contracts ? contractsData.contracts : [];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -199,7 +214,7 @@ export default function ContractManagement() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="draft">Rascunho</SelectItem>
                   <SelectItem value="active">Ativo</SelectItem>
                   <SelectItem value="expired">Expirado</SelectItem>
@@ -213,7 +228,7 @@ export default function ContractManagement() {
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="service">Serviço</SelectItem>
                   <SelectItem value="maintenance">Manutenção</SelectItem>
                   <SelectItem value="support">Suporte</SelectItem>
@@ -228,7 +243,7 @@ export default function ContractManagement() {
                   <SelectValue placeholder="Prioridade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="low">Baixa</SelectItem>
                   <SelectItem value="medium">Média</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
@@ -240,9 +255,9 @@ export default function ContractManagement() {
                 variant="outline" 
                 onClick={() => {
                   setSearchTerm('');
-                  setStatusFilter('');
-                  setTypeFilter('');
-                  setPriorityFilter('');
+                  setStatusFilter('all');
+                  setTypeFilter('all');
+                  setPriorityFilter('all');
                 }}
               >
                 Limpar
