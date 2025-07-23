@@ -130,6 +130,7 @@ export default function TicketDetails() {
   const [externalActions, setExternalActions] = useState<any[]>([]);
   const [showExternalActionModal, setShowExternalActionModal] = useState(false);
   const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
+  const [latestInteractions, setLatestInteractions] = useState<any[]>([]);
   const [followers, setFollowers] = useState<any[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
@@ -422,6 +423,65 @@ export default function TicketDetails() {
           linkedItems: "Email #789",
           hasFile: false,
           contactMethod: "email"
+        }
+      ]);
+
+      // Simulate latest interactions from the same requester
+      setLatestInteractions([
+        {
+          id: "ticket-001",
+          ticketNumber: "TKT-2025-001",
+          subject: "Problema de acesso ao sistema de RH",
+          status: "resolved",
+          priority: "medium",
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 dias atrás
+          resolvedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 dias atrás
+          category: "Acesso",
+          description: "Usuário relatou dificuldades para acessar o portal de RH para consultar holerites"
+        },
+        {
+          id: "ticket-002",
+          ticketNumber: "TKT-2025-015",
+          subject: "Solicitação de novo equipamento",
+          status: "closed",
+          priority: "low",
+          createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 dias atrás
+          resolvedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 dias atrás
+          category: "Equipamento",
+          description: "Solicitação de novo monitor para workstation"
+        },
+        {
+          id: "ticket-003",
+          ticketNumber: "TKT-2024-234",
+          subject: "Erro na impressora da sala 301",
+          status: "closed",
+          priority: "high",
+          createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 dias atrás
+          resolvedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000), // 18 dias atrás
+          category: "Hardware",
+          description: "Impressora apresentando falhas recorrentes de papel atolado"
+        },
+        {
+          id: "ticket-004",
+          ticketNumber: "TKT-2024-198",
+          subject: "Dúvida sobre procedimento de backup",
+          status: "closed",
+          priority: "low",
+          createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000), // 35 dias atrás
+          resolvedAt: new Date(Date.now() - 33 * 24 * 60 * 60 * 1000), // 33 dias atrás
+          category: "Procedimento",
+          description: "Solicitação de esclarecimento sobre processo de backup de arquivos importantes"
+        },
+        {
+          id: "ticket-005",
+          ticketNumber: "TKT-2024-156",
+          subject: "Instalação de software específico",
+          status: "closed",
+          priority: "medium",
+          createdAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000), // 50 dias atrás
+          resolvedAt: new Date(Date.now() - 47 * 24 * 60 * 60 * 1000), // 47 dias atrás
+          category: "Software",
+          description: "Necessidade de instalação do Adobe Creative Suite para projeto específico"
         }
       ]);
     }
@@ -1342,6 +1402,18 @@ export default function TicketDetails() {
           >
             <History className="h-4 w-4" />
             <span className="text-sm font-medium">Histórico</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("latest-interactions")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "latest-interactions" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Últimas Interações</span>
           </button>
         </div>
 
@@ -2511,6 +2583,154 @@ export default function TicketDetails() {
                 <p>Nenhuma ação externa registrada ainda</p>
                 <p className="text-sm">Use o botão "Nova Ação Externa" para adicionar a primeira ação</p>
               </div>
+            )}
+          </div>
+        );
+
+      case "latest-interactions":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {latestInteractions.length} ticket(s) do solicitante
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {ticket?.customer?.name || 'Solicitante'}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border-l-4 border-l-blue-400">
+              📋 <strong>Histórico de tickets:</strong> Mostra todos os tickets anteriores deste solicitante em ordem cronológica decrescente
+            </div>
+
+            {/* Timeline de Tickets */}
+            <div className="space-y-4">
+              {latestInteractions.length > 0 ? (
+                latestInteractions.map((interaction: any, index: number) => (
+                  <div key={interaction.id} className="flex gap-4">
+                    {/* Timeline Indicator */}
+                    <div className="flex flex-col items-center">
+                      <div className={`w-4 h-4 rounded-full ${
+                        interaction.status === 'resolved' ? 'bg-green-500' :
+                        interaction.status === 'closed' ? 'bg-gray-500' :
+                        interaction.status === 'in_progress' ? 'bg-blue-500' :
+                        'bg-yellow-500'
+                      }`} />
+                      {index < latestInteractions.length - 1 && (
+                        <div className="w-0.5 bg-gray-200 flex-1 mt-2 min-h-[60px]" />
+                      )}
+                    </div>
+
+                    {/* Ticket Content */}
+                    <Card className="flex-1 p-4 hover:shadow-md transition-shadow">
+                      <div className="space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm font-medium text-blue-600">
+                              #{interaction.ticketNumber}
+                            </span>
+                            <Badge 
+                              variant={interaction.status === 'resolved' || interaction.status === 'closed' ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {interaction.status === 'resolved' ? 'Resolvido' :
+                               interaction.status === 'closed' ? 'Fechado' :
+                               interaction.status === 'in_progress' ? 'Em Progresso' :
+                               interaction.status === 'open' ? 'Aberto' : interaction.status}
+                            </Badge>
+                            <Badge 
+                              className={`text-xs ${getPriorityColor(interaction.priority)}`}
+                            >
+                              {interaction.priority === 'high' ? 'Alta' :
+                               interaction.priority === 'medium' ? 'Média' :
+                               interaction.priority === 'low' ? 'Baixa' :
+                               interaction.priority === 'critical' ? 'Crítica' : interaction.priority}
+                            </Badge>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {/* Subject */}
+                        <h3 className="font-medium text-gray-800">
+                          {interaction.subject}
+                        </h3>
+
+                        {/* Description */}
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {interaction.description}
+                        </p>
+
+                        {/* Meta Information */}
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-4">
+                            <span>📅 Criado: {interaction.createdAt.toLocaleDateString('pt-BR')}</span>
+                            {interaction.resolvedAt && (
+                              <span>✅ Resolvido: {interaction.resolvedAt.toLocaleDateString('pt-BR')}</span>
+                            )}
+                            <span>🏷️ {interaction.category}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            {interaction.resolvedAt && (
+                              <span className="text-green-600">
+                                ⏱️ {Math.ceil((interaction.resolvedAt - interaction.createdAt) / (1000 * 60 * 60 * 24))} dia(s)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Clock className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p>Nenhum ticket anterior encontrado</p>
+                  <p className="text-sm">Este é o primeiro ticket deste solicitante</p>
+                </div>
+              )}
+            </div>
+
+            {/* Summary Statistics */}
+            {latestInteractions.length > 0 && (
+              <Card className="p-4 bg-gray-50">
+                <h4 className="font-medium text-gray-800 mb-3">📊 Resumo Estatístico</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="font-bold text-lg text-blue-600">
+                      {latestInteractions.length}
+                    </div>
+                    <div className="text-gray-600">Total de Tickets</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg text-green-600">
+                      {latestInteractions.filter(t => t.status === 'resolved' || t.status === 'closed').length}
+                    </div>
+                    <div className="text-gray-600">Resolvidos</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg text-orange-600">
+                      {latestInteractions.filter(t => t.priority === 'high' || t.priority === 'critical').length}
+                    </div>
+                    <div className="text-gray-600">Alta/Crítica</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg text-purple-600">
+                      {Math.round(latestInteractions
+                        .filter(t => t.resolvedAt)
+                        .reduce((acc, t) => acc + Math.ceil((t.resolvedAt - t.createdAt) / (1000 * 60 * 60 * 24)), 0) / 
+                        latestInteractions.filter(t => t.resolvedAt).length) || 0}d
+                    </div>
+                    <div className="text-gray-600">Tempo Médio</div>
+                  </div>
+                </div>
+              </Card>
             )}
           </div>
         );
