@@ -211,15 +211,15 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   // Funções para gerenciar usuários no grupo
   const handleAddUserToGroup = (userId: string) => {
-    if (editingGroup) {
-      addUserToGroupMutation.mutate({ groupId: editingGroup.id, userId });
-    }
+    if (!editingGroup || !userId) return;
+    console.log(`Adding user ${userId} to group ${editingGroup.id}`);
+    addUserToGroupMutation.mutate({ groupId: editingGroup.id, userId });
   };
 
   const handleRemoveUserFromGroup = (userId: string) => {
-    if (editingGroup) {
-      removeUserFromGroupMutation.mutate({ groupId: editingGroup.id, userId });
-    }
+    if (!editingGroup || !userId) return;
+    console.log(`Removing user ${userId} from group ${editingGroup.id}`);
+    removeUserFromGroupMutation.mutate({ groupId: editingGroup.id, userId });
   };
 
   const handleToggleUserSelection = (userId: string) => {
@@ -373,6 +373,24 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                       {Array.isArray(usersData) && usersData.length > 0 ? (
                         usersData.map((user: any) => {
                           const isInGroup = editingGroup?.memberships?.some(m => m.userId === user.id);
+                          
+                          // Criar handlers únicos para cada usuário para evitar conflitos de evento
+                          const createAddHandler = (userId: string) => (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            console.log(`Adding user ${userId} to group`);
+                            handleAddUserToGroup(userId);
+                          };
+                          
+                          const createRemoveHandler = (userId: string) => (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            console.log(`Removing user ${userId} from group`);
+                            handleRemoveUserFromGroup(userId);
+                          };
+                          
                           return (
                             <div 
                               key={user.id} 
@@ -395,7 +413,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={() => handleRemoveUserFromGroup(user.id)}
+                                    onClick={createRemoveHandler(user.id)}
                                     disabled={removeUserFromGroupMutation.isPending}
                                   >
                                     <UserMinus className="h-3 w-3 mr-1" />
@@ -405,15 +423,11 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleAddUserToGroup(user.id);
-                                    }}
+                                    onClick={createAddHandler(user.id)}
                                     disabled={addUserToGroupMutation.isPending}
                                   >
                                     <UserPlus className="h-3 w-3 mr-1" />
-                                    Adicionar
+                                    Atribuir
                                   </Button>
                                 )}
                               </div>
