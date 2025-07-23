@@ -1,0 +1,93 @@
+IMPLEMENTAÇÃO COMPLETA DA ABA PAPÉIS - WORKSPACE ADMIN
+OBJETIVO: Implementar um sistema completo de gestão de papéis (roles) e permissões granulares para WORKSPACE Admin, organizando todas as funcionalidades do sistema Conductor em categorias hierárquicas com permissões específicas ao nível do WORKSPACE.
+
+CATEGORIAS E FUNCIONALIDADES PARA WORKSPACE ADMIN:
+1. ADMINISTRAÇÃO DO WORKSPACE
+Configurações Gerais: Gerenciar configurações do workspace, personalização, branding
+Configurações de Segurança: Definir políticas de senha, 2FA, sessões
+Integrações do WORKSPACE: Configurar integrações específicas (Gmail, webhooks, APIs)
+Controle de Licenças: Visualizar uso de licenças, limites do plano
+Backup e Recuperação: Solicitar backups, visualizar histórico
+2. GESTÃO DE USUÁRIOS E ACESSO
+Administração de Usuários: Criar, editar, excluir usuários do WORKSPACE
+Gestão de Grupos: Criar grupos, gerenciar membros, definir hierarquias
+Controle de Sessões: Monitorar sessões ativas, forçar logout
+Auditoria de Atividades: Visualizar logs de ação do WORKSPACE
+Convites e Provisionamento: Enviar convites, provisionar novos usuários
+3. ATENDIMENTO AO CLIENTE
+Gestão Completa de Tickets: Criar, visualizar, editar, excluir, atribuir tickets
+Configuração de Tickets: Definir templates, workflows, campos customizados
+Relacionamentos de Tickets: Vincular tickets, criar hierarquias
+Aprovações e Escalações: Configurar fluxos de aprovação, escalações automáticas
+Histórico e Auditoria: Acessar histórico completo, logs de mudanças
+4. GESTÃO DE CLIENTES
+Administração de Clientes: Criar, editar, visualizar, excluir clientes
+Empresas de Clientes: Gerenciar empresas, associações, hierarquias
+Localização de Clientes: Gerenciar endereços, geolocalização
+Histórico de Interações: Visualizar histórico completo de atendimentos
+5. BASE DE CONHECIMENTO
+Gestão de Artigos: Criar, editar, publicar, arquivar artigos
+Categorização: Organizar em categorias, tags, estrutura hierárquica
+Controle de Publicação: Aprovar conteúdo, definir visibilidade
+Analytics de KB: Visualizar estatísticas de uso, artigos populares
+6. RECURSOS HUMANOS E EQUIPE
+Gestão de Performance: Avaliar desempenho, definir metas, acompanhar KPIs
+Matriz de Habilidades: Definir habilidades técnicas, avaliar competências
+Calendário de Feriados: Configurar feriados regionais, ausências
+Gestão de Ausências: Aprovar férias, licenças, controlar banco de horas
+Escalas de Trabalho: Definir horários, turnos, plantões
+7. TIMECARD E PONTO
+Administração de Ponto: Configurar registros, validar marcações
+Relatórios de Timecard: Gerar relatórios, exportar dados
+Controle de Jornada: Monitorar horas trabalhadas, horas extras
+Aprovações de Horas: Aprovar registros, corrigir inconsistências
+8. PROJETOS E TAREFAS
+Gestão de Projetos: Criar, gerenciar, monitorar projetos
+Cronogramas: Definir prazos, marcos, dependências
+Recursos e Orçamentos: Alocar recursos, controlar custos
+Relatórios de Projeto: Acompanhar progresso, métricas
+9. ANALYTICS E RELATÓRIOS
+Dashboards Gerenciais: Visualizar métricas do WORKSPACE, KPIs operacionais
+Relatórios de Atendimento: Performance de tickets, tempos de resposta
+Analytics de Equipe: Produtividade individual e coletiva
+Relatórios Customizados: Criar relatórios específicos, exportar dados
+10. CONFIGURAÇÕES E PERSONALIZAÇÃO
+Branding: Personalizar interface, logos, cores
+Templates: Gerenciar templates de email, tickets, documentos
+SLAs: Configurar acordos de nível de serviço
+Workflows: Criar fluxos automatizados, regras de negócio
+Notificações: Configurar alertas, notificações por email
+11. LOCALIZAÇÃO E MULTILOCATION
+Configurações Regionais: Definir fusos horários, moedas, idiomas
+Múltiplas Localizações: Gerenciar escritórios, endereços
+Geolocalização: Configurar mapas, coordenadas, regiões
+Preferências de Usuário: Personalizar configurações individuais
+12. COMPLIANCE E SEGURANÇA
+Auditoria de Segurança: Monitorar eventos de segurança do WORKSPACE
+Configurações de Segurança: Definir políticas específicas do WORKSPACE
+Logs de Conformidade: Manter registros para auditoria
+Controle de Dados: Gerenciar LGPD, privacidade, retenção de dados
+ESTRUTURA DE PERMISSÕES PARA WORKSPACE ADMIN:
+NÍVEIS DE ACESSO:
+Visualizar: Apenas leitura
+Criar: Criar novos registros
+Editar: Modificar registros existentes
+Excluir: Remover registros
+Administrar: Controle total da funcionalidade
+Configurar: Alterar configurações da funcionalidade
+CONDIÇÕES ESPECÍFICAS:
+Próprios Registros: Acesso limitado aos próprios dados
+Equipe: Acesso aos dados da equipe/departamento
+WORKSPACE: Acesso a todos os dados do WORKSPACE
+Temporal: Permissões com data de expiração
+Geográfica: Permissões baseadas em localização
+IMPLEMENTAÇÃO TÉCNICA:
+Criar interface para definição de papéis customizados do WORKSPACE
+Implementar sistema de permissões granulares por funcionalidade
+Desenvolver wizard de atribuição de permissões por categoria
+Criar sistema de herança de permissões (papéis base + customizações)
+Implementar validação de permissões em tempo real
+Desenvolver relatórios de uso de permissões
+Criar sistema de templates de papéis pré-definidos
+Implementar auditoria de mudanças de permissões
+ESCOPO: Todas as funcionalidades são limitadas ao contexto do WORKSPACE, sem acesso a operações de nível SaaS/plataforma como gerenciamento de outros WORKSPACEs, configurações globais ou administração da plataforma.
