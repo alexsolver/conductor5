@@ -611,8 +611,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       isPrimary: data.is_primary || false,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      createdBy: data.created_by,
-      updatedBy: data.updated_by,
+      createdBy: data.created_by || data.created_by_id, // Handle both field names
+      updatedBy: data.updated_by || data.updated_by_id, // Handle both field names
     });
   }
 

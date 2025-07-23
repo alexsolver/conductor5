@@ -70,8 +70,8 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
 
   // Fetch customer companies for dropdown
   const { data: customerCompaniesData } = useQuery({
-    queryKey: ['/api/customer-companies'],
-    queryFn: () => fetch('/api/customer-companies', {
+    queryKey: ['/api/customers/companies'],
+    queryFn: () => fetch('/api/customers/companies', {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         'Content-Type': 'application/json'
@@ -92,7 +92,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
 
   // Ensure data is always arrays
   const customerCompanies = Array.isArray(customerCompaniesData) ? customerCompaniesData : 
-                           customerCompaniesData?.companies ? customerCompaniesData.companies : [];
+                           customerCompaniesData?.data ? customerCompaniesData.data : [];
   const users = Array.isArray(usersData) ? usersData : 
                usersData?.users ? usersData.users : [];
 

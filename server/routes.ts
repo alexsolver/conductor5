@@ -715,6 +715,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
 
+  // Customer companies compatibility route for contract creation
+  app.get('/api/customer-companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      // Import and use the customer companies controller
+      const { getCustomerCompanyController } = await import('./modules/customers/infrastructure/setup/CustomerDependencySetup');
+      const controller = getCustomerCompanyController();
+      
+      // Call the existing controller method
+      await controller.getCompanies(req as any, res as any);
+    } catch (error) {
+      console.error('Error fetching customer companies via compatibility route:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch customer companies' 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
