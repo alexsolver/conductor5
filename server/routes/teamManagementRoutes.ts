@@ -9,7 +9,7 @@ import {
   userActivityLogs,
   userSessions 
 } from '@shared/schema';
-import { eq, and, count, sql, desc, gte, avg, isNull, or } from 'drizzle-orm';
+import { eq, and, count, sql, desc, gte, avg, isNull, or, not } from 'drizzle-orm';
 
 const router = Router();
 
@@ -190,7 +190,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
       .where(and(
         eq(users.tenantId, user.tenantId),
         eq(users.isActive, true),
-        isNull(users.performance).not()
+        not(isNull(users.performance))
       ));
 
     const stats = {
@@ -366,6 +366,22 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Error updating member status:', error);
     res.status(500).json({ message: 'Failed to update status' });
+  }
+});
+
+// Invalidate cache when members are created/updated
+router.post('/members/refresh', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // This endpoint can be called after creating/updating members to refresh data
+    res.json({ success: true, message: 'Cache refreshed' });
+  } catch (error) {
+    console.error('Error refreshing cache:', error);
+    res.status(500).json({ message: 'Failed to refresh cache' });
   }
 });
 

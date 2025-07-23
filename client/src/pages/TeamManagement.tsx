@@ -76,6 +76,28 @@ export default function TeamManagement() {
   const [editingMember, setEditingMember] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
+  // Handle successful user creation
+  const handleUserCreated = () => {
+    setShowCreateUser(false);
+    // Invalidate all team management queries
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/members'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/stats'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/overview'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
+  };
+
+  // Handle successful user invitation
+  const handleUserInvited = () => {
+    setShowInviteUser(false);
+    // Invalidate all team management queries
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/members'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/stats'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/overview'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
+    queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
+  };
+
   // Fetch team overview data
   const { data: teamOverview, isLoading: overviewLoading } = useQuery({
     queryKey: ['/api/team-management/overview'],
@@ -948,11 +970,13 @@ export default function TeamManagement() {
       <CreateUserDialog 
         open={showCreateUser} 
         onOpenChange={setShowCreateUser}
+        onSuccess={handleUserCreated}
         tenantAdmin={true}
       />
       <InviteUserDialog 
         open={showInviteUser} 
         onOpenChange={setShowInviteUser}
+        onSuccess={handleUserInvited}
         tenantAdmin={true}
       />
       <EditMemberDialog
