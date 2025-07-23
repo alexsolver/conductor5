@@ -1359,4 +1359,502 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     const result = await pool.query(query, params);
     return result.rows;
   }
+
+  // =====================================================
+  // MÓDULOS 4-11: IMPLEMENTAÇÃO COMPLETA DOS REQUISITOS
+  // =====================================================
+
+  // ===== MÓDULO 4: PLANEJAMENTO E COMPRAS =====
+  async createPurchaseOrderComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.purchase_orders (tenant_id, po_number, supplier_id, status, order_date, expected_delivery, total_amount, currency, terms_payment, notes, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [tenantId, data.po_number, data.supplier_id, data.status || 'DRAFT', data.order_date, data.expected_delivery, data.total_amount || 0, data.currency || 'BRL', data.terms_payment, data.notes, data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  async findPurchaseOrdersComplete(tenantId: string, filters?: any): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT po.*, s.name as supplier_name FROM ${schema}.purchase_orders po 
+                 LEFT JOIN ${schema}.suppliers s ON po.supplier_id = s.id 
+                 WHERE po.tenant_id = $1 AND po.is_active = true`;
+    const params = [tenantId];
+    
+    if (filters?.status) {
+      query += ` AND po.status = $${params.length + 1}`;
+      params.push(filters.status);
+    }
+    
+    query += ` ORDER BY po.created_at DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // ===== MÓDULO 5: INTEGRAÇÃO COM SERVIÇOS =====
+  async createServiceIntegrationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.service_integrations (tenant_id, integration_name, service_type, endpoint_url, sync_frequency_minutes, configuration)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.integration_name, data.service_type, data.endpoint_url, data.sync_frequency_minutes || 60, JSON.stringify(data.configuration || {})]
+    );
+    return result.rows[0];
+  }
+
+  async createWorkOrderIntegrationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.work_order_integrations (tenant_id, work_order_id, integration_id, equipment_model, equipment_brand, suggested_parts, used_parts)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.work_order_id, data.integration_id, data.equipment_model, data.equipment_brand, JSON.stringify(data.suggested_parts || []), JSON.stringify(data.used_parts || [])]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 6: LOGÍSTICA E DISTRIBUIÇÃO =====
+  async createTransferComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const transferNumber = `TRF-${Date.now()}`;
+    const result = await pool.query(
+      `INSERT INTO ${schema}.transfers (tenant_id, transfer_number, from_location_id, to_location_id, transfer_type, reason, scheduled_date, tracking_number, carrier, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [tenantId, transferNumber, data.from_location_id, data.to_location_id, data.transfer_type, data.reason, data.scheduled_date, data.tracking_number, data.carrier, data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  async createReturnComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const returnNumber = `RET-${Date.now()}`;
+    const result = await pool.query(
+      `INSERT INTO ${schema}.returns (tenant_id, return_number, return_type, reason, return_date, disposition)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, returnNumber, data.return_type, data.reason, data.return_date, data.disposition || 'RESTOCK']
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 7: CONTROLE DE ATIVOS =====
+  async createAssetComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.assets (tenant_id, asset_number, name, description, asset_type, manufacturer, model, serial_number, qr_code, rfid_tag)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [tenantId, data.asset_number, data.name, data.description, data.asset_type, data.manufacturer, data.model, data.serial_number, data.qr_code, data.rfid_tag]
+    );
+    return result.rows[0];
+  }
+
+  async createAssetMaintenanceComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.asset_maintenance (tenant_id, asset_id, maintenance_type, scheduled_date, technician_id, description, parts_used, labor_cost, parts_cost)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [tenantId, data.asset_id, data.maintenance_type, data.scheduled_date, data.technician_id, data.description, JSON.stringify(data.parts_used || []), data.labor_cost || 0, data.parts_cost || 0]
+    );
+    return result.rows[0];
+  }
+
+  async createAssetMovementComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.asset_movements (tenant_id, asset_id, movement_type, from_location_id, to_location_id, reason, gps_latitude, gps_longitude, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [tenantId, data.asset_id, data.movement_type, data.from_location_id, data.to_location_id, data.reason, data.gps_latitude, data.gps_longitude, data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 8: LISTA DE PREÇOS UNITÁRIOS =====
+  async createPriceListComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.price_lists (tenant_id, list_code, name, version, customer_id, contract_id, effective_date, currency, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [tenantId, data.list_code, data.name, data.version, data.customer_id, data.contract_id, data.effective_date, data.currency || 'BRL', data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  async createPriceListItemComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.price_list_items (tenant_id, price_list_id, item_type, item_code, item_name, unit_of_measure, base_price, list_price, effective_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [tenantId, data.price_list_id, data.item_type, data.item_code, data.item_name, data.unit_of_measure, data.base_price, data.list_price, data.effective_date]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 9: PREÇOS AVANÇADOS =====
+  async createPricingTableComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.pricing_tables (tenant_id, table_name, table_code, table_type, valid_from, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.table_name, data.table_code, data.table_type, data.valid_from, data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  async createPricingRuleComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.pricing_rules (tenant_id, pricing_table_id, rule_name, rule_type, condition_type, condition_value, discount_type, discount_value, valid_from)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [tenantId, data.pricing_table_id, data.rule_name, data.rule_type, data.condition_type, JSON.stringify(data.condition_value), data.discount_type, data.discount_value, data.valid_from]
+    );
+    return result.rows[0];
+  }
+
+  async createPriceHistoryComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.price_history (tenant_id, item_type, item_id, old_price, new_price, change_reason, effective_date, changed_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, data.item_type, data.item_id, data.old_price, data.new_price, data.change_reason, data.effective_date, data.changed_by]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
+  async createAuditLogCompleteAdvanced(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.audit_logs_complete (tenant_id, entity_type, entity_id, operation, table_name, user_id, compliance_category, risk_level)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, data.entity_type, data.entity_id, data.operation, data.table_name, data.user_id, data.compliance_category || 'GENERAL', data.risk_level || 'LOW']
+    );
+    return result.rows[0];
+  }
+
+  async createCertificationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.certifications (tenant_id, certification_name, certification_type, issuing_authority, certificate_number, issue_date, expiry_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.certification_name, data.certification_type, data.issuing_authority, data.certificate_number, data.issue_date, data.expiry_date]
+    );
+    return result.rows[0];
+  }
+
+  async createComplianceAlertComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.compliance_alerts (tenant_id, alert_type, severity, title, description, due_date)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.alert_type, data.severity, data.title, data.description, data.due_date]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 11: DIFERENCIAIS AVANÇADOS =====
+  async createBudgetSimulationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.budget_simulations (tenant_id, simulation_name, customer_id, items, total_amount, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.simulation_name, data.customer_id, JSON.stringify(data.items), data.total_amount, data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  async createDashboardConfigComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.dashboard_configs (tenant_id, dashboard_name, dashboard_type, widgets, created_by)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, data.dashboard_name, data.dashboard_type, JSON.stringify(data.widgets), data.created_by]
+    );
+    return result.rows[0];
+  }
+
+  async createIntegrationApiComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.integration_apis (tenant_id, api_name, api_type, endpoint_url, auth_method)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, data.api_name, data.api_type, data.endpoint_url, data.auth_method]
+    );
+    return result.rows[0];
+  }
+
+  async createOfflineSyncComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.offline_sync (tenant_id, device_id, user_id, table_name, operation, entity_id, entity_data, offline_timestamp)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, data.device_id, data.user_id, data.table_name, data.operation, data.entity_id, JSON.stringify(data.entity_data), data.offline_timestamp]
+    );
+    return result.rows[0];
+  }
+  // ===== MÓDULO 5: INTEGRAÇÃO COM SERVIÇOS =====
+  async findServiceIntegrationsComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.service_integrations WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  async createServiceIntegrationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.service_integrations (tenant_id, name, type, endpoint, status, configuration)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.name, data.type, data.endpoint, data.status || "active", JSON.stringify(data.configuration || {})]
+    );
+    return result.rows[0];
+  }
+
+  async createWorkOrderIntegrationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.work_order_integrations (tenant_id, service_id, work_order_number, status, priority, details)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.serviceId, data.workOrderNumber, data.status || "pending", data.priority || "medium", JSON.stringify(data.details || {})]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 6: LOGÍSTICA E DISTRIBUIÇÃO =====
+  async findTransfersComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.transfers WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  async createTransferComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.transfers (tenant_id, from_location, to_location, part_id, quantity, status, tracking_number)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.fromLocation, data.toLocation, data.partId, data.quantity, data.status || "pending", data.trackingNumber || null]
+    );
+    return result.rows[0];
+  }
+
+  async createReturnComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.returns (tenant_id, part_id, quantity, reason, status, return_number)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.partId, data.quantity, data.reason, data.status || "pending", data.returnNumber || null]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 7: CONTROLE DE ATIVOS =====
+  async findAssetsComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.assets WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  async createAssetComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.assets (tenant_id, name, asset_tag, category, location, value, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.name, data.assetTag, data.category, data.location, data.value || 0, data.status || "active"]
+    );
+    return result.rows[0];
+  }
+
+  async createAssetMaintenanceComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.asset_maintenance (tenant_id, asset_id, maintenance_type, scheduled_date, status, cost)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.assetId, data.maintenanceType, data.scheduledDate, data.status || "scheduled", data.cost || 0]
+    );
+    return result.rows[0];
+  }
+
+  async createAssetMovementComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.asset_movements (tenant_id, asset_id, from_location, to_location, moved_by, movement_date, reason)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.assetId, data.fromLocation, data.toLocation, data.movedBy, data.movementDate || "NOW()", data.reason]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 8: LISTA DE PREÇOS UNITÁRIOS (LPU) =====
+  async findPriceListsComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.price_lists WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  async createPriceListComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.price_lists (tenant_id, name, description, version, effective_date, status)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.name, data.description, data.version || "1.0", data.effectiveDate || "NOW()", data.status || "active"]
+    );
+    return result.rows[0];
+  }
+
+  async createPriceListItemComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.price_list_items (tenant_id, price_list_id, part_id, unit_price, cost_center, contract_reference)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.priceListId, data.partId, data.unitPrice, data.costCenter || null, data.contractReference || null]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 9: FUNCIONALIDADES AVANÇADAS DE PREÇO =====
+  async createPricingTableComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.pricing_tables (tenant_id, name, table_type, rules, effective_date, expiration_date)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.name, data.tableType, JSON.stringify(data.rules || {}), data.effectiveDate || "NOW()", data.expirationDate || null]
+    );
+    return result.rows[0];
+  }
+
+  async createPricingRuleComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.pricing_rules (tenant_id, rule_name, conditions, actions, priority, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.ruleName, JSON.stringify(data.conditions || {}), JSON.stringify(data.actions || {}), data.priority || 1, data.isActive || true]
+    );
+    return result.rows[0];
+  }
+
+  async createPriceHistoryComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.price_history (tenant_id, part_id, old_price, new_price, change_reason, changed_by)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.partId, data.oldPrice, data.newPrice, data.changeReason, data.changedBy]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
+  async createAuditLogComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.audit_logs_complete (tenant_id, entity_type, entity_id, action, changes, user_id, ip_address)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.entityType, data.entityId, data.action, JSON.stringify(data.changes || {}), data.userId, data.ipAddress]
+    );
+    return result.rows[0];
+  }
+
+  async createCertificationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.certifications (tenant_id, certification_name, issued_by, valid_from, valid_until, status)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.certificationName, data.issuedBy, data.validFrom, data.validUntil, data.status || "active"]
+    );
+    return result.rows[0];
+  }
+
+  async createComplianceAlertComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.compliance_alerts (tenant_id, alert_type, severity, message, entity_affected, status)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.alertType, data.severity || "medium", data.message, data.entityAffected, data.status || "active"]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 11: DIFERENCIAIS AVANÇADOS =====
+  async findBudgetSimulationsComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.budget_simulations WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  async createBudgetSimulationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.budget_simulations (tenant_id, simulation_name, parameters, results, created_by)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, data.simulationName, JSON.stringify(data.parameters || {}), JSON.stringify(data.results || {}), data.createdBy]
+    );
+    return result.rows[0];
+  }
+
+  async createDashboardConfigComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.dashboard_configs (tenant_id, config_name, widgets, layout, user_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, data.configName, JSON.stringify(data.widgets || []), JSON.stringify(data.layout || {}), data.userId]
+    );
+    return result.rows[0];
+  }
+
+  async createIntegrationApiComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.integration_apis (tenant_id, api_name, endpoint, authentication, configuration, status)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [tenantId, data.apiName, data.endpoint, JSON.stringify(data.authentication || {}), JSON.stringify(data.configuration || {}), data.status || "active"]
+    );
+    return result.rows[0];
+  }
+
+  async createOfflineSyncComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.offline_sync (tenant_id, sync_type, data_payload, sync_status, device_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, data.syncType, JSON.stringify(data.dataPayload || {}), data.syncStatus || "pending", data.deviceId]
+    );
+    return result.rows[0];
+  }
+
+  // ===== MÓDULO 4: PLANEJAMENTO E COMPRAS COMPLETO =====
+  async findPurchaseOrdersComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.purchase_orders WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  async createPurchaseOrderComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.purchase_orders (tenant_id, po_number, supplier_id, total_amount, status, requested_by, approval_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, data.poNumber, data.supplierId, data.totalAmount || 0, data.status || "draft", data.requestedBy, data.approvalStatus || "pending"]
+    );
+    return result.rows[0];
+  }
+
+  // Método para inventory que usa createInventoryEntry
+  async createInventoryEntry(tenantId: string, data: any): Promise<any> {
+    return this.createInventory(tenantId, data);
+  }
 }
