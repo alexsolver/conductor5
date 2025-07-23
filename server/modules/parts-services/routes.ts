@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { DirectPartsServicesRepository } from './infrastructure/repositories/DirectPartsServicesRepository';
+import { DirectPartsServicesRepository } from './infrastructure/repositories/DirectPartsServicesRepository_clean';
 import { PartsServicesController } from './application/controllers/PartsServicesController';
 import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
@@ -11,6 +11,9 @@ const controller = new PartsServicesController(repository);
 
 // Apply JWT authentication to all routes
 router.use(jwtAuth);
+
+// ===== DASHBOARD =====
+router.get('/dashboard/stats', controller.getDashboardStats);
 
 // ===== MÓDULO 1: GESTÃO DE PEÇAS =====
 router.post('/parts', controller.createPart);

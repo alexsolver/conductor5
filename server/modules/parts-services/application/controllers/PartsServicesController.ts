@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository';
+import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository_clean';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -70,6 +70,21 @@ export class PartsServicesController {
       res.status(201).json(entry);
     } catch (error) {
       console.error('Error creating inventory entry:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== DASHBOARD COM DADOS REAIS =====
+  getDashboardStats = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const stats = await this.repository.getDashboardStats(tenantId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };
