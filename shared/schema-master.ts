@@ -45,7 +45,7 @@ export const tenants = pgTable("tenants", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// User storage table - JWT Authentication (public schema)
+// User storage table - JWT Authentication (public schema) - Extended with HR fields
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email").unique().notNull(),
@@ -55,6 +55,16 @@ export const users = pgTable("users", {
   role: varchar("role", { length: 50 }).default("agent").notNull(),
   tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
   profileImageUrl: varchar("profile_image_url"),
+  // HR Extension Fields for TeamManagement
+  position: varchar("position", { length: 100 }),
+  departmentId: uuid("department_id").references(() => departments.id),
+  phone: varchar("phone", { length: 20 }),
+  performance: integer("performance").default(75), // Performance percentage
+  lastActiveAt: timestamp("last_active_at"),
+  status: varchar("status", { length: 20 }).default("active"), // active, inactive, pending
+  // Goals tracking
+  goals: integer("goals").default(0),
+  completedGoals: integer("completed_goals").default(0),
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -731,6 +741,50 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   index("ticket_internal_actions_tenant_created_idx").on(table.tenantId, table.createdAt),
 ]);
 
+// ========================================
+// HR/TEAM MANAGEMENT TABLES
+// ========================================
+
+// Departments table for team organization
+export const departments = pgTable("departments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  code: varchar("code", { length: 20 }).notNull(), // engineering, sales, support, hr
+  description: text("description"),
+  managerId: uuid("manager_id"), // References users table
+  parentDepartmentId: uuid("parent_department_id"), // For hierarchy
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("departments_tenant_code_idx").on(table.tenantId, table.code),
+  index("departments_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Performance metrics tracking
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull(), // References users table
+  metricType: varchar("metric_type", { length: 50 }).notNull(), // tickets_resolved, customer_satisfaction, response_time, etc.
+  value: decimal("value", { precision: 10, scale: 2 }).notNull(),
+  target: decimal("target", { precision: 10, scale: 2 }),
+  unit: varchar("unit", { length: 20 }), // percentage, count, hours, days
+  period: varchar("period", { length: 20 }).notNull(), // daily, weekly, monthly, quarterly, yearly
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  assessedBy: uuid("assessed_by"), // References users table
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("performance_metrics_tenant_user_idx").on(table.tenantId, table.userId),
+  index("performance_metrics_tenant_period_idx").on(table.tenantId, table.periodStart, table.periodEnd),
+  index("performance_metrics_tenant_type_idx").on(table.tenantId, table.metricType),
+]);
+
 // Schedule types
 export type InsertActivityType = typeof activityTypes.$inferInsert;
 export type ActivityType = typeof activityTypes.$inferSelect;
@@ -752,3 +806,9 @@ export type InsertTicketHistory = typeof ticketHistory.$inferInsert;
 export type TicketHistory = typeof ticketHistory.$inferSelect;
 export type InsertTicketInternalAction = typeof ticketInternalActions.$inferInsert;
 export type TicketInternalAction = typeof ticketInternalActions.$inferSelect;
+
+// HR/Team Management types
+export type InsertDepartment = typeof departments.$inferInsert;
+export type Department = typeof departments.$inferSelect;
+export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;

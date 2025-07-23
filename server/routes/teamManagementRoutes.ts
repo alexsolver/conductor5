@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/jwtAuth';
 import { Response } from 'express';
+import { db } from '../db';
+import { users, tenants, departments, skills, userSkills, performanceMetrics } from '@shared/schema';
+import { eq, sql, and } from 'drizzle-orm';
 
 const router = Router();
 
@@ -53,71 +56,46 @@ router.get('/members', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Mock team members data - replace with actual database queries
-    const members = [
-      {
-        id: '1',
-        name: 'João Silva',
-        email: 'joao.silva@company.com',
-        position: 'Desenvolvedor Senior',
-        department: 'engineering',
-        status: 'active',
-        phone: '(11) 99999-1111',
-        skills: ['JavaScript', 'React', 'Node.js'],
-        performance: 95,
-        lastActive: '2025-01-22T10:30:00Z'
-      },
-      {
-        id: '2',
-        name: 'Maria Santos',
-        email: 'maria.santos@company.com',
-        position: 'Analista de Suporte',
-        department: 'support',
-        status: 'active',
-        phone: '(11) 99999-2222',
-        skills: ['Customer Service', 'Technical Support', 'SQL'],
-        performance: 88,
-        lastActive: '2025-01-22T09:15:00Z'
-      },
-      {
-        id: '3',
-        name: 'Pedro Oliveira',
-        email: 'pedro.oliveira@company.com',
-        position: 'Gerente de Vendas',
-        department: 'sales',
-        status: 'active',
-        phone: '(11) 99999-3333',
-        skills: ['Sales', 'CRM', 'Negotiation'],
-        performance: 92,
-        lastActive: '2025-01-22T11:00:00Z'
-      },
-      {
-        id: '4',
-        name: 'Ana Costa',
-        email: 'ana.costa@company.com',
-        position: 'Analista de RH',
-        department: 'hr',
-        status: 'active',
-        phone: '(11) 99999-4444',
-        skills: ['Recruitment', 'HR Management', 'Legal Compliance'],
-        performance: 90,
-        lastActive: '2025-01-22T08:45:00Z'
-      },
-      {
-        id: '5',
-        name: 'Carlos Ferreira',
-        email: 'carlos.ferreira@company.com',
-        position: 'Desenvolvedor Junior',
-        department: 'engineering',
-        status: 'pending',
-        phone: '(11) 99999-5555',
-        skills: ['JavaScript', 'HTML', 'CSS'],
-        performance: 75,
-        lastActive: '2025-01-21T17:30:00Z'
-      }
-    ];
+    // Fetch real team members from database
+    const members = await db.select({
+      id: users.id,
+      name: sql`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      email: users.email,
+      position: users.position,
+      department: users.role, // Using role as department for now
+      status: users.status,
+      phone: users.phone,
+      performance: users.performance,
+      lastActive: users.lastActiveAt,
+      goals: users.goals,
+      completedGoals: users.completedGoals,
+      role: users.role,
+      isActive: users.isActive,
+      createdAt: users.createdAt
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true)
+    ));
 
-    res.json(members);
+    // Format the response
+    const formattedMembers = members.map(member => ({
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      position: member.position || 'Não informado',
+      department: member.department || 'general',
+      status: member.status || 'active',
+      phone: member.phone || 'Não informado',
+      skills: [], // TODO: Add skills from userSkills table
+      performance: member.performance || 75,
+      lastActive: member.lastActive || member.createdAt,
+      goals: member.goals || 0,
+      completedGoals: member.completedGoals || 0
+    }));
+
+    res.json(formattedMembers);
   } catch (error) {
     console.error('Error fetching team members:', error);
     res.status(500).json({ message: 'Failed to fetch members' });
@@ -133,20 +111,68 @@ router.get('/stats', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Mock statistics - replace with actual database queries
+    // Get real statistics from database
+    const totalMembersResult = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.isActive, true)
+      ));
+
+    const activeTodayResult = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.isActive, true),
+        sql`${users.lastActiveAt} >= CURRENT_DATE`
+      ));
+
+    const pendingApprovalsResult = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.status, 'pending')
+      ));
+
+    const averagePerformanceResult = await db.select({ avg: sql<number>`AVG(${users.performance})` })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.isActive, true)
+      ));
+
+    const departmentBreakdownResult = await db.select({
+      role: users.role,
+      count: sql<number>`COUNT(*)`
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true)
+    ))
+    .groupBy(users.role);
+
+    const recentHiresResult = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        sql`${users.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
+      ));
+
+    // Format department breakdown
+    const departmentBreakdown: { [key: string]: number } = {};
+    departmentBreakdownResult.forEach(dept => {
+      departmentBreakdown[dept.role || 'general'] = dept.count;
+    });
+
     const stats = {
-      totalMembers: 33,
-      activeToday: 28,
-      pendingApprovals: 5,
-      averagePerformance: 89,
-      departmentBreakdown: {
-        engineering: 15,
-        support: 8,
-        sales: 6,
-        hr: 4
-      },
-      recentHires: 3,
-      upcomingAbsences: 2
+      totalMembers: totalMembersResult[0]?.count || 0,
+      activeToday: activeTodayResult[0]?.count || 0,
+      pendingApprovals: pendingApprovalsResult[0]?.count || 0,
+      averagePerformance: Math.round(averagePerformanceResult[0]?.avg || 75),
+      departmentBreakdown,
+      recentHires: recentHiresResult[0]?.count || 0,
+      upcomingAbsences: 0 // TODO: Add absence table for future implementation
     };
 
     res.json(stats);
