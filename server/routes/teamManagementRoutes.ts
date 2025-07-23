@@ -394,6 +394,37 @@ router.post('/members', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// Update team member status
+router.put('/members/:id/status', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Update member status in database
+    const updateResult = await db.update(users)
+      .set({ status, updatedAt: new Date() })
+      .where(and(
+        eq(users.id, id),
+        eq(users.tenantId, user.tenantId)
+      ))
+      .returning();
+
+    if (updateResult.length === 0) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    res.json({ message: 'Status updated successfully', member: updateResult[0] });
+  } catch (error) {
+    console.error('Error updating member status:', error);
+    res.status(500).json({ message: 'Failed to update status' });
+  }
+});
+
 // Update team member
 router.put('/members/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -406,14 +437,40 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res: Response) => {
 
     const updateData = req.body;
 
-    // Mock member update - replace with actual database update
-    const updatedMember = {
-      id,
-      ...updateData,
-      updatedAt: new Date().toISOString()
-    };
+    // Update member in database with proper field mapping
+    const updateFields: any = {};
+    
+    // Map form fields to database fields
+    if (updateData.firstName) updateFields.firstName = updateData.firstName;
+    if (updateData.lastName) updateFields.lastName = updateData.lastName;
+    if (updateData.email) updateFields.email = updateData.email;
+    if (updateData.phone) updateFields.phone = updateData.phone;
+    if (updateData.cellPhone) updateFields.cellPhone = updateData.cellPhone;
+    if (updateData.role) updateFields.role = updateData.role;
+    if (updateData.cep) updateFields.cep = updateData.cep;
+    if (updateData.state) updateFields.state = updateData.state;
+    if (updateData.city) updateFields.city = updateData.city;
+    if (updateData.streetAddress) updateFields.streetAddress = updateData.streetAddress;
+    if (updateData.employeeCode) updateFields.employeeCode = updateData.employeeCode;
+    if (updateData.cargo) updateFields.cargo = updateData.cargo;
+    if (updateData.pis) updateFields.pis = updateData.pis;
+    if (updateData.admissionDate) updateFields.admissionDate = new Date(updateData.admissionDate);
+    
+    updateFields.updatedAt = new Date();
 
-    res.json(updatedMember);
+    const updateResult = await db.update(users)
+      .set(updateFields)
+      .where(and(
+        eq(users.id, id),
+        eq(users.tenantId, user.tenantId)
+      ))
+      .returning();
+
+    if (updateResult.length === 0) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    res.json(updateResult[0]);
   } catch (error) {
     console.error('Error updating team member:', error);
     res.status(500).json({ message: 'Failed to update member' });

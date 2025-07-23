@@ -23,9 +23,12 @@ import { UserActivity } from "@/components/user-management/UserActivity";
 import { UserSessions } from "@/components/user-management/UserSessions";
 import { CreateUserDialog } from "@/components/user-management/CreateUserDialog";
 import { InviteUserDialog } from "@/components/user-management/InviteUserDialog";
+import { EditMemberDialog } from "@/components/user-management/EditMemberDialog";
 import { 
   Users, 
   UserCheck, 
+  UserX,
+  Edit,
   Clock, 
   Calendar, 
   Award, 
@@ -68,6 +71,8 @@ export default function TeamManagement() {
   // Dialog states for user management
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   // Fetch team overview data
   const { data: teamOverview, isLoading: overviewLoading } = useQuery({
@@ -121,6 +126,39 @@ export default function TeamManagement() {
     
     return matchesSearch && matchesDepartment && matchesStatus;
   }) : [];
+
+  // Mutation to toggle member status
+  const toggleMemberStatusMutation = useMutation({
+    mutationFn: async ({ memberId, newStatus }: { memberId: string, newStatus: string }) => {
+      return apiRequest('PUT', `/api/team-management/members/${memberId}/status`, { status: newStatus });
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/members'] });
+      toast({
+        title: "Status atualizado",
+        description: "O status do membro foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error?.message || "Falha ao atualizar o status do membro.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle edit member
+  const handleEditMember = (member: any) => {
+    setEditingMember(member);
+    setShowEditDialog(true);
+  };
+
+  // Handle toggle member status
+  const handleToggleMemberStatus = async (member: any) => {
+    const newStatus = member.status === 'active' ? 'inactive' : 'active';
+    toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
+  };
 
   if (overviewLoading || membersLoading || statsLoading) {
     return (
@@ -496,6 +534,37 @@ export default function TeamManagement() {
                               )}
                             </div>
                           </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditMember(member)}
+                              className="flex-1"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={member.status === 'active' ? 'destructive' : 'default'}
+                              onClick={() => handleToggleMemberStatus(member)}
+                              className="flex-1"
+                            >
+                              {member.status === 'active' ? (
+                                <>
+                                  <UserX className="h-3 w-3 mr-1" />
+                                  Desativar
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Ativar
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -752,6 +821,11 @@ export default function TeamManagement() {
         open={showInviteUser} 
         onOpenChange={setShowInviteUser}
         tenantAdmin={true}
+      />
+      <EditMemberDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        member={editingMember}
       />
     </div>
   );

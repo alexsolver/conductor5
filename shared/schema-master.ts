@@ -45,7 +45,7 @@ export const tenants = pgTable("tenants", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// User storage table - JWT Authentication (public schema) - Extended with HR fields
+// User storage table - JWT Authentication (public schema) - Extended with complete HR fields
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email").unique().notNull(),
@@ -55,16 +55,48 @@ export const users = pgTable("users", {
   role: varchar("role", { length: 50 }).default("agent").notNull(),
   tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
   profileImageUrl: varchar("profile_image_url"),
-  // HR Extension Fields for TeamManagement
-  position: varchar("position", { length: 100 }),
-  departmentId: uuid("department_id").references(() => departments.id),
+  
+  // Dados Básicos - Basic Information
+  integrationCode: varchar("integration_code", { length: 100 }),
+  alternativeEmail: varchar("alternative_email"),
+  cellPhone: varchar("cell_phone", { length: 20 }),
   phone: varchar("phone", { length: 20 }),
+  ramal: varchar("ramal", { length: 20 }),
+  timeZone: varchar("time_zone", { length: 50 }).default("America/Sao_Paulo"),
+  vehicleType: varchar("vehicle_type", { length: 50 }), // Nenhum, Particular, Empresarial
+  cpfCnpj: varchar("cpf_cnpj", { length: 20 }),
+  supervisorIds: text("supervisor_ids").array(),
+  
+  // Endereço - Address Information
+  cep: varchar("cep", { length: 10 }),
+  country: varchar("country", { length: 100 }).default("Brasil"),
+  state: varchar("state", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  streetAddress: varchar("street_address"),
+  houseType: varchar("house_type", { length: 50 }),
+  houseNumber: varchar("house_number", { length: 20 }),
+  complement: varchar("complement"),
+  neighborhood: varchar("neighborhood", { length: 100 }),
+  
+  // Dados RH - HR Information
+  employeeCode: varchar("employee_code", { length: 50 }),
+  pis: varchar("pis", { length: 20 }),
+  cargo: varchar("cargo", { length: 100 }),
+  ctps: varchar("ctps", { length: 50 }),
+  serieNumber: varchar("serie_number", { length: 20 }),
+  admissionDate: date("admission_date"),
+  costCenter: varchar("cost_center", { length: 100 }),
+  
+  // HR Extension Fields for TeamManagement (existing)
+  position: varchar("position", { length: 100 }),
+  departmentId: uuid("department_id"),
   performance: integer("performance").default(75), // Performance percentage
   lastActiveAt: timestamp("last_active_at"),
   status: varchar("status", { length: 20 }).default("active"), // active, inactive, pending
-  // Goals tracking
   goals: integer("goals").default(0),
   completedGoals: integer("completed_goals").default(0),
+  
+  // System fields
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
