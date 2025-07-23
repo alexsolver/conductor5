@@ -1190,4 +1190,370 @@ export class PartsServicesController {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+  // =====================================================
+  // MÓDULOS 5-11: CONTROLLERS PARA SISTEMA COMPLETO
+  // =====================================================
+
+  // ===== MÓDULO 5: INTEGRAÇÃO COM SERVIÇOS =====
+  createServiceIntegration = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const integration = await this.repository.createServiceIntegration(tenantId, req.body);
+      res.status(201).json(integration);
+    } catch (error) {
+      console.error('Error creating service integration:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getServiceIntegrationsAdvanced = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const filters = {
+        serviceType: req.query.serviceType as string,
+        status: req.query.status as string
+      };
+
+      const integrations = await this.repository.findServiceIntegrationsAdvanced(tenantId, filters);
+      res.json(integrations);
+    } catch (error) {
+      console.error('Error getting service integrations:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createWorkOrderIntegration = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const integration = await this.repository.createWorkOrderIntegration(tenantId, req.body);
+      res.status(201).json(integration);
+    } catch (error) {
+      console.error('Error creating work order integration:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== MÓDULO 6: LOGÍSTICA E DISTRIBUIÇÃO =====
+  createTransfer = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const transferData = { ...req.body, createdBy: userId };
+      const transfer = await this.repository.createTransfer(tenantId, transferData);
+      res.status(201).json(transfer);
+    } catch (error) {
+      console.error('Error creating transfer:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getTransfers = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const filters = {
+        status: req.query.status as string,
+        transferType: req.query.transferType as string
+      };
+
+      const transfers = await this.repository.findTransfers(tenantId, filters);
+      res.json(transfers);
+    } catch (error) {
+      console.error('Error getting transfers:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createReturn = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const returnData = { ...req.body, createdBy: userId };
+      const returnRecord = await this.repository.createReturn(tenantId, returnData);
+      res.status(201).json(returnRecord);
+    } catch (error) {
+      console.error('Error creating return:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== MÓDULO 7: CONTROLE DE ATIVOS =====
+  createAssetComplete = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const assetData = { ...req.body, createdBy: userId };
+      const asset = await this.repository.createAssetComplete(tenantId, assetData);
+      res.status(201).json(asset);
+    } catch (error) {
+      console.error('Error creating asset:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createAssetMaintenance = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const maintenanceData = { ...req.body, createdBy: userId };
+      const maintenance = await this.repository.createAssetMaintenance(tenantId, maintenanceData);
+      res.status(201).json(maintenance);
+    } catch (error) {
+      console.error('Error creating asset maintenance:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createAssetMovement = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const movementData = { ...req.body, createdBy: userId };
+      const movement = await this.repository.createAssetMovement(tenantId, movementData);
+      res.status(201).json(movement);
+    } catch (error) {
+      console.error('Error creating asset movement:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== MÓDULO 8: LISTA DE PREÇOS UNITÁRIOS (LPU) =====
+  createPriceListComplete = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const priceListData = { ...req.body, createdBy: userId };
+      const priceList = await this.repository.createPriceListComplete(tenantId, priceListData);
+      res.status(201).json(priceList);
+    } catch (error) {
+      console.error('Error creating price list:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createPriceListItem = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const item = await this.repository.createPriceListItem(tenantId, req.body);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error('Error creating price list item:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== MÓDULO 9: FUNCIONALIDADES AVANÇADAS DE PREÇO =====
+  createPricingTable = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const pricingData = { ...req.body, createdBy: userId };
+      const pricingTable = await this.repository.createPricingTable(tenantId, pricingData);
+      res.status(201).json(pricingTable);
+    } catch (error) {
+      console.error('Error creating pricing table:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createPricingRule = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const rule = await this.repository.createPricingRule(tenantId, req.body);
+      res.status(201).json(rule);
+    } catch (error) {
+      console.error('Error creating pricing rule:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createPriceHistory = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const historyData = { ...req.body, changedBy: userId };
+      const history = await this.repository.createPriceHistory(tenantId, historyData);
+      res.status(201).json(history);
+    } catch (error) {
+      console.error('Error creating price history:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
+  createAuditLogComplete = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const auditData = {
+        ...req.body,
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      };
+
+      const auditLog = await this.repository.createAuditLogComplete(tenantId, auditData);
+      res.status(201).json(auditLog);
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createCertification = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const certificationData = { ...req.body, createdBy: userId };
+      const certification = await this.repository.createCertification(tenantId, certificationData);
+      res.status(201).json(certification);
+    } catch (error) {
+      console.error('Error creating certification:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createComplianceAlert = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const alertData = { ...req.body, createdBy: userId };
+      const alert = await this.repository.createComplianceAlert(tenantId, alertData);
+      res.status(201).json(alert);
+    } catch (error) {
+      console.error('Error creating compliance alert:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getComplianceAlerts = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const filters = {
+        status: req.query.status as string,
+        severity: req.query.severity as string
+      };
+
+      const alerts = await this.repository.findComplianceAlerts(tenantId, filters);
+      res.json(alerts);
+    } catch (error) {
+      console.error('Error getting compliance alerts:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== MÓDULO 11: DIFERENCIAIS AVANÇADOS =====
+  createBudgetSimulation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const simulationData = { ...req.body, createdBy: userId };
+      const simulation = await this.repository.createBudgetSimulation(tenantId, simulationData);
+      res.status(201).json(simulation);
+    } catch (error) {
+      console.error('Error creating budget simulation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getBudgetSimulations = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const filters = {
+        status: req.query.status as string,
+        customerId: req.query.customerId as string
+      };
+
+      const simulations = await this.repository.findBudgetSimulations(tenantId, filters);
+      res.json(simulations);
+    } catch (error) {
+      console.error('Error getting budget simulations:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createDashboardConfig = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const configData = { ...req.body, userId: userId };
+      const config = await this.repository.createDashboardConfig(tenantId, configData);
+      res.status(201).json(config);
+    } catch (error) {
+      console.error('Error creating dashboard config:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createIntegrationApi = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const apiData = { ...req.body, createdBy: userId };
+      const api = await this.repository.createIntegrationApi(tenantId, apiData);
+      res.status(201).json(api);
+    } catch (error) {
+      console.error('Error creating integration API:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  createOfflineSync = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const syncData = { ...req.body, userId: userId };
+      const sync = await this.repository.createOfflineSync(tenantId, syncData);
+      res.status(201).json(sync);
+    } catch (error) {
+      console.error('Error creating offline sync:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
 }

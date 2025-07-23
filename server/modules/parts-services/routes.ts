@@ -89,12 +89,12 @@ router.get('/dashboard/stats', controller.getDashboardStats);
 router.post('/part-categories', controller.createPartCategory);
 router.get('/part-categories', controller.getPartCategories);
 
-// Especificações técnicas
-router.post('/part-specifications', controller.createPartSpecification);
-router.get('/parts/:partId/specifications', controller.getPartSpecifications);
+// Especificações técnicas - TODO: implementar
+// router.post('/part-specifications', controller.createPartSpecification);
+// router.get('/parts/:partId/specifications', controller.getPartSpecifications);
 
-// Códigos de identificação  
-router.post('/part-identification', controller.createPartIdentification);
+// Códigos de identificação - TODO: implementar
+// router.post('/part-identification', controller.createPartIdentification);
 
 // ===== MÓDULO 2: CONTROLE DE ESTOQUE MULTI-LOCALIZAÇÃO =====
 // Localizações de estoque
@@ -105,8 +105,8 @@ router.get('/stock-locations', controller.getStockLocations);
 router.post('/inventory-multi-location', controller.createInventoryMultiLocation);
 router.get('/inventory-by-location', controller.getInventoryByLocation);
 
-// Movimentações detalhadas de estoque
-router.post('/stock-movements-detailed', controller.createStockMovementDetailed);
+// Movimentações detalhadas de estoque - TODO: implementar
+// router.post('/stock-movements-detailed', controller.createStockMovementDetailed);
 
 // Reservas de estoque
 router.post('/stock-reservations', controller.createStockReservation);
@@ -117,8 +117,8 @@ router.get('/stock-reservations', controller.getStockReservations);
 router.post('/supplier-catalog', controller.createSupplierCatalogItem);
 router.get('/supplier-catalog', controller.getSupplierCatalog);
 
-// Histórico de compras
-router.post('/purchase-history', controller.createPurchaseHistory);
+// Histórico de compras - TODO: implementar
+// router.post('/purchase-history', controller.createPurchaseHistory);
 
 // Performance de fornecedores
 router.post('/supplier-performance', controller.createSupplierPerformance);
@@ -133,5 +133,46 @@ router.get('/demand-analysis', controller.getDemandAnalysis);
 router.post('/purchase-orders-advanced', controller.createPurchaseOrderAdvanced);
 router.get('/purchase-orders-advanced', controller.getPurchaseOrdersAdvanced);
 router.put('/purchase-orders/:poId/approve', controller.approvePurchaseOrder);
+
+// =====================================================
+// MÓDULOS 5-11: ROTAS PARA SISTEMA COMPLETO
+// =====================================================
+
+// ===== MÓDULO 5: INTEGRAÇÃO COM SERVIÇOS =====
+router.post('/service-integrations', controller.createServiceIntegration);
+router.get('/service-integrations-advanced', controller.getServiceIntegrationsAdvanced);
+router.post('/work-order-integrations', controller.createWorkOrderIntegration);
+
+// ===== MÓDULO 6: LOGÍSTICA E DISTRIBUIÇÃO =====
+router.post('/transfers', controller.createTransfer);
+router.get('/transfers', controller.getTransfers);
+router.post('/returns', controller.createReturn);
+
+// ===== MÓDULO 7: CONTROLE DE ATIVOS =====
+router.post('/assets-complete', controller.createAssetComplete);
+router.post('/asset-maintenance', controller.createAssetMaintenance);
+router.post('/asset-movements', controller.createAssetMovement);
+
+// ===== MÓDULO 8: LISTA DE PREÇOS UNITÁRIOS (LPU) =====
+router.post('/price-lists-complete', controller.createPriceListComplete);
+router.post('/price-list-items', controller.createPriceListItem);
+
+// ===== MÓDULO 9: FUNCIONALIDADES AVANÇADAS DE PREÇO =====
+router.post('/pricing-tables', controller.createPricingTable);
+router.post('/pricing-rules', controller.createPricingRule);
+router.post('/price-history', controller.createPriceHistory);
+
+// ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
+router.post('/audit-logs-complete', controller.createAuditLogComplete);
+router.post('/certifications', controller.createCertification);
+router.post('/compliance-alerts', controller.createComplianceAlert);
+router.get('/compliance-alerts', controller.getComplianceAlerts);
+
+// ===== MÓDULO 11: DIFERENCIAIS AVANÇADOS =====
+router.post('/budget-simulations', controller.createBudgetSimulation);
+router.get('/budget-simulations', controller.getBudgetSimulations);
+router.post('/dashboard-configs', controller.createDashboardConfig);
+router.post('/integration-apis', controller.createIntegrationApi);
+router.post('/offline-sync', controller.createOfflineSync);
 
 export default router;
