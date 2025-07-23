@@ -378,7 +378,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                           const createAddHandler = (userId: string) => (e: React.MouseEvent) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            e.stopImmediatePropagation();
                             console.log(`Adding user ${userId} to group`);
                             handleAddUserToGroup(userId);
                           };
@@ -386,7 +385,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                           const createRemoveHandler = (userId: string) => (e: React.MouseEvent) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            e.stopImmediatePropagation();
                             console.log(`Removing user ${userId} from group`);
                             handleRemoveUserFromGroup(userId);
                           };
