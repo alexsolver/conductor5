@@ -574,4 +574,58 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     const result = await pool.query(query, params);
     return result.rows;
   }
+
+  // ===== DASHBOARD STATS =====
+  async getDashboardStats(tenantId: string): Promise<any> {
+    try {
+      const schema = this.getTenantSchema(tenantId);
+      
+      // Stats básicos usando queries SQL diretas
+      const partsCountResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.parts WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      const suppliersCountResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.suppliers WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      const inventoryCountResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.inventory WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      const serviceKitsCountResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.service_kits WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      // Itens em ponto de reposição
+      const lowStockResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.inventory 
+         WHERE tenant_id = $1 AND current_quantity <= reorder_point`,
+        [tenantId]
+      );
+
+      // Valor total do estoque
+      const totalStockValueResult = await pool.query(
+        `SELECT COALESCE(SUM(current_quantity * unit_cost), 0) as total 
+         FROM ${schema}.inventory WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      return {
+        totalParts: parseInt(partsCountResult.rows[0]?.count || '0'),
+        totalSuppliers: parseInt(suppliersCountResult.rows[0]?.count || '0'),
+        totalInventoryItems: parseInt(inventoryCountResult.rows[0]?.count || '0'),
+        totalServiceKits: parseInt(serviceKitsCountResult.rows[0]?.count || '0'),
+        lowStockItems: parseInt(lowStockResult.rows[0]?.count || '0'),
+        totalStockValue: parseFloat(totalStockValueResult.rows[0]?.total || '0')
+      };
+    } catch (error) {
+      console.error('Error getting dashboard stats:', error);
+      throw error;
+    }
+  }
 }
