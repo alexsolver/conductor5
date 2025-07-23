@@ -1,0 +1,80 @@
+OBJETIVO: Desenvolver um módulo completo de Gestão de Contratos integrado ao sistema de gestão de serviços e equipes de campo, fornecendo controle total sobre contratos de serviços, SLAs, renovações e relacionamentos com clientes.
+
+CATEGORIAS E FUNCIONALIDADES
+1. Gestão de Contratos Base
+Cadastro de Contratos: Formulário completo com dados contratuais (número, descrição, valor, vigência, tipo)
+Tipos de Contrato: Categorização (manutenção, suporte, desenvolvimento, consultoria, SLA)
+Status do Contrato: Estados (ativo, suspenso, cancelado, em renovação, vencido)
+Hierarquia Contratual: Contratos principais e aditivos/anexos
+Documentação Digital: Upload e versionamento de documentos contratuais
+Assinaturas Digitais: Integração com plataformas de assinatura eletrônica
+2. Relacionamentos e Vinculações
+Vinculação com Clientes: Associação automática com customers e customerCompanies
+Responsáveis Técnicos: Atribuição de gerentes de conta e equipes técnicas
+Localização de Serviços: Integração com locations para contratos específicos por região
+Equipamentos Cobertos: Lista de ativos/equipamentos inclusos no contrato
+Serviços Inclusos: Catálogo de serviços cobertos pelo contrato
+3. SLA e Níveis de Serviço
+Definição de SLAs: Tempos de resposta, resolução e disponibilidade
+Métricas de Performance: Indicadores de cumprimento dos SLAs
+Penalidades e Bonificações: Sistema de multas e incentivos baseados em performance
+Escalação Automática: Regras de escalação por descumprimento de SLA
+Relatórios de Compliance: Dashboards de aderência aos acordos
+4. Gestão Financeira
+Valores e Faturamento: Controle de valores mensais, anuais e sob demanda
+Reajustes Contratuais: Histórico e aplicação de reajustes automáticos
+Cobrança Adicional: Serviços extras fora do escopo contratual
+Orçamentos e Aprovações: Workflow para aprovação de custos adicionais
+Integração Financeira: Conexão com sistemas de faturamento e ERP
+5. Ciclo de Vida Contratual
+Renovação Automática: Alertas e processos de renovação
+Notificações de Vencimento: Sistema de alertas antecipados
+Renegociação: Workflow para alterações contratuais
+Cancelamento: Processo controlado de encerramento
+Migração de Contratos: Transferência entre diferentes modalidades
+6. Monitoramento e Compliance
+Dashboard Executivo: Visão geral de todos os contratos ativos
+Alertas Inteligentes: Notificações por vencimento, SLA, renovação
+Auditoria Contratual: Log completo de todas as alterações
+Compliance Regulatório: Adequação a normas e regulamentações
+Risk Assessment: Análise de riscos contratuais
+7. Integração Operacional
+Vinculação com Tickets: Contratos determinam prioridade e SLA dos tickets
+Agendamento de Campo: Contratos definem disponibilidade de técnicos
+Gestão de Equipes: Alocação de recursos baseada em contratos
+Timecard Integration: Controle de horas trabalhadas por contrato
+Knowledge Base: Base de conhecimento específica por tipo de contrato
+8. Relatórios e Analytics
+Performance Contratual: Métricas de cumprimento e qualidade
+Lucratividade: Análise de margem por contrato
+Tendências: Análise preditiva para renovações e cancelamentos
+Comparativo de SLAs: Benchmarking entre diferentes contratos
+ROI dos Contratos: Retorno sobre investimento por cliente/contrato
+9. Automação e Workflows
+Aprovações Automáticas: Workflow para aprovação de contratos e aditivos
+Notificações Inteligentes: Sistema de alertas contextuais
+Integração com CRM: Sincronização com sistemas de relacionamento
+API Externa: Integração com sistemas terceiros (ERP, assinatura digital)
+Triggers Automáticos: Ações automáticas baseadas em eventos contratuais
+10. Mobile e Campo
+App Mobile: Acesso mobile para consultores e técnicos
+Consulta Offline: Informações contratuais disponíveis sem internet
+Check-in Contratual: Validação de serviços conforme contrato
+Aprovações Mobile: Aprovação de extras e alterações via mobile
+GPS Integration: Validação de localização para serviços em campo
+ESPECIFICAÇÕES TÉCNICAS
+Database Schema: Criar tabelas contracts, contract_slas, contract_services, contract_documents, contract_renewals, contract_billing com relacionamentos apropriados
+
+Multi-tenant: Completo isolamento por tenant com índices otimizados
+
+Security: RBAC para diferentes níveis de acesso (visualização, edição, aprovação)
+
+Performance: Indexação otimizada para consultas por cliente, data de vencimento e status
+
+Integration Points: APIs para integração com sistemas de faturamento, assinatura digital e ERP
+
+Audit Trail: Log completo de todas as operações contratuais
+
+Real-time: WebSocket para notificações em tempo real de mudanças contratuais
+
+Implemente este módulo seguindo a arquitetura clean existente, integrando-se harmoniosamente com os módulos de customers, tickets, locations, team-management e technical-skills já existentes no sistema.
