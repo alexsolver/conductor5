@@ -628,4 +628,323 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
       throw error;
     }
   }
+
+  // =====================================================
+  // MÓDULO 1: GESTÃO DE PEÇAS AVANÇADA
+  // =====================================================
+
+  // Categorias de peças
+  async createPartCategory(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.part_categories (tenant_id, name, description, parent_category_id, hierarchy_level)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, data.name, data.description, data.parentCategoryId, data.hierarchyLevel || 1]
+    );
+    return result.rows[0];
+  }
+
+  async findPartCategories(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.part_categories WHERE tenant_id = $1 AND is_active = true ORDER BY hierarchy_level, name`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  // Especificações técnicas
+  async createPartSpecification(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.part_specifications (tenant_id, part_id, length_mm, width_mm, height_mm, weight_kg, voltage_min, voltage_max, power_watts, operating_temp_min, operating_temp_max, material_composition)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [tenantId, data.partId, data.lengthMm, data.widthMm, data.heightMm, data.weightKg, data.voltageMin, data.voltageMax, data.powerWatts, data.operatingTempMin, data.operatingTempMax, JSON.stringify(data.materialComposition)]
+    );
+    return result.rows[0];
+  }
+
+  async findPartSpecifications(tenantId: string, partId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.part_specifications WHERE tenant_id = $1 AND part_id = $2`,
+      [tenantId, partId]
+    );
+    return result.rows;
+  }
+
+  // Códigos de identificação
+  async createPartIdentification(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.part_identification (tenant_id, part_id, internal_code, manufacturer_code, supplier_code, barcode_ean13, qr_code, rfid_tag)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, data.partId, data.internalCode, data.manufacturerCode, data.supplierCode, data.barcodeEan13, data.qrCode, data.rfidTag]
+    );
+    return result.rows[0];
+  }
+
+  // =====================================================
+  // MÓDULO 2: CONTROLE DE ESTOQUE MULTI-LOCALIZAÇÃO
+  // =====================================================
+
+  // Localizações de estoque
+  async createStockLocation(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.stock_locations (tenant_id, location_code, location_name, location_type, address, city, state, postal_code, latitude, longitude, is_main_warehouse)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [tenantId, data.locationCode, data.locationName, data.locationType, data.address, data.city, data.state, data.postalCode, data.latitude, data.longitude, data.isMainWarehouse || false]
+    );
+    return result.rows[0];
+  }
+
+  async findStockLocations(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.stock_locations WHERE tenant_id = $1 AND is_active = true ORDER BY location_name`,
+      [tenantId]
+    );
+    return result.rows;
+  }
+
+  // Inventário multi-localização
+  async createInventoryMultiLocation(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.inventory_multi_location (tenant_id, part_id, location_id, current_quantity, minimum_stock, maximum_stock, reorder_point, unit_cost)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, data.partId, data.locationId, data.currentQuantity, data.minimumStock, data.maximumStock, data.reorderPoint, data.unitCost]
+    );
+    return result.rows[0];
+  }
+
+  async findInventoryByLocation(tenantId: string, locationId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT iml.*, p.title as part_name, p.internal_code, sl.location_name 
+                 FROM ${schema}.inventory_multi_location iml 
+                 LEFT JOIN ${schema}.parts p ON iml.part_id = p.id 
+                 LEFT JOIN ${schema}.stock_locations sl ON iml.location_id = sl.id 
+                 WHERE iml.tenant_id = $1`;
+    const params = [tenantId];
+    
+    if (locationId) {
+      query += ` AND iml.location_id = $${params.length + 1}`;
+      params.push(locationId);
+    }
+    
+    query += ` ORDER BY sl.location_name, p.title`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // Movimentações de estoque detalhadas
+  async createStockMovementDetailed(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const movementNumber = `MOV-${Date.now()}`;
+    
+    const result = await pool.query(
+      `INSERT INTO ${schema}.stock_movements (tenant_id, part_id, location_id, movement_number, movement_type, movement_subtype, quantity, unit_cost, total_cost, source_location_id, destination_location_id, lot_number, serial_number, reference_document_type, reference_document_number, notes, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
+      [tenantId, data.partId, data.locationId, movementNumber, data.movementType, data.movementSubtype, data.quantity, data.unitCost, data.totalCost, data.sourceLocationId, data.destinationLocationId, data.lotNumber, data.serialNumber, data.referenceDocumentType, data.referenceDocumentNumber, data.notes, data.createdBy]
+    );
+    return result.rows[0];
+  }
+
+  // Reservas de estoque
+  async createStockReservation(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const reservationNumber = `RES-${Date.now()}`;
+    
+    const result = await pool.query(
+      `INSERT INTO ${schema}.stock_reservations (tenant_id, part_id, location_id, reservation_number, reservation_type, reference_id, reserved_quantity, remaining_quantity, expiry_date, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [tenantId, data.partId, data.locationId, reservationNumber, data.reservationType, data.referenceId, data.reservedQuantity, data.reservedQuantity, data.expiryDate, data.createdBy]
+    );
+    return result.rows[0];
+  }
+
+  async findStockReservations(tenantId: string, status?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT sr.*, p.title as part_name, sl.location_name 
+                 FROM ${schema}.stock_reservations sr 
+                 LEFT JOIN ${schema}.parts p ON sr.part_id = p.id 
+                 LEFT JOIN ${schema}.stock_locations sl ON sr.location_id = sl.id 
+                 WHERE sr.tenant_id = $1`;
+    const params = [tenantId];
+    
+    if (status) {
+      query += ` AND sr.status = $${params.length + 1}`;
+      params.push(status);
+    }
+    
+    query += ` ORDER BY sr.reservation_date DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // =====================================================
+  // MÓDULO 3: GESTÃO DE FORNECEDORES AVANÇADA
+  // =====================================================
+
+  // Catálogo de produtos dos fornecedores
+  async createSupplierCatalogItem(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.supplier_catalog (tenant_id, supplier_id, part_id, supplier_part_number, supplier_description, unit_price, minimum_order_quantity, lead_time_days, price_valid_until, is_preferred)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [tenantId, data.supplierId, data.partId, data.supplierPartNumber, data.supplierDescription, data.unitPrice, data.minimumOrderQuantity, data.leadTimeDays, data.priceValidUntil, data.isPreferred || false]
+    );
+    return result.rows[0];
+  }
+
+  async findSupplierCatalog(tenantId: string, supplierId?: string, partId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT sc.*, s.name as supplier_name, p.title as part_name 
+                 FROM ${schema}.supplier_catalog sc 
+                 LEFT JOIN ${schema}.suppliers s ON sc.supplier_id = s.id 
+                 LEFT JOIN ${schema}.parts p ON sc.part_id = p.id 
+                 WHERE sc.tenant_id = $1 AND sc.is_active = true`;
+    const params = [tenantId];
+    
+    if (supplierId) {
+      query += ` AND sc.supplier_id = $${params.length + 1}`;
+      params.push(supplierId);
+    }
+    
+    if (partId) {
+      query += ` AND sc.part_id = $${params.length + 1}`;
+      params.push(partId);
+    }
+    
+    query += ` ORDER BY sc.is_preferred DESC, sc.unit_price ASC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // Histórico de compras
+  async createPurchaseHistory(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.purchase_history (tenant_id, supplier_id, part_id, purchase_order_number, invoice_number, purchase_date, delivery_date, ordered_quantity, delivered_quantity, unit_price, total_value, quality_rating, delivery_rating, service_rating, observations)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+      [tenantId, data.supplierId, data.partId, data.purchaseOrderNumber, data.invoiceNumber, data.purchaseDate, data.deliveryDate, data.orderedQuantity, data.deliveredQuantity, data.unitPrice, data.totalValue, data.qualityRating, data.deliveryRating, data.serviceRating, data.observations]
+    );
+    return result.rows[0];
+  }
+
+  // Avaliação de performance dos fornecedores
+  async createSupplierPerformance(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.supplier_performance (tenant_id, supplier_id, evaluation_period_start, evaluation_period_end, quality_score, on_time_delivery_rate, price_competitiveness, responsiveness_score, overall_score, performance_tier, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [tenantId, data.supplierId, data.evaluationPeriodStart, data.evaluationPeriodEnd, data.qualityScore, data.onTimeDeliveryRate, data.priceCompetitiveness, data.responsivenessScore, data.overallScore, data.performanceTier, data.createdBy]
+    );
+    return result.rows[0];
+  }
+
+  async findSupplierPerformance(tenantId: string, supplierId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT sp.*, s.name as supplier_name 
+                 FROM ${schema}.supplier_performance sp 
+                 LEFT JOIN ${schema}.suppliers s ON sp.supplier_id = s.id 
+                 WHERE sp.tenant_id = $1`;
+    const params = [tenantId];
+    
+    if (supplierId) {
+      query += ` AND sp.supplier_id = $${params.length + 1}`;
+      params.push(supplierId);
+    }
+    
+    query += ` ORDER BY sp.evaluation_period_end DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // =====================================================
+  // MÓDULO 4: PLANEJAMENTO E COMPRAS
+  // =====================================================
+
+  // Análise de demanda
+  async createDemandAnalysis(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `INSERT INTO ${schema}.demand_analysis (tenant_id, part_id, analysis_period, period_start, period_end, total_consumption, average_monthly_consumption, peak_consumption, minimum_consumption, forecasted_demand_next_month, forecasted_demand_next_quarter)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [tenantId, data.partId, data.analysisPeriod, data.periodStart, data.periodEnd, data.totalConsumption, data.averageMonthlyConsumption, data.peakConsumption, data.minimumConsumption, data.forecastedDemandNextMonth, data.forecastedDemandNextQuarter]
+    );
+    return result.rows[0];
+  }
+
+  async findDemandAnalysis(tenantId: string, partId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT da.*, p.title as part_name 
+                 FROM ${schema}.demand_analysis da 
+                 LEFT JOIN ${schema}.parts p ON da.part_id = p.id 
+                 WHERE da.tenant_id = $1`;
+    const params = [tenantId];
+    
+    if (partId) {
+      query += ` AND da.part_id = $${params.length + 1}`;
+      params.push(partId);
+    }
+    
+    query += ` ORDER BY da.period_end DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // Ordens de compra avançadas
+  async createPurchaseOrderAdvanced(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const poNumber = data.poNumber || `PO-${Date.now()}`;
+    
+    const result = await pool.query(
+      `INSERT INTO ${schema}.purchase_orders (tenant_id, po_number, po_type, priority, supplier_id, status, required_date, subtotal, tax_amount, shipping_cost, total_amount, payment_terms, delivery_terms, internal_notes, requires_approval, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
+      [tenantId, poNumber, data.poType || 'standard', data.priority || 'normal', data.supplierId, data.status || 'draft', data.requiredDate, data.subtotal, data.taxAmount, data.shippingCost, data.totalAmount, data.paymentTerms, data.deliveryTerms, data.internalNotes, data.requiresApproval !== false, data.createdBy]
+    );
+    return result.rows[0];
+  }
+
+  async findPurchaseOrdersAdvanced(tenantId: string, status?: string, supplierId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    let query = `SELECT po.*, s.name as supplier_name 
+                 FROM ${schema}.purchase_orders po 
+                 LEFT JOIN ${schema}.suppliers s ON po.supplier_id = s.id 
+                 WHERE po.tenant_id = $1 AND po.is_active = true`;
+    const params = [tenantId];
+    
+    if (status) {
+      query += ` AND po.status = $${params.length + 1}`;
+      params.push(status);
+    }
+    
+    if (supplierId) {
+      query += ` AND po.supplier_id = $${params.length + 1}`;
+      params.push(supplierId);
+    }
+    
+    query += ` ORDER BY po.order_date DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  async approvePurchaseOrder(tenantId: string, poId: string, approvedBy: string): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `UPDATE ${schema}.purchase_orders 
+       SET status = 'approved', approved_at = CURRENT_TIMESTAMP, approved_by = $1 
+       WHERE tenant_id = $2 AND id = $3 RETURNING *`,
+      [approvedBy, tenantId, poId]
+    );
+    return result.rows[0];
+  }
 }

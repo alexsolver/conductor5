@@ -80,4 +80,58 @@ router.get('/audit-logs', controller.getAuditLogs);
 // ===== DASHBOARD STATS =====
 router.get('/dashboard/stats', controller.getDashboardStats);
 
+// =====================================================
+// MÓDULOS AVANÇADOS 1-4: NOVAS ROTAS PARA SISTEMA COMPLETO
+// =====================================================
+
+// ===== MÓDULO 1: GESTÃO DE PEÇAS AVANÇADA =====
+// Categorias de peças
+router.post('/part-categories', controller.createPartCategory);
+router.get('/part-categories', controller.getPartCategories);
+
+// Especificações técnicas
+router.post('/part-specifications', controller.createPartSpecification);
+router.get('/parts/:partId/specifications', controller.getPartSpecifications);
+
+// Códigos de identificação  
+router.post('/part-identification', controller.createPartIdentification);
+
+// ===== MÓDULO 2: CONTROLE DE ESTOQUE MULTI-LOCALIZAÇÃO =====
+// Localizações de estoque
+router.post('/stock-locations', controller.createStockLocation);
+router.get('/stock-locations', controller.getStockLocations);
+
+// Inventário multi-localização
+router.post('/inventory-multi-location', controller.createInventoryMultiLocation);
+router.get('/inventory-by-location', controller.getInventoryByLocation);
+
+// Movimentações detalhadas de estoque
+router.post('/stock-movements-detailed', controller.createStockMovementDetailed);
+
+// Reservas de estoque
+router.post('/stock-reservations', controller.createStockReservation);
+router.get('/stock-reservations', controller.getStockReservations);
+
+// ===== MÓDULO 3: GESTÃO DE FORNECEDORES AVANÇADA =====
+// Catálogo de produtos dos fornecedores
+router.post('/supplier-catalog', controller.createSupplierCatalogItem);
+router.get('/supplier-catalog', controller.getSupplierCatalog);
+
+// Histórico de compras
+router.post('/purchase-history', controller.createPurchaseHistory);
+
+// Performance de fornecedores
+router.post('/supplier-performance', controller.createSupplierPerformance);
+router.get('/supplier-performance', controller.getSupplierPerformance);
+
+// ===== MÓDULO 4: PLANEJAMENTO E COMPRAS =====
+// Análise de demanda
+router.post('/demand-analysis', controller.createDemandAnalysis);
+router.get('/demand-analysis', controller.getDemandAnalysis);
+
+// Ordens de compra avançadas
+router.post('/purchase-orders-advanced', controller.createPurchaseOrderAdvanced);
+router.get('/purchase-orders-advanced', controller.getPurchaseOrdersAdvanced);
+router.put('/purchase-orders/:poId/approve', controller.approvePurchaseOrder);
+
 export default router;

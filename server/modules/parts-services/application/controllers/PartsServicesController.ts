@@ -943,4 +943,251 @@ export class PartsServicesController {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+  // =====================================================
+  // MÓDULOS AVANÇADOS 1-4: ENDPOINTS EXPANSÃO COMPLETA
+  // =====================================================
+
+  // MÓDULO 1: Categorias de peças
+  createPartCategory = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const category = await this.repository.createPartCategory(tenantId, req.body);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error('Error creating part category:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getPartCategories = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const categories = await this.repository.findPartCategories(tenantId);
+      res.json(categories);
+    } catch (error) {
+      console.error('Error getting part categories:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 2: Localizações de estoque
+  createStockLocation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const location = await this.repository.createStockLocation(tenantId, req.body);
+      res.status(201).json(location);
+    } catch (error) {
+      console.error('Error creating stock location:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getStockLocations = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const locations = await this.repository.findStockLocations(tenantId);
+      res.json(locations);
+    } catch (error) {
+      console.error('Error getting stock locations:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 2: Inventário multi-localização
+  createInventoryMultiLocation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const inventory = await this.repository.createInventoryMultiLocation(tenantId, req.body);
+      res.status(201).json(inventory);
+    } catch (error) {
+      console.error('Error creating inventory multi-location:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getInventoryByLocation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const { locationId } = req.query;
+      const inventory = await this.repository.findInventoryByLocation(tenantId, locationId as string);
+      res.json(inventory);
+    } catch (error) {
+      console.error('Error getting inventory by location:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 2: Reservas de estoque
+  createStockReservation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const reservationData = { ...req.body, createdBy: userId };
+      const reservation = await this.repository.createStockReservation(tenantId, reservationData);
+      res.status(201).json(reservation);
+    } catch (error) {
+      console.error('Error creating stock reservation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getStockReservations = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const { status } = req.query;
+      const reservations = await this.repository.findStockReservations(tenantId, status as string);
+      res.json(reservations);
+    } catch (error) {
+      console.error('Error getting stock reservations:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 3: Catálogo de fornecedores
+  createSupplierCatalogItem = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const catalogItem = await this.repository.createSupplierCatalogItem(tenantId, req.body);
+      res.status(201).json(catalogItem);
+    } catch (error) {
+      console.error('Error creating supplier catalog item:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getSupplierCatalog = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const { supplierId, partId } = req.query;
+      const catalog = await this.repository.findSupplierCatalog(tenantId, supplierId as string, partId as string);
+      res.json(catalog);
+    } catch (error) {
+      console.error('Error getting supplier catalog:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 3: Performance de fornecedores
+  createSupplierPerformance = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const performanceData = { ...req.body, createdBy: userId };
+      const performance = await this.repository.createSupplierPerformance(tenantId, performanceData);
+      res.status(201).json(performance);
+    } catch (error) {
+      console.error('Error creating supplier performance:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getSupplierPerformance = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const { supplierId } = req.query;
+      const performance = await this.repository.findSupplierPerformance(tenantId, supplierId as string);
+      res.json(performance);
+    } catch (error) {
+      console.error('Error getting supplier performance:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 4: Análise de demanda
+  createDemandAnalysis = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const analysis = await this.repository.createDemandAnalysis(tenantId, req.body);
+      res.status(201).json(analysis);
+    } catch (error) {
+      console.error('Error creating demand analysis:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getDemandAnalysis = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const { partId } = req.query;
+      const analysis = await this.repository.findDemandAnalysis(tenantId, partId as string);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error getting demand analysis:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // MÓDULO 4: Ordens de compra avançadas
+  createPurchaseOrderAdvanced = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const orderData = { ...req.body, createdBy: userId };
+      const order = await this.repository.createPurchaseOrderAdvanced(tenantId, orderData);
+      res.status(201).json(order);
+    } catch (error) {
+      console.error('Error creating purchase order:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getPurchaseOrdersAdvanced = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) return res.status(401).json({ error: 'Tenant ID required' });
+      
+      const { status, supplierId } = req.query;
+      const orders = await this.repository.findPurchaseOrdersAdvanced(tenantId, status as string, supplierId as string);
+      res.json(orders);
+    } catch (error) {
+      console.error('Error getting purchase orders:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  approvePurchaseOrder = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) return res.status(401).json({ error: 'Authentication required' });
+      
+      const { poId } = req.params;
+      const order = await this.repository.approvePurchaseOrder(tenantId, poId, userId);
+      res.json(order);
+    } catch (error) {
+      console.error('Error approving purchase order:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
 }

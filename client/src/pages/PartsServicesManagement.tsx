@@ -299,8 +299,8 @@ const PartsServicesManagement = () => {
             <TableCell className="font-medium">{part.internal_code}</TableCell>
             <TableCell>{part.title}</TableCell>
             <TableCell>{part.category_id}</TableCell>
-            <TableCell>R$ {part.cost_price?.toFixed(2)}</TableCell>
-            <TableCell>R$ {part.sale_price?.toFixed(2)}</TableCell>
+            <TableCell>R$ {Number(part.cost_price || 0).toFixed(2)}</TableCell>
+            <TableCell>R$ {Number(part.sale_price || 0).toFixed(2)}</TableCell>
             <TableCell>
               <Badge variant={part.abc_classification === 'A' ? 'destructive' : 
                               part.abc_classification === 'B' ? 'default' : 'secondary'}>
