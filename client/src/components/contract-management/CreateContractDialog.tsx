@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 const createContractSchema = z.object({
-  contractNumber: z.string().min(1, 'Número do contrato é obrigatório'),
+  contractNumber: z.string().optional(), // Gerado automaticamente pelo backend
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   contractType: z.string().min(1, 'Tipo de contrato é obrigatório'),
@@ -56,7 +56,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
-      contractNumber: '',
       title: '',
       description: '',
       contractType: 'service',
@@ -139,48 +138,42 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="contractNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número do Contrato *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="CTR-2025-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="contractType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Contrato *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="service">Serviço</SelectItem>
-                        <SelectItem value="maintenance">Manutenção</SelectItem>
-                        <SelectItem value="support">Suporte</SelectItem>
-                        <SelectItem value="consultation">Consultoria</SelectItem>
-                        <SelectItem value="license">Licenciamento</SelectItem>
-                        <SelectItem value="partnership">Parceria</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Contract Number Auto-Generated Info */}
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium text-gray-700">Número do Contrato:</div>
+                <div className="text-sm text-gray-500 italic">
+                  Será gerado automaticamente após a criação (ex: CTR-2025-003)
+                </div>
+              </div>
             </div>
+
+            {/* Contract Type */}
+            <FormField
+              control={form.control}
+              name="contractType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Contrato *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="service">Serviço</SelectItem>
+                      <SelectItem value="maintenance">Manutenção</SelectItem>
+                      <SelectItem value="support">Suporte</SelectItem>
+                      <SelectItem value="consultation">Consultoria</SelectItem>
+                      <SelectItem value="license">Licenciamento</SelectItem>
+                      <SelectItem value="partnership">Parceria</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
