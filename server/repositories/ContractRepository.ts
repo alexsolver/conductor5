@@ -8,8 +8,12 @@ export class ContractRepository {
   // ========================================
   
   async createContract(data: any, tenantId: string, userId: string) {
+    // Generate contract number automatically
+    const contractNumber = await this.generateContractNumber(tenantId);
+    
     const contractData = {
       ...data,
+      contractNumber,
       tenantId,
       createdById: userId,
       updatedById: userId,
@@ -21,6 +25,31 @@ export class ContractRepository {
       .returning();
     
     return newContract;
+  }
+
+  private async generateContractNumber(tenantId: string): Promise<string> {
+    try {
+      const currentYear = new Date().getFullYear();
+      
+      // Get the count of contracts for this year
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(contracts)
+        .where(
+          and(
+            eq(contracts.tenantId, tenantId),
+            sql`EXTRACT(YEAR FROM ${contracts.createdAt}) = ${currentYear}`
+          )
+        );
+      
+      const nextNumber = (result[0]?.count || 0) + 1;
+      return `CTR-${currentYear}-${nextNumber.toString().padStart(3, '0')}`;
+    } catch (error) {
+      console.error('Error generating contract number:', error);
+      // Fallback to timestamp-based number if query fails
+      const timestamp = Date.now().toString().slice(-6);
+      return `CTR-${new Date().getFullYear()}-${timestamp}`;
+    }
   }
   
   async getContracts(tenantId: string, filters?: {
