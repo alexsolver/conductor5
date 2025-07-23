@@ -23,8 +23,8 @@ interface AuthenticatedRequest extends Request {
 export class PartsServicesController {
   private repository: DirectPartsServicesRepository;
 
-  constructor() {
-    this.repository = new DirectPartsServicesRepository();
+  constructor(repository?: DirectPartsServicesRepository) {
+    this.repository = repository || new DirectPartsServicesRepository();
   }
 
   // ===== ACTIVITY TYPES =====
@@ -59,6 +59,66 @@ export class PartsServicesController {
       res.json(activityTypes);
     } catch (error) {
       console.error('Error fetching activity types:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getActivityTypeById = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const { id } = req.params;
+      const activityType = await this.repository.findActivityTypeById(id, tenantId);
+      
+      if (!activityType) {
+        return res.status(404).json({ error: 'Activity type not found' });
+      }
+      
+      res.json(activityType);
+    } catch (error) {
+      console.error('Error fetching activity type:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  updateActivityType = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const { id } = req.params;
+      const data = req.body as Partial<InsertActivityType>;
+      
+      const activityType = await this.repository.updateActivityType(id, tenantId, data);
+      res.json(activityType);
+    } catch (error) {
+      console.error('Error updating activity type:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  deleteActivityType = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const { id } = req.params;
+      const success = await this.repository.deleteActivityType(id, tenantId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Activity type not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting activity type:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };
@@ -105,6 +165,21 @@ export class PartsServicesController {
       res.json(parts);
     } catch (error) {
       console.error('Error fetching parts:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getPartsStats = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const stats = await this.repository.getPartsStats(tenantId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching parts stats:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };
@@ -503,6 +578,366 @@ export class PartsServicesController {
         totalServiceKits,
         timestamp: new Date().toISOString()
       });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== STOCK MOVEMENTS =====
+  createStockMovement = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const movementData = {
+        ...req.body,
+        createdById: userId
+      };
+
+      const newMovement = await this.repository.createStockMovement(tenantId, movementData);
+      res.status(201).json(newMovement);
+    } catch (error) {
+      console.error('Error creating stock movement:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getStockMovements = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const filters = {
+        partId: req.query.partId as string,
+        movementType: req.query.movementType as string
+      };
+
+      const movements = await this.repository.findStockMovements(tenantId, filters);
+      res.json(movements);
+    } catch (error) {
+      console.error('Error fetching stock movements:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== QUOTATIONS =====
+  createQuotation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const quotationData = {
+        ...req.body,
+        createdById: userId
+      };
+
+      const newQuotation = await this.repository.createQuotation(tenantId, quotationData);
+      res.status(201).json(newQuotation);
+    } catch (error) {
+      console.error('Error creating quotation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getQuotations = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const filters = {
+        status: req.query.status as string
+      };
+
+      const quotations = await this.repository.findQuotations(tenantId, filters);
+      res.json(quotations);
+    } catch (error) {
+      console.error('Error fetching quotations:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  updateQuotationStatus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const updatedQuotation = await this.repository.updateQuotationStatus(id, tenantId, status);
+      res.json(updatedQuotation);
+    } catch (error) {
+      console.error('Error updating quotation status:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== PURCHASE ORDERS =====
+  createPurchaseOrder = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const poData = {
+        ...req.body,
+        createdById: userId
+      };
+
+      const newPO = await this.repository.createPurchaseOrder(tenantId, poData);
+      res.status(201).json(newPO);
+    } catch (error) {
+      console.error('Error creating purchase order:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getPurchaseOrders = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const filters = {
+        status: req.query.status as string
+      };
+
+      const purchaseOrders = await this.repository.findPurchaseOrders(tenantId, filters);
+      res.json(purchaseOrders);
+    } catch (error) {
+      console.error('Error fetching purchase orders:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  updatePurchaseOrderStatus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const updatedPO = await this.repository.updatePurchaseOrderStatus(id, tenantId, status);
+      res.json(updatedPO);
+    } catch (error) {
+      console.error('Error updating purchase order status:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== ASSETS =====
+  createAsset = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const assetData = {
+        ...req.body,
+        createdById: userId
+      };
+
+      const newAsset = await this.repository.createAsset(tenantId, assetData);
+      res.status(201).json(newAsset);
+    } catch (error) {
+      console.error('Error creating asset:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getAssets = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const filters = {
+        category: req.query.category as string,
+        status: req.query.status as string
+      };
+
+      const assets = await this.repository.findAssets(tenantId, filters);
+      res.json(assets);
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  updateAssetStatus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const updatedAsset = await this.repository.updateAssetStatus(id, tenantId, status);
+      res.json(updatedAsset);
+    } catch (error) {
+      console.error('Error updating asset status:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== PRICE LISTS =====
+  createPriceList = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const priceListData = {
+        ...req.body,
+        createdById: userId
+      };
+
+      const newPriceList = await this.repository.createPriceList(tenantId, priceListData);
+      res.status(201).json(newPriceList);
+    } catch (error) {
+      console.error('Error creating price list:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getPriceLists = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const filters = {
+        status: req.query.status as string,
+        isActive: req.query.isActive ? req.query.isActive === 'true' : undefined
+      };
+
+      const priceLists = await this.repository.findPriceLists(tenantId, filters);
+      res.json(priceLists);
+    } catch (error) {
+      console.error('Error fetching price lists:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== SUPPLIER EVALUATIONS =====
+  createSupplierEvaluation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const evaluationData = {
+        ...req.body,
+        evaluatorId: userId
+      };
+
+      const newEvaluation = await this.repository.createSupplierEvaluation(tenantId, evaluationData);
+      res.status(201).json(newEvaluation);
+    } catch (error) {
+      console.error('Error creating supplier evaluation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getSupplierEvaluations = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const supplierId = req.query.supplierId as string;
+      const evaluations = await this.repository.findSupplierEvaluations(tenantId, supplierId);
+      res.json(evaluations);
+    } catch (error) {
+      console.error('Error fetching supplier evaluations:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== AUDIT LOGS =====
+  createAuditLog = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const auditData = {
+        ...req.body,
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      };
+
+      const newAuditLog = await this.repository.createAuditLog(tenantId, auditData);
+      res.status(201).json(newAuditLog);
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getAuditLogs = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const filters = {
+        tableName: req.query.tableName as string,
+        recordId: req.query.recordId as string
+      };
+
+      const auditLogs = await this.repository.findAuditLogs(tenantId, filters);
+      res.json(auditLogs);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== DASHBOARD STATS =====
+  getDashboardStats = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+
+      const stats = await this.repository.getDashboardStats(tenantId);
+      res.json(stats);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
       res.status(500).json({ error: 'Internal server error' });

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { DirectPartsServicesRepository } from '../infrastructure/repositories/DirectPartsServicesRepository';
-import { PartsServicesController } from '../application/controllers/PartsServicesController';
-import { jwtAuth } from '../../../middleware/jwtAuth';
+import { DirectPartsServicesRepository } from './infrastructure/repositories/DirectPartsServicesRepository';
+import { PartsServicesController } from './application/controllers/PartsServicesController';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
 const router = Router();
 
@@ -12,39 +12,39 @@ const controller = new PartsServicesController(repository);
 // Apply JWT authentication to all routes
 router.use(jwtAuth);
 
-// ===== ACTIVITY TYPES ROUTES =====
+// ===== ACTIVITY TYPES =====
 router.post('/activity-types', controller.createActivityType);
 router.get('/activity-types', controller.getActivityTypes);
 router.get('/activity-types/:id', controller.getActivityTypeById);
 router.put('/activity-types/:id', controller.updateActivityType);
 router.delete('/activity-types/:id', controller.deleteActivityType);
 
-// ===== PARTS ROUTES =====
+// ===== PARTS =====
 router.post('/parts', controller.createPart);
 router.get('/parts', controller.getParts);
-router.get('/parts/stats', controller.getPartsStats);
 router.get('/parts/:id', controller.getPartById);
 router.put('/parts/:id', controller.updatePart);
 router.delete('/parts/:id', controller.deletePart);
+router.get('/parts/stats', controller.getPartsStats);
 
-// ===== SUPPLIERS ROUTES =====
-router.post('/suppliers', controller.createSupplier);
-router.get('/suppliers', controller.getSuppliers);
-router.get('/suppliers/:id', controller.getSupplierById);
-router.put('/suppliers/:id', controller.updateSupplier);
-router.delete('/suppliers/:id', controller.deleteSupplier);
-
-// ===== INVENTORY ROUTES =====
-router.post('/inventory', controller.createInventoryItem);
-router.get('/inventory', controller.getInventory);
-router.put('/inventory/adjust/:partId', controller.adjustInventory);
-
-// ===== SERVICE KITS ROUTES =====
+// ===== SERVICE KITS =====
 router.post('/service-kits', controller.createServiceKit);
 router.get('/service-kits', controller.getServiceKits);
 router.get('/service-kits/:id', controller.getServiceKitById);
 router.put('/service-kits/:id', controller.updateServiceKit);
 router.delete('/service-kits/:id', controller.deleteServiceKit);
+
+// ===== INVENTORY =====
+router.post('/inventory', controller.createInventoryItem);
+router.get('/inventory', controller.getInventory);
+router.put('/inventory/adjust/:partId', controller.adjustInventory);
+
+// ===== SUPPLIERS =====
+router.post('/suppliers', controller.createSupplier);
+router.get('/suppliers', controller.getSuppliers);
+router.get('/suppliers/:id', controller.getSupplierById);
+router.put('/suppliers/:id', controller.updateSupplier);
+router.delete('/suppliers/:id', controller.deleteSupplier);
 
 // ===== STOCK MOVEMENTS =====
 router.post('/stock-movements', controller.createStockMovement);
