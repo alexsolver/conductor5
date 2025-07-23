@@ -958,21 +958,9 @@ export default function TicketDetails() {
 
 
 
-          {/* Solicitante Section */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Solicitante</h3>
-            <div className="text-sm text-gray-700">
-              {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
-            </div>
-          </div>
+          
 
-          {/* Atribuído a Section */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Atribuído a</h3>
-            <div className="text-sm text-gray-700">
-              {users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
-            </div>
-          </div>
+          
 
           {/* Seguidores Section */}
           <div className="mb-6">
