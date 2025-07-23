@@ -65,6 +65,10 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
       totalValue: 0,
       customerCompanyId: '',
       managerId: '',
+      renewalTerms: '',
+      paymentTerms: '',
+      terminationClause: '',
+      scopeOfWork: '',
     },
   });
 
@@ -90,7 +94,25 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
 
   const createContractMutation = useMutation({
     mutationFn: (data: CreateContractFormData) => {
-      return apiRequest('POST', '/api/contracts/contracts', data);
+      // Transform data to match backend schema
+      const contractData = {
+        title: data.title,
+        description: data.description || '',
+        contractType: data.contractType,
+        status: data.status,
+        priority: data.priority,
+        customerCompanyId: data.customerCompanyId === 'none' ? null : data.customerCompanyId,
+        managerId: data.managerId === 'none' ? null : data.managerId,
+        totalValue: data.totalValue.toString(),
+        currency: data.currency,
+        startDate: data.startDate.toISOString(),
+        endDate: data.endDate.toISOString(),
+        renewalTerms: data.renewalTerms || '',
+        paymentTerms: data.paymentTerms || '',
+        terminationClause: data.terminationClause || '',
+        scopeOfWork: data.scopeOfWork || '',
+      };
+      return apiRequest('POST', '/api/contracts/contracts', contractData);
     },
     onSuccess: () => {
       toast({
