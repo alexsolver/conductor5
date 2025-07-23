@@ -297,7 +297,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             </form>
           </DialogContent>
         </Dialog>
-        
+
         {/* Dialog de Edição com Abas */}
         <Dialog open={!!editingGroup} onOpenChange={() => setEditingGroup(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -307,7 +307,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 Gerencie as informações do grupo e associe técnicos
               </DialogDescription>
             </DialogHeader>
-            
+
             <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="info" className="flex items-center space-x-2">
@@ -345,7 +345,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2 mt-6">
                     <Button type="button" variant="outline" onClick={handleCloseDialog}>
                       Cancelar
@@ -405,7 +405,11 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => handleAddUserToGroup(user.id)}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleAddUserToGroup(user.id);
+                                    }}
                                     disabled={addUserToGroupMutation.isPending}
                                   >
                                     <UserPlus className="h-3 w-3 mr-1" />
