@@ -962,6 +962,27 @@ export default function TicketDetails() {
 
           
 
+          {/* Solicitante e Atribuído Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">Atribuição</h3>
+            
+            {/* Solicitante */}
+            <div className="mb-4">
+              <h4 className="text-xs font-medium text-gray-500 mb-1">Solicitante</h4>
+              <div className="text-sm text-gray-700">
+                {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
+              </div>
+            </div>
+
+            {/* Atribuído a */}
+            <div className="mb-4">
+              <h4 className="text-xs font-medium text-gray-500 mb-1">Atribuído a</h4>
+              <div className="text-sm text-gray-700">
+                {users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
+              </div>
+            </div>
+          </div>
+
           {/* Seguidores Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Seguidores</h3>
@@ -1471,71 +1492,7 @@ export default function TicketDetails() {
               )}
             />
 
-            {/* Atribuição - Campos lado a lado conforme imagem */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="callerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Solicitante *</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Não especificado" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(customers?.customers || []).map((customer: any) => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="text-sm text-gray-700">
-                          {customers?.customers?.find((c: any) => c.id === field.value)?.name || 'Não especificado'}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="assignedToId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Atribuído a</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Não atribuído" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unassigned">Não atribuído</SelectItem>
-                            {(users?.users || []).map((user: any) => (
-                              <SelectItem key={user.id} value={user.id}>
-                                {user.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="text-sm text-gray-700">
-                          {users?.users?.find((u: any) => u.id === field.value)?.name || 'Não atribuído'}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            
 
 
 
