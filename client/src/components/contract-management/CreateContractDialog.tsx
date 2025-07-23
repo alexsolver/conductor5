@@ -68,26 +68,15 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     },
   });
 
-  // Fetch customer companies for dropdown
-  const { data: customerCompaniesData } = useQuery({
+  // Fetch customer companies for dropdown using apiRequest
+  const { data: customerCompaniesData, isLoading: companiesLoading, error: companiesError } = useQuery({
     queryKey: ['/api/customers/companies'],
-    queryFn: () => fetch('/api/customers/companies', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
-    }).then(res => res.json()),
+    retry: 1,
   });
 
   // Fetch users for manager dropdown
   const { data: usersData } = useQuery({
     queryKey: ['/api/user-management/users'],
-    queryFn: () => fetch('/api/user-management/users', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
-    }).then(res => res.json()),
   });
 
   // Ensure data is always arrays
@@ -96,16 +85,12 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   const users = Array.isArray(usersData) ? usersData : 
                usersData?.users ? usersData.users : [];
 
+  // Debug log
+  console.log('Customer companies data:', { customerCompaniesData, customerCompanies, companiesLoading, companiesError });
+
   const createContractMutation = useMutation({
     mutationFn: (data: CreateContractFormData) => {
-      return fetch('/api/contracts/contracts', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      }).then(res => res.json());
+      return apiRequest('POST', '/api/contracts/contracts', data);
     },
     onSuccess: () => {
       toast({
@@ -275,6 +260,11 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">Nenhuma empresa</SelectItem>
+                        {companiesLoading && <SelectItem value="loading">Carregando empresas...</SelectItem>}
+                        {companiesError && <SelectItem value="error">Erro ao carregar empresas</SelectItem>}
+                        {!companiesLoading && !companiesError && Array.isArray(customerCompanies) && customerCompanies.length === 0 && (
+                          <SelectItem value="empty">Nenhuma empresa encontrada</SelectItem>
+                        )}
                         {Array.isArray(customerCompanies) && customerCompanies.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name} {company.cnpj ? `(${company.cnpj})` : ''}
