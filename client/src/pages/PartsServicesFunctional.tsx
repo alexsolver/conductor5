@@ -51,10 +51,11 @@ const supplierSchema = z.object({
 
 export default function PartsServicesFunctional() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeModule, setActiveModule] = useState("overview");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Queries para dados reais das APIs
+  // Queries para dados reais das APIs - TODOS OS 11 MÓDULOS
   const { data: dashboardStats, isLoading: isLoadingStats } = useQuery({
     queryKey: ['/api/parts-services/dashboard/stats'],
     refetchInterval: 30000
@@ -68,11 +69,47 @@ export default function PartsServicesFunctional() {
     queryKey: ['/api/parts-services/suppliers']
   });
 
-  // Filtro de peças por termo de busca
-  const filteredParts = parts?.filter((part: any) => 
-    part.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    part.internal_code.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const { data: inventory, isLoading: isLoadingInventory } = useQuery({
+    queryKey: ['/api/parts-services/inventory']
+  });
+
+  const { data: purchaseOrders, isLoading: isLoadingPurchaseOrders } = useQuery({
+    queryKey: ['/api/parts-services/purchase-orders']
+  });
+
+  const { data: serviceIntegrations, isLoading: isLoadingServiceIntegrations } = useQuery({
+    queryKey: ['/api/parts-services/service-integrations']
+  });
+
+  const { data: transfers, isLoading: isLoadingTransfers } = useQuery({
+    queryKey: ['/api/parts-services/transfers']
+  });
+
+  const { data: assetsComplete, isLoading: isLoadingAssetsComplete } = useQuery({
+    queryKey: ['/api/parts-services/assets-complete']
+  });
+
+  const { data: priceListsComplete, isLoading: isLoadingPriceListsComplete } = useQuery({
+    queryKey: ['/api/parts-services/price-lists-complete']
+  });
+
+  const { data: pricingTables, isLoading: isLoadingPricingTables } = useQuery({
+    queryKey: ['/api/parts-services/pricing-tables']
+  });
+
+  const { data: auditLogsComplete, isLoading: isLoadingAuditLogsComplete } = useQuery({
+    queryKey: ['/api/parts-services/audit-logs-complete']
+  });
+
+  const { data: budgetSimulations, isLoading: isLoadingBudgetSimulations } = useQuery({
+    queryKey: ['/api/parts-services/budget-simulations']
+  });
+
+  // Filtro de peças por termo de busca com verificação de array
+  const filteredParts = Array.isArray(parts) ? parts.filter((part: any) => 
+    part.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    part.internal_code?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
   // Mutations para CRUD
   const createPartMutation = useMutation({
@@ -130,7 +167,7 @@ export default function PartsServicesFunctional() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingStats ? '...' : dashboardStats?.totalParts || 0}
+              {isLoadingStats ? '...' : (dashboardStats as any)?.totalParts || 0}
             </div>
             <p className="text-xs text-muted-foreground">Peças ativas</p>
           </CardContent>
@@ -143,7 +180,7 @@ export default function PartsServicesFunctional() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingSuppliers ? '...' : dashboardStats?.totalSuppliers || 0}
+              {isLoadingSuppliers ? '...' : (dashboardStats as any)?.totalSuppliers || 0}
             </div>
             <p className="text-xs text-muted-foreground">Fornecedores ativos</p>
           </CardContent>
@@ -156,7 +193,7 @@ export default function PartsServicesFunctional() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingStats ? '...' : dashboardStats?.totalOrders || 0}
+              {isLoadingStats ? '...' : (dashboardStats as any)?.totalOrders || 0}
             </div>
             <p className="text-xs text-muted-foreground">Pedidos de compra</p>
           </CardContent>
@@ -169,7 +206,7 @@ export default function PartsServicesFunctional() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingStats ? '...' : dashboardStats?.totalSimulations || 0}
+              {isLoadingStats ? '...' : (dashboardStats as any)?.totalSimulations || 0}
             </div>
             <p className="text-xs text-muted-foreground">Orçamentos simulados</p>
           </CardContent>
@@ -265,7 +302,7 @@ export default function PartsServicesFunctional() {
             <div className="text-center py-8">Carregando fornecedores...</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {suppliers?.map((supplier: any) => (
+              {Array.isArray(suppliers) ? suppliers.map((supplier: any) => (
                 <Card key={supplier.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">

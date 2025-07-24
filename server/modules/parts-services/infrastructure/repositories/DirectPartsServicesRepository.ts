@@ -1315,6 +1315,8 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     query += ` ORDER BY service_name`;
     const result = await pool.query(query, params);
     return result.rows;
+  }ait pool.query(query, params);
+    return result.rows;
   }
 
   async findBudgetSimulations(tenantId: string, filters?: any): Promise<any[]> {
