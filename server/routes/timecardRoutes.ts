@@ -9,6 +9,7 @@ const timecardController = new TimecardController();
 router.use(jwtAuth);
 
 // Timecard Entries
+router.get('/current-status', timecardController.getCurrentStatus);
 router.post('/timecard-entries', timecardController.createTimecardEntry);
 router.get('/users/:userId/timecard-entries', timecardController.getTimecardEntriesByUser);
 router.put('/timecard-entries/:id', timecardController.updateTimecardEntry);

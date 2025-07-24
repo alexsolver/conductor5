@@ -66,6 +66,26 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     return entry;
   }
 
+  async getTimecardEntriesByUserAndDate(userId: string, date: string, tenantId: string): Promise<any[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return await db
+      .select()
+      .from(timecardEntries)
+      .where(
+        and(
+          eq(timecardEntries.tenantId, tenantId),
+          eq(timecardEntries.userId, userId),
+          gte(timecardEntries.checkIn, startOfDay),
+          lte(timecardEntries.checkIn, endOfDay)
+        )
+      )
+      .orderBy(asc(timecardEntries.checkIn));
+  }
+
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
     const conditions = [
       eq(timecardEntries.userId, userId),
@@ -193,8 +213,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getAbsenceRequestsByUser(userId: string, tenantId: string): Promise<any[]> {
     return await db
-      .select()
+      .select({
+        ...absenceRequests,
+        userName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('userName'),
+        userEmail: users.email,
+      })
       .from(absenceRequests)
+      .leftJoin(users, eq(absenceRequests.userId, users.id))
       .where(and(
         eq(absenceRequests.userId, userId),
         eq(absenceRequests.tenantId, tenantId)

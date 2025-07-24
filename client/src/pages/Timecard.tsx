@@ -11,15 +11,18 @@ import { ptBR } from 'date-fns/locale';
 
 interface TimeRecord {
   id: string;
-  recordDateTime: string;
-  recordType: 'clock_in' | 'clock_out' | 'break_start' | 'break_end';
-  deviceType: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-    address?: string;
-  };
+  userId: string;
+  checkIn?: string;
+  checkOut?: string;
+  breakStart?: string;
+  breakEnd?: string;
   notes?: string;
+  location?: string;
+  isManualEntry?: boolean;
+  status?: string;
+  totalHours?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface CurrentStatus {
@@ -38,6 +41,21 @@ interface TimeAlert {
   createdAt: string;
 }
 
+// Função para transformar dados do frontend para backend
+const transformTimecardData = (frontendData: any) => {
+  const now = new Date().toISOString();
+  return {
+    userId: frontendData.userId || 'current-user', // Será preenchido pelo backend via JWT
+    checkIn: frontendData.recordType === 'clock_in' ? now : undefined,
+    checkOut: frontendData.recordType === 'clock_out' ? now : undefined,
+    breakStart: frontendData.recordType === 'break_start' ? now : undefined,
+    breakEnd: frontendData.recordType === 'break_end' ? now : undefined,
+    location: frontendData.location ? JSON.stringify(frontendData.location) : undefined,
+    isManualEntry: frontendData.deviceType !== 'web',
+    notes: frontendData.notes
+  };
+};
+
 export default function Timecard() {
   const [location, setLocation] = useState<GeolocationPosition | null>(null);
   const [locationError, setLocationError] = useState<string>('');
@@ -53,7 +71,7 @@ export default function Timecard() {
     queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/current-status');
-      return await response.json();
+      return response;
     },
     enabled: true,
     refetchInterval: 30000, // Atualizar a cada 30 segundos
@@ -84,8 +102,10 @@ export default function Timecard() {
   // Mutation para registrar ponto
   const recordMutation = useMutation({
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
-      const response = await apiRequest('POST', '/api/timecard/records', data);
-      return await response.json();
+      // Transformar dados do frontend para formato backend
+      const transformedData = transformTimecardData(data);
+      const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
+      return response;
     },
     onSuccess: (result) => {
       console.log('Registro de ponto bem-sucedido:', result);
@@ -93,16 +113,16 @@ export default function Timecard() {
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      // Atualizar status baseado no tipo de registro
+      // Atualizar status baseado no registro
       setCurrentStatus(prev => {
         let newStatus = prev.status;
-        if (result.recordType === 'clock_in') {
+        if (result.checkIn) {
           newStatus = 'working';
-        } else if (result.recordType === 'break_start') {
+        } else if (result.breakStart) {
           newStatus = 'on_break';
-        } else if (result.recordType === 'break_end') {
+        } else if (result.breakEnd) {
           newStatus = 'working';
-        } else if (result.recordType === 'clock_out') {
+        } else if (result.checkOut) {
           newStatus = 'finished';
         }
         return {

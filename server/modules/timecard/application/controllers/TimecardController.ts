@@ -5,8 +5,8 @@ import { DrizzleTimecardRepository } from '../../infrastructure/repositories/Dri
 
 // Validation schemas
 const createTimecardEntrySchema = z.object({
-  userId: z.string().uuid(),
-  checkIn: z.string().datetime(),
+  userId: z.string().uuid().optional(), // Optional since it will be overridden by JWT
+  checkIn: z.string().datetime().optional(),
   checkOut: z.string().datetime().optional(),
   breakStart: z.string().datetime().optional(),
   breakEnd: z.string().datetime().optional(),
@@ -70,20 +70,73 @@ export class TimecardController {
     this.timecardRepository = new DrizzleTimecardRepository();
   }
 
+  // Get current status for user
+  getCurrentStatus = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Get today's records
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
+
+      // Determine current status
+      let status = 'not_started';
+      let lastRecord = null;
+
+      if (todayRecords.length > 0) {
+        lastRecord = todayRecords[todayRecords.length - 1];
+        
+        if (lastRecord.checkOut) {
+          status = 'finished';
+        } else if (lastRecord.breakStart && !lastRecord.breakEnd) {
+          status = 'on_break';
+        } else if (lastRecord.checkIn) {
+          status = 'working';
+        }
+      }
+
+      const response = {
+        status,
+        todayRecords,
+        lastRecord,
+        timesheet: {
+          totalHours: todayRecords.reduce((sum, record) => {
+            return sum + (record.totalHours ? parseFloat(record.totalHours) : 0);
+          }, 0)
+        }
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error('Error getting current status:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
   // Timecard Entries
   createTimecardEntry = async (req: Request, res: Response) => {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createTimecardEntrySchema.parse(req.body);
 
-      const entry = await this.timecardRepository.createTimecardEntry({
+      // Use authenticated user ID instead of body userId
+      const entryData = {
         ...validatedData,
+        userId: req.user?.id || validatedData.userId,
         tenantId,
-        checkIn: new Date(validatedData.checkIn),
+        checkIn: validatedData.checkIn ? new Date(validatedData.checkIn) : null,
         checkOut: validatedData.checkOut ? new Date(validatedData.checkOut) : null,
         breakStart: validatedData.breakStart ? new Date(validatedData.breakStart) : null,
         breakEnd: validatedData.breakEnd ? new Date(validatedData.breakEnd) : null,
-      });
+      };
+
+      const entry = await this.timecardRepository.createTimecardEntry(entryData);
 
       res.status(201).json(entry);
     } catch (error) {
