@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
-import { pool } from '../../../db';
+import { pool } from '../../../../db';
 import {
   parts,
   inventory,
