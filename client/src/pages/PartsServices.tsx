@@ -23,7 +23,10 @@ export default function PartsServices() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreatePartOpen, setIsCreatePartOpen] = useState(false);
   const [isCreateSupplierOpen, setIsCreateSupplierOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [isEditPartOpen, setIsEditPartOpen] = useState(false);
+  const [isEditSupplierOpen, setIsEditSupplierOpen] = useState(false);
+  const [editingPart, setEditingPart] = useState<any>(null);
+  const [editingSupplier, setEditingSupplier] = useState<any>(null);
   const [newPart, setNewPart] = useState({
     title: "",
     description: "",
@@ -134,6 +137,46 @@ export default function PartsServices() {
     },
     onError: () => toast({ title: "Erro ao excluir fornecedor", variant: "destructive" })
   });
+
+  const updatePartMutation = useMutation({
+    mutationFn: (data: {id: string, updates: any}) => apiRequest('PUT', `/api/parts-services/parts/${data.id}`, data.updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setIsEditPartOpen(false);
+      setEditingPart(null);
+      toast({ title: "Peça atualizada com sucesso!" });
+    },
+    onError: () => toast({ title: "Erro ao atualizar peça", variant: "destructive" })
+  });
+
+  const updateSupplierMutation = useMutation({
+    mutationFn: (data: {id: string, updates: any}) => apiRequest('PUT', `/api/parts-services/suppliers/${data.id}`, data.updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setIsEditSupplierOpen(false);
+      setEditingSupplier(null);
+      toast({ title: "Fornecedor atualizado com sucesso!" });
+    },
+    onError: () => toast({ title: "Erro ao atualizar fornecedor", variant: "destructive" })
+  });
+
+  // FUNÇÕES PARA ABRIR MODAIS DE EDIÇÃO
+  const handleEditPart = (part: any) => {
+    setEditingPart({
+      ...part,
+      cost_price: part.cost_price?.toString() || "",
+      sale_price: part.sale_price?.toString() || "",
+      margin_percentage: part.margin_percentage?.toString() || ""
+    });
+    setIsEditPartOpen(true);
+  };
+
+  const handleEditSupplier = (supplier: any) => {
+    setEditingSupplier(supplier);
+    setIsEditSupplierOpen(true);
+  };
 
   // CONFIGURAÇÃO DOS 11 MÓDULOS ENTERPRISE UNIFICADOS
   const modules = [
@@ -324,7 +367,7 @@ export default function PartsServices() {
                     <span className="font-medium">{parseFloat(part.margin_percentage || 0).toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-end space-x-2 pt-2">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => handleEditPart(part)} title="Editar peça">
                       <Edit className="h-3 w-3" />
                     </Button>
                     <Button size="sm" variant="outline" 
@@ -332,7 +375,8 @@ export default function PartsServices() {
                               if(window.confirm('Tem certeza que deseja excluir esta peça?')) {
                                 deletePartMutation.mutate(part.id);
                               }
-                            }}>
+                            }}
+                            title="Excluir peça">
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
@@ -438,7 +482,7 @@ export default function PartsServices() {
                     <span className="font-medium">{supplier.trade_name || 'N/A'}</span>
                   </div>
                   <div className="flex justify-end space-x-2 pt-2">
-                    <Button size="sm" variant="outline" title="Editar fornecedor">
+                    <Button size="sm" variant="outline" onClick={() => handleEditSupplier(supplier)} title="Editar fornecedor">
                       <Edit className="h-3 w-3" />
                     </Button>
                     <Button size="sm" variant="outline" 
@@ -525,6 +569,179 @@ export default function PartsServices() {
           <GenericModule title="Integração Serviços" description="Sincronização com work orders e sistemas externos" />
         </TabsContent>
       </Tabs>
+
+      {/* MODAL DE EDIÇÃO DE PEÇA */}
+      <Dialog open={isEditPartOpen} onOpenChange={setIsEditPartOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Peça</DialogTitle>
+            <DialogDescription>Atualize as informações da peça</DialogDescription>
+          </DialogHeader>
+          {editingPart && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-title" className="text-right">Título</Label>
+                <Input 
+                  id="edit-title" 
+                  value={editingPart.title} 
+                  onChange={(e) => setEditingPart({...editingPart, title: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-code" className="text-right">Código</Label>
+                <Input 
+                  id="edit-code" 
+                  value={editingPart.internal_code} 
+                  onChange={(e) => setEditingPart({...editingPart, internal_code: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-cost" className="text-right">Custo</Label>
+                <Input 
+                  id="edit-cost" 
+                  type="number" 
+                  value={editingPart.cost_price} 
+                  onChange={(e) => setEditingPart({...editingPart, cost_price: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-sale" className="text-right">Venda</Label>
+                <Input 
+                  id="edit-sale" 
+                  type="number" 
+                  value={editingPart.sale_price} 
+                  onChange={(e) => setEditingPart({...editingPart, sale_price: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-classification" className="text-right">Classe ABC</Label>
+                <Select 
+                  value={editingPart.abc_classification} 
+                  onValueChange={(value) => setEditingPart({...editingPart, abc_classification: value})}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A">Classe A - Alta</SelectItem>
+                    <SelectItem value="B">Classe B - Média</SelectItem>
+                    <SelectItem value="C">Classe C - Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-description" className="text-right">Descrição</Label>
+                <Textarea 
+                  id="edit-description" 
+                  value={editingPart.description} 
+                  onChange={(e) => setEditingPart({...editingPart, description: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              type="submit" 
+              onClick={() => updatePartMutation.mutate({id: editingPart?.id, updates: editingPart})} 
+              disabled={updatePartMutation.isPending}
+            >
+              {updatePartMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL DE EDIÇÃO DE FORNECEDOR */}
+      <Dialog open={isEditSupplierOpen} onOpenChange={setIsEditSupplierOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Fornecedor</DialogTitle>
+            <DialogDescription>Atualize as informações do fornecedor</DialogDescription>
+          </DialogHeader>
+          {editingSupplier && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">Nome</Label>
+                <Input 
+                  id="edit-name" 
+                  value={editingSupplier.name} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, name: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-supplier-code" className="text-right">Código</Label>
+                <Input 
+                  id="edit-supplier-code" 
+                  value={editingSupplier.supplier_code} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, supplier_code: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-document" className="text-right">CNPJ</Label>
+                <Input 
+                  id="edit-document" 
+                  value={editingSupplier.document_number} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, document_number: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-trade-name" className="text-right">Nome Fantasia</Label>
+                <Input 
+                  id="edit-trade-name" 
+                  value={editingSupplier.trade_name} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, trade_name: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-email" className="text-right">Email</Label>
+                <Input 
+                  id="edit-email" 
+                  type="email" 
+                  value={editingSupplier.email} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, email: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-phone" className="text-right">Telefone</Label>
+                <Input 
+                  id="edit-phone" 
+                  value={editingSupplier.phone} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, phone: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-address" className="text-right">Endereço</Label>
+                <Textarea 
+                  id="edit-address" 
+                  value={editingSupplier.address} 
+                  onChange={(e) => setEditingSupplier({...editingSupplier, address: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              type="submit" 
+              onClick={() => updateSupplierMutation.mutate({id: editingSupplier?.id, updates: editingSupplier})} 
+              disabled={updateSupplierMutation.isPending}
+            >
+              {updateSupplierMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

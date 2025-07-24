@@ -288,6 +288,25 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     }
   }
 
+  async updatePart(id: string, tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `UPDATE ${schema}.parts 
+         SET title = $3, description = $4, internal_code = $5, cost_price = $6, 
+             sale_price = $7, abc_classification = $8, updated_at = NOW()
+         WHERE id = $1 AND tenant_id = $2 AND is_active = true
+         RETURNING *`,
+        [id, tenantId, data.title, data.description, data.internal_code, 
+         parseFloat(data.cost_price) || 0, parseFloat(data.sale_price) || 0, data.abc_classification]
+      );
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error updating part:', error);
+      throw new Error('Falha ao atualizar peça');
+    }
+  }
+
   // ===== INVENTORY =====
   async createInventory(data: InsertInventory): Promise<Inventory> {
     const schema = this.getTenantSchema(data.tenantId);
