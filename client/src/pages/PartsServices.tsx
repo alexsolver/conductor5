@@ -96,13 +96,35 @@ export default function PartsServices() {
 
   // Items Query
   const { data: items = [], isLoading: isLoadingItems } = useQuery<Item[]>({
-    queryKey: ['/api/parts-services/items', { search: searchTerm, type: filterType === 'all' ? undefined : filterType, group: filterGroup === 'all' ? undefined : filterGroup }],
+    queryKey: ['/api/parts-services/items'],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (filterType !== 'all') params.append('type', filterType);
+      if (filterGroup !== 'all') params.append('group', filterGroup);
+      
+      const response = await fetch(`/api/parts-services/items?${params}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch items');
+      return response.json();
+    },
     enabled: activeTab === 'items'
   });
 
   // Suppliers Query
   const { data: suppliers = [], isLoading: isLoadingSuppliers } = useQuery<Supplier[]>({
-    queryKey: ['/api/parts-services/suppliers', { search: searchTerm }],
+    queryKey: ['/api/parts-services/suppliers'],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      
+      const response = await fetch(`/api/parts-services/suppliers?${params}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch suppliers');
+      return response.json();
+    },
     enabled: activeTab === 'suppliers'
   });
 

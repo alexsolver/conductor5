@@ -869,6 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Dashboard Statistics
   app.get('/api/parts-services/dashboard-stats', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getDashboardStats(req, res));
+  app.get('/api/parts-services/overview', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getOverview(req, res));
 
   // Customer companies compatibility route for contract creation
   app.get('/api/customer-companies', jwtAuth, async (req: AuthenticatedRequest, res) => {

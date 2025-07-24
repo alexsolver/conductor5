@@ -580,4 +580,19 @@ export class PartsServicesController {
       res.status(500).json({ message: 'Failed to fetch dashboard stats' });
     }
   };
+
+  getOverview = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID not found' });
+      }
+
+      const stats = await this.repository.getDashboardStats(tenantId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching overview:', error);
+      res.status(500).json({ message: 'Failed to fetch overview' });
+    }
+  };
 }
