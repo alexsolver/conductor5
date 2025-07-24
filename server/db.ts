@@ -2,7 +2,7 @@
 // Temporary replacement due to syntax errors from sed commands
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { drizzle, sql } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
@@ -162,7 +162,7 @@ export const schemaManager = {
   },
 
   // Create missing tenant tables
-  private async createMissingTenantTables(schemaName: string): Promise<void> {
+  async createMissingTenantTables(schemaName: string): Promise<void> {
     const coreTableDefinitions = {
       customers: `
         CREATE TABLE IF NOT EXISTS "${schemaName}".customers (
@@ -381,10 +381,10 @@ export const schemaManager = {
 
     // Create indexes for performance
     await this.createTenantIndexes(schemaName);
-  }
+  },
 
   // Create essential indexes for tenant tables
-  private async createTenantIndexes(schemaName: string): Promise<void> {
+  async createTenantIndexes(schemaName: string): Promise<void> {
     const indexes = [
       `CREATE INDEX IF NOT EXISTS customers_tenant_email_idx ON "${schemaName}".customers (tenant_id, email)`,
       `CREATE INDEX IF NOT EXISTS tickets_tenant_status_idx ON "${schemaName}".tickets (tenant_id, status)`,
