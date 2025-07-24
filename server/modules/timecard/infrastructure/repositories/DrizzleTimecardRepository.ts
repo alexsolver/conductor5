@@ -2,12 +2,8 @@ import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
   timecardEntries, 
-  workSchedules, 
-  absenceRequests, 
-  scheduleTemplates, 
-  hourBankEntries, 
-  flexibleWorkArrangements, 
-  shiftSwapRequests,
+  dailyTimesheet, 
+  timeBank,
   users 
 } from '../../../../../shared/schema';
 
@@ -127,13 +123,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .insert(workSchedules)
       .values({
         ...data,
-        workDays: JSON.stringify(data.workDays)
+        workDays: data.workDays ? JSON.stringify(data.workDays) : null
       })
       .returning();
 
     return {
       ...schedule,
-      workDays: JSON.parse(schedule.workDays)
+      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
     };
   }
 
@@ -149,11 +145,11 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         eq(workSchedules.userId, userId),
         eq(workSchedules.tenantId, tenantId)
       ))
-      .orderBy(desc(workSchedules.startDate));
+      .orderBy(desc(workSchedules.createdAt));
 
     return results.map(schedule => ({
       ...schedule,
-      workDays: JSON.parse(schedule.workDays)
+      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
     }));
   }
 
@@ -166,11 +162,11 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .from(workSchedules)
       .leftJoin(users, eq(workSchedules.userId, users.id))
       .where(eq(workSchedules.tenantId, tenantId))
-      .orderBy(desc(workSchedules.startDate));
+      .orderBy(desc(workSchedules.createdAt));
 
     return results.map(schedule => ({
       ...schedule,
-      workDays: JSON.parse(schedule.workDays)
+      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
     }));
   }
 
@@ -192,7 +188,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
     return {
       ...schedule,
-      workDays: JSON.parse(schedule.workDays)
+      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
     };
   }
 
