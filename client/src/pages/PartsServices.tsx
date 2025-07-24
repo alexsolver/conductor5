@@ -91,7 +91,10 @@ export default function PartsServices() {
 
   // MUTATIONS PARA CRUD
   const createPartMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/parts-services/parts', data),
+    mutationFn: (data: any) => {
+      console.log('🔍 CreatePart Frontend - Sending data:', JSON.stringify(data, null, 2));
+      return apiRequest('POST', '/api/parts-services/parts', data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
@@ -102,7 +105,14 @@ export default function PartsServices() {
       });
       toast({ title: "Peça criada com sucesso!" });
     },
-    onError: () => toast({ title: "Erro ao criar peça", variant: "destructive" })
+    onError: (error: any) => {
+      console.error('❌ CreatePart Frontend Error:', error);
+      toast({ 
+        title: "Erro ao criar peça", 
+        description: error?.message || "Erro desconhecido",
+        variant: "destructive" 
+      });
+    }
   });
 
   const createSupplierMutation = useMutation({

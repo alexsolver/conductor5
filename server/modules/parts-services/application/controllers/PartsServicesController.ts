@@ -45,13 +45,25 @@ export class PartsServicesController {
         });
       }
 
+      console.log('🔍 CreatePart Debug - Request body:', JSON.stringify(req.body, null, 2));
+
       // Validação de dados obrigatórios
       const { internal_code, manufacturer_code, title, cost_price, sale_price } = req.body;
+      
+      console.log('📋 Field validation:', {
+        internal_code: !!internal_code,
+        manufacturer_code: !!manufacturer_code, 
+        title: !!title,
+        cost_price: !!cost_price,
+        sale_price: !!sale_price
+      });
+
       if (!internal_code || !manufacturer_code || !title || !cost_price || !sale_price) {
         return res.status(400).json({
           error: 'Validation Error',
           message: 'Campos obrigatórios não preenchidos',
-          required: ['internal_code', 'manufacturer_code', 'title', 'cost_price', 'sale_price']
+          required: ['internal_code', 'manufacturer_code', 'title', 'cost_price', 'sale_price'],
+          received: { internal_code, manufacturer_code, title, cost_price, sale_price }
         });
       }
 
