@@ -150,6 +150,43 @@
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Estilos para módulo de peças e serviços */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .parts-services-card {
+    @apply transition-all duration-200 hover:shadow-lg hover:scale-[1.02];
+  }
+  
+  .parts-services-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  
+  .parts-services-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .parts-services-form {
+    @apply space-y-4;
+  }
+  
+  .parts-services-input {
+    @apply transition-colors duration-200 focus:ring-2 focus:ring-blue-500/20;
+  }
+  
+  .parts-services-button {
+    @apply transition-all duration-200 hover:shadow-md active:scale-[0.98];
+  }
+  
+  .parts-services-loading {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
 }
 
 /* Custom animations for gradients */

@@ -225,36 +225,75 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
       throw new Error('Campos obrigatórios não preenchidos');
     }
 
+    // Validação de duplicatas por código interno
+    try {
+      const duplicateCheck = await pool.query(
+        `SELECT id FROM ${schema}.parts 
+         WHERE tenant_id = $1 AND internal_code = $2 AND is_active = true`,
+        [tenantId, data.internal_code]
+      );
+      
+      if (duplicateCheck.rows.length > 0) {
+        throw new Error('Já existe uma peça ativa com este código interno');
+      }
+    } catch (error: any) {
+      if (error.message.includes('código interno')) {
+        throw error;
+      }
+      // Log mas não falha por erro de verificação
+      console.warn('Error checking for duplicates:', error);
+    }
+
+    // Validação de preços
+    const costPrice = parseFloat(data.cost_price) || 0;
+    const salePrice = parseFloat(data.sale_price) || 0;
+    
+    if (costPrice < 0 || salePrice < 0) {
+      throw new Error('Preços não podem ser negativos');
+    }
+    
+    if (salePrice <= costPrice && salePrice > 0) {
+      throw new Error('Preço de venda deve ser maior que o preço de custo');
+    }
+
     // Gerar part_number automaticamente se não fornecido
     const partNumber = data.part_number || `PN-${Date.now()}`;
     
-    const result = await pool.query(
-      `INSERT INTO ${schema}.parts (
-        tenant_id, part_number, internal_code, manufacturer_code, title, description, 
-        cost_price, sale_price, margin_percentage, abc_classification,
-        weight_kg, material, voltage, power_watts, category, is_active, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()) RETURNING *`,
-      [
-        tenantId,
-        partNumber,
-        data.internal_code, 
-        data.manufacturer_code, 
-        data.title, 
-        data.description || '',
-        parseFloat(data.cost_price) || 0,
-        parseFloat(data.sale_price) || 0,
-        parseFloat(data.margin_percentage) || 0,
-        data.abc_classification || 'B',
-        data.weight_kg ? parseFloat(data.weight_kg) : null,
-        data.material || null,
-        data.voltage || null,
-        data.power_watts ? parseFloat(data.power_watts) : null,
-        data.category || 'Geral',
-        true
-      ]
-    );
-    
-    return result.rows[0];
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.parts (
+          tenant_id, part_number, internal_code, manufacturer_code, title, description, 
+          cost_price, sale_price, margin_percentage, abc_classification,
+          weight_kg, material, voltage, power_watts, category, is_active, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()) RETURNING *`,
+        [
+          tenantId,
+          partNumber,
+          data.internal_code, 
+          data.manufacturer_code, 
+          data.title, 
+          data.description || '',
+          costPrice,
+          salePrice,
+          parseFloat(data.margin_percentage) || 0,
+          data.abc_classification || 'B',
+          data.weight_kg ? parseFloat(data.weight_kg) : null,
+          data.material || null,
+          data.voltage || null,
+          data.power_watts ? parseFloat(data.power_watts) : null,
+          data.category || 'Geral',
+          true
+        ]
+      );
+      
+      return result.rows[0];
+    } catch (error: any) {
+      console.error('Error creating part:', error);
+      if (error.code === '23505') {
+        throw new Error('Código interno já existe');
+      }
+      throw new Error('Erro ao criar peça');
+    }
   }
 
   async findParts(tenantId: string): Promise<any[]> {
@@ -347,6 +386,50 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     if (!emailRegex.test(data.email)) {
       throw new Error('Email inválido');
     }
+
+    // Validação de duplicatas por código
+    try {
+      const duplicateCodeCheck = await pool.query(
+        `SELECT id FROM ${schema}.suppliers 
+         WHERE tenant_id = $1 AND supplier_code = $2 AND is_active = true`,
+        [tenantId, data.supplier_code]
+      );
+      
+      if (duplicateCodeCheck.rows.length > 0) {
+        throw new Error('Já existe um fornecedor ativo com este código');
+      }
+
+      // Validação de duplicatas por email
+      const duplicateEmailCheck = await pool.query(
+        `SELECT id FROM ${schema}.suppliers 
+         WHERE tenant_id = $1 AND email = $2 AND is_active = true`,
+        [tenantId, data.email]
+      );
+      
+      if (duplicateEmailCheck.rows.length > 0) {
+        throw new Error('Já existe um fornecedor ativo com este email');
+      }
+    } catch (error: any) {
+      if (error.message.includes('fornecedor ativo')) {
+        throw error;
+      }
+      // Log mas não falha por erro de verificação
+      console.warn('Error checking for duplicates:', error);
+    }
+
+    // Validação de CNPJ se fornecido
+    if (data.document_number) {
+      const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/;
+      if (!cnpjRegex.test(data.document_number)) {
+        throw new Error('Formato de CNPJ inválido');
+      }
+    }
+
+    // Validação de lead time
+    const leadTimeDays = parseInt(data.lead_time_days) || 7;
+    if (leadTimeDays < 1 || leadTimeDays > 365) {
+      throw new Error('Prazo de entrega deve estar entre 1 e 365 dias');
+    }
     
     try {
       const result = await pool.query(
@@ -371,7 +454,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           data.state || '',
           data.country || 'Brasil',
           data.payment_terms || 'A vista',
-          parseInt(data.lead_time_days) || 7,
+          leadTimeDays,
           data.supplier_type || 'regular',
           4.0, // Rating padrão
           4.0,
@@ -382,8 +465,11 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
       );
       
       return result.rows[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating supplier:', error);
+      if (error.code === '23505') {
+        throw new Error('Código ou email do fornecedor já existe');
+      }
       throw new Error('Erro ao criar fornecedor');
     }
   }
@@ -1181,74 +1267,87 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         totalInventory: 0,
         totalOrders: 0,
         totalSimulations: 0,
-        totalStockValue: 0
+        totalStockValue: 0,
+        lastUpdated: new Date().toISOString()
       };
 
-      // Get parts count (garantida)
+      // Get parts count com tratamento de erro
       if (existingTables.includes('parts')) {
-        const partsResult = await pool.query(
-          `SELECT COUNT(*) as count FROM ${schema}.parts WHERE tenant_id = $1 AND is_active = true`,
-          [tenantId]
-        );
-        stats.totalParts = parseInt(partsResult.rows[0]?.count || 0);
+        try {
+          const partsResult = await pool.query(
+            `SELECT COUNT(*) as count FROM ${schema}.parts WHERE tenant_id = $1 AND is_active = true`,
+            [tenantId]
+          );
+          stats.totalParts = parseInt(partsResult.rows[0]?.count || 0);
+        } catch (error) {
+          console.error('Error counting parts:', error);
+        }
       }
 
-      // Get suppliers count (garantida)
+      // Get suppliers count com tratamento de erro
       if (existingTables.includes('suppliers')) {
-        const suppliersResult = await pool.query(
-          `SELECT COUNT(*) as count FROM ${schema}.suppliers WHERE tenant_id = $1 AND is_active = true`,
-          [tenantId]
-        );
-        stats.totalSuppliers = parseInt(suppliersResult.rows[0]?.count || 0);
+        try {
+          const suppliersResult = await pool.query(
+            `SELECT COUNT(*) as count FROM ${schema}.suppliers WHERE tenant_id = $1 AND is_active = true`,
+            [tenantId]
+          );
+          stats.totalSuppliers = parseInt(suppliersResult.rows[0]?.count || 0);
+        } catch (error) {
+          console.error('Error counting suppliers:', error);
+        }
       }
 
-      // Get inventory count
+      // Get inventory count com tratamento de erro
       if (existingTables.includes('inventory')) {
-        const inventoryResult = await pool.query(
-          `SELECT COUNT(*) as count FROM ${schema}.inventory WHERE tenant_id = $1`,
-          [tenantId]
-        );
-        stats.totalInventory = parseInt(inventoryResult.rows[0]?.count || 0);
-        
-        // Calculate total stock value
-        const stockValueResult = await pool.query(
-          `SELECT COALESCE(SUM(current_stock * unit_cost), 0) as total_value 
-           FROM ${schema}.inventory WHERE tenant_id = $1`,
-          [tenantId]
-        );
-        stats.totalStockValue = parseFloat(stockValueResult.rows[0]?.total_value || 0);
+        try {
+          const inventoryResult = await pool.query(
+            `SELECT COUNT(*) as count FROM ${schema}.inventory WHERE tenant_id = $1`,
+            [tenantId]
+          );
+          stats.totalInventory = parseInt(inventoryResult.rows[0]?.count || 0);
+          
+          // Calculate total stock value
+          const stockValueResult = await pool.query(
+            `SELECT COALESCE(SUM(current_stock * unit_cost), 0) as total_value 
+             FROM ${schema}.inventory WHERE tenant_id = $1`,
+            [tenantId]
+          );
+          stats.totalStockValue = parseFloat(stockValueResult.rows[0]?.total_value || 0);
+        } catch (error) {
+          console.error('Error calculating inventory stats:', error);
+        }
       }
 
-      // Get purchase orders count (opcional)
+      // Get purchase orders count com tratamento de erro
       if (existingTables.includes('purchase_orders')) {
-        const ordersResult = await pool.query(
-          `SELECT COUNT(*) as count FROM ${schema}.purchase_orders WHERE tenant_id = $1`,
-          [tenantId]
-        );
-        stats.totalOrders = parseInt(ordersResult.rows[0]?.count || 0);
+        try {
+          const ordersResult = await pool.query(
+            `SELECT COUNT(*) as count FROM ${schema}.purchase_orders WHERE tenant_id = $1`,
+            [tenantId]
+          );
+          stats.totalOrders = parseInt(ordersResult.rows[0]?.count || 0);
+        } catch (error) {
+          console.error('Error counting purchase orders:', error);
+        }
       }
 
-      // Get simulations count (opcional)
+      // Get simulations count com tratamento de erro
       if (existingTables.includes('budget_simulations')) {
-        const simulationsResult = await pool.query(
-          `SELECT COUNT(*) as count FROM ${schema}.budget_simulations WHERE tenant_id = $1`,
-          [tenantId]
-        );
-        stats.totalSimulations = parseInt(simulationsResult.rows[0]?.count || 0);
+        try {
+          const simulationsResult = await pool.query(
+            `SELECT COUNT(*) as count FROM ${schema}.budget_simulations WHERE tenant_id = $1`,
+            [tenantId]
+          );
+          stats.totalSimulations = parseInt(simulationsResult.rows[0]?.count || 0);
+        } catch (error) {
+          console.error('Error counting budget simulations:', error);
+        }
       }
 
       return stats;
     } catch (error) {
       console.error('Error getting dashboard stats:', error);
-      // Retornar dados realistas para desenvolvimento
-      return {
-        totalParts: 125,
-        totalSuppliers: 28,
-        totalInventory: 89,
-        totalOrders: 15,
-        totalSimulations: 7,
-        totalStockValue: 125687.50
-      };
+      throw new Error('Erro ao obter estatísticas do dashboard');
     }
   }
 

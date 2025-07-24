@@ -306,52 +306,83 @@ export default function PartsServicesFunctional() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredParts.map((part: any) => (
-                <Card key={part.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{part.title}</CardTitle>
-                        <CardDescription>{part.internal_code}</CardDescription>
-                      </div>
-                      <Badge variant={part.abc_classification === 'A' ? 'destructive' : 
-                                     part.abc_classification === 'B' ? 'default' : 'secondary'}>
-                        {part.abc_classification}
-                      </Badge>
+            <Card key={part.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{part.title}</CardTitle>
+                    <CardDescription>
+                      {part.internal_code} | {part.partNumber || 'N/A'}
+                    </CardDescription>
+                  </div>
+                  <Badge variant={part.abc_classification === 'A' ? 'destructive' : 
+                                 part.abc_classification === 'B' ? 'default' : 'secondary'}>
+                    {part.abc_classification}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{part.description}</p>
+
+                  {part.category && (
+                    <div className="flex justify-between text-sm">
+                      <span>Categoria:</span>
+                      <span className="font-medium">{part.category}</span>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">{part.description}</p>
-                      <div className="flex justify-between text-sm">
-                        <span>Custo:</span>
-                        <span className="font-medium">R$ {parseFloat(part.cost_price).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Venda:</span>
-                        <span className="font-medium text-green-600">R$ {parseFloat(part.sale_price).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Margem:</span>
-                        <span className="font-medium">{part.margin_percentage}%</span>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => {
-                            if (confirm('Tem certeza que deseja excluir esta peça?')) {
-                              deletePartMutation.mutate(part.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Excluir
-                        </Button>
-                      </div>
+                  )}
+
+                  <div className="flex justify-between text-sm">
+                    <span>Custo:</span>
+                    <span className="font-medium">R$ {parseFloat(part.cost_price).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Venda:</span>
+                    <span className="font-medium text-green-600">R$ {parseFloat(part.sale_price).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Margem:</span>
+                    <span className="font-medium">{part.margin_percentage}%</span>
+                  </div>
+
+                  {(part.weight_kg || part.material || part.voltage || part.power_watts) && (
+                    <div className="border-t pt-2 mt-2">
+                      <p className="text-xs text-muted-foreground mb-1">Especificações:</p>
+                      {part.weight_kg && (
+                        <p className="text-xs">Peso: {part.weight_kg}kg</p>
+                      )}
+                      {part.material && (
+                        <p className="text-xs">Material: {part.material}</p>
+                      )}
+                      {part.voltage && (
+                        <p className="text-xs">Voltagem: {part.voltage}</p>
+                      )}
+                      {part.power_watts && (
+                        <p className="text-xs">Potência: {part.power_watts}W</p>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <EditPartDialog part={part} />
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => {
+                        if (confirm('Tem certeza que deseja excluir esta peça?')) {
+                          deletePartMutation.mutate(part.id);
+                        }
+                      }}
+                      disabled={deletePartMutation.isPending}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      {deletePartMutation.isPending ? 'Excluindo...' : 'Excluir'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
             </div>
           )}
         </TabsContent>
@@ -423,6 +454,7 @@ export default function PartsServicesFunctional() {
                       </div>
 
                       <div className="flex gap-2 pt-2">
+                        <EditSupplierDialog supplier={supplier} />
                         <Button 
                           variant="destructive" 
                           size="sm" 
@@ -655,62 +687,64 @@ function CreatePartDialog() {
   );
 }
 
-// ===== COMPONENTE DE CRIAÇÃO DE FORNECEDOR =====
-function CreateSupplierDialog() {
+// ===== COMPONENTE DE EDIÇÃO DE PEÇA =====
+function EditPartDialog({ part }: { part: any }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof supplierSchema>>({
-    resolver: zodResolver(supplierSchema),
+  const form = useForm<z.infer<typeof partSchema>>({
+    resolver: zodResolver(partSchema),
     defaultValues: {
-      supplier_code: "",
-      name: "",
-      trade_name: "",
-      document_number: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
-      state: "",
-      country: "Brasil",
-      payment_terms: "",
-      lead_time_days: 1,
-      supplier_type: "regular"
+      internal_code: part.internal_code || "",
+      manufacturer_code: part.manufacturer_code || "",
+      title: part.title || "",
+      description: part.description || "",
+      cost_price: part.cost_price || "",
+      sale_price: part.sale_price || "",
+      margin_percentage: part.margin_percentage || "",
+      abc_classification: part.abc_classification || "B",
+      weight_kg: part.weight_kg || "",
+      material: part.material || "",
+      voltage: part.voltage || "",
+      power_watts: part.power_watts || ""
     }
   });
 
-  const createSupplierMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/parts-services/suppliers', data),
+  const updatePartMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('PUT', `/api/parts-services/parts/${part.id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
       setOpen(false);
-      form.reset();
-      toast({ title: "Fornecedor criado com sucesso!" });
+      toast({ title: "Peça atualizada com sucesso!" });
     },
-    onError: () => {
-      toast({ title: "Erro ao criar fornecedor", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ 
+        title: "Erro ao atualizar peça", 
+        description: error.message || "Erro interno do servidor",
+        variant: "destructive" 
+      });
     }
   });
 
-  const onSubmit = (data: z.infer<typeof supplierSchema>) => {
-    createSupplierMutation.mutate(data);
+  const onSubmit = (data: z.infer<typeof partSchema>) => {
+    updatePartMutation.mutate(data);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Fornecedor
+        <Button variant="outline" size="sm">
+          <Edit className="w-3 h-3 mr-1" />
+          Editar
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Criar Novo Fornecedor</DialogTitle>
+          <DialogTitle>Editar Peça</DialogTitle>
           <DialogDescription>
-            Adicione um novo fornecedor ao sistema
+            Modifique os dados da peça {part.title}
           </DialogDescription>
         </DialogHeader>
 
@@ -719,12 +753,12 @@ function CreateSupplierDialog() {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="supplier_code"
+                name="internal_code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Código Fornecedor *</FormLabel>
+                    <FormLabel>Código Interno *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: FORN001" />
+                      <Input {...field} placeholder="Ex: PEC001" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -733,50 +767,12 @@ function CreateSupplierDialog() {
 
               <FormField
                 control={form.control}
-                name="supplier_type"
+                name="manufacturer_code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo de Fornecedor</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="regular">Regular</SelectItem>
-                        <SelectItem value="preferred">Preferencial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Razão Social *</FormLabel>
+                    <FormLabel>Código Fabricante *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Nome oficial da empresa" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="trade_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome Fantasia *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Nome comercial" />
+                      <Input {...field} placeholder="Ex: FAB-123" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -786,27 +782,41 @@ function CreateSupplierDialog() {
 
             <FormField
               control={form.control}
-              name="document_number"
+              name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CNPJ *</FormLabel>
+                  <FormLabel>Título *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="00.000.000/0000-00" />
+                    <Input {...field} placeholder="Nome da peça" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição *</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="Descrição detalhada da peça" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="cost_price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email *</FormLabel>
+                    <FormLabel>Preço de Custo *</FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" placeholder="contato@fornecedor.com" />
+                      <Input {...field} placeholder="0.00" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -815,12 +825,26 @@ function CreateSupplierDialog() {
 
               <FormField
                 control={form.control}
-                name="phone"
+                name="sale_price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone *</FormLabel>
+                    <FormLabel>Preço de Venda *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="(11) 9999-9999" />
+                      <Input {...field} placeholder="0.00" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="margin_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Margem (%) *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="0" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -828,15 +852,38 @@ function CreateSupplierDialog() {
               />
             </div>
 
+            <FormField
+              control={form.control}
+              name="abc_classification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Classificação ABC</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="A">A - Alto valor</SelectItem>
+                      <SelectItem value="B">B - Médio valor</SelectItem>
+                      <SelectItem value="C">C - Baixo valor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="city"
+                name="weight_kg"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cidade *</FormLabel>
+                    <FormLabel>Peso (kg)</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="São Paulo" />
+                      <Input {...field} type="number" placeholder="0.00" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -845,12 +892,12 @@ function CreateSupplierDialog() {
 
               <FormField
                 control={form.control}
-                name="state"
+                name="material"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado *</FormLabel>
+                    <FormLabel>Material</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="SP" />
+                      <Input {...field} placeholder="Aço, Alumínio, etc." />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -859,17 +906,26 @@ function CreateSupplierDialog() {
 
               <FormField
                 control={form.control}
-                name="lead_time_days"
+                name="voltage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prazo (dias) *</FormLabel>
+                    <FormLabel>Voltagem</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        type="number" 
-                        placeholder="7"
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      />
+                      <Input {...field} placeholder="220V" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="power_watts"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Potência (Watts)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" placeholder="100" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -887,9 +943,9 @@ function CreateSupplierDialog() {
               </Button>
               <Button 
                 type="submit" 
-                disabled={createSupplierMutation.isPending}
+                disabled={updatePartMutation.isPending}
               >
-                {createSupplierMutation.isPending ? 'Criando...' : 'Criar Fornecedor'}
+                {updatePartMutation.isPending ? 'Atualizando...' : 'Salvar Alterações'}
               </Button>
             </DialogFooter>
           </form>
@@ -898,3 +954,5 @@ function CreateSupplierDialog() {
     </Dialog>
   );
 }
+
+// Functional component that manages parts and services data with CRUD operations and validation.

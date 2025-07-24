@@ -141,9 +141,18 @@ export class PartsServicesController {
       }
       const stats = await this.repository.getDashboardStats(tenantId);
       res.json(stats);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching dashboard stats:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error.message || 'Erro ao obter estatísticas do dashboard',
+        totalParts: 0,
+        totalSuppliers: 0,
+        totalInventory: 0,
+        totalOrders: 0,
+        totalSimulations: 0,
+        totalStockValue: 0
+      });
     }
   };
 
