@@ -19,34 +19,82 @@ import { useToast } from '@/hooks/use-toast';
 
 // Schemas de validação
 const partSchema = z.object({
-  internal_code: z.string().min(1, "Código interno obrigatório"),
-  manufacturer_code: z.string().min(1, "Código fabricante obrigatório"), 
-  title: z.string().min(1, "Título obrigatório"),
-  description: z.string().min(1, "Descrição obrigatória"),
-  cost_price: z.string().min(1, "Preço de custo obrigatório"),
-  sale_price: z.string().min(1, "Preço de venda obrigatório"),
-  margin_percentage: z.string().min(1, "Margem obrigatória"),
-  abc_classification: z.enum(["A", "B", "C"]),
-  weight_kg: z.string().optional(),
-  material: z.string().optional(),
-  voltage: z.string().optional(),
+  internal_code: z.string()
+    .min(1, "Código interno obrigatório")
+    .max(100, "Código interno muito longo")
+    .regex(/^[A-Za-z0-9\-_]+$/, "Use apenas letras, números, hífen e underscore"),
+  manufacturer_code: z.string()
+    .min(1, "Código fabricante obrigatório")
+    .max(100, "Código fabricante muito longo"),
+  title: z.string()
+    .min(3, "Título deve ter pelo menos 3 caracteres")
+    .max(255, "Título muito longo"),
+  description: z.string()
+    .min(10, "Descrição deve ter pelo menos 10 caracteres")
+    .max(1000, "Descrição muito longa"),
+  cost_price: z.string()
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, "Preço de custo deve ser um número positivo"),
+  sale_price: z.string()
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, "Preço de venda deve ser um número positivo"),
+  margin_percentage: z.string()
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 100, "Margem deve ser entre 0 e 100%"),
+  abc_classification: z.enum(["A", "B", "C"], {
+    errorMap: () => ({ message: "Classificação deve ser A, B ou C" })
+  }),
+  weight_kg: z.string().optional()
+    .refine(val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0), "Peso deve ser um número positivo"),
+  material: z.string().max(100, "Material muito longo").optional(),
+  voltage: z.string().max(50, "Voltagem muito longa").optional(),
   power_watts: z.string().optional()
+    .refine(val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0), "Potência deve ser um número positivo")
+}).refine(data => parseFloat(data.sale_price) > parseFloat(data.cost_price), {
+  message: "Preço de venda deve ser maior que o preço de custo",
+  path: ["sale_price"]
 });
 
 const supplierSchema = z.object({
-  supplier_code: z.string().min(1, "Código obrigatório"),
-  name: z.string().min(1, "Nome obrigatório"),
-  trade_name: z.string().min(1, "Nome fantasia obrigatória"),
-  document_number: z.string().min(1, "CNPJ obrigatório"),
-  email: z.string().email("Email inválido"),
-  phone: z.string().min(1, "Telefone obrigatório"),
-  address: z.string().min(1, "Endereço obrigatório"),
-  city: z.string().min(1, "Cidade obrigatória"),
-  state: z.string().min(2, "Estado obrigatório"),
-  country: z.string().default("Brasil"),
-  payment_terms: z.string().min(1, "Condições de pagamento obrigatórias"),
-  lead_time_days: z.number().min(1, "Prazo de entrega obrigatório"),
-  supplier_type: z.enum(["regular", "preferred"])
+  supplier_code: z.string()
+    .min(1, "Código obrigatório")
+    .max(100, "Código muito longo")
+    .regex(/^[A-Za-z0-9\-_]+$/, "Use apenas letras, números, hífen e underscore"),
+  name: z.string()
+    .min(2, "Nome deve ter pelo menos 2 caracteres")
+    .max(255, "Nome muito longo"),
+  trade_name: z.string()
+    .min(2, "Nome fantasia deve ter pelo menos 2 caracteres")
+    .max(255, "Nome fantasia muito longo"),
+  document_number: z.string()
+    .min(14, "CNPJ deve ter 14 dígitos")
+    .max(18, "CNPJ inválido")
+    .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/, "Formato de CNPJ inválido"),
+  email: z.string()
+    .email("Email inválido")
+    .max(255, "Email muito longo"),
+  phone: z.string()
+    .min(10, "Telefone deve ter pelo menos 10 dígitos")
+    .max(20, "Telefone muito longo")
+    .regex(/^[\d\s\(\)\-\+]+$/, "Formato de telefone inválido"),
+  address: z.string()
+    .min(10, "Endereço deve ter pelo menos 10 caracteres")
+    .max(500, "Endereço muito longo"),
+  city: z.string()
+    .min(2, "Cidade deve ter pelo menos 2 caracteres")
+    .max(100, "Nome da cidade muito longo"),
+  state: z.string()
+    .length(2, "Estado deve ter 2 caracteres (ex: SP)")
+    .regex(/^[A-Z]{2}$/, "Estado deve estar em maiúsculas (ex: SP)"),
+  country: z.string()
+    .max(100, "Nome do país muito longo")
+    .default("Brasil"),
+  payment_terms: z.string()
+    .min(5, "Condições de pagamento devem ter pelo menos 5 caracteres")
+    .max(255, "Condições de pagamento muito longas"),
+  lead_time_days: z.number()
+    .min(1, "Prazo deve ser pelo menos 1 dia")
+    .max(365, "Prazo não pode ser superior a 1 ano"),
+  supplier_type: z.enum(["regular", "preferred"], {
+    errorMap: () => ({ message: "Tipo deve ser 'regular' ou 'preferred'" })
+  })
 });
 
 export default function PartsServicesFunctional() {
@@ -55,22 +103,27 @@ export default function PartsServicesFunctional() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Queries para dados reais das APIs - TODOS OS 11 MÓDULOS
-  const { data: dashboardStats, isLoading: isLoadingStats } = useQuery({
+  // Queries para dados das APIs com tratamento de erro adequado
+  const { data: dashboardStats, isLoading: isLoadingStats, error: statsError } = useQuery({
     queryKey: ['/api/parts-services/dashboard/stats'],
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
-  const { data: parts, isLoading: isLoadingParts } = useQuery({
-    queryKey: ['/api/parts-services/parts']
+  const { data: parts, isLoading: isLoadingParts, error: partsError } = useQuery({
+    queryKey: ['/api/parts-services/parts'],
+    retry: 3
   });
 
-  const { data: suppliers, isLoading: isLoadingSuppliers } = useQuery({
-    queryKey: ['/api/parts-services/suppliers']
+  const { data: suppliers, isLoading: isLoadingSuppliers, error: suppliersError } = useQuery({
+    queryKey: ['/api/parts-services/suppliers'],
+    retry: 3
   });
 
-  const { data: inventory, isLoading: isLoadingInventory } = useQuery({
-    queryKey: ['/api/parts-services/inventory']
+  const { data: inventory, isLoading: isLoadingInventory, error: inventoryError } = useQuery({
+    queryKey: ['/api/parts-services/inventory'],
+    retry: 3
   });
 
   const { data: purchaseOrders, isLoading: isLoadingPurchaseOrders } = useQuery({
@@ -167,7 +220,13 @@ export default function PartsServicesFunctional() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingStats ? '...' : (dashboardStats as any)?.totalParts || 0}
+              {isLoadingStats ? (
+                <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+              ) : statsError ? (
+                <span className="text-red-500">Erro</span>
+              ) : (
+                (dashboardStats as any)?.totalParts?.toLocaleString() || '0'
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Peças ativas</p>
           </CardContent>
@@ -180,7 +239,13 @@ export default function PartsServicesFunctional() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoadingSuppliers ? '...' : (dashboardStats as any)?.totalSuppliers || 0}
+              {isLoadingStats ? (
+                <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+              ) : statsError ? (
+                <span className="text-red-500">Erro</span>
+              ) : (
+                (dashboardStats as any)?.totalSuppliers?.toLocaleString() || '0'
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Fornecedores ativos</p>
           </CardContent>

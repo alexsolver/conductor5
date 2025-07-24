@@ -39,13 +39,67 @@ export class PartsServicesController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return res.status(401).json({ error: 'Tenant ID required' });
+        return res.status(401).json({ 
+          error: 'Unauthorized', 
+          message: 'Tenant ID required' 
+        });
       }
+
+      // Validação de dados obrigatórios
+      const { internal_code, manufacturer_code, title, cost_price, sale_price } = req.body;
+      if (!internal_code || !manufacturer_code || !title || !cost_price || !sale_price) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Campos obrigatórios não preenchidos',
+          required: ['internal_code', 'manufacturer_code', 'title', 'cost_price', 'sale_price']
+        });
+      }
+
+      // Validação de preços
+      const costPrice = parseFloat(cost_price);
+      const salePrice = parseFloat(sale_price);
+      
+      if (isNaN(costPrice) || isNaN(salePrice) || costPrice < 0 || salePrice < 0) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Preços devem ser números positivos'
+        });
+      }
+
+      if (salePrice <= costPrice) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Preço de venda deve ser maior que o preço de custo'
+        });
+      }
+
       const part = await this.repository.createPart(tenantId, req.body);
-      res.status(201).json(part);
-    } catch (error) {
+      res.status(201).json({
+        success: true,
+        data: part,
+        message: 'Peça criada com sucesso'
+      });
+    } catch (error: any) {
       console.error('Error creating part:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      
+      if (error.message.includes('Campos obrigatórios')) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: error.message
+        });
+      }
+
+      if (error.code === '23505') { // Duplicate key error
+        return res.status(409).json({
+          error: 'Conflict',
+          message: 'Código interno já existe'
+        });
+      }
+
+      res.status(500).json({ 
+        error: 'Internal Server Error',
+        message: 'Erro interno do servidor'
+      });
     }
   };
 
@@ -112,13 +166,58 @@ export class PartsServicesController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return res.status(401).json({ error: 'Tenant ID required' });
+        return res.status(401).json({ 
+          error: 'Unauthorized', 
+          message: 'Tenant ID required' 
+        });
       }
+
+      // Validação de dados obrigatórios
+      const { supplier_code, name, trade_name, email } = req.body;
+      if (!supplier_code || !name || !trade_name || !email) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Campos obrigatórios não preenchidos',
+          required: ['supplier_code', 'name', 'trade_name', 'email']
+        });
+      }
+
+      // Validação de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Formato de email inválido'
+        });
+      }
+
       const supplier = await this.repository.createSupplier(tenantId, req.body);
-      res.status(201).json(supplier);
-    } catch (error) {
+      res.status(201).json({
+        success: true,
+        data: supplier,
+        message: 'Fornecedor criado com sucesso'
+      });
+    } catch (error: any) {
       console.error('Error creating supplier:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      
+      if (error.message.includes('obrigatórios') || error.message.includes('inválido')) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: error.message
+        });
+      }
+
+      if (error.code === '23505') { // Duplicate key error
+        return res.status(409).json({
+          error: 'Conflict',
+          message: 'Código do fornecedor já existe'
+        });
+      }
+
+      res.status(500).json({ 
+        error: 'Internal Server Error',
+        message: 'Erro interno do servidor'
+      });
     }
   };
 

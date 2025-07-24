@@ -1108,49 +1108,32 @@ export const updateUserGroupSchema = insertUserGroupSchema.partial();
 export const parts = pgTable("parts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-
-  // Basic Information
-  partNumber: varchar("part_number", { length: 100 }).notNull(), // Internal code
+  partNumber: varchar("part_number", { length: 100 }).notNull(),
   internalCode: varchar("internal_code", { length: 100 }).notNull(),
-  manufacturerCode: varchar("manufacturer_code", { length: 100 }),
+  manufacturerCode: varchar("manufacturer_code", { length: 100 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  category: varchar("category", { length: 100 }).notNull(),
-  subcategory: varchar("subcategory", { length: 100 }),
-
-  // Technical Specifications
-  specifications: jsonb("specifications"), // dimensions, weight, materials, voltage, power
-  images: text("images").array(), // Array of image URLs
-  manuals: text("manuals").array(), // Array of manual/documentation URLs
-  barcode: varchar("barcode", { length: 100 }),
-
-  // Commercial Information
+  category: varchar("category", { length: 100 }),
   costPrice: decimal("cost_price", { precision: 15, scale: 2 }),
-  margin: decimal("margin", { precision: 5, scale: 2 }), // Percentage
   salePrice: decimal("sale_price", { precision: 15, scale: 2 }),
-  currency: varchar("currency", { length: 3 }).default("BRL"),
-
-  // Classification
-  abcClassification: varchar("abc_classification", { length: 1 }).default("B"), // A, B, C
-  criticality: varchar("criticality", { length: 20 }).default("medium"), // low, medium, high, critical
-  obsolescenceStatus: varchar("obsolescence_status", { length: 50 }).default("active"), // active, obsolete, discontinued
-
-  // Interchangeable Parts
-  interchangeableParts: uuid("interchangeable_parts").array(), // Array of part IDs
-  alternativeSuppliers: uuid("alternative_suppliers").array(), // Array of supplier IDs
-
-  // Status and Audit
+  marginPercentage: decimal("margin_percentage", { precision: 5, scale: 2 }),
+  abcClassification: varchar("abc_classification", { length: 1 }).default("B"),
+  weightKg: decimal("weight_kg", { precision: 8, scale: 3 }),
+  material: varchar("material", { length: 100 }),
+  voltage: varchar("voltage", { length: 50 }),
+  powerWatts: decimal("power_watts", { precision: 8, scale: 2 }),
+  specifications: jsonb("specifications"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  createdById: uuid("created_by_id").references(() => users.id),
-  updatedById: uuid("updated_by_id").references(() => users.id),
-}, (table) => [
-  index("parts_tenant_part_number_idx").on(table.tenantId, table.partNumber),
-  index("parts_tenant_category_idx").on(table.tenantId, table.category),
-  index("parts_tenant_barcode_idx").on(table.tenantId, table.barcode),
-  index("parts_tenant_active_idx").on(table.tenantId, table.isActive),
-]);
+  createdById: uuid("created_by_id")
+}, (table) => ({
+  tenantIdx: index("parts_tenant_idx").on(table.tenantId),
+  partNumberIdx: index("parts_part_number_idx").on(table.partNumber),
+  internalCodeIdx: index("parts_internal_code_idx").on(table.internalCode),
+  categoryIdx: index("parts_category_idx").on(table.category),
+  abcIdx: index("parts_abc_classification_idx").on(table.abcClassification)
+}));
 
 // Inventory/Stock table - Multi-location inventory control
 export const inventory = pgTable("inventory", {
@@ -1230,14 +1213,10 @@ export const stockMovements = pgTable("stock_movements", {
 export const suppliers = pgTable("suppliers", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-
-  // Basic Information
   supplierCode: varchar("supplier_code", { length: 100 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  tradeName: varchar("trade_name", { length: 255 }),
-  documentNumber: varchar("document_number", { length: 20 }), // CNPJ/CPF
-
-  // Contact Information
+  tradeName: varchar("trade_name", { length: 255 }).notNull(),
+  documentNumber: varchar("document_number", { length: 20 }).notNull(), // CNPJ/CPF
   email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 50 }),
   website: varchar("website", { length: 255 }),
