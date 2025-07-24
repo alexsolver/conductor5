@@ -647,113 +647,110 @@ export default function PartsServices() {
         </div>
       </div>
 
-      {/* MENU HIERÁRQUICO EM TEXTO COM DROPDOWN */}
+      {/* MENU DIRETO SEM AGRUPAMENTO */}
       <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-        <div className="flex flex-wrap gap-6">
-          {/* CATEGORIA 1: OPERAÇÕES BÁSICAS */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
-                <Package className="h-4 w-4 text-blue-600" />
-                <span className="font-medium">Operações Básicas</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={() => setActiveModule('parts')}>
-                <Package className="h-4 w-4 mr-2" />
-                Gestão de Peças
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveModule('inventory')}>
-                <Warehouse className="h-4 w-4 mr-2" />
-                Controle de Estoque
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveModule('suppliers')}>
-                <Users className="h-4 w-4 mr-2" />
-                Gestão de Fornecedores
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={activeModule === 'overview' ? "default" : "outline"}
+            onClick={() => setActiveModule('overview')}
+            className="flex items-center gap-2"
+          >
+            <Monitor className="h-4 w-4" />
+            Visão Geral
+          </Button>
+          
+          <Button
+            variant={activeModule === 'parts' ? "default" : "outline"}
+            onClick={() => setActiveModule('parts')}
+            className="flex items-center gap-2"
+          >
+            <Package className="h-4 w-4" />
+            Gestão de Peças
+          </Button>
+          
+          <Button
+            variant={activeModule === 'inventory' ? "default" : "outline"}
+            onClick={() => setActiveModule('inventory')}
+            className="flex items-center gap-2"
+          >
+            <Warehouse className="h-4 w-4" />
+            Controle de Estoque
+          </Button>
+          
+          <Button
+            variant={activeModule === 'suppliers' ? "default" : "outline"}
+            onClick={() => setActiveModule('suppliers')}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Gestão de Fornecedores
+          </Button>
 
-          {/* CATEGORIA 2: PLANEJAMENTO */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
-                <ShoppingCart className="h-4 w-4 text-green-600" />
-                <span className="font-medium">Planejamento</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={() => setActiveModule('purchasing')}>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Planejamento e Compras
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveModule('pricing')}>
-                <DollarSign className="h-4 w-4 mr-2" />
-                Preços Avançados
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveModule('lpu')}>
-                <TrendingUp className="h-4 w-4 mr-2" />
-                LPU Enterprise
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          
+          <Button
+            variant={activeModule === 'purchasing' ? "default" : "outline"}
+            onClick={() => setActiveModule('purchasing')}
+            className="flex items-center gap-2"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Planejamento e Compras
+          </Button>
+          
+          <Button
+            variant={activeModule === 'pricing' ? "default" : "outline"}
+            onClick={() => setActiveModule('pricing')}
+            className="flex items-center gap-2"
+          >
+            <DollarSign className="h-4 w-4" />
+            Preços Avançados
+          </Button>
+          
+          <Button
+            variant={activeModule === 'lpu' ? "default" : "outline"}
+            onClick={() => setActiveModule('lpu')}
+            className="flex items-center gap-2"
+          >
+            <TrendingUp className="h-4 w-4" />
+            LPU Enterprise
+          </Button>
 
-          {/* CATEGORIA 3: LOGÍSTICA */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
-                <Truck className="h-4 w-4 text-orange-600" />
-                <span className="font-medium">Logística</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={() => setActiveModule('logistics')}>
-                <Truck className="h-4 w-4 mr-2" />
-                Logística
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveModule('assets')}>
-                <Building className="h-4 w-4 mr-2" />
-                Controle de Ativos
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          
+          <Button
+            variant={activeModule === 'logistics' ? "default" : "outline"}
+            onClick={() => setActiveModule('logistics')}
+            className="flex items-center gap-2"
+          >
+            <Truck className="h-4 w-4" />
+            Logística
+          </Button>
+          
+          <Button
+            variant={activeModule === 'assets' ? "default" : "outline"}
+            onClick={() => setActiveModule('assets')}
+            className="flex items-center gap-2"
+          >
+            <Building className="h-4 w-4" />
+            Controle de Ativos
+          </Button>
 
-          {/* CATEGORIA 4: INTEGRAÇÃO */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
-                <Wrench className="h-4 w-4 text-purple-600" />
-                <span className="font-medium">Integração</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={() => setActiveModule('services')}>
-                <Wrench className="h-4 w-4 mr-2" />
-                Integração Serviços
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* CATEGORIA 5: CONTROLE */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
-                <Shield className="h-4 w-4 text-red-600" />
-                <span className="font-medium">Controle</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={() => setActiveModule('compliance')}>
-                <Shield className="h-4 w-4 mr-2" />
-                Compliance
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          
+          <Button
+            variant={activeModule === 'services' ? "default" : "outline"}
+            onClick={() => setActiveModule('services')}
+            className="flex items-center gap-2"
+          >
+            <Wrench className="h-4 w-4" />
+            Integração Serviços
+          </Button>
+          
+          <Button
+            variant={activeModule === 'compliance' ? "default" : "outline"}
+            onClick={() => setActiveModule('compliance')}
+            className="flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Compliance
+          </Button>
         </div>
 
         {/* Indicador do módulo ativo */}
