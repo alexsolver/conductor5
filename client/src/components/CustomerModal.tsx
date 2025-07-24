@@ -76,19 +76,19 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const mutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
-        return apiRequest(`/api/customers/${customer.id}`, {
+        return apiRequest(`/api/clientes/${customer.id}`, {
           method: 'PATCH',
           body: JSON.stringify(data)
         });
       } else {
-        return apiRequest('/api/customers', {
+        return apiRequest('/api/clientes', {
           method: 'POST',
           body: JSON.stringify(data)
         });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/clientes'] });
       toast({
         title: "Sucesso",
         description: customer?.id ? "Cliente atualizado com sucesso!" : "Cliente criado com sucesso!",

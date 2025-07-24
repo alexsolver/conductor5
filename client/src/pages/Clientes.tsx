@@ -1,15 +1,14 @@
-
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Search, Mail, Phone, FileText, Edit, Trash } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Search, Mail, Phone, FileText, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { CustomerModal } from "@/components/CustomerModal";
+import { LocationModal } from "@/components/LocationModal";
 
 interface Cliente {
   id: string;
@@ -25,19 +24,10 @@ interface Cliente {
 
 export default function Clientes() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    document: "",
-    company: ""
-  });
 
   const { data: clientesData, isLoading } = useQuery({
     queryKey: ["/api/clientes", { search: searchTerm }],
@@ -52,67 +42,18 @@ export default function Clientes() {
     retry: false,
   });
 
-  const createClienteMutation = useMutation({
-    mutationFn: async (clienteData: typeof formData) => {
-      const response = await fetch('/api/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clienteData),
-      });
-      if (!response.ok) throw new Error('Failed to create cliente');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clientes"] });
-      setIsModalOpen(false);
-      resetForm();
-      toast({
-        title: "Sucesso",
-        description: "Cliente criado com sucesso!",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Erro ao criar cliente",
-        variant: "destructive",
-      });
-    },
-  });
+  const handleOpenCustomerModal = (cliente?: Cliente) => {
+    setEditingCliente(cliente || null);
+    setIsCustomerModalOpen(true);
+  };
 
-  const resetForm = () => {
-    setFormData({ firstName: "", lastName: "", email: "", phone: "", document: "", company: "" });
+  const handleCloseCustomerModal = () => {
     setEditingCliente(null);
+    setIsCustomerModalOpen(false);
   };
 
-  const handleOpenModal = (cliente?: Cliente) => {
-    if (cliente) {
-      setEditingCliente(cliente);
-      setFormData({
-        firstName: cliente.first_name,
-        lastName: cliente.last_name || "",
-        email: cliente.email || "",
-        phone: cliente.phone || "",
-        document: cliente.document || "",
-        company: cliente.company || ""
-      });
-    } else {
-      resetForm();
-    }
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.firstName.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome é obrigatório",
-        variant: "destructive",
-      });
-      return;
-    }
-    createClienteMutation.mutate(formData);
+  const handleLocationModalOpen = () => {
+    setIsLocationModalOpen(true);
   };
 
   const clientes = clientesData?.data || [];
@@ -163,7 +104,7 @@ export default function Clientes() {
             />
           </div>
           <Button 
-            onClick={() => handleOpenModal()}
+            onClick={() => handleOpenCustomerModal()}
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -224,7 +165,7 @@ export default function Clientes() {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => handleOpenModal(cliente)}
+                      onClick={() => handleOpenCustomerModal(cliente)}
                     >
                       <Edit className="h-3 w-3 mr-1" />
                       Editar
@@ -254,97 +195,19 @@ export default function Clientes() {
         )}
       </div>
 
-      {/* Modal de Criação/Edição */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingCliente ? 'Editar Cliente' : 'Novo Cliente'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="firstName">Nome *</Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                placeholder="Primeiro nome"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="lastName">Sobrenome</Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                placeholder="Sobrenome"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="email@exemplo.com"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="(11) 99999-9999"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="company">Empresa</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                placeholder="Nome da empresa"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="document">CPF/CNPJ</Label>
-              <Input
-                id="document"
-                value={formData.document}
-                onChange={(e) => setFormData(prev => ({ ...prev, document: e.target.value }))}
-                placeholder="000.000.000-00"
-              />
-            </div>
-            
-            <div className="flex space-x-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={createClienteMutation.isPending}
-                className="flex-1"
-              >
-                {createClienteMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Modais */}
+      <CustomerModal
+        isOpen={isCustomerModalOpen}
+        onClose={handleCloseCustomerModal}
+        customer={editingCliente}
+        onLocationModalOpen={handleLocationModalOpen}
+      />
+
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        customerId={editingCliente?.id}
+      />
     </div>
   );
 }
