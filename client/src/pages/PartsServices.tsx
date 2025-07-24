@@ -9,12 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, Package, Warehouse, Users, ShoppingCart, 
          Star, MapPin, Building, DollarSign, TrendingUp, Shield, 
-         Monitor, Wrench, Truck, Edit, Trash2, Eye } from "lucide-react";
+         Monitor, Wrench, Truck, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, 
          DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // SISTEMA UNIFICADO DE PEÇAS E SERVIÇOS
 // Consolidação dos 4 módulos: Simple → Functional → Management → Enterprise
@@ -628,102 +629,134 @@ export default function PartsServices() {
         </div>
       </div>
 
-      {/* MENU CATEGORIZADO COM CARDS VISUAIS */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
-        {/* CATEGORIA 1: OPERAÇÕES BÁSICAS */}
-        <Card 
-          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
-            ['parts', 'inventory', 'suppliers'].includes(activeModule) 
-              ? 'border-blue-500 bg-blue-50 shadow-md' 
-              : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
-          }`} 
-          onClick={() => setActiveModule('parts')}
-        >
-          <div className="text-center">
-            <Package className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-            <h3 className="font-semibold text-sm mb-1">Operações Básicas</h3>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>• Gestão de Peças</div>
-              <div>• Controle de Estoque</div>
-              <div>• Gestão de Fornecedores</div>
-            </div>
-          </div>
-        </Card>
+      {/* MENU HIERÁRQUICO EM TEXTO COM DROPDOWN */}
+      <div className="bg-gray-50 p-4 rounded-lg border mb-6">
+        <div className="flex flex-wrap gap-6">
+          {/* CATEGORIA 1: OPERAÇÕES BÁSICAS */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
+                <Package className="h-4 w-4 text-blue-600" />
+                <span className="font-medium">Operações Básicas</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => setActiveModule('parts')}>
+                <Package className="h-4 w-4 mr-2" />
+                Gestão de Peças
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveModule('inventory')}>
+                <Warehouse className="h-4 w-4 mr-2" />
+                Controle de Estoque
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveModule('suppliers')}>
+                <Users className="h-4 w-4 mr-2" />
+                Gestão de Fornecedores
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* CATEGORIA 2: PLANEJAMENTO */}
-        <Card 
-          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
-            ['purchasing', 'pricing', 'lpu'].includes(activeModule) 
-              ? 'border-green-500 bg-green-50 shadow-md' 
-              : 'border-gray-200 hover:border-green-300 hover:shadow-md'
-          }`} 
-          onClick={() => setActiveModule('purchasing')}
-        >
-          <div className="text-center">
-            <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-green-600" />
-            <h3 className="font-semibold text-sm mb-1">Planejamento</h3>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>• Planejamento e Compras</div>
-              <div>• Preços Avançados</div>
-              <div>• LPU Enterprise</div>
-            </div>
-          </div>
-        </Card>
+          {/* CATEGORIA 2: PLANEJAMENTO */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
+                <ShoppingCart className="h-4 w-4 text-green-600" />
+                <span className="font-medium">Planejamento</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => setActiveModule('purchasing')}>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Planejamento e Compras
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveModule('pricing')}>
+                <DollarSign className="h-4 w-4 mr-2" />
+                Preços Avançados
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveModule('lpu')}>
+                <TrendingUp className="h-4 w-4 mr-2" />
+                LPU Enterprise
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* CATEGORIA 3: LOGÍSTICA */}
-        <Card 
-          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
-            ['logistics', 'assets'].includes(activeModule) 
-              ? 'border-orange-500 bg-orange-50 shadow-md' 
-              : 'border-gray-200 hover:border-orange-300 hover:shadow-md'
-          }`} 
-          onClick={() => setActiveModule('logistics')}
-        >
-          <div className="text-center">
-            <Truck className="h-8 w-8 mx-auto mb-2 text-orange-600" />
-            <h3 className="font-semibold text-sm mb-1">Logística</h3>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>• Logística</div>
-              <div>• Controle de Ativos</div>
-            </div>
-          </div>
-        </Card>
+          {/* CATEGORIA 3: LOGÍSTICA */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
+                <Truck className="h-4 w-4 text-orange-600" />
+                <span className="font-medium">Logística</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => setActiveModule('logistics')}>
+                <Truck className="h-4 w-4 mr-2" />
+                Logística
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveModule('assets')}>
+                <Building className="h-4 w-4 mr-2" />
+                Controle de Ativos
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* CATEGORIA 4: INTEGRAÇÃO */}
-        <Card 
-          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
-            activeModule === 'services' 
-              ? 'border-purple-500 bg-purple-50 shadow-md' 
-              : 'border-gray-200 hover:border-purple-300 hover:shadow-md'
-          }`} 
-          onClick={() => setActiveModule('services')}
-        >
-          <div className="text-center">
-            <Wrench className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-            <h3 className="font-semibold text-sm mb-1">Integração</h3>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>• Integração Serviços</div>
-            </div>
-          </div>
-        </Card>
+          {/* CATEGORIA 4: INTEGRAÇÃO */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
+                <Wrench className="h-4 w-4 text-purple-600" />
+                <span className="font-medium">Integração</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => setActiveModule('services')}>
+                <Wrench className="h-4 w-4 mr-2" />
+                Integração Serviços
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* CATEGORIA 5: CONTROLE */}
-        <Card 
-          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
-            activeModule === 'compliance' 
-              ? 'border-red-500 bg-red-50 shadow-md' 
-              : 'border-gray-200 hover:border-red-300 hover:shadow-md'
-          }`} 
-          onClick={() => setActiveModule('compliance')}
-        >
-          <div className="text-center">
-            <Shield className="h-8 w-8 mx-auto mb-2 text-red-600" />
-            <h3 className="font-semibold text-sm mb-1">Controle</h3>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>• Compliance</div>
-            </div>
+          {/* CATEGORIA 5: CONTROLE */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-auto p-2 flex items-center gap-2 text-left">
+                <Shield className="h-4 w-4 text-red-600" />
+                <span className="font-medium">Controle</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => setActiveModule('compliance')}>
+                <Shield className="h-4 w-4 mr-2" />
+                Compliance
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Indicador do módulo ativo */}
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Módulo ativo:</span>{' '}
+            <Badge variant="outline" className="ml-1">
+              {activeModule === 'parts' && 'Gestão de Peças'}
+              {activeModule === 'inventory' && 'Controle de Estoque'} 
+              {activeModule === 'suppliers' && 'Gestão de Fornecedores'}
+              {activeModule === 'purchasing' && 'Planejamento e Compras'}
+              {activeModule === 'pricing' && 'Preços Avançados'}
+              {activeModule === 'lpu' && 'LPU Enterprise'}
+              {activeModule === 'logistics' && 'Logística'}
+              {activeModule === 'assets' && 'Controle de Ativos'}
+              {activeModule === 'services' && 'Integração Serviços'}
+              {activeModule === 'compliance' && 'Compliance'}
+              {activeModule === 'overview' && 'Visão Geral'}
+            </Badge>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Navigation Tabs - 11 Módulos Enterprise */}
