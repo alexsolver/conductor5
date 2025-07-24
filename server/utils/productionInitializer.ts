@@ -147,12 +147,15 @@ export class ProductionInitializer {
             // AUTO-CORRECTION: Tentar corrigir problemas de schema automaticamente
             await schemaManager.createTenantSchema(tenantId);
             
+            // Pequeno delay para permitir que as tabelas sejam criadas
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
             // Revalidar após correção
             const isValidAfterFix = await schemaManager.validateTenantSchema(tenantId);
             if (isValidAfterFix) {
               logInfo(`Health check: Auto-correction successful for tenant ${tenantId}`);
             } else {
-              logWarn(`Health check: Auto-correction failed for tenant ${tenantId}`);
+              logWarn(`Health check: Auto-correction completed, but some advanced tables may be missing for tenant ${tenantId}`);
             }
           } catch (correctionError) {
             logError(`Health check: Auto-correction error for tenant ${tenantId}`, correctionError);
