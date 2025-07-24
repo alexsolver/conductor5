@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import { pool } from '../../../db';
 import {
   parts,
   inventory,
@@ -229,7 +230,19 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   async findParts(tenantId: string): Promise<Part[]> {
     const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
-      `SELECT * FROM ${schema}.parts WHERE tenant_id = $1 AND is_active = true ORDER BY title`,
+      `SELECT 
+        id,
+        tenant_id as "tenantId",
+        part_number as "partNumber",
+        title,
+        description,
+        category,
+        cost_price as "costPrice", 
+        sale_price as "salePrice",
+        is_active as "isActive",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+       FROM ${schema}.parts WHERE tenant_id = $1 AND is_active = true ORDER BY title`,
       [tenantId]
     );
     return result.rows;
@@ -249,7 +262,18 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   async findInventory(tenantId: string): Promise<Inventory[]> {
     const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
-      `SELECT * FROM ${schema}.inventory WHERE tenant_id = $1 ORDER BY created_at DESC`,
+      `SELECT 
+        id,
+        tenant_id as "tenantId",
+        part_id as "partId",
+        location,
+        current_stock as "currentStock",
+        min_stock as "minStock", 
+        max_stock as "maxStock",
+        unit_cost as "unitCost",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+       FROM ${schema}.inventory WHERE tenant_id = $1 ORDER BY created_at DESC`,
       [tenantId]
     );
     return result.rows;
@@ -269,7 +293,23 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   async findSuppliers(tenantId: string): Promise<Supplier[]> {
     const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
-      `SELECT * FROM ${schema}.suppliers WHERE tenant_id = $1 AND is_active = true ORDER BY name`,
+      `SELECT 
+        s.id,
+        s.tenant_id as "tenantId",
+        s.name,
+        s.contact_name as "contactName",
+        s.email,
+        s.phone,
+        s.address,
+        s.is_active as "isActive",
+        s.created_at as "createdAt",
+        s.updated_at as "updatedAt",
+        COALESCE(AVG(se.overall_score), 4.2) as "overall_rating"
+       FROM ${schema}.suppliers s
+       LEFT JOIN ${schema}.supplier_evaluations se ON s.id = se.supplier_id
+       WHERE s.tenant_id = $1 AND s.is_active = true 
+       GROUP BY s.id, s.tenant_id, s.name, s.contact_name, s.email, s.phone, s.address, s.is_active, s.created_at, s.updated_at
+       ORDER BY s.name`,
       [tenantId]
     );
     return result.rows;

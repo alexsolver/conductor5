@@ -1514,8 +1514,10 @@ export default function PartsServicesManagement() {
               <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-500">98%</div>
-              <p className="text-xs text-muted-foreground">Score médio</p>
+            <div className="text-2xl font-bold text-green-500">
+              {auditLogs?.length > 0 ? Math.round((auditLogs.filter(log => log.compliance_status === 'compliant').length / auditLogs.length) * 100) : 98}%
+            </div>
+            <p className="text-xs text-muted-foreground">Score médio</p>
             </CardContent>
           </Card>
         </div>

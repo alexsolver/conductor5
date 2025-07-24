@@ -1,13 +1,17 @@
+import { PartsServicesRepository } from "../../domain/repositories/PartsServicesRepository";
+import { DirectPartsServicesRepository } from "../infrastructure/repositories/DirectPartsServicesRepository";
+import { AuthenticatedRequest } from "../../../middleware/jwtAuth";
 import { Request, Response } from 'express';
-import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository';
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-    email: string;
-  };
-}
+import {
+  type ActivityType,
+  type ServiceKit,
+  type InsertActivityType,
+  type InsertServiceKit,
+  type Inventory,
+  type Supplier,
+  type InsertInventory,
+  type InsertSupplier
+} from "@shared/schema";
 
 export class PartsServicesController {
   private repository: DirectPartsServicesRepository;
