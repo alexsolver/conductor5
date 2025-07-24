@@ -1,0 +1,116 @@
+📋 LISTA CONSOLIDADA DE RECURSOS NÃO ENTREGUES
+MÓDULOS AVANÇADOS (5-11) - FUNCIONALIDADES CORE
+1. Integração Serviços
+Work orders automáticos baseados em tickets
+Sincronização bidirecional com sistemas terceiros
+APIs de integração configuráveis
+Mapeamento de campos customizável
+Webhooks para notificações externas
+2. Logística
+Sistema real de transferências entre locais
+Rastreamento de itens em trânsito
+Workflow de aprovação de devoluções
+Integração com transportadoras
+Códigos de rastreamento e ETAs
+3. Controle de Ativos
+Cadastro e rastreamento de equipamentos
+Cronogramas de manutenção preventiva
+Histórico de reparos e custos
+Depreciação automática de ativos
+QR codes para identificação de equipamentos
+4. LPU Enterprise
+Listas de preços versionadas
+Sistema de contratos com clientes
+Aprovação de preços diferenciados
+Centros de custo por região/cliente
+Histórico de alterações de preço
+5. Preços Avançados
+Motor de regras dinâmicas de preço
+Margem automática baseada em volume
+Preços especiais por cliente/período
+Simulador de cenários de preço
+Alertas de margem baixa
+6. Compliance
+Sistema de auditoria automática
+Relatórios de conformidade
+Certificações digitais upload/validação
+Alertas de vencimento de certificações
+Trilha de auditoria completa
+SISTEMA DE MÚLTIPLOS ARMAZÉNS
+7. Localizações de Estoque
+CRUD de armazéns fixos e móveis (warehouse, store, truck, technician, customer)
+Gestão de endereços com coordenadas GPS
+Configuração de armazém principal
+Controle de estoque negativo por localização
+Definição de capacidade e gerente responsável
+8. Controle Multi-Localização
+Quantidades separadas por local (current, reserved, available, on_order)
+Níveis de estoque específicos por localização (min, max, reorder_point)
+Ponto de pedido e lote econômico por local
+Estoque de segurança configurável por armazém
+Custo unitário e médio ponderado por localização
+9. Movimentações Entre Armazéns
+Transferências entre armazéns com aprovação
+Rastreamento de itens em trânsito
+Histórico de movimentações por localização
+Dashboard de estoque por localização
+Mapa de distribuição geográfica do estoque
+FUNCIONALIDADES DE ESTOQUE AVANÇADAS
+10. Sistema de Movimentações Reais
+Persistência real de movimentações no banco
+APIs backend para entrada/saída/transferência
+Integração com sistema de compras
+Rastreabilidade lote/serial numbers
+Relatórios de giro de estoque
+11. Analytics de Estoque
+Previsão de demanda baseada em histórico
+Alertas automáticos de reposição
+Análise ABC automática por movimento
+Relatórios de obsolescência
+Dashboard de performance de fornecedores
+INTEGRAÇÕES E AUTOMAÇÕES
+12. Integrações Externas
+API connectors para ERPs externos
+Sincronização automática de catálogos
+Importação/exportação em massa
+Webhooks para notificações
+SSO para sistemas terceiros
+13. Automações de Workflow
+Aprovações automáticas baseadas em regras
+Notificações por email/SMS
+Escalation automático por SLA
+Workflow customizável por tenant
+Triggers baseados em eventos
+RELATÓRIOS E BUSINESS INTELLIGENCE
+14. Relatórios Executivos
+Dashboard executivo com KPIs
+Relatórios financeiros de estoque
+Análise de rentabilidade por item
+Comparativos período a período
+Exportação para Excel/PDF
+15. Analytics Avançados
+Machine learning para previsões
+Análise de padrões de consumo
+Otimização de níveis de estoque
+Identificação de itens de baixo giro
+Recomendações automáticas
+RECURSOS MOBILE E OFFLINE
+16. Interface Mobile
+App mobile para técnicos de campo
+Leitura de código de barras/QR
+Funcionamento offline
+Sincronização automática
+GPS para rastreamento de movimentações
+17. Funcionalidades Móveis para Armazéns
+Interface mobile para contagem
+Movimentação via código de barras
+GPS tracking para veículos móveis
+Sincronização offline para técnicos
+Check-in/check-out de itens
+CONFIGURAÇÕES AVANÇADAS
+18. Personalização por Tenant
+Campos customizáveis por tenant
+Workflow personalizado
+Regras de negócio configuráveis
+Templates de relatórios customizáveis
+Branding personalizado
