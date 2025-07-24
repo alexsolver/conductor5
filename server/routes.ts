@@ -36,8 +36,6 @@ import scheduleRoutes from './modules/schedule-management/infrastructure/routes/
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
-import partsServicesRoutes from './modules/parts-services/routes';
-import module1Routes from './modules/parts-services/module1-routes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -799,11 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
 
-  // Parts and Services Management routes - Módulo de Peças e Serviços
-  app.use('/api/parts-services', partsServicesRoutes);
-  
-  // MÓDULO 1 - GESTÃO DE PEÇAS COMPLETA
-  app.use('/api/parts-services/module1', jwtAuth, module1Routes);
+
 
   // Customer companies compatibility route for contract creation
   app.get('/api/customer-companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
