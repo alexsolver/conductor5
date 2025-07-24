@@ -321,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { tenantId } = req.params;
 
       // Initialize tenant schema
-      await unifiedSchemaManager.initializeTenantSchema(tenantId);
+      await schemaManager.initializeTenantSchema(tenantId);
 
       res.json({ message: `Schema initialized for tenant ${tenantId}` });
     } catch (error) {
