@@ -290,7 +290,8 @@ export default function PartsServices() {
               <DialogTitle>Criar Nova Peça</DialogTitle>
               <DialogDescription>Adicione uma nova peça ao catálogo</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="title" className="text-right">Título</Label>
                 <Input id="title" value={newPart.title} onChange={(e) => setNewPart({...newPart, title: e.target.value})} className="col-span-3" />
@@ -324,9 +325,17 @@ export default function PartsServices() {
                 <Label htmlFor="description" className="text-right">Descrição</Label>
                 <Textarea id="description" value={newPart.description} onChange={(e) => setNewPart({...newPart, description: e.target.value})} className="col-span-3" />
               </div>
-            </div>
+              </div>
+            </form>
             <DialogFooter>
-              <Button type="submit" onClick={() => createPartMutation.mutate(newPart)} disabled={createPartMutation.isPending}>
+              <Button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  createPartMutation.mutate(newPart);
+                }} 
+                disabled={createPartMutation.isPending}
+              >
                 {createPartMutation.isPending ? 'Criando...' : 'Criar Peça'}
               </Button>
             </DialogFooter>
@@ -414,10 +423,11 @@ export default function PartsServices() {
               <DialogTitle>Criar Novo Fornecedor</DialogTitle>
               <DialogDescription>Adicione um novo fornecedor à base</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Nome</Label>
-                <Input id="name" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="col-span-3" />
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">Nome</Label>
+                  <Input id="name" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="supplier_code" className="text-right">Código</Label>
@@ -443,9 +453,17 @@ export default function PartsServices() {
                 <Label htmlFor="address" className="text-right">Endereço</Label>
                 <Textarea id="address" value={newSupplier.address} onChange={(e) => setNewSupplier({...newSupplier, address: e.target.value})} className="col-span-3" />
               </div>
-            </div>
+              </div>
+            </form>
             <DialogFooter>
-              <Button type="submit" onClick={() => createSupplierMutation.mutate(newSupplier)} disabled={createSupplierMutation.isPending}>
+              <Button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  createSupplierMutation.mutate(newSupplier);
+                }} 
+                disabled={createSupplierMutation.isPending}
+              >
                 {createSupplierMutation.isPending ? 'Criando...' : 'Criar Fornecedor'}
               </Button>
             </DialogFooter>
