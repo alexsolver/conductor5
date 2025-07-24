@@ -57,13 +57,15 @@ export default function BulkScheduleAssignment() {
   });
 
   // Buscar templates de escala disponíveis
-  const { data: templates = [], isLoading: loadingTemplates } = useQuery({
+  const { data: templatesResponse, isLoading: loadingTemplates } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/schedule-templates?isActive=true');
       return response.json();
     },
   });
+
+  const templates = templatesResponse?.templates || [];
 
   // Buscar usuários disponíveis
   const { data: availableUsers = [], isLoading: loadingUsers } = useQuery({
