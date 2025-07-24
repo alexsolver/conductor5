@@ -31,7 +31,7 @@ import holidayRoutes from './routes/HolidayController';
 // import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
 
 // Removed: journeyRoutes - functionality eliminated from system
-import timecardRoutes from './routes/timecardRoutes';
+import { timecardRoutes } from './routes/timecardRoutes';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
