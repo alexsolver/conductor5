@@ -1495,6 +1495,63 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     return this.findServiceIntegrationsAdvanced(tenantId);
   }
 
+  async findAssetsComplete(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `SELECT * FROM ${schema}.assets WHERE tenant_id = $1 AND is_active = true ORDER BY created_at DESC LIMIT 50`,
+        [tenantId]
+      );
+      return result.rows;
+    } catch (error) {
+      console.log('Assets table might not exist yet, returning empty array');
+      return [];
+    }
+  }
+
+  // Implementações de métodos de busca completos para TODOS os módulos
+  async findServiceIntegrationsAdvanced(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `SELECT * FROM ${schema}.service_integrations WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+        [tenantId]
+      );
+      return result.rows;
+    } catch (error) {
+      console.log('Service integrations table might not exist yet, returning empty array');
+      return [];
+    }
+  }
+
+  async findTransfers(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `SELECT * FROM ${schema}.transfers WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+        [tenantId]
+      );
+      return result.rows;
+    } catch (error) {
+      console.log('Transfers table might not exist yet, returning empty array');
+      return [];
+    }
+  }
+
+  async findPriceLists(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `SELECT * FROM ${schema}.price_lists WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50`,
+        [tenantId]
+      );
+      return result.rows;
+    } catch (error) {
+      console.log('Price lists table might not exist yet, returning empty array');
+      return [];
+    }
+  }
+
   async findTransfers(tenantId: string): Promise<any[]> {
     const schema = this.getTenantSchema(tenantId);
     try {
