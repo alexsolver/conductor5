@@ -26,7 +26,7 @@ import EmailHistoryModal from "@/components/tickets/EmailHistoryModal";
 import TicketHistoryModal from "@/components/tickets/TicketHistoryModal";
 import ApprovalRequestModal from "@/components/tickets/ApprovalRequestModal";
 
-// Form schema
+// Form schema - Updated to match database field names exactly
 const ticketFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
@@ -48,24 +48,24 @@ const ticketFormSchema = z.object({
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
   tags: z.array(z.string()).default([]),
-  // Template/Environment fields
+  // Template/Environment fields - Fixed field names to match database
   environment: z.string().optional(),
-  template_name: z.string().optional(),
-  template_alternative: z.string().optional(),
-  caller_name_responsible: z.string().optional(),
-  call_type: z.string().optional(),
-  call_url: z.string().optional(),
-  environment_error: z.string().optional(),
-  call_number: z.string().optional(),
-  group_field: z.string().optional(),
-  service_version: z.string().optional(),
+  templateName: z.string().optional(),
+  templateAlternative: z.string().optional(),
+  callerNameResponsible: z.string().optional(),
+  callType: z.string().optional(),
+  callUrl: z.string().optional(),
+  environmentError: z.string().optional(),
+  callNumber: z.string().optional(),
+  groupField: z.string().optional(),
+  serviceVersion: z.string().optional(),
   summary: z.string().optional(),
-  // Assignment/Publication fields
-  publication_priority: z.string().optional(),
-  responsible_team: z.string().optional(),
+  // Assignment/Publication fields - Fixed field names to match database
+  publicationPriority: z.string().optional(),
+  responsibleTeam: z.string().optional(),
   infrastructure: z.string().optional(),
-  environment_publication: z.string().optional(),
-  close_to_publish: z.boolean().default(false),
+  environmentPublication: z.string().optional(),
+  closeToPublish: z.boolean().default(false),
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;
@@ -139,22 +139,22 @@ export default function TicketEdit() {
       tags: [],
       // Template/Environment defaults
       environment: "",
-      template_name: "",
-      template_alternative: "",
-      caller_name_responsible: "",
-      call_type: "",
-      call_url: "",
-      environment_error: "",
-      call_number: "",
-      group_field: "",
-      service_version: "",
+      templateName: "",
+      templateAlternative: "",
+      callerNameResponsible: "",
+      callType: "",
+      callUrl: "",
+      environmentError: "",
+      callNumber: "",
+      groupField: "",
+      serviceVersion: "",
       summary: "",
       // Assignment/Publication defaults
-      publication_priority: "",
-      responsible_team: "",
+      publicationPriority: "",
+      responsibleTeam: "",
       infrastructure: "",
-      environment_publication: "",
-      close_to_publish: false,
+      environmentPublication: "",
+      closeToPublish: false,
     },
   });
 
@@ -184,29 +184,29 @@ export default function TicketEdit() {
         tags: ticket.tags || [],
         // Template/Environment values
         environment: ticket.environment || "",
-        template_name: ticket.template_name || "",
-        template_alternative: ticket.template_alternative || "",
-        caller_name_responsible: ticket.caller_name_responsible || "",
-        call_type: ticket.call_type || "",
-        call_url: ticket.call_url || "",
-        environment_error: ticket.environment_error || "",
-        call_number: ticket.call_number || "",
-        group_field: ticket.group_field || "",
-        service_version: ticket.service_version || "",
+        templateName: ticket.template_name || "",
+        templateAlternative: ticket.template_alternative || "",
+        callerNameResponsible: ticket.caller_name_responsible || "",
+        callType: ticket.call_type || "",
+        callUrl: ticket.call_url || "",
+        environmentError: ticket.environment_error || "",
+        callNumber: ticket.call_number || "",
+        groupField: ticket.group_field || "",
+        serviceVersion: ticket.service_version || "",
         summary: ticket.summary || "",
         // Assignment/Publication values
-        publication_priority: ticket.publication_priority || "",
-        responsible_team: ticket.responsible_team || "",
+        publicationPriority: ticket.publication_priority || "",
+        responsibleTeam: ticket.responsible_team || "",
         infrastructure: ticket.infrastructure || "",
-        environment_publication: ticket.environment_publication || "",
-        close_to_publish: ticket.close_to_publish || false,
+        environmentPublication: ticket.environment_publication || "",
+        closeToPublish: ticket.close_to_publish || false,
       });
     }
   }, [ticket, form]);
 
   // Update ticket mutation
   const updateTicketMutation = useMutation({
-    mutationFn: async (data: TicketFormData) => {
+    mutationFn: async (data: any) => {
       const response = await apiRequest("PUT", `/api/tickets/${id}`, data);
       return response.json();
     },
@@ -249,7 +249,49 @@ export default function TicketEdit() {
   });
 
   const onSubmit = (data: TicketFormData) => {
-    updateTicketMutation.mutate(data);
+    // Map frontend camelCase field names to backend snake_case
+    const mappedData = {
+      subject: data.subject,
+      description: data.description,
+      priority: data.priority,
+      urgency: data.urgency,
+      impact: data.impact,
+      status: data.status,
+      category: data.category,
+      subcategory: data.subcategory,
+      caller_id: data.callerId,
+      caller_type: data.callerType,
+      beneficiary_id: data.beneficiaryId,
+      beneficiary_type: data.beneficiaryType,
+      assigned_to_id: data.assignedToId,
+      assignment_group: data.assignmentGroup,
+      location: data.location,
+      contact_type: data.contactType,
+      business_impact: data.businessImpact,
+      symptoms: data.symptoms,
+      workaround: data.workaround,
+      tags: data.tags,
+      // Template/Environment fields
+      environment: data.environment,
+      template_name: data.templateName,
+      template_alternative: data.templateAlternative,
+      caller_name_responsible: data.callerNameResponsible,
+      call_type: data.callType,
+      call_url: data.callUrl,
+      environment_error: data.environmentError,
+      call_number: data.callNumber,
+      group_field: data.groupField,
+      service_version: data.serviceVersion,
+      summary: data.summary,
+      // Assignment/Publication fields
+      publication_priority: data.publicationPriority,
+      responsible_team: data.responsibleTeam,
+      infrastructure: data.infrastructure,
+      environment_publication: data.environmentPublication,
+      close_to_publish: data.closeToPublish,
+    };
+    
+    updateTicketMutation.mutate(mappedData);
   };
 
   const handleDelete = () => {
@@ -515,11 +557,11 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="template_name"
+                            name="templateName"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Template:</FormLabel>
-                                <Select>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Publicação - Infra" />
@@ -542,11 +584,11 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="template_alternative"
+                            name="templateAlternative"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Template Alternativo:</FormLabel>
-                                <Select>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Publicação - Infra" />
@@ -570,7 +612,7 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="caller_name_responsible"
+                            name="callerNameResponsible"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Nome do responsável:</FormLabel>
@@ -587,11 +629,11 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="call_type"
+                            name="callType"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Tipo de Chamado:</FormLabel>
-                                <Select>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Solicitação" />
@@ -615,7 +657,7 @@ export default function TicketEdit() {
                         {/* URL Field */}
                         <FormField
                           control={form.control}
-                          name="call_url"
+                          name="callUrl"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>URL do pull request:</FormLabel>
@@ -630,7 +672,7 @@ export default function TicketEdit() {
                         {/* Environment Error */}
                         <FormField
                           control={form.control}
-                          name="environment_error"
+                          name="environmentError"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Alteração no env:</FormLabel>
@@ -648,7 +690,7 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="call_number"
+                            name="callNumber"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Número do chamado/tarefa:</FormLabel>
@@ -665,11 +707,11 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="group_field"
+                            name="groupField"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Grupo:</FormLabel>
-                                <Select>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Infraestrutura" />
@@ -692,7 +734,7 @@ export default function TicketEdit() {
                         <div>
                           <FormField
                             control={form.control}
-                            name="service_version"
+                            name="serviceVersion"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Número da versão publicada:</FormLabel>
@@ -839,7 +881,7 @@ export default function TicketEdit() {
                         {/* Publication Priority */}
                         <FormField
                           control={form.control}
-                          name="publication_priority"
+                          name="publicationPriority"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Prioridade da publicação:</FormLabel>
@@ -865,7 +907,7 @@ export default function TicketEdit() {
                         {/* Responsible */}
                         <FormField
                           control={form.control}
-                          name="responsible_team"
+                          name="responsibleTeam"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Responsável:</FormLabel>
@@ -914,7 +956,7 @@ export default function TicketEdit() {
                         {/* Environment to Publish */}
                         <FormField
                           control={form.control}
-                          name="environment_publication"
+                          name="environmentPublication"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Ambiente a ser publicado:</FormLabel>
@@ -941,7 +983,7 @@ export default function TicketEdit() {
                       <div>
                         <FormField
                           control={form.control}
-                          name="close_to_publish"
+                          name="closeToPublish"
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>

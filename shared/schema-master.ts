@@ -218,7 +218,7 @@ export const customers = pgTable("customers", {
   tenantActiveIdx: index("customers_tenant_active_idx").on(table.tenantId, table.isActive),
 }));
 
-// Tickets table - Foreign keys optimized and critical indexes added
+// Tickets table - Complete with all frontend fields and proper relationships
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -244,6 +244,27 @@ export const tickets = pgTable("tickets", {
   followers: text("followers").array(),
   tags: text("tags").array(),
   contactType: varchar("contact_type", { length: 50 }),
+  
+  // Template/Environment fields - Added to match frontend
+  environment: varchar("environment", { length: 100 }),
+  templateName: varchar("template_name", { length: 255 }),
+  templateAlternative: varchar("template_alternative", { length: 255 }),
+  callerNameResponsible: varchar("caller_name_responsible", { length: 255 }),
+  callType: varchar("call_type", { length: 50 }),
+  callUrl: varchar("call_url", { length: 500 }),
+  environmentError: text("environment_error"),
+  callNumber: varchar("call_number", { length: 50 }),
+  groupField: varchar("group_field", { length: 100 }),
+  serviceVersion: varchar("service_version", { length: 100 }),
+  summary: text("summary"),
+  
+  // Assignment/Publication fields - Added to match frontend
+  publicationPriority: varchar("publication_priority", { length: 50 }),
+  responsibleTeam: varchar("responsible_team", { length: 100 }),
+  infrastructure: varchar("infrastructure", { length: 100 }),
+  environmentPublication: varchar("environment_publication", { length: 100 }),
+  closeToPublish: boolean("close_to_publish").default(false),
+  
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -251,6 +272,8 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
   index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
+  index("tickets_tenant_environment_idx").on(table.tenantId, table.environment),
+  index("tickets_tenant_template_idx").on(table.tenantId, table.templateName),
 ]);
 
 // Ticket Messages table - Critical indexes added for performance
