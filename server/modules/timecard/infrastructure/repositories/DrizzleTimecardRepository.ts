@@ -4,8 +4,11 @@ import {
   timecardEntries, 
   dailyTimesheet, 
   timeBank,
+  workSchedules,
+  absenceRequests,
+  scheduleTemplates,
   users 
-} from '../../../../../shared/schema';
+} from '../../../../../shared/schema-master';
 
 export interface TimecardRepository {
   // Timecard Entries
