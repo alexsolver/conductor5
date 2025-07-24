@@ -561,8 +561,7 @@ export const marketLocalization = pgTable("market_localization", {
 // Field Alias Mapping - Aliases internacionais para campos brasileiros (cpf → tax_id)
 export const fieldAliasMapping = pgTable("field_alias_mapping", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
+  tenantId: uuid("tenant_id").notNull(),  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
   sourceField: varchar("source_field", { length: 100 }).notNull(), // cpf, cnpj, rg
   aliasField: varchar("alias_field", { length: 100 }).notNull(), // tax_id, business_tax_id
   aliasDisplayName: varchar("alias_display_name", { length: 200 }).notNull(),
@@ -1227,51 +1226,44 @@ export const stockMovements = pgTable("stock_movements", {
   index("stock_movements_tenant_type_idx").on(table.tenantId, table.movementType),
 ]);
 
-// Suppliers table - Supplier management
 export const suppliers = pgTable("suppliers", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
 
   // Basic Information
+  supplierCode: varchar("supplier_code", { length: 100 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  displayName: varchar("display_name", { length: 255 }),
-  description: text("description"),
-  supplierType: varchar("supplier_type", { length: 50 }).notNull(), // manufacturer, distributor, service_provider
-
-  // Legal Information
-  taxId: varchar("tax_id", { length: 50 }), // CNPJ/CPF
-  legalName: varchar("legal_name", { length: 255 }),
+  tradeName: varchar("trade_name", { length: 255 }),
+  documentNumber: varchar("document_number", { length: 20 }), // CNPJ/CPF
 
   // Contact Information
   email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 20 }),
+  phone: varchar("phone", { length: 50 }),
   website: varchar("website", { length: 255 }),
 
   // Address
-  address: jsonb("address"), // Full address object
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 50 }),
+  country: varchar("country", { length: 100 }).default("Brasil"),
+  postalCode: varchar("postal_code", { length: 20 }),
 
-  // Commercial Information
+  // Business Information
+  supplierType: varchar("supplier_type", { length: 50 }).default("regular"), // regular, preferred, strategic
   paymentTerms: varchar("payment_terms", { length: 100 }),
-  currency: varchar("currency", { length: 3 }).default("BRL"),
-  creditLimit: decimal("credit_limit", { precision: 15, scale: 2 }),
-
-  // Performance Metrics
-  rating: decimal("rating", { precision: 3, scale: 2 }), // 0.00 to 5.00
-  totalPurchases: decimal("total_purchases", { precision: 15, scale: 2 }).default('0'),
-  onTimeDeliveryRate: decimal("on_time_delivery_rate", { precision: 5, scale: 2 }),
-  qualityRating: decimal("quality_rating", { precision: 3, scale: 2 }),
+  leadTimeDays: integer("lead_time_days").default(7),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("3.00"), // Avaliação do fornecedor
 
   // Status and Audit
-  status: varchar("status", { length: 50 }).default("active"), // active, inactive, suspended, blocked
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   createdById: uuid("created_by_id").references(() => users.id),
-  updatedById: uuid("updated_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
 }, (table) => [
-  index("suppliers_tenant_name_idx").on(table.tenantId, table.name),
-  index("suppliers_tenant_status_idx").on(table.tenantId, table.status),
-  index("suppliers_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("suppliers_tenant_idx").on(table.tenantId),
+  index("suppliers_code_idx").on(table.supplierCode),
+  index("suppliers_type_idx").on(table.supplierType),
 ]);
 
 // Supplier Catalog table - Products offered by suppliers

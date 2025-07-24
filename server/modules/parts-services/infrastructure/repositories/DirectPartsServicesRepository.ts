@@ -1,14 +1,50 @@
-import { pool } from "../../../../db";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import {
+  parts,
+  inventory,
+  stockMovements,
+  suppliers,
+  supplierCatalog,
+  purchaseOrders,
+  purchaseOrderItems,
+  serviceKits,
+  serviceKitItems,
+  priceLists,
+  priceListItems,
+  quotations,
+  quotationItems,
+  assets,
+  assetMaintenanceHistory,
+  supplierEvaluations,
+  partsAuditLog,
+  type InsertPart,
+  type Part,
+  type InsertInventory,
+  type Inventory,
+  type InsertStockMovement,
+  type StockMovement,
+  type InsertSupplier,
+  type InsertAsset,
+  type Asset,
+  type InsertQuotation,
+  type Quotation,
+  type InsertPriceList,
+  type PriceList,
+  type InsertSupplierEvaluation,
+  type SupplierEvaluation,
+  type InsertPartsAuditLog,
+  type PartsAuditLog
+} from "@shared/schema";
 import { PartsServicesRepository } from "../../domain/repositories/PartsServicesRepository";
 import {
   type ActivityType,
-  type Part,
   type ServiceKit,
+  type InsertActivityType,
+  type InsertServiceKit,
   type Inventory,
   type Supplier,
-  type InsertActivityType,
-  type InsertPart,
-  type InsertServiceKit,
   type InsertInventory,
   type InsertSupplier
 } from "@shared/schema";
@@ -111,7 +147,7 @@ interface PartsServicesRepository {
   findSuppliers(tenantId: string): Promise<Supplier[]>;
   getDashboardStats(tenantId: string): Promise<any>;
   createInventoryEntry(tenantId: string, data: any): Promise<any>;
-  
+
   // Complete methods for all 11 modules
   findServiceIntegrationsComplete(tenantId: string): Promise<any[]>;
   findTransfersComplete(tenantId: string): Promise<any[]>;
@@ -121,7 +157,7 @@ interface PartsServicesRepository {
   findAuditLogsComplete(tenantId: string): Promise<any[]>;
   findBudgetSimulationsComplete(tenantId: string): Promise<any[]>;
   findPurchaseOrdersComplete(tenantId: string): Promise<any[]>;
-  
+
   // Create methods for all modules
   createPurchaseOrderComplete(tenantId: string, data: any): Promise<any>;
   createServiceIntegrationComplete(tenantId: string, data: any): Promise<any>;
@@ -970,38 +1006,38 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         `SELECT COUNT(*) as count FROM ${schema}.parts WHERE tenant_id = $1 AND is_active = true`,
         [tenantId]
       );
-      
+
       // Get suppliers count
       const suppliersResult = await pool.query(
         `SELECT COUNT(*) as count FROM ${schema}.suppliers WHERE tenant_id = $1 AND is_active = true`,
         [tenantId]
       );
-      
+
       // Get inventory count
       const inventoryResult = await pool.query(
         `SELECT COUNT(*) as count FROM ${schema}.inventory WHERE tenant_id = $1`,
         [tenantId]
       );
-      
+
       // Get purchase orders count
       const ordersResult = await pool.query(
         `SELECT COUNT(*) as count FROM ${schema}.purchase_orders WHERE tenant_id = $1`,
         [tenantId]
       ).catch(() => ({ rows: [{ count: 0 }] }));
-      
+
       // Get simulations count
       const simulationsResult = await pool.query(
         `SELECT COUNT(*) as count FROM ${schema}.budget_simulations WHERE tenant_id = $1`,
         [tenantId]
       ).catch(() => ({ rows: [{ count: 0 }] }));
-      
+
       // Calculate total stock value
       const stockValueResult = await pool.query(
         `SELECT COALESCE(SUM(current_stock * unit_cost), 0) as total_value 
          FROM ${schema}.inventory WHERE tenant_id = $1`,
         [tenantId]
       ).catch(() => ({ rows: [{ total_value: 0 }] }));
-      
+
       return {
         totalParts: parseInt(partsResult.rows[0]?.count || 0),
         totalSuppliers: parseInt(suppliersResult.rows[0]?.count || 0),

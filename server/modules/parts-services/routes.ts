@@ -28,8 +28,6 @@ router.post('/suppliers', controller.createSupplier);
 router.get('/suppliers', controller.getSuppliers);
 
 // ===== MÓDULO 4: PLANEJAMENTO E COMPRAS =====
-router.post('/purchase-orders-complete', controller.createPurchaseOrderComplete);
-router.get('/purchase-orders-complete', controller.getPurchaseOrdersComplete);
 router.post('/purchase-orders', controller.createPurchaseOrderComplete);
 router.get('/purchase-orders', controller.getPurchaseOrdersComplete);
 
@@ -42,6 +40,36 @@ router.post('/work-order-integrations', controller.createWorkOrderIntegration);
 router.post('/transfers', controller.createTransfer);
 router.get('/transfers', controller.getTransfers);
 router.post('/returns', controller.createReturn);
+
+// ===== MÓDULO 7: CONTROLE DE ATIVOS =====
+router.post('/assets-complete', controller.createAssetComplete);
+router.get('/assets-complete', controller.getAssetsComplete);
+router.post('/asset-maintenance', controller.createAssetMaintenance);
+router.post('/asset-movements', controller.createAssetMovement);
+
+// ===== MÓDULO 8: LISTA DE PREÇOS UNITÁRIOS (LPU) =====
+router.post('/price-lists-complete', controller.createPriceListComplete);
+router.get('/price-lists-complete', controller.getPriceListsComplete);
+router.post('/price-list-items', controller.createPriceListItem);
+
+// ===== MÓDULO 9: FUNCIONALIDADES AVANÇADAS DE PREÇO =====
+router.post('/pricing-tables', controller.createPricingTable);
+router.get('/pricing-tables', controller.getPricingTables);
+router.post('/pricing-rules', controller.createPricingRule);
+router.post('/price-history', controller.createPriceHistory);
+
+// ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
+router.post('/audit-logs-complete', controller.createAuditLogComplete);
+router.get('/audit-logs-complete', controller.getAuditLogsComplete);
+router.post('/certifications', controller.createCertification);
+router.post('/compliance-alerts', controller.createComplianceAlert);
+
+// ===== MÓDULO 11: DIFERENCIAIS AVANÇADOS =====
+router.post('/budget-simulations', controller.createBudgetSimulation);
+router.get('/budget-simulations', controller.getBudgetSimulations);
+router.post('/dashboard-configs', controller.createDashboardConfig);
+router.post('/integration-apis', controller.createIntegrationApi);
+router.post('/offline-sync', controller.createOfflineSync);
 
 // ===== MÓDULO 7: CONTROLE DE ATIVOS =====
 router.post('/assets-complete', controller.createAssetComplete);

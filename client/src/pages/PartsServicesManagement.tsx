@@ -190,7 +190,7 @@ export default function PartsServicesManagement() {
           <h2 className="text-2xl font-bold text-gray-900">Dashboard Executivo - Parts & Services</h2>
           <p className="text-gray-600">Sistema completo de gestão com 11 módulos integrados</p>
         </div>
-        
+
       </div>
 
       {/* Cards de Estatísticas */}
@@ -345,10 +345,22 @@ export default function PartsServicesManagement() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            alert(`Visualizando peça: ${part.title}`);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            alert(`Editando peça: ${part.title}`);
+                          }}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -457,9 +469,24 @@ export default function PartsServicesManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -577,10 +604,22 @@ export default function PartsServicesManagement() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -707,12 +746,24 @@ export default function PartsServicesManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -787,7 +838,8 @@ export default function PartsServicesManagement() {
 
         {/* Lista de Integrações */}
         <Card>
-          <CardHeader>
+```text
+        <CardHeader>
             <CardTitle>Integrações de Serviços</CardTitle>
           </CardHeader>
           <CardContent>
@@ -817,12 +869,24 @@ export default function PartsServicesManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -944,9 +1008,15 @@ export default function PartsServicesManagement() {
                       <TableCell>{new Date(transfer.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1075,12 +1145,24 @@ export default function PartsServicesManagement() {
                       <TableCell>{asset.last_maintenance ? new Date(asset.last_maintenance).toLocaleDateString() : 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <QrCode className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <QrCode className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1213,12 +1295,24 @@ export default function PartsServicesManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1325,12 +1419,24 @@ export default function PartsServicesManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Calculator className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Calculator className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1445,7 +1551,13 @@ export default function PartsServicesManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -1558,12 +1670,24 @@ export default function PartsServicesManagement() {
                       <TableCell>{new Date(simulation.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Calculator className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Calculator className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Editando item` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -26,6 +26,27 @@
     "reset": "Limpar"
   },
   "partsServices": {
+    "title": "Peças e Serviços",
+    "description": "Gestão completa de peças e serviços",
+    "viewDetails": "Visualizar Detalhes",
+    "editItem": "Editar Item",
+    "deleteItem": "Excluir Item",
+    "createNew": "Criar Novo",
+    "actions": "Ações",
+    "status": "Status",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "loading": "Carregando...",
+    "noData": "Nenhum dado encontrado",
+    "searchPlaceholder": "Buscar...",
+    "filters": "Filtros",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "success": "Operação realizada com sucesso",
+    "error": "Erro na operação"
+  },
+  "partsServices": {
     "overview": "Visão Geral",
     "parts": "Gestão de Peças",
     "inventory": "Controle de Estoque",
