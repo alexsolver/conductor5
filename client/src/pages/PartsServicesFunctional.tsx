@@ -486,7 +486,7 @@ export default function PartsServicesFunctional() {
                         <span>Custo Unitário:</span>
                         <span className="font-medium">R$ {parseFloat(item.unitCost).toFixed(2)}</span>
                       </div>
-                      
+
                       <div className="border-t pt-2 mt-2">
                         <div className="flex justify-between text-sm">
                           <span>Valor Total:</span>
@@ -712,8 +712,7 @@ function CreatePartDialog() {
       cost_price: "",
       sale_price: "",
       margin_percentage: "",
-      abc_classification: "B",
-      weight_kg: "",
+      abc_classification: "B",      weight_kg: "",
       material: "",
       voltage: "",
       power_watts: ""
@@ -1030,7 +1029,6 @@ function EditPartDialog({ part }: { part: any }) {
                 name="cost_price"
                 render={({ field }) => (
                   <FormItem>
-```text
                     <FormLabel>Preço de Custo *</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="0.00" />
@@ -1794,8 +1792,7 @@ function EditSupplierDialog({ supplier }: { supplier: any }) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Razão Social *</FormLabel>
-                    <FormControl>
+                    <FormLabel>Razão Social *</FormLabel><FormControl>
                       <Input {...field} placeholder="Nome completo da empresa" />
                     </FormControl>
                     <FormMessage />

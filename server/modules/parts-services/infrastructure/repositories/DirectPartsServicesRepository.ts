@@ -262,25 +262,19 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.parts (
-          tenant_id, part_number, internal_code, manufacturer_code, title, description, 
-          cost_price, sale_price, margin_percentage, abc_classification,
-          weight_kg, material, voltage, power_watts, category, is_active, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()) RETURNING *`,
+          tenant_id, manufacturer_part_number, title, description, 
+          cost_price, sale_price, margin, abc_classification,
+          category, is_active, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) RETURNING *`,
         [
           tenantId,
-          partNumber,
-          data.internal_code, 
-          data.manufacturer_code, 
+          data.internal_code || partNumber,
           data.title, 
           data.description || '',
           costPrice,
           salePrice,
           parseFloat(data.margin_percentage) || 0,
           data.abc_classification || 'B',
-          data.weight_kg ? parseFloat(data.weight_kg) : null,
-          data.material || null,
-          data.voltage || null,
-          data.power_watts ? parseFloat(data.power_watts) : null,
           data.category || 'Geral',
           true
         ]
@@ -304,23 +298,23 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         `SELECT 
           id,
           tenant_id as "tenantId",
-          part_number as "partNumber",
-          internal_code,
-          manufacturer_code,
+          COALESCE(manufacturer_part_number, '') as "partNumber",
+          COALESCE(manufacturer_part_number, '') as internal_code,
+          COALESCE(manufacturer_part_number, '') as manufacturer_code,
           title,
           COALESCE(description, '') as description,
           COALESCE(category, 'Geral') as category,
           COALESCE(cost_price, 0) as cost_price, 
           COALESCE(sale_price, 0) as sale_price,
-          COALESCE(margin_percentage, 0) as margin_percentage,
+          COALESCE(margin, 0) as margin_percentage,
           COALESCE(abc_classification, 'B') as abc_classification,
-          weight_kg,
-          material,
-          voltage,
-          power_watts,
+          null as weight_kg,
+          null as material,
+          null as voltage,
+          null as power_watts,
           COALESCE(is_active, true) as "isActive",
           created_at as "createdAt",
-          updated_at as "updatedAt"
+          COALESCE(updated_at, created_at) as "updatedAt"
          FROM ${schema}.parts 
          WHERE tenant_id = $1 AND COALESCE(is_active, true) = true 
          ORDER BY title`,
@@ -361,13 +355,13 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           id,
           tenant_id as "tenantId",
           part_id as "partId",
-          location,
-          current_stock as "currentStock",
-          minimum_stock as "minStock",
-          maximum_stock as "maxStock",
+          COALESCE(location_id::text, 'Estoque Principal') as location,
+          COALESCE(quantity, 0) as "currentStock",
+          COALESCE(minimum_quantity, 0) as "minStock",
+          COALESCE(maximum_quantity, 100) as "maxStock",
           COALESCE(unit_cost, 0) as "unitCost",
           created_at as "createdAt",
-          updated_at as "updatedAt"
+          COALESCE(updated_at, created_at) as "updatedAt"
          FROM ${schema}.inventory 
          WHERE tenant_id = $1 
          ORDER BY created_at DESC`,
@@ -443,32 +437,15 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.suppliers (
-          tenant_id, supplier_code, name, trade_name, document_number,
-          contact_name, email, phone, address, city, state, country, 
-          payment_terms, lead_time_days, supplier_type, 
-          quality_rating, delivery_rating, price_rating, overall_rating,
-          is_active, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW()) RETURNING *`,
+          tenant_id, name, email, phone, supplier_type, status, is_active, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *`,
         [
           tenantId,
-          data.supplier_code,
-          data.name,
-          data.trade_name,
-          data.document_number || '',
-          data.contact_name || '',
+          data.name || data.trade_name,
           data.email,
           data.phone || '',
-          data.address || '',
-          data.city || '',
-          data.state || '',
-          data.country || 'Brasil',
-          data.payment_terms || 'A vista',
-          leadTimeDays,
           data.supplier_type || 'regular',
-          4.0, // Rating padrão
-          4.0,
-          4.0,
-          4.0,
+          'active',
           true
         ]
       );
@@ -491,27 +468,27 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         `SELECT 
           id,
           tenant_id as "tenantId",
-          supplier_code,
+          COALESCE(name, '') as supplier_code,
           name,
-          trade_name,
-          document_number,
-          contact_name,
+          COALESCE(name, '') as trade_name,
+          '' as document_number,
+          '' as contact_name,
           email,
           COALESCE(phone, '') as phone,
-          COALESCE(address, '') as address,
-          city,
-          state,
-          COALESCE(country, 'Brasil') as country,
-          payment_terms,
-          COALESCE(lead_time_days, 7) as lead_time_days,
+          '' as address,
+          '' as city,
+          '' as state,
+          'Brasil' as country,
+          '' as payment_terms,
+          7 as lead_time_days,
           COALESCE(supplier_type, 'regular') as supplier_type,
-          COALESCE(quality_rating, 4.0) as quality_rating,
-          COALESCE(delivery_rating, 4.0) as delivery_rating,
-          COALESCE(price_rating, 4.0) as price_rating,
-          COALESCE(overall_rating, 4.0) as overall_rating,
+          4.0 as quality_rating,
+          4.0 as delivery_rating,
+          4.0 as price_rating,
+          4.0 as overall_rating,
           COALESCE(is_active, true) as "isActive",
           created_at as "createdAt",
-          updated_at as "updatedAt"
+          COALESCE(updated_at, created_at) as "updatedAt"
          FROM ${schema}.suppliers
          WHERE tenant_id = $1 AND COALESCE(is_active, true) = true 
          ORDER BY name`,
