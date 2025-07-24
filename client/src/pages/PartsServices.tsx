@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Search, Plus, Package, Warehouse, Users, ShoppingCart, 
          Star, MapPin, Building, DollarSign, TrendingUp, Shield, 
          Monitor, Wrench, Truck, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
@@ -799,63 +799,20 @@ export default function PartsServices() {
         </div>
       </div>
 
-      {/* Navigation Tabs - 11 Módulos Enterprise */}
-      <Tabs value={activeModule} onValueChange={setActiveModule} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="parts">Peças</TabsTrigger>
-          <TabsTrigger value="inventory">Estoque</TabsTrigger>
-          <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
-          <TabsTrigger value="purchasing">Compras</TabsTrigger>
-          <TabsTrigger value="services">Serviços</TabsTrigger>
-        </TabsList>
-
-        {/* Content Modules */}
-        <TabsContent value="overview">
-          <OverviewModule />
-        </TabsContent>
-
-        <TabsContent value="parts">
-          {renderPartsModule()}
-        </TabsContent>
-
-        <TabsContent value="suppliers">
-          {renderSuppliersModule()}
-        </TabsContent>
-
-        <TabsContent value="inventory">
-          <GenericModule title="Controle de Estoque" description="Monitoramento completo de movimentações e níveis de estoque" />
-        </TabsContent>
-
-        <TabsContent value="purchasing">
-          <GenericModule title="Planejamento e Compras" description="Gestão de pedidos, orçamentos e fornecedores" />
-        </TabsContent>
-
-        <TabsContent value="services">
-          <GenericModule title="Integração Serviços" description="Sincronização com work orders e sistemas externos" />
-        </TabsContent>
-
-        {/* NOVOS MÓDULOS CATEGORIZADOS */}
-        <TabsContent value="logistics">
-          <LogisticsModule />
-        </TabsContent>
-
-        <TabsContent value="assets">
-          <AssetsModule />
-        </TabsContent>
-
-        <TabsContent value="pricing">
-          <PricingModule />
-        </TabsContent>
-
-        <TabsContent value="lpu">
-          <LpuModule />
-        </TabsContent>
-
-        <TabsContent value="compliance">
-          <ComplianceModule />
-        </TabsContent>
-      </Tabs>
+      {/* Content Modules - Renderização condicional baseada no activeModule */}
+      <div className="space-y-6">
+        {activeModule === 'overview' && <OverviewModule />}
+        {activeModule === 'parts' && renderPartsModule()}
+        {activeModule === 'suppliers' && renderSuppliersModule()}
+        {activeModule === 'inventory' && <GenericModule title="Controle de Estoque" description="Monitoramento completo de movimentações e níveis de estoque" />}
+        {activeModule === 'purchasing' && <GenericModule title="Planejamento e Compras" description="Gestão de pedidos, orçamentos e fornecedores" />}
+        {activeModule === 'services' && <GenericModule title="Integração Serviços" description="Sincronização com work orders e sistemas externos" />}
+        {activeModule === 'logistics' && <LogisticsModule />}
+        {activeModule === 'assets' && <AssetsModule />}
+        {activeModule === 'pricing' && <PricingModule />}
+        {activeModule === 'lpu' && <LpuModule />}
+        {activeModule === 'compliance' && <ComplianceModule />}
+      </div>
 
       {/* MODAL DE EDIÇÃO DE PEÇA */}
       <Dialog open={isEditPartOpen} onOpenChange={setIsEditPartOpen}>
