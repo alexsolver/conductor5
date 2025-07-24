@@ -9,6 +9,7 @@ import etapa4Routes from './etapa4';
 import etapa5Routes from './etapa5';
 import etapa6Routes from './etapa6';
 import etapa7Routes from './etapa7';
+import etapa8Routes from './etapa8';
 
 const router = Router();
 
@@ -97,5 +98,6 @@ router.use('/parts-services/etapa4', etapa4Routes);
 router.use('/parts-services/etapa5', etapa5Routes);
 router.use('/parts-services/etapa6', etapa6Routes);
 router.use('/parts-services/etapa7', etapa7Routes);
+router.use('/parts-services/etapa8', etapa8Routes);
 
 export default router;
