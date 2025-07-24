@@ -1,14 +1,62 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Package, Users, Warehouse, ShoppingCart, Plus, Star, Phone, Mail, MapPin } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Package, Users, Warehouse, ShoppingCart, Plus, Star, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+
+// Schemas de validação
+const partSchema = z.object({
+  internal_code: z.string().min(1, "Código interno obrigatório"),
+  manufacturer_code: z.string().min(1, "Código fabricante obrigatório"), 
+  title: z.string().min(1, "Título obrigatório"),
+  description: z.string().min(1, "Descrição obrigatória"),
+  cost_price: z.string().min(1, "Preço de custo obrigatório"),
+  sale_price: z.string().min(1, "Preço de venda obrigatório"),
+  margin_percentage: z.string().min(1, "Margem obrigatória"),
+  abc_classification: z.enum(["A", "B", "C"]),
+  weight_kg: z.string().optional(),
+  material: z.string().optional(),
+  voltage: z.string().optional(),
+  power_watts: z.string().optional()
+});
+
+const supplierSchema = z.object({
+  supplier_code: z.string().min(1, "Código obrigatório"),
+  name: z.string().min(1, "Nome obrigatório"),
+  trade_name: z.string().min(1, "Nome fantasia obrigatório"),
+  document_number: z.string().min(1, "CNPJ obrigatório"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(1, "Telefone obrigatório"),
+  address: z.string().min(1, "Endereço obrigatório"),
+  city: z.string().min(1, "Cidade obrigatória"),
+  state: z.string().min(2, "Estado obrigatório"),
+  country: z.string().default("Brasil"),
+  payment_terms: z.string().min(1, "Condições de pagamento obrigatórias"),
+  lead_time_days: z.number().min(1, "Prazo de entrega obrigatório"),
+  supplier_type: z.enum(["regular", "preferred"])
+});
 
 export default function PartsServicesSimple() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreatePartOpen, setIsCreatePartOpen] = useState(false);
+  const [isCreateSupplierOpen, setIsCreateSupplierOpen] = useState(false);
+  const [editingPart, setEditingPart] = useState<any>(null);
+  const [editingSupplier, setEditingSupplier] = useState<any>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Queries para dados reais das APIs
   const { data: dashboardStats, isLoading: isLoadingStats } = useQuery({
@@ -33,6 +81,83 @@ export default function PartsServicesSimple() {
     part.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     part.internal_code.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  // Mutations para CRUD
+  const createPartMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/parts-services/parts', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setIsCreatePartOpen(false);
+      toast({ title: "Peça criada com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar peça", variant: "destructive" });
+    }
+  });
+
+  const updatePartMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => 
+      apiRequest('PUT', `/api/parts-services/parts/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
+      setEditingPart(null);
+      toast({ title: "Peça atualizada com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao atualizar peça", variant: "destructive" });
+    }
+  });
+
+  const deletePartMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/parts-services/parts/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      toast({ title: "Peça excluída com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao excluir peça", variant: "destructive" });
+    }
+  });
+
+  const createSupplierMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/parts-services/suppliers', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setIsCreateSupplierOpen(false);
+      toast({ title: "Fornecedor criado com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar fornecedor", variant: "destructive" });
+    }
+  });
+
+  const updateSupplierMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => 
+      apiRequest('PUT', `/api/parts-services/suppliers/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      setEditingSupplier(null);
+      toast({ title: "Fornecedor atualizado com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao atualizar fornecedor", variant: "destructive" });
+    }
+  });
+
+  const deleteSupplierMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/parts-services/suppliers/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      toast({ title: "Fornecedor excluído com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao excluir fornecedor", variant: "destructive" });
+    }
+  });
 
   return (
     <div className="p-4 space-y-6">
@@ -108,10 +233,15 @@ export default function PartsServicesSimple() {
         <TabsContent value="parts" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Catálogo de Peças</h2>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Peça
-            </Button>
+            <Dialog open={isCreatePartOpen} onOpenChange={setIsCreatePartOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Peça
+                </Button>
+              </DialogTrigger>
+              <CreatePartDialog />
+            </Dialog>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -166,6 +296,28 @@ export default function PartsServicesSimple() {
                           <strong>Potência:</strong> {part.power_watts}W
                         </div>
                       )}
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingPart(part)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja excluir esta peça?')) {
+                              deletePartMutation.mutate(part.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Excluir
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -178,10 +330,15 @@ export default function PartsServicesSimple() {
         <TabsContent value="suppliers" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Rede de Fornecedores</h2>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Fornecedor
-            </Button>
+            <Dialog open={isCreateSupplierOpen} onOpenChange={setIsCreateSupplierOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Fornecedor
+                </Button>
+              </DialogTrigger>
+              <CreateSupplierDialog />
+            </Dialog>
           </div>
 
           {isLoadingSuppliers ? (
@@ -246,6 +403,28 @@ export default function PartsServicesSimple() {
                           <div className="font-medium">{parseFloat(supplier.price_rating).toFixed(1)}</div>
                           <div className="text-muted-foreground">Preço</div>
                         </div>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingSupplier(supplier)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
+                              deleteSupplierMutation.mutate(supplier.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Excluir
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
