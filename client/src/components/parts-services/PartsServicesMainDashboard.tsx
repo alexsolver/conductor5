@@ -22,7 +22,8 @@ import { StockMovementsManager } from './StockMovementsManager';
 import { AdvancedWarehouseManager } from './AdvancedWarehouseManager';
 import { ServiceIntegrationsManager } from './ServiceIntegrationsManager';
 import MultiWarehouseEnterpriseManager from './MultiWarehouseEnterpriseManager';
-import EnterpriseModulesManager from './EnterpriseModulesManager';
+import { EnterpriseModulesManager } from './EnterpriseModulesManager';
+import { RealStockMovementsManager } from './RealStockMovementsManager';
 
 interface DashboardStats {
   totalParts: number;
@@ -160,6 +161,7 @@ export const PartsServicesMainDashboard: React.FC = () => {
           <TabsTrigger value="etapa5">Etapa 5</TabsTrigger>
           <TabsTrigger value="etapa6">Etapa 6</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="realstock">Movimentações Reais</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -382,13 +384,17 @@ export const PartsServicesMainDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="etapa5">
           <MultiWarehouseEnterpriseManager />
         </TabsContent>
-        
+
         <TabsContent value="etapa6">
           <EnterpriseModulesManager />
+        </TabsContent>
+
+        <TabsContent value="realstock">
+          <RealStockMovementsManager />
         </TabsContent>
       </Tabs>
     </div>
