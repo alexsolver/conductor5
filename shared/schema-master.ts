@@ -411,26 +411,7 @@ export const userSkills = pgTable("user_skills", {
   index("user_skills_assessed_idx").on(table.tenantId, table.assessedAt),
 ]);
 
-// Quality Certifications table - FIXED: relacionamento definido
-export const qualityCertifications = pgTable("quality_certifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  itemType: varchar("item_type", { length: 50 }).notNull(), // user, equipment, etc
-  itemId: uuid("item_id").notNull(),
-  certificationName: varchar("certification_name", { length: 255 }).notNull(),
-  certificationNumber: varchar("certification_number", { length: 100 }),
-  issuer: varchar("issuer", { length: 255 }),
-  issueDate: date("issue_date"),
-  expiryDate: date("expiry_date"),
-  documentUrl: text("document_url"),
-  status: varchar("status", { length: 20 }).default("active"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("quality_certifications_tenant_item_idx").on(table.tenantId, table.itemType, table.itemId),
-  index("quality_certifications_tenant_status_idx").on(table.tenantId, table.status),
-  index("quality_certifications_expiry_idx").on(table.tenantId, table.expiryDate),
-]);
+
 
 // User Groups table - Group management for team organization
 export const userGroups = pgTable("user_groups", {
@@ -1349,6 +1330,604 @@ export const insertItemSupplierLinkSchema = z.object({
   barcode: z.string().max(255).optional(),
 });
 
+// ========================================
+// 2. CONTROLE DE ESTOQUE (Stock Control)
+// ========================================
+
+// Locations table - Warehouses and storage locations
+export const stockLocations = pgTable("stock_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  type: varchar("type", { length: 20 }).notNull(), // fixed, mobile
+  description: text("description"),
+  
+  // Address
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 50 }),
+  zipCode: varchar("zip_code", { length: 20 }),
+  
+  // Manager and Status
+  managerId: uuid("manager_id").references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("stock_locations_tenant_idx").on(table.tenantId),
+  index("stock_locations_type_idx").on(table.type),
+  index("stock_locations_active_idx").on(table.isActive),
+  unique("stock_locations_tenant_code_unique").on(table.tenantId, table.code),
+]);
+
+// Stock levels table - Stock levels per item per location
+export const stockLevels = pgTable("stock_levels", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  locationId: uuid("location_id").references(() => stockLocations.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Stock Information
+  currentQuantity: decimal("current_quantity", { precision: 15, scale: 4 }).default("0"),
+  minimumQuantity: decimal("minimum_quantity", { precision: 15, scale: 4 }).default("0"),
+  maximumQuantity: decimal("maximum_quantity", { precision: 15, scale: 4 }),
+  reorderPoint: decimal("reorder_point", { precision: 15, scale: 4 }),
+  economicOrderQuantity: decimal("economic_order_quantity", { precision: 15, scale: 4 }),
+  
+  // Reserved for service orders
+  reservedQuantity: decimal("reserved_quantity", { precision: 15, scale: 4 }).default("0"),
+  availableQuantity: decimal("available_quantity", { precision: 15, scale: 4 }).default("0"),
+  
+  // Consignment
+  isConsignment: boolean("is_consignment").default(false),
+  consignmentSupplierId: uuid("consignment_supplier_id"),
+  
+  // Last inventory
+  lastInventoryDate: timestamp("last_inventory_date"),
+  lastInventoryById: uuid("last_inventory_by_id").references(() => users.id),
+  
+  // Audit
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("stock_levels_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("stock_levels_tenant_location_idx").on(table.tenantId, table.locationId),
+  index("stock_levels_reorder_idx").on(table.reorderPoint),
+  index("stock_levels_consignment_idx").on(table.isConsignment),
+  unique("stock_levels_item_location_unique").on(table.itemId, table.locationId),
+]);
+
+// Stock movements table - All stock movements
+export const stockMovements = pgTable("stock_movements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  locationId: uuid("location_id").references(() => stockLocations.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Movement Information
+  type: varchar("type", { length: 20 }).notNull(), // inbound, outbound, transfer, adjustment, return
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).notNull(),
+  unitCost: decimal("unit_cost", { precision: 15, scale: 2 }),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  
+  // Reference Information
+  referenceType: varchar("reference_type", { length: 50 }), // purchase_order, service_order, transfer, etc.
+  referenceId: uuid("reference_id"),
+  referenceNumber: varchar("reference_number", { length: 100 }),
+  
+  // Transfer specific
+  fromLocationId: uuid("from_location_id").references(() => stockLocations.id),
+  toLocationId: uuid("to_location_id").references(() => stockLocations.id),
+  
+  // Batch and Serial tracking
+  batchNumber: varchar("batch_number", { length: 100 }),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  expirationDate: date("expiration_date"),
+  
+  // Notes and Status
+  notes: text("notes"),
+  status: varchar("status", { length: 20 }).default("completed"), // pending, completed, cancelled
+  
+  // Audit
+  movementDate: timestamp("movement_date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("stock_movements_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("stock_movements_tenant_location_idx").on(table.tenantId, table.locationId),
+  index("stock_movements_type_idx").on(table.type),
+  index("stock_movements_date_idx").on(table.movementDate),
+  index("stock_movements_reference_idx").on(table.referenceType, table.referenceId),
+  index("stock_movements_batch_idx").on(table.batchNumber),
+  index("stock_movements_serial_idx").on(table.serialNumber),
+]);
+
+// ========================================
+// 3. FORNECEDORES (Suppliers)
+// ========================================
+
+// Suppliers table
+export const suppliers = pgTable("suppliers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  tradeName: varchar("trade_name", { length: 255 }),
+  taxId: varchar("tax_id", { length: 50 }), // CNPJ
+  
+  // Contact Information
+  email: varchar("email", { length: 255 }),
+  phone: varchar("phone", { length: 20 }),
+  website: varchar("website", { length: 255 }),
+  
+  // Address
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 50 }),
+  zipCode: varchar("zip_code", { length: 20 }),
+  country: varchar("country", { length: 100 }).default("Brasil"),
+  
+  // Business Information
+  category: varchar("category", { length: 100 }), // Parts, Services, Equipment
+  rating: integer("rating"), // 1-5 stars
+  isApproved: boolean("is_approved").default(false),
+  isActive: boolean("is_active").default(true),
+  
+  // Payment terms
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  deliveryTerms: varchar("delivery_terms", { length: 100 }),
+  
+  // Contact person
+  contactPersonName: varchar("contact_person_name", { length: 255 }),
+  contactPersonEmail: varchar("contact_person_email", { length: 255 }),
+  contactPersonPhone: varchar("contact_person_phone", { length: 20 }),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
+}, (table) => [
+  index("suppliers_tenant_idx").on(table.tenantId),
+  index("suppliers_code_idx").on(table.code),
+  index("suppliers_category_idx").on(table.category),
+  index("suppliers_active_idx").on(table.isActive),
+  index("suppliers_approved_idx").on(table.isApproved),
+  unique("suppliers_tenant_code_unique").on(table.tenantId, table.code),
+]);
+
+// ========================================
+// 5. INTEGRAÇÃO COM SERVIÇOS (Service Integration)
+// ========================================
+
+// Service kits table - Predefined kits for maintenance plans
+export const serviceKits = pgTable("service_kits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  description: text("description"),
+  type: varchar("type", { length: 50 }), // preventive, corrective, predictive
+  
+  // Equipment/Model specific
+  equipmentBrand: varchar("equipment_brand", { length: 100 }),
+  equipmentModel: varchar("equipment_model", { length: 100 }),
+  equipmentType: varchar("equipment_type", { length: 100 }),
+  
+  // Service information
+  estimatedDuration: integer("estimated_duration"), // in minutes
+  skillRequirements: text("skill_requirements").array(),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
+}, (table) => [
+  index("service_kits_tenant_idx").on(table.tenantId),
+  index("service_kits_type_idx").on(table.type),
+  index("service_kits_brand_model_idx").on(table.equipmentBrand, table.equipmentModel),
+  index("service_kits_active_idx").on(table.isActive),
+  unique("service_kits_tenant_code_unique").on(table.tenantId, table.code),
+]);
+
+// Service kit items table - Items in each service kit
+export const serviceKitItems = pgTable("service_kit_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  serviceKitId: uuid("service_kit_id").references(() => serviceKits.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Quantity and specifications
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).notNull(),
+  isOptional: boolean("is_optional").default(false),
+  notes: text("notes"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("service_kit_items_tenant_kit_idx").on(table.tenantId, table.serviceKitId),
+  index("service_kit_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  unique("service_kit_items_kit_item_unique").on(table.serviceKitId, table.itemId),
+]);
+
+// ========================================
+// 8. LISTA DE PREÇOS UNITÁRIOS (LPU)
+// ========================================
+
+// Price lists table
+export const priceLists = pgTable("price_lists", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  description: text("description"),
+  version: varchar("version", { length: 20 }).default("1.0"),
+  
+  // Validity
+  validFrom: date("valid_from").notNull(),
+  validTo: date("valid_to"),
+  
+  // Segmentation
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id),
+  contractId: uuid("contract_id"),
+  region: varchar("region", { length: 100 }),
+  channel: varchar("channel", { length: 100 }),
+  
+  // Configuration
+  currency: varchar("currency", { length: 10 }).default("BRL"),
+  includesVat: boolean("includes_vat").default(true),
+  vatRate: decimal("vat_rate", { precision: 5, scale: 2 }).default("0"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).default("draft"), // draft, active, expired, superseded
+  isActive: boolean("is_active").default(true),
+  
+  // Approval
+  approvedAt: timestamp("approved_at"),
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
+}, (table) => [
+  index("price_lists_tenant_idx").on(table.tenantId),
+  index("price_lists_status_idx").on(table.status),
+  index("price_lists_validity_idx").on(table.validFrom, table.validTo),
+  index("price_lists_customer_idx").on(table.customerCompanyId),
+  unique("price_lists_tenant_code_unique").on(table.tenantId, table.code),
+]);
+
+// Price list items table
+export const priceListItems = pgTable("price_list_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  priceListId: uuid("price_list_id").references(() => priceLists.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Pricing
+  unitPrice: decimal("unit_price", { precision: 15, scale: 4 }).notNull(),
+  cost: decimal("cost", { precision: 15, scale: 4 }),
+  margin: decimal("margin", { precision: 5, scale: 2 }),
+  
+  // Discounts and scaling
+  minimumQuantity: decimal("minimum_quantity", { precision: 15, scale: 4 }).default("1"),
+  maximumQuantity: decimal("maximum_quantity", { precision: 15, scale: 4 }),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).default("0"),
+  
+  // Special pricing
+  isSpecialPrice: boolean("is_special_price").default(false),
+  specialPriceNotes: text("special_price_notes"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("price_list_items_tenant_list_idx").on(table.tenantId, table.priceListId),
+  index("price_list_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("price_list_items_special_idx").on(table.isSpecialPrice),
+  unique("price_list_items_list_item_unique").on(table.priceListId, table.itemId),
+]);
+
+// ========================================
+// 10. COMPLIANCE E AUDITORIA (Compliance)
+// ========================================
+
+// Audit logs table - Complete audit trail
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Operation Information
+  tableName: varchar("table_name", { length: 100 }).notNull(),
+  recordId: uuid("record_id").notNull(),
+  operation: varchar("operation", { length: 20 }).notNull(), // create, update, delete, view
+  
+  // Changes
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  changedFields: text("changed_fields").array(),
+  
+  // Context
+  userId: uuid("user_id").references(() => users.id),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  sessionId: varchar("session_id", { length: 100 }),
+  
+  // Timestamp
+  timestamp: timestamp("timestamp").defaultNow(),
+}, (table) => [
+  index("audit_logs_tenant_idx").on(table.tenantId),
+  index("audit_logs_table_record_idx").on(table.tableName, table.recordId),
+  index("audit_logs_user_idx").on(table.userId),
+  index("audit_logs_timestamp_idx").on(table.timestamp),
+  index("audit_logs_operation_idx").on(table.operation),
+]);
+
+// Quality certifications table
+export const qualityCertifications = pgTable("quality_certifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Certification Information
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  type: varchar("type", { length: 50 }), // ISO, ABNT, custom
+  description: text("description"),
+  
+  // Validity
+  issuedDate: date("issued_date"),
+  expirationDate: date("expiration_date"),
+  renewalDate: date("renewal_date"),
+  
+  // Issuer
+  issuerName: varchar("issuer_name", { length: 255 }),
+  issuerContact: varchar("issuer_contact", { length: 255 }),
+  
+  // Scope
+  scope: text("scope"),
+  applicableItems: text("applicable_items").array(),
+  
+  // Documents
+  certificateFilePath: text("certificate_file_path"),
+  auditReportPath: text("audit_report_path"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).default("active"), // active, expired, suspended, revoked
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("quality_certifications_tenant_idx").on(table.tenantId),
+  index("quality_certifications_type_idx").on(table.type),
+  index("quality_certifications_status_idx").on(table.status),
+  index("quality_certifications_expiration_idx").on(table.expirationDate),
+]);
+
+// ========================================
+// TYPE DEFINITIONS FOR EXTENDED MODULES
+// ========================================
+
+// Stock Control Types
+export type InsertStockLocation = typeof stockLocations.$inferInsert;
+export type StockLocation = typeof stockLocations.$inferSelect;
+export type InsertStockLevel = typeof stockLevels.$inferInsert;
+export type StockLevel = typeof stockLevels.$inferSelect;
+export type InsertStockMovement = typeof stockMovements.$inferInsert;
+export type StockMovement = typeof stockMovements.$inferSelect;
+
+// Suppliers Types
+export type InsertSupplier = typeof suppliers.$inferInsert;
+export type Supplier = typeof suppliers.$inferSelect;
+
+// Service Integration Types
+export type InsertServiceKit = typeof serviceKits.$inferInsert;
+export type ServiceKit = typeof serviceKits.$inferSelect;
+export type InsertServiceKitItem = typeof serviceKitItems.$inferInsert;
+export type ServiceKitItem = typeof serviceKitItems.$inferSelect;
+
+// Price Lists Types
+export type InsertPriceList = typeof priceLists.$inferInsert;
+export type PriceList = typeof priceLists.$inferSelect;
+export type InsertPriceListItem = typeof priceListItems.$inferInsert;
+export type PriceListItem = typeof priceListItems.$inferSelect;
+
+// Compliance Types
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertQualityCertification = typeof qualityCertifications.$inferInsert;
+export type QualityCertification = typeof qualityCertifications.$inferSelect;
+
+// ========================================
+// VALIDATION SCHEMAS FOR EXTENDED MODULES
+// ========================================
+
+// Stock Control Schemas
+export const insertStockLocationSchema = z.object({
+  tenantId: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  code: z.string().max(50).optional(),
+  type: z.enum(['fixed', 'mobile']),
+  description: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(50).optional(),
+  zipCode: z.string().max(20).optional(),
+  managerId: z.string().uuid().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const insertStockLevelSchema = z.object({
+  tenantId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  locationId: z.string().uuid(),
+  currentQuantity: z.string().default("0"),
+  minimumQuantity: z.string().default("0"),
+  maximumQuantity: z.string().optional(),
+  reorderPoint: z.string().optional(),
+  economicOrderQuantity: z.string().optional(),
+  reservedQuantity: z.string().default("0"),
+  availableQuantity: z.string().default("0"),
+  isConsignment: z.boolean().default(false),
+  consignmentSupplierId: z.string().uuid().optional(),
+});
+
+export const insertStockMovementSchema = z.object({
+  tenantId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  locationId: z.string().uuid(),
+  type: z.enum(['inbound', 'outbound', 'transfer', 'adjustment', 'return']),
+  quantity: z.string(),
+  unitCost: z.string().optional(),
+  totalCost: z.string().optional(),
+  referenceType: z.string().max(50).optional(),
+  referenceId: z.string().uuid().optional(),
+  referenceNumber: z.string().max(100).optional(),
+  fromLocationId: z.string().uuid().optional(),
+  toLocationId: z.string().uuid().optional(),
+  batchNumber: z.string().max(100).optional(),
+  serialNumber: z.string().max(100).optional(),
+  expirationDate: z.string().optional(),
+  notes: z.string().optional(),
+  status: z.enum(['pending', 'completed', 'cancelled']).default('completed'),
+});
+
+// Suppliers Schemas
+export const insertSupplierSchema = z.object({
+  tenantId: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  code: z.string().max(50).optional(),
+  tradeName: z.string().max(255).optional(),
+  taxId: z.string().max(50).optional(),
+  email: z.string().email().max(255).optional(),
+  phone: z.string().max(20).optional(),
+  website: z.string().max(255).optional(),
+  address: z.string().optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(50).optional(),
+  zipCode: z.string().max(20).optional(),
+  country: z.string().max(100).default("Brasil"),
+  category: z.string().max(100).optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  isApproved: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  paymentTerms: z.string().max(100).optional(),
+  deliveryTerms: z.string().max(100).optional(),
+  contactPersonName: z.string().max(255).optional(),
+  contactPersonEmail: z.string().email().max(255).optional(),
+  contactPersonPhone: z.string().max(20).optional(),
+});
+
+// Service Integration Schemas
+export const insertServiceKitSchema = z.object({
+  tenantId: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  code: z.string().max(50).optional(),
+  description: z.string().optional(),
+  type: z.enum(['preventive', 'corrective', 'predictive']).optional(),
+  equipmentBrand: z.string().max(100).optional(),
+  equipmentModel: z.string().max(100).optional(),
+  equipmentType: z.string().max(100).optional(),
+  estimatedDuration: z.number().int().optional(),
+  skillRequirements: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+});
+
+export const insertServiceKitItemSchema = z.object({
+  tenantId: z.string().uuid(),
+  serviceKitId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  quantity: z.string(),
+  isOptional: z.boolean().default(false),
+  notes: z.string().optional(),
+});
+
+// Price Lists Schemas
+export const insertPriceListSchema = z.object({
+  tenantId: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  code: z.string().max(50).optional(),
+  description: z.string().optional(),
+  version: z.string().max(20).default("1.0"),
+  validFrom: z.string(),
+  validTo: z.string().optional(),
+  customerCompanyId: z.string().uuid().optional(),
+  contractId: z.string().uuid().optional(),
+  region: z.string().max(100).optional(),
+  channel: z.string().max(100).optional(),
+  currency: z.string().max(10).default("BRL"),
+  includesVat: z.boolean().default(true),
+  vatRate: z.string().default("0"),
+  status: z.enum(['draft', 'active', 'expired', 'superseded']).default('draft'),
+  isActive: z.boolean().default(true),
+});
+
+export const insertPriceListItemSchema = z.object({
+  tenantId: z.string().uuid(),
+  priceListId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  unitPrice: z.string(),
+  cost: z.string().optional(),
+  margin: z.string().optional(),
+  minimumQuantity: z.string().default("1"),
+  maximumQuantity: z.string().optional(),
+  discountPercentage: z.string().default("0"),
+  isSpecialPrice: z.boolean().default(false),
+  specialPriceNotes: z.string().optional(),
+});
+
+// Compliance Schemas
+export const insertAuditLogSchema = z.object({
+  tenantId: z.string().uuid(),
+  tableName: z.string().min(1).max(100),
+  recordId: z.string().uuid(),
+  operation: z.enum(['create', 'update', 'delete', 'view']),
+  oldValues: z.record(z.any()).optional(),
+  newValues: z.record(z.any()).optional(),
+  changedFields: z.array(z.string()).default([]),
+  userId: z.string().uuid().optional(),
+  ipAddress: z.string().max(45).optional(),
+  userAgent: z.string().optional(),
+  sessionId: z.string().max(100).optional(),
+});
+
+export const insertQualityCertificationSchema = z.object({
+  tenantId: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  code: z.string().max(50).optional(),
+  type: z.enum(['ISO', 'ABNT', 'custom']).optional(),
+  description: z.string().optional(),
+  issuedDate: z.string().optional(),
+  expirationDate: z.string().optional(),
+  renewalDate: z.string().optional(),
+  issuerName: z.string().max(255).optional(),
+  issuerContact: z.string().max(255).optional(),
+  scope: z.string().optional(),
+  applicableItems: z.array(z.string()).default([]),
+  certificateFilePath: z.string().optional(),
+  auditReportPath: z.string().optional(),
+  status: z.enum(['active', 'expired', 'suspended', 'revoked']).default('active'),
+});
+
 // Update schemas
 export const updateItemSchema = insertItemSchema.partial();
 export const updateItemCustomerLinkSchema = insertItemCustomerLinkSchema.partial();
@@ -1695,7 +2274,6 @@ export const insertContractServiceSchema = createInsertSchema(contractServices).
 export const insertContractDocumentSchema = createInsertSchema(contractDocuments).omit({
   id: true,
   createdAt: true,
-  uploadedById: true,
 });
 
 export const insertContractRenewalSchema = createInsertSchema(contractRenewals).omit({
@@ -1706,7 +2284,6 @@ export const insertContractRenewalSchema = createInsertSchema(contractRenewals).
 export const insertContractBillingSchema = createInsertSchema(contractBilling).omit({
   id: true,
   createdAt: true,
-  generatedById: true,
 });
 
 export const insertContractEquipmentSchema = createInsertSchema(contractEquipment).omit({
