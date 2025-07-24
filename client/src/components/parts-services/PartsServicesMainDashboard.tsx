@@ -22,6 +22,7 @@ import { StockMovementsManager } from './StockMovementsManager';
 import { AdvancedWarehouseManager } from './AdvancedWarehouseManager';
 import { ServiceIntegrationsManager } from './ServiceIntegrationsManager';
 import MultiWarehouseEnterpriseManager from './MultiWarehouseEnterpriseManager';
+import EnterpriseModulesManager from './EnterpriseModulesManager';
 
 interface DashboardStats {
   totalParts: number;
@@ -150,12 +151,14 @@ export const PartsServicesMainDashboard: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="etapa1">Etapa 1</TabsTrigger>
           <TabsTrigger value="etapa2">Etapa 2</TabsTrigger>
           <TabsTrigger value="etapa3">Etapa 3</TabsTrigger>
           <TabsTrigger value="etapa4">Etapa 4</TabsTrigger>
+          <TabsTrigger value="etapa5">Etapa 5</TabsTrigger>
+          <TabsTrigger value="etapa6">Etapa 6</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -382,6 +385,10 @@ export const PartsServicesMainDashboard: React.FC = () => {
         
         <TabsContent value="etapa5">
           <MultiWarehouseEnterpriseManager />
+        </TabsContent>
+        
+        <TabsContent value="etapa6">
+          <EnterpriseModulesManager />
         </TabsContent>
       </Tabs>
     </div>
