@@ -1,6 +1,7 @@
 
 // TESTES AUTOMATIZADOS - ETAPA 4: INTEGRAÇÃO DE SERVIÇOS E AUTOMAÇÕES
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
 const TENANT_ID_TEST = '3f99462f-3621-4b1b-bea8-782acc50d62e';
 const BASE_URL = 'http://localhost:5000';
@@ -761,9 +762,9 @@ class PartsServicesEtapa4Tester {
 }
 
 // Executar testes se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const tester = new PartsServicesEtapa4Tester();
   tester.runAllTests();
 }
 
-module.exports = PartsServicesEtapa4Tester;
+export default PartsServicesEtapa4Tester;
