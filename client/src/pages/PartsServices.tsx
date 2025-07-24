@@ -212,6 +212,40 @@ export default function PartsServices() {
     setIsEditSupplierOpen(true);
   };
 
+  // NOVAS FUNÇÕES PARA FUNCIONALIDADES FALTANTES
+  const handleDuplicateItem = (item: any) => {
+    setNewItem({
+      ...item,
+      title: `${item.title} (Cópia)`,
+      internal_code: `${item.internal_code}_COPY`,
+      manufacturer_code: `${item.manufacturer_code}_COPY`
+    });
+    setIsCreateItemOpen(true);
+  };
+
+  const handleExportCatalog = async () => {
+    try {
+      const response = await apiRequest('GET', '/api/parts-services/parts/export');
+      const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `catalogo_pecas_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast({ title: "Catálogo exportado com sucesso!" });
+    } catch (error) {
+      toast({ title: "Erro ao exportar catálogo", variant: "destructive" });
+    }
+  };
+
+  const handleSupplierRating = (supplierId: string, rating: number) => {
+    // Implementar sistema de avaliação
+    console.log('Rating supplier:', supplierId, rating);
+  };
+
   // CONFIGURAÇÃO DOS 11 MÓDULOS ENTERPRISE UNIFICADOS
   const modules = [
     { id: 'overview', name: 'Visão Geral', icon: Monitor, description: 'Dashboard executivo', count: 'Enterprise' },
@@ -314,10 +348,15 @@ export default function PartsServices() {
             />
           </div>
         </div>
-        <Dialog open={isCreateItemOpen} onOpenChange={setIsCreateItemOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Nova Peça</Button>
-          </DialogTrigger>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={handleExportCatalog}>
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Exportar Catálogo
+          </Button>
+          <Dialog open={isCreateItemOpen} onOpenChange={setIsCreateItemOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Nova Peça</Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Criar Nova Peça</DialogTitle>
@@ -475,8 +514,11 @@ export default function PartsServices() {
                     <span className="font-medium">{parseFloat(part.margin_percentage || 0).toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-end space-x-2 pt-2">
-                    <Button size="sm" variant="outline" onClick={() => handleEditPart(part)} title="Editar peça">
+                    <Button size="sm" variant="outline" onClick={() => handleEditItem(part)} title="Editar peça">
                       <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDuplicateItem(part)} title="Duplicar peça">
+                      <Package className="h-3 w-3" />
                     </Button>
                     <Button size="sm" variant="outline" 
                             onClick={() => {
@@ -486,6 +528,9 @@ export default function PartsServices() {
                             }}
                             title="Excluir peça">
                       <Trash2 className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline" title="Ver histórico">
+                      <Eye className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
