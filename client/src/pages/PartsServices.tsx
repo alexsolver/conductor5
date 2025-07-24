@@ -22,13 +22,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export default function PartsServices() {
   const [activeModule, setActiveModule] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isCreatePartOpen, setIsCreatePartOpen] = useState(false);
+  const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [isCreateSupplierOpen, setIsCreateSupplierOpen] = useState(false);
-  const [isEditPartOpen, setIsEditPartOpen] = useState(false);
+  const [isEditItemOpen, setIsEditItemOpen] = useState(false);
   const [isEditSupplierOpen, setIsEditSupplierOpen] = useState(false);
-  const [editingPart, setEditingPart] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [editingSupplier, setEditingSupplier] = useState<any>(null);
-  const [newPart, setNewPart] = useState({
+  const [newItem, setNewItem] = useState({
     title: "",
     description: "",
     internal_code: "",
@@ -37,7 +37,8 @@ export default function PartsServices() {
     sale_price: "",
     margin_percentage: "",
     abc_classification: "B",
-    category: "Geral"
+    category: "Geral",
+    item_type: "material" // material ou service
   });
   const [newSupplier, setNewSupplier] = useState({
     name: "",
@@ -90,7 +91,7 @@ export default function PartsServices() {
   ) : [];
 
   // MUTATIONS PARA CRUD
-  const createPartMutation = useMutation({
+  const createItemMutation = useMutation({
     mutationFn: (data: any) => {
       console.log('🔍 CreatePart Frontend - Sending data:', JSON.stringify(data, null, 2));
       return apiRequest('POST', '/api/parts-services/parts', data);
@@ -98,10 +99,10 @@ export default function PartsServices() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
-      setIsCreatePartOpen(false);
-      setNewPart({
+      setIsCreateItemOpen(false);
+      setNewItem({
         title: "", description: "", internal_code: "", manufacturer_code: "", cost_price: "",
-        sale_price: "", margin_percentage: "", abc_classification: "B", category: "Geral"
+        sale_price: "", margin_percentage: "", abc_classification: "B", category: "Geral", item_type: "material"
       });
       toast({ title: "Peça criada com sucesso!" });
     },
@@ -155,8 +156,8 @@ export default function PartsServices() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/parts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
-      setIsEditPartOpen(false);
-      setEditingPart(null);
+      setIsEditItemOpen(false);
+      setEditingItem(null);
       toast({ title: "Peça atualizada com sucesso!" });
     },
     onError: () => toast({ title: "Erro ao atualizar peça", variant: "destructive" })
@@ -175,14 +176,14 @@ export default function PartsServices() {
   });
 
   // FUNÇÕES PARA ABRIR MODAIS DE EDIÇÃO
-  const handleEditPart = (part: any) => {
-    setEditingPart({
-      ...part,
-      cost_price: part.cost_price?.toString() || "",
-      sale_price: part.sale_price?.toString() || "",
-      margin_percentage: part.margin_percentage?.toString() || ""
+  const handleEditItem = (item: any) => {
+    setEditingItem({
+      ...item,
+      cost_price: item.cost_price?.toString() || "",
+      sale_price: item.sale_price?.toString() || "",
+      margin_percentage: item.margin_percentage?.toString() || ""
     });
-    setIsEditPartOpen(true);
+    setIsEditItemOpen(true);
   };
 
   const handleEditSupplier = (supplier: any) => {
@@ -277,8 +278,8 @@ export default function PartsServices() {
     </div>
   );
 
-  // COMPONENTE GESTÃO DE PEÇAS - Render direto inline para evitar re-renderizações
-  const renderPartsModule = () => (
+  // COMPONENTE GESTÃO DE ITENS - Render direto inline para evitar re-renderizações
+  const renderItemsModule = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
@@ -292,7 +293,7 @@ export default function PartsServices() {
             />
           </div>
         </div>
-        <Dialog open={isCreatePartOpen} onOpenChange={setIsCreatePartOpen}>
+        <Dialog open={isCreateItemOpen} onOpenChange={setIsCreateItemOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" />Nova Peça</Button>
           </DialogTrigger>
@@ -306,8 +307,8 @@ export default function PartsServices() {
                 <Label htmlFor="part-title" className="text-right">Título <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-title" 
-                  value={newPart.title} 
-                  onChange={(e) => setNewPart({...newPart, title: e.target.value})} 
+                  value={newItem.title} 
+                  onChange={(e) => setNewItem({...newItem, title: e.target.value})} 
                   className="col-span-3" 
                   placeholder="Nome da peça"
                 />
@@ -316,8 +317,8 @@ export default function PartsServices() {
                 <Label htmlFor="part-code" className="text-right">Código Interno <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-code" 
-                  value={newPart.internal_code} 
-                  onChange={(e) => setNewPart({...newPart, internal_code: e.target.value})} 
+                  value={newItem.internal_code} 
+                  onChange={(e) => setNewItem({...newItem, internal_code: e.target.value})} 
                   className="col-span-3" 
                   placeholder="Ex: P001"
                 />
@@ -326,8 +327,8 @@ export default function PartsServices() {
                 <Label htmlFor="part-manufacturer" className="text-right">Código Fabricante <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-manufacturer" 
-                  value={newPart.manufacturer_code} 
-                  onChange={(e) => setNewPart({...newPart, manufacturer_code: e.target.value})} 
+                  value={newItem.manufacturer_code} 
+                  onChange={(e) => setNewItem({...newItem, manufacturer_code: e.target.value})} 
                   className="col-span-3" 
                   placeholder="Ex: MFG001"
                 />
@@ -337,8 +338,8 @@ export default function PartsServices() {
                 <Input 
                   id="part-cost" 
                   type="number" 
-                  value={newPart.cost_price} 
-                  onChange={(e) => setNewPart({...newPart, cost_price: e.target.value})} 
+                  value={newItem.cost_price} 
+                  onChange={(e) => setNewItem({...newItem, cost_price: e.target.value})} 
                   className="col-span-3"
                   placeholder="0.00"
                   step="0.01"
@@ -349,8 +350,8 @@ export default function PartsServices() {
                 <Input 
                   id="part-sale" 
                   type="number" 
-                  value={newPart.sale_price} 
-                  onChange={(e) => setNewPart({...newPart, sale_price: e.target.value})} 
+                  value={newItem.sale_price} 
+                  onChange={(e) => setNewItem({...newItem, sale_price: e.target.value})} 
                   className="col-span-3"
                   placeholder="0.00"
                   step="0.01"
@@ -358,7 +359,7 @@ export default function PartsServices() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="part-classification" className="text-right">Classe ABC</Label>
-                <Select value={newPart.abc_classification} onValueChange={(value) => setNewPart({...newPart, abc_classification: value})}>
+                <Select value={newItem.abc_classification} onValueChange={(value) => setNewItem({...newItem, abc_classification: value})}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue />
                   </SelectTrigger>
@@ -370,11 +371,26 @@ export default function PartsServices() {
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="item-type" className="text-right">Tipo de Item <span className="text-red-500">*</span></Label>
+                <Select 
+                  value={newItem.item_type} 
+                  onValueChange={(value) => setNewItem({...newItem, item_type: value})}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="material">Material</SelectItem>
+                    <SelectItem value="service">Serviço</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="part-description" className="text-right">Descrição</Label>
                 <Textarea 
                   id="part-description" 
-                  value={newPart.description} 
-                  onChange={(e) => setNewPart({...newPart, description: e.target.value})} 
+                  value={newItem.description} 
+                  onChange={(e) => setNewItem({...newItem, description: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
@@ -385,7 +401,7 @@ export default function PartsServices() {
                 onClick={(e) => {
                   e.preventDefault();
                   // Validação frontend antes de enviar
-                  if (!newPart.title || !newPart.internal_code || !newPart.manufacturer_code || !newPart.cost_price || !newPart.sale_price) {
+                  if (!newItem.title || !newItem.internal_code || !newItem.manufacturer_code || !newItem.cost_price || !newItem.sale_price) {
                     toast({
                       title: "Campos obrigatórios não preenchidos",
                       description: "Preencha: Título, Código Interno, Código Fabricante, Custo e Venda",
@@ -393,11 +409,11 @@ export default function PartsServices() {
                     });
                     return;
                   }
-                  createPartMutation.mutate(newPart);
+                  createItemMutation.mutate(newItem);
                 }} 
-                disabled={createPartMutation.isPending}
+                disabled={createItemMutation.isPending}
               >
-                {createPartMutation.isPending ? 'Criando...' : 'Criar Peça'}
+                {createItemMutation.isPending ? 'Criando...' : 'Criar Item'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -771,12 +787,12 @@ export default function PartsServices() {
           </Button>
           
           <Button
-            variant={activeModule === 'parts' ? "default" : "outline"}
-            onClick={() => setActiveModule('parts')}
+            variant={activeModule === 'items' ? "default" : "outline"}
+            onClick={() => setActiveModule('items')}
             className="flex items-center gap-2"
           >
             <Package className="h-4 w-4" />
-            Gestão de Peças
+            Gestão de Itens
           </Button>
           
           <Button
@@ -888,7 +904,7 @@ export default function PartsServices() {
       {/* Content Modules - Renderização condicional baseada no activeModule */}
       <div className="space-y-6">
         {activeModule === 'overview' && <OverviewModule />}
-        {activeModule === 'parts' && renderPartsModule()}
+        {activeModule === 'items' && renderItemsModule()}
         {activeModule === 'suppliers' && renderSuppliersModule()}
         {activeModule === 'inventory' && <GenericModule title="Controle de Estoque" description="Monitoramento completo de movimentações e níveis de estoque" />}
         {activeModule === 'purchasing' && <GenericModule title="Planejamento e Compras" description="Gestão de pedidos, orçamentos e fornecedores" />}
@@ -901,20 +917,20 @@ export default function PartsServices() {
       </div>
 
       {/* MODAL DE EDIÇÃO DE PEÇA */}
-      <Dialog open={isEditPartOpen} onOpenChange={setIsEditPartOpen}>
+      <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Editar Peça</DialogTitle>
             <DialogDescription>Atualize as informações da peça</DialogDescription>
           </DialogHeader>
-          {editingPart && (
+          {editingItem && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-title" className="text-right">Título</Label>
                 <Input 
                   id="edit-title" 
-                  value={editingPart.title} 
-                  onChange={(e) => setEditingPart({...editingPart, title: e.target.value})} 
+                  value={editingItem.title} 
+                  onChange={(e) => setEditingItem({...editingItem, title: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
@@ -922,8 +938,8 @@ export default function PartsServices() {
                 <Label htmlFor="edit-code" className="text-right">Código</Label>
                 <Input 
                   id="edit-code" 
-                  value={editingPart.internal_code} 
-                  onChange={(e) => setEditingPart({...editingPart, internal_code: e.target.value})} 
+                  value={editingItem.internal_code} 
+                  onChange={(e) => setEditingItem({...editingItem, internal_code: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
@@ -932,8 +948,8 @@ export default function PartsServices() {
                 <Input 
                   id="edit-cost" 
                   type="number" 
-                  value={editingPart.cost_price} 
-                  onChange={(e) => setEditingPart({...editingPart, cost_price: e.target.value})} 
+                  value={editingItem.cost_price} 
+                  onChange={(e) => setEditingItem({...editingItem, cost_price: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
@@ -942,16 +958,16 @@ export default function PartsServices() {
                 <Input 
                   id="edit-sale" 
                   type="number" 
-                  value={editingPart.sale_price} 
-                  onChange={(e) => setEditingPart({...editingPart, sale_price: e.target.value})} 
+                  value={editingItem.sale_price} 
+                  onChange={(e) => setEditingItem({...editingItem, sale_price: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-classification" className="text-right">Classe ABC</Label>
                 <Select 
-                  value={editingPart.abc_classification} 
-                  onValueChange={(value) => setEditingPart({...editingPart, abc_classification: value})}
+                  value={editingItem.abc_classification} 
+                  onValueChange={(value) => setEditingItem({...editingItem, abc_classification: value})}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue />
@@ -967,8 +983,8 @@ export default function PartsServices() {
                 <Label htmlFor="edit-description" className="text-right">Descrição</Label>
                 <Textarea 
                   id="edit-description" 
-                  value={editingPart.description} 
-                  onChange={(e) => setEditingPart({...editingPart, description: e.target.value})} 
+                  value={editingItem.description} 
+                  onChange={(e) => setEditingItem({...editingItem, description: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
@@ -977,7 +993,7 @@ export default function PartsServices() {
           <DialogFooter>
             <Button 
               type="submit" 
-              onClick={() => updatePartMutation.mutate({id: editingPart?.id, updates: editingPart})} 
+              onClick={() => updatePartMutation.mutate({id: editingItem?.id, updates: editingItem})} 
               disabled={updatePartMutation.isPending}
             >
               {updatePartMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
