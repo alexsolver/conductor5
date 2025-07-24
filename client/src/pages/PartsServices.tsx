@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Package, Warehouse, Users, ShoppingCart, 
          Star, MapPin, Building, DollarSign, TrendingUp, Shield, 
          Monitor, Wrench, Truck, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
+import { PurchaseOrdersManager } from "@/components/parts-services/PurchaseOrdersManager";
+import { ServiceIntegrationsManager } from "@/components/parts-services/ServiceIntegrationsManager";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, 
          DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -1088,8 +1090,8 @@ export default function PartsServices() {
         {activeModule === 'items' && renderItemsModule()}
         {activeModule === 'suppliers' && renderSuppliersModule()}
         {activeModule === 'inventory' && <InventoryModule />}
-        {activeModule === 'purchasing' && <GenericModule title="Planejamento e Compras" description="Gestão de pedidos, orçamentos e fornecedores" />}
-        {activeModule === 'services' && <GenericModule title="Integração Serviços" description="Sincronização com work orders e sistemas externos" />}
+        {activeModule === 'purchasing' && <PurchaseOrdersManager />}
+        {activeModule === 'services' && <ServiceIntegrationsManager />}
         {activeModule === 'logistics' && <LogisticsModule />}
         {activeModule === 'assets' && <AssetsModule />}
         {activeModule === 'pricing' && <PricingModule />}

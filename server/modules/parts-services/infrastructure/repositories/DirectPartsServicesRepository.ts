@@ -409,15 +409,14 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.suppliers (
-          tenant_id, name, email, phone, supplier_type, status, is_active, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *`,
+          tenant_id, name, email, phone, supplier_type, is_active, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *`,
         [
           tenantId,
           data.name || data.trade_name,
           data.email,
           data.phone || '',
           data.supplier_type || 'regular',
-          'active',
           true
         ]
       );
