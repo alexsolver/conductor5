@@ -3,12 +3,19 @@ import { z } from 'zod';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { DrizzleItemRepository } from '../../infrastructure/repositories/DrizzleItemRepository';
 import { DrizzleSupplierRepository } from '../../infrastructure/repositories/DrizzleSupplierRepository';
+import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository';
 import { CreateItemSchema, UpdateItemSchema } from '../../domain/entities/Item';
 import { CreateSupplierSchema, UpdateSupplierSchema } from '../../domain/entities/Supplier';
+import { 
+  insertItemSchema, insertSupplierSchema, insertStockLocationSchema, 
+  insertStockMovementSchema, insertServiceKitSchema, insertPriceListSchema, 
+  insertAssetSchema 
+} from '@shared/schema-parts-services';
 
 export class PartsServicesController {
   private itemRepository = new DrizzleItemRepository();
   private supplierRepository = new DrizzleSupplierRepository();
+  private directRepository = new DirectPartsServicesRepository();
 
   // ==================== DASHBOARD ====================
   getDashboardStats = async (req: AuthenticatedRequest, res: Response) => {
@@ -30,14 +37,18 @@ export class PartsServicesController {
         this.supplierRepository.getActiveCount(tenantId),
       ]);
 
+      // Usa o novo repository para stats avançadas
+      const advancedStats = await this.directRepository.getDashboardStats(tenantId);
+
       res.json({
-        totalItems,
-        materials: itemsByType.materials,
-        services: itemsByType.services,
-        totalSuppliers,
-        activeSuppliers,
-        stockAlerts: 0, // TODO: Implementar quando criar controle de estoque
-        pendingOrders: 0, // TODO: Implementar quando criar pedidos
+        totalItems: advancedStats.totalItems,
+        materials: advancedStats.materials,
+        services: advancedStats.services,
+        totalSuppliers: advancedStats.totalSuppliers,
+        activeSuppliers: advancedStats.activeSuppliers,
+        stockAlerts: advancedStats.stockAlerts,
+        totalAssets: advancedStats.totalAssets,
+        pendingOrders: advancedStats.pendingOrders,
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -309,70 +320,245 @@ export class PartsServicesController {
     }
   };
 
-  // ==================== MÉTODOS SIMPLIFICADOS PARA COMPATIBILIDADE ====================
-  // Métodos básicos para outras funcionalidades que serão implementadas depois
-
-  getCustomerCompanies = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ companies: [] }); // Placeholder
-  };
-
-  createCustomerCompany = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
-  };
-
-  updateCustomerCompany = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
-  };
-
-  deleteCustomerCompany = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
-  };
-
+  // ==================== CONTROLE DE ESTOQUE ====================
   getStockLocations = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ locations: [] }); // Placeholder
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const locations = await this.directRepository.getStockLocations(tenantId);
+      res.json({ locations });
+    } catch (error) {
+      console.error('Error getting stock locations:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
   createStockLocation = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const validatedData = insertStockLocationSchema.parse(req.body);
+      const location = await this.directRepository.createStockLocation(tenantId, validatedData);
+
+      res.status(201).json(location);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      console.error('Error creating stock location:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
-  getInventory = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ inventory: [] }); // Placeholder
-  };
+  getStockLevels = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
 
-  updateInventory = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
-  };
+      const { itemId, locationId } = req.query;
+      const stockLevels = await this.directRepository.getStockLevels(
+        tenantId, 
+        itemId as string, 
+        locationId as string
+      );
 
-  getStockMovements = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ movements: [] }); // Placeholder
+      res.json({ stockLevels });
+    } catch (error) {
+      console.error('Error getting stock levels:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
   createStockMovement = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const validatedData = insertStockMovementSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const movement = await this.directRepository.createStockMovement(tenantId, validatedData);
+
+      res.status(201).json(movement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      console.error('Error creating stock movement:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
+  getStockMovements = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const { limit = 50, offset = 0 } = req.query;
+      const movements = await this.directRepository.getStockMovements(
+        tenantId,
+        Number(limit),
+        Number(offset)
+      );
+
+      res.json({ movements });
+    } catch (error) {
+      console.error('Error getting stock movements:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+  // ==================== KITS DE SERVIÇO ====================
   getServiceKits = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ kits: [] }); // Placeholder
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const kits = await this.directRepository.getServiceKits(tenantId);
+      res.json({ kits });
+    } catch (error) {
+      console.error('Error getting service kits:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
   createServiceKit = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const validatedData = insertServiceKitSchema.parse(req.body);
+      const kit = await this.directRepository.createServiceKit(tenantId, validatedData);
+
+      res.status(201).json(kit);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      console.error('Error creating service kit:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
+  getServiceKitItems = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { kitId } = req.params;
+      const kitItems = await this.directRepository.getServiceKitItems(kitId);
+
+      res.json({ kitItems });
+    } catch (error) {
+      console.error('Error getting service kit items:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+  // ==================== LISTAS DE PREÇOS ====================
   getPriceLists = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ priceLists: [] }); // Placeholder
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const priceLists = await this.directRepository.getPriceLists(tenantId);
+      res.json({ priceLists });
+    } catch (error) {
+      console.error('Error getting price lists:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
   createPriceList = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const validatedData = insertPriceListSchema.parse(req.body);
+      const priceList = await this.directRepository.createPriceList(tenantId, validatedData);
+
+      res.status(201).json(priceList);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      console.error('Error creating price list:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
+  getPriceListItems = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { priceListId } = req.params;
+      const priceItems = await this.directRepository.getPriceListItems(priceListId);
+
+      res.json({ priceItems });
+    } catch (error) {
+      console.error('Error getting price list items:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+  // ==================== CONTROLE DE ATIVOS ====================
   getAssets = async (req: AuthenticatedRequest, res: Response) => {
-    res.json({ assets: [] }); // Placeholder
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const { limit = 50, offset = 0 } = req.query;
+      const assets = await this.directRepository.getAssets(
+        tenantId,
+        Number(limit),
+        Number(offset)
+      );
+
+      res.json({ assets });
+    } catch (error) {
+      console.error('Error getting assets:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
 
   createAsset = async (req: AuthenticatedRequest, res: Response) => {
-    res.status(501).json({ message: 'Not implemented yet' });
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const validatedData = insertAssetSchema.parse(req.body);
+      const asset = await this.directRepository.createAsset(tenantId, validatedData);
+
+      res.status(201).json(asset);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      console.error('Error creating asset:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   };
+
 }
