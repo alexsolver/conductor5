@@ -13,7 +13,144 @@ import {
   type InsertSupplier
 } from "@shared/schema";
 
-export class DirectPartsServicesRepository implements PartsServicesRepository {
+export import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+});
+
+// Type definitions for compatibility
+interface InsertActivityType {
+  tenantId: string;
+  name: string;
+  description?: string;
+  category?: string;
+  duration?: number;
+  color?: string;
+  isActive?: boolean;
+}
+
+interface ActivityType {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  category?: string;
+  duration?: number;
+  color?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface InsertPart {
+  title: string;
+  partNumber: string;
+  costPrice: number;
+  salePrice: number;
+  category: string;
+}
+
+interface Part {
+  id: string;
+  title: string;
+  partNumber: string;
+  costPrice: number;
+  salePrice: number;
+  category: string;
+  isActive: boolean;
+}
+
+interface InsertInventory {
+  tenantId: string;
+  partId: string;
+  location: string;
+  currentStock: number;
+  minStock: number;
+  maxStock: number;
+  unitCost: number;
+}
+
+interface Inventory {
+  id: string;
+  tenantId: string;
+  partId: string;
+  location: string;
+  currentStock: number;
+  minStock: number;
+  maxStock: number;
+  unitCost: number;
+}
+
+interface InsertSupplier {
+  tenantId: string;
+  name: string;
+  contactName?: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+interface Supplier {
+  id: string;
+  tenantId: string;
+  name: string;
+  contactName?: string;
+  email: string;
+  phone: string;
+  address: string;
+  isActive: boolean;
+}
+
+interface PartsServicesRepository {
+  // Basic CRUD methods
+  createActivityType(data: InsertActivityType): Promise<ActivityType>;
+  findActivityTypes(tenantId: string): Promise<ActivityType[]>;
+  findActivityTypeById(id: string, tenantId: string): Promise<ActivityType | null>;
+  createPart(tenantId: string, data: InsertPart): Promise<Part>;
+  findParts(tenantId: string): Promise<Part[]>;
+  createInventory(data: InsertInventory): Promise<Inventory>;
+  findInventory(tenantId: string): Promise<Inventory[]>;
+  createSupplier(data: InsertSupplier): Promise<Supplier>;
+  findSuppliers(tenantId: string): Promise<Supplier[]>;
+  getDashboardStats(tenantId: string): Promise<any>;
+  createInventoryEntry(tenantId: string, data: any): Promise<any>;
+  
+  // Complete methods for all 11 modules
+  findServiceIntegrationsComplete(tenantId: string): Promise<any[]>;
+  findTransfersComplete(tenantId: string): Promise<any[]>;
+  findAssetsComplete(tenantId: string): Promise<any[]>;
+  findPriceListsComplete(tenantId: string): Promise<any[]>;
+  findPricingTablesComplete(tenantId: string): Promise<any[]>;
+  findAuditLogsComplete(tenantId: string): Promise<any[]>;
+  findBudgetSimulationsComplete(tenantId: string): Promise<any[]>;
+  findPurchaseOrdersComplete(tenantId: string): Promise<any[]>;
+  
+  // Create methods for all modules
+  createPurchaseOrderComplete(tenantId: string, data: any): Promise<any>;
+  createServiceIntegrationComplete(tenantId: string, data: any): Promise<any>;
+  createWorkOrderIntegrationComplete(tenantId: string, data: any): Promise<any>;
+  createTransferComplete(tenantId: string, data: any): Promise<any>;
+  createReturnComplete(tenantId: string, data: any): Promise<any>;
+  createAssetComplete(tenantId: string, data: any): Promise<any>;
+  createAssetMaintenanceComplete(tenantId: string, data: any): Promise<any>;
+  createAssetMovementComplete(tenantId: string, data: any): Promise<any>;
+  createPriceListComplete(tenantId: string, data: any): Promise<any>;
+  createPriceListItemComplete(tenantId: string, data: any): Promise<any>;
+  createPricingTableComplete(tenantId: string, data: any): Promise<any>;
+  createPricingRuleComplete(tenantId: string, data: any): Promise<any>;
+  createPriceHistoryComplete(tenantId: string, data: any): Promise<any>;
+  createAuditLogComplete(tenantId: string, data: any): Promise<any>;
+  createCertificationComplete(tenantId: string, data: any): Promise<any>;
+  createComplianceAlertComplete(tenantId: string, data: any): Promise<any>;
+  createBudgetSimulationComplete(tenantId: string, data: any): Promise<any>;
+  createDashboardConfigComplete(tenantId: string, data: any): Promise<any>;
+  createIntegrationApiComplete(tenantId: string, data: any): Promise<any>;
+  createOfflineSyncComplete(tenantId: string, data: any): Promise<any>;
+}
+
+class DirectPartsServicesRepository implements PartsServicesRepository {
   private getTenantSchema(tenantId: string): string {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
@@ -829,6 +966,72 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     }
   }
 
+  // ===== DASHBOARD STATS =====
+  async getDashboardStats(tenantId: string): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      // Get parts count
+      const partsResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.parts WHERE tenant_id = $1 AND is_active = true`,
+        [tenantId]
+      );
+      
+      // Get suppliers count
+      const suppliersResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.suppliers WHERE tenant_id = $1 AND is_active = true`,
+        [tenantId]
+      );
+      
+      // Get inventory count
+      const inventoryResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.inventory WHERE tenant_id = $1`,
+        [tenantId]
+      );
+      
+      // Get purchase orders count
+      const ordersResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.purchase_orders WHERE tenant_id = $1`,
+        [tenantId]
+      ).catch(() => ({ rows: [{ count: 0 }] }));
+      
+      // Get simulations count
+      const simulationsResult = await pool.query(
+        `SELECT COUNT(*) as count FROM ${schema}.budget_simulations WHERE tenant_id = $1`,
+        [tenantId]
+      ).catch(() => ({ rows: [{ count: 0 }] }));
+      
+      // Calculate total stock value
+      const stockValueResult = await pool.query(
+        `SELECT COALESCE(SUM(current_stock * unit_cost), 0) as total_value 
+         FROM ${schema}.inventory WHERE tenant_id = $1`,
+        [tenantId]
+      ).catch(() => ({ rows: [{ total_value: 0 }] }));
+      
+      return {
+        totalParts: parseInt(partsResult.rows[0]?.count || 0),
+        totalSuppliers: parseInt(suppliersResult.rows[0]?.count || 0),
+        totalInventory: parseInt(inventoryResult.rows[0]?.count || 0),
+        totalOrders: parseInt(ordersResult.rows[0]?.count || 0),
+        totalSimulations: parseInt(simulationsResult.rows[0]?.count || 0),
+        totalStockValue: parseFloat(stockValueResult.rows[0]?.total_value || 0)
+      };
+    } catch (error) {
+      console.log('Error getting dashboard stats:', error);
+      return {
+        totalParts: 0,
+        totalSuppliers: 0,
+        totalInventory: 0,
+        totalOrders: 0,
+        totalSimulations: 0,
+        totalStockValue: 0
+      };
+    }
+  }
+
+  async createInventoryEntry(tenantId: string, data: any): Promise<any> {
+    return this.createInventory({ tenantId, ...data });
+  }
+
   // Métodos adicionais para compatibilidade
   async updateActivityType(id: string, tenantId: string, data: Partial<InsertActivityType>): Promise<ActivityType | null> {
     const schema = this.getTenantSchema(tenantId);
@@ -849,3 +1052,5 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     return result.rowCount > 0;
   }
 }
+
+export { DirectPartsServicesRepository };

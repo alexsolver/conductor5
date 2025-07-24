@@ -30,6 +30,8 @@ router.get('/suppliers', controller.getSuppliers);
 // ===== MÓDULO 4: PLANEJAMENTO E COMPRAS =====
 router.post('/purchase-orders-complete', controller.createPurchaseOrderComplete);
 router.get('/purchase-orders-complete', controller.getPurchaseOrdersComplete);
+router.post('/purchase-orders', controller.createPurchaseOrderComplete);
+router.get('/purchase-orders', controller.getPurchaseOrdersComplete);
 
 // ===== MÓDULO 5: INTEGRAÇÃO COM SERVIÇOS =====
 router.post('/service-integrations', controller.createServiceIntegration);
