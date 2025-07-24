@@ -814,6 +814,7 @@ function EditPartDialog({ part }: { part: any }) {
                 name="cost_price"
                 render={({ field }) => (
                   <FormItem>
+```text
                     <FormLabel>Preço de Custo *</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="0.00" />
@@ -878,7 +879,82 @@ function EditPartDialog({ part }: { part: any }) {
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
+                name="weight_kg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Peso (kg)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" placeholder="0.00" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <FormField
+                control={form.control}
+                name="material"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Material</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Aço, Alumínio, etc." />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="voltage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Voltagem</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="220V" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="power_watts"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Potência (Watts)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" placeholder="100" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={updatePartMutation.isPending}
+              >
+                {updatePartMutation.isPending ? 'Atualizando...' : 'Salvar Alterações'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ===== COMPONENTE DE CRIAÇÃO DE FORNECEDOR =====
 function CreateSupplierDialog() {
@@ -1204,14 +1280,15 @@ function EditSupplierDialog({ supplier }: { supplier: any }) {
       city: supplier.city || "",
       state: supplier.state || "",
       country: supplier.country || "Brasil",
-      payment_terms: supplier.payment_terms || "",
+      payment_terms: supplier.payment_terms || "A vista",
       lead_time_days: supplier.lead_time_days || 7,
       supplier_type: supplier.supplier_type || "regular"
     }
   });
 
   const updateSupplierMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('PUT', `/api/parts-services/suppliers/${supplier.id}`, data),
+    mutationFn: ({ id, data }: { id: string, data: any }) => 
+      apiRequest('PUT', `/api/parts-services/suppliers/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
@@ -1228,7 +1305,7 @@ function EditSupplierDialog({ supplier }: { supplier: any }) {
   });
 
   const onSubmit = (data: z.infer<typeof supplierSchema>) => {
-    updateSupplierMutation.mutate(data);
+    updateSupplierMutation.mutate({ id: supplier.id, data });
   };
 
   return (

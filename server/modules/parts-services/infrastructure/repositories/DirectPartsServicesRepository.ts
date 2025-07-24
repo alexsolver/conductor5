@@ -300,29 +300,38 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     const schema = this.getTenantSchema(tenantId);
     
     try {
+      // First check if columns exist, then build query dynamically
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = $1 AND table_name = 'parts'
+      `, [schema]);
+      
+      const availableColumns = columnCheck.rows.map(row => row.column_name);
+      
       const result = await pool.query(
         `SELECT 
           id,
           tenant_id as "tenantId",
-          part_number as "partNumber",
-          internal_code,
-          manufacturer_code,
+          ${availableColumns.includes('part_number') ? 'part_number' : 'COALESCE(internal_code, id::text)'} as "partNumber",
+          ${availableColumns.includes('internal_code') ? 'internal_code' : 'part_number'} as internal_code,
+          ${availableColumns.includes('manufacturer_code') ? 'manufacturer_code' : 'part_number'} as manufacturer_code,
           title,
-          description,
-          category,
-          cost_price, 
-          sale_price,
-          margin_percentage,
-          abc_classification,
-          weight_kg,
-          material,
-          voltage,
-          power_watts,
-          is_active as "isActive",
+          COALESCE(description, '') as description,
+          COALESCE(category, 'Geral') as category,
+          COALESCE(cost_price, 0) as cost_price, 
+          COALESCE(sale_price, 0) as sale_price,
+          ${availableColumns.includes('margin_percentage') ? 'COALESCE(margin_percentage, 0)' : '0'} as margin_percentage,
+          ${availableColumns.includes('abc_classification') ? 'COALESCE(abc_classification, \'B\')' : '\'B\''} as abc_classification,
+          ${availableColumns.includes('weight_kg') ? 'weight_kg' : 'NULL'} as weight_kg,
+          ${availableColumns.includes('material') ? 'material' : 'NULL'} as material,
+          ${availableColumns.includes('voltage') ? 'voltage' : 'NULL'} as voltage,
+          ${availableColumns.includes('power_watts') ? 'power_watts' : 'NULL'} as power_watts,
+          COALESCE(is_active, true) as "isActive",
           created_at as "createdAt",
           updated_at as "updatedAt"
          FROM ${schema}.parts 
-         WHERE tenant_id = $1 AND is_active = true 
+         WHERE tenant_id = $1 AND COALESCE(is_active, true) = true 
          ORDER BY title`,
         [tenantId]
       );
@@ -354,22 +363,40 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async findInventory(tenantId: string): Promise<Inventory[]> {
     const schema = this.getTenantSchema(tenantId);
-    const result = await pool.query(
-      `SELECT 
-        id,
-        tenant_id as "tenantId",
-        part_id as "partId",
-        location,
-        current_stock as "currentStock",
-        min_stock as "minStock", 
-        max_stock as "maxStock",
-        unit_cost as "unitCost",
-        created_at as "createdAt",
-        updated_at as "updatedAt"
-       FROM ${schema}.inventory WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tenantId]
-    );
-    return result.rows;
+    
+    try {
+      // Check available columns
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = $1 AND table_name = 'inventory'
+      `, [schema]);
+      
+      const availableColumns = columnCheck.rows.map(row => row.column_name);
+      
+      const result = await pool.query(
+        `SELECT 
+          id,
+          tenant_id as "tenantId",
+          part_id as "partId",
+          ${availableColumns.includes('location') ? 'location' : 'COALESCE(location_id, \'Estoque Principal\')'} as location,
+          ${availableColumns.includes('current_stock') ? 'current_stock' : 'COALESCE(quantity, 0)'} as "currentStock",
+          ${availableColumns.includes('minimum_stock') ? 'minimum_stock' : availableColumns.includes('min_stock') ? 'min_stock' : '5'} as "minStock",
+          ${availableColumns.includes('maximum_stock') ? 'maximum_stock' : availableColumns.includes('max_stock') ? 'max_stock' : '100'} as "maxStock",
+          COALESCE(unit_cost, 0) as "unitCost",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+         FROM ${schema}.inventory 
+         WHERE tenant_id = $1 
+         ORDER BY created_at DESC`,
+        [tenantId]
+      );
+      
+      return result.rows;
+    } catch (error) {
+      console.error('Error finding inventory:', error);
+      return [];
+    }
   }
 
   // ===== SUPPLIERS =====
@@ -478,33 +505,42 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     const schema = this.getTenantSchema(tenantId);
     
     try {
+      // Check available columns in suppliers table
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = $1 AND table_name = 'suppliers'
+      `, [schema]);
+      
+      const availableColumns = columnCheck.rows.map(row => row.column_name);
+      
       const result = await pool.query(
         `SELECT 
           id,
           tenant_id as "tenantId",
-          supplier_code,
+          ${availableColumns.includes('supplier_code') ? 'supplier_code' : 'CONCAT(\'FORN\', LPAD(id::text, 3, \'0\'))'} as supplier_code,
           name,
-          trade_name,
-          document_number,
-          contact_name,
+          ${availableColumns.includes('trade_name') ? 'trade_name' : 'name'} as trade_name,
+          ${availableColumns.includes('document_number') ? 'document_number' : 'NULL'} as document_number,
+          ${availableColumns.includes('contact_name') ? 'contact_name' : 'NULL'} as contact_name,
           email,
-          phone,
-          address,
-          city,
-          state,
-          country,
-          payment_terms,
-          lead_time_days,
-          supplier_type,
-          COALESCE(quality_rating, 4.0) as quality_rating,
-          COALESCE(delivery_rating, 4.0) as delivery_rating,
-          COALESCE(price_rating, 4.0) as price_rating,
-          COALESCE(overall_rating, 4.0) as overall_rating,
-          is_active as "isActive",
+          COALESCE(phone, '') as phone,
+          COALESCE(address, '') as address,
+          ${availableColumns.includes('city') ? 'city' : 'NULL'} as city,
+          ${availableColumns.includes('state') ? 'state' : 'NULL'} as state,
+          ${availableColumns.includes('country') ? 'COALESCE(country, \'Brasil\')' : '\'Brasil\''} as country,
+          ${availableColumns.includes('payment_terms') ? 'payment_terms' : '\'A vista\''} as payment_terms,
+          ${availableColumns.includes('lead_time_days') ? 'COALESCE(lead_time_days, 7)' : '7'} as lead_time_days,
+          ${availableColumns.includes('supplier_type') ? 'COALESCE(supplier_type, \'regular\')' : '\'regular\''} as supplier_type,
+          ${availableColumns.includes('quality_rating') ? 'COALESCE(quality_rating, 4.0)' : '4.0'} as quality_rating,
+          ${availableColumns.includes('delivery_rating') ? 'COALESCE(delivery_rating, 4.0)' : '4.0'} as delivery_rating,
+          ${availableColumns.includes('price_rating') ? 'COALESCE(price_rating, 4.0)' : '4.0'} as price_rating,
+          ${availableColumns.includes('overall_rating') ? 'COALESCE(overall_rating, 4.0)' : '4.0'} as overall_rating,
+          COALESCE(is_active, true) as "isActive",
           created_at as "createdAt",
           updated_at as "updatedAt"
          FROM ${schema}.suppliers
-         WHERE tenant_id = $1 AND is_active = true 
+         WHERE tenant_id = $1 AND COALESCE(is_active, true) = true 
          ORDER BY name`,
         [tenantId]
       );
@@ -1242,6 +1278,187 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     } catch (error) {
       console.log('Offline sync creation failed:', error);
       return null;
+    }
+  }
+
+  // ===== CRUD METHODS FOR PARTS =====
+  async updatePart(id: string, tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `UPDATE ${schema}.parts SET 
+          internal_code = $3,
+          manufacturer_code = $4,
+          title = $5,
+          description = $6,
+          cost_price = $7,
+          sale_price = $8,
+          margin_percentage = $9,
+          abc_classification = $10,
+          weight_kg = $11,
+          material = $12,
+          voltage = $13,
+          power_watts = $14,
+          category = $15,
+          updated_at = NOW()
+         WHERE id = $1 AND tenant_id = $2 AND is_active = true
+         RETURNING *`,
+        [
+          id, tenantId, data.internal_code, data.manufacturer_code, data.title,
+          data.description, parseFloat(data.cost_price) || 0, parseFloat(data.sale_price) || 0,
+          parseFloat(data.margin_percentage) || 0, data.abc_classification || 'B',
+          data.weight_kg ? parseFloat(data.weight_kg) : null, data.material,
+          data.voltage, data.power_watts ? parseFloat(data.power_watts) : null,
+          data.category || 'Geral'
+        ]
+      );
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating part:', error);
+      throw new Error('Erro ao atualizar peça');
+    }
+  }
+
+  async deletePart(id: string, tenantId: string): Promise<boolean> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `UPDATE ${schema}.parts SET is_active = false, updated_at = NOW() 
+         WHERE id = $1 AND tenant_id = $2`,
+        [id, tenantId]
+      );
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting part:', error);
+      return false;
+    }
+  }
+
+  // ===== CRUD METHODS FOR SUPPLIERS =====
+  async updateSupplier(id: string, tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `UPDATE ${schema}.suppliers SET 
+          supplier_code = $3,
+          name = $4,
+          trade_name = $5,
+          document_number = $6,
+          contact_name = $7,
+          email = $8,
+          phone = $9,
+          address = $10,
+          city = $11,
+          state = $12,
+          country = $13,
+          payment_terms = $14,
+          lead_time_days = $15,
+          supplier_type = $16,
+          updated_at = NOW()
+         WHERE id = $1 AND tenant_id = $2 AND is_active = true
+         RETURNING *`,
+        [
+          id, tenantId, data.supplier_code, data.name, data.trade_name,
+          data.document_number, data.contact_name, data.email, data.phone,
+          data.address, data.city, data.state, data.country || 'Brasil',
+          data.payment_terms, parseInt(data.lead_time_days) || 7, data.supplier_type || 'regular'
+        ]
+      );
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating supplier:', error);
+      throw new Error('Erro ao atualizar fornecedor');
+    }
+  }
+
+  async deleteSupplier(id: string, tenantId: string): Promise<boolean> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `UPDATE ${schema}.suppliers SET is_active = false, updated_at = NOW() 
+         WHERE id = $1 AND tenant_id = $2`,
+        [id, tenantId]
+      );
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
+      return false;
+    }
+  }
+
+  // ===== CRUD METHODS FOR INVENTORY =====
+  async updateInventory(id: string, tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `UPDATE ${schema}.inventory SET 
+          location = $3,
+          current_stock = $4,
+          minimum_stock = $5,
+          maximum_stock = $6,
+          unit_cost = $7,
+          updated_at = NOW()
+         WHERE id = $1 AND tenant_id = $2
+         RETURNING *`,
+        [
+          id, tenantId, data.location, parseInt(data.currentStock) || 0,
+          parseInt(data.minStock) || 0, parseInt(data.maxStock) || 0,
+          parseFloat(data.unitCost) || 0
+        ]
+      );
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      throw new Error('Erro ao atualizar estoque');
+    }
+  }
+
+  async deleteInventory(id: string, tenantId: string): Promise<boolean> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `DELETE FROM ${schema}.inventory WHERE id = $1 AND tenant_id = $2`,
+        [id, tenantId]
+      );
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting inventory:', error);
+      return false;
+    }
+  }
+
+  async createInventoryEntry(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.inventory (
+          tenant_id, part_id, location, current_stock, minimum_stock, maximum_stock, 
+          unit_cost, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *`,
+        [
+          tenantId, data.partId, data.location || 'Estoque Principal',
+          parseInt(data.currentStock) || 0, parseInt(data.minStock) || 5,
+          parseInt(data.maxStock) || 100, parseFloat(data.unitCost) || 0
+        ]
+      );
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating inventory entry:', error);
+      throw new Error('Erro ao criar entrada de estoque');
     }
   }
 
