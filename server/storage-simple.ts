@@ -833,8 +833,7 @@ export class DatabaseStorage implements IStorage {
           ${validatedTenantId},
           ${templateData.created_by || validatedTenantId},
           NOW(),
-          ```text
-NOW()
+          NOW()
         )
         RETURNING *
       `);

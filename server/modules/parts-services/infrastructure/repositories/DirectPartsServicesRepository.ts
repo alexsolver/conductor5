@@ -310,8 +310,8 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           part_id as "partId",
           COALESCE(location_id::text, 'Estoque Principal') as location,
           COALESCE(current_quantity, 0) as "currentStock",
-          COALESCE(minimum_quantity, 0) as "minStock",
-          COALESCE(maximum_quantity, 100) as "maxStock",
+          COALESCE(minimum_stock, 0) as "minStock",
+          COALESCE(maximum_stock, 100) as "maxStock",
           COALESCE(unit_cost, 0) as "unitCost",
           created_at as "createdAt",
           COALESCE(updated_at, created_at) as "updatedAt"

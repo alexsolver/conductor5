@@ -177,4 +177,3 @@ function App() {
 }
 
 export default App;
-```The route `/tenant-admin/solicitantes` should be updated to `/tenant-admin/clientes` and point to the `Clientes` component.

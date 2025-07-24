@@ -36,11 +36,15 @@ export default function PartsServices() {
   });
   const [newSupplier, setNewSupplier] = useState({
     name: "",
-    cnpj: "",
+    supplier_code: "",
+    document_number: "",
+    trade_name: "",
     email: "",
     phone: "",
-    contact_person: "",
-    address: ""
+    address: "",
+    city: "",
+    state: "",
+    country: "Brasil"
   });
 
   const { toast } = useToast();
@@ -76,7 +80,8 @@ export default function PartsServices() {
 
   const filteredSuppliers = Array.isArray(suppliers) ? suppliers.filter((supplier: any) =>
     supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.cnpj?.toLowerCase().includes(searchTerm.toLowerCase())
+    supplier.document_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.supplier_code?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
   // MUTATIONS PARA CRUD
@@ -102,7 +107,8 @@ export default function PartsServices() {
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
       setIsCreateSupplierOpen(false);
       setNewSupplier({
-        name: "", cnpj: "", email: "", phone: "", contact_person: "", address: ""
+        name: "", supplier_code: "", document_number: "", trade_name: "", 
+        email: "", phone: "", address: "", city: "", state: "", country: "Brasil"
       });
       toast({ title: "Fornecedor criado com sucesso!" });
     },
@@ -117,6 +123,16 @@ export default function PartsServices() {
       toast({ title: "Peça excluída com sucesso!" });
     },
     onError: () => toast({ title: "Erro ao excluir peça", variant: "destructive" })
+  });
+
+  const deleteSupplierMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/parts-services/suppliers/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      toast({ title: "Fornecedor excluído com sucesso!" });
+    },
+    onError: () => toast({ title: "Erro ao excluir fornecedor", variant: "destructive" })
   });
 
   // CONFIGURAÇÃO DOS 11 MÓDULOS ENTERPRISE UNIFICADOS
@@ -359,8 +375,16 @@ export default function PartsServices() {
                 <Input id="name" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cnpj" className="text-right">CNPJ</Label>
-                <Input id="cnpj" value={newSupplier.cnpj} onChange={(e) => setNewSupplier({...newSupplier, cnpj: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier_code" className="text-right">Código</Label>
+                <Input id="supplier_code" value={newSupplier.supplier_code} onChange={(e) => setNewSupplier({...newSupplier, supplier_code: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="document_number" className="text-right">CNPJ</Label>
+                <Input id="document_number" value={newSupplier.document_number} onChange={(e) => setNewSupplier({...newSupplier, document_number: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="trade_name" className="text-right">Nome Fantasia</Label>
+                <Input id="trade_name" value={newSupplier.trade_name} onChange={(e) => setNewSupplier({...newSupplier, trade_name: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">Email</Label>
@@ -371,8 +395,8 @@ export default function PartsServices() {
                 <Input id="phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="contact" className="text-right">Contato</Label>
-                <Input id="contact" value={newSupplier.contact_person} onChange={(e) => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="col-span-3" />
+                <Label htmlFor="address" className="text-right">Endereço</Label>
+                <Textarea id="address" value={newSupplier.address} onChange={(e) => setNewSupplier({...newSupplier, address: e.target.value})} className="col-span-3" />
               </div>
             </div>
             <DialogFooter>
@@ -394,7 +418,7 @@ export default function PartsServices() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{supplier.name}</CardTitle>
-                    <CardDescription>{supplier.cnpj}</CardDescription>
+                    <CardDescription>{supplier.supplier_code} • {supplier.document_number}</CardDescription>
                   </div>
                   <Badge variant="outline">Ativo</Badge>
                 </div>
@@ -410,14 +434,23 @@ export default function PartsServices() {
                     <span className="font-medium">{supplier.phone}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Contato:</span>
-                    <span className="font-medium">{supplier.contact_person}</span>
+                    <span>Nome Fantasia:</span>
+                    <span className="font-medium">{supplier.trade_name || 'N/A'}</span>
                   </div>
                   <div className="flex justify-end space-x-2 pt-2">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" title="Editar fornecedor">
                       <Edit className="h-3 w-3" />
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" 
+                            onClick={() => {
+                              if(window.confirm('Tem certeza que deseja excluir este fornecedor?')) {
+                                deleteSupplierMutation.mutate(supplier.id);
+                              }
+                            }} 
+                            title="Excluir fornecedor">
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline" title="Visualizar detalhes">
                       <Eye className="h-3 w-3" />
                     </Button>
                   </div>
