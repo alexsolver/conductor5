@@ -480,32 +480,32 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     try {
       const result = await pool.query(
         `SELECT 
-          s.id,
-          s.tenant_id as "tenantId",
-          s.supplier_code,
-          s.name,
-          s.trade_name,
-          s.document_number,
-          s.contact_name,
-          s.email,
-          s.phone,
-          s.address,
-          s.city,
-          s.state,
-          s.country,
-          s.payment_terms,
-          s.lead_time_days,
-          s.supplier_type,
-          COALESCE(s.quality_rating, 4.0) as quality_rating,
-          COALESCE(s.delivery_rating, 4.0) as delivery_rating,
-          COALESCE(s.price_rating, 4.0) as price_rating,
-          COALESCE(s.overall_rating, 4.0) as overall_rating,
-          s.is_active as "isActive",
-          s.created_at as "createdAt",
-          s.updated_at as "updatedAt"
-         FROM ${schema}.suppliers s
-         WHERE s.tenant_id = $1 AND s.is_active = true 
-         ORDER BY s.name`,
+          id,
+          tenant_id as "tenantId",
+          supplier_code,
+          name,
+          trade_name,
+          document_number,
+          contact_name,
+          email,
+          phone,
+          address,
+          city,
+          state,
+          country,
+          payment_terms,
+          lead_time_days,
+          supplier_type,
+          COALESCE(quality_rating, 4.0) as quality_rating,
+          COALESCE(delivery_rating, 4.0) as delivery_rating,
+          COALESCE(price_rating, 4.0) as price_rating,
+          COALESCE(overall_rating, 4.0) as overall_rating,
+          is_active as "isActive",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+         FROM ${schema}.suppliers
+         WHERE tenant_id = $1 AND is_active = true 
+         ORDER BY name`,
         [tenantId]
       );
       

@@ -1104,7 +1104,6 @@ export const updateUserGroupSchema = insertUserGroupSchema.partial();
 // PARTS AND SERVICES MANAGEMENT TABLES
 // ========================================
 
-// Parts table - Main parts/components catalog
 export const parts = pgTable("parts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -1117,11 +1116,11 @@ export const parts = pgTable("parts", {
   costPrice: decimal("cost_price", { precision: 15, scale: 2 }),
   salePrice: decimal("sale_price", { precision: 15, scale: 2 }),
   marginPercentage: decimal("margin_percentage", { precision: 5, scale: 2 }),
-  abcClassification: varchar("abc_classification", { length: 1 }).default("B"),
-  weightKg: decimal("weight_kg", { precision: 8, scale: 3 }),
+  abcClassification: varchar("abc_classification", { length: 1 }),
+  weightKg: decimal("weight_kg", { precision: 10, scale: 3 }),
   material: varchar("material", { length: 100 }),
   voltage: varchar("voltage", { length: 50 }),
-  powerWatts: decimal("power_watts", { precision: 8, scale: 2 }),
+  powerWatts: decimal("power_watts", { precision: 10, scale: 2 }),
   specifications: jsonb("specifications"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1141,36 +1140,15 @@ export const inventory = pgTable("inventory", {
   tenantId: uuid("tenant_id").notNull(),
   partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
   locationId: uuid("location_id").references(() => locations.id),
-
-  // Stock Levels
+  location: varchar("location", { length: 255 }),
   currentStock: integer("current_stock").default(0),
-  minimumStock: integer("minimum_stock").default(0),
-  maximumStock: integer("maximum_stock").default(0),
-  reorderPoint: integer("reorder_point").default(0),
-  economicOrderQuantity: integer("economic_order_quantity").default(0),
-
-  // Reserved and Available
-  reservedStock: integer("reserved_stock").default(0),
-  availableStock: integer("available_stock").default(0),
-  consignedStock: integer("consigned_stock").default(0),
-
-  // Traceability
-  lotNumbers: text("lot_numbers").array(),
-  serialNumbers: text("serial_numbers").array(),
-  expiryDates: timestamp("expiry_dates").array(),
-
-  // Status and Audit
-  lastCountDate: timestamp("last_count_date"),
-  lastMovementDate: timestamp("last_movement_date"),
-  isActive: boolean("is_active").default(true),
+  quantity: integer("quantity").default(0),
+  minStock: integer("min_stock").default(0),
+  maxStock: integer("max_stock"),
+  unitCost: decimal("unit_cost", { precision: 15, scale: 2 }),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("inventory_tenant_part_idx").on(table.tenantId, table.partId),
-  index("inventory_tenant_location_idx").on(table.tenantId, table.locationId),
-  index("inventory_tenant_reorder_idx").on(table.tenantId, table.reorderPoint),
-  unique("inventory_tenant_part_location_unique").on(table.tenantId, table.partId, table.locationId),
-]);
+  updatedAt: timestamp("updated_at").defaultNow()
+});
 
 // Stock Movements table - All inventory transactions
 export const stockMovements = pgTable("stock_movements", {

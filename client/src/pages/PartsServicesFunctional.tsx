@@ -312,7 +312,7 @@ export default function PartsServicesFunctional() {
                   <div>
                     <CardTitle className="text-lg">{part.title}</CardTitle>
                     <CardDescription>
-                      {part.internal_code} | {part.partNumber || 'N/A'}
+                      {part.internal_code} | {part.manufacturer_code}
                     </CardDescription>
                   </div>
                   <Badge variant={part.abc_classification === 'A' ? 'destructive' : 
