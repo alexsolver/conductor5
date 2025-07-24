@@ -717,7 +717,8 @@ export default function PartsServices() {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   // COMPONENTE CONTROLE DE ESTOQUE COMPLETO
   const InventoryModule = () => (
@@ -734,7 +735,7 @@ export default function PartsServices() {
             <p className="text-xs text-muted-foreground">Posições ativas</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
@@ -745,7 +746,7 @@ export default function PartsServices() {
             <p className="text-xs text-muted-foreground">Requer reposição</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
@@ -756,7 +757,7 @@ export default function PartsServices() {
             <p className="text-xs text-muted-foreground">Valor do estoque</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Movimentações</CardTitle>
@@ -835,7 +836,7 @@ export default function PartsServices() {
                       <p className="text-sm text-muted-foreground">{part.internal_code}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-6 text-sm">
                     <div className="text-center">
                       <div className="font-medium">{10 + index * 5}</div>
@@ -855,7 +856,7 @@ export default function PartsServices() {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline" 
                             onClick={() => {
@@ -1013,7 +1014,7 @@ export default function PartsServices() {
             <Monitor className="h-4 w-4" />
             Visão Geral
           </Button>
-          
+
           <Button
             variant={activeModule === 'items' ? "default" : "outline"}
             onClick={() => setActiveModule('items')}
@@ -1022,7 +1023,7 @@ export default function PartsServices() {
             <Package className="h-4 w-4" />
             Gestão de Itens
           </Button>
-          
+
           <Button
             variant={activeModule === 'inventory' ? "default" : "outline"}
             onClick={() => setActiveModule('inventory')}
@@ -1031,7 +1032,7 @@ export default function PartsServices() {
             <Warehouse className="h-4 w-4" />
             Controle de Estoque
           </Button>
-          
+
           <Button
             variant={activeModule === 'suppliers' ? "default" : "outline"}
             onClick={() => setActiveModule('suppliers')}
@@ -1041,7 +1042,7 @@ export default function PartsServices() {
             Gestão de Fornecedores
           </Button>
 
-          
+
           <Button
             variant={activeModule === 'purchasing' ? "default" : "outline"}
             onClick={() => setActiveModule('purchasing')}
@@ -1050,7 +1051,7 @@ export default function PartsServices() {
             <ShoppingCart className="h-4 w-4" />
             Planejamento e Compras
           </Button>
-          
+
           <Button
             variant={activeModule === 'pricing' ? "default" : "outline"}
             onClick={() => setActiveModule('pricing')}
@@ -1059,7 +1060,7 @@ export default function PartsServices() {
             <DollarSign className="h-4 w-4" />
             Preços Avançados
           </Button>
-          
+
           <Button
             variant={activeModule === 'lpu' ? "default" : "outline"}
             onClick={() => setActiveModule('lpu')}
@@ -1069,7 +1070,7 @@ export default function PartsServices() {
             LPU Enterprise
           </Button>
 
-          
+
           <Button
             variant={activeModule === 'logistics' ? "default" : "outline"}
             onClick={() => setActiveModule('logistics')}
@@ -1078,7 +1079,7 @@ export default function PartsServices() {
             <Truck className="h-4 w-4" />
             Logística
           </Button>
-          
+
           <Button
             variant={activeModule === 'assets' ? "default" : "outline"}
             onClick={() => setActiveModule('assets')}
@@ -1088,7 +1089,7 @@ export default function PartsServices() {
             Controle de Ativos
           </Button>
 
-          
+
           <Button
             variant={activeModule === 'services' ? "default" : "outline"}
             onClick={() => setActiveModule('services')}
@@ -1097,7 +1098,7 @@ export default function PartsServices() {
             <Wrench className="h-4 w-4" />
             Integração Serviços
           </Button>
-          
+
           <Button
             variant={activeModule === 'compliance' ? "default" : "outline"}
             onClick={() => setActiveModule('compliance')}
