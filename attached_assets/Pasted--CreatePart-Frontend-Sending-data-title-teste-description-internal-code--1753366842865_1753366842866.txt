@@ -1,0 +1,37 @@
+🔍 CreatePart Frontend - Sending data: {
+  "title": "teste",
+  "description": "",
+  "internal_code": "",
+  "manufacturer_code": "",
+  "cost_price": "",
+  "sale_price": "",
+  "margin_percentage": "",
+  "abc_classification": "B",
+  "category": "Geral"
+}
+❌ CreatePart Frontend Error: 
+Error {}
+
+🔍 CreatePart Frontend - Sending data: {
+  "title": "teste",
+  "description": "",
+  "internal_code": "",
+  "manufacturer_code": "",
+  "cost_price": "100",
+  "sale_price": "200",
+  "margin_percentage": "",
+  "abc_classification": "B",
+  "category": "Geral"
+}
+❌ CreatePart Frontend Error: 
+Error {}
+message: "400: {"error":"Validation Error","message":"Campos obrigatórios não preenchidos","required":["internal_code","manufacturer_code","title","cost_price","sale_price"],"received":{"internal_code":"","manufacturer_code":"","title":"teste","cost_price":"100","sale_price":"200"}}"
+stack: "Error: 400: {"error":"Validation Error","message":"Campos obrigatórios não preenchidos","required":["internal_code","manufacturer_code","title","cost_price","sale_price"],"received":{"internal_code":"","manufacturer_code":"","title":"teste","cost_price":"100","sale_price":"200"}}↵ at throwIfResNotOk (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/lib/queryClient.ts:27:11)↵ at async apiRequest (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/lib/queryClient.ts:57:3)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

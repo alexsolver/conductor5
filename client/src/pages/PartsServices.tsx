@@ -303,50 +303,57 @@ export default function PartsServices() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="part-title" className="text-right">Título</Label>
+                <Label htmlFor="part-title" className="text-right">Título <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-title" 
                   value={newPart.title} 
                   onChange={(e) => setNewPart({...newPart, title: e.target.value})} 
                   className="col-span-3" 
+                  placeholder="Nome da peça"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="part-code" className="text-right">Código Interno</Label>
+                <Label htmlFor="part-code" className="text-right">Código Interno <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-code" 
                   value={newPart.internal_code} 
                   onChange={(e) => setNewPart({...newPart, internal_code: e.target.value})} 
                   className="col-span-3" 
+                  placeholder="Ex: P001"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="part-manufacturer" className="text-right">Código Fabricante</Label>
+                <Label htmlFor="part-manufacturer" className="text-right">Código Fabricante <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-manufacturer" 
                   value={newPart.manufacturer_code} 
                   onChange={(e) => setNewPart({...newPart, manufacturer_code: e.target.value})} 
                   className="col-span-3" 
+                  placeholder="Ex: MFG001"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="part-cost" className="text-right">Custo</Label>
+                <Label htmlFor="part-cost" className="text-right">Preço de Custo <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-cost" 
                   type="number" 
                   value={newPart.cost_price} 
                   onChange={(e) => setNewPart({...newPart, cost_price: e.target.value})} 
-                  className="col-span-3" 
+                  className="col-span-3"
+                  placeholder="0.00"
+                  step="0.01"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="part-sale" className="text-right">Venda</Label>
+                <Label htmlFor="part-sale" className="text-right">Preço de Venda <span className="text-red-500">*</span></Label>
                 <Input 
                   id="part-sale" 
                   type="number" 
                   value={newPart.sale_price} 
                   onChange={(e) => setNewPart({...newPart, sale_price: e.target.value})} 
-                  className="col-span-3" 
+                  className="col-span-3"
+                  placeholder="0.00"
+                  step="0.01"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -377,6 +384,15 @@ export default function PartsServices() {
                 type="button" 
                 onClick={(e) => {
                   e.preventDefault();
+                  // Validação frontend antes de enviar
+                  if (!newPart.title || !newPart.internal_code || !newPart.manufacturer_code || !newPart.cost_price || !newPart.sale_price) {
+                    toast({
+                      title: "Campos obrigatórios não preenchidos",
+                      description: "Preencha: Título, Código Interno, Código Fabricante, Custo e Venda",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
                   createPartMutation.mutate(newPart);
                 }} 
                 disabled={createPartMutation.isPending}
