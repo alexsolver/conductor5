@@ -262,6 +262,293 @@ export class DirectPartsServicesRepository implements PartsServicesRepository {
     }
   }
 
+  // =====================================================
+  // TODOS OS MÉTODOS COMPLETE PARA OS 11 MÓDULOS
+  // =====================================================
+
+  // MÓDULO 5: Integração com Serviços (Service Integrations)
+  async createServiceIntegration(tenantId: string, data: any): Promise<any> {
+    return this.createServiceIntegrationComplete(tenantId, data);
+  }
+
+  async createWorkOrderIntegration(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.work_order_integrations (tenant_id, work_order_id, integration_id, sync_status)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [tenantId, data.workOrderId, data.integrationId, data.syncStatus || 'pending']
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Work order integration creation failed:', error);
+      return null;
+    }
+  }
+
+  // MÓDULO 6: Logística (Transfers & Returns)
+  async createTransfer(tenantId: string, data: any): Promise<any> {
+    return this.createTransferComplete(tenantId, data);
+  }
+
+  async createTransferComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.transfers (tenant_id, transfer_number, transfer_type, from_location, to_location, status)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.transferNumber || 'TRF-' + Date.now(), data.transferType || 'internal', data.fromLocation, data.toLocation, data.status || 'pending']
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Transfer creation failed:', error);
+      return null;
+    }
+  }
+
+  async createReturn(tenantId: string, data: any): Promise<any> {
+    return this.createReturnComplete(tenantId, data);
+  }
+
+  async createReturnComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.returns (tenant_id, return_number, reason, status, requested_by)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.returnNumber || 'RET-' + Date.now(), data.reason, data.status || 'pending', data.requestedBy]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Return creation failed:', error);
+      return null;
+    }
+  }
+
+  // MÓDULO 7: Controle de Ativos (Assets)
+  async createAssetMaintenance(tenantId: string, data: any): Promise<any> {
+    return this.createAssetMaintenanceComplete(tenantId, data);
+  }
+
+  async createAssetMaintenanceComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.asset_maintenance (tenant_id, asset_id, maintenance_type, scheduled_date, status)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.assetId, data.maintenanceType || 'preventive', data.scheduledDate, data.status || 'scheduled']
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Asset maintenance creation failed:', error);
+      return null;
+    }
+  }
+
+  async createAssetMovement(tenantId: string, data: any): Promise<any> {
+    return this.createAssetMovementComplete(tenantId, data);
+  }
+
+  async createAssetMovementComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.asset_movements (tenant_id, asset_id, from_location, to_location, movement_date, reason)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.assetId, data.fromLocation, data.toLocation, data.movementDate || new Date(), data.reason]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Asset movement creation failed:', error);
+      return null;
+    }
+  }
+
+  // MÓDULO 8: Lista de Preços (LPU)
+  async createPriceListItem(tenantId: string, data: any): Promise<any> {
+    return this.createPriceListItemComplete(tenantId, data);
+  }
+
+  async createPriceListItemComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.price_list_items (tenant_id, price_list_id, item_code, description, unit_price)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.priceListId, data.itemCode, data.description, data.unitPrice]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Price list item creation failed:', error);
+      return null;
+    }
+  }
+
+  // MÓDULO 9: Funcionalidades Avançadas de Preço
+  async createPricingTable(tenantId: string, data: any): Promise<any> {
+    return this.createPricingTableComplete(tenantId, data);
+  }
+
+  async createPricingTableComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.pricing_tables (tenant_id, name, table_type, rules, is_active)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.name, data.tableType || 'standard', JSON.stringify(data.rules || {}), data.isActive !== false]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Pricing table creation failed:', error);
+      return null;
+    }
+  }
+
+  async createPricingRule(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.pricing_rules (tenant_id, rule_name, condition, action, priority)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.ruleName, JSON.stringify(data.condition || {}), JSON.stringify(data.action || {}), data.priority || 1]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Pricing rule creation failed:', error);
+      return null;
+    }
+  }
+
+  async createPriceHistory(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.price_history (tenant_id, item_id, old_price, new_price, change_reason, changed_by)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.itemId, data.oldPrice, data.newPrice, data.changeReason, data.changedBy]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Price history creation failed:', error);
+      return null;
+    }
+  }
+
+  // MÓDULO 10: Compliance e Auditoria  
+  async createAuditLog(tenantId: string, data: any): Promise<any> {
+    return this.createAuditLogComplete(tenantId, data);
+  }
+
+  async createAuditLogComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.audit_logs (tenant_id, action, table_name, record_id, user_id, changes)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.action, data.tableName, data.recordId, data.userId, JSON.stringify(data.changes || {})]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Audit log creation failed:', error);
+      return null;
+    }
+  }
+
+  async createCertification(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.certifications (tenant_id, name, issuer, valid_from, valid_until, status)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.name, data.issuer, data.validFrom, data.validUntil, data.status || 'active']
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Certification creation failed:', error);
+      return null;
+    }
+  }
+
+  async createComplianceAlert(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.compliance_alerts (tenant_id, alert_type, severity, message, status)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.alertType, data.severity || 'medium', data.message, data.status || 'active']
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Compliance alert creation failed:', error);
+      return null;
+    }
+  }
+
+  // MÓDULO 11: Diferenciais Avançados
+  async createBudgetSimulation(tenantId: string, data: any): Promise<any> {
+    return this.createBudgetSimulationComplete(tenantId, data);
+  }
+
+  async createBudgetSimulationComplete(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.budget_simulations (tenant_id, simulation_name, total_budget, status, created_by)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.simulationName, data.totalBudget || 0, data.status || 'draft', data.createdBy]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Budget simulation creation failed:', error);
+      return null;
+    }
+  }
+
+  async createDashboardConfig(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.dashboard_configs (tenant_id, config_name, layout_config, user_id, is_default)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tenantId, data.configName, JSON.stringify(data.layoutConfig || {}), data.userId, data.isDefault || false]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Dashboard config creation failed:', error);
+      return null;
+    }
+  }
+
+  async createIntegrationApi(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.integration_apis (tenant_id, name, endpoint, method, auth_type, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.name, data.endpoint, data.method || 'POST', data.authType || 'API_KEY', data.isActive !== false]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Integration API creation failed:', error);
+      return null;
+    }
+  }
+
+  async createOfflineSync(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    try {
+      const result = await pool.query(
+        `INSERT INTO ${schema}.offline_sync (tenant_id, user_id, table_name, record_id, action, status)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [tenantId, data.userId, data.tableName, data.recordId, data.action, data.status || 'pending']
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.log('Offline sync creation failed:', error);
+      return null;
+    }
+  }
+
   // Métodos adicionais para compatibilidade
   async updateActivityType(id: string, tenantId: string, data: Partial<InsertActivityType>): Promise<ActivityType | null> {
     const schema = this.getTenantSchema(tenantId);
