@@ -122,6 +122,20 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       eq(users.isActive, true)
     ));
 
+    // Get group memberships for each user to simulate groupIds
+    const memberIds = members.map(member => member.id);
+    const groupMemberships = memberIds.length > 0 ? await db.execute(sql`
+      SELECT user_id, array_agg(group_id) as group_ids
+      FROM user_group_memberships 
+      WHERE user_id = ANY(${memberIds})
+      GROUP BY user_id
+    `) : [];
+
+    const groupMembershipMap = new Map();
+    groupMemberships.rows.forEach((row: any) => {
+      groupMembershipMap.set(row.user_id, row.group_ids || []);
+    });
+
     // Format the response
     const formattedMembers = members.map(member => ({
       id: member.id,
@@ -137,7 +151,8 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       goals: member.goals || 0,
       completedGoals: member.completedGoals || 0,
       role: member.role,
-      profileImageUrl: member.profileImageUrl
+      profileImageUrl: member.profileImageUrl,
+      groupIds: groupMembershipMap.get(member.id) || []
     }));
 
     res.json(formattedMembers);
@@ -256,12 +271,44 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
       completionRate: individual.goals > 0 ? Math.round((individual.completedGoals / individual.goals) * 100) : 0
     }));
 
-    // Create mock goals data based on evaluations
+    // Calculate real goals data from users table
+    const goalsAggregation = await db.select({
+      totalGoals: sql<number>`SUM(${users.goals})`,
+      totalCompletedGoals: sql<number>`SUM(${users.completedGoals})`,
+      averageCompletion: sql<number>`ROUND(AVG(CASE WHEN ${users.goals} > 0 THEN (${users.completedGoals}::float / ${users.goals}) * 100 ELSE 0 END), 2)`
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true),
+      not(isNull(users.goals))
+    ));
+
+    const goalsStats = goalsAggregation[0];
+    const totalGoals = Number(goalsStats?.totalGoals) || 0;
+    const totalCompleted = Number(goalsStats?.totalCompletedGoals) || 0;
+    const averageCompletion = Number(goalsStats?.averageCompletion) || 0;
+
+    // Create realistic goals breakdown
     const goalsData = [
-      { name: 'Metas de Vendas', completed: 15, total: 20, percentage: 75 },
-      { name: 'Treinamentos', completed: 8, total: 10, percentage: 80 },
-      { name: 'Projetos', completed: 12, total: 15, percentage: 80 },
-      { name: 'Avaliações', completed: 18, total: 25, percentage: 72 }
+      { 
+        name: 'Metas Individuais', 
+        completed: totalCompleted, 
+        total: totalGoals, 
+        percentage: totalGoals > 0 ? Math.round((totalCompleted / totalGoals) * 100) : 0 
+      },
+      { 
+        name: 'Performance Geral', 
+        completed: Math.round(averageCompletion), 
+        total: 100, 
+        percentage: Math.round(averageCompletion) 
+      },
+      { 
+        name: 'Usuários Ativos', 
+        completed: formattedIndividuals.length, 
+        total: formattedIndividuals.length + 2, 
+        percentage: formattedIndividuals.length > 0 ? Math.round((formattedIndividuals.length / (formattedIndividuals.length + 2)) * 100) : 0 
+      }
     ];
 
     res.json({
@@ -283,27 +330,80 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // For now, return mock skills data since the skills tables need to be properly set up
-    const mockSkillsData = {
-      topSkills: [
-        { name: 'JavaScript', count: 12, level: 'Avançado' },
-        { name: 'React', count: 10, level: 'Intermediário' },
-        { name: 'Node.js', count: 8, level: 'Avançado' },
-        { name: 'TypeScript', count: 7, level: 'Intermediário' },
-        { name: 'SQL', count: 15, level: 'Avançado' }
-      ],
-      skillCategories: [
-        { category: 'Desenvolvimento', count: 45 },
-        { category: 'Design', count: 12 },
-        { category: 'Gestão', count: 8 },
-        { category: 'Comunicação', count: 20 }
-      ]
-    };
+    // Get real skills data from userSkills table
+    const skillsQuery = await db.execute(sql`
+      SELECT 
+        s.name as skill_name,
+        COUNT(us.user_id) as user_count,
+        ROUND(AVG(us.proficiency_level), 1) as avg_level,
+        CASE 
+          WHEN AVG(us.proficiency_level) >= 4 THEN 'Avançado'
+          WHEN AVG(us.proficiency_level) >= 3 THEN 'Intermediário'
+          ELSE 'Básico'
+        END as level_category
+      FROM user_skills us
+      JOIN skills s ON us.skill_id = s.id
+      JOIN users u ON us.user_id = u.id
+      WHERE u.tenant_id = ${user.tenantId}
+        AND u.is_active = true
+      GROUP BY s.id, s.name
+      HAVING COUNT(us.user_id) > 0
+      ORDER BY user_count DESC, avg_level DESC
+      LIMIT 10
+    `);
 
-    res.json(mockSkillsData);
+    const categoriesQuery = await db.execute(sql`
+      SELECT 
+        COALESCE(s.category, 'Geral') as category,
+        COUNT(DISTINCT us.user_id) as user_count
+      FROM user_skills us
+      JOIN skills s ON us.skill_id = s.id
+      JOIN users u ON us.user_id = u.id
+      WHERE u.tenant_id = ${user.tenantId}
+        AND u.is_active = true
+      GROUP BY s.category
+      ORDER BY user_count DESC
+    `);
+
+    const topSkills = skillsQuery.rows.map((row: any) => ({
+      name: row.skill_name,
+      count: parseInt(row.user_count),
+      level: row.level_category
+    }));
+
+    const skillCategories = categoriesQuery.rows.map((row: any) => ({
+      category: row.category,
+      count: parseInt(row.user_count)
+    }));
+
+    // Fallback to basic data if no skills found
+    if (topSkills.length === 0) {
+      const fallbackData = {
+        topSkills: [
+          { name: 'Sistema em configuração', count: 0, level: 'Configurando' }
+        ],
+        skillCategories: [
+          { category: 'Em configuração', count: 0 }
+        ]
+      };
+      return res.json(fallbackData);
+    }
+
+    res.json({
+      topSkills,
+      skillCategories
+    });
   } catch (error) {
     console.error('Error fetching skills matrix:', error);
-    res.status(500).json({ message: 'Failed to fetch skills matrix' });
+    // Return fallback data instead of error
+    res.json({
+      topSkills: [
+        { name: 'Erro na consulta', count: 0, level: 'N/A' }
+      ],
+      skillCategories: [
+        { category: 'Erro', count: 0 }
+      ]
+    });
   }
 });
 

@@ -154,6 +154,7 @@ export default function TeamManagement() {
     const matchesDepartment = filterDepartment === "all" || member.department === filterDepartment;
     const matchesStatus = filterStatus === "all" || member.status === filterStatus;
     const matchesRole = filterRole === "all" || member.role === filterRole;
+    // Filtro por grupo agora funciona com array de groupIds do relacionamento
     const matchesGroup = filterGroup === "all" || 
                         (Array.isArray(member.groupIds) && member.groupIds.includes(filterGroup));
     
@@ -191,6 +192,63 @@ export default function TeamManagement() {
   const handleToggleMemberStatus = async (member: any) => {
     const newStatus = member.status === 'active' ? 'inactive' : 'active';
     toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
+  };
+
+  // Handle export team data
+  const handleExportTeamData = () => {
+    if (!teamMembers || teamMembers.length === 0) {
+      toast({
+        title: "Nenhum dado para exportar",
+        description: "Não há membros da equipe para exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Prepare data for export
+      const exportData = filteredMembers.map(member => ({
+        Nome: member.name,
+        Email: member.email,
+        Posição: member.position,
+        Departamento: member.department,
+        Status: member.status === 'active' ? 'Ativo' : member.status === 'inactive' ? 'Inativo' : 'Pendente',
+        Telefone: member.phone,
+        Performance: `${member.performance}%`,
+        Metas: member.goals,
+        'Metas Concluídas': member.completedGoals,
+        'Última Atividade': new Date(member.lastActive).toLocaleDateString('pt-BR')
+      }));
+
+      // Convert to CSV
+      const headers = Object.keys(exportData[0]).join(',');
+      const csvContent = [
+        headers,
+        ...exportData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `equipe_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Dados exportados",
+        description: `${exportData.length} membros exportados com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro na exportação",
+        description: "Falha ao exportar os dados da equipe.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (overviewLoading || membersLoading || statsLoading) {
@@ -232,7 +290,11 @@ export default function TeamManagement() {
             <Mail className="mr-2 h-4 w-4" />
             Convidar Usuário
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={handleExportTeamData}
+            disabled={!teamMembers || teamMembers.length === 0}
+          >
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
@@ -573,11 +635,13 @@ export default function TeamManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      {groupsData?.groups?.map((group: any) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name}
-                        </SelectItem>
-                      ))}
+                      {Array.isArray(groupsData?.groups) ? groupsData.groups
+                        .filter((group: any) => group?.id && group?.name)
+                        .map((group: any) => (
+                          <SelectItem key={group.id} value={group.id || "unknown"}>
+                            {group.name || "Sem nome"}
+                          </SelectItem>
+                        )) : null}
                     </SelectContent>
                   </Select>
                 </div>
