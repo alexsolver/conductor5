@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,13 @@ interface WorkSchedule {
   userName?: string;
 }
 
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 const scheduleTypeLabels = {
   '5x2': '5x2 (Segunda a Sexta)',
   '6x1': '6x1 (Seis dias com folga)',
@@ -54,7 +62,7 @@ export default function WorkSchedules() {
     scheduleType: '5x2',
     startDate: '',
     endDate: '',
-    workDays: [1, 2, 3, 4, 5], // Segunda a sexta por padrão
+    workDays: [1, 2, 3, 4, 5],
     startTime: '08:00',
     endTime: '18:00',
     breakDurationMinutes: 60,
@@ -62,102 +70,122 @@ export default function WorkSchedules() {
   });
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Estado local temporário para escalas
-  const [schedules, setSchedules] = useState<WorkSchedule[]>([
-    {
-      id: '1',
-      userId: '550e8400-e29b-41d4-a716-446655440001',
-      scheduleType: '5x2',
-      startDate: '2025-01-01',
-      workDays: [1, 2, 3, 4, 5],
-      startTime: '08:00',
-      endTime: '18:00',
-      breakDurationMinutes: 60,
-      isActive: true,
-      userName: 'João Silva'
-    }
-  ]);
+  // Buscar todas as escalas
+  const { data: schedulesData, isLoading: schedulesLoading } = useQuery({
+    queryKey: ['/api/timecard/work-schedules'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/work-schedules');
+      return response;
+    },
+  });
 
-  // Estado local para usuários
-  const [users] = useState([
-    { id: '550e8400-e29b-41d4-a716-446655440001', name: 'João Silva' },
-    { id: '550e8400-e29b-41d4-a716-446655440002', name: 'Maria Santos' }
-  ]);
+  // Buscar usuários
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/tenant-admin/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/tenant-admin/users');
+      return response;
+    },
+  });
 
-  // Função para salvar escala (simulada)
-  const handleSaveSchedule = async () => {
-    try {
-      const newSchedule: WorkSchedule = {
-        id: (schedules.length + 1).toString(),
-        userId: formData.userId,
-        scheduleType: formData.scheduleType as '5x2' | '6x1' | '12x36' | 'shift' | 'flexible' | 'intermittent',
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        workDays: formData.workDays,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        breakDurationMinutes: formData.breakDurationMinutes,
-        isActive: formData.isActive,
-        userName: users.find(u => u.id === formData.userId)?.name || ''
-      };
-
-      if (selectedSchedule) {
-        setSchedules(prev => prev.map(s => s.id === selectedSchedule.id ? { ...newSchedule, id: selectedSchedule.id } : s));
-        toast({
-          title: 'Escala atualizada!',
-          description: 'A escala de trabalho foi atualizada com sucesso.',
-        });
-      } else {
-        setSchedules(prev => [...prev, newSchedule]);
-        toast({
-          title: 'Escala criada!',
-          description: 'A escala de trabalho foi criada com sucesso.',
-        });
-      }
-
-      setIsDialogOpen(false);
-      setSelectedSchedule(null);
-      setFormData({
-        userId: '',
-        scheduleType: '5x2',
-        startDate: '',
-        endDate: '',
-        workDays: [1, 2, 3, 4, 5],
-        startTime: '08:00',
-        endTime: '18:00',
-        breakDurationMinutes: 60,
-        isActive: true
-      });
-    } catch (error) {
+  // Criar escala
+  const createScheduleMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('POST', '/api/timecard/work-schedules', data);
+    },
+    onSuccess: () => {
       toast({
-        title: 'Erro ao salvar escala',
-        description: 'Tente novamente em alguns instantes.',
+        title: 'Escala criada!',
+        description: 'A escala de trabalho foi criada com sucesso.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao criar escala',
+        description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
-    }
-  };
+    },
+  });
 
-  // Função para excluir escala (simulada)
-  const handleDeleteSchedule = async (id: string) => {
-    try {
-      setSchedules(prev => prev.filter(s => s.id !== id));
+  // Atualizar escala
+  const updateScheduleMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return await apiRequest('PUT', `/api/timecard/work-schedules/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Escala atualizada!',
+        description: 'A escala de trabalho foi atualizada com sucesso.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao atualizar escala',
+        description: error.message || 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Excluir escala
+  const deleteScheduleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/timecard/work-schedules/${id}`);
+    },
+    onSuccess: () => {
       toast({
         title: 'Escala excluída!',
         description: 'A escala foi removida com sucesso.',
       });
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+    },
+    onError: (error: any) => {
       toast({
         title: 'Erro ao excluir escala',
-        description: 'Tente novamente em alguns instantes.',
+        description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
-    }
+    },
+  });
+
+  const schedules = schedulesData?.schedules || [];
+  const users = usersData?.users || [];
+
+  const resetForm = () => {
+    setSelectedSchedule(null);
+    setFormData({
+      userId: '',
+      scheduleType: '5x2',
+      startDate: '',
+      endDate: '',
+      workDays: [1, 2, 3, 4, 5],
+      startTime: '08:00',
+      endTime: '18:00',
+      breakDurationMinutes: 60,
+      isActive: true
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleSaveSchedule();
+    
+    if (selectedSchedule) {
+      updateScheduleMutation.mutate({
+        id: selectedSchedule.id,
+        data: formData
+      });
+    } else {
+      createScheduleMutation.mutate(formData);
+    }
   };
 
   const handleEdit = (schedule: WorkSchedule) => {
@@ -177,19 +205,14 @@ export default function WorkSchedules() {
   };
 
   const handleNew = () => {
-    setSelectedSchedule(null);
-    setFormData({
-      userId: '',
-      scheduleType: '5x2',
-      startDate: '',
-      endDate: '',
-      workDays: [1, 2, 3, 4, 5],
-      startTime: '08:00',
-      endTime: '18:00',
-      breakDurationMinutes: 60,
-      isActive: true
-    });
+    resetForm();
     setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta escala?')) {
+      deleteScheduleMutation.mutate(id);
+    }
   };
 
   const getWorkDaysText = (workDays: number[]) => {
@@ -204,7 +227,15 @@ export default function WorkSchedules() {
     );
   };
 
-
+  if (schedulesLoading) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Carregando escalas...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-6">
@@ -232,9 +263,9 @@ export default function WorkSchedules() {
                       <SelectValue placeholder="Selecione o funcionário" />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map((user: any) => (
+                      {users.map((user: User) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.name}
+                          {user.firstName} {user.lastName}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -336,8 +367,11 @@ export default function WorkSchedules() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  Salvar
+                <Button 
+                  type="submit" 
+                  disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}
+                >
+                  {(createScheduleMutation.isPending || updateScheduleMutation.isPending) ? 'Salvando...' : 'Salvar'}
                 </Button>
               </div>
             </form>
@@ -346,8 +380,8 @@ export default function WorkSchedules() {
       </div>
 
       <div className="grid gap-4">
-        {(schedules as any)?.length > 0 ? (
-          (schedules as WorkSchedule[]).map((schedule: WorkSchedule) => (
+        {schedules.length > 0 ? (
+          schedules.map((schedule: WorkSchedule) => (
             <Card key={schedule.id}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
@@ -393,7 +427,8 @@ export default function WorkSchedules() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteSchedule(schedule.id)}
+                      onClick={() => handleDelete(schedule.id)}
+                      disabled={deleteScheduleMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

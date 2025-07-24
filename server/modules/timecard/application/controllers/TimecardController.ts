@@ -1,415 +1,494 @@
+
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
-import { randomUUID } from 'crypto';
+import { z } from 'zod';
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
+
+// Validation schemas
+const createTimecardEntrySchema = z.object({
+  userId: z.string().uuid(),
+  checkIn: z.string().datetime(),
+  checkOut: z.string().datetime().optional(),
+  breakStart: z.string().datetime().optional(),
+  breakEnd: z.string().datetime().optional(),
+  notes: z.string().optional(),
+  location: z.string().optional(),
+  isManualEntry: z.boolean().default(false),
+});
+
+const createWorkScheduleSchema = z.object({
+  userId: z.string().uuid(),
+  scheduleType: z.enum(['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent']),
+  startDate: z.string(),
+  endDate: z.string().optional(),
+  workDays: z.array(z.number().min(0).max(6)),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  breakDurationMinutes: z.number().min(0).default(60),
+  isActive: z.boolean().default(true),
+});
+
+const createAbsenceRequestSchema = z.object({
+  userId: z.string().uuid(),
+  absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence']),
+  startDate: z.string(),
+  endDate: z.string(),
+  reason: z.string().min(10),
+  medicalCertificate: z.string().optional(),
+  coverUserId: z.string().uuid().optional(),
+});
+
+const createScheduleTemplateSchema = z.object({
+  name: z.string().min(3),
+  description: z.string().optional(),
+  category: z.enum(['fixed', 'rotating', 'flexible', 'shift']),
+  scheduleType: z.string(),
+  rotationCycleDays: z.number().optional(),
+  configuration: z.object({
+    workDays: z.array(z.number()),
+    startTime: z.string(),
+    endTime: z.string(),
+    breakDuration: z.number(),
+    flexTimeWindow: z.number().optional(),
+  }),
+  requiresApproval: z.boolean().default(true),
+});
+
+const createFlexibleWorkArrangementSchema = z.object({
+  userId: z.string().uuid(),
+  arrangementType: z.enum(['remote_work', 'flexible_hours', 'compressed_week']),
+  startDate: z.string(),
+  endDate: z.string().optional(),
+  workingHours: z.object({}).optional(),
+  workLocation: z.string().optional(),
+  justification: z.string().min(10),
+});
 
 export class TimecardController {
-  
-  // Current Status - Get user's current timecard status
-  async getCurrentStatus(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.params.userId || req.user?.id;
-      
-      if (!tenantId || !userId) {
-        return res.status(400).json({ message: 'Tenant ID and User ID required' });
-      }
+  private timecardRepository: DrizzleTimecardRepository;
 
-      // Mock response for now - replace with actual database query
-      const currentStatus = {
-        status: 'not_started',
-        todayRecords: [],
-        timesheet: null,
-        lastRecord: null
-      };
-
-      res.json(currentStatus);
-    } catch (error) {
-      console.error('Error getting current status:', error);
-      res.status(500).json({ message: 'Failed to get current status' });
-    }
+  constructor() {
+    this.timecardRepository = new DrizzleTimecardRepository();
   }
 
-  // Create Time Record - Clock in/out, breaks
-  async createTimeRecord(req: AuthenticatedRequest, res: Response) {
+  // Timecard Entries
+  createTimecardEntry = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
-      
-      if (!tenantId || !userId) {
-        return res.status(400).json({ message: 'Tenant ID and User ID required' });
+      const { tenantId } = (req as any).user;
+      const validatedData = createTimecardEntrySchema.parse(req.body);
+
+      const entry = await this.timecardRepository.createTimecardEntry({
+        ...validatedData,
+        tenantId,
+        checkIn: new Date(validatedData.checkIn),
+        checkOut: validatedData.checkOut ? new Date(validatedData.checkOut) : null,
+        breakStart: validatedData.breakStart ? new Date(validatedData.breakStart) : null,
+        breakEnd: validatedData.breakEnd ? new Date(validatedData.breakEnd) : null,
+      });
+
+      res.status(201).json(entry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
       }
+      console.error('Error creating timecard entry:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
 
-      const { recordType, deviceType, location, notes } = req.body;
+  getTimecardEntriesByUser = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+      const { userId } = req.params;
+      const { startDate, endDate } = req.query;
 
-      // Mock response for now - replace with actual database insert
-      const timeRecord = {
-        id: randomUUID(),
+      const entries = await this.timecardRepository.getTimecardEntriesByUser(
         userId,
         tenantId,
-        recordDateTime: new Date().toISOString(),
-        recordType,
-        deviceType,
-        location,
-        notes,
-        createdAt: new Date().toISOString()
-      };
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined
+      );
 
-      res.json(timeRecord);
+      res.json({ entries });
     } catch (error) {
-      console.error('Error creating time record:', error);
-      res.status(500).json({ message: 'Failed to create time record' });
+      console.error('Error fetching timecard entries:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Get User Time Records
-  async getUserTimeRecords(req: AuthenticatedRequest, res: Response) {
+  updateTimecardEntry = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.params.userId;
-      
-      if (!tenantId || !userId) {
-        return res.status(400).json({ message: 'Tenant ID and User ID required' });
-      }
+      const { tenantId } = (req as any).user;
+      const { id } = req.params;
 
-      // Mock response for now
-      res.json([]);
+      const entry = await this.timecardRepository.updateTimecardEntry(id, tenantId, req.body);
+      res.json(entry);
     } catch (error) {
-      console.error('Error getting user time records:', error);
-      res.status(500).json({ message: 'Failed to get time records' });
+      console.error('Error updating timecard entry:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Generate Timesheet
-  async generateTimesheet(req: AuthenticatedRequest, res: Response) {
+  deleteTimecardEntry = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.params.userId;
-      
-      if (!tenantId || !userId) {
-        return res.status(400).json({ message: 'Tenant ID and User ID required' });
-      }
+      const { tenantId } = (req as any).user;
+      const { id } = req.params;
 
-      // Mock response for now
-      res.json({ message: 'Timesheet generation not implemented yet' });
+      await this.timecardRepository.deleteTimecardEntry(id, tenantId);
+      res.status(204).send();
     } catch (error) {
-      console.error('Error generating timesheet:', error);
-      res.status(500).json({ message: 'Failed to generate timesheet' });
+      console.error('Error deleting timecard entry:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Get User Timesheets
-  async getUserTimesheets(req: AuthenticatedRequest, res: Response) {
+  // Work Schedules
+  createWorkSchedule = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.params.userId;
-      
-      if (!tenantId || !userId) {
-        return res.status(400).json({ message: 'Tenant ID and User ID required' });
-      }
+      const { tenantId } = (req as any).user;
+      const validatedData = createWorkScheduleSchema.parse(req.body);
 
-      // Mock response for now
-      res.json([]);
-    } catch (error) {
-      console.error('Error getting user timesheets:', error);
-      res.status(500).json({ message: 'Failed to get timesheets' });
-    }
-  }
-
-  // Approve Timesheet
-  async approveTimesheet(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      const timesheetId = req.params.timesheetId;
-      
-      if (!tenantId || !timesheetId) {
-        return res.status(400).json({ message: 'Tenant ID and Timesheet ID required' });
-      }
-
-      // Mock response for now
-      res.json({ message: 'Timesheet approval not implemented yet' });
-    } catch (error) {
-      console.error('Error approving timesheet:', error);
-      res.status(500).json({ message: 'Failed to approve timesheet' });
-    }
-  }
-
-  // Sign Timesheet
-  async signTimesheet(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      const timesheetId = req.params.timesheetId;
-      
-      if (!tenantId || !timesheetId) {
-        return res.status(400).json({ message: 'Tenant ID and Timesheet ID required' });
-      }
-
-      // Mock response for now
-      res.json({ message: 'Timesheet signing not implemented yet' });
-    } catch (error) {
-      console.error('Error signing timesheet:', error);
-      res.status(500).json({ message: 'Failed to sign timesheet' });
-    }
-  }
-
-  // Get Hour Bank
-  async getHourBank(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.params.userId;
-      
-      if (!tenantId || !userId) {
-        return res.status(400).json({ message: 'Tenant ID and User ID required' });
-      }
-
-      // Mock response for now
-      res.json({
-        balance: 0,
-        movements: []
+      const schedule = await this.timecardRepository.createWorkSchedule({
+        ...validatedData,
+        tenantId,
       });
-    } catch (error) {
-      console.error('Error getting hour bank:', error);
-      res.status(500).json({ message: 'Failed to get hour bank' });
-    }
-  }
 
-  // Create Work Schedule
-  async createWorkSchedule(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      
-      if (!tenantId) {
-        return res.status(400).json({ message: 'Tenant ID required' });
+      res.status(201).json(schedule);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
       }
-
-      // Mock response for now
-      res.json({ message: 'Work schedule creation not implemented yet' });
-    } catch (error) {
       console.error('Error creating work schedule:', error);
-      res.status(500).json({ message: 'Failed to create work schedule' });
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Get Work Schedules
-  async getWorkSchedules(req: AuthenticatedRequest, res: Response) {
+  getWorkSchedulesByUser = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      
-      if (!tenantId) {
-        return res.status(400).json({ message: 'Tenant ID required' });
-      }
+      const { tenantId } = (req as any).user;
+      const { userId } = req.params;
 
-      // Mock response for now
-      res.json([]);
+      const schedules = await this.timecardRepository.getWorkSchedulesByUser(userId, tenantId);
+      res.json({ schedules });
     } catch (error) {
-      console.error('Error getting work schedules:', error);
-      res.status(500).json({ message: 'Failed to get work schedules' });
+      console.error('Error fetching work schedules:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Get Active Alerts
-  async getActiveAlerts(req: AuthenticatedRequest, res: Response) {
+  getAllWorkSchedules = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      
-      if (!tenantId) {
-        return res.status(400).json({ message: 'Tenant ID required' });
-      }
+      const { tenantId } = (req as any).user;
 
-      // Mock response for now
-      res.json([]);
+      const schedules = await this.timecardRepository.getAllWorkSchedules(tenantId);
+      res.json({ schedules });
     } catch (error) {
-      console.error('Error getting active alerts:', error);
-      res.status(500).json({ message: 'Failed to get active alerts' });
+      console.error('Error fetching all work schedules:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Resolve Alert
-  async resolveAlert(req: AuthenticatedRequest, res: Response) {
+  updateWorkSchedule = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const alertId = req.params.alertId;
-      
-      if (!tenantId || !alertId) {
-        return res.status(400).json({ message: 'Tenant ID and Alert ID required' });
-      }
+      const { tenantId } = (req as any).user;
+      const { id } = req.params;
 
-      // Mock response for now
-      res.json({ message: 'Alert resolution not implemented yet' });
+      const schedule = await this.timecardRepository.updateWorkSchedule(id, tenantId, req.body);
+      res.json(schedule);
     } catch (error) {
-      console.error('Error resolving alert:', error);
-      res.status(500).json({ message: 'Failed to resolve alert' });
+      console.error('Error updating work schedule:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
+
+  deleteWorkSchedule = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+      const { id } = req.params;
+
+      await this.timecardRepository.deleteWorkSchedule(id, tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting work schedule:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
 
   // Absence Requests
-  async createAbsenceRequest(req: AuthenticatedRequest, res: Response) {
+  createAbsenceRequest = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Absence request creation not implemented yet' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to create absence request' });
-    }
-  }
+      const { tenantId } = (req as any).user;
+      const validatedData = createAbsenceRequestSchema.parse(req.body);
 
-  async getUserAbsenceRequests(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get absence requests' });
-    }
-  }
+      const request = await this.timecardRepository.createAbsenceRequest({
+        ...validatedData,
+        tenantId,
+        status: 'pending',
+      });
 
-  async getPendingAbsenceRequests(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
+      res.status(201).json(request);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get pending requests' });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
+      }
+      console.error('Error creating absence request:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  async approveAbsenceRequest(req: AuthenticatedRequest, res: Response) {
+  getAbsenceRequestsByUser = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Absence request approval not implemented yet' });
+      const { tenantId } = (req as any).user;
+      const { userId } = req.params;
+
+      const requests = await this.timecardRepository.getAbsenceRequestsByUser(userId, tenantId);
+      res.json({ requests });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to approve request' });
+      console.error('Error fetching absence requests:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
+
+  getPendingAbsenceRequests = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+
+      const requests = await this.timecardRepository.getPendingAbsenceRequests(tenantId);
+      res.json({ requests });
+    } catch (error) {
+      console.error('Error fetching pending absence requests:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
+  approveAbsenceRequest = async (req: Request, res: Response) => {
+    try {
+      const { tenantId, id: approvedBy } = (req as any).user;
+      const { id } = req.params;
+
+      const request = await this.timecardRepository.approveAbsenceRequest(id, tenantId, approvedBy);
+      res.json(request);
+    } catch (error) {
+      console.error('Error approving absence request:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
+  rejectAbsenceRequest = async (req: Request, res: Response) => {
+    try {
+      const { tenantId, id: approvedBy } = (req as any).user;
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      if (!reason) {
+        return res.status(400).json({ message: 'Motivo da rejeição é obrigatório' });
+      }
+
+      const request = await this.timecardRepository.rejectAbsenceRequest(id, tenantId, approvedBy, reason);
+      res.json(request);
+    } catch (error) {
+      console.error('Error rejecting absence request:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
 
   // Schedule Templates
-  async createScheduleTemplate(req: AuthenticatedRequest, res: Response) {
+  createScheduleTemplate = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Schedule template creation not implemented yet' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to create template' });
-    }
-  }
+      const { tenantId, id: createdBy } = (req as any).user;
+      const validatedData = createScheduleTemplateSchema.parse(req.body);
 
-  async getScheduleTemplates(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get templates' });
-    }
-  }
+      const template = await this.timecardRepository.createScheduleTemplate({
+        ...validatedData,
+        tenantId,
+        createdBy,
+      });
 
-  // Additional methods for advanced features
-  async applyScheduleToMultipleUsers(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json({ message: 'Bulk schedule application not implemented yet' });
+      res.status(201).json(template);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to apply schedule' });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
+      }
+      console.error('Error creating schedule template:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  async getAvailableUsers(req: AuthenticatedRequest, res: Response) {
+  getScheduleTemplates = async (req: Request, res: Response) => {
     try {
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get available users' });
-    }
-  }
+      const { tenantId } = (req as any).user;
 
-  async getSchedulesByUsers(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
+      const templates = await this.timecardRepository.getScheduleTemplates(tenantId);
+      res.json({ templates });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get schedules by users' });
+      console.error('Error fetching schedule templates:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  async getTemplateApplicationHistory(req: AuthenticatedRequest, res: Response) {
+  updateScheduleTemplate = async (req: Request, res: Response) => {
     try {
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get template history' });
-    }
-  }
+      const { tenantId } = (req as any).user;
+      const { id } = req.params;
 
-  async removeScheduleFromMultipleUsers(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json({ message: 'Schedule removal not implemented yet' });
+      const template = await this.timecardRepository.updateScheduleTemplate(id, tenantId, req.body);
+      res.json(template);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to remove schedule' });
+      console.error('Error updating schedule template:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  async createShiftSwapRequest(req: AuthenticatedRequest, res: Response) {
+  deleteScheduleTemplate = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Shift swap request creation not implemented yet' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to create shift swap' });
-    }
-  }
+      const { tenantId } = (req as any).user;
+      const { id } = req.params;
 
-  async getShiftSwapRequests(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
+      await this.timecardRepository.deleteScheduleTemplate(id, tenantId);
+      res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get shift swap requests' });
+      console.error('Error deleting schedule template:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  async createFlexibleWorkArrangement(req: AuthenticatedRequest, res: Response) {
+  // Hour Bank
+  getHourBankByUser = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Flexible work arrangement creation not implemented yet' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to create arrangement' });
-    }
-  }
+      const { tenantId } = (req as any).user;
+      const { userId } = req.params;
+      const { year, month } = req.query;
 
-  async getFlexibleWorkArrangements(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get arrangements' });
-    }
-  }
+      const entries = await this.timecardRepository.getHourBankByUser(
+        userId,
+        tenantId,
+        year ? parseInt(year as string) : undefined,
+        month ? parseInt(month as string) : undefined
+      );
 
-  async getUserNotifications(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get notifications' });
-    }
-  }
+      const balance = await this.timecardRepository.calculateHourBankBalance(userId, tenantId);
 
-  async markNotificationAsRead(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json({ message: 'Notification marked as read' });
+      res.json({ entries, balance });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to mark notification' });
+      console.error('Error fetching hour bank:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  // Reports
-  async getUserWorkingHoursReport(req: AuthenticatedRequest, res: Response) {
+  // Flexible Work Arrangements
+  createFlexibleWorkArrangement = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Working hours report not implemented yet' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get working hours report' });
-    }
-  }
+      const { tenantId } = (req as any).user;
+      const validatedData = createFlexibleWorkArrangementSchema.parse(req.body);
 
-  async getTenantOvertimeReport(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json({ message: 'Overtime report not implemented yet' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to get overtime report' });
-    }
-  }
+      const arrangement = await this.timecardRepository.createFlexibleWorkArrangement({
+        ...validatedData,
+        tenantId,
+        status: 'pending',
+      });
 
-  async getAttendanceReport(req: AuthenticatedRequest, res: Response) {
-    try {
-      res.json({ message: 'Attendance report not implemented yet' });
+      res.status(201).json(arrangement);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get attendance report' });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
+      }
+      console.error('Error creating flexible work arrangement:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
 
-  async getComplianceReport(req: AuthenticatedRequest, res: Response) {
+  getFlexibleWorkArrangements = async (req: Request, res: Response) => {
     try {
-      res.json({ message: 'Compliance report not implemented yet' });
+      const { tenantId } = (req as any).user;
+
+      const arrangements = await this.timecardRepository.getFlexibleWorkArrangements(tenantId);
+      res.json({ arrangements });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get compliance report' });
+      console.error('Error fetching flexible work arrangements:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  };
+
+  // Notifications for users  
+  getUserNotifications = async (req: Request, res: Response) => {
+    try {
+      const { tenantId, id: userId } = (req as any).user;
+      const { unreadOnly } = req.query;
+
+      // Mock implementation - você pode implementar um sistema real de notificações
+      const notifications = [
+        {
+          id: '1',
+          type: 'absence_request_approved',
+          title: 'Solicitação de férias aprovada',
+          message: 'Sua solicitação de férias de 15-20/12 foi aprovada.',
+          read: false,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          type: 'schedule_changed',
+          title: 'Escala alterada',
+          message: 'Sua escala foi alterada para começar às 09:00.',
+          read: unreadOnly === 'true' ? false : true,
+          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        }
+      ];
+
+      const filteredNotifications = unreadOnly === 'true' 
+        ? notifications.filter(n => !n.read)
+        : notifications;
+
+      res.json({ notifications: filteredNotifications });
+    } catch (error) {
+      console.error('Error fetching user notifications:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
+  markNotificationAsRead = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      // Mock implementation - implementar lógica real de marcação
+      res.json({ success: true, message: 'Notificação marcada como lida' });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
+  // Shift Swap Requests
+  createShiftSwapRequest = async (req: Request, res: Response) => {
+    try {
+      const { tenantId, id: requesterId } = (req as any).user;
+      const { targetUserId, originalShiftDate, proposedShiftDate, reason } = req.body;
+
+      const request = await this.timecardRepository.createShiftSwapRequest({
+        tenantId,
+        requesterId,
+        targetUserId,
+        originalShiftDate,
+        proposedShiftDate,
+        reason,
+        status: 'pending',
+      });
+
+      res.status(201).json(request);
+    } catch (error) {
+      console.error('Error creating shift swap request:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
+  getShiftSwapRequests = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+
+      const requests = await this.timecardRepository.getShiftSwapRequests(tenantId);
+      res.json({ requests });
+    } catch (error) {
+      console.error('Error fetching shift swap requests:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
 }

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +36,25 @@ const scheduleTemplateSchema = z.object({
 });
 
 type ScheduleTemplateFormData = z.infer<typeof scheduleTemplateSchema>;
+
+interface ScheduleTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  scheduleType: string;
+  rotationCycleDays?: number;
+  configuration: {
+    workDays: number[];
+    startTime: string;
+    endTime: string;
+    breakDuration: number;
+    flexTimeWindow?: number;
+  };
+  requiresApproval: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
 
 const categoryLabels = {
   fixed: 'Fixa',
@@ -79,11 +99,11 @@ export default function ScheduleTemplates() {
   });
 
   // Buscar templates de escalas
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templatesData, isLoading } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/schedule-templates');
-      return response.json();
+      return response;
     },
   });
 
@@ -109,6 +129,29 @@ export default function ScheduleTemplates() {
       });
     },
   });
+
+  // Excluir template
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/timecard/schedule-templates/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Template Excluído',
+        description: 'Template de escala excluído com sucesso.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao Excluir Template',
+        description: error.message || 'Erro interno do servidor',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const templates = templatesData?.templates || [];
 
   const handleSubmit = (data: ScheduleTemplateFormData) => {
     createTemplateMutation.mutate(data);
@@ -136,6 +179,12 @@ export default function ScheduleTemplates() {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return `${hours}h${minutes > 0 ? `${minutes}m` : ''}`;
+  };
+
+  const handleDeleteTemplate = (id: string) => {
+    if (confirm('Tem certeza que deseja excluir este template?')) {
+      deleteTemplateMutation.mutate(id);
+    }
   };
 
   if (isLoading) {
@@ -432,7 +481,7 @@ export default function ScheduleTemplates() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {templates.map((template: any) => (
+                {templates.map((template: ScheduleTemplate) => (
                   <Card key={template.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <div className="flex justify-between items-start">
@@ -481,13 +530,19 @@ export default function ScheduleTemplates() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {/* Implementar duplicação */}}
+                              onClick={() => handleDeleteTemplate(template.id)}
+                              disabled={deleteTemplateMutation.isPending}
                             >
-                              <Copy className="h-4 w-4" />
+                              Excluir
                             </Button>
                             <Button
                               size="sm"
-                              onClick={() => {/* Implementar aplicação do template */}}
+                              onClick={() => {
+                                toast({
+                                  title: 'Funcionalidade em desenvolvimento',
+                                  description: 'A aplicação de templates será implementada em breve.',
+                                });
+                              }}
                             >
                               Aplicar
                             </Button>

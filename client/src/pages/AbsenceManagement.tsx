@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -28,7 +28,6 @@ const absenceFormSchema = z.object({
 
 type AbsenceFormData = z.infer<typeof absenceFormSchema>;
 
-// Types for API responses
 interface User {
   id: string;
   firstName: string;
@@ -47,7 +46,8 @@ interface AbsenceRequest {
   medicalCertificate?: string;
   coverUserId?: string;
   createdAt: string;
-  user?: User;
+  userName?: string;
+  userEmail?: string;
 }
 
 const absenceTypeLabels = {
@@ -93,14 +93,22 @@ export default function AbsenceManagement() {
     },
   });
 
-  // Buscar todas as solicitações de ausência
-  const { data: allRequests = [], isLoading } = useQuery<AbsenceRequest[]>({
+  // Buscar solicitações pendentes
+  const { data: pendingRequestsData, isLoading } = useQuery({
     queryKey: ['/api/timecard/absence-requests/pending'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/absence-requests/pending');
+      return response;
+    },
   });
 
-  // Buscar usuários para seleção
-  const { data: users = [] } = useQuery<User[]>({
+  // Buscar usuários
+  const { data: usersData } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/tenant-admin/users');
+      return response;
+    },
   });
 
   // Criar solicitação de ausência
@@ -128,8 +136,8 @@ export default function AbsenceManagement() {
 
   // Aprovar solicitação
   const approveRequestMutation = useMutation({
-    mutationFn: async ({ requestId, notes }: { requestId: string; notes?: string }) => {
-      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/approve`, { notes });
+    mutationFn: async (requestId: string) => {
+      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/approve`);
     },
     onSuccess: () => {
       toast({
@@ -147,12 +155,45 @@ export default function AbsenceManagement() {
     },
   });
 
+  // Rejeitar solicitação
+  const rejectRequestMutation = useMutation({
+    mutationFn: async ({ requestId, reason }: { requestId: string; reason: string }) => {
+      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/reject`, { reason });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Solicitação Rejeitada',
+        description: 'A solicitação de ausência foi rejeitada.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/absence-requests/pending'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao Rejeitar',
+        description: error.message || 'Erro interno do servidor',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const pendingRequests = pendingRequestsData?.requests || [];
+  const users = usersData?.users || [];
+
   const handleSubmit = (data: AbsenceFormData) => {
     createAbsenceRequestMutation.mutate(data);
   };
 
   const handleApprove = (requestId: string) => {
-    approveRequestMutation.mutate({ requestId });
+    if (confirm('Tem certeza que deseja aprovar esta solicitação?')) {
+      approveRequestMutation.mutate(requestId);
+    }
+  };
+
+  const handleReject = (requestId: string) => {
+    const reason = prompt('Motivo da rejeição:');
+    if (reason && reason.trim()) {
+      rejectRequestMutation.mutate({ requestId, reason: reason.trim() });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -216,7 +257,7 @@ export default function AbsenceManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {users.map((user) => (
+                            {users.map((user: User) => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.firstName} {user.lastName}
                               </SelectItem>
@@ -332,8 +373,8 @@ export default function AbsenceManagement() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Nenhum substituto</SelectItem>
-                          {users.map((user) => (
+                          <SelectItem value="">Nenhum substituto</SelectItem>
+                          {users.map((user: User) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.firstName} {user.lastName}
                             </SelectItem>
@@ -367,23 +408,23 @@ export default function AbsenceManagement() {
               Solicitações Pendentes de Aprovação
             </CardTitle>
             <CardDescription>
-              {allRequests.length} solicitação(ões) aguardando aprovação
+              {pendingRequests.length} solicitação(ões) aguardando aprovação
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {allRequests.length === 0 ? (
+            {pendingRequests.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 Nenhuma solicitação pendente
               </div>
             ) : (
               <div className="space-y-4">
-                {allRequests.map((request) => (
+                {pendingRequests.map((request: AbsenceRequest) => (
                   <div key={request.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3">
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
-                          <h3 className="font-medium">{request.userId}</h3>
+                          <h3 className="font-medium">{request.userName || 'Usuário'}</h3>
                           <p className="text-sm text-gray-600">
                             {absenceTypeLabels[request.absenceType as keyof typeof absenceTypeLabels]}
                           </p>
@@ -421,7 +462,8 @@ export default function AbsenceManagement() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {/* Implementar rejeição */}}
+                          onClick={() => handleReject(request.id)}
+                          disabled={rejectRequestMutation.isPending}
                         >
                           <XCircle className="h-4 w-4 mr-1" />
                           Rejeitar

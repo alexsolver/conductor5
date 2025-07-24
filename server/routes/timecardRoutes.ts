@@ -1,67 +1,52 @@
 import { Router } from 'express';
 import { TimecardController } from '../modules/timecard/application/controllers/TimecardController';
+import { jwtAuth } from '../middleware/jwtAuth';
 
 const router = Router();
 const timecardController = new TimecardController();
 
-// Time Records - Registro de Ponto
-router.post('/records', timecardController.createTimeRecord.bind(timecardController));
-router.get('/users/:userId/records', timecardController.getUserTimeRecords.bind(timecardController));
-router.get('/users/:userId/status', timecardController.getCurrentStatus.bind(timecardController));
-router.get('/current-status', timecardController.getCurrentStatus.bind(timecardController));
+// Aplicar autenticação JWT em todas as rotas
+router.use(jwtAuth);
 
-// Timesheets - Espelho de Ponto
-router.post('/users/:userId/timesheets/generate', timecardController.generateTimesheet.bind(timecardController));
-router.get('/users/:userId/timesheets', timecardController.getUserTimesheets.bind(timecardController));
-router.put('/timesheets/:timesheetId/approve', timecardController.approveTimesheet.bind(timecardController));
-router.put('/timesheets/:timesheetId/sign', timecardController.signTimesheet.bind(timecardController));
+// Timecard Entries
+router.post('/timecard-entries', timecardController.createTimecardEntry);
+router.get('/users/:userId/timecard-entries', timecardController.getTimecardEntriesByUser);
+router.put('/timecard-entries/:id', timecardController.updateTimecardEntry);
+router.delete('/timecard-entries/:id', timecardController.deleteTimecardEntry);
 
-// Hour Bank - Banco de Horas
-router.get('/users/:userId/hour-bank', timecardController.getHourBank.bind(timecardController));
+// Work Schedules
+router.post('/work-schedules', timecardController.createWorkSchedule);
+router.get('/users/:userId/work-schedules', timecardController.getWorkSchedulesByUser);
+router.get('/work-schedules', timecardController.getAllWorkSchedules);
+router.put('/work-schedules/:id', timecardController.updateWorkSchedule);
+router.delete('/work-schedules/:id', timecardController.deleteWorkSchedule);
 
-// Work Schedules - Escalas de Trabalho
-router.post('/schedules', timecardController.createWorkSchedule.bind(timecardController));
-router.get('/schedules', timecardController.getWorkSchedules.bind(timecardController));
+// Absence Requests
+router.post('/absence-requests', timecardController.createAbsenceRequest);
+router.get('/users/:userId/absence-requests', timecardController.getAbsenceRequestsByUser);
+router.get('/absence-requests/pending', timecardController.getPendingAbsenceRequests);
+router.put('/absence-requests/:id/approve', timecardController.approveAbsenceRequest);
+router.put('/absence-requests/:id/reject', timecardController.rejectAbsenceRequest);
 
-// Alerts - Alertas
-router.get('/alerts', timecardController.getActiveAlerts.bind(timecardController));
-router.put('/alerts/:alertId/resolve', timecardController.resolveAlert.bind(timecardController));
+// Schedule Templates
+router.post('/schedule-templates', timecardController.createScheduleTemplate);
+router.get('/schedule-templates', timecardController.getScheduleTemplates);
+router.put('/schedule-templates/:id', timecardController.updateScheduleTemplate);
+router.delete('/schedule-templates/:id', timecardController.deleteScheduleTemplate);
 
-// Reports - Relatórios
-router.get('/users/:userId/reports/working-hours', timecardController.getUserWorkingHoursReport.bind(timecardController));
-router.get('/reports/overtime', timecardController.getTenantOvertimeReport.bind(timecardController));
-router.get('/reports/attendance', timecardController.getAttendanceReport.bind(timecardController));
-router.get('/reports/compliance', timecardController.getComplianceReport.bind(timecardController));
+// Hour Bank
+router.get('/users/:userId/hour-bank', timecardController.getHourBankByUser);
 
-// ===== NOVAS FUNCIONALIDADES: GESTÃO AVANÇADA DE JORNADAS =====
+// Flexible Work Arrangements
+router.post('/flexible-work-arrangements', timecardController.createFlexibleWorkArrangement);
+router.get('/flexible-work-arrangements', timecardController.getFlexibleWorkArrangements);
 
-// Gestão de Ausências
-router.post('/absence-requests', timecardController.createAbsenceRequest.bind(timecardController));
-router.get('/users/:userId/absence-requests', timecardController.getUserAbsenceRequests.bind(timecardController));
-router.get('/absence-requests/pending', timecardController.getPendingAbsenceRequests.bind(timecardController));
-router.put('/absence-requests/:requestId/approve', timecardController.approveAbsenceRequest.bind(timecardController));
+// User Notifications
+router.get('/users/:userId/notifications', timecardController.getUserNotifications);
+router.put('/notifications/:id/read', timecardController.markNotificationAsRead);
 
-// Templates de Escalas
-router.post('/schedule-templates', timecardController.createScheduleTemplate.bind(timecardController));
-router.get('/schedule-templates', timecardController.getScheduleTemplates.bind(timecardController));
+// Shift Swap Requests
+router.post('/shift-swap-requests', timecardController.createShiftSwapRequest);
+router.get('/shift-swap-requests', timecardController.getShiftSwapRequests);
 
-// Gestão Bulk de Escalas - UX Melhorada
-router.post('/schedules/apply-to-multiple-users', timecardController.applyScheduleToMultipleUsers.bind(timecardController));
-router.get('/schedules/available-users', timecardController.getAvailableUsers.bind(timecardController));
-router.get('/schedules/by-users', timecardController.getSchedulesByUsers.bind(timecardController));
-router.get('/schedule-templates/:templateId/history', timecardController.getTemplateApplicationHistory.bind(timecardController));
-router.delete('/schedules/remove-from-multiple-users', timecardController.removeScheduleFromMultipleUsers.bind(timecardController));
-
-// Troca de Turnos
-router.post('/shift-swap-requests', timecardController.createShiftSwapRequest.bind(timecardController));
-router.get('/shift-swap-requests', timecardController.getShiftSwapRequests.bind(timecardController));
-
-// Jornadas Flexíveis
-router.post('/flexible-work-arrangements', timecardController.createFlexibleWorkArrangement.bind(timecardController));
-router.get('/flexible-work-arrangements', timecardController.getFlexibleWorkArrangements.bind(timecardController));
-
-// Notificações
-router.get('/users/:userId/notifications', timecardController.getUserNotifications.bind(timecardController));
-router.put('/notifications/:notificationId/read', timecardController.markNotificationAsRead.bind(timecardController));
-
-export default router;
+export { router as timecardRoutes };
