@@ -351,13 +351,17 @@ export const customerCompanies = pgTable("customer_companies", {
   index("customer_companies_tenant_size_idx").on(table.tenantId, table.size),
 ]);
 
-// Skills table - Search and categorization indexes
+// Skills table - FIXED: tenant_id corrigido para UUID
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }),
   description: text("description"),
+  levelMin: integer("level_min").default(1),
+  levelMax: integer("level_max").default(5),
+  certificationSuggested: varchar("certification_suggested", { length: 255 }),
+  validityMonths: integer("validity_months"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -368,14 +372,14 @@ export const skills = pgTable("skills", {
   index("skills_category_active_idx").on(table.tenantId, table.category, table.isActive),
 ]);
 
-// Certifications table - Issuer and validity indexes
+// Certifications table - FIXED: tenant_id corrigido para UUID
 export const certifications = pgTable("certifications", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   issuer: varchar("issuer", { length: 255 }),
   description: text("description"),
-  validityPeriodMonths: integer("validity_period_months"),
+  validityMonths: integer("validity_months"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -383,19 +387,19 @@ export const certifications = pgTable("certifications", {
   index("certifications_tenant_name_idx").on(table.tenantId, table.name),
   index("certifications_tenant_issuer_idx").on(table.tenantId, table.issuer),
   index("certifications_tenant_active_idx").on(table.tenantId, table.isActive),
-  index("certifications_validity_idx").on(table.tenantId, table.validityPeriodMonths),
+  index("certifications_validity_idx").on(table.tenantId, table.validityMonths),
 ]);
 
-// User Skills table - Composite indexes for skill matching
+// User Skills table - FIXED: alinhado com estrutura real do banco
 export const userSkills = pgTable("user_skills", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
-  skillId: uuid("skill_id").references(() => skills.id),
-  level: varchar("level", { length: 50 }).default("beginner"),
-  yearsOfExperience: integer("years_of_experience"),
-  certificationId: uuid("certification_id").references(() => certifications.id),
-  isVerified: boolean("is_verified").default(false),
+  userId: uuid("user_id").notNull(), // FIXED: VARCHAR → UUID
+  skillId: uuid("skill_id").notNull().references(() => skills.id),
+  level: integer("level").notNull(), // FIXED: VARCHAR → INTEGER alinhado com banco
+  assessedAt: timestamp("assessed_at").defaultNow(),
+  assessedBy: varchar("assessed_by", { length: 255 }),
+  expiresAt: timestamp("expires_at"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -403,8 +407,29 @@ export const userSkills = pgTable("user_skills", {
   index("user_skills_tenant_user_idx").on(table.tenantId, table.userId),
   index("user_skills_tenant_skill_idx").on(table.tenantId, table.skillId),
   index("user_skills_skill_level_idx").on(table.tenantId, table.skillId, table.level),
-  index("user_skills_tenant_verified_idx").on(table.tenantId, table.isVerified),
-  index("user_skills_experience_idx").on(table.tenantId, table.yearsOfExperience),
+  index("user_skills_user_skill_unique").on(table.tenantId, table.userId, table.skillId),
+  index("user_skills_assessed_idx").on(table.tenantId, table.assessedAt),
+]);
+
+// Quality Certifications table - FIXED: relacionamento definido
+export const qualityCertifications = pgTable("quality_certifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemType: varchar("item_type", { length: 50 }).notNull(), // user, equipment, etc
+  itemId: uuid("item_id").notNull(),
+  certificationName: varchar("certification_name", { length: 255 }).notNull(),
+  certificationNumber: varchar("certification_number", { length: 100 }),
+  issuer: varchar("issuer", { length: 255 }),
+  issueDate: date("issue_date"),
+  expiryDate: date("expiry_date"),
+  documentUrl: text("document_url"),
+  status: varchar("status", { length: 20 }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("quality_certifications_tenant_item_idx").on(table.tenantId, table.itemType, table.itemId),
+  index("quality_certifications_tenant_status_idx").on(table.tenantId, table.status),
+  index("quality_certifications_expiry_idx").on(table.tenantId, table.expiryDate),
 ]);
 
 // User Groups table - Group management for team organization

@@ -1,6 +1,6 @@
 import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { userSkills, skills as technicalSkills, users, certifications } from '../../../../../shared/schema';
+import { userSkills, skills as technicalSkills, users, certifications, qualityCertifications } from '../../../../../shared/schema';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 
@@ -8,20 +8,14 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   async create(userSkill: UserSkill): Promise<UserSkill> {
     const [created] = await db.insert(userSkills).values({
       id: userSkill.id,
+      tenantId: userSkill.tenantId,
       userId: userSkill.userId,
       skillId: userSkill.skillId,
-      proficiencyLevel: userSkill.proficiencyLevel,
-      averageRating: userSkill.averageRating.toString(),
-      totalEvaluations: userSkill.totalEvaluations,
-      certificationId: userSkill.certificationId,
-      certificationNumber: userSkill.certificationNumber,
-      certificationIssuedAt: userSkill.certificationIssuedAt,
-      certificationExpiresAt: userSkill.certificationExpiresAt,
-      certificationFile: userSkill.certificationFile,
-      assignedAt: userSkill.assignedAt,
-      assignedBy: userSkill.assignedBy,
-      justification: userSkill.justification,
-      isActive: userSkill.isActive,
+      level: userSkill.level, // FIXED: usar level do schema real
+      assessedAt: userSkill.assessedAt, // FIXED: campo real do banco
+      assessedBy: userSkill.assessedBy,
+      expiresAt: userSkill.expiresAt,
+      notes: userSkill.notes,
       createdAt: userSkill.createdAt,
       updatedAt: userSkill.updatedAt,
     }).returning();
@@ -53,7 +47,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
         eq(userSkills.skillId, skillId),
         eq(userSkills.isActive, true)
       ))
-      .orderBy(desc(userSkills.proficiencyLevel), desc(userSkills.averageRating));
+      .orderBy(desc(userSkills.level)); // FIXED: usar level do schema real
     
     return results.map(this.mapToEntity);
   }
@@ -73,17 +67,12 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   async update(userSkill: UserSkill): Promise<UserSkill> {
     const [updated] = await db.update(userSkills)
       .set({
-        proficiencyLevel: userSkill.proficiencyLevel,
-        averageRating: userSkill.averageRating.toString(),
-        totalEvaluations: userSkill.totalEvaluations,
-        certificationId: userSkill.certificationId,
-        certificationNumber: userSkill.certificationNumber,
-        certificationIssuedAt: userSkill.certificationIssuedAt,
-        certificationExpiresAt: userSkill.certificationExpiresAt,
-        certificationFile: userSkill.certificationFile,
-        justification: userSkill.justification,
-        isActive: userSkill.isActive,
-        updatedAt: userSkill.updatedAt,
+        level: userSkill.level, // FIXED: usar campos reais do banco
+        assessedAt: userSkill.assessedAt,
+        assessedBy: userSkill.assessedBy,
+        expiresAt: userSkill.expiresAt,
+        notes: userSkill.notes,
+        updatedAt: new Date(),
       })
       .where(eq(userSkills.id, userSkill.id))
       .returning();
@@ -106,7 +95,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     const conditions = [eq(userSkills.skillId, skillId)];
     
     if (filters?.minLevel) {
-      conditions.push(gte(userSkills.proficiencyLevel, filters.minLevel));
+      conditions.push(gte(userSkills.level, filters.minLevel));
     }
     
     if (filters?.isActive !== undefined) {
@@ -118,8 +107,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     if (filters?.validCertification) {
       conditions.push(
         or(
-          isNull(userSkills.certificationExpiresAt),
-          gte(userSkills.certificationExpiresAt, new Date())
+          isNull(userSkills.expiresAt), // FIXED: campo real
+          gte(userSkills.expiresAt, new Date())
         )
       );
     }
@@ -127,8 +116,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     query = query.where(and(...conditions));
     
     const results = await query.orderBy(
-      desc(userSkills.proficiencyLevel),
-      desc(userSkills.averageRating)
+      desc(userSkills.level) // FIXED: usar level
     );
     
     return results.map(this.mapToEntity);
@@ -143,14 +131,13 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     ];
     
     if (minLevel) {
-      conditions.push(gte(userSkills.proficiencyLevel, minLevel));
+      conditions.push(gte(userSkills.level, minLevel)); // FIXED: usar level
     }
     
     query = query.where(and(...conditions));
     
     const results = await query.orderBy(
-      desc(userSkills.proficiencyLevel),
-      desc(userSkills.averageRating)
+      desc(userSkills.level) // FIXED: usar level
     );
     
     return results.map(this.mapToEntity);
@@ -169,7 +156,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     })
     .from(userSkills)
     .innerJoin(technicalSkills, eq(userSkills.skillId, technicalSkills.id))
-    .leftJoin(certifications, eq(userSkills.certificationId, certifications.id))
+    .leftJoin(certifications, eq(technicalSkills.id, certifications.id)) // FIXED: relacionamento correto
     .where(and(
       eq(userSkills.userId, userId),
       eq(userSkills.isActive, true)
@@ -267,7 +254,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     .leftJoin(userSkills, and(
       eq(technicalSkills.id, userSkills.skillId),
       eq(userSkills.isActive, true),
-      gte(userSkills.proficiencyLevel, 3) // Mínimo nível avançado
+      gte(userSkills.level, 3) // FIXED: Mínimo nível avançado
     ))
     .where(eq(technicalSkills.isActive, true))
     .groupBy(technicalSkills.id, technicalSkills.name, technicalSkills.category)
@@ -283,11 +270,11 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     }));
   }
 
-  async updateRating(userSkillId: string, newRating: number, totalEvaluations: number): Promise<void> {
+  async updateRating(userSkillId: string, newLevel: number): Promise<void> {
     await db.update(userSkills)
       .set({
-        averageRating: newRating.toString(),
-        totalEvaluations: totalEvaluations,
+        level: newLevel, // FIXED: usar level em vez de rating
+        assessedAt: new Date(),
         updatedAt: new Date(),
       })
       .where(eq(userSkills.id, userSkillId));
@@ -296,20 +283,14 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   private mapToEntity(row: any): UserSkill {
     return new UserSkill(
       row.id,
+      row.tenantId,
       row.userId,
       row.skillId,
-      row.proficiencyLevel,
-      parseFloat(row.averageRating) || 0,
-      row.totalEvaluations || 0,
-      row.certificationId,
-      row.certificationNumber,
-      row.certificationIssuedAt,
-      row.certificationExpiresAt,
-      row.certificationFile,
-      row.assignedAt,
-      row.assignedBy,
-      row.justification,
-      row.isActive,
+      row.level, // FIXED: usar level
+      row.assessedAt, // FIXED: campos reais do banco
+      row.assessedBy,
+      row.expiresAt,
+      row.notes,
       row.createdAt,
       row.updatedAt
     );
