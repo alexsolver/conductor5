@@ -16,10 +16,22 @@ import {
   Filter,
   Download,
   Upload,
-  Settings
+  Settings,
+  Paperclip,
+  Link,
+  TrendingUp,
+  Eye,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from '@/hooks/use-toast';
+
+// Import dos modais de funcionalidades avançadas
+import { ItemAttachmentsModal } from '@/components/parts-services/ItemAttachmentsModal';
+import { ItemLinksModal } from '@/components/parts-services/ItemLinksModal';
+import { StockMovementsModal } from '@/components/parts-services/StockMovementsModal';
+import { ServiceKitsModal } from '@/components/parts-services/ServiceKitsModal';
 
 // Types para as funcionalidades avançadas
 type DashboardStats = {
@@ -106,6 +118,14 @@ type Asset = {
 
 export default function PartsServices() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  
+  // Estados dos modais avançados
+  const [isAttachmentsModalOpen, setIsAttachmentsModalOpen] = useState(false);
+  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
+  const [isMovementsModalOpen, setIsMovementsModalOpen] = useState(false);
+  const [isServiceKitsModalOpen, setIsServiceKitsModalOpen] = useState(false);
+  
   const queryClient = useQueryClient();
 
   // Dashboard Stats Query
@@ -395,9 +415,49 @@ export default function PartsServices() {
                     </Badge>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">R$ {item.unitPrice.toFixed(2)}</p>
-                  <p className="text-sm text-muted-foreground">Custo: R$ {item.unitCost.toFixed(2)}</p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="font-medium">R$ {item.unitPrice.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">Custo: R$ {item.unitCost.toFixed(2)}</p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setIsAttachmentsModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 h-8"
+                    >
+                      <Paperclip className="h-3 w-3" />
+                      Anexos
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setIsLinksModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 h-8"
+                    >
+                      <Link className="h-3 w-3" />
+                      Vínculos
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setIsMovementsModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 h-8"
+                    >
+                      <TrendingUp className="h-3 w-3" />
+                      Estoque
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -690,6 +750,46 @@ export default function PartsServices() {
             <AssetsTab />
           </TabsContent>
         </Tabs>
+
+        {/* Modais Avançados */}
+        {selectedItem && (
+          <>
+            <ItemAttachmentsModal
+              isOpen={isAttachmentsModalOpen}
+              onClose={() => {
+                setIsAttachmentsModalOpen(false);
+                setSelectedItem(null);
+              }}
+              itemId={selectedItem.id}
+              itemName={selectedItem.name}
+            />
+            
+            <ItemLinksModal
+              isOpen={isLinksModalOpen}
+              onClose={() => {
+                setIsLinksModalOpen(false);
+                setSelectedItem(null);
+              }}
+              itemId={selectedItem.id}
+              itemName={selectedItem.name}
+            />
+            
+            <StockMovementsModal
+              isOpen={isMovementsModalOpen}
+              onClose={() => {
+                setIsMovementsModalOpen(false);
+                setSelectedItem(null);
+              }}
+              itemId={selectedItem.id}
+              itemName={selectedItem.name}
+            />
+          </>
+        )}
+
+        <ServiceKitsModal
+          isOpen={isServiceKitsModalOpen}
+          onClose={() => setIsServiceKitsModalOpen(false)}
+        />
       </div>
     </div>
   );
