@@ -223,6 +223,30 @@
     "updated": "{{item}} atualizado com sucesso",
     "deleted": "{{item}} excluído com sucesso"
   },
+  "partsServices": {
+    "title": "Peças e Serviços",
+    "description": "Sistema completo de gestão de peças, estoque e fornecedores",
+    "parts": {
+      "title": "Gestão de Peças",
+      "create": "Nova Peça",
+      "edit": "Editar Peça",
+      "delete": "Excluir Peça",
+      "view": "Visualizar Peça"
+    },
+    "suppliers": {
+      "title": "Fornecedores",
+      "create": "Novo Fornecedor",
+      "edit": "Editar Fornecedor",
+      "delete": "Excluir Fornecedor",
+      "rating": "Avaliação"
+    },
+    "inventory": {
+      "title": "Controle de Estoque",
+      "adjust": "Ajustar Estoque",
+      "lowStock": "Estoque Baixo",
+      "normalStock": "Estoque Normal"
+    }
+  },
   "userManagement": {
     "title": "Gestão de Usuários",
     "createUser": "Criar Usuário",

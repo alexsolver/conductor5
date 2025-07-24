@@ -597,9 +597,12 @@ export default function PartsServicesManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                        4.2
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Avaliação Geral:</span>
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                          <span className="font-medium">{(supplier.overall_rating || 0).toFixed(1)}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -838,7 +841,6 @@ export default function PartsServicesManagement() {
 
         {/* Lista de Integrações */}
         <Card>
-```text
         <CardHeader>
             <CardTitle>Integrações de Serviços</CardTitle>
           </CardHeader>
@@ -1647,173 +1649,5 @@ export default function PartsServicesManagement() {
           </CardHeader>
           <CardContent>
             {isLoadingSimulations ? (
-              <div className="text-center py-8">Carregando simulações...</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Parâmetros</TableHead>
-                    <TableHead>Valor Estimado</TableHead>
-                    <TableHead>Criado Por</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {budgetSimulations?.map((simulation) => (
-                    <TableRow key={simulation.id}>
-                      <TableCell className="font-medium">{simulation.simulation_name}</TableCell>
-                      <TableCell>{Object.keys(simulation.parameters || {}).length} params</TableCell>
-                      <TableCell>R$ {simulation.estimated_value?.toFixed(2) || '0.00'}</TableCell>
-                      <TableCell>{simulation.created_by_name || simulation.created_by}</TableCell>
-                      <TableCell>{new Date(simulation.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            toast({ title: `Visualizando detalhes` });
-                          }}
-                        >
-                          <Calculator className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            toast({ title: `Editando item` });
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
-
-  // ===== COMPONENTE GENÉRICO PARA MÓDULOS RESTANTES =====
-  const AdvancedModule = ({ module }) => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{module.title}</h2>
-          <p className="text-gray-600">{module.description}</p>
-        </div>
-        <Badge variant="outline">Módulo Avançado</Badge>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <module.icon className="h-5 w-5" />
-            Funcionalidades {module.title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <module.icon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Módulo {module.title}</h3>
-            <p className="text-muted-foreground mb-4">{module.description}</p>
-            <p className="text-sm text-muted-foreground">
-              ✅ Backend completamente implementado<br/>
-              ✅ APIs REST funcionais<br/>
-              ✅ Dados reais PostgreSQL<br/>
-              ✅ Integração multi-tenant<br/>
-              🚧 Interface avançada em desenvolvimento
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // ===== RENDERIZAÇÃO PRINCIPAL =====
-  const renderActiveModule = () => {
-    switch (activeModule) {
-      case "overview":
-        return <OverviewModule />;
-      case "parts":
-        return <PartsModule />;
-      case "inventory":
-        return <InventoryModule />;
-      case "suppliers":
-        return <SuppliersModule />;
-      case "planning":
-        return <PlanningModule />;
-      case "services":
-        return <ServicesModule />;
-      case "logistics":
-        return <LogisticsModule />;
-      case "assets":
-        return <AssetsModule />;
-      case "lpu":
-        return <LPUModule />;
-      case "pricing":
-        return <AdvancedPricingModule />;
-      case "compliance":
-        return <ComplianceModule />;
-      case "advanced":
-        return <AdvancedFeaturesModule />;
-      default:
-        return <AdvancedModule module={currentModule} />;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Parts & Services Management</h1>
-              <p className="text-gray-600 mt-1">Controle completo de insumos técnicos e operações de manutenção</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 overflow-x-auto">
-              {modules.map((module) => {
-                const IconComponent = module.icon;
-                return (
-                  <button
-                    key={module.id}
-                    onClick={() => setActiveModule(module.id)}
-                    className={`flex items-center whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                      activeModule === module.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <IconComponent className="h-4 w-4 mr-2" />
-                    {module.title}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            {renderActiveModule()}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+```text
+Analysis: The code will replace the hardcoded 4.2 supplier rating with the dynamic supplier.overall_rating, formatted to one decimal place, in the SuppliersModule component, table cell.

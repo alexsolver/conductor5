@@ -1082,6 +1082,84 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     );
     return result.rowCount > 0;
   }
+
+  // ===== CRUD METHODS FOR PARTS =====
+  async updatePart(id: string, tenantId: string, data: Partial<InsertPart>): Promise<Part | null> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `UPDATE ${schema}.parts SET 
+       title = COALESCE($1, title),
+       part_number = COALESCE($2, part_number),
+       cost_price = COALESCE($3, cost_price),
+       sale_price = COALESCE($4, sale_price),
+       category = COALESCE($5, category),
+       updated_at = NOW()
+       WHERE id = $6 AND tenant_id = $7 RETURNING *`,
+      [data.title, data.partNumber, data.costPrice, data.salePrice, data.category, id, tenantId]
+    );
+    return result.rows[0] || null;
+  }
+
+  async deletePart(id: string, tenantId: string): Promise<boolean> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `UPDATE ${schema}.parts SET is_active = false WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
+    );
+    return result.rowCount > 0;
+  }
+
+  // ===== CRUD METHODS FOR SUPPLIERS =====
+  async updateSupplier(id: string, tenantId: string, data: Partial<InsertSupplier>): Promise<Supplier | null> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `UPDATE ${schema}.suppliers SET 
+       name = COALESCE($1, name),
+       contact_name = COALESCE($2, contact_name),
+       email = COALESCE($3, email),
+       phone = COALESCE($4, phone),
+       address = COALESCE($5, address),
+       updated_at = NOW()
+       WHERE id = $6 AND tenant_id = $7 RETURNING *`,
+      [data.name, data.contactName, data.email, data.phone, data.address, id, tenantId]
+    );
+    return result.rows[0] || null;
+  }
+
+  async deleteSupplier(id: string, tenantId: string): Promise<boolean> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `UPDATE ${schema}.suppliers SET is_active = false WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
+    );
+    return result.rowCount > 0;
+  }
+
+  // ===== CRUD METHODS FOR INVENTORY =====
+  async updateInventory(id: string, tenantId: string, data: Partial<InsertInventory>): Promise<Inventory | null> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `UPDATE ${schema}.inventory SET 
+       location = COALESCE($1, location),
+       current_stock = COALESCE($2, current_stock),
+       min_stock = COALESCE($3, min_stock),
+       max_stock = COALESCE($4, max_stock),
+       unit_cost = COALESCE($5, unit_cost),
+       updated_at = NOW()
+       WHERE id = $6 AND tenant_id = $7 RETURNING *`,
+      [data.location, data.currentStock, data.minStock, data.maxStock, data.unitCost, id, tenantId]
+    );
+    return result.rows[0] || null;
+  }
+
+  async deleteInventory(id: string, tenantId: string): Promise<boolean> {
+    const schema = this.getTenantSchema(tenantId);
+    const result = await pool.query(
+      `DELETE FROM ${schema}.inventory WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
+    );
+    return result.rowCount > 0;
+  }
 }
 
 export { DirectPartsServicesRepository };

@@ -527,4 +527,115 @@ export class PartsServicesController {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+  // ===== CRUD METHODS FOR PARTS =====
+  updatePart = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const part = await this.repository.updatePart(id, tenantId, req.body);
+      if (!part) {
+        return res.status(404).json({ error: 'Part not found' });
+      }
+      res.json(part);
+    } catch (error) {
+      console.error('Error updating part:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  deletePart = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const deleted = await this.repository.deletePart(id, tenantId);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Part not found' });
+      }
+      res.json({ message: 'Part deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting part:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== CRUD METHODS FOR SUPPLIERS =====
+  updateSupplier = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const supplier = await this.repository.updateSupplier(id, tenantId, req.body);
+      if (!supplier) {
+        return res.status(404).json({ error: 'Supplier not found' });
+      }
+      res.json(supplier);
+    } catch (error) {
+      console.error('Error updating supplier:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  deleteSupplier = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const deleted = await this.repository.deleteSupplier(id, tenantId);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Supplier not found' });
+      }
+      res.json({ message: 'Supplier deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // ===== CRUD METHODS FOR INVENTORY =====
+  updateInventory = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const inventory = await this.repository.updateInventory(id, tenantId, req.body);
+      if (!inventory) {
+        return res.status(404).json({ error: 'Inventory item not found' });
+      }
+      res.json(inventory);
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  deleteInventory = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const deleted = await this.repository.deleteInventory(id, tenantId);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Inventory item not found' });
+      }
+      res.json({ message: 'Inventory item deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting inventory:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
 }

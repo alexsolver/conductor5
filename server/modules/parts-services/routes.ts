@@ -58,6 +58,18 @@ router.get('/pricing-tables', controller.getPricingTables);
 router.post('/pricing-rules', controller.createPricingRule);
 router.post('/price-history', controller.createPriceHistory);
 
+// ===== CRUD ROUTES PARA PEÇAS =====
+router.put('/parts/:id', controller.updatePart);
+router.delete('/parts/:id', controller.deletePart);
+
+// ===== CRUD ROUTES PARA FORNECEDORES =====
+router.put('/suppliers/:id', controller.updateSupplier);
+router.delete('/suppliers/:id', controller.deleteSupplier);
+
+// ===== CRUD ROUTES PARA ESTOQUE =====
+router.put('/inventory/:id', controller.updateInventory);
+router.delete('/inventory/:id', controller.deleteInventory);
+
 // ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
 router.post('/audit-logs-complete', controller.createAuditLogComplete);
 router.get('/audit-logs-complete', controller.getAuditLogsComplete);
