@@ -519,6 +519,101 @@ export default function PartsServices() {
     </div>
   );
 
+  // NOVOS MÓDULOS CATEGORIZADOS
+  const LogisticsModule = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Truck className="h-5 w-5 mr-2 text-orange-600" />
+              Logística
+            </CardTitle>
+            <CardDescription>Gestão de movimentação e transferências</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm">Transferências Pendentes</span>
+                <Badge variant="outline">15</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Em Trânsito</span>
+                <Badge variant="outline">8</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Devoluções</span>
+                <Badge variant="outline">3</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Controle de Ativos</CardTitle>
+            <CardDescription>Monitoramento de equipamentos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm">Ativos Ativos</span>
+                <Badge variant="outline">142</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Manutenção</span>
+                <Badge variant="destructive">7</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const AssetsModule = () => (
+    <div className="text-center py-12">
+      <div className="max-w-md mx-auto">
+        <Shield className="h-24 w-24 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-2xl font-semibold mb-2">Controle de Ativos</h3>
+        <p className="text-muted-foreground mb-4">Gestão completa de ativos e manutenção preventiva</p>
+        <Badge variant="outline" className="bg-blue-50 text-blue-700">Módulo Avançado</Badge>
+      </div>
+    </div>
+  );
+
+  const PricingModule = () => (
+    <div className="text-center py-12">
+      <div className="max-w-md mx-auto">
+        <DollarSign className="h-24 w-24 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-2xl font-semibold mb-2">Preços Avançados</h3>
+        <p className="text-muted-foreground mb-4">Sistema inteligente de precificação com regras dinâmicas</p>
+        <Badge variant="outline" className="bg-green-50 text-green-700">Sistema Inteligente</Badge>
+      </div>
+    </div>
+  );
+
+  const LpuModule = () => (
+    <div className="text-center py-12">
+      <div className="max-w-md mx-auto">
+        <TrendingUp className="h-24 w-24 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-2xl font-semibold mb-2">LPU Enterprise</h3>
+        <p className="text-muted-foreground mb-4">Lista de Preços Unificada com versionamento e contratos</p>
+        <Badge variant="outline" className="bg-purple-50 text-purple-700">Enterprise</Badge>
+      </div>
+    </div>
+  );
+
+  const ComplianceModule = () => (
+    <div className="text-center py-12">
+      <div className="max-w-md mx-auto">
+        <Shield className="h-24 w-24 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-2xl font-semibold mb-2">Compliance</h3>
+        <p className="text-muted-foreground mb-4">Auditoria completa e certificações de conformidade</p>
+        <Badge variant="outline" className="bg-red-50 text-red-700">Auditoria & Compliance</Badge>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header do Sistema Unificado */}
@@ -531,6 +626,104 @@ export default function PartsServices() {
           <Badge variant="outline" className="bg-blue-50 text-blue-700">Enterprise</Badge>
           <Badge variant="outline" className="bg-green-50 text-green-700">11 Módulos</Badge>
         </div>
+      </div>
+
+      {/* MENU CATEGORIZADO COM CARDS VISUAIS */}
+      <div className="grid grid-cols-5 gap-4 mb-6">
+        {/* CATEGORIA 1: OPERAÇÕES BÁSICAS */}
+        <Card 
+          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+            ['parts', 'inventory', 'suppliers'].includes(activeModule) 
+              ? 'border-blue-500 bg-blue-50 shadow-md' 
+              : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+          }`} 
+          onClick={() => setActiveModule('parts')}
+        >
+          <div className="text-center">
+            <Package className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+            <h3 className="font-semibold text-sm mb-1">Operações Básicas</h3>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>• Gestão de Peças</div>
+              <div>• Controle de Estoque</div>
+              <div>• Gestão de Fornecedores</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* CATEGORIA 2: PLANEJAMENTO */}
+        <Card 
+          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+            ['purchasing', 'pricing', 'lpu'].includes(activeModule) 
+              ? 'border-green-500 bg-green-50 shadow-md' 
+              : 'border-gray-200 hover:border-green-300 hover:shadow-md'
+          }`} 
+          onClick={() => setActiveModule('purchasing')}
+        >
+          <div className="text-center">
+            <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-green-600" />
+            <h3 className="font-semibold text-sm mb-1">Planejamento</h3>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>• Planejamento e Compras</div>
+              <div>• Preços Avançados</div>
+              <div>• LPU Enterprise</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* CATEGORIA 3: LOGÍSTICA */}
+        <Card 
+          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+            ['logistics', 'assets'].includes(activeModule) 
+              ? 'border-orange-500 bg-orange-50 shadow-md' 
+              : 'border-gray-200 hover:border-orange-300 hover:shadow-md'
+          }`} 
+          onClick={() => setActiveModule('logistics')}
+        >
+          <div className="text-center">
+            <Truck className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+            <h3 className="font-semibold text-sm mb-1">Logística</h3>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>• Logística</div>
+              <div>• Controle de Ativos</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* CATEGORIA 4: INTEGRAÇÃO */}
+        <Card 
+          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+            activeModule === 'services' 
+              ? 'border-purple-500 bg-purple-50 shadow-md' 
+              : 'border-gray-200 hover:border-purple-300 hover:shadow-md'
+          }`} 
+          onClick={() => setActiveModule('services')}
+        >
+          <div className="text-center">
+            <Wrench className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+            <h3 className="font-semibold text-sm mb-1">Integração</h3>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>• Integração Serviços</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* CATEGORIA 5: CONTROLE */}
+        <Card 
+          className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+            activeModule === 'compliance' 
+              ? 'border-red-500 bg-red-50 shadow-md' 
+              : 'border-gray-200 hover:border-red-300 hover:shadow-md'
+          }`} 
+          onClick={() => setActiveModule('compliance')}
+        >
+          <div className="text-center">
+            <Shield className="h-8 w-8 mx-auto mb-2 text-red-600" />
+            <h3 className="font-semibold text-sm mb-1">Controle</h3>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>• Compliance</div>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Navigation Tabs - 11 Módulos Enterprise */}
@@ -567,6 +760,27 @@ export default function PartsServices() {
 
         <TabsContent value="services">
           <GenericModule title="Integração Serviços" description="Sincronização com work orders e sistemas externos" />
+        </TabsContent>
+
+        {/* NOVOS MÓDULOS CATEGORIZADOS */}
+        <TabsContent value="logistics">
+          <LogisticsModule />
+        </TabsContent>
+
+        <TabsContent value="assets">
+          <AssetsModule />
+        </TabsContent>
+
+        <TabsContent value="pricing">
+          <PricingModule />
+        </TabsContent>
+
+        <TabsContent value="lpu">
+          <LpuModule />
+        </TabsContent>
+
+        <TabsContent value="compliance">
+          <ComplianceModule />
         </TabsContent>
       </Tabs>
 
