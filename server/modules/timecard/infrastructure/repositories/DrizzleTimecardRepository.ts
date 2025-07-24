@@ -1,4 +1,3 @@
-
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
@@ -111,7 +110,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         workDays: JSON.stringify(data.workDays)
       })
       .returning();
-    
+
     return {
       ...schedule,
       workDays: JSON.parse(schedule.workDays)

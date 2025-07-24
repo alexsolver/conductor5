@@ -1102,6 +1102,81 @@ export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
 
 // ========================================
+// MISSING TABLES IMPLEMENTATION
+// ========================================
+
+// Work Schedules table - Sistema de escalas de trabalho
+export const workSchedules = pgTable("work_schedules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  scheduleType: varchar("schedule_type", { length: 20 }).notNull(), // '5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent'
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  workDays: text("work_days").array().notNull(), // Array of numbers [1,2,3,4,5]
+  startTime: varchar("start_time", { length: 8 }).notNull(), // HH:MM:SS format
+  endTime: varchar("end_time", { length: 8 }).notNull(), // HH:MM:SS format
+  breakDurationMinutes: integer("break_duration_minutes").default(60),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("work_schedules_tenant_user_idx").on(table.tenantId, table.userId),
+  index("work_schedules_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Absence Requests table - Solicitações de ausência
+export const absenceRequests = pgTable("absence_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  absenceType: varchar("absence_type", { length: 30 }).notNull(), // 'vacation', 'sick_leave', 'maternity', etc.
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  reason: text("reason").notNull(),
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'approved', 'rejected', 'cancelled'
+  medicalCertificate: text("medical_certificate"), // URL or file path
+  coverUserId: uuid("cover_user_id").references(() => users.id),
+  approvedBy: uuid("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("absence_requests_tenant_user_idx").on(table.tenantId, table.userId),
+  index("absence_requests_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Skills table for technical skills system
+export const skills = pgTable("skills", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("skills_tenant_name_idx").on(table.tenantId, table.name),
+  index("skills_tenant_category_idx").on(table.tenantId, table.category),
+  index("skills_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Insert schemas for new tables
+export const insertWorkScheduleSchema = createInsertSchema(workSchedules);
+export const insertAbsenceRequestSchema = createInsertSchema(absenceRequests);
+export const insertSkillsSchema = createInsertSchema(skills);
+
+// Type exports for new tables
+export type WorkSchedule = typeof workSchedules.$inferSelect;
+export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
+export type AbsenceRequest = typeof absenceRequests.$inferSelect;
+export type InsertAbsenceRequest = typeof absenceRequests.$inferInsert;
+export type Skill = typeof skills.$inferSelect;
+export type InsertSkill = typeof skills.$inferInsert;
+
+// ========================================
 // PARTS AND SERVICES MANAGEMENT TABLES
 // ========================================
 

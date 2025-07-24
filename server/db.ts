@@ -22,64 +22,67 @@ export const schemaManager = {
   async getTenantDb(tenantId: string) {
     return { db };
   },
-  
+
   async validateTenantSchema(tenantId: string) {
     try {
       // Validar UUID do tenant
       if (!tenantId || !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(tenantId)) {
         throw new Error(`Invalid tenant UUID: ${tenantId}`);
       }
-      
+
       // Verificar se schema do tenant existe
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const schemaExists = await pool.query(
         'SELECT schema_name FROM information_schema.schemata WHERE schema_name = $1',
         [schemaName]
       );
-      
+
       if (schemaExists.rows.length === 0) {
         throw new Error(`Tenant schema not found: ${schemaName}`);
       }
-      
+
       // Verificar tabelas TENANT-SPECIFIC obrigatórias (15 de 18 tabelas totais do schema-master.ts)
       // NOTA: 3 tabelas PUBLIC (sessions, tenants, users) validadas separadamente em ensurePublicTables()
       // TENANT SCHEMA: 15 tabelas conforme definições no schema-master.ts (12 originais + 3 multilocation)
       const requiredTables = [
-    'customers',
-    'tickets',
-    'ticket_messages',
-    'activity_logs',
-    'locations',
-    'customer_companies',
-    'skills',
-    'certifications',
-    'user_skills',
+    // Core business tables
+    'customers', 'tickets', 'ticket_messages', 'activity_logs',
+    // Location and company data
+    'locations', 'customer_companies', 'customer_company_memberships',
+    // Skills and certifications - Updated to match actual schema
+    'skills', 'certifications', 'user_skills',  
+    // Brazilian entities and external contacts
     'favorecidos',
-    'projects',
-    'project_actions',
-    'market_localization',
-    'field_alias_mapping',
-    'localization_context'
-  ]; // Total: 15 tenant-specific tables
-      
+    // Project management
+    'projects', 'project_actions',
+    // User and group management
+    'user_groups', 'user_group_memberships',
+    // HR and departments
+    'departments', 'performance metrics',
+    // Time management - Updated to match actual schema
+    'work_schedules', 'absence_requests',
+    // Parts and services (if implemented)
+    'parts', 'inventory', 'suppliers', 'purchase_orders'
+  ]; // Updated to match actual schema tables
+
       const tableCount = await pool.query(
         `SELECT COUNT(*) as count FROM information_schema.tables 
          WHERE table_schema = $1 AND table_name = ANY($2)`,
         [schemaName, requiredTables]
       );
-      
+
       const expectedCount = requiredTables.length;
       if (parseInt(tableCount.rows[0].count) !== expectedCount) {
         throw new Error(`Incomplete tenant schema: ${schemaName} has ${tableCount.rows[0].count}/${expectedCount} required tables (15 of 18 total schema tables)`);
       }
-      
+
       return true;
     } catch (error) {
       console.error(`❌ Tenant schema validation failed for ${tenantId}:`, (error as Error).message);
       return false;
     }
   },
-  
+
   async ensureTenantExists(tenantId: string) {
     try {
       // Verificar se tenant existe na tabela tenants
@@ -87,43 +90,43 @@ export const schemaManager = {
         'SELECT id FROM tenants WHERE id = $1 AND is_active = true',
         [tenantId]
       );
-      
+
       if (tenantExists.rows.length === 0) {
         throw new Error(`Tenant not found or inactive: ${tenantId}`);
       }
-      
+
       // Garantir que schema do tenant existe
       const schemaValid = await this.validateTenantSchema(tenantId);
       if (!schemaValid) {
         throw new Error(`Tenant schema validation failed: ${tenantId}`);
       }
-      
+
       return true;
     } catch (error) {
       console.error(`❌ Tenant existence check failed for ${tenantId}:`, (error as Error).message);
       return false;
     }
   },
-  
+
   async ensurePublicTables() {
     try {
       // Verificar tabelas públicas obrigatórias (3 de 18 tabelas totais do schema-master.ts)  
       // PUBLIC SCHEMA: sessions (linha 27-35), tenants (linha 38-46), users (linha 49-63)
       // NOTA: sessions tabela existe no schema-master.ts e é necessária para express-session
       const requiredPublicTables = ['sessions', 'tenants', 'users'];
-      
+
       for (const tableName of requiredPublicTables) {
         const tableExists = await pool.query(
           `SELECT table_name FROM information_schema.tables 
            WHERE table_schema = 'public' AND table_name = $1`,
           [tableName]
         );
-        
+
         if (tableExists.rows.length === 0) {
           throw new Error(`Critical public table missing: ${tableName}`);
         }
       }
-      
+
       console.log(`✅ Public tables validation completed: ${requiredPublicTables.length}/3 tables validated (3 of 18 total schema tables)`);
       return true;
     } catch (error) {
@@ -131,7 +134,7 @@ export const schemaManager = {
       return false;
     }
   },
-  
+
   async createTenantSchema(tenantId: string) {
     console.log(`✅ Tenant schema creation skipped for ${tenantId} in simplified mode`);
     return true;
