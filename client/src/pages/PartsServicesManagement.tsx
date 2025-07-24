@@ -190,9 +190,7 @@ export default function PartsServicesManagement() {
           <h2 className="text-2xl font-bold text-gray-900">Dashboard Executivo - Parts & Services</h2>
           <p className="text-gray-600">Sistema completo de gestão com 11 módulos integrados</p>
         </div>
-        <Badge variant="outline" className="text-sm">
-          Dados em tempo real
-        </Badge>
+        
       </div>
 
       {/* Cards de Estatísticas */}
@@ -1655,15 +1653,7 @@ export default function PartsServicesManagement() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Parts & Services Management</h1>
-              <p className="text-gray-600 mt-1">Sistema Empresarial Completo - 11 Módulos Integrados</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="default" className="bg-green-500">
-                Sistema Operacional
-              </Badge>
-              <Badge variant="outline">
-                PostgreSQL
-              </Badge>
+              <p className="text-gray-600 mt-1">Controle completo de insumos técnicos e operações de manutenção</p>
             </div>
           </div>
         </div>
