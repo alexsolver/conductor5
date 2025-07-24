@@ -288,7 +288,7 @@ export default function PartsServices() {
   const handleExportCatalog = async () => {
     try {
       const response = await apiRequest('GET', '/api/parts-services/parts/export');
-      const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([JSON.stringify(response)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
@@ -395,15 +395,167 @@ export default function PartsServices() {
     </div>
   );
 
-  // All helper functions have been cleaned up - using main component below
+  // MAIN COMPONENT RETURN WITH MODULE SWITCHING
+  if (activeModule === 'overview') {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Peças</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{(dashboardStats as any)?.totalParts || 0}</div>
+              <p className="text-xs text-muted-foreground">Catálogo ativo</p>
+            </CardContent>
+          </Card>
 
-  // MAIN COMPONENT RETURN
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fornecedores</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{(dashboardStats as any)?.totalSuppliers || 0}</div>
+              <p className="text-xs text-muted-foreground">Parceiros ativos</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Itens em Estoque</CardTitle>
+              <Warehouse className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{(dashboardStats as any)?.totalInventory || 0}</div>
+              <p className="text-xs text-muted-foreground">Posições ativas</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">R$ {((dashboardStats as any)?.totalStockValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-xs text-muted-foreground">Valor do estoque</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {modules.slice(1).map((module) => {
+            const IconComponent = module.icon;
+            return (
+              <Card key={module.id} className="cursor-pointer hover:shadow-md transition-shadow" 
+                    onClick={() => setActiveModule(module.id)}>
+                <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                  <IconComponent className="h-8 w-8 text-blue-600 mr-3" />
+                  <div className="flex-1">
+                    <CardTitle className="text-base">{module.name}</CardTitle>
+                    <CardDescription className="text-sm">{module.description}</CardDescription>
+                  </div>
+                  <Badge variant="secondary">{module.count}</Badge>
+                </CardHeader>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (activeModule === 'parts') {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Button variant="outline" onClick={() => setActiveModule('overview')}>
+            ← Voltar para Visão Geral
+          </Button>
+          <h2 className="text-2xl font-bold">Gestão de Peças</h2>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar peças..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 max-w-sm"
+            />
+          </div>
+          <Button onClick={() => setIsCreateItemOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />Nova Peça
+          </Button>
+        </div>
+
+        {isLoadingParts ? (
+          <div className="text-center py-8">Carregando peças...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredParts.map((part: any) => (
+              <Card key={part.id}>
+                <CardHeader>
+                  <CardTitle className="text-base">{part.title}</CardTitle>
+                  <CardDescription>{part.internal_code}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Custo:</span>
+                      <span className="font-medium">R$ {part.cost_price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Venda:</span>
+                      <span className="font-medium">R$ {part.sale_price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <Badge variant={part.abc_classification === 'A' ? 'default' : part.abc_classification === 'B' ? 'secondary' : 'outline'}>
+                        Classe {part.abc_classification}
+                      </Badge>
+                      <div className="flex space-x-1">
+                        <Button size="sm" variant="outline" onClick={() => handleEditItem(part)}>
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="outline" 
+                                onClick={() => window.confirm('Excluir esta peça?') && deletePartMutation.mutate(part.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (activeModule === 'suppliers') {
+    return renderSuppliersModule({
+      searchTerm, setSearchTerm, isCreateSupplierOpen, setIsCreateSupplierOpen,
+      newSupplier, setNewSupplier, suppliers: filteredSuppliers, createSupplierMutation
+    });
+  }
+
+  // For other modules, show a basic structure
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <Button variant="outline" onClick={() => setActiveModule('overview')}>
+          ← Voltar para Visão Geral
+        </Button>
+        <h2 className="text-2xl font-bold">{modules.find(m => m.id === activeModule)?.name}</h2>
+      </div>
       <div className="text-center py-8">
         <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Parts & Services Module</h3>
-        <p className="text-muted-foreground">Successfully loaded and operational</p>
+        <h3 className="text-lg font-semibold mb-2">Módulo {modules.find(m => m.id === activeModule)?.name}</h3>
+        <p className="text-muted-foreground">Em desenvolvimento...</p>
       </div>
     </div>
   );
