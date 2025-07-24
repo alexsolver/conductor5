@@ -36,6 +36,7 @@ import scheduleRoutes from './modules/schedule-management/infrastructure/routes/
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
+import partsServicesRoutes from './modules/parts-services/routes';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -797,6 +798,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
+
+  // Parts and Services Management routes - Gestão de Peças e Serviços
+  app.use('/api/parts-services', jwtAuth, partsServicesRoutes);
 
 
 
