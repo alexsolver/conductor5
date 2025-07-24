@@ -2,53 +2,6 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { pool } from '../../../../db';
-import {
-  parts,
-  inventory,
-  stockMovements,
-  suppliers,
-  supplierCatalog,
-  purchaseOrders,
-  purchaseOrderItems,
-  serviceKits,
-  serviceKitItems,
-  priceLists,
-  priceListItems,
-  quotations,
-  quotationItems,
-  assets,
-  assetMaintenanceHistory,
-  supplierEvaluations,
-  partsAuditLog,
-  type InsertPart,
-  type Part,
-  type InsertInventory,
-  type Inventory,
-  type InsertStockMovement,
-  type StockMovement,
-  type InsertSupplier,
-  type InsertAsset,
-  type Asset,
-  type InsertQuotation,
-  type Quotation,
-  type InsertPriceList,
-  type PriceList,
-  type InsertSupplierEvaluation,
-  type SupplierEvaluation,
-  type InsertPartsAuditLog,
-  type PartsAuditLog
-} from "@shared/schema";
-import { PartsServicesRepository } from "../../domain/repositories/PartsServicesRepository";
-import {
-  type ActivityType,
-  type ServiceKit,
-  type InsertActivityType,
-  type InsertServiceKit,
-  type Inventory,
-  type Supplier,
-  type InsertInventory,
-  type InsertSupplier
-} from "@shared/schema";
 
 // Pool importado do db.ts centralizado
 
