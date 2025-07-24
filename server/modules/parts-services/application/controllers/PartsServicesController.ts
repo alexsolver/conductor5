@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository_clean';
+import { DirectPartsServicesRepository } from '../../infrastructure/repositories/DirectPartsServicesRepository';
 
 interface AuthenticatedRequest extends Request {
   user?: {

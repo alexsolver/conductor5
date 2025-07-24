@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { DirectPartsServicesRepository } from '../infrastructure/repositories/DirectPartsServicesRepository_clean';
+import { DirectPartsServicesRepository } from '../infrastructure/repositories/DirectPartsServicesRepository';
 import { PartsServicesController } from '../application/controllers/PartsServicesController';
 import { jwtAuth } from '../../../middleware/jwtAuth';
 
