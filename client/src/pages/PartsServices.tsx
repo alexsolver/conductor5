@@ -28,6 +28,25 @@ export default function PartsServices() {
   const [isEditSupplierOpen, setIsEditSupplierOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingSupplier, setEditingSupplier] = useState<any>(null);
+  const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
+  const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
+  const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<any>(null);
+  const [newMovement, setNewMovement] = useState({
+    item_id: "",
+    movement_type: "in", // in, out, transfer
+    quantity: "",
+    location_from: "",
+    location_to: "",
+    reason: "",
+    notes: ""
+  });
+  const [newAdjustment, setNewAdjustment] = useState({
+    item_id: "",
+    new_quantity: "",
+    reason: "",
+    notes: ""
+  });
   const [newItem, setNewItem] = useState({
     title: "",
     description: "",
@@ -717,15 +736,15 @@ export default function PartsServices() {
           </div>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setIsMovementModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Nova Movimentação
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setIsAdjustmentModalOpen(true)}>
             <Package className="h-4 w-4 mr-2" />
             Ajuste de Estoque
           </Button>
-          <Button>
+          <Button onClick={() => setIsInventoryModalOpen(true)}>
             <Warehouse className="h-4 w-4 mr-2" />
             Inventário
           </Button>
@@ -743,7 +762,7 @@ export default function PartsServices() {
             <p className="text-muted-foreground mb-4">
               Comece adicionando itens ao seu controle de estoque
             </p>
-            <Button>
+            <Button onClick={() => setIsMovementModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Primeiro Item
             </Button>
@@ -791,10 +810,18 @@ export default function PartsServices() {
                   </div>
                   
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" 
+                            onClick={() => {
+                              setSelectedInventoryItem(part);
+                              setIsAdjustmentModalOpen(true);
+                            }}>
                       <Edit className="h-3 w-3" />
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline"
+                            onClick={() => {
+                              setSelectedInventoryItem(part);
+                              setIsInventoryModalOpen(true);
+                            }}>
                       <Eye className="h-3 w-3" />
                     </Button>
                   </div>
@@ -1238,6 +1265,285 @@ export default function PartsServices() {
               disabled={updateSupplierMutation.isPending}
             >
               {updateSupplierMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL DE NOVA MOVIMENTAÇÃO */}
+      <Dialog open={isMovementModalOpen} onOpenChange={setIsMovementModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Movimentação de Estoque</DialogTitle>
+            <DialogDescription>Registre entrada, saída ou transferência de itens</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="movement-item" className="text-right">Item <span className="text-red-500">*</span></Label>
+              <Select value={newMovement.item_id} onValueChange={(value) => setNewMovement({...newMovement, item_id: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione um item" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parts.map((part: any) => (
+                    <SelectItem key={part.id} value={part.id}>{part.title} ({part.internal_code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="movement-type" className="text-right">Tipo <span className="text-red-500">*</span></Label>
+              <Select value={newMovement.movement_type} onValueChange={(value) => setNewMovement({...newMovement, movement_type: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in">Entrada</SelectItem>
+                  <SelectItem value="out">Saída</SelectItem>
+                  <SelectItem value="transfer">Transferência</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="movement-quantity" className="text-right">Quantidade <span className="text-red-500">*</span></Label>
+              <Input 
+                id="movement-quantity" 
+                type="number" 
+                value={newMovement.quantity} 
+                onChange={(e) => setNewMovement({...newMovement, quantity: e.target.value})} 
+                className="col-span-3"
+                placeholder="0"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="movement-reason" className="text-right">Motivo</Label>
+              <Input 
+                id="movement-reason" 
+                value={newMovement.reason} 
+                onChange={(e) => setNewMovement({...newMovement, reason: e.target.value})} 
+                className="col-span-3"
+                placeholder="Ex: Compra, Venda, Correção"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="movement-notes" className="text-right">Observações</Label>
+              <Textarea 
+                id="movement-notes" 
+                value={newMovement.notes} 
+                onChange={(e) => setNewMovement({...newMovement, notes: e.target.value})} 
+                className="col-span-3"
+                placeholder="Observações adicionais..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsMovementModalOpen(false);
+              setNewMovement({ item_id: "", movement_type: "in", quantity: "", location_from: "", location_to: "", reason: "", notes: "" });
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log('Nova movimentação:', newMovement);
+                toast({ title: "Movimentação registrada com sucesso!" });
+                setIsMovementModalOpen(false);
+                setNewMovement({ item_id: "", movement_type: "in", quantity: "", location_from: "", location_to: "", reason: "", notes: "" });
+              }}
+              disabled={!newMovement.item_id || !newMovement.quantity}
+            >
+              Registrar Movimentação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL DE AJUSTE DE ESTOQUE */}
+      <Dialog open={isAdjustmentModalOpen} onOpenChange={setIsAdjustmentModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajuste de Estoque</DialogTitle>
+            <DialogDescription>Corrija a quantidade atual do item em estoque</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="adjustment-item" className="text-right">Item <span className="text-red-500">*</span></Label>
+              <Select 
+                value={selectedInventoryItem?.id || newAdjustment.item_id} 
+                onValueChange={(value) => setNewAdjustment({...newAdjustment, item_id: value})}
+                disabled={!!selectedInventoryItem}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione um item" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parts.map((part: any) => (
+                    <SelectItem key={part.id} value={part.id}>{part.title} ({part.internal_code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedInventoryItem && (
+              <div className="col-span-4 p-3 bg-blue-50 rounded-lg text-sm">
+                <strong>Item selecionado:</strong> {selectedInventoryItem.title}<br/>
+                <strong>Código:</strong> {selectedInventoryItem.internal_code}
+              </div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="adjustment-quantity" className="text-right">Nova Quantidade <span className="text-red-500">*</span></Label>
+              <Input 
+                id="adjustment-quantity" 
+                type="number" 
+                value={newAdjustment.new_quantity} 
+                onChange={(e) => setNewAdjustment({...newAdjustment, new_quantity: e.target.value})} 
+                className="col-span-3"
+                placeholder="0"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="adjustment-reason" className="text-right">Motivo <span className="text-red-500">*</span></Label>
+              <Input 
+                id="adjustment-reason" 
+                value={newAdjustment.reason} 
+                onChange={(e) => setNewAdjustment({...newAdjustment, reason: e.target.value})} 
+                className="col-span-3"
+                placeholder="Ex: Inventário, Perda, Erro sistema"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="adjustment-notes" className="text-right">Observações</Label>
+              <Textarea 
+                id="adjustment-notes" 
+                value={newAdjustment.notes} 
+                onChange={(e) => setNewAdjustment({...newAdjustment, notes: e.target.value})} 
+                className="col-span-3"
+                placeholder="Detalhes do ajuste..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsAdjustmentModalOpen(false);
+              setSelectedInventoryItem(null);
+              setNewAdjustment({ item_id: "", new_quantity: "", reason: "", notes: "" });
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log('Ajuste de estoque:', newAdjustment);
+                toast({ title: "Ajuste de estoque realizado com sucesso!" });
+                setIsAdjustmentModalOpen(false);
+                setSelectedInventoryItem(null);
+                setNewAdjustment({ item_id: "", new_quantity: "", reason: "", notes: "" });
+              }}
+              disabled={!newAdjustment.new_quantity || !newAdjustment.reason}
+            >
+              Confirmar Ajuste
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL DE DETALHES DO INVENTÁRIO */}
+      <Dialog open={isInventoryModalOpen} onOpenChange={setIsInventoryModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Inventário</DialogTitle>
+            <DialogDescription>Informações completas do item em estoque</DialogDescription>
+          </DialogHeader>
+          {selectedInventoryItem && (
+            <div className="grid gap-6 py-4">
+              {/* Informações do Item */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Informações do Item</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div><strong>Nome:</strong> {selectedInventoryItem.title}</div>
+                    <div><strong>Código:</strong> {selectedInventoryItem.internal_code}</div>
+                    <div><strong>Categoria:</strong> {selectedInventoryItem.category}</div>
+                    <div><strong>Classe ABC:</strong> <Badge variant="outline">{selectedInventoryItem.abc_classification}</Badge></div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Níveis de Estoque</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Atual:</span> <span className="font-bold">25 un</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Mínimo:</span> <span>10 un</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Máximo:</span> <span>50 un</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span> <Badge variant="default">OK</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Movimentações Recentes */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Últimas Movimentações</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <div>
+                        <div className="font-medium">Entrada - Compra</div>
+                        <div className="text-muted-foreground">20/07/2025 14:30</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-green-600 font-medium">+10 un</div>
+                        <div className="text-muted-foreground">Fornecedor ABC</div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <div>
+                        <div className="font-medium">Saída - Venda</div>
+                        <div className="text-muted-foreground">18/07/2025 09:15</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-red-600 font-medium">-5 un</div>
+                        <div className="text-muted-foreground">Cliente XYZ</div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <div>
+                        <div className="font-medium">Ajuste - Inventário</div>
+                        <div className="text-muted-foreground">15/07/2025 16:00</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-blue-600 font-medium">+2 un</div>
+                        <div className="text-muted-foreground">Correção</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsInventoryModalOpen(false);
+              setSelectedInventoryItem(null);
+            }}>
+              Fechar
+            </Button>
+            <Button onClick={() => {
+              setIsInventoryModalOpen(false);
+              setSelectedInventoryItem(null);
+              setIsAdjustmentModalOpen(true);
+            }}>
+              Ajustar Estoque
             </Button>
           </DialogFooter>
         </DialogContent>
