@@ -58,7 +58,7 @@ export const suppliers = pgTable('suppliers', {
   updated_at: timestamp('updated_at').defaultNow()
 });
 
-// ETAPA 1: LOCALIZAÇÕES DE ESTOQUE (Implementar nesta etapa)
+// ETAPA 1: LOCALIZAÇÕES DE ESTOQUE
 export const stockLocations = pgTable('stock_locations', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
@@ -89,7 +89,7 @@ export const stockLocations = pgTable('stock_locations', {
   updated_at: timestamp('updated_at').defaultNow()
 });
 
-// ETAPA 1: INVENTÁRIO MULTI-LOCALIZAÇÃO (Implementar nesta etapa)
+// ETAPA 1: INVENTÁRIO MULTI-LOCALIZAÇÃO
 export const inventoryMultiLocation = pgTable('inventory_multi_location', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
@@ -121,7 +121,7 @@ export const inventoryMultiLocation = pgTable('inventory_multi_location', {
   updated_at: timestamp('updated_at').defaultNow()
 });
 
-// ETAPA 2: MOVIMENTAÇÕES DE ESTOQUE (Próxima etapa)
+// ETAPA 2: MOVIMENTAÇÕES DE ESTOQUE
 export const stockMovements = pgTable('stock_movements', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
@@ -144,14 +144,79 @@ export const stockMovements = pgTable('stock_movements', {
   source_location_id: uuid('source_location_id').references(() => stockLocations.id),
   destination_location_id: uuid('destination_location_id').references(() => stockLocations.id),
   
+  // Rastreabilidade
+  lot_number: varchar('lot_number', { length: 100 }),
+  serial_number: varchar('serial_number', { length: 100 }),
+  expiration_date: date('expiration_date'),
+  
   // Documentos
   reference_document_type: varchar('reference_document_type', { length: 50 }),
   reference_document_number: varchar('reference_document_number', { length: 100 }),
+  supplier_id: uuid('supplier_id').references(() => suppliers.id),
+  customer_id: uuid('customer_id'),
+  
+  // Status
+  status: varchar('status', { length: 20 }).default('COMPLETED'),
+  approval_status: varchar('approval_status', { length: 20 }).default('APPROVED'),
+  approved_by: uuid('approved_by'),
+  approved_at: timestamp('approved_at'),
   
   // Observações
   notes: text('notes'),
   created_at: timestamp('created_at').defaultNow(),
   created_by: uuid('created_by').notNull()
+});
+
+// ETAPA 2: LOTES E SERIAL NUMBERS
+export const stockLots = pgTable('stock_lots', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  part_id: uuid('part_id').notNull().references(() => parts.id),
+  location_id: uuid('location_id').notNull().references(() => stockLocations.id),
+  
+  // Identificação do lote
+  lot_number: varchar('lot_number', { length: 100 }).notNull(),
+  serial_number: varchar('serial_number', { length: 100 }),
+  
+  // Quantidades
+  current_quantity: integer('current_quantity').default(0),
+  original_quantity: integer('original_quantity').notNull(),
+  
+  // Datas
+  manufacturing_date: date('manufacturing_date'),
+  expiration_date: date('expiration_date'),
+  received_date: date('received_date').defaultNow(),
+  
+  // Custos
+  unit_cost: decimal('unit_cost', { precision: 10, scale: 2 }),
+  total_value: decimal('total_value', { precision: 15, scale: 2 }),
+  
+  // Status
+  status: varchar('status', { length: 20 }).default('ACTIVE'), // ACTIVE, EXPIRED, RECALLED
+  
+  created_at: timestamp('created_at').defaultNow()
+});
+
+// ETAPA 2: REGRAS DE APROVAÇÃO
+export const movementApprovalRules = pgTable('movement_approval_rules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Condições
+  movement_type: varchar('movement_type', { length: 50 }).notNull(),
+  minimum_value: decimal('minimum_value', { precision: 15, scale: 2 }),
+  maximum_quantity: integer('maximum_quantity'),
+  
+  // Aprovador
+  approver_role: varchar('approver_role', { length: 50 }),
+  approver_user_id: uuid('approver_user_id'),
+  
+  // Configurações
+  requires_approval: boolean('requires_approval').default(true),
+  auto_approve_threshold: decimal('auto_approve_threshold', { precision: 15, scale: 2 }),
+  
+  is_active: boolean('is_active').default(true),
+  created_at: timestamp('created_at').defaultNow()
 });
 
 // ÍNDICES PARA PERFORMANCE
@@ -167,4 +232,9 @@ export const stockMovementsIndex = index('idx_stock_movements_tenant_part_date')
   stockMovements.tenantId, 
   stockMovements.part_id, 
   stockMovements.created_at
+);
+export const stockLotsIndex = index('idx_stock_lots_part_location').on(
+  stockLots.tenantId,
+  stockLots.part_id,
+  stockLots.location_id
 );
