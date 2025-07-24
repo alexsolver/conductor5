@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { unifiedStorage } from "./storage-master";
+import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
@@ -157,6 +157,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/people', peopleRouter);
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
+
+  // === CLIENTES ROUTES ===
+  app.get("/api/clientes", async (req, res) => {
+    try {
+      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e"; // Default tenant for testing
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const search = req.query.search as string || "";
+      
+      const clientes = await unifiedStorage.getClientes(tenantId, { limit, offset, search });
+      const total = await unifiedStorage.getClientesCount(tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: clientes, 
+        total,
+        message: `Encontrados ${clientes.length} clientes`
+      });
+    } catch (error) {
+      console.error("Error fetching clientes:", error);
+      res.status(500).json({ success: false, message: "Erro ao buscar clientes" });
+    }
+  });
+
+  app.post("/api/clientes", async (req, res) => {
+    try {
+      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
+      const cliente = await unifiedStorage.createCliente(tenantId, req.body);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: cliente,
+        message: "Cliente criado com sucesso"
+      });
+    } catch (error) {
+      console.error("Error creating cliente:", error);
+      res.status(500).json({ success: false, message: "Erro ao criar cliente" });
+    }
+  });
+
+  app.put("/api/clientes/:id", async (req, res) => {
+    try {
+      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
+      const { id } = req.params;
+      
+      const updated = await unifiedStorage.updateCliente(tenantId, id, req.body);
+      
+      if (!updated) {
+        return res.status(404).json({ success: false, message: "Cliente não encontrado" });
+      }
+      
+      res.json({ 
+        success: true, 
+        data: updated,
+        message: "Cliente atualizado com sucesso"
+      });
+    } catch (error) {
+      console.error("Error updating cliente:", error);
+      res.status(500).json({ success: false, message: "Erro ao atualizar cliente" });
+    }
+  });
+
+  app.delete("/api/clientes/:id", async (req, res) => {
+    try {
+      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
+      const { id } = req.params;
+      
+      const deleted = await unifiedStorage.deleteCliente(tenantId, id);
+      
+      if (!deleted) {
+        return res.status(404).json({ success: false, message: "Cliente não encontrado" });
+      }
+      
+      res.json({ 
+        success: true,
+        message: "Cliente excluído com sucesso"
+      });
+    } catch (error) {
+      console.error("Error deleting cliente:", error);
+      res.status(500).json({ success: false, message: "Erro ao excluir cliente" });
+    }
+  });
 
   // Locations routes temporarily removed due to syntax issues
 

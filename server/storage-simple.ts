@@ -613,6 +613,15 @@ export class DatabaseStorage implements IStorage {
   // EXTERNAL CONTACTS (SOLICITANTES/FAVORECIDOS)
   // ===========================
 
+  // Interface compatibility methods
+  async getSolicitantes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+    return this.getClientes(tenantId, options);
+  }
+
+  async createSolicitante(tenantId: string, data: any): Promise<any> {
+    return this.createCliente(tenantId, data);
+  }
+
   async getClientes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
@@ -1765,7 +1774,7 @@ export class DatabaseStorage implements IStorage {
         WHERE tenant_id = ${validatedTenantId} AND type = 'cliente'
       `);
 
-      return parseInt(result.rows?.[0]?.count || '0');
+      return parseInt((result.rows?.[0]?.count as string) || '0');
     } catch (error) {
       logError('Error counting clientes', error, { tenantId });
       return 0;
@@ -1786,6 +1795,7 @@ export class DatabaseStorage implements IStorage {
 // Export singleton instance
 export const storage = new DatabaseStorage();
 export const storageSimple = storage;
+export const unifiedStorage = storage;
 
 // Storage getter function for use in routes
 export async function getStorage() {
