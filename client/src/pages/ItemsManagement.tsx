@@ -237,7 +237,7 @@ export default function ItemsManagement() {
   };
 
   // Get unique groups for filter
-  const uniqueGroups = [...new Set(items.map((item: Item) => item.group).filter(Boolean))];
+  const uniqueGroups = Array.from(new Set((items as Item[]).map((item: Item) => item.group).filter(Boolean)));
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -365,19 +365,19 @@ export default function ItemsManagement() {
         <CardHeader>
           <CardTitle>Lista de Itens</CardTitle>
           <CardDescription>
-            {items.length} item(ns) encontrado(s)
+            {(items as Item[]).length} item(ns) encontrado(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
           {itemsLoading ? (
             <div className="text-center py-8">Carregando...</div>
-          ) : items.length === 0 ? (
+          ) : (items as Item[]).length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Nenhum item encontrado
             </div>
           ) : (
             <div className="space-y-4">
-              {items.map((item: Item) => (
+              {(items as Item[]).map((item: Item) => (
                 <div
                   key={item.id}
                   className="flex items-center justify-between p-4 border rounded-lg"
