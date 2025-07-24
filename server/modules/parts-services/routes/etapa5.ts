@@ -1,42 +1,38 @@
-
+// ETAPA 5: SISTEMA MULTI-ARMAZÉM ENTERPRISE - ROUTES
 import { Router } from 'express';
-import { PartsServicesRepositoryEtapa5 } from '../infrastructure/repositories/PartsServicesRepositoryEtapa5';
 import { PartsServicesControllerEtapa5 } from '../application/controllers/PartsServicesControllerEtapa5';
 import { jwtAuth } from '../../../middleware/jwtAuth';
 
 const router = Router();
-const repository = new PartsServicesRepositoryEtapa5();
-const controller = new PartsServicesControllerEtapa5(repository);
+const controller = new PartsServicesControllerEtapa5();
 
-// Apply JWT authentication to all routes
-router.use(jwtAuth);
+// ===== CAPACIDADES DE ARMAZÉM =====
+router.get('/warehouse-capacities', jwtAuth, controller.getWarehouseCapacities);
+router.post('/warehouse-capacities', jwtAuth, controller.createWarehouseCapacity);
 
-// ===== MULTI-WAREHOUSES MANAGEMENT =====
-router.get('/multi-warehouses', controller.getMultiWarehouses);
-router.post('/multi-warehouses', controller.createMultiWarehouse);
-
-// ===== WAREHOUSE TRANSFERS =====
-router.get('/warehouse-transfers', controller.getWarehouseTransfers);
-router.post('/warehouse-transfers', controller.createWarehouseTransfer);
+// ===== ORDENS DE TRANSFERÊNCIA =====
+router.get('/transfer-orders', jwtAuth, controller.getTransferOrders);
+router.post('/transfer-orders', jwtAuth, controller.createTransferOrder);
+router.put('/transfer-orders/:orderId/status', jwtAuth, controller.updateTransferOrderStatus);
 
 // ===== GPS TRACKING =====
-router.get('/gps-tracking/:transferId', controller.getGpsTracking);
-router.post('/gps-tracking', controller.createGpsTracking);
+router.post('/gps-tracking', jwtAuth, controller.createGpsTrackingPoint);
+router.get('/gps-tracking/:trackableType/:trackableId', jwtAuth, controller.getGpsTracking);
 
-// ===== WAREHOUSE ANALYTICS =====
-router.get('/warehouse-analytics', controller.getWarehouseAnalytics);
+// ===== ANALYTICS DE ARMAZÉM =====
+router.get('/warehouse-analytics', jwtAuth, controller.getWarehouseAnalytics);
+router.post('/warehouse-analytics/generate', jwtAuth, controller.generateDailyAnalytics);
 
-// ===== DEMAND FORECASTING =====
-router.get('/demand-forecasting', controller.getDemandForecasting);
+// ===== PREVISÃO DE DEMANDA =====
+router.get('/demand-forecasting', jwtAuth, controller.getDemandForecasting);
+router.post('/demand-forecasting/generate', jwtAuth, controller.generateDemandForecast);
 
-// ===== RETURN WORKFLOWS =====
-router.get('/return-workflows', controller.getReturnWorkflows);
-router.post('/return-workflows', controller.createReturnWorkflow);
+// ===== WORKFLOW DE DEVOLUÇÕES =====
+router.get('/return-workflows', jwtAuth, controller.getReturnWorkflows);
+router.post('/return-workflows', jwtAuth, controller.createReturnWorkflow);
+router.put('/return-workflows/:returnId', jwtAuth, controller.updateReturnWorkflow);
 
-// ===== TRACKING CODES =====
-router.get('/tracking-codes', controller.getTrackingCodes);
-
-// ===== DASHBOARD STATS ETAPA 5 =====
-router.get('/dashboard/stats', controller.getDashboardStatsEtapa5);
+// ===== DASHBOARD MULTI-ARMAZÉM =====
+router.get('/multi-warehouse-stats', jwtAuth, controller.getMultiWarehouseStats);
 
 export default router;

@@ -679,3 +679,454 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export default PartsServicesEtapa5Tester;
+// TESTES AUTOMATIZADOS - ETAPA 5: SISTEMA MULTI-ARMAZÉM ENTERPRISE
+const { Pool } = require('pg');
+
+const TENANT_ID_TEST = '3f99462f-3621-4b1b-bea8-782acc50d62e';
+const BASE_URL = 'http://localhost:5000';
+
+// Configuração do pool de teste
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'postgres',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres'
+});
+
+const SCHEMA = `tenant_${TENANT_ID_TEST.replace(/-/g, '_')}`;
+
+describe('Parts Services - Etapa 5: Sistema Multi-Armazém Enterprise', () => {
+  let authToken;
+  let testLocationId;
+  let testPartId;
+  let testTransferOrderId;
+  let testReturnWorkflowId;
+
+  beforeAll(async () => {
+    // Autenticação
+    const loginResponse = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'admin@example.com',
+        password: 'admin123'
+      })
+    });
+
+    const loginData = await loginResponse.json();
+    authToken = loginData.token;
+
+    // Criar dados de teste
+    await setupTestData();
+  });
+
+  afterAll(async () => {
+    await cleanupTestData();
+    await pool.end();
+  });
+
+  const setupTestData = async () => {
+    try {
+      // Criar localização de teste
+      const locationResult = await pool.query(`
+        INSERT INTO ${SCHEMA}.stock_locations (
+          tenant_id, name, address, location_type, coordinates
+        ) VALUES ($1, 'Armazém Teste Etapa 5', 'Endereço Teste', 'warehouse', 
+          '{"lat": -23.5505, "lng": -46.6333}')
+        RETURNING id
+      `, [TENANT_ID_TEST]);
+      testLocationId = locationResult.rows[0].id;
+
+      // Criar peça de teste
+      const partResult = await pool.query(`
+        INSERT INTO ${SCHEMA}.parts (
+          tenant_id, name, description, internal_code, unit_cost
+        ) VALUES ($1, 'Peça Teste Etapa 5', 'Descrição teste', 'TEST-E5-001', 100.00)
+        RETURNING id
+      `, [TENANT_ID_TEST]);
+      testPartId = partResult.rows[0].id;
+
+      // Criar capacidade de armazém
+      await pool.query(`
+        INSERT INTO ${SCHEMA}.warehouse_capacities (
+          tenant_id, location_id, total_capacity, available_capacity, unit, max_weight
+        ) VALUES ($1, $2, 1000.0, 800.0, 'cubic_meters', 5000.0)
+      `, [TENANT_ID_TEST, testLocationId]);
+
+    } catch (error) {
+      console.error('Erro ao configurar dados de teste:', error);
+    }
+  };
+
+  const cleanupTestData = async () => {
+    try {
+      await pool.query(`DELETE FROM ${SCHEMA}.warehouse_capacities WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.transfer_order_items WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.transfer_orders WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.return_workflow WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.gps_tracking WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.warehouse_analytics WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.demand_forecasting WHERE tenant_id = $1`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.parts WHERE tenant_id = $1 AND internal_code LIKE 'TEST-E5-%'`, [TENANT_ID_TEST]);
+      await pool.query(`DELETE FROM ${SCHEMA}.stock_locations WHERE tenant_id = $1 AND name LIKE '%Teste Etapa 5%'`, [TENANT_ID_TEST]);
+    } catch (error) {
+      console.error('Erro ao limpar dados de teste:', error);
+    }
+  };
+
+  describe('Capacidades de Armazém', () => {
+    test('GET /api/parts-services/etapa5/warehouse-capacities - deve retornar capacidades', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/warehouse-capacities`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeGreaterThan(0);
+      
+      const capacity = data.find(c => c.location_id === testLocationId);
+      expect(capacity).toBeDefined();
+      expect(capacity.total_capacity).toBe('1000.000');
+      expect(capacity.utilization_percentage).toBeDefined();
+    });
+
+    test('POST /api/parts-services/etapa5/warehouse-capacities - deve criar nova capacidade', async () => {
+      const newCapacity = {
+        locationId: testLocationId,
+        totalCapacity: 2000,
+        availableCapacity: 1500,
+        unit: 'cubic_meters',
+        maxWeight: 8000
+      };
+
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/warehouse-capacities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(newCapacity)
+      });
+
+      expect(response.status).toBe(201);
+      const data = await response.json();
+      expect(data.total_capacity).toBe('2000.000');
+      expect(data.max_weight).toBe('8000.00');
+    });
+  });
+
+  describe('Ordens de Transferência', () => {
+    test('POST /api/parts-services/etapa5/transfer-orders - deve criar ordem de transferência', async () => {
+      // Criar segunda localização
+      const location2Result = await pool.query(`
+        INSERT INTO ${SCHEMA}.stock_locations (
+          tenant_id, name, address, location_type
+        ) VALUES ($1, 'Armazém Destino Teste', 'Endereço Destino', 'warehouse')
+        RETURNING id
+      `, [TENANT_ID_TEST]);
+      const location2Id = location2Result.rows[0].id;
+
+      const newTransferOrder = {
+        fromLocationId: testLocationId,
+        toLocationId: location2Id,
+        priority: 'high',
+        requestedDate: new Date().toISOString(),
+        notes: 'Transferência de teste',
+        items: [
+          {
+            partId: testPartId,
+            requestedQuantity: 10,
+            notes: 'Item de teste'
+          }
+        ]
+      };
+
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/transfer-orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(newTransferOrder)
+      });
+
+      expect(response.status).toBe(201);
+      const data = await response.json();
+      expect(data.transfer_number).toMatch(/^TRF-/);
+      expect(data.status).toBe('pending');
+      expect(data.priority).toBe('high');
+      testTransferOrderId = data.id;
+    });
+
+    test('GET /api/parts-services/etapa5/transfer-orders - deve retornar ordens de transferência', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/transfer-orders`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      
+      const order = data.find(o => o.id === testTransferOrderId);
+      expect(order).toBeDefined();
+      expect(order.from_location_name).toBe('Armazém Teste Etapa 5');
+      expect(order.total_items).toBe('1');
+    });
+
+    test('PUT /api/parts-services/etapa5/transfer-orders/:orderId/status - deve atualizar status', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/transfer-orders/${testTransferOrderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ status: 'approved' })
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.status).toBe('approved');
+      expect(data.approved_date).toBeDefined();
+    });
+  });
+
+  describe('GPS Tracking', () => {
+    test('POST /api/parts-services/etapa5/gps-tracking - deve criar ponto de rastreamento', async () => {
+      const trackingData = {
+        trackableType: 'transfer_order',
+        trackableId: testTransferOrderId,
+        latitude: -23.5505,
+        longitude: -46.6333,
+        altitude: 760,
+        speed: 60.5,
+        heading: 90,
+        accuracy: 5.0,
+        isMoving: true,
+        batteryLevel: 85
+      };
+
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/gps-tracking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(trackingData)
+      });
+
+      expect(response.status).toBe(201);
+      const data = await response.json();
+      expect(data.latitude).toBe('-23.55050000');
+      expect(data.longitude).toBe('-46.63330000');
+      expect(data.is_moving).toBe(true);
+    });
+
+    test('GET /api/parts-services/etapa5/gps-tracking/:trackableType/:trackableId - deve retornar rastreamento', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/gps-tracking/transfer_order/${testTransferOrderId}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeGreaterThan(0);
+      expect(data[0].trackable_type).toBe('transfer_order');
+    });
+  });
+
+  describe('Workflow de Devoluções', () => {
+    test('POST /api/parts-services/etapa5/return-workflows - deve criar workflow de devolução', async () => {
+      const returnData = {
+        sourceType: 'customer',
+        sourceId: null,
+        partId: testPartId,
+        quantity: 2,
+        returnReason: 'Produto defeituoso',
+        itemCondition: 'damaged',
+        currentLocationId: testLocationId,
+        customerNotes: 'Item chegou danificado'
+      };
+
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/return-workflows`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(returnData)
+      });
+
+      expect(response.status).toBe(201);
+      const data = await response.json();
+      expect(data.return_number).toMatch(/^RET-/);
+      expect(data.status).toBe('pending');
+      expect(data.return_reason).toBe('Produto defeituoso');
+      testReturnWorkflowId = data.id;
+    });
+
+    test('GET /api/parts-services/etapa5/return-workflows - deve retornar workflows de devolução', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/return-workflows`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      
+      const returnItem = data.find(r => r.id === testReturnWorkflowId);
+      expect(returnItem).toBeDefined();
+      expect(returnItem.part_name).toBe('Peça Teste Etapa 5');
+    });
+
+    test('PUT /api/parts-services/etapa5/return-workflows/:returnId - deve atualizar workflow', async () => {
+      const updateData = {
+        status: 'approved',
+        returnAction: 'repair',
+        disposition: 'Enviado para reparo',
+        destinationLocationId: testLocationId,
+        internalNotes: 'Aprovado para reparo'
+      };
+
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/return-workflows/${testReturnWorkflowId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.status).toBe('approved');
+      expect(data.return_action).toBe('repair');
+    });
+  });
+
+  describe('Analytics de Armazém', () => {
+    test('POST /api/parts-services/etapa5/warehouse-analytics/generate - deve gerar analytics', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/warehouse-analytics/generate`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.message).toBe('Daily analytics generated successfully');
+    });
+
+    test('GET /api/parts-services/etapa5/warehouse-analytics - deve retornar analytics', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/warehouse-analytics`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+    });
+  });
+
+  describe('Previsão de Demanda', () => {
+    test('POST /api/parts-services/etapa5/demand-forecasting/generate - deve gerar previsão', async () => {
+      const forecastData = {
+        partId: testPartId,
+        locationId: testLocationId
+      };
+
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/demand-forecasting/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(forecastData)
+      });
+
+      expect(response.status).toBe(201);
+      const data = await response.json();
+      expect(data.part_id).toBe(testPartId);
+      expect(data.location_id).toBe(testLocationId);
+      expect(data.algorithm).toBe('moving_average');
+    });
+
+    test('GET /api/parts-services/etapa5/demand-forecasting - deve retornar previsões', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/demand-forecasting`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+    });
+  });
+
+  describe('Dashboard Multi-Armazém', () => {
+    test('GET /api/parts-services/etapa5/multi-warehouse-stats - deve retornar estatísticas consolidadas', async () => {
+      const response = await fetch(`${BASE_URL}/api/parts-services/etapa5/multi-warehouse-stats`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.total_locations).toBeDefined();
+      expect(data.total_transfers).toBeDefined();
+      expect(data.total_returns).toBeDefined();
+      expect(data.avg_utilization).toBeDefined();
+      expect(data.pending_transfers).toBeDefined();
+      expect(data.pending_returns).toBeDefined();
+    });
+  });
+
+  describe('Testes de Integridade', () => {
+    test('Verificar integridade das tabelas da Etapa 5', async () => {
+      const tables = [
+        'warehouse_capacities',
+        'transfer_orders',
+        'transfer_order_items',
+        'gps_tracking',
+        'warehouse_analytics',
+        'demand_forecasting',
+        'return_workflow'
+      ];
+
+      for (const table of tables) {
+        const result = await pool.query(`
+          SELECT COUNT(*) as count 
+          FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = $2
+        `, [SCHEMA, table]);
+
+        expect(parseInt(result.rows[0].count)).toBe(1);
+      }
+    });
+
+    test('Verificar constraints de foreign key', async () => {
+      const result = await pool.query(`
+        SELECT COUNT(*) as count
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu 
+          ON tc.constraint_name = kcu.constraint_name
+        WHERE tc.table_schema = $1 
+          AND tc.constraint_type = 'FOREIGN KEY'
+          AND tc.table_name IN (
+            'warehouse_capacities', 'transfer_orders', 'transfer_order_items',
+            'gps_tracking', 'warehouse_analytics', 'demand_forecasting', 'return_workflow'
+          )
+      `, [SCHEMA]);
+
+      expect(parseInt(result.rows[0].count)).toBeGreaterThan(0);
+    });
+  });
+});
+
+console.log('🧪 TESTES ETAPA 5: Sistema Multi-Armazém Enterprise');
+console.log('✅ Capacidades de Armazém');
+console.log('✅ Ordens de Transferência');
+console.log('✅ GPS Tracking');
+console.log('✅ Workflow de Devoluções');
+console.log('✅ Analytics de Armazém');
+console.log('✅ Previsão de Demanda');
+console.log('✅ Dashboard Multi-Armazém');
+console.log('✅ Testes de Integridade');

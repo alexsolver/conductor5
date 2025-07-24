@@ -538,3 +538,490 @@ export class PartsServicesRepositoryEtapa5 {
     }
   }
 }
+// ETAPA 5: SISTEMA MULTI-ARMAZÉM ENTERPRISE - REPOSITORY
+import { Pool } from 'pg';
+import pool from '../../../../db';
+
+export class PartsServicesRepositoryEtapa5 {
+  private getTenantSchema(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
+  // ===== CAPACIDADES DE ARMAZÉM =====
+  async getWarehouseCapacities(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        SELECT 
+          wc.*,
+          sl.name as location_name,
+          sl.address,
+          sl.coordinates,
+          sl.location_type,
+          ROUND((wc.used_capacity / wc.total_capacity * 100)::numeric, 2) as utilization_percentage
+        FROM ${schema}.warehouse_capacities wc
+        LEFT JOIN ${schema}.stock_locations sl ON wc.location_id = sl.id
+        WHERE wc.tenant_id = $1
+        ORDER BY utilization_percentage DESC
+      `, [tenantId]);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching warehouse capacities:', error);
+      throw error;
+    }
+  }
+
+  async createWarehouseCapacity(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        INSERT INTO ${schema}.warehouse_capacities (
+          tenant_id, location_id, total_capacity, available_capacity,
+          unit, max_weight
+        ) VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [
+        tenantId, data.locationId, data.totalCapacity, 
+        data.availableCapacity, data.unit, data.maxWeight
+      ]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating warehouse capacity:', error);
+      throw error;
+    }
+  }
+
+  // ===== ORDENS DE TRANSFERÊNCIA =====
+  async getTransferOrders(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        SELECT 
+          to_.*,
+          sl_from.name as from_location_name,
+          sl_from.address as from_address,
+          sl_to.name as to_location_name,
+          sl_to.address as to_address,
+          u_req.first_name || ' ' || u_req.last_name as requested_by_name,
+          u_app.first_name || ' ' || u_app.last_name as approved_by_name,
+          COUNT(toi.id) as total_items,
+          SUM(toi.requested_quantity) as total_quantity
+        FROM ${schema}.transfer_orders to_
+        LEFT JOIN ${schema}.stock_locations sl_from ON to_.from_location_id = sl_from.id
+        LEFT JOIN ${schema}.stock_locations sl_to ON to_.to_location_id = sl_to.id
+        LEFT JOIN public.users u_req ON to_.requested_by = u_req.id
+        LEFT JOIN public.users u_app ON to_.approved_by = u_app.id
+        LEFT JOIN ${schema}.transfer_order_items toi ON to_.id = toi.transfer_order_id
+        WHERE to_.tenant_id = $1
+        GROUP BY to_.id, sl_from.name, sl_from.address, sl_to.name, sl_to.address,
+                 u_req.first_name, u_req.last_name, u_app.first_name, u_app.last_name
+        ORDER BY to_.created_at DESC
+      `, [tenantId]);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching transfer orders:', error);
+      throw error;
+    }
+  }
+
+  async createTransferOrder(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Gerar número da transferência
+      const transferNumber = `TRF-${Date.now()}`;
+
+      // Criar ordem de transferência
+      const transferResult = await client.query(`
+        INSERT INTO ${schema}.transfer_orders (
+          tenant_id, transfer_number, from_location_id, to_location_id,
+          status, priority, requested_date, requested_by, notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING *
+      `, [
+        tenantId, transferNumber, data.fromLocationId, data.toLocationId,
+        'pending', data.priority || 'normal', data.requestedDate,
+        data.requestedBy, data.notes
+      ]);
+
+      const transferOrder = transferResult.rows[0];
+
+      // Criar itens da transferência
+      if (data.items && data.items.length > 0) {
+        for (const item of data.items) {
+          await client.query(`
+            INSERT INTO ${schema}.transfer_order_items (
+              tenant_id, transfer_order_id, part_id, requested_quantity, notes
+            ) VALUES ($1, $2, $3, $4, $5)
+          `, [
+            tenantId, transferOrder.id, item.partId, 
+            item.requestedQuantity, item.notes
+          ]);
+        }
+      }
+
+      await client.query('COMMIT');
+      return transferOrder;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Error creating transfer order:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async updateTransferOrderStatus(tenantId: string, orderId: string, status: string, userId: string): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      let updateFields = 'status = $3, updated_at = NOW()';
+      let values = [tenantId, orderId, status];
+
+      if (status === 'approved') {
+        updateFields += ', approved_by = $4, approved_date = NOW()';
+        values.push(userId);
+      } else if (status === 'in_transit') {
+        updateFields += ', shipped_date = NOW()';
+      } else if (status === 'delivered') {
+        updateFields += ', delivered_date = NOW()';
+      }
+
+      const result = await pool.query(`
+        UPDATE ${schema}.transfer_orders 
+        SET ${updateFields}
+        WHERE tenant_id = $1 AND id = $2
+        RETURNING *
+      `, values);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating transfer order status:', error);
+      throw error;
+    }
+  }
+
+  // ===== GPS TRACKING =====
+  async createGpsTrackingPoint(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        INSERT INTO ${schema}.gps_tracking (
+          tenant_id, trackable_type, trackable_id, latitude, longitude,
+          altitude, speed, heading, accuracy, is_moving, battery_level
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *
+      `, [
+        tenantId, data.trackableType, data.trackableId, data.latitude,
+        data.longitude, data.altitude, data.speed, data.heading,
+        data.accuracy, data.isMoving, data.batteryLevel
+      ]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating GPS tracking point:', error);
+      throw error;
+    }
+  }
+
+  async getGpsTracking(tenantId: string, trackableType: string, trackableId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        SELECT * FROM ${schema}.gps_tracking
+        WHERE tenant_id = $1 AND trackable_type = $2 AND trackable_id = $3
+        ORDER BY recorded_at DESC
+        LIMIT 100
+      `, [tenantId, trackableType, trackableId]);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching GPS tracking:', error);
+      throw error;
+    }
+  }
+
+  // ===== ANALYTICS DE ARMAZÉM =====
+  async getWarehouseAnalytics(tenantId: string, locationId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      let whereClause = 'WHERE wa.tenant_id = $1';
+      let values = [tenantId];
+
+      if (locationId) {
+        whereClause += ' AND wa.location_id = $2';
+        values.push(locationId);
+      }
+
+      const result = await pool.query(`
+        SELECT 
+          wa.*,
+          sl.name as location_name,
+          sl.location_type
+        FROM ${schema}.warehouse_analytics wa
+        LEFT JOIN ${schema}.stock_locations sl ON wa.location_id = sl.id
+        ${whereClause}
+        ORDER BY wa.analytics_date DESC
+        LIMIT 30
+      `, values);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching warehouse analytics:', error);
+      throw error;
+    }
+  }
+
+  async generateDailyAnalytics(tenantId: string): Promise<void> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      await pool.query(`
+        INSERT INTO ${schema}.warehouse_analytics (
+          tenant_id, analytics_date, location_id, total_items, total_value,
+          items_received, items_shipped, utilization_rate
+        )
+        SELECT 
+          $1,
+          CURRENT_DATE,
+          i.location_id,
+          COUNT(DISTINCT i.part_id),
+          SUM(i.quantity * p.unit_cost),
+          COALESCE(received.count, 0),
+          COALESCE(shipped.count, 0),
+          COALESCE(wc.used_capacity / wc.total_capacity * 100, 0)
+        FROM ${schema}.inventory i
+        LEFT JOIN ${schema}.parts p ON i.part_id = p.id
+        LEFT JOIN ${schema}.warehouse_capacities wc ON i.location_id = wc.location_id
+        LEFT JOIN (
+          SELECT location_id, COUNT(*) as count
+          FROM ${schema}.stock_movements
+          WHERE movement_type = 'in' AND DATE(created_at) = CURRENT_DATE
+          GROUP BY location_id
+        ) received ON i.location_id = received.location_id
+        LEFT JOIN (
+          SELECT location_id, COUNT(*) as count
+          FROM ${schema}.stock_movements
+          WHERE movement_type = 'out' AND DATE(created_at) = CURRENT_DATE
+          GROUP BY location_id
+        ) shipped ON i.location_id = shipped.location_id
+        WHERE i.tenant_id = $1
+        GROUP BY i.location_id, received.count, shipped.count, wc.used_capacity, wc.total_capacity
+        ON CONFLICT (tenant_id, analytics_date, location_id) 
+        DO UPDATE SET
+          total_items = EXCLUDED.total_items,
+          total_value = EXCLUDED.total_value,
+          items_received = EXCLUDED.items_received,
+          items_shipped = EXCLUDED.items_shipped,
+          utilization_rate = EXCLUDED.utilization_rate
+      `, [tenantId]);
+    } catch (error) {
+      console.error('Error generating daily analytics:', error);
+      throw error;
+    }
+  }
+
+  // ===== PREVISÃO DE DEMANDA =====
+  async getDemandForecasting(tenantId: string, partId?: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      let whereClause = 'WHERE df.tenant_id = $1';
+      let values = [tenantId];
+
+      if (partId) {
+        whereClause += ' AND df.part_id = $2';
+        values.push(partId);
+      }
+
+      const result = await pool.query(`
+        SELECT 
+          df.*,
+          p.name as part_name,
+          p.internal_code,
+          sl.name as location_name,
+          i.quantity as current_stock
+        FROM ${schema}.demand_forecasting df
+        LEFT JOIN ${schema}.parts p ON df.part_id = p.id
+        LEFT JOIN ${schema}.stock_locations sl ON df.location_id = sl.id
+        LEFT JOIN ${schema}.inventory i ON df.part_id = i.part_id AND df.location_id = i.location_id
+        ${whereClause}
+        ORDER BY df.forecast_date DESC
+      `, values);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching demand forecasting:', error);
+      throw error;
+    }
+  }
+
+  async generateDemandForecast(tenantId: string, partId: string, locationId: string): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      // Calcular média móvel dos últimos 30 dias
+      const historicalResult = await pool.query(`
+        SELECT 
+          AVG(ABS(quantity)) as avg_movement,
+          STDDEV(ABS(quantity)) as std_dev
+        FROM ${schema}.stock_movements
+        WHERE tenant_id = $1 AND part_id = $2 AND location_id = $3
+          AND created_at >= CURRENT_DATE - INTERVAL '30 days'
+          AND movement_type = 'out'
+      `, [tenantId, partId, locationId]);
+
+      const historical = historicalResult.rows[0];
+      const forecastedDemand = historical.avg_movement || 0;
+      const confidenceLevel = historical.std_dev ? 
+        Math.max(50, 100 - (historical.std_dev / historical.avg_movement * 100)) : 50;
+
+      const result = await pool.query(`
+        INSERT INTO ${schema}.demand_forecasting (
+          tenant_id, part_id, location_id, forecast_date, forecast_period,
+          historical_average, historical_std_dev, forecasted_demand, confidence_level,
+          recommended_stock_level, reorder_point, algorithm
+        ) VALUES ($1, $2, $3, CURRENT_DATE + INTERVAL '1 day', 'daily', $4, $5, $6, $7, $8, $9, 'moving_average')
+        RETURNING *
+      `, [
+        tenantId, partId, locationId, historical.avg_movement, historical.std_dev,
+        forecastedDemand, confidenceLevel, forecastedDemand * 7, forecastedDemand * 3
+      ]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error generating demand forecast:', error);
+      throw error;
+    }
+  }
+
+  // ===== WORKFLOW DE DEVOLUÇÕES =====
+  async getReturnWorkflows(tenantId: string): Promise<any[]> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        SELECT 
+          rw.*,
+          p.name as part_name,
+          p.internal_code,
+          sl_current.name as current_location_name,
+          sl_dest.name as destination_location_name,
+          u_req.first_name || ' ' || u_req.last_name as requested_by_name,
+          u_app.first_name || ' ' || u_app.last_name as approved_by_name
+        FROM ${schema}.return_workflow rw
+        LEFT JOIN ${schema}.parts p ON rw.part_id = p.id
+        LEFT JOIN ${schema}.stock_locations sl_current ON rw.current_location_id = sl_current.id
+        LEFT JOIN ${schema}.stock_locations sl_dest ON rw.destination_location_id = sl_dest.id
+        LEFT JOIN public.users u_req ON rw.requested_by = u_req.id
+        LEFT JOIN public.users u_app ON rw.approved_by = u_app.id
+        WHERE rw.tenant_id = $1
+        ORDER BY rw.created_at DESC
+      `, [tenantId]);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching return workflows:', error);
+      throw error;
+    }
+  }
+
+  async createReturnWorkflow(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const returnNumber = `RET-${Date.now()}`;
+
+      const result = await pool.query(`
+        INSERT INTO ${schema}.return_workflow (
+          tenant_id, return_number, source_type, source_id, part_id,
+          quantity, return_reason, item_condition, requested_by,
+          current_location_id, customer_notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *
+      `, [
+        tenantId, returnNumber, data.sourceType, data.sourceId, data.partId,
+        data.quantity, data.returnReason, data.itemCondition, data.requestedBy,
+        data.currentLocationId, data.customerNotes
+      ]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating return workflow:', error);
+      throw error;
+    }
+  }
+
+  async updateReturnWorkflow(tenantId: string, returnId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        UPDATE ${schema}.return_workflow
+        SET 
+          status = $3,
+          approved_by = $4,
+          return_action = $5,
+          disposition = $6,
+          destination_location_id = $7,
+          refund_amount = $8,
+          internal_notes = $9,
+          approval_date = CASE WHEN $3 = 'approved' THEN NOW() ELSE approval_date END,
+          completed_date = CASE WHEN $3 = 'completed' THEN NOW() ELSE completed_date END,
+          updated_at = NOW()
+        WHERE tenant_id = $1 AND id = $2
+        RETURNING *
+      `, [
+        tenantId, returnId, data.status, data.approvedBy, data.returnAction,
+        data.disposition, data.destinationLocationId, data.refundAmount,
+        data.internalNotes
+      ]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating return workflow:', error);
+      throw error;
+    }
+  }
+
+  // ===== RELATÓRIOS CONSOLIDADOS =====
+  async getMultiWarehouseStats(tenantId: string): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await pool.query(`
+        SELECT 
+          COUNT(DISTINCT sl.id) as total_locations,
+          COUNT(DISTINCT to_.id) as total_transfers,
+          COUNT(DISTINCT rw.id) as total_returns,
+          AVG(wa.utilization_rate) as avg_utilization,
+          SUM(wa.total_value) as total_inventory_value,
+          COUNT(CASE WHEN to_.status = 'pending' THEN 1 END) as pending_transfers,
+          COUNT(CASE WHEN rw.status = 'pending' THEN 1 END) as pending_returns
+        FROM ${schema}.stock_locations sl
+        LEFT JOIN ${schema}.transfer_orders to_ ON sl.id IN (to_.from_location_id, to_.to_location_id)
+        LEFT JOIN ${schema}.return_workflow rw ON sl.id = rw.current_location_id
+        LEFT JOIN ${schema}.warehouse_analytics wa ON sl.id = wa.location_id 
+          AND wa.analytics_date = CURRENT_DATE
+        WHERE sl.tenant_id = $1
+      `, [tenantId]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error fetching multi-warehouse stats:', error);
+      throw error;
+    }
+  }
+}

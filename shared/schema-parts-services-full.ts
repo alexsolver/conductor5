@@ -979,6 +979,237 @@ export const complianceAlerts = pgTable('compliance_alerts', {
   createdBy: uuid('created_by')
 });
 
+// MÓDULO 5: SISTEMA MULTI-ARMAZÉM ENTERPRISE
+export const warehouseCapacities = pgTable('warehouse_capacities', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  locationId: uuid('location_id').notNull(),
+  
+  // Capacidades físicas
+  totalCapacity: decimal('total_capacity', { precision: 15, scale: 3 }).notNull(),
+  usedCapacity: decimal('used_capacity', { precision: 15, scale: 3 }).default(0),
+  availableCapacity: decimal('available_capacity', { precision: 15, scale: 3 }).notNull(),
+  
+  // Medidas
+  unit: varchar('unit', { length: 20 }).default('cubic_meters'), // cubic_meters, square_meters, pallets
+  
+  // Restrições
+  maxWeight: decimal('max_weight', { precision: 10, scale: 2 }),
+  currentWeight: decimal('current_weight', { precision: 10, scale: 2 }).default(0),
+  
+  // Sistema
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const transferOrders = pgTable('transfer_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Identificação
+  transferNumber: varchar('transfer_number', { length: 50 }).notNull(),
+  
+  // Localizações
+  fromLocationId: uuid('from_location_id').notNull(),
+  toLocationId: uuid('to_location_id').notNull(),
+  
+  // Status e workflow
+  status: varchar('status', { length: 30 }).default('pending'), // pending, approved, in_transit, delivered, cancelled
+  priority: varchar('priority', { length: 20 }).default('normal'), // low, normal, high, urgent
+  
+  // Datas importantes
+  requestedDate: timestamp('requested_date').notNull(),
+  approvedDate: timestamp('approved_date'),
+  shippedDate: timestamp('shipped_date'),
+  deliveredDate: timestamp('delivered_date'),
+  
+  // Responsáveis
+  requestedBy: uuid('requested_by').notNull(),
+  approvedBy: uuid('approved_by'),
+  assignedDriver: uuid('assigned_driver'),
+  
+  // Tracking
+  trackingCode: varchar('tracking_code', { length: 100 }),
+  estimatedDelivery: timestamp('estimated_delivery'),
+  
+  // Observações
+  notes: text('notes'),
+  internalNotes: text('internal_notes'),
+  
+  // Custos
+  shippingCost: decimal('shipping_cost', { precision: 10, scale: 2 }).default(0),
+  
+  // Sistema
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const transferOrderItems = pgTable('transfer_order_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  transferOrderId: uuid('transfer_order_id').notNull(),
+  
+  // Item
+  partId: uuid('part_id').notNull(),
+  
+  // Quantidades
+  requestedQuantity: decimal('requested_quantity', { precision: 10, scale: 3 }).notNull(),
+  approvedQuantity: decimal('approved_quantity', { precision: 10, scale: 3 }),
+  shippedQuantity: decimal('shipped_quantity', { precision: 10, scale: 3 }),
+  receivedQuantity: decimal('received_quantity', { precision: 10, scale: 3 }),
+  
+  // Status
+  status: varchar('status', { length: 30 }).default('pending'),
+  
+  // Observações
+  notes: text('notes'),
+  
+  // Sistema
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const gpsTracking = pgTable('gps_tracking', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Referência
+  trackableType: varchar('trackable_type', { length: 50 }).notNull(), // transfer_order, vehicle, technician
+  trackableId: uuid('trackable_id').notNull(),
+  
+  // Coordenadas
+  latitude: decimal('latitude', { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }).notNull(),
+  altitude: decimal('altitude', { precision: 8, scale: 2 }),
+  
+  // Dados do movimento
+  speed: decimal('speed', { precision: 6, scale: 2 }), // km/h
+  heading: integer('heading'), // degrees 0-360
+  accuracy: decimal('accuracy', { precision: 6, scale: 2 }), // meters
+  
+  // Status
+  isMoving: boolean('is_moving').default(false),
+  batteryLevel: integer('battery_level'), // percentage
+  
+  // Sistema
+  recordedAt: timestamp('recorded_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const warehouseAnalytics = pgTable('warehouse_analytics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Período de análise
+  analyticsDate: date('analytics_date').notNull(),
+  locationId: uuid('location_id').notNull(),
+  
+  // Métricas de estoque
+  totalItems: integer('total_items').default(0),
+  totalValue: decimal('total_value', { precision: 15, scale: 2 }).default(0),
+  turnoverRate: decimal('turnover_rate', { precision: 5, scale: 2 }), // percentage
+  
+  // Métricas de movimento
+  itemsReceived: integer('items_received').default(0),
+  itemsShipped: integer('items_shipped').default(0),
+  transfersIn: integer('transfers_in').default(0),
+  transfersOut: integer('transfers_out').default(0),
+  
+  // Performance
+  fulfillmentRate: decimal('fulfillment_rate', { precision: 5, scale: 2 }), // percentage
+  accuracyRate: decimal('accuracy_rate', { precision: 5, scale: 2 }), // percentage
+  
+  // Capacidade
+  utilizationRate: decimal('utilization_rate', { precision: 5, scale: 2 }), // percentage
+  
+  // Sistema
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const demandForecasting = pgTable('demand_forecasting', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Item e local
+  partId: uuid('part_id').notNull(),
+  locationId: uuid('location_id').notNull(),
+  
+  // Período de previsão
+  forecastDate: date('forecast_date').notNull(),
+  forecastPeriod: varchar('forecast_period', { length: 20 }).notNull(), // daily, weekly, monthly
+  
+  // Dados históricos
+  historicalAverage: decimal('historical_average', { precision: 10, scale: 3 }),
+  historicalStdDev: decimal('historical_std_dev', { precision: 10, scale: 3 }),
+  
+  // Previsões
+  forecastedDemand: decimal('forecasted_demand', { precision: 10, scale: 3 }).notNull(),
+  confidenceLevel: decimal('confidence_level', { precision: 5, scale: 2 }), // percentage
+  
+  // Fatores influenciadores
+  seasonalityFactor: decimal('seasonality_factor', { precision: 5, scale: 2 }),
+  trendFactor: decimal('trend_factor', { precision: 5, scale: 2 }),
+  
+  // Recomendações
+  recommendedStockLevel: decimal('recommended_stock_level', { precision: 10, scale: 3 }),
+  reorderPoint: decimal('reorder_point', { precision: 10, scale: 3 }),
+  
+  // Algoritmo usado
+  algorithm: varchar('algorithm', { length: 50 }).default('moving_average'),
+  
+  // Sistema
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const returnWorkflow = pgTable('return_workflow', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Identificação
+  returnNumber: varchar('return_number', { length: 50 }).notNull(),
+  
+  // Origem da devolução
+  sourceType: varchar('source_type', { length: 30 }).notNull(), // customer, internal, warranty, defective
+  sourceId: uuid('source_id'), // customer_id, work_order_id, etc
+  
+  // Item devolvido
+  partId: uuid('part_id').notNull(),
+  quantity: decimal('quantity', { precision: 10, scale: 3 }).notNull(),
+  
+  // Motivo e condição
+  returnReason: varchar('return_reason', { length: 100 }).notNull(),
+  itemCondition: varchar('item_condition', { length: 30 }).notNull(), // new, used, damaged, defective
+  
+  // Workflow de aprovação
+  status: varchar('status', { length: 30 }).default('pending'), // pending, approved, rejected, processing, completed
+  requestedBy: uuid('requested_by').notNull(),
+  approvedBy: uuid('approved_by'),
+  
+  // Decisão
+  returnAction: varchar('return_action', { length: 30 }), // restock, repair, dispose, return_supplier
+  disposition: text('disposition'),
+  
+  // Localização
+  currentLocationId: uuid('current_location_id'),
+  destinationLocationId: uuid('destination_location_id'),
+  
+  // Financeiro
+  refundAmount: decimal('refund_amount', { precision: 10, scale: 2 }),
+  restockingFee: decimal('restocking_fee', { precision: 10, scale: 2 }),
+  
+  // Datas
+  returnDate: timestamp('return_date'),
+  approvalDate: timestamp('approval_date'),
+  completedDate: timestamp('completed_date'),
+  
+  // Observações
+  customerNotes: text('customer_notes'),
+  internalNotes: text('internal_notes'),
+  
+  // Sistema
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 // MÓDULO 11: DIFERENCIAIS AVANÇADOS
 export const budgetSimulations = pgTable('budget_simulations', {
   id: uuid('id').primaryKey().defaultRandom(),

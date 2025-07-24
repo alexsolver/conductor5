@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -22,6 +21,7 @@ import { StockLocationsManager } from './StockLocationsManager';
 import { StockMovementsManager } from './StockMovementsManager';
 import { AdvancedWarehouseManager } from './AdvancedWarehouseManager';
 import { ServiceIntegrationsManager } from './ServiceIntegrationsManager';
+import MultiWarehouseEnterpriseManager from './MultiWarehouseEnterpriseManager';
 
 interface DashboardStats {
   totalParts: number;
@@ -236,7 +236,7 @@ export const PartsServicesMainDashboard: React.FC = () => {
                         ))}
                       </ul>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                       {Object.entries(etapa.metrics).map(([key, value]) => (
                         <div key={key} className="text-center">
@@ -378,6 +378,10 @@ export const PartsServicesMainDashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="etapa5">
+          <MultiWarehouseEnterpriseManager />
         </TabsContent>
       </Tabs>
     </div>
