@@ -219,7 +219,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== PARTS =====
   async createPart(tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     // Validação de entrada
     if (!data.internal_code || !data.manufacturer_code || !data.title) {
       throw new Error('Campos obrigatórios não preenchidos');
@@ -232,7 +232,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
          WHERE tenant_id = $1 AND internal_code = $2 AND is_active = true`,
         [tenantId, data.internal_code]
       );
-      
+
       if (duplicateCheck.rows.length > 0) {
         throw new Error('Já existe uma peça ativa com este código interno');
       }
@@ -247,18 +247,18 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     // Validação de preços
     const costPrice = parseFloat(data.cost_price) || 0;
     const salePrice = parseFloat(data.sale_price) || 0;
-    
+
     if (costPrice < 0 || salePrice < 0) {
       throw new Error('Preços não podem ser negativos');
     }
-    
+
     if (salePrice <= costPrice && salePrice > 0) {
       throw new Error('Preço de venda deve ser maior que o preço de custo');
     }
 
     // Gerar part_number automaticamente se não fornecido
     const partNumber = data.part_number || `PN-${Date.now()}`;
-    
+
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.parts (
@@ -285,7 +285,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           true
         ]
       );
-      
+
       return result.rows[0];
     } catch (error: any) {
       console.error('Error creating part:', error);
@@ -298,7 +298,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async findParts(tenantId: string): Promise<any[]> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `SELECT 
@@ -326,7 +326,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
          ORDER BY title`,
         [tenantId]
       );
-      
+
       return result.rows.map(row => ({
         ...row,
         cost_price: parseFloat(row.cost_price) || 0,
@@ -354,7 +354,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async findInventory(tenantId: string): Promise<Inventory[]> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `SELECT 
@@ -373,7 +373,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
          ORDER BY created_at DESC`,
         [tenantId]
       );
-      
+
       return result.rows;
     } catch (error) {
       console.error('Error finding inventory:', error);
@@ -384,7 +384,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== SUPPLIERS =====
   async createSupplier(tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     // Validação de entrada
     if (!data.supplier_code || !data.name || !data.trade_name || !data.email) {
       throw new Error('Campos obrigatórios não preenchidos');
@@ -403,7 +403,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
          WHERE tenant_id = $1 AND supplier_code = $2 AND is_active = true`,
         [tenantId, data.supplier_code]
       );
-      
+
       if (duplicateCodeCheck.rows.length > 0) {
         throw new Error('Já existe um fornecedor ativo com este código');
       }
@@ -414,7 +414,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
          WHERE tenant_id = $1 AND email = $2 AND is_active = true`,
         [tenantId, data.email]
       );
-      
+
       if (duplicateEmailCheck.rows.length > 0) {
         throw new Error('Já existe um fornecedor ativo com este email');
       }
@@ -439,7 +439,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     if (leadTimeDays < 1 || leadTimeDays > 365) {
       throw new Error('Prazo de entrega deve estar entre 1 e 365 dias');
     }
-    
+
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.suppliers (
@@ -472,7 +472,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           true
         ]
       );
-      
+
       return result.rows[0];
     } catch (error: any) {
       console.error('Error creating supplier:', error);
@@ -485,7 +485,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async findSuppliers(tenantId: string): Promise<any[]> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `SELECT 
@@ -517,7 +517,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
          ORDER BY name`,
         [tenantId]
       );
-      
+
       return result.rows.map(row => ({
         ...row,
         quality_rating: parseFloat(row.quality_rating) || 0,
@@ -803,8 +803,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     const schema = this.getTenantSchema(tenantId);
     try {
       const result = await pool.query(
-        `INSERT INTO ${schema}.price_list_items (tenant_id, price_list_id, item_code, description, unit_price)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        `INSERT INTO ${schema}.price_list_items (tenant_id, price_list_id, item_code, description, unit_price)         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [tenantId, data.priceListId, data.itemCode, data.description, data.unitPrice]
       );
       return result.rows[0];
@@ -1257,7 +1256,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== CRUD METHODS FOR PARTS =====
   async updatePart(id: string, tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `UPDATE ${schema}.parts SET 
@@ -1286,7 +1285,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           data.category || 'Geral'
         ]
       );
-      
+
       return result.rows[0];
     } catch (error) {
       console.error('Error updating part:', error);
@@ -1296,14 +1295,14 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async deletePart(id: string, tenantId: string): Promise<boolean> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `UPDATE ${schema}.parts SET is_active = false, updated_at = NOW() 
          WHERE id = $1 AND tenant_id = $2`,
         [id, tenantId]
       );
-      
+
       return result.rowCount > 0;
     } catch (error) {
       console.error('Error deleting part:', error);
@@ -1314,7 +1313,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== CRUD METHODS FOR SUPPLIERS =====
   async updateSupplier(id: string, tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `UPDATE ${schema}.suppliers SET 
@@ -1342,7 +1341,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           data.payment_terms, parseInt(data.lead_time_days) || 7, data.supplier_type || 'regular'
         ]
       );
-      
+
       return result.rows[0];
     } catch (error) {
       console.error('Error updating supplier:', error);
@@ -1352,14 +1351,14 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async deleteSupplier(id: string, tenantId: string): Promise<boolean> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `UPDATE ${schema}.suppliers SET is_active = false, updated_at = NOW() 
          WHERE id = $1 AND tenant_id = $2`,
         [id, tenantId]
       );
-      
+
       return result.rowCount > 0;
     } catch (error) {
       console.error('Error deleting supplier:', error);
@@ -1370,7 +1369,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== CRUD METHODS FOR INVENTORY =====
   async updateInventory(id: string, tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `UPDATE ${schema}.inventory SET 
@@ -1388,7 +1387,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           parseFloat(data.unitCost) || 0
         ]
       );
-      
+
       return result.rows[0];
     } catch (error) {
       console.error('Error updating inventory:', error);
@@ -1398,13 +1397,13 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async deleteInventory(id: string, tenantId: string): Promise<boolean> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `DELETE FROM ${schema}.inventory WHERE id = $1 AND tenant_id = $2`,
         [id, tenantId]
       );
-      
+
       return result.rowCount > 0;
     } catch (error) {
       console.error('Error deleting inventory:', error);
@@ -1414,7 +1413,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
 
   async createInventoryEntry(tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.inventory (
@@ -1427,7 +1426,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           parseInt(data.maxStock) || 100, parseFloat(data.unitCost) || 0
         ]
       );
-      
+
       return result.rows[0];
     } catch (error) {
       console.error('Error creating inventory entry:', error);
@@ -1438,7 +1437,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== DASHBOARD STATS =====
   async getDashboardStats(tenantId: string): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       // Verificar se as tabelas existem antes de consultar
       const tableCheckQuery = `
@@ -1447,10 +1446,10 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         WHERE table_schema = $1 
         AND table_name IN ('parts', 'suppliers', 'inventory', 'purchase_orders', 'budget_simulations')
       `;
-      
+
       const tablesResult = await pool.query(tableCheckQuery, [schema]);
       const existingTables = tablesResult.rows.map(row => row.table_name);
-      
+
       const stats = {
         totalParts: 0,
         totalSuppliers: 0,
@@ -1487,22 +1486,18 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         }
       }
 
-      // Get inventory count com tratamento de erro
+      // Get inventory count e value com tratamento de erro
       if (existingTables.includes('inventory')) {
         try {
           const inventoryResult = await pool.query(
-            `SELECT COUNT(*) as count FROM ${schema}.inventory WHERE tenant_id = $1`,
-            [tenantId]
-          );
-          stats.totalInventory = parseInt(inventoryResult.rows[0]?.count || 0);
-          
-          // Calculate total stock value
-          const stockValueResult = await pool.query(
-            `SELECT COALESCE(SUM(current_stock * unit_cost), 0) as total_value 
+            `SELECT 
+              COUNT(*) as count,
+              COALESCE(SUM(COALESCE(quantity, 0) * COALESCE(unit_cost, 0)), 0) as total_value
              FROM ${schema}.inventory WHERE tenant_id = $1`,
             [tenantId]
           );
-          stats.totalStockValue = parseFloat(stockValueResult.rows[0]?.total_value || 0);
+          stats.totalInventory = parseInt(inventoryResult.rows[0]?.count || 0);
+          stats.totalStockValue = parseFloat(inventoryResult.rows[0]?.total_value || 0);
         } catch (error) {
           console.error('Error calculating inventory stats:', error);
         }
@@ -1568,7 +1563,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== CRUD METHODS FOR PARTS =====
   async updatePart(id: string, tenantId: string, data: any): Promise<any | null> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       // Validar se a peça existe
       const existingPart = await pool.query(
@@ -1656,7 +1651,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   // ===== CRUD METHODS FOR SUPPLIERS =====
   async updateSupplier(id: string, tenantId: string, data: any): Promise<any | null> {
     const schema = this.getTenantSchema(tenantId);
-    
+
     try {
       // Validar se o fornecedor existe
       const existingSupplier = await pool.query(

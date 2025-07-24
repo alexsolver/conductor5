@@ -22,34 +22,55 @@ const partSchema = z.object({
   internal_code: z.string()
     .min(1, "Código interno obrigatório")
     .max(100, "Código interno muito longo")
-    .regex(/^[A-Za-z0-9\-_]+$/, "Use apenas letras, números, hífen e underscore"),
+    .regex(/^[A-Za-z0-9\-_]+$/, "Use apenas letras, números, hífen e underscore")
+    .transform(val => val.toUpperCase()),
   manufacturer_code: z.string()
     .min(1, "Código fabricante obrigatório")
-    .max(100, "Código fabricante muito longo"),
+    .max(100, "Código fabricante muito longo")
+    .transform(val => val.toUpperCase()),
   title: z.string()
     .min(3, "Título deve ter pelo menos 3 caracteres")
-    .max(255, "Título muito longo"),
+    .max(255, "Título muito longo")
+    .regex(/^[A-Za-z0-9\s\-_\.]+$/, "Título contém caracteres inválidos"),
   description: z.string()
     .min(10, "Descrição deve ter pelo menos 10 caracteres")
     .max(1000, "Descrição muito longa"),
   cost_price: z.string()
-    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, "Preço de custo deve ser um número positivo"),
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0.01, "Preço de custo deve ser maior que R$ 0,01")
+    .refine(val => parseFloat(val) <= 999999.99, "Preço de custo muito alto"),
   sale_price: z.string()
-    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, "Preço de venda deve ser um número positivo"),
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0.01, "Preço de venda deve ser maior que R$ 0,01")
+    .refine(val => parseFloat(val) <= 999999.99, "Preço de venda muito alto"),
   margin_percentage: z.string()
-    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 100, "Margem deve ser entre 0 e 100%"),
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 1000, "Margem deve ser entre 0 e 1000%"),
   abc_classification: z.enum(["A", "B", "C"], {
     errorMap: () => ({ message: "Classificação deve ser A, B ou C" })
   }),
   weight_kg: z.string().optional()
-    .refine(val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0), "Peso deve ser um número positivo"),
-  material: z.string().max(100, "Material muito longo").optional(),
-  voltage: z.string().max(50, "Voltagem muito longa").optional(),
+    .refine(val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0 && parseFloat(val) <= 10000), "Peso deve ser entre 0.001kg e 10000kg"),
+  material: z.string().max(100, "Material muito longo").optional()
+    .refine(val => !val || /^[A-Za-z0-9\s\-_\.]+$/.test(val), "Material contém caracteres inválidos"),
+  voltage: z.string().max(50, "Voltagem muito longa").optional()
+    .refine(val => !val || /^[0-9V\-\/\s]+$/.test(val), "Formato de voltagem inválido (ex: 220V, 110V/220V)"),
   power_watts: z.string().optional()
-    .refine(val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0), "Potência deve ser um número positivo")
-}).refine(data => parseFloat(data.sale_price) > parseFloat(data.cost_price), {
+    .refine(val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0 && parseFloat(val) <= 1000000), "Potência deve ser entre 1W e 1000000W"),
+  category: z.string().min(1, "Categoria obrigatória").max(100, "Categoria muito longa").optional().default("Geral")
+}).refine(data => {
+  const costPrice = parseFloat(data.cost_price);
+  const salePrice = parseFloat(data.sale_price);
+  return salePrice > costPrice;
+}, {
   message: "Preço de venda deve ser maior que o preço de custo",
   path: ["sale_price"]
+}).refine(data => {
+  const costPrice = parseFloat(data.cost_price);
+  const salePrice = parseFloat(data.sale_price);
+  const margin = parseFloat(data.margin_percentage);
+  const calculatedMargin = ((salePrice - costPrice) / costPrice) * 100;
+  return Math.abs(calculatedMargin - margin) <= 1; // 1% de tolerância
+}, {
+  message: "Margem percentual não confere com os preços informados",
+  path: ["margin_percentage"]
 });
 
 const supplierSchema = z.object({
@@ -291,9 +312,11 @@ export default function PartsServicesFunctional() {
 
       {/* Tabs com dados reais */}
       <Tabs defaultValue="parts" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="parts">Gestão de Peças</TabsTrigger>
+          <TabsTrigger value="inventory">Controle de Estoque</TabsTrigger>
           <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+          <TabsTrigger value="reports">Relatórios</TabsTrigger>
         </TabsList>
 
         {/* Tab de Peças */}
@@ -377,10 +400,31 @@ export default function PartsServicesFunctional() {
                   <div className="flex gap-2 pt-2">
                     <EditPartDialog part={part} />
                     <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(part, null, 2));
+                        toast({ title: "Dados copiados para área de transferência" });
+                      }}
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Copiar
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      onClick={() => {
+                        // Abrir modal de histórico de alterações
+                        toast({ title: "Histórico de alterações em desenvolvimento" });
+                      }}
+                    >
+                      📊 Histórico
+                    </Button>
+                    <Button 
                       variant="destructive" 
                       size="sm" 
                       onClick={() => {
-                        if (confirm('Tem certeza que deseja excluir esta peça?')) {
+                        if (confirm(`Tem certeza que deseja excluir a peça "${part.title}"?\n\nEsta ação não pode ser desfeita.`)) {
                           deletePartMutation.mutate(part.id);
                         }
                       }}
@@ -396,6 +440,167 @@ export default function PartsServicesFunctional() {
           ))}
             </div>
           )}
+        </TabsContent>
+
+        {/* Tab de Estoque */}
+        <TabsContent value="inventory" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Controle de Estoque</h2>
+            <CreateInventoryDialog />
+          </div>
+
+          {isLoadingInventory ? (
+            <div className="text-center py-8">Carregando estoque...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.isArray(inventory) ? inventory.map((item: any) => (
+                <Card key={item.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">Estoque #{item.id.slice(0, 8)}</CardTitle>
+                        <CardDescription>Localização: {item.location}</CardDescription>
+                      </div>
+                      <Badge variant={item.currentStock <= item.minStock ? 'destructive' : 
+                                   item.currentStock >= item.maxStock ? 'secondary' : 'default'}>
+                        {item.currentStock <= item.minStock ? 'Baixo' :
+                         item.currentStock >= item.maxStock ? 'Alto' : 'Normal'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Estoque Atual:</span>
+                        <span className="font-medium">{item.currentStock} unidades</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Estoque Mínimo:</span>
+                        <span className="font-medium text-orange-600">{item.minStock}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Estoque Máximo:</span>
+                        <span className="font-medium text-green-600">{item.maxStock}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Custo Unitário:</span>
+                        <span className="font-medium">R$ {parseFloat(item.unitCost).toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Valor Total:</span>
+                          <span className="font-bold text-green-600">
+                            R$ {(item.currentStock * parseFloat(item.unitCost)).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Edit className="w-3 h-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button variant="secondary" size="sm" className="flex-1">
+                          📦 Movimentar
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )) : (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  Nenhum item de estoque encontrado
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Tab de Relatórios */}
+        <TabsContent value="reports" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Relatórios e Analytics</h2>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                📊 Exportar Dados
+              </Button>
+              <Button>
+                📈 Gerar Relatório
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Valor Total do Estoque</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  R$ {Array.isArray(inventory) ? 
+                    inventory.reduce((total, item) => 
+                      total + (item.currentStock * parseFloat(item.unitCost || 0)), 0
+                    ).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Itens em Baixo Estoque</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {Array.isArray(inventory) ? 
+                    inventory.filter(item => item.currentStock <= item.minStock).length : 0}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Total de Fornecedores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {Array.isArray(suppliers) ? suppliers.length : 0}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Peças Cadastradas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {filteredParts.length}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Análise por Categoria ABC</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                {['A', 'B', 'C'].map(classification => {
+                  const count = filteredParts.filter(part => part.abc_classification === classification).length;
+                  const percentage = filteredParts.length > 0 ? (count / filteredParts.length * 100).toFixed(1) : 0;
+                  return (
+                    <div key={classification} className="text-center p-4 border rounded">
+                      <div className="text-2xl font-bold">{count}</div>
+                      <div className="text-sm text-muted-foreground">Classe {classification}</div>
+                      <div className="text-xs text-muted-foreground">{percentage}%</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Tab de Fornecedores */}
@@ -1262,6 +1467,213 @@ function CreateSupplierDialog() {
                 disabled={createSupplierMutation.isPending}
               >
                 {createSupplierMutation.isPending ? 'Criando...' : 'Criar Fornecedor'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ===== COMPONENTE DE CRIAÇÃO DE ESTOQUE =====
+function CreateInventoryDialog() {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const inventorySchema = z.object({
+    partId: z.string().min(1, "Peça obrigatória"),
+    location: z.string().min(1, "Localização obrigatória").max(100, "Localização muito longa"),
+    currentStock: z.number().min(0, "Estoque atual deve ser positivo"),
+    minStock: z.number().min(0, "Estoque mínimo deve ser positivo"),
+    maxStock: z.number().min(1, "Estoque máximo deve ser maior que zero"),
+    unitCost: z.number().min(0.01, "Custo unitário deve ser maior que R$ 0,01")
+  }).refine(data => data.maxStock > data.minStock, {
+    message: "Estoque máximo deve ser maior que o mínimo",
+    path: ["maxStock"]
+  });
+
+  const form = useForm<z.infer<typeof inventorySchema>>({
+    resolver: zodResolver(inventorySchema),
+    defaultValues: {
+      partId: "",
+      location: "Estoque Principal",
+      currentStock: 0,
+      minStock: 5,
+      maxStock: 100,
+      unitCost: 0
+    }
+  });
+
+  const createInventoryMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/parts-services/inventory', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setOpen(false);
+      form.reset();
+      toast({ title: "Item de estoque criado com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar item de estoque", variant: "destructive" });
+    }
+  });
+
+  const onSubmit = (data: z.infer<typeof inventorySchema>) => {
+    createInventoryMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Item de Estoque
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Criar Item de Estoque</DialogTitle>
+          <DialogDescription>
+            Adicione um novo item ao controle de estoque
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="partId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Peça *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma peça" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filteredParts.map((part) => (
+                        <SelectItem key={part.id} value={part.id}>
+                          {part.internal_code} - {part.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Localização *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex: Estoque Principal, Depósito A1" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="currentStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estoque Atual *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        min="0"
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="minStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estoque Mínimo *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        min="0"
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="maxStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estoque Máximo *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        min="1"
+                        onChange={e => field.onChange(parseInt(e.target.value) || 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="unitCost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custo Unitário (R$) *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="number" 
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createInventoryMutation.isPending}
+              >
+                {createInventoryMutation.isPending ? 'Criando...' : 'Criar Item'}
               </Button>
             </DialogFooter>
           </form>
