@@ -59,7 +59,7 @@ export default function ContractManagement() {
   });
 
   // Fetch contracts with filters
-  const { data: contractsData, isLoading: contractsLoading, refetch } = useQuery<any>({
+  const { data: contractsData, isLoading: contractsLoading, error: contractsError, refetch: refetchContracts } = useQuery<any>({
     queryKey: ['/api/contracts/contracts', statusFilter, typeFilter, priorityFilter, searchTerm],
     queryFn: () => {
       const params = new URLSearchParams();
@@ -67,17 +67,29 @@ export default function ContractManagement() {
       if (typeFilter && typeFilter !== 'all') params.append('contractType', typeFilter);
       if (priorityFilter && priorityFilter !== 'all') params.append('priority', priorityFilter);
       if (searchTerm) params.append('search', searchTerm);
-      
+
       return fetch(`/api/contracts/contracts?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json'
         }
       }).then(res => {
-        if (!res.ok) throw new Error('Failed to fetch contracts');
+        if (!res.ok) {
+          if (res.status === 401) {
+            throw new Error('Token de autenticação inválido ou expirado');
+          }
+          throw new Error('Failed to fetch contracts');
+        }
         return res.json();
       });
     },
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors
+      if (error.message.includes('401') || error.message.includes('autenticação')) {
+        return false;
+      }
+      return failureCount < 3;
+    }
   });
 
   // Ensure contracts is always an array
@@ -92,7 +104,7 @@ export default function ContractManagement() {
       terminated: { label: 'Rescindido', variant: 'outline' as const },
       renewed: { label: 'Renovado', variant: 'default' as const },
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -104,7 +116,7 @@ export default function ContractManagement() {
       high: { label: 'Alta', variant: 'default' as const },
       critical: { label: 'Crítica', variant: 'destructive' as const },
     };
-    
+
     const config = priorityConfig[priority as keyof typeof priorityConfig] || { label: priority, variant: 'secondary' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -159,7 +171,7 @@ export default function ContractManagement() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -171,7 +183,7 @@ export default function ContractManagement() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -183,7 +195,7 @@ export default function ContractManagement() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -213,7 +225,7 @@ export default function ContractManagement() {
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-32">
@@ -282,6 +294,30 @@ export default function ContractManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+        {statsLoading || contractsLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando contratos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (contractsError) {
+    return (
+      <div className="flex flex-col justify-center items-center h-64 space-y-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-destructive mb-2">Erro ao carregar contratos</h3>
+          <p className="text-muted-foreground mb-4">{contractsError.message}</p>
+          <Button onClick={() => refetchContracts()} variant="outline">
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
           {contractsLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
@@ -318,7 +354,7 @@ export default function ContractManagement() {
                         {getStatusBadge(contract.status)}
                         {getPriorityBadge(contract.priority)}
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
                         <div>
                           <span className="font-medium">Número:</span> {contract.contractNumber}
@@ -334,14 +370,14 @@ export default function ContractManagement() {
                           <span>{formatDate(contract.startDate)} - {formatDate(contract.endDate)}</span>
                         </div>
                       </div>
-                      
+
                       {contract.description && (
                         <p className="text-sm text-gray-600 mt-2 truncate">
                           {contract.description}
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 ml-4">
                       <Button variant="outline" size="sm">
                         Ver Detalhes
