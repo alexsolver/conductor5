@@ -1,0 +1,42 @@
+6:52:33 PM [express] serving on port 5000
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] The character ">" is not valid inside a JSX element
+
+    client/src/pages/PartsServices.tsx:546:36:
+      546 │   const renderSuppliersModule = () => (
+          │                                     ^
+          ╵                                     {'>'}
+
+  Did you mean to escape it as "{'>'}" instead?
+
+
+✘ [ERROR] The character ">" is not valid inside a JSX element
+
+    client/src/pages/PartsServices.tsx:723:30:
+      723 │   const InventoryModule = () => (
+          │                               ^
+          ╵                               {'>'}
+
+  Did you mean to escape it as "{'>'}" instead?
+
+
+✘ [ERROR] Expected "}" but found ":"
+
+    client/src/pages/PartsServices.tsx:885:56:
+      885 │ ...{ title, description }: { title: string, description: string }...
+          │                                   ^
+          ╵                                   }
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1472:15)
+    at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:945:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1315:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:943:7)
+    at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:955:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:954:54)
+    at handleRequest (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:647:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:672:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:600:7)
