@@ -294,103 +294,100 @@ export default function ContractManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        {statsLoading || contractsLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Carregando contratos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (contractsError) {
-    return (
-      <div className="flex flex-col justify-center items-center h-64 space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-destructive mb-2">Erro ao carregar contratos</h3>
-          <p className="text-muted-foreground mb-4">{contractsError.message}</p>
-          <Button onClick={() => refetchContracts()} variant="outline">
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
-          {contractsLoading ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse flex items-center space-x-4 p-4 border rounded-lg">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                </div>
-              ))}
+        {(statsLoading || contractsLoading) ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Carregando contratos...</p>
             </div>
-          ) : contracts.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum contrato encontrado</h3>
-              <p className="text-gray-600 mb-4">
-                {searchTerm || statusFilter || typeFilter || priorityFilter
-                  ? 'Nenhum contrato corresponde aos filtros aplicados.'
-                  : 'Comece criando seu primeiro contrato.'}
-              </p>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Primeiro Contrato
+          </div>
+        ) : contractsError ? (
+          <div className="flex flex-col justify-center items-center h-64 space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-destructive mb-2">Erro ao carregar contratos</h3>
+              <p className="text-muted-foreground mb-4">{contractsError.message}</p>
+              <Button onClick={() => refetchContracts()} variant="outline">
+                Tentar novamente
               </Button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {contracts.map((contract) => (
-                <div key={contract.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{contract.title}</h3>
-                        {getStatusBadge(contract.status)}
-                        {getPriorityBadge(contract.priority)}
+          </div>
+        ) : (
+          <>
+            {contractsLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="animate-pulse flex items-center space-x-4 p-4 border rounded-lg">
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : contracts.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum contrato encontrado</h3>
+                <p className="text-gray-600 mb-4">
+                  {searchTerm || statusFilter || typeFilter || priorityFilter
+                    ? 'Nenhum contrato corresponde aos filtros aplicados.'
+                    : 'Comece criando seu primeiro contrato.'}
+                </p>
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Primeiro Contrato
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {contracts.map((contract) => (
+                  <div key={contract.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">{contract.title}</h3>
+                          {getStatusBadge(contract.status)}
+                          {getPriorityBadge(contract.priority)}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Número:</span> {contract.contractNumber}
+                          </div>
+                          <div>
+                            <span className="font-medium">Tipo:</span> {contract.contractType}
+                          </div>
+                          <div>
+                            <span className="font-medium">Valor:</span> {formatCurrency(contract.totalValue, contract.currency)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{formatDate(contract.startDate)} - {formatDate(contract.endDate)}</span>
+                          </div>
+                        </div>
+
+                        {contract.description && (
+                          <p className="text-sm text-gray-600 mt-2 truncate">
+                            {contract.description}
+                          </p>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">Número:</span> {contract.contractNumber}
-                        </div>
-                        <div>
-                          <span className="font-medium">Tipo:</span> {contract.contractType}
-                        </div>
-                        <div>
-                          <span className="font-medium">Valor:</span> {formatCurrency(contract.totalValue, contract.currency)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(contract.startDate)} - {formatDate(contract.endDate)}</span>
-                        </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button variant="outline" size="sm">
+                          Ver Detalhes
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Editar
+                        </Button>
                       </div>
-
-                      {contract.description && (
-                        <p className="text-sm text-gray-600 mt-2 truncate">
-                          {contract.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button variant="outline" size="sm">
-                        Ver Detalhes
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Editar
-                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </>
+        )}
         </CardContent>
       </Card>
 
