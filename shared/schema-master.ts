@@ -1111,7 +1111,8 @@ export const parts = pgTable("parts", {
 
   // Basic Information
   partNumber: varchar("part_number", { length: 100 }).notNull(), // Internal code
-  manufacturerPartNumber: varchar("manufacturer_part_number", { length: 100 }),
+  internalCode: varchar("internal_code", { length: 100 }).notNull(),
+  manufacturerCode: varchar("manufacturer_code", { length: 100 }),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 100 }).notNull(),
@@ -1130,7 +1131,7 @@ export const parts = pgTable("parts", {
   currency: varchar("currency", { length: 3 }).default("BRL"),
 
   // Classification
-  abcClassification: varchar("abc_classification", { length: 1 }), // A, B, C
+  abcClassification: varchar("abc_classification", { length: 1 }).default("B"), // A, B, C
   criticality: varchar("criticality", { length: 20 }).default("medium"), // low, medium, high, critical
   obsolescenceStatus: varchar("obsolescence_status", { length: 50 }).default("active"), // active, obsolete, discontinued
 
@@ -1635,7 +1636,7 @@ export const contracts = pgTable("contracts", {
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   renewalDate: timestamp("renewal_date"),
-  lastRenewalDate: timestamp("last_renewalDate"),
+  lastRenewalDate: timestamp("lastRenewalDate"),
   signatureDate: timestamp("signature_date"),
 
   // Contract Management
@@ -1792,7 +1793,7 @@ index("contract_documents_tenant_type_idx").on(table.tenantId, table.documentTyp
   index("contract_documents_current_version_idx").on(table.isCurrentVersion),
 ]);
 
-// Contract Renewals table - Renewal history and management
+// Contract Renewals table for enhanced data integrity and functionality in the parts and services module.
 export const contractRenewals = pgTable("contract_renewals", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),

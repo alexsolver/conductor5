@@ -36,7 +36,7 @@ const partSchema = z.object({
 const supplierSchema = z.object({
   supplier_code: z.string().min(1, "Código obrigatório"),
   name: z.string().min(1, "Nome obrigatório"),
-  trade_name: z.string().min(1, "Nome fantasia obrigatório"),
+  trade_name: z.string().min(1, "Nome fantasia obrigatória"),
   document_number: z.string().min(1, "CNPJ obrigatório"),
   email: z.string().email("Email inválido"),
   phone: z.string().min(1, "Telefone obrigatório"),
@@ -318,20 +318,43 @@ export default function PartsServicesFunctional() {
                   <CardContent>
                     <div className="space-y-2">
                       <p className="text-sm font-medium">{supplier.name}</p>
-                      
+
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Phone className="w-3 h-3 mr-1" />
                         {supplier.phone}
                       </div>
-                      
+
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Mail className="w-3 h-3 mr-1" />
                         {supplier.email}
                       </div>
-                      
+
                       <div className="flex items-center text-sm text-muted-foreground">
                         <MapPin className="w-3 h-3 mr-1" />
                         {supplier.city}, {supplier.state}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Avaliação Geral:</span>
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                          <span className="font-medium">{parseFloat(supplier.overall_rating || 0).toFixed(1)}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="text-center">
+                          <div className="font-medium">{parseFloat(supplier.quality_rating || 0).toFixed(1)}</div>
+                          <div className="text-muted-foreground">Qualidade</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium">{parseFloat(supplier.delivery_rating || 0).toFixed(1)}</div>
+                          <div className="text-muted-foreground">Entrega</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium">{parseFloat(supplier.price_rating || 0).toFixed(1)}</div>
+                          <div className="text-muted-foreground">Preço</div>
+                        </div>
                       </div>
 
                       <div className="flex gap-2 pt-2">
@@ -417,7 +440,7 @@ function CreatePartDialog() {
             Adicione uma nova peça ao catálogo
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -434,7 +457,7 @@ function CreatePartDialog() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="manufacturer_code"
@@ -625,7 +648,7 @@ function CreateSupplierDialog() {
             Adicione um novo fornecedor ao sistema
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

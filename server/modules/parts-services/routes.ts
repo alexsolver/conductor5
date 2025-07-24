@@ -18,14 +18,20 @@ router.get('/dashboard/stats', controller.getDashboardStats);
 // ===== MÓDULO 1: GESTÃO DE PEÇAS =====
 router.post('/parts', controller.createPart);
 router.get('/parts', controller.getParts);
+router.put('/parts/:id', controller.updatePart);
+router.delete('/parts/:id', controller.deletePart);
 
 // ===== MÓDULO 2: CONTROLE DE ESTOQUE =====
 router.post('/inventory', controller.createInventoryEntry);
 router.get('/inventory', controller.getInventory);
+router.put('/inventory/:id', controller.updateInventory);
+router.delete('/inventory/:id', controller.deleteInventory);
 
 // ===== MÓDULO 3: GESTÃO DE FORNECEDORES =====
 router.post('/suppliers', controller.createSupplier);
 router.get('/suppliers', controller.getSuppliers);
+router.put('/suppliers/:id', controller.updateSupplier);
+router.delete('/suppliers/:id', controller.deleteSupplier);
 
 // ===== MÓDULO 4: PLANEJAMENTO E COMPRAS =====
 router.post('/purchase-orders', controller.createPurchaseOrderComplete);
@@ -40,6 +46,36 @@ router.post('/work-order-integrations', controller.createWorkOrderIntegration);
 router.post('/transfers', controller.createTransferComplete);
 router.get('/transfers', controller.getTransfersComplete);
 router.post('/returns', controller.createReturn);
+
+// ===== MÓDULO 7: CONTROLE DE ATIVOS =====
+router.post('/assets-complete', controller.createAssetComplete);
+router.get('/assets-complete', controller.getAssetsComplete);
+router.post('/asset-maintenance', controller.createAssetMaintenance);
+router.post('/asset-movements', controller.createAssetMovement);
+
+// ===== MÓDULO 8: LISTA DE PREÇOS UNITÁRIOS (LPU) =====
+router.post('/price-lists-complete', controller.createPriceListComplete);
+router.get('/price-lists-complete', controller.getPriceListsComplete);
+router.post('/price-list-items', controller.createPriceListItem);
+
+// ===== MÓDULO 9: FUNCIONALIDADES AVANÇADAS DE PREÇO =====
+router.post('/pricing-tables', controller.createPricingTable);
+router.get('/pricing-tables', controller.getPricingTables);
+router.post('/pricing-rules', controller.createPricingRule);
+router.post('/price-history', controller.createPriceHistory);
+
+// ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
+router.post('/audit-logs-complete', controller.createAuditLogComplete);
+router.get('/audit-logs-complete', controller.getAuditLogsComplete);
+router.post('/certifications', controller.createCertification);
+router.post('/compliance-alerts', controller.createComplianceAlert);
+
+// ===== MÓDULO 11: DIFERENCIAIS AVANÇADOS =====
+router.post('/budget-simulations', controller.createBudgetSimulation);
+router.get('/budget-simulations', controller.getBudgetSimulations);
+router.post('/dashboard-configs', controller.createDashboardConfig);
+router.post('/integration-apis', controller.createIntegrationApi);
+router.post('/offline-sync', controller.createOfflineSync);.createReturn);
 
 // ===== MÓDULO 7: CONTROLE DE ATIVOS =====
 router.post('/assets-complete', controller.createAssetComplete);

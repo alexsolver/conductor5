@@ -217,28 +217,55 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   }
 
   // ===== PARTS =====
-  async createPart(tenantId: string, data: InsertPart): Promise<Part> {
+  async createPart(tenantId: string, data: any): Promise<any> {
     const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
-      `INSERT INTO ${schema}.parts (tenant_id, title, part_number, cost_price, sale_price, category, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [tenantId, data.title, data.partNumber, data.costPrice, data.salePrice, data.category, true]
+      `INSERT INTO ${schema}.parts (
+        tenant_id, internal_code, manufacturer_code, title, description, 
+        cost_price, sale_price, margin_percentage, abc_classification,
+        weight_kg, material, voltage, power_watts, category, is_active
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+      [
+        tenantId, 
+        data.internal_code, 
+        data.manufacturer_code, 
+        data.title, 
+        data.description,
+        parseFloat(data.cost_price) || 0,
+        parseFloat(data.sale_price) || 0,
+        parseFloat(data.margin_percentage) || 0,
+        data.abc_classification || 'B',
+        parseFloat(data.weight_kg) || null,
+        data.material || null,
+        data.voltage || null,
+        parseFloat(data.power_watts) || null,
+        data.category || 'Geral',
+        true
+      ]
     );
     return result.rows[0];
   }
 
-  async findParts(tenantId: string): Promise<Part[]> {
+  async findParts(tenantId: string): Promise<any[]> {
     const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
       `SELECT 
         id,
         tenant_id as "tenantId",
         part_number as "partNumber",
+        internal_code,
+        manufacturer_code,
         title,
         description,
         category,
-        cost_price as "costPrice", 
-        sale_price as "salePrice",
+        cost_price, 
+        sale_price,
+        margin_percentage,
+        abc_classification,
+        weight_kg,
+        material,
+        voltage,
+        power_watts,
         is_active as "isActive",
         created_at as "createdAt",
         updated_at as "updatedAt"
@@ -280,35 +307,64 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
   }
 
   // ===== SUPPLIERS =====
-  async createSupplier(data: InsertSupplier): Promise<Supplier> {
-    const schema = this.getTenantSchema(data.tenantId);
+  async createSupplier(tenantId: string, data: any): Promise<any> {
+    const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
-      `INSERT INTO ${schema}.suppliers (tenant_id, name, contact_name, email, phone, address, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [data.tenantId, data.name, data.contactName, data.email, data.phone, data.address, true]
+      `INSERT INTO ${schema}.suppliers (
+        tenant_id, supplier_code, name, trade_name, document_number,
+        email, phone, address, city, state, country, payment_terms,
+        lead_time_days, supplier_type, is_active
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+      [
+        tenantId,
+        data.supplier_code,
+        data.name,
+        data.trade_name,
+        data.document_number,
+        data.email,
+        data.phone,
+        data.address,
+        data.city,
+        data.state,
+        data.country || 'Brasil',
+        data.payment_terms,
+        data.lead_time_days || 7,
+        data.supplier_type || 'regular',
+        true
+      ]
     );
     return result.rows[0];
   }
 
-  async findSuppliers(tenantId: string): Promise<Supplier[]> {
+  async findSuppliers(tenantId: string): Promise<any[]> {
     const schema = this.getTenantSchema(tenantId);
     const result = await pool.query(
       `SELECT 
         s.id,
         s.tenant_id as "tenantId",
+        s.supplier_code,
         s.name,
+        s.trade_name,
+        s.document_number,
         s.contact_name as "contactName",
         s.email,
         s.phone,
         s.address,
+        s.city,
+        s.state,
+        s.country,
+        s.payment_terms,
+        s.lead_time_days,
+        s.supplier_type,
+        s.quality_rating,
+        s.delivery_rating,
+        s.price_rating,
+        s.overall_rating,
         s.is_active as "isActive",
         s.created_at as "createdAt",
-        s.updated_at as "updatedAt",
-        COALESCE(AVG(se.overall_score), 4.2) as "overall_rating"
+        s.updated_at as "updatedAt"
        FROM ${schema}.suppliers s
-       LEFT JOIN ${schema}.supplier_evaluations se ON s.id = se.supplier_id
        WHERE s.tenant_id = $1 AND s.is_active = true 
-       GROUP BY s.id, s.tenant_id, s.name, s.contact_name, s.email, s.phone, s.address, s.is_active, s.created_at, s.updated_at
        ORDER BY s.name`,
       [tenantId]
     );
