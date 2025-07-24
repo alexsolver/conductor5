@@ -487,24 +487,55 @@ export default function PartsServices() {
             <form onSubmit={(e) => e.preventDefault()}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="supplier-name" className="text-right">Nome</Label>
-                  <Input id="supplier-name" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="col-span-3" />
+                  <Label htmlFor="supplier-name" className="text-right">Nome <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="supplier-name" 
+                    value={newSupplier.name} 
+                    onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} 
+                    className="col-span-3" 
+                    placeholder="Nome da empresa"
+                  />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="supplier-code" className="text-right">Código</Label>
-                <Input id="supplier-code" value={newSupplier.supplier_code} onChange={(e) => setNewSupplier({...newSupplier, supplier_code: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-code" className="text-right">Código <span className="text-red-500">*</span></Label>
+                <Input 
+                  id="supplier-code" 
+                  value={newSupplier.supplier_code} 
+                  onChange={(e) => setNewSupplier({...newSupplier, supplier_code: e.target.value})} 
+                  className="col-span-3" 
+                  placeholder="Ex: FORN001"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="supplier-document" className="text-right">CNPJ</Label>
-                <Input id="supplier-document" value={newSupplier.document_number} onChange={(e) => setNewSupplier({...newSupplier, document_number: e.target.value})} className="col-span-3" />
+                <Input 
+                  id="supplier-document" 
+                  value={newSupplier.document_number} 
+                  onChange={(e) => setNewSupplier({...newSupplier, document_number: e.target.value})} 
+                  className="col-span-3" 
+                  placeholder="00.000.000/0000-00"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="supplier-trade" className="text-right">Nome Fantasia</Label>
-                <Input id="supplier-trade" value={newSupplier.trade_name} onChange={(e) => setNewSupplier({...newSupplier, trade_name: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-trade" className="text-right">Nome Fantasia <span className="text-red-500">*</span></Label>
+                <Input 
+                  id="supplier-trade" 
+                  value={newSupplier.trade_name} 
+                  onChange={(e) => setNewSupplier({...newSupplier, trade_name: e.target.value})} 
+                  className="col-span-3" 
+                  placeholder="Nome comercial"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="supplier-email" className="text-right">Email</Label>
-                <Input id="supplier-email" type="email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-email" className="text-right">Email <span className="text-red-500">*</span></Label>
+                <Input 
+                  id="supplier-email" 
+                  type="email" 
+                  value={newSupplier.email} 
+                  onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} 
+                  className="col-span-3" 
+                  placeholder="contato@fornecedor.com"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="supplier-phone" className="text-right">Telefone</Label>
@@ -521,6 +552,25 @@ export default function PartsServices() {
                 type="button" 
                 onClick={(e) => {
                   e.preventDefault();
+                  // Validação frontend antes de enviar
+                  if (!newSupplier.name || !newSupplier.supplier_code || !newSupplier.trade_name || !newSupplier.email) {
+                    toast({
+                      title: "Campos obrigatórios não preenchidos",
+                      description: "Preencha: Nome, Código, Nome Fantasia e Email",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  // Validação básica de email
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  if (!emailRegex.test(newSupplier.email)) {
+                    toast({
+                      title: "Email inválido",
+                      description: "Por favor, insira um email válido",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
                   createSupplierMutation.mutate(newSupplier);
                 }} 
                 disabled={createSupplierMutation.isPending}
