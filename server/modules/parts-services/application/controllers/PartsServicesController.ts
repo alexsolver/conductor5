@@ -386,6 +386,20 @@ export class PartsServicesController {
     }
   };
 
+  getPricingTables = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const tables = await this.repository.findPricingTablesComplete(tenantId);
+      res.json(tables);
+    } catch (error) {
+      console.error('Error fetching pricing tables:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
   // ===== MÓDULO 10: COMPLIANCE E AUDITORIA =====
   createAuditLogComplete = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -425,6 +439,20 @@ export class PartsServicesController {
       res.status(201).json(alert);
     } catch (error) {
       console.error('Error creating compliance alert:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  getAuditLogsComplete = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID required' });
+      }
+      const logs = await this.repository.findAuditLogsComplete(tenantId);
+      res.json(logs);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };
