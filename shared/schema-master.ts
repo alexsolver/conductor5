@@ -1781,8 +1781,7 @@ export const contractRenewals = pgTable("contract_renewals", {
 
   // Renewal Details
   previousEndDate: timestamp("previous_end_date").notNull(),
-  newEndDate: timestamp("new_end_date").notNull(),
-  renewalDate: timestamp("renewal_date").defaultNow(),
+  newEndDate: timestamp("new_end_date").notNull(),renewalDate: timestamp("renewal_date").defaultNow(),
   termMonths: integer("term_months").notNull(),
 
   // Financial Changes

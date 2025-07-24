@@ -878,6 +878,498 @@ function EditPartDialog({ part }: { part: any }) {
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
+
+
+// ===== COMPONENTE DE CRIAÇÃO DE FORNECEDOR =====
+function CreateSupplierDialog() {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<z.infer<typeof supplierSchema>>({
+    resolver: zodResolver(supplierSchema),
+    defaultValues: {
+      supplier_code: "",
+      name: "",
+      trade_name: "",
+      document_number: "",
+      contact_name: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      country: "Brasil",
+      payment_terms: "A vista",
+      lead_time_days: 7,
+      supplier_type: "regular"
+    }
+  });
+
+  const createSupplierMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/parts-services/suppliers', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setOpen(false);
+      form.reset();
+      toast({ title: "Fornecedor criado com sucesso!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Erro ao criar fornecedor", 
+        description: error.message || "Erro interno do servidor",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const onSubmit = (data: z.infer<typeof supplierSchema>) => {
+    createSupplierMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Fornecedor
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Criar Novo Fornecedor</DialogTitle>
+          <DialogDescription>
+            Adicione um novo fornecedor ao sistema
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="supplier_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código Fornecedor *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: FORN001" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="supplier_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="regular">Regular</SelectItem>
+                        <SelectItem value="preferred">Preferencial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Razão Social *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nome completo da empresa" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="trade_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Fantasia *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nome comercial" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="document_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CNPJ</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="00.000.000/0000-00" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contact_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contato</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nome do contato" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" placeholder="contato@empresa.com" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="(11) 99999-9999" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endereço</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="Endereço completo" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="São Paulo" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="SP" maxLength={2} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>País</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Brasil" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="payment_terms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Condições de Pagamento</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: 30 dias" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lead_time_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prazo de Entrega (dias)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" min="1" max="365" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createSupplierMutation.isPending}
+              >
+                {createSupplierMutation.isPending ? 'Criando...' : 'Criar Fornecedor'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ===== COMPONENTE DE EDIÇÃO DE FORNECEDOR =====
+function EditSupplierDialog({ supplier }: { supplier: any }) {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<z.infer<typeof supplierSchema>>({
+    resolver: zodResolver(supplierSchema),
+    defaultValues: {
+      supplier_code: supplier.supplier_code || "",
+      name: supplier.name || "",
+      trade_name: supplier.trade_name || "",
+      document_number: supplier.document_number || "",
+      contact_name: supplier.contact_name || "",
+      email: supplier.email || "",
+      phone: supplier.phone || "",
+      address: supplier.address || "",
+      city: supplier.city || "",
+      state: supplier.state || "",
+      country: supplier.country || "Brasil",
+      payment_terms: supplier.payment_terms || "",
+      lead_time_days: supplier.lead_time_days || 7,
+      supplier_type: supplier.supplier_type || "regular"
+    }
+  });
+
+  const updateSupplierMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('PUT', `/api/parts-services/suppliers/${supplier.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
+      setOpen(false);
+      toast({ title: "Fornecedor atualizado com sucesso!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Erro ao atualizar fornecedor", 
+        description: error.message || "Erro interno do servidor",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const onSubmit = (data: z.infer<typeof supplierSchema>) => {
+    updateSupplierMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Edit className="w-3 h-3 mr-1" />
+          Editar
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Editar Fornecedor</DialogTitle>
+          <DialogDescription>
+            Modifique os dados do fornecedor {supplier.trade_name}
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="supplier_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código Fornecedor *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: FORN001" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="supplier_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="regular">Regular</SelectItem>
+                        <SelectItem value="preferred">Preferencial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Repetir todos os campos do form de criação */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Razão Social *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nome completo da empresa" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="trade_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Fantasia *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nome comercial" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" placeholder="contato@empresa.com" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="(11) 99999-9999" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={updateSupplierMutation.isPending}
+              >
+                {updateSupplierMutation.isPending ? 'Atualizando...' : 'Salvar Alterações'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
                 name="weight_kg"
                 render={({ field }) => (
                   <FormItem>
