@@ -266,8 +266,8 @@ export default function PartsServices() {
     </div>
   );
 
-  // COMPONENTE GESTÃO DE PEÇAS
-  const PartsModule = () => (
+  // COMPONENTE GESTÃO DE PEÇAS - Render direto inline para evitar re-renderizações
+  const renderPartsModule = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
@@ -290,26 +290,47 @@ export default function PartsServices() {
               <DialogTitle>Criar Nova Peça</DialogTitle>
               <DialogDescription>Adicione uma nova peça ao catálogo</DialogDescription>
             </DialogHeader>
-            <form onSubmit={(e) => e.preventDefault()}>
-              <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">Título</Label>
-                <Input id="title" value={newPart.title} onChange={(e) => setNewPart({...newPart, title: e.target.value})} className="col-span-3" />
+                <Label htmlFor="part-title" className="text-right">Título</Label>
+                <Input 
+                  id="part-title" 
+                  value={newPart.title} 
+                  onChange={(e) => setNewPart({...newPart, title: e.target.value})} 
+                  className="col-span-3" 
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="code" className="text-right">Código</Label>
-                <Input id="code" value={newPart.internal_code} onChange={(e) => setNewPart({...newPart, internal_code: e.target.value})} className="col-span-3" />
+                <Label htmlFor="part-code" className="text-right">Código</Label>
+                <Input 
+                  id="part-code" 
+                  value={newPart.internal_code} 
+                  onChange={(e) => setNewPart({...newPart, internal_code: e.target.value})} 
+                  className="col-span-3" 
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cost" className="text-right">Custo</Label>
-                <Input id="cost" type="number" value={newPart.cost_price} onChange={(e) => setNewPart({...newPart, cost_price: e.target.value})} className="col-span-3" />
+                <Label htmlFor="part-cost" className="text-right">Custo</Label>
+                <Input 
+                  id="part-cost" 
+                  type="number" 
+                  value={newPart.cost_price} 
+                  onChange={(e) => setNewPart({...newPart, cost_price: e.target.value})} 
+                  className="col-span-3" 
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="sale" className="text-right">Venda</Label>
-                <Input id="sale" type="number" value={newPart.sale_price} onChange={(e) => setNewPart({...newPart, sale_price: e.target.value})} className="col-span-3" />
+                <Label htmlFor="part-sale" className="text-right">Venda</Label>
+                <Input 
+                  id="part-sale" 
+                  type="number" 
+                  value={newPart.sale_price} 
+                  onChange={(e) => setNewPart({...newPart, sale_price: e.target.value})} 
+                  className="col-span-3" 
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="classification" className="text-right">Classe ABC</Label>
+                <Label htmlFor="part-classification" className="text-right">Classe ABC</Label>
                 <Select value={newPart.abc_classification} onValueChange={(value) => setNewPart({...newPart, abc_classification: value})}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue />
@@ -322,11 +343,15 @@ export default function PartsServices() {
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">Descrição</Label>
-                <Textarea id="description" value={newPart.description} onChange={(e) => setNewPart({...newPart, description: e.target.value})} className="col-span-3" />
+                <Label htmlFor="part-description" className="text-right">Descrição</Label>
+                <Textarea 
+                  id="part-description" 
+                  value={newPart.description} 
+                  onChange={(e) => setNewPart({...newPart, description: e.target.value})} 
+                  className="col-span-3" 
+                />
               </div>
-              </div>
-            </form>
+            </div>
             <DialogFooter>
               <Button 
                 type="button" 
@@ -399,8 +424,8 @@ export default function PartsServices() {
     </div>
   );
 
-  // COMPONENTE FORNECEDORES
-  const SuppliersModule = () => (
+  // COMPONENTE FORNECEDORES - Render direto inline para evitar re-renderizações
+  const renderSuppliersModule = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
@@ -426,32 +451,32 @@ export default function PartsServices() {
             <form onSubmit={(e) => e.preventDefault()}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">Nome</Label>
-                  <Input id="name" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="col-span-3" />
+                  <Label htmlFor="supplier-name" className="text-right">Nome</Label>
+                  <Input id="supplier-name" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="supplier_code" className="text-right">Código</Label>
-                <Input id="supplier_code" value={newSupplier.supplier_code} onChange={(e) => setNewSupplier({...newSupplier, supplier_code: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-code" className="text-right">Código</Label>
+                <Input id="supplier-code" value={newSupplier.supplier_code} onChange={(e) => setNewSupplier({...newSupplier, supplier_code: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="document_number" className="text-right">CNPJ</Label>
-                <Input id="document_number" value={newSupplier.document_number} onChange={(e) => setNewSupplier({...newSupplier, document_number: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-document" className="text-right">CNPJ</Label>
+                <Input id="supplier-document" value={newSupplier.document_number} onChange={(e) => setNewSupplier({...newSupplier, document_number: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="trade_name" className="text-right">Nome Fantasia</Label>
-                <Input id="trade_name" value={newSupplier.trade_name} onChange={(e) => setNewSupplier({...newSupplier, trade_name: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-trade" className="text-right">Nome Fantasia</Label>
+                <Input id="supplier-trade" value={newSupplier.trade_name} onChange={(e) => setNewSupplier({...newSupplier, trade_name: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">Email</Label>
-                <Input id="email" type="email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-email" className="text-right">Email</Label>
+                <Input id="supplier-email" type="email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">Telefone</Label>
-                <Input id="phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-phone" className="text-right">Telefone</Label>
+                <Input id="supplier-phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">Endereço</Label>
-                <Textarea id="address" value={newSupplier.address} onChange={(e) => setNewSupplier({...newSupplier, address: e.target.value})} className="col-span-3" />
+                <Label htmlFor="supplier-address" className="text-right">Endereço</Label>
+                <Textarea id="supplier-address" value={newSupplier.address} onChange={(e) => setNewSupplier({...newSupplier, address: e.target.value})} className="col-span-3" />
               </div>
               </div>
             </form>
@@ -791,11 +816,11 @@ export default function PartsServices() {
         </TabsContent>
 
         <TabsContent value="parts">
-          <PartsModule />
+          {renderPartsModule()}
         </TabsContent>
 
         <TabsContent value="suppliers">
-          <SuppliersModule />
+          {renderSuppliersModule()}
         </TabsContent>
 
         <TabsContent value="inventory">
