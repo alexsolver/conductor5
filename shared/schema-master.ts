@@ -1144,7 +1144,7 @@ export const parts = pgTable("parts", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   createdById: uuid("created_by_id").references(() => users.id),
-  updatedById: uuid("updated_by_id").references(() users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id),
 }, (table) => [
   index("parts_tenant_part_number_idx").on(table.tenantId, table.partNumber),
   index("parts_tenant_category_idx").on(table.tenantId, table.category),
