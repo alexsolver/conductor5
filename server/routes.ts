@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import microservice routers
   const { dashboardRouter } = await import('./modules/dashboard/routes');
-  const { customersRouter } = await import('./modules/customers/routes');
+  // customersRouter removed - functionality consolidated into /api/clientes
   const { ticketsRouter } = await import('./modules/tickets/routes');
   const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
-  app.use('/api/customers', customersRouter);
+  // /api/customers route removed - use /api/clientes instead
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
   app.use('/api/knowledge-base', knowledgeBaseRouter);

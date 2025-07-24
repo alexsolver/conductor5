@@ -14,7 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
 import TicketDetails from "./pages/TicketDetails";
-import CustomersTable from "./pages/CustomersTable";
+// CustomersTable removed - unified with Clientes.tsx
 import FavorecidosTable from "./pages/FavorecidosTable";
 import Locations from "./pages/Locations";
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -105,7 +105,7 @@ function AppRouter() {
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
         <Route path="/clientes" component={Clientes} />
-        <Route path="/tenant-admin/solicitantes" component={CustomersTable} />
+        <Route path="/tenant-admin/solicitantes" component={Clientes} />
         <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/technical-skills" component={TechnicalSkills} />

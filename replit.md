@@ -10,6 +10,31 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 24, 2025 - NOMENCLATURE CONSOLIDATION "SOLICITANTES" → "CLIENTES" COMPLETED ✅ DUPLICATE INTERFACES ELIMINATED
+
+**🎯 UNIFICAÇÃO COMPLETA DA NOMENCLATURA DE CLIENTES:**
+
+✅ **ELIMINAÇÃO TOTAL DA DUPLICAÇÃO:**
+- Removido CustomersTable.tsx que ainda usava nomenclatura "Solicitantes"
+- Redirecionamento `/tenant-admin/solicitantes` → `/clientes` implementado
+- API `/api/customers` removida - sistema usa exclusivamente `/api/clientes`
+- Sidebar atualizado: "Gestão de Solicitantes" → "Clientes" 
+
+✅ **SISTEMA UNIFICADO FUNCIONAL:**
+- Uma única interface: Clientes.tsx com campos corretos (first_name, last_name, company)
+- Uma única API: /api/clientes retornando dados reais do PostgreSQL
+- Banco unificado: colunas customer_id consistentes em todos os tenant schemas
+- Zero duplicação: fim das páginas separadas com datasets diferentes
+
+✅ **CORREÇÕES TÉCNICAS APLICADAS:**
+- Schema database: solicitante_id → customer_id em todas as tabelas
+- Backend: métodos getClientes(), createCliente(), updateCliente(), deleteCliente()
+- Frontend: campos firstName, lastName, company mapeados corretamente
+- Navegação: links de menu apontando para interface única
+
+**🚀 RESULTADO FINAL:**
+Sistema com nomenclatura "clientes" consistente em todas as camadas - banco, backend, frontend e navegação. Eliminada confusão entre "Solicitantes" e "Clientes" que geravam dados diferentes.
+
 ### July 24, 2025 - INTELLIGENT MENU CATEGORIZATION COMPLETED ✅ ORGANIZED HIERARCHICAL SUBMENUS IMPLEMENTED
 
 **🎯 SISTEMA DE MENU CATEGORIZADO INTELIGENTE IMPLEMENTADO:**
