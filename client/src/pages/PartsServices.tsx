@@ -32,6 +32,7 @@ export default function PartsServices() {
     title: "",
     description: "",
     internal_code: "",
+    manufacturer_code: "",
     cost_price: "",
     sale_price: "",
     margin_percentage: "",
@@ -96,7 +97,7 @@ export default function PartsServices() {
       queryClient.invalidateQueries({ queryKey: ['/api/parts-services/dashboard/stats'] });
       setIsCreatePartOpen(false);
       setNewPart({
-        title: "", description: "", internal_code: "", cost_price: "",
+        title: "", description: "", internal_code: "", manufacturer_code: "", cost_price: "",
         sale_price: "", margin_percentage: "", abc_classification: "B", category: "Geral"
       });
       toast({ title: "Peça criada com sucesso!" });
@@ -301,11 +302,20 @@ export default function PartsServices() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="part-code" className="text-right">Código</Label>
+                <Label htmlFor="part-code" className="text-right">Código Interno</Label>
                 <Input 
                   id="part-code" 
                   value={newPart.internal_code} 
                   onChange={(e) => setNewPart({...newPart, internal_code: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="part-manufacturer" className="text-right">Código Fabricante</Label>
+                <Input 
+                  id="part-manufacturer" 
+                  value={newPart.manufacturer_code} 
+                  onChange={(e) => setNewPart({...newPart, manufacturer_code: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
