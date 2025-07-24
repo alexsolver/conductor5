@@ -2,7 +2,8 @@
 // Temporary replacement due to syntax errors from sed commands
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle, sql } from 'drizzle-orm/neon-serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { sql } from 'drizzle-orm';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
