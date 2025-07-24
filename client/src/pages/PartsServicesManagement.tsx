@@ -1649,5 +1649,107 @@ export default function PartsServicesManagement() {
           </CardHeader>
           <CardContent>
             {isLoadingSimulations ? (
-```text
-Analysis: The code will replace the hardcoded 4.2 supplier rating with the dynamic supplier.overall_rating, formatted to one decimal place, in the SuppliersModule component, table cell.
+              <div className="text-center py-8">Carregando simulações...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Data Criação</TableHead>
+                    <TableHead>Total Simulado</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {budgetSimulations?.map((simulation) => (
+                    <TableRow key={simulation.id}>
+                      <TableCell className="font-medium">{simulation.name}</TableCell>
+                      <TableCell>{simulation.description}</TableCell>
+                      <TableCell>{new Date(simulation.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>R$ {simulation.simulated_total?.toFixed(2) || '0.00'}</TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            toast({ title: `Visualizando detalhes` });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  // Renderização condicional dos módulos
+  return (
+    <div className="container mx-auto p-6">
+      <Tabs defaultValue={activeModule} className="w-full space-y-4">
+        <TabsList>
+          {modules.map((module) => (
+            <TabsTrigger value={module.id} key={module.id}>
+              {module.title}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value="overview">
+          <OverviewModule />
+        </TabsContent>
+
+        <TabsContent value="parts">
+          <PartsModule />
+        </TabsContent>
+
+        <TabsContent value="inventory">
+          <InventoryModule />
+        </TabsContent>
+
+        <TabsContent value="suppliers">
+          <SuppliersModule />
+        </TabsContent>
+
+        <TabsContent value="planning">
+          <PlanningModule />
+        </TabsContent>
+
+        <TabsContent value="services">
+          <ServicesModule />
+        </TabsContent>
+
+        <TabsContent value="logistics">
+          <LogisticsModule />
+        </TabsContent>
+
+        <TabsContent value="assets">
+          <AssetsModule />
+        </TabsContent>
+
+        <TabsContent value="lpu">
+          <LPUModule />
+        </TabsContent>
+
+        <TabsContent value="pricing">
+          <AdvancedPricingModule />
+        </TabsContent>
+
+        <TabsContent value="compliance">
+          <ComplianceModule />
+        </TabsContent>
+
+        <TabsContent value="advanced">
+          <AdvancedFeaturesModule />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
