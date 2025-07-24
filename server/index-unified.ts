@@ -1,8 +1,8 @@
 // Unified Server Entry Point - Complete Recreation
 import express from "express";
 import path from "path";
-import { unifiedDatabaseManager } from "./db-unified";
-import { unifiedStorage } from "./storage-unified";
+import { unifiedDatabaseManager } from "./db";
+import { unifiedStorage } from "./storage-simple";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -82,46 +82,46 @@ app.post("/api/clientes", async (req, res) => {
   }
 });
 
-app.put("/api/solicitantes/:id", async (req, res) => {
+app.put("/api/clientes/:id", async (req, res) => {
   try {
     const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
     const { id } = req.params;
     
-    const updated = await unifiedStorage.updateSolicitante(tenantId, id, req.body);
+    const updated = await unifiedStorage.updateCliente(tenantId, id, req.body);
     
     if (!updated) {
-      return res.status(404).json({ success: false, message: "Solicitante não encontrado" });
+      return res.status(404).json({ success: false, message: "Cliente não encontrado" });
     }
     
     res.json({ 
       success: true, 
       data: updated,
-      message: "Solicitante atualizado com sucesso"
+      message: "Cliente atualizado com sucesso"
     });
   } catch (error) {
-    console.error("Error updating solicitante:", error);
-    res.status(500).json({ success: false, message: "Erro ao atualizar solicitante" });
+    console.error("Error updating cliente:", error);
+    res.status(500).json({ success: false, message: "Erro ao atualizar cliente" });
   }
 });
 
-app.delete("/api/solicitantes/:id", async (req, res) => {
+app.delete("/api/clientes/:id", async (req, res) => {
   try {
     const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
     const { id } = req.params;
     
-    const deleted = await unifiedStorage.deleteSolicitante(tenantId, id);
+    const deleted = await unifiedStorage.deleteCliente(tenantId, id);
     
     if (!deleted) {
-      return res.status(404).json({ success: false, message: "Solicitante não encontrado" });
+      return res.status(404).json({ success: false, message: "Cliente não encontrado" });
     }
     
     res.json({ 
       success: true,
-      message: "Solicitante excluído com sucesso"
+      message: "Cliente excluído com sucesso"
     });
   } catch (error) {
-    console.error("Error deleting solicitante:", error);
-    res.status(500).json({ success: false, message: "Erro ao excluir solicitante" });
+    console.error("Error deleting cliente:", error);
+    res.status(500).json({ success: false, message: "Erro ao excluir cliente" });
   }
 });
 
@@ -278,7 +278,7 @@ async function startServer() {
       console.log(`🔗 API Health: http://localhost:${PORT}/api/health`);
       console.log("");
       console.log("🆕 NEW UNIFIED STRUCTURE:");
-      console.log("  👤 SOLICITANTES = /api/solicitantes (replaces customers)");
+      console.log("  👤 CLIENTES = /api/clientes (replaces customers)");
       console.log("  👥 FAVORECIDOS = /api/favorecidos (external contacts)");
       console.log("  🎫 TICKETS = /api/tickets (updated references)");
       console.log("  📍 LOCATIONS = /api/locations");

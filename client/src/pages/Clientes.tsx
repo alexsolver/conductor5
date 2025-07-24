@@ -13,11 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Cliente {
   id: string;
-  name: string;
+  first_name: string;
+  last_name?: string;
   email?: string;
   phone?: string;
   document?: string;
-  type: string;
+  company?: string;
   created_at: string;
   updated_at: string;
 }
@@ -30,10 +31,12 @@ export default function Clientes() {
   const [searchTerm, setSearchTerm] = useState("");
   
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
-    document: ""
+    document: "",
+    company: ""
   });
 
   const { data: clientesData, isLoading } = useQuery({
@@ -78,7 +81,7 @@ export default function Clientes() {
   });
 
   const resetForm = () => {
-    setFormData({ name: "", email: "", phone: "", document: "" });
+    setFormData({ firstName: "", lastName: "", email: "", phone: "", document: "", company: "" });
     setEditingCliente(null);
   };
 
@@ -86,10 +89,12 @@ export default function Clientes() {
     if (cliente) {
       setEditingCliente(cliente);
       setFormData({
-        name: cliente.name,
+        firstName: cliente.first_name,
+        lastName: cliente.last_name || "",
         email: cliente.email || "",
         phone: cliente.phone || "",
-        document: cliente.document || ""
+        document: cliente.document || "",
+        company: cliente.company || ""
       });
     } else {
       resetForm();
@@ -99,7 +104,7 @@ export default function Clientes() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
+    if (!formData.firstName.trim()) {
       toast({
         title: "Erro",
         description: "Nome é obrigatório",
@@ -174,13 +179,13 @@ export default function Clientes() {
               <div className="flex items-start space-x-4">
                 <Avatar className="h-12 w-12">
                   <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold">
-                    {getInitials(cliente.name)}
+                    {getInitials(`${cliente.first_name} ${cliente.last_name || ''}`)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
-                      {cliente.name}
+                      {cliente.first_name} {cliente.last_name}
                     </h3>
                     <Badge variant="secondary">Cliente</Badge>
                   </div>
@@ -259,13 +264,23 @@ export default function Clientes() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Nome *</Label>
+              <Label htmlFor="firstName">Nome *</Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nome completo"
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                placeholder="Primeiro nome"
                 required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="lastName">Sobrenome</Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                placeholder="Sobrenome"
               />
             </div>
             
@@ -287,6 +302,16 @@ export default function Clientes() {
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="(11) 99999-9999"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="company">Empresa</Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                placeholder="Nome da empresa"
               />
             </div>
             

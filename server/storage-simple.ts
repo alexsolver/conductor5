@@ -369,7 +369,7 @@ export class DatabaseStorage implements IStorage {
           customers.last_name as customer_last_name,
           customers.email as customer_email
         FROM ${sql.identifier(schemaName)}.tickets
-        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.solicitante_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
@@ -404,7 +404,7 @@ export class DatabaseStorage implements IStorage {
           customers.last_name as customer_last_name,
           customers.email as customer_email
         FROM ${sql.identifier(schemaName)}.tickets
-        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.solicitante_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
@@ -431,7 +431,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 
-        (number, subject, description, status, priority, solicitante_id, tenant_id, created_at, updated_at)
+        (number, subject, description, status, priority, customer_id, tenant_id, created_at, updated_at)
         VALUES (
           ${ticketNumber},
           ${ticketData.subject},
@@ -557,7 +557,7 @@ export class DatabaseStorage implements IStorage {
           tickets.created_at,
           customers.first_name || ' ' || customers.last_name as customer_name
         FROM ${sql.identifier(schemaName)}.tickets
-        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.solicitante_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         WHERE tickets.tenant_id = ${validatedTenantId}
         ORDER BY tickets.created_at DESC
         LIMIT ${limit}
@@ -613,7 +613,7 @@ export class DatabaseStorage implements IStorage {
   // EXTERNAL CONTACTS (SOLICITANTES/FAVORECIDOS)
   // ===========================
 
-  async getSolicitantes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+  async getClientes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
@@ -621,13 +621,14 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       let baseQuery = sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
-        WHERE tenant_id = ${validatedTenantId} AND type = 'solicitante'
+        SELECT * FROM ${sql.identifier(schemaName)}.customers
+        WHERE tenant_id = ${validatedTenantId}
       `;
 
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          name ILIKE ${'%' + search + '%'} OR 
+          first_name ILIKE ${'%' + search + '%'} OR 
+          last_name ILIKE ${'%' + search + '%'} OR
           email ILIKE ${'%' + search + '%'}
         )`;
       }
@@ -641,7 +642,7 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(finalQuery);
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching solicitantes', error, { tenantId, options });
+      logError('Error fetching clientes', error, { tenantId, options });
       return [];
     }
   }
@@ -679,21 +680,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createSolicitante(tenantId: string, data: any): Promise<any> {
+  async createCliente(tenantId: string, data: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.external_contacts
-        (name, email, phone, document, type, tenant_id, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.customers
+        (first_name, last_name, email, phone, document, tenant_id, created_at, updated_at)
         VALUES (
-          ${data.name},
+          ${data.firstName || data.name},
+          ${data.lastName || null},
           ${data.email || null},
           ${data.phone || null},
           ${data.document || null},
-          'solicitante',
           ${validatedTenantId},
           NOW(),
           NOW()
@@ -703,7 +704,51 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error creating solicitante', error, { tenantId, data });
+      logError('Error creating cliente', error, { tenantId, data });
+      throw error;
+    }
+  }
+
+  async updateCliente(tenantId: string, clienteId: string, data: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.customers
+        SET 
+          first_name = ${data.firstName || data.name},
+          last_name = ${data.lastName || null},
+          email = ${data.email},
+          phone = ${data.phone || null},
+          document = ${data.document || null},
+          updated_at = NOW()
+        WHERE id = ${clienteId} AND tenant_id = ${validatedTenantId}
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error updating cliente', error, { tenantId, clienteId, data });
+      throw error;
+    }
+  }
+
+  async deleteCliente(tenantId: string, clienteId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.customers
+        WHERE id = ${clienteId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      return Number(result.rowCount || 0) > 0;
+    } catch (error) {
+      logError('Error deleting cliente', error, { tenantId, clienteId });
       throw error;
     }
   }
