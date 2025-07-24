@@ -1,0 +1,69 @@
+❌ Tenant schema validation failed for 715c510a-3db5-4510-880a-9a1a5c320100: Incomplete tenant schema: tenant_715c510a_3db5_4510_880a_9a1a5c320100 has 14/23 required tables (15 of 18 total schema tables)
+01:24:23 [warn]: Schema validation failed for tenant 715c510a-3db5-4510-880a-9a1a5c320100, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant schema creation skipped for 715c510a-3db5-4510-880a-9a1a5c320100 in simplified mode
+❌ Tenant schema validation failed for 715c510a-3db5-4510-880a-9a1a5c320100: Incomplete tenant schema: tenant_715c510a_3db5_4510_880a_9a1a5c320100 has 14/23 required tables (15 of 18 total schema tables)
+01:24:23 [error]: ❌ Auto-healing failed for tenant: 715c510a-3db5-4510-880a-9a1a5c320100
+{
+  "error": {
+    "name": "Error",
+    "message": "Schema still invalid after healing",
+    "stack": "Error: Schema still invalid after healing\n    at ProductionInitializer.validateTenantSchemas (/home/runner/workspace/server/utils/productionInitializer.ts:109:74)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ProductionInitializer.initialize (/home/runner/workspace/server/utils/productionInitializer.ts:34:7)\n    at async <anonymous> (/home/runner/workspace/server/index.ts:96:3)"
+  }
+}
+❌ Tenant schema validation failed for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a: Incomplete tenant schema: tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a has 14/23 required tables (15 of 18 total schema tables)
+01:24:24 [warn]: Schema validation failed for tenant 78a4c88e-0e85-4f7c-ad92-f472dad50d7a, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant schema creation skipped for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a in simplified mode
+❌ Tenant schema validation failed for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a: Incomplete tenant schema: tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a has 14/23 required tables (15 of 18 total schema tables)
+01:24:24 [error]: ❌ Auto-healing failed for tenant: 78a4c88e-0e85-4f7c-ad92-f472dad50d7a
+{
+  "error": {
+    "name": "Error",
+    "message": "Schema still invalid after healing",
+    "stack": "Error: Schema still invalid after healing\n    at ProductionInitializer.validateTenantSchemas (/home/runner/workspace/server/utils/productionInitializer.ts:109:74)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ProductionInitializer.initialize (/home/runner/workspace/server/utils/productionInitializer.ts:34:7)\n    at async <anonymous> (/home/runner/workspace/server/index.ts:96:3)"
+  }
+}
+❌ Tenant schema validation failed for cb9056df-d964-43d7-8fd8-b0cc00a72056: Incomplete tenant schema: tenant_cb9056df_d964_43d7_8fd8_b0cc00a72056 has 14/23 required tables (15 of 18 total schema tables)
+01:24:24 [warn]: Schema validation failed for tenant cb9056df-d964-43d7-8fd8-b0cc00a72056, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant schema creation skipped for cb9056df-d964-43d7-8fd8-b0cc00a72056 in simplified mode
+❌ Tenant schema validation failed for cb9056df-d964-43d7-8fd8-b0cc00a72056: Incomplete tenant schema: tenant_cb9056df_d964_43d7_8fd8_b0cc00a72056 has 14/23 required tables (15 of 18 total schema tables)
+01:24:24 [error]: ❌ Auto-healing failed for tenant: cb9056df-d964-43d7-8fd8-b0cc00a72056
+{
+  "error": {
+    "name": "Error",
+    "message": "Schema still invalid after healing",
+    "stack": "Error: Schema still invalid after healing\n    at ProductionInitializer.validateTenantSchemas (/home/runner/workspace/server/utils/productionInitializer.ts:109:74)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ProductionInitializer.initialize (/home/runner/workspace/server/utils/productionInitializer.ts:34:7)\n    at async <anonymous> (/home/runner/workspace/server/index.ts:96:3)"
+  }
+}
+❌ Tenant schema validation failed for 3f99462f-3621-4b1b-bea8-782acc50d62e: Incomplete tenant schema: tenant_3f99462f_3621_4b1b_bea8_782acc50d62e has 20/23 required tables (15 of 18 total schema tables)
+01:24:24 [warn]: Schema validation failed for tenant 3f99462f-3621-4b1b-bea8-782acc50d62e, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant schema creation skipped for 3f99462f-3621-4b1b-bea8-782acc50d62e in simplified mode
+❌ Tenant schema validation failed for 3f99462f-3621-4b1b-bea8-782acc50d62e: Incomplete tenant schema: tenant_3f99462f_3621_4b1b_bea8_782acc50d62e has 20/23 required tables (15 of 18 total schema tables)
+01:24:24 [error]: ❌ Auto-healing failed for tenant: 3f99462f-3621-4b1b-bea8-782acc50d62e
+{
+  "error": {
+    "name": "Error",
+    "message": "Schema still invalid after healing",
+    "stack": "Error: Schema still invalid after healing\n    at ProductionInitializer.validateTenantSchemas (/home/runner/workspace/server/utils/productionInitializer.ts:109:74)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ProductionInitializer.initialize (/home/runner/workspace/server/utils/productionInitializer.ts:34:7)\n    at async <anonymous> (/home/runner/workspace/server/index.ts:96:3)"
+  }
+}
+01:24:24 [info]: Tenant schema validation completed
+❌ Tenant schema validation failed for 715c510a-3db5-4510-880a-9a1a5c320100: Incomplete tenant schema: tenant_715c510a_3db5_4510_880a_9a1a5c320100 has 14/23 required tables (15 of 18 total schema tables)
+01:24:25 [warn]: Health check: Tenant schema 715c510a-3db5-4510-880a-9a1a5c320100 needs attention, attempting auto-correction...
+✅ Tenant schema creation skipped for 715c510a-3db5-4510-880a-9a1a5c320100 in simplified mode
+❌ Tenant schema validation failed for 715c510a-3db5-4510-880a-9a1a5c320100: Incomplete tenant schema: tenant_715c510a_3db5_4510_880a_9a1a5c320100 has 14/23 required tables (15 of 18 total schema tables)
+01:24:25 [warn]: Health check: Auto-correction failed for tenant 715c510a-3db5-4510-880a-9a1a5c320100
+01:24:25 [info]: All health checks passed
+01:24:25 [info]: Production initialization completed successfully
+[Server Error] Port already in use
