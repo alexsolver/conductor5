@@ -67,7 +67,7 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "Solicitantes", href: "/solicitantes", icon: Users },
+  { name: "Clientes", href: "/clientes", icon: Users },
   {
     name: "Controle de Jornadas",
     icon: Clock,
@@ -240,7 +240,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             if (item.children) {
               const isOpen = openMenus[item.name] || false;
               const hasActiveChild = item.children.some(child => location === child.href);
-              
+
               // In collapsed mode, don't show submenu items
               if (collapsed) {
                 return (
@@ -263,7 +263,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   </div>
                 );
               }
-              
+
               return (
                 <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
                   <CollapsibleTrigger className="w-full">
@@ -314,11 +314,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 </Collapsible>
               );
             }
-            
+
             // If item has no children, render as simple link
             if (!item.href) return null; // Skip items without href
             const isActive = location === item.href;
-            
+
             // In collapsed mode, show only icons
             if (collapsed) {
               return (
@@ -343,7 +343,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 </Link>
               );
             }
-            
+
             return (
               <Link key={item.name} href={item.href}>
                 <div className={cn(

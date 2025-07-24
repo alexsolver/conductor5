@@ -1126,7 +1126,7 @@ export default function TicketEdit() {
                     <TabsContent value="people" className="space-y-6">
                       {/* Solicitante Information */}
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-medium text-blue-900 mb-4">Informações do Solicitante:</h3>
+                        <h3 className="text-lg font-medium text-blue-900 mb-4">Informações do Cliente:</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Nome:</label>

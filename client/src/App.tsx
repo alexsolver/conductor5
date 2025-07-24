@@ -67,6 +67,7 @@ import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
 import PartsServices from "./pages/PartsServices";
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
+import Clientes from "./pages/Clientes";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -103,7 +104,7 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
-        <Route path="/solicitantes" component={CustomersTable} />
+        <Route path="/clientes" component={Clientes} />
         <Route path="/tenant-admin/solicitantes" component={CustomersTable} />
         <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
         <Route path="/customer-companies" component={CustomerCompanies} />
@@ -176,3 +177,4 @@ function App() {
 }
 
 export default App;
+```The route `/tenant-admin/solicitantes` should be updated to `/tenant-admin/clientes` and point to the `Clientes` component.

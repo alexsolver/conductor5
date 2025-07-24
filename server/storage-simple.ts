@@ -833,7 +833,8 @@ export class DatabaseStorage implements IStorage {
           ${validatedTenantId},
           ${templateData.created_by || validatedTenantId},
           NOW(),
-          NOW()
+          ```text
+NOW()
         )
         RETURNING *
       `);
@@ -1708,6 +1709,24 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getClientesCount(tenantId: string): Promise<number> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM ${sql.identifier(schemaName)}.external_contacts
+        WHERE tenant_id = ${validatedTenantId} AND type = 'cliente'
+      `);
+
+      return parseInt(result.rows?.[0]?.count || '0');
+    } catch (error) {
+      logError('Error counting clientes', error, { tenantId });
+      return 0;
+    }
+  }
   // Implement the missing initializeTenantSchema method
   async initializeTenantSchema(tenantId: string): Promise<void> {
     try {

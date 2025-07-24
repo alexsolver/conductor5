@@ -43,42 +43,42 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// === SOLICITANTES ROUTES ===
-app.get("/api/solicitantes", async (req, res) => {
+// === CLIENTES ROUTES ===
+app.get("/api/clientes", async (req, res) => {
   try {
     const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e"; // Default tenant for testing
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
     const search = req.query.search as string;
     
-    const solicitantes = await unifiedStorage.getSolicitantes(tenantId, limit, offset, search);
-    const total = await unifiedStorage.getSolicitantesCount(tenantId);
+    const clientes = await unifiedStorage.getClientes(tenantId, limit, offset, search);
+    const total = await unifiedStorage.getClientesCount(tenantId);
     
     res.json({ 
       success: true, 
-      data: solicitantes, 
+      data: clientes, 
       total,
-      message: `Encontrados ${solicitantes.length} solicitantes`
+      message: `Encontrados ${clientes.length} clientes`
     });
   } catch (error) {
-    console.error("Error fetching solicitantes:", error);
-    res.status(500).json({ success: false, message: "Erro ao buscar solicitantes" });
+    console.error("Error fetching clientes:", error);
+    res.status(500).json({ success: false, message: "Erro ao buscar clientes" });
   }
 });
 
-app.post("/api/solicitantes", async (req, res) => {
+app.post("/api/clientes", async (req, res) => {
   try {
     const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
-    const solicitante = await unifiedStorage.createSolicitante(tenantId, req.body);
+    const cliente = await unifiedStorage.createCliente(tenantId, req.body);
     
     res.status(201).json({ 
       success: true, 
-      data: solicitante,
-      message: "Solicitante criado com sucesso"
+      data: cliente,
+      message: "Cliente criado com sucesso"
     });
   } catch (error) {
-    console.error("Error creating solicitante:", error);
-    res.status(500).json({ success: false, message: "Erro ao criar solicitante" });
+    console.error("Error creating cliente:", error);
+    res.status(500).json({ success: false, message: "Erro ao criar cliente" });
   }
 });
 

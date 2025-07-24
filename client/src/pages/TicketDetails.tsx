@@ -1501,7 +1501,7 @@ export default function TicketDetails() {
             {/* Solicitante - Compacto */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h4 className="text-xs font-semibold text-gray-700">SOLICITANTE</h4>
+                <h4 className="text-xs font-semibold text-gray-700">CLIENTE</h4>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
@@ -1512,7 +1512,7 @@ export default function TicketDetails() {
                     <DialogHeader>
                       <DialogTitle>Verificação de Segurança</DialogTitle>
                       <DialogDescription>
-                        Digite sua senha para acessar dados sensíveis do solicitante
+                        Digite sua senha para acessar dados sensíveis do cliente
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
