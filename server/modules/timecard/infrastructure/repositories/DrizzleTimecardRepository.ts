@@ -2,8 +2,7 @@ import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
   timecardEntries, 
-  dailyTimesheet, 
-  timeBank,
+  hourBankEntries,
   workSchedules,
   absenceRequests,
   scheduleTemplates,
@@ -124,24 +123,14 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async createWorkSchedule(data: any): Promise<any> {
     const [schedule] = await db
       .insert(workSchedules)
-      .values({
-        ...data,
-        workDays: data.workDays ? JSON.stringify(data.workDays) : null
-      })
+      .values(data)
       .returning();
-
-    return {
-      ...schedule,
-      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
-    };
+    return schedule;
   }
 
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
-    const results = await db
-      .select({
-        ...workSchedules,
-        userName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('userName')
-      })
+    return await db
+      .select()
       .from(workSchedules)
       .leftJoin(users, eq(workSchedules.userId, users.id))
       .where(and(
@@ -149,50 +138,24 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         eq(workSchedules.tenantId, tenantId)
       ))
       .orderBy(desc(workSchedules.createdAt));
-
-    return results.map(schedule => ({
-      ...schedule,
-      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
-    }));
   }
 
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
-    const results = await db
-      .select({
-        ...workSchedules,
-        userName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('userName')
-      })
+    return await db
+      .select()
       .from(workSchedules)
       .leftJoin(users, eq(workSchedules.userId, users.id))
       .where(eq(workSchedules.tenantId, tenantId))
       .orderBy(desc(workSchedules.createdAt));
-
-    return results.map(schedule => ({
-      ...schedule,
-      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
-    }));
   }
 
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
-
-    if (data.workDays) {
-      updateData.workDays = JSON.stringify(data.workDays);
-    }
-
     const [schedule] = await db
       .update(workSchedules)
-      .set(updateData)
+      .set({ ...data, updatedAt: new Date() })
       .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
       .returning();
-
-    return {
-      ...schedule,
-      workDays: schedule.workDays ? JSON.parse(schedule.workDays) : null
-    };
+    return schedule;
   }
 
   async deleteWorkSchedule(id: string, tenantId: string): Promise<void> {
@@ -212,11 +175,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getAbsenceRequestsByUser(userId: string, tenantId: string): Promise<any[]> {
     return await db
-      .select({
-        ...absenceRequests,
-        userName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('userName'),
-        userEmail: users.email,
-      })
+      .select()
       .from(absenceRequests)
       .leftJoin(users, eq(absenceRequests.userId, users.id))
       .where(and(
@@ -227,12 +186,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async getPendingAbsenceRequests(tenantId: string): Promise<any[]> {
-    const results = await db
-      .select({
-        ...absenceRequests,
-        userName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('userName'),
-        userEmail: users.email
-      })
+    return await db
+      .select()
       .from(absenceRequests)
       .leftJoin(users, eq(absenceRequests.userId, users.id))
       .where(and(
@@ -240,8 +195,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         eq(absenceRequests.status, 'pending')
       ))
       .orderBy(asc(absenceRequests.startDate));
-
-    return results;
   }
 
   async updateAbsenceRequest(id: string, tenantId: string, data: any): Promise<any> {
@@ -285,20 +238,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async createScheduleTemplate(data: any): Promise<any> {
     const [template] = await db
       .insert(scheduleTemplates)
-      .values({
-        ...data,
-        configuration: JSON.stringify(data.configuration)
-      })
+      .values(data)
       .returning();
-
-    return {
-      ...template,
-      configuration: JSON.parse(template.configuration)
-    };
+    return template;
   }
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
-    const results = await db
+    return await db
       .select()
       .from(scheduleTemplates)
       .where(and(
@@ -306,33 +252,15 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         eq(scheduleTemplates.isActive, true)
       ))
       .orderBy(asc(scheduleTemplates.name));
-
-    return results.map(template => ({
-      ...template,
-      configuration: JSON.parse(template.configuration)
-    }));
   }
 
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
-
-    if (data.configuration) {
-      updateData.configuration = JSON.stringify(data.configuration);
-    }
-
     const [template] = await db
       .update(scheduleTemplates)
-      .set(updateData)
+      .set({ ...data, updatedAt: new Date() })
       .where(and(eq(scheduleTemplates.id, id), eq(scheduleTemplates.tenantId, tenantId)))
       .returning();
-
-    return {
-      ...template,
-      configuration: JSON.parse(template.configuration)
-    };
+    return template;
   }
 
   async deleteScheduleTemplate(id: string, tenantId: string): Promise<void> {
@@ -396,96 +324,5 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       ));
 
     return result[0]?.totalBalance || 0;
-  }
-
-  // Flexible Work Arrangements Implementation
-  async createFlexibleWorkArrangement(data: any): Promise<any> {
-    const insertData = {
-      ...data,
-      workingHours: data.workingHours ? JSON.stringify(data.workingHours) : null
-    };
-
-    const [arrangement] = await db
-      .insert(flexibleWorkArrangements)
-      .values(insertData)
-      .returning();
-
-    return {
-      ...arrangement,
-      workingHours: arrangement.workingHours ? JSON.parse(arrangement.workingHours) : null
-    };
-  }
-
-  async getFlexibleWorkArrangements(tenantId: string): Promise<any[]> {
-    const results = await db
-      .select({
-        ...flexibleWorkArrangements,
-        userName: sql`${users.firstName} || ' ' || ${users.lastName}`.as('userName')
-      })
-      .from(flexibleWorkArrangements)
-      .leftJoin(users, eq(flexibleWorkArrangements.userId, users.id))
-      .where(eq(flexibleWorkArrangements.tenantId, tenantId))
-      .orderBy(desc(flexibleWorkArrangements.createdAt));
-
-    return results.map(arrangement => ({
-      ...arrangement,
-      workingHours: arrangement.workingHours ? JSON.parse(arrangement.workingHours) : null
-    }));
-  }
-
-  async updateFlexibleWorkArrangement(id: string, tenantId: string, data: any): Promise<any> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
-
-    if (data.workingHours) {
-      updateData.workingHours = JSON.stringify(data.workingHours);
-    }
-
-    const [arrangement] = await db
-      .update(flexibleWorkArrangements)
-      .set(updateData)
-      .where(and(eq(flexibleWorkArrangements.id, id), eq(flexibleWorkArrangements.tenantId, tenantId)))
-      .returning();
-
-    return {
-      ...arrangement,
-      workingHours: arrangement.workingHours ? JSON.parse(arrangement.workingHours) : null
-    };
-  }
-
-  // Shift Swap Requests Implementation
-  async createShiftSwapRequest(data: any): Promise<any> {
-    const [request] = await db
-      .insert(shiftSwapRequests)
-      .values(data)
-      .returning();
-    return request;
-  }
-
-  async getShiftSwapRequests(tenantId: string): Promise<any[]> {
-    const results = await db
-      .select({
-        ...shiftSwapRequests,
-        requesterName: sql`r.first_name || ' ' || r.last_name`.as('requesterName'),
-        targetUserName: sql`t.first_name || ' ' || t.last_name`.as('targetUserName')
-      })
-      .from(shiftSwapRequests)
-      .leftJoin(users.as('r'), eq(shiftSwapRequests.requesterId, sql`r.id`))
-      .leftJoin(users.as('t'), eq(shiftSwapRequests.targetUserId, sql`t.id`))
-      .where(eq(shiftSwapRequests.tenantId, tenantId))
-      .orderBy(desc(shiftSwapRequests.createdAt));
-
-    return results;
-  }
-
-  async updateShiftSwapRequest(id: string, tenantId: string, data: any): Promise<any> {
-    const [request] = await db
-      .update(shiftSwapRequests)
-      .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(shiftSwapRequests.id, id), eq(shiftSwapRequests.tenantId, tenantId)))
-      .returning();
-    return request;
   }
 }

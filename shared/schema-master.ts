@@ -686,15 +686,14 @@ export const timecardEntries = pgTable("timecard_entries", {
 // Work Schedules - Escalas de Trabalho
 export const workSchedules = pgTable("work_schedules", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
-  scheduleType: varchar("schedule_type", { length: 20 }).notNull(), // '5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent'
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date"),
-  workDays: text("work_days").notNull(), // JSON array of numbers [1,2,3,4,5]
+  scheduleName: varchar("schedule_name", { length: 100 }).notNull(),
+  workDays: jsonb("work_days").notNull(), // JSON array of numbers [1,2,3,4,5]
   startTime: time("start_time").notNull(),
   endTime: time("end_time").notNull(),
-  breakDurationMinutes: integer("break_duration_minutes").default(60),
+  breakStart: time("break_start"),
+  breakEnd: time("break_end"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -703,7 +702,7 @@ export const workSchedules = pgTable("work_schedules", {
 // Absence Requests - Solicitações de Ausência  
 export const absenceRequests = pgTable("absence_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
   absenceType: varchar("absence_type", { length: 30 }).notNull(), // 'vacation', 'sick_leave', 'maternity', etc.
   startDate: date("start_date").notNull(),
@@ -722,16 +721,17 @@ export const absenceRequests = pgTable("absence_requests", {
 // Schedule Templates - Templates de Escala
 export const scheduleTemplates = pgTable("schedule_templates", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
-  category: varchar("category", { length: 20 }).notNull(), // 'fixed', 'rotating', 'flexible', 'shift'
   scheduleType: varchar("schedule_type", { length: 20 }).notNull(),
-  rotationCycleDays: integer("rotation_cycle_days"),
-  configuration: text("configuration").notNull(), // JSON with workDays, startTime, endTime, etc.
-  requiresApproval: boolean("requires_approval").default(true),
+  workDays: jsonb("work_days").notNull(),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  breakStart: time("break_start"),
+  breakEnd: time("break_end"),
+  flexibilityWindow: integer("flexibility_window").default(0),
   isActive: boolean("is_active").default(true),
-  createdBy: uuid("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -739,7 +739,7 @@ export const scheduleTemplates = pgTable("schedule_templates", {
 // Hour Bank - Banco de Horas
 export const hourBankEntries = pgTable("hour_bank_entries", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
   date: date("date").notNull(),
   regularHours: decimal("regular_hours", { precision: 4, scale: 2 }).default("0"),
@@ -756,7 +756,7 @@ export const hourBankEntries = pgTable("hour_bank_entries", {
 // Flexible Work Arrangements
 export const flexibleWorkArrangements = pgTable("flexible_work_arrangements", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
   arrangementType: varchar("arrangement_type", { length: 30 }).notNull(), // 'remote_work', 'flexible_hours', 'compressed_week'
   startDate: date("start_date").notNull(),
