@@ -215,9 +215,9 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     try {
       const result = await pool.query(
         `INSERT INTO ${schema}.parts (
-          tenant_id, manufacturer_part_number, title, description, 
-          cost_price, sale_price, margin, abc_classification,
-          category, is_active, created_at
+          tenant_id, internal_code, title, description, 
+          cost_price, sale_price, margin_percentage, abc_classification,
+          subcategory, is_active, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) RETURNING *`,
         [
           tenantId,
@@ -251,15 +251,15 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
         `SELECT 
           id,
           tenant_id as "tenantId",
-          COALESCE(manufacturer_part_number, '') as "partNumber",
-          COALESCE(manufacturer_part_number, '') as internal_code,
-          COALESCE(manufacturer_part_number, '') as manufacturer_code,
+          COALESCE(internal_code, '') as "partNumber",
+          COALESCE(internal_code, '') as internal_code,
+          COALESCE(manufacturer_code, '') as manufacturer_code,
           title,
           COALESCE(description, '') as description,
           COALESCE(category, 'Geral') as category,
           COALESCE(cost_price, 0) as cost_price, 
           COALESCE(sale_price, 0) as sale_price,
-          COALESCE(margin, 0) as margin_percentage,
+          COALESCE(margin_percentage, 0) as margin_percentage,
           COALESCE(abc_classification, 'B') as abc_classification,
           null as weight_kg,
           null as material,
@@ -1422,7 +1422,7 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
           const inventoryResult = await pool.query(
             `SELECT 
               COUNT(*) as count,
-              COALESCE(SUM(COALESCE(quantity, 0) * COALESCE(unit_cost, 0)), 0) as total_value
+              COALESCE(SUM(COALESCE(current_quantity, 0) * COALESCE(unit_cost, 0)), 0) as total_value
              FROM ${schema}.inventory WHERE tenant_id = $1`,
             [tenantId]
           );

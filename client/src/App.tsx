@@ -65,9 +65,7 @@ import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
-import PartsServicesManagement from "./pages/PartsServicesManagement";
-import PartsServicesSimple from "./pages/PartsServicesSimple";
-import PartsServicesEnterprise from "./pages/PartsServicesEnterprise";
+import PartsServices from "./pages/PartsServices";
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 
 // Components
@@ -155,8 +153,7 @@ function AppRouter() {
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
-        <Route path="/parts-services" component={PartsServicesEnterprise} />
-        <Route path="/parts-services-management" component={PartsServicesManagement} />
+        <Route path="/parts-services" component={PartsServices} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />
