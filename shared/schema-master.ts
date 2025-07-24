@@ -1,7 +1,3 @@
-// MASTER SCHEMA - SINGLE SOURCE OF TRUTH
-// Consolidates all fragmented schemas into one unified definition
-// This replaces: schema.ts, schema-simple.ts, schema-unified.ts
-
 import {
   pgTable,
   text,
@@ -1112,15 +1108,15 @@ export const parts = pgTable("parts", {
   manufacturerCode: varchar("manufacturer_code", { length: 100 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  category: varchar("category", { length: 100 }),
-  costPrice: decimal("cost_price", { precision: 15, scale: 2 }),
-  salePrice: decimal("sale_price", { precision: 15, scale: 2 }),
-  marginPercentage: decimal("margin_percentage", { precision: 5, scale: 2 }),
-  abcClassification: varchar("abc_classification", { length: 1 }),
-  weightKg: decimal("weight_kg", { precision: 10, scale: 3 }),
+  category: varchar("category", { length: 100 }).notNull().default("Geral"),
+  costPrice: decimal("cost_price", { precision: 15, scale: 2 }).notNull(),
+  salePrice: decimal("sale_price", { precision: 15, scale: 2 }).notNull(),
+  marginPercentage: decimal("margin_percentage", { precision: 5, scale: 2 }).default("0"),
+  abcClassification: varchar("abc_classification", { length: 1 }).default("B"),
+  weightKg: decimal("weight_kg", { precision: 8, scale: 3 }),
   material: varchar("material", { length: 100 }),
   voltage: varchar("voltage", { length: 50 }),
-  powerWatts: decimal("power_watts", { precision: 10, scale: 2 }),
+  powerWatts: decimal("power_watts", { precision: 8, scale: 2 }),
   specifications: jsonb("specifications"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1140,12 +1136,12 @@ export const inventory = pgTable("inventory", {
   tenantId: uuid("tenant_id").notNull(),
   partId: uuid("part_id").references(() => parts.id, { onDelete: 'cascade' }).notNull(),
   locationId: uuid("location_id").references(() => locations.id),
-  location: varchar("location", { length: 255 }),
+  location: varchar("location", { length: 255 }).default("Estoque Principal"),
   currentStock: integer("current_stock").default(0),
   quantity: integer("quantity").default(0),
-  minStock: integer("min_stock").default(0),
-  maxStock: integer("max_stock"),
-  unitCost: decimal("unit_cost", { precision: 15, scale: 2 }),
+  minStock: integer("min_stock").default(5),
+  maxStock: integer("max_stock").default(100),
+  unitCost: decimal("unit_cost", { precision: 15, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });

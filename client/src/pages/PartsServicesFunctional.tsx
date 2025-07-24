@@ -66,35 +66,46 @@ const supplierSchema = z.object({
   document_number: z.string()
     .min(14, "CNPJ deve ter 14 dígitos")
     .max(18, "CNPJ inválido")
-    .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/, "Formato de CNPJ inválido"),
+    .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/, "Formato de CNPJ inválido")
+    .optional(),
+  contact_name: z.string()
+    .min(2, "Nome do contato deve ter pelo menos 2 caracteres")
+    .max(255, "Nome do contato muito longo")
+    .optional(),
   email: z.string()
     .email("Email inválido")
     .max(255, "Email muito longo"),
   phone: z.string()
     .min(10, "Telefone deve ter pelo menos 10 dígitos")
     .max(20, "Telefone muito longo")
-    .regex(/^[\d\s\(\)\-\+]+$/, "Formato de telefone inválido"),
+    .regex(/^[\d\s\(\)\-\+]+$/, "Formato de telefone inválido")
+    .optional(),
   address: z.string()
     .min(10, "Endereço deve ter pelo menos 10 caracteres")
-    .max(500, "Endereço muito longo"),
+    .max(500, "Endereço muito longo")
+    .optional(),
   city: z.string()
     .min(2, "Cidade deve ter pelo menos 2 caracteres")
-    .max(100, "Nome da cidade muito longo"),
+    .max(100, "Nome da cidade muito longo")
+    .optional(),
   state: z.string()
     .length(2, "Estado deve ter 2 caracteres (ex: SP)")
-    .regex(/^[A-Z]{2}$/, "Estado deve estar em maiúsculas (ex: SP)"),
+    .regex(/^[A-Z]{2}$/, "Estado deve estar em maiúsculas (ex: SP)")
+    .optional(),
   country: z.string()
     .max(100, "Nome do país muito longo")
     .default("Brasil"),
   payment_terms: z.string()
     .min(5, "Condições de pagamento devem ter pelo menos 5 caracteres")
-    .max(255, "Condições de pagamento muito longas"),
+    .max(255, "Condições de pagamento muito longas")
+    .default("A vista"),
   lead_time_days: z.number()
     .min(1, "Prazo deve ser pelo menos 1 dia")
-    .max(365, "Prazo não pode ser superior a 1 ano"),
+    .max(365, "Prazo não pode ser superior a 1 ano")
+    .default(7),
   supplier_type: z.enum(["regular", "preferred"], {
     errorMap: () => ({ message: "Tipo deve ser 'regular' ou 'preferred'" })
-  })
+  }).default("regular")
 });
 
 export default function PartsServicesFunctional() {
@@ -1110,9 +1121,9 @@ function CreateSupplierDialog() {
                 name="contact_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contato</FormLabel>
+                    <FormLabel>Nome do Contato</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Nome do contato" />
+                      <Input {...field} placeholder="Nome do contato responsável" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

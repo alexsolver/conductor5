@@ -187,7 +187,8 @@ export class PartsServicesController {
         return res.status(400).json({
           error: 'Validation Error',
           message: 'Campos obrigatórios não preenchidos',
-          required: ['supplier_code', 'name', 'trade_name', 'email']
+          required: ['supplier_code', 'name', 'trade_name', 'email'],
+          received: { supplier_code: !!supplier_code, name: !!name, trade_name: !!trade_name, email: !!email }
         });
       }
 
@@ -198,6 +199,17 @@ export class PartsServicesController {
           error: 'Validation Error',
           message: 'Formato de email inválido'
         });
+      }
+
+      // Validação de CNPJ se fornecido
+      if (req.body.document_number) {
+        const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/;
+        if (!cnpjRegex.test(req.body.document_number)) {
+          return res.status(400).json({
+            error: 'Validation Error',
+            message: 'Formato de CNPJ inválido. Use: 00.000.000/0000-00 ou 00000000000000'
+          });
+        }
       }
 
       const supplier = await this.repository.createSupplier(tenantId, req.body);
@@ -219,7 +231,7 @@ export class PartsServicesController {
       if (error.code === '23505') { // Duplicate key error
         return res.status(409).json({
           error: 'Conflict',
-          message: 'Código do fornecedor já existe'
+          message: 'Código do fornecedor ou email já existe'
         });
       }
 

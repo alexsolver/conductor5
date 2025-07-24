@@ -300,33 +300,24 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     const schema = this.getTenantSchema(tenantId);
     
     try {
-      // First check if columns exist, then build query dynamically
-      const columnCheck = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = $1 AND table_name = 'parts'
-      `, [schema]);
-      
-      const availableColumns = columnCheck.rows.map(row => row.column_name);
-      
       const result = await pool.query(
         `SELECT 
           id,
           tenant_id as "tenantId",
-          ${availableColumns.includes('part_number') ? 'part_number' : 'COALESCE(internal_code, id::text)'} as "partNumber",
-          ${availableColumns.includes('internal_code') ? 'internal_code' : 'part_number'} as internal_code,
-          ${availableColumns.includes('manufacturer_code') ? 'manufacturer_code' : 'part_number'} as manufacturer_code,
+          part_number as "partNumber",
+          internal_code,
+          manufacturer_code,
           title,
           COALESCE(description, '') as description,
           COALESCE(category, 'Geral') as category,
           COALESCE(cost_price, 0) as cost_price, 
           COALESCE(sale_price, 0) as sale_price,
-          ${availableColumns.includes('margin_percentage') ? 'COALESCE(margin_percentage, 0)' : '0'} as margin_percentage,
-          ${availableColumns.includes('abc_classification') ? 'COALESCE(abc_classification, \'B\')' : '\'B\''} as abc_classification,
-          ${availableColumns.includes('weight_kg') ? 'weight_kg' : 'NULL'} as weight_kg,
-          ${availableColumns.includes('material') ? 'material' : 'NULL'} as material,
-          ${availableColumns.includes('voltage') ? 'voltage' : 'NULL'} as voltage,
-          ${availableColumns.includes('power_watts') ? 'power_watts' : 'NULL'} as power_watts,
+          COALESCE(margin_percentage, 0) as margin_percentage,
+          COALESCE(abc_classification, 'B') as abc_classification,
+          weight_kg,
+          material,
+          voltage,
+          power_watts,
           COALESCE(is_active, true) as "isActive",
           created_at as "createdAt",
           updated_at as "updatedAt"
@@ -365,24 +356,15 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     const schema = this.getTenantSchema(tenantId);
     
     try {
-      // Check available columns
-      const columnCheck = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = $1 AND table_name = 'inventory'
-      `, [schema]);
-      
-      const availableColumns = columnCheck.rows.map(row => row.column_name);
-      
       const result = await pool.query(
         `SELECT 
           id,
           tenant_id as "tenantId",
           part_id as "partId",
-          ${availableColumns.includes('location') ? 'location' : 'COALESCE(location_id, \'Estoque Principal\')'} as location,
-          ${availableColumns.includes('current_stock') ? 'current_stock' : 'COALESCE(quantity, 0)'} as "currentStock",
-          ${availableColumns.includes('minimum_stock') ? 'minimum_stock' : availableColumns.includes('min_stock') ? 'min_stock' : '5'} as "minStock",
-          ${availableColumns.includes('maximum_stock') ? 'maximum_stock' : availableColumns.includes('max_stock') ? 'max_stock' : '100'} as "maxStock",
+          location,
+          current_stock as "currentStock",
+          minimum_stock as "minStock",
+          maximum_stock as "maxStock",
           COALESCE(unit_cost, 0) as "unitCost",
           created_at as "createdAt",
           updated_at as "updatedAt"
@@ -505,37 +487,28 @@ class DirectPartsServicesRepository implements PartsServicesRepository {
     const schema = this.getTenantSchema(tenantId);
     
     try {
-      // Check available columns in suppliers table
-      const columnCheck = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = $1 AND table_name = 'suppliers'
-      `, [schema]);
-      
-      const availableColumns = columnCheck.rows.map(row => row.column_name);
-      
       const result = await pool.query(
         `SELECT 
           id,
           tenant_id as "tenantId",
-          ${availableColumns.includes('supplier_code') ? 'supplier_code' : 'CONCAT(\'FORN\', LPAD(id::text, 3, \'0\'))'} as supplier_code,
+          supplier_code,
           name,
-          ${availableColumns.includes('trade_name') ? 'trade_name' : 'name'} as trade_name,
-          ${availableColumns.includes('document_number') ? 'document_number' : 'NULL'} as document_number,
-          ${availableColumns.includes('contact_name') ? 'contact_name' : 'NULL'} as contact_name,
+          trade_name,
+          document_number,
+          contact_name,
           email,
           COALESCE(phone, '') as phone,
           COALESCE(address, '') as address,
-          ${availableColumns.includes('city') ? 'city' : 'NULL'} as city,
-          ${availableColumns.includes('state') ? 'state' : 'NULL'} as state,
-          ${availableColumns.includes('country') ? 'COALESCE(country, \'Brasil\')' : '\'Brasil\''} as country,
-          ${availableColumns.includes('payment_terms') ? 'payment_terms' : '\'A vista\''} as payment_terms,
-          ${availableColumns.includes('lead_time_days') ? 'COALESCE(lead_time_days, 7)' : '7'} as lead_time_days,
-          ${availableColumns.includes('supplier_type') ? 'COALESCE(supplier_type, \'regular\')' : '\'regular\''} as supplier_type,
-          ${availableColumns.includes('quality_rating') ? 'COALESCE(quality_rating, 4.0)' : '4.0'} as quality_rating,
-          ${availableColumns.includes('delivery_rating') ? 'COALESCE(delivery_rating, 4.0)' : '4.0'} as delivery_rating,
-          ${availableColumns.includes('price_rating') ? 'COALESCE(price_rating, 4.0)' : '4.0'} as price_rating,
-          ${availableColumns.includes('overall_rating') ? 'COALESCE(overall_rating, 4.0)' : '4.0'} as overall_rating,
+          city,
+          state,
+          COALESCE(country, 'Brasil') as country,
+          payment_terms,
+          COALESCE(lead_time_days, 7) as lead_time_days,
+          COALESCE(supplier_type, 'regular') as supplier_type,
+          COALESCE(quality_rating, 4.0) as quality_rating,
+          COALESCE(delivery_rating, 4.0) as delivery_rating,
+          COALESCE(price_rating, 4.0) as price_rating,
+          COALESCE(overall_rating, 4.0) as overall_rating,
           COALESCE(is_active, true) as "isActive",
           created_at as "createdAt",
           updated_at as "updatedAt"
