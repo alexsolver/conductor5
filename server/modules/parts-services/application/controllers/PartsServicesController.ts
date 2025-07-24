@@ -148,31 +148,36 @@ export class PartsServicesController {
   };
 
   // ===== MÓDULO 5: INTEGRAÇÃO COM SERVIÇOS =====
-  getServiceIntegrations = async (req: AuthenticatedRequest, res: Response) => {
+  createServiceIntegrationComplete = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ error: 'Tenant ID required' });
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ message: "User not associated with a tenant" });
       }
-      const integrations = await this.repository.findServiceIntegrationsComplete(tenantId);
-      res.json(integrations);
+
+      const serviceIntegration = await this.repository.createServiceIntegrationComplete({
+        ...req.body,
+        tenantId: req.user.tenantId,
+        createdBy: req.user.id
+      });
+
+      res.status(201).json(serviceIntegration);
     } catch (error) {
-      console.error('Error fetching service integrations:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error("Error creating service integration:", error);
+      res.status(500).json({ message: "Failed to create service integration" });
     }
   };
 
-  createServiceIntegration = async (req: AuthenticatedRequest, res: Response) => {
+  getServiceIntegrationsComplete = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ error: 'Tenant ID required' });
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ message: "User not associated with a tenant" });
       }
-      const integration = await this.repository.createServiceIntegrationComplete(tenantId, req.body);
-      res.status(201).json(integration);
+
+      const serviceIntegrations = await this.repository.findServiceIntegrationsComplete(req.user.tenantId);
+      res.json(serviceIntegrations);
     } catch (error) {
-      console.error('Error creating service integration:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error("Error fetching service integrations:", error);
+      res.status(500).json({ message: "Failed to fetch service integrations" });
     }
   };
 
@@ -191,31 +196,36 @@ export class PartsServicesController {
   };
 
   // ===== MÓDULO 6: LOGÍSTICA E DISTRIBUIÇÃO =====
-  getTransfers = async (req: AuthenticatedRequest, res: Response) => {
+  createTransferComplete = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ error: 'Tenant ID required' });
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ message: "User not associated with a tenant" });
       }
-      const transfers = await this.repository.findTransfersComplete(tenantId);
-      res.json(transfers);
+
+      const transfer = await this.repository.createTransferComplete({
+        ...req.body,
+        tenantId: req.user.tenantId,
+        createdBy: req.user.id
+      });
+
+      res.status(201).json(transfer);
     } catch (error) {
-      console.error('Error fetching transfers:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error("Error creating transfer:", error);
+      res.status(500).json({ message: "Failed to create transfer" });
     }
   };
 
-  createTransfer = async (req: AuthenticatedRequest, res: Response) => {
+  getTransfersComplete = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ error: 'Tenant ID required' });
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ message: "User not associated with a tenant" });
       }
-      const transfer = await this.repository.createTransferComplete(tenantId, req.body);
-      res.status(201).json(transfer);
+
+      const transfers = await this.repository.findTransfersComplete(req.user.tenantId);
+      res.json(transfers);
     } catch (error) {
-      console.error('Error creating transfer:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error("Error fetching transfers:", error);
+      res.status(500).json({ message: "Failed to fetch transfers" });
     }
   };
 
