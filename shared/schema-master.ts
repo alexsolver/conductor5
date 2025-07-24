@@ -1144,8 +1144,215 @@ export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 // User Group schemas for validation
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
 
+// ========================================
+// ITEMS MANAGEMENT TABLES
+// ========================================
 
+// Items table - Core items (materials and services)
+export const items = pgTable("items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic Information
+  isActive: boolean("is_active").default(true),
+  type: varchar("type", { length: 20 }).notNull(), // material, service
+  name: varchar("name", { length: 255 }).notNull(),
+  integrationCode: varchar("integration_code", { length: 100 }),
+  description: text("description"),
+  unitOfMeasure: varchar("unit_of_measure", { length: 50 }), // un, kg, m, l, etc.
+  
+  // Maintenance and Standards
+  defaultMaintenancePlan: varchar("default_maintenance_plan", { length: 255 }),
+  group: varchar("group", { length: 100 }),
+  defaultChecklist: text("default_checklist"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
+}, (table) => [
+  index("items_tenant_idx").on(table.tenantId),
+  index("items_type_idx").on(table.type),
+  index("items_group_idx").on(table.group),
+  index("items_active_idx").on(table.isActive),
+  unique("items_tenant_integration_code_unique").on(table.tenantId, table.integrationCode),
+]);
 
+// Item Attachments table - File uploads for items
+export const itemAttachments = pgTable("item_attachments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  
+  // File Information
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  originalFileName: varchar("original_file_name", { length: 255 }).notNull(),
+  fileSize: integer("file_size").notNull(), // in bytes
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  filePath: text("file_path").notNull(),
+  
+  // Metadata
+  description: text("description"),
+  category: varchar("category", { length: 50 }), // manual, photo, drawing, certificate, etc.
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("item_attachments_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("item_attachments_category_idx").on(table.category),
+]);
+
+// Item Links table - Links between items
+export const itemLinks = pgTable("item_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  parentItemId: uuid("parent_item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  childItemId: uuid("child_item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Link Information
+  linkType: varchar("link_type", { length: 50 }).default("related"), // related, component, alternative, upgrade
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).default("1"),
+  description: text("description"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+}, (table) => [
+  index("item_links_tenant_parent_idx").on(table.tenantId, table.parentItemId),
+  index("item_links_tenant_child_idx").on(table.tenantId, table.childItemId),
+  index("item_links_type_idx").on(table.linkType),
+  unique("item_links_parent_child_unique").on(table.parentItemId, table.childItemId),
+]);
+
+// Item Customer Links table - Items linked to customer companies with specific data
+export const itemCustomerLinks = pgTable("item_customer_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Customer-specific Information
+  nickname: varchar("nickname", { length: 255 }),
+  sku: varchar("sku", { length: 100 }),
+  barcode: varchar("barcode", { length: 255 }),
+  qrCode: varchar("qr_code", { length: 255 }),
+  isAsset: boolean("is_asset").default(false),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
+}, (table) => [
+  index("item_customer_links_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("item_customer_links_tenant_customer_idx").on(table.tenantId, table.customerCompanyId),
+  index("item_customer_links_sku_idx").on(table.sku),
+  index("item_customer_links_asset_idx").on(table.isAsset),
+  unique("item_customer_links_item_customer_unique").on(table.itemId, table.customerCompanyId),
+]);
+
+// Item Supplier Links table - Items linked to suppliers with supplier-specific data
+export const itemSupplierLinks = pgTable("item_supplier_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Supplier Information (we'll use existing suppliers table later, for now just store supplier info)
+  supplierName: varchar("supplier_name", { length: 255 }).notNull(),
+  supplierCode: varchar("supplier_code", { length: 100 }),
+  
+  // Supplier-specific Information
+  partNumber: varchar("part_number", { length: 255 }),
+  supplierDescription: text("supplier_description"),
+  qrCode: varchar("qr_code", { length: 255 }),
+  barcode: varchar("barcode", { length: 255 }),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").references(() => users.id),
+  updatedById: uuid("updated_by_id").references(() => users.id)
+}, (table) => [
+  index("item_supplier_links_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("item_supplier_links_supplier_idx").on(table.supplierName),
+  index("item_supplier_links_part_number_idx").on(table.partNumber),
+]);
+
+// Items Type Definitions
+export type InsertItem = typeof items.$inferInsert;
+export type Item = typeof items.$inferSelect;
+export type InsertItemAttachment = typeof itemAttachments.$inferInsert;
+export type ItemAttachment = typeof itemAttachments.$inferSelect;
+export type InsertItemLink = typeof itemLinks.$inferInsert;
+export type ItemLink = typeof itemLinks.$inferSelect;
+export type InsertItemCustomerLink = typeof itemCustomerLinks.$inferInsert;
+export type ItemCustomerLink = typeof itemCustomerLinks.$inferSelect;
+export type InsertItemSupplierLink = typeof itemSupplierLinks.$inferInsert;
+export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
+
+// Items Validation Schemas
+export const insertItemSchema = z.object({
+  tenantId: z.string().uuid(),
+  isActive: z.boolean().default(true),
+  type: z.enum(['material', 'service']),
+  name: z.string().min(1).max(255),
+  integrationCode: z.string().max(100).optional(),
+  description: z.string().optional(),
+  unitOfMeasure: z.string().max(50).optional(),
+  defaultMaintenancePlan: z.string().max(255).optional(),
+  group: z.string().max(100).optional(),
+  defaultChecklist: z.string().optional(),
+});
+
+export const insertItemAttachmentSchema = z.object({
+  tenantId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  fileName: z.string().min(1).max(255),
+  originalFileName: z.string().min(1).max(255),
+  fileSize: z.number().int().positive(),
+  mimeType: z.string().min(1).max(100),
+  filePath: z.string().min(1),
+  description: z.string().optional(),
+  category: z.string().max(50).optional(),
+});
+
+export const insertItemLinkSchema = z.object({
+  tenantId: z.string().uuid(),
+  parentItemId: z.string().uuid(),
+  childItemId: z.string().uuid(),
+  linkType: z.enum(['related', 'component', 'alternative', 'upgrade']).default('related'),
+  quantity: z.string().regex(/^\d+(\.\d{1,4})?$/).default('1'),
+  description: z.string().optional(),
+});
+
+export const insertItemCustomerLinkSchema = z.object({
+  tenantId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  customerCompanyId: z.string().uuid(),
+  nickname: z.string().max(255).optional(),
+  sku: z.string().max(100).optional(),
+  barcode: z.string().max(255).optional(),
+  qrCode: z.string().max(255).optional(),
+  isAsset: z.boolean().default(false),
+});
+
+export const insertItemSupplierLinkSchema = z.object({
+  tenantId: z.string().uuid(),
+  itemId: z.string().uuid(),
+  supplierName: z.string().min(1).max(255),
+  supplierCode: z.string().max(100).optional(),
+  partNumber: z.string().max(255).optional(),
+  supplierDescription: z.string().optional(),
+  qrCode: z.string().max(255).optional(),
+  barcode: z.string().max(255).optional(),
+});
+
+// Update schemas
+export const updateItemSchema = insertItemSchema.partial();
+export const updateItemCustomerLinkSchema = insertItemCustomerLinkSchema.partial();
+export const updateItemSupplierLinkSchema = insertItemSupplierLinkSchema.partial();
 
 // ========================================
 // CONTRACT MANAGEMENT TABLES

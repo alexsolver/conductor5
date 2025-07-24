@@ -36,6 +36,7 @@ import scheduleRoutes from './modules/schedule-management/infrastructure/routes/
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
+import { ItemsController } from './controllers/ItemsController';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -797,7 +798,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
 
+  // Items Management routes - Gestão de Itens
+  const itemsController = new ItemsController();
+  
+  // Items CRUD
+  app.post('/api/items', jwtAuth, requireTenantAccess, (req, res) => itemsController.createItem(req, res));
+  app.get('/api/items', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItems(req, res));
+  app.get('/api/items/stats', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItemsStats(req, res));
+  app.get('/api/items/:id', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItemById(req, res));
+  app.put('/api/items/:id', jwtAuth, requireTenantAccess, (req, res) => itemsController.updateItem(req, res));
+  app.delete('/api/items/:id', jwtAuth, requireTenantAccess, (req, res) => itemsController.deleteItem(req, res));
 
+  // Item Attachments
+  app.post('/api/items/:itemId/attachments', jwtAuth, requireTenantAccess, (req, res) => itemsController.createItemAttachment(req, res));
+  app.get('/api/items/:itemId/attachments', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItemAttachments(req, res));
+  app.delete('/api/items/attachments/:attachmentId', jwtAuth, requireTenantAccess, (req, res) => itemsController.deleteItemAttachment(req, res));
+
+  // Item Links (item to item relationships)
+  app.post('/api/items/:itemId/links', jwtAuth, requireTenantAccess, (req, res) => itemsController.createItemLink(req, res));
+  app.get('/api/items/:itemId/links', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItemLinks(req, res));
+  app.delete('/api/items/links/:linkId', jwtAuth, requireTenantAccess, (req, res) => itemsController.deleteItemLink(req, res));
+
+  // Item Customer Links (item to customer relationships)
+  app.post('/api/items/:itemId/customer-links', jwtAuth, requireTenantAccess, (req, res) => itemsController.createItemCustomerLink(req, res));
+  app.get('/api/items/:itemId/customer-links', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItemCustomerLinks(req, res));
+  app.put('/api/items/customer-links/:linkId', jwtAuth, requireTenantAccess, (req, res) => itemsController.updateItemCustomerLink(req, res));
+  app.delete('/api/items/customer-links/:linkId', jwtAuth, requireTenantAccess, (req, res) => itemsController.deleteItemCustomerLink(req, res));
+
+  // Item Supplier Links (item to supplier relationships)
+  app.post('/api/items/:itemId/supplier-links', jwtAuth, requireTenantAccess, (req, res) => itemsController.createItemSupplierLink(req, res));
+  app.get('/api/items/:itemId/supplier-links', jwtAuth, requireTenantAccess, (req, res) => itemsController.getItemSupplierLinks(req, res));
+  app.put('/api/items/supplier-links/:linkId', jwtAuth, requireTenantAccess, (req, res) => itemsController.updateItemSupplierLink(req, res));
+  app.delete('/api/items/supplier-links/:linkId', jwtAuth, requireTenantAccess, (req, res) => itemsController.deleteItemSupplierLink(req, res));
 
   // Customer companies compatibility route for contract creation
   app.get('/api/customer-companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
