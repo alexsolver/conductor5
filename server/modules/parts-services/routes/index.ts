@@ -2,6 +2,10 @@ import { Router } from 'express';
 import { DirectPartsServicesRepository } from '../infrastructure/repositories/DirectPartsServicesRepository';
 import { PartsServicesController } from '../application/controllers/PartsServicesController';
 import { jwtAuth } from '../../../middleware/jwtAuth';
+import partsServicesRoutes from './routes';
+import etapa2Routes from './etapa2';
+import etapa3Routes from './etapa3';
+import etapa4Routes from './etapa4';
 
 const router = Router();
 
@@ -79,5 +83,13 @@ router.get('/audit-logs', controller.getAuditLogs);
 
 // ===== DASHBOARD STATS =====
 router.get('/dashboard/stats', controller.getDashboardStats);
+
+// Integrar rotas principais do módulo parts-services
+router.use('/parts-services', partsServicesRoutes);
+
+// Integrar rotas das etapas específicas
+router.use('/parts-services/etapa2', etapa2Routes);
+router.use('/parts-services/etapa3', etapa3Routes);
+router.use('/parts-services/etapa4', etapa4Routes);
 
 export default router;
