@@ -1,4 +1,4 @@
-import type { Express, Response } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
@@ -36,8 +36,6 @@ import scheduleRoutes from './modules/schedule-management/infrastructure/routes/
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
-import { ItemsController } from './controllers/ItemsController';
-import { PartsServicesController } from './controllers/PartsServicesController';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -321,7 +319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { tenantId } = req.params;
 
       // Initialize tenant schema
-      await schemaManager.initializeTenantSchema(tenantId);
+      await unifiedSchemaManager.initializeTenantSchema(tenantId);
 
       res.json({ message: `Schema initialized for tenant ${tenantId}` });
     } catch (error) {
@@ -799,77 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
 
-  // Items Management routes - Gestão de Itens
-  const itemsController = new ItemsController();
-  
-  // Items CRUD
-  app.post('/api/items', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.createItem(req, res));
-  app.get('/api/items', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItems(req, res));
-  app.get('/api/items/stats', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItemsStats(req, res));
-  app.get('/api/items/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItemById(req, res));
-  app.put('/api/items/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.updateItem(req, res));
-  app.delete('/api/items/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.deleteItem(req, res));
 
-  // Item Attachments
-  app.post('/api/items/:itemId/attachments', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.createItemAttachment(req, res));
-  app.get('/api/items/:itemId/attachments', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItemAttachments(req, res));
-  app.delete('/api/items/attachments/:attachmentId', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.deleteItemAttachment(req, res));
-
-  // Item Links (item to item relationships)
-  app.post('/api/items/:itemId/links', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.createItemLink(req, res));
-  app.get('/api/items/:itemId/links', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItemLinks(req, res));
-  app.delete('/api/items/links/:linkId', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.deleteItemLink(req, res));
-
-  // Item Customer Links (item to customer relationships)
-  app.post('/api/items/:itemId/customer-links', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.createItemCustomerLink(req, res));
-  app.get('/api/items/:itemId/customer-links', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItemCustomerLinks(req, res));
-  app.put('/api/items/customer-links/:linkId', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.updateItemCustomerLink(req, res));
-  app.delete('/api/items/customer-links/:linkId', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.deleteItemCustomerLink(req, res));
-
-  // Item Supplier Links (item to supplier relationships)
-  app.post('/api/items/:itemId/supplier-links', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.createItemSupplierLink(req, res));
-  app.get('/api/items/:itemId/supplier-links', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.getItemSupplierLinks(req, res));
-  app.put('/api/items/supplier-links/:linkId', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.updateItemSupplierLink(req, res));
-  app.delete('/api/items/supplier-links/:linkId', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => itemsController.deleteItemSupplierLink(req, res));
-
-  // Parts & Services Management - Complete Module
-  const partsServicesController = new PartsServicesController();
-  
-  // Items Management (Extended)
-  app.get('/api/parts-services/items', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getItems(req, res));
-  app.post('/api/parts-services/items', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createItem(req, res));
-  app.put('/api/parts-services/items/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.updateItem(req, res));
-  app.delete('/api/parts-services/items/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.deleteItem(req, res));
-
-  // Stock Control
-  app.get('/api/parts-services/stock-locations', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getStockLocations(req, res));
-  app.post('/api/parts-services/stock-locations', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createStockLocation(req, res));
-  app.get('/api/parts-services/stock-levels', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getStockLevels(req, res));
-  app.post('/api/parts-services/stock-levels', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createStockLevel(req, res));
-  app.get('/api/parts-services/stock-movements', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getStockMovements(req, res));
-  app.post('/api/parts-services/stock-movements', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createStockMovement(req, res));
-
-  // Suppliers Management
-  app.get('/api/parts-services/suppliers', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getSuppliers(req, res));
-  app.post('/api/parts-services/suppliers', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createSupplier(req, res));
-  app.put('/api/parts-services/suppliers/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.updateSupplier(req, res));
-  app.delete('/api/parts-services/suppliers/:id', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.deleteSupplier(req, res));
-
-  // Service Integration
-  app.get('/api/parts-services/service-kits', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getServiceKits(req, res));
-  app.post('/api/parts-services/service-kits', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createServiceKit(req, res));
-
-  // Price Lists (LPU)
-  app.get('/api/parts-services/price-lists', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getPriceLists(req, res));
-  app.post('/api/parts-services/price-lists', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createPriceList(req, res));
-
-  // Quality Certifications (Compliance)
-  app.get('/api/parts-services/quality-certifications', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getQualityCertifications(req, res));
-  app.post('/api/parts-services/quality-certifications', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.createQualityCertification(req, res));
-
-  // Dashboard Statistics
-  app.get('/api/parts-services/dashboard-stats', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getDashboardStats(req, res));
-  app.get('/api/parts-services/overview', jwtAuth, requireTenantAccess, (req: AuthenticatedRequest, res: Response) => partsServicesController.getOverview(req, res));
 
   // Customer companies compatibility route for contract creation
   app.get('/api/customer-companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
