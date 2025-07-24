@@ -1,5 +1,5 @@
 import { PartsServicesRepository } from "../../domain/repositories/PartsServicesRepository";
-import { DirectPartsServicesRepository } from "../infrastructure/repositories/DirectPartsServicesRepository";
+import { DirectPartsServicesRepository } from "../../infrastructure/repositories/DirectPartsServicesRepository";
 import { AuthenticatedRequest } from "../../../middleware/jwtAuth";
 import { Request, Response } from 'express';
 import {
