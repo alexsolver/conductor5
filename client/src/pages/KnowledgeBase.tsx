@@ -852,11 +852,7 @@ export default function KnowledgeBase() {
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
-                          <replit_final_file>
-```
-Before presenting the final code, let's analyze the request.
-The user wants to add some features such as media management, advanced analytics and improve the interface.
-The plan is to apply the changes step by step.FormMessage />
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
