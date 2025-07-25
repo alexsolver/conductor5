@@ -1,7 +1,7 @@
 
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
-import { KnowledgeBaseRepository } from '../infrastructure/repositories/KnowledgeBaseRepository';
+import { KnowledgeBaseRepository } from '../../infrastructure/repositories/KnowledgeBaseRepository';
 
 export class KnowledgeBaseController {
   private knowledgeBaseRepository: KnowledgeBaseRepository;
