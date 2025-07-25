@@ -454,7 +454,283 @@ export const priceListsRelations = relations(priceLists, ({ many }) => ({
   items: many(priceListItems)
 }));
 
-// Types para uso no frontend
+// ===============================
+// EXTENSÕES DOS TRÊS MÓDULOS FALTANTES
+// ===============================
+
+// CONTROLE DE ATIVOS AVANÇADO - Extensões para geolocalização, QR codes, medidores
+export const assetMaintenance = pgTable('asset_maintenance', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  assetId: uuid('asset_id').notNull(),
+  
+  type: varchar('type', { length: 20 }).notNull(), // preventive, corrective, emergency
+  status: varchar('status', { length: 20 }).notNull().default('scheduled'), // scheduled, in_progress, completed, cancelled
+  priority: varchar('priority', { length: 10 }).default('medium'), // low, medium, high, critical
+  
+  scheduledDate: timestamp('scheduled_date'),
+  completedDate: timestamp('completed_date'),
+  technicianId: uuid('technician_id'),
+  
+  description: text('description'),
+  workPerformed: text('work_performed'),
+  partsUsed: jsonb('parts_used'),
+  cost: decimal('cost', { precision: 12, scale: 2 }),
+  downtime: integer('downtime'), // minutes
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const assetMeters = pgTable('asset_meters', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  assetId: uuid('asset_id').notNull(),
+  
+  meterType: varchar('meter_type', { length: 30 }).notNull(), // hours, kilometers, cycles, etc
+  currentReading: decimal('current_reading', { precision: 15, scale: 3 }),
+  previousReading: decimal('previous_reading', { precision: 15, scale: 3 }),
+  readingDate: timestamp('reading_date').defaultNow(),
+  unit: varchar('unit', { length: 10 }).notNull(),
+  notes: text('notes'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const assetLocations = pgTable('asset_locations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  assetId: uuid('asset_id').notNull(),
+  
+  latitude: decimal('latitude', { precision: 10, scale: 8 }),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }),
+  address: text('address'),
+  locationName: varchar('location_name', { length: 200 }),
+  
+  isActive: boolean('is_active').default(true),
+  recordedAt: timestamp('recorded_at').defaultNow(),
+  recordedBy: uuid('recorded_by'),
+});
+
+// LPU - LISTA DE PREÇOS UNIFICADA - Sistema completo com workflow de aprovação
+export const pricingRules = pgTable('pricing_rules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  name: varchar('name', { length: 100 }).notNull(),
+  type: varchar('type', { length: 20 }).notNull(), // markup, markdown, fixed, tier
+  conditions: jsonb('conditions'), // complex conditions for rule application
+  action: jsonb('action'), // price modification action
+  priority: integer('priority').default(0),
+  
+  active: boolean('active').default(true),
+  validFrom: timestamp('valid_from'),
+  validTo: timestamp('valid_to'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const priceListVersions = pgTable('price_list_versions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  priceListId: uuid('price_list_id').notNull(),
+  
+  version: varchar('version', { length: 20 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('draft'), // draft, pending_approval, approved, active, archived
+  
+  // Workflow de aprovação
+  submittedBy: uuid('submitted_by'),
+  submittedAt: timestamp('submitted_at'),
+  approvedBy: uuid('approved_by'),
+  approvedAt: timestamp('approved_at'),
+  rejectedBy: uuid('rejected_by'),
+  rejectedAt: timestamp('rejected_at'),
+  rejectionReason: text('rejection_reason'),
+  
+  // Controle de margem
+  baseMargin: decimal('base_margin', { precision: 5, scale: 2 }), // percentage
+  marginOverride: jsonb('margin_override'), // specific overrides
+  
+  effectiveDate: timestamp('effective_date'),
+  expirationDate: timestamp('expiration_date'),
+  
+  notes: text('notes'),
+  changeLog: jsonb('change_log'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const dynamicPricing = pgTable('dynamic_pricing', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  priceListId: uuid('price_list_id').notNull(),
+  itemId: uuid('item_id'),
+  
+  // Preço dinâmico baseado em condições
+  basePrice: decimal('base_price', { precision: 15, scale: 2 }).notNull(),
+  currentPrice: decimal('current_price', { precision: 15, scale: 2 }).notNull(),
+  
+  // Fatores de ajuste
+  demandFactor: decimal('demand_factor', { precision: 5, scale: 4 }).default('1.0000'),
+  seasonalFactor: decimal('seasonal_factor', { precision: 5, scale: 4 }).default('1.0000'),
+  inventoryFactor: decimal('inventory_factor', { precision: 5, scale: 4 }).default('1.0000'),
+  competitorFactor: decimal('competitor_factor', { precision: 5, scale: 4 }).default('1.0000'),
+  
+  lastUpdated: timestamp('last_updated').defaultNow(),
+  calculationRules: jsonb('calculation_rules'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// GESTÃO DE COMPLIANCE - Sistema completo de auditorias e certificações
+export const complianceAudits = pgTable('compliance_audits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  title: varchar('title', { length: 200 }).notNull(),
+  type: varchar('type', { length: 30 }).notNull(), // internal, external, regulatory
+  standard: varchar('standard', { length: 50 }), // ISO9001, ISO14001, etc
+  auditor: uuid('auditor'),
+  
+  status: varchar('status', { length: 20 }).notNull().default('planning'), // planning, in_progress, completed, cancelled
+  scheduledDate: timestamp('scheduled_date'),
+  completedDate: timestamp('completed_date'),
+  
+  scope: text('scope'),
+  findings: jsonb('findings'),
+  score: decimal('score', { precision: 5, scale: 2 }), // compliance score
+  actionPlan: text('action_plan'),
+  nextAuditDate: timestamp('next_audit_date'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const complianceCertifications = pgTable('compliance_certifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  name: varchar('name', { length: 100 }).notNull(),
+  type: varchar('type', { length: 30 }).notNull(), // iso, industry, regulatory
+  standard: varchar('standard', { length: 50 }).notNull(),
+  issuingBody: varchar('issuing_body', { length: 100 }).notNull(),
+  
+  certificateNumber: varchar('certificate_number', { length: 50 }),
+  issueDate: timestamp('issue_date'),
+  expirationDate: timestamp('expiration_date'),
+  
+  status: varchar('status', { length: 20 }).notNull().default('active'), // active, expired, suspended, revoked
+  scope: text('scope'),
+  evidenceFiles: jsonb('evidence_files'),
+  renewalNoticeDate: timestamp('renewal_notice_date'),
+  
+  cost: decimal('cost', { precision: 12, scale: 2 }),
+  responsiblePerson: uuid('responsible_person'),
+  notes: text('notes'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const complianceEvidence = pgTable('compliance_evidence', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  auditId: uuid('audit_id'),
+  certificationId: uuid('certification_id'),
+  
+  title: varchar('title', { length: 200 }).notNull(),
+  type: varchar('type', { length: 30 }).notNull(), // document, photo, record, measurement
+  
+  fileName: varchar('file_name', { length: 255 }),
+  filePath: varchar('file_path', { length: 500 }),
+  fileSize: integer('file_size'),
+  mimeType: varchar('mime_type', { length: 100 }),
+  
+  description: text('description'),
+  collectedDate: timestamp('collected_date').defaultNow(),
+  collectedBy: uuid('collected_by'),
+  verifiedBy: uuid('verified_by'),
+  verifiedAt: timestamp('verified_at'),
+  
+  isValid: boolean('is_valid').default(true),
+  expirationDate: timestamp('expiration_date'),
+  tags: text('tags').array(),
+  metadata: jsonb('metadata'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const complianceAlerts = pgTable('compliance_alerts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  type: varchar('type', { length: 30 }).notNull(), // expiration, audit_due, non_compliance
+  severity: varchar('severity', { length: 20 }).notNull().default('medium'), // low, medium, high, critical
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description'),
+  
+  relatedEntityType: varchar('related_entity_type', { length: 30 }), // certification, audit, evidence
+  relatedEntityId: uuid('related_entity_id'),
+  
+  triggerDate: timestamp('trigger_date'),
+  dueDate: timestamp('due_date'),
+  
+  status: varchar('status', { length: 20 }).notNull().default('active'), // active, acknowledged, resolved, dismissed
+  assignedTo: uuid('assigned_to'),
+  acknowledgedBy: uuid('acknowledged_by'),
+  acknowledgedAt: timestamp('acknowledged_at'),
+  resolvedBy: uuid('resolved_by'),
+  resolvedAt: timestamp('resolved_at'),
+  resolution: text('resolution'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const complianceScores = pgTable('compliance_scores', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  entityType: varchar('entity_type', { length: 30 }).notNull(), // item, supplier, asset, process
+  entityId: uuid('entity_id').notNull(),
+  
+  category: varchar('category', { length: 50 }).notNull(), // quality, safety, environmental, regulatory
+  score: decimal('score', { precision: 5, scale: 2 }).notNull(), // 0-100
+  maxScore: decimal('max_score', { precision: 5, scale: 2 }).default('100.00'),
+  
+  criteria: jsonb('criteria'), // detailed scoring criteria
+  gaps: jsonb('gaps'), // identified compliance gaps
+  recommendations: text('recommendations'),
+  
+  assessedBy: uuid('assessed_by'),
+  assessedAt: timestamp('assessed_at').defaultNow(),
+  nextAssessmentDate: timestamp('next_assessment_date'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// RELATIONS ADICIONAIS PARA OS NOVOS MÓDULOS
+export const assetMaintenanceRelations = relations(assetMaintenance, ({ one }) => ({
+  asset: one(assets, { fields: [assetMaintenance.assetId], references: [assets.id] })
+}));
+
+export const priceListVersionsRelations = relations(priceListVersions, ({ one }) => ({
+  priceList: one(priceLists, { fields: [priceListVersions.priceListId], references: [priceLists.id] })
+}));
+
+export const complianceAuditsRelations = relations(complianceAudits, ({ many }) => ({
+  evidence: many(complianceEvidence)
+}));
+
+export const complianceCertificationsRelations = relations(complianceCertifications, ({ many }) => ({
+  evidence: many(complianceEvidence)
+}));
+
+// Types para uso no frontend - EXTENSÕES
 export type Item = typeof items.$inferSelect;
 export type InsertItem = typeof items.$inferInsert;
 export type Supplier = typeof suppliers.$inferSelect;
@@ -466,3 +742,23 @@ export type StockMovement = typeof stockMovements.$inferSelect;
 export type PriceList = typeof priceLists.$inferSelect;
 export type ServiceType = typeof serviceTypes.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+
+// Novos tipos para os módulos faltantes
+export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
+export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
+export type AssetMeter = typeof assetMeters.$inferSelect;
+export type InsertAssetMeter = typeof assetMeters.$inferInsert;
+export type PricingRule = typeof pricingRules.$inferSelect;
+export type InsertPricingRule = typeof pricingRules.$inferInsert;
+export type DynamicPricing = typeof dynamicPricing.$inferSelect;
+export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
+export type ComplianceAudit = typeof complianceAudits.$inferSelect;
+export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
+export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
+export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
+export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
+export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
+export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
+export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
+export type ComplianceScore = typeof complianceScores.$inferSelect;
+export type InsertComplianceScore = typeof complianceScores.$inferInsert;

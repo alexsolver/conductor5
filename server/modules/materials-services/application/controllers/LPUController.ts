@@ -1,0 +1,410 @@
+import { Request, Response } from 'express';
+import { LPURepository } from '../../infrastructure/repositories/LPURepository';
+
+export class LPUController {
+  private repository: LPURepository;
+
+  constructor() {
+    this.repository = new LPURepository();
+  }
+
+  // GESTÃO DE LISTAS DE PREÇOS
+  async getAllPriceLists(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const priceLists = await this.repository.getAllPriceLists(tenantId);
+      res.json(priceLists);
+    } catch (error) {
+      console.error('Erro ao buscar listas de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async getPriceListById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const priceList = await this.repository.getPriceListById(id, tenantId);
+      if (!priceList) {
+        return res.status(404).json({ error: 'Lista de preços não encontrada' });
+      }
+
+      res.json(priceList);
+    } catch (error) {
+      console.error('Erro ao buscar lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async createPriceList(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const priceListData = {
+        ...req.body,
+        tenantId,
+        createdBy: req.user?.id
+      };
+
+      const priceList = await this.repository.createPriceList(priceListData);
+      res.status(201).json(priceList);
+    } catch (error) {
+      console.error('Erro ao criar lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async updatePriceList(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const updateData = {
+        ...req.body,
+        updatedBy: req.user?.id
+      };
+
+      const priceList = await this.repository.updatePriceList(id, tenantId, updateData);
+      if (!priceList) {
+        return res.status(404).json({ error: 'Lista de preços não encontrada' });
+      }
+
+      res.json(priceList);
+    } catch (error) {
+      console.error('Erro ao atualizar lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  // VERSIONAMENTO E WORKFLOW DE APROVAÇÃO
+  async getPriceListVersions(req: Request, res: Response) {
+    try {
+      const { priceListId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const versions = await this.repository.getPriceListVersions(priceListId, tenantId);
+      res.json(versions);
+    } catch (error) {
+      console.error('Erro ao buscar versões:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async createPriceListVersion(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const versionData = {
+        ...req.body,
+        tenantId
+      };
+
+      const version = await this.repository.createPriceListVersion(versionData);
+      res.status(201).json(version);
+    } catch (error) {
+      console.error('Erro ao criar versão:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async submitForApproval(req: Request, res: Response) {
+    try {
+      const { versionId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const version = await this.repository.submitForApproval(versionId, tenantId, req.user?.id!);
+      res.json(version);
+    } catch (error) {
+      console.error('Erro ao submeter para aprovação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async approvePriceList(req: Request, res: Response) {
+    try {
+      const { versionId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const version = await this.repository.approvePriceList(versionId, tenantId, req.user?.id!);
+      res.json(version);
+    } catch (error) {
+      console.error('Erro ao aprovar lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async rejectPriceList(req: Request, res: Response) {
+    try {
+      const { versionId } = req.params;
+      const { reason } = req.body;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      if (!reason) {
+        return res.status(400).json({ error: 'Motivo da rejeição é obrigatório' });
+      }
+
+      const version = await this.repository.rejectPriceList(versionId, tenantId, req.user?.id!, reason);
+      res.json(version);
+    } catch (error) {
+      console.error('Erro ao rejeitar lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  // ITENS DA LISTA DE PREÇOS
+  async getPriceListItems(req: Request, res: Response) {
+    try {
+      const { priceListId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const items = await this.repository.getPriceListItems(priceListId, tenantId);
+      res.json(items);
+    } catch (error) {
+      console.error('Erro ao buscar itens da lista:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async addPriceListItem(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const itemData = {
+        ...req.body,
+        tenantId
+      };
+
+      const item = await this.repository.addPriceListItem(itemData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error('Erro ao adicionar item à lista:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async updatePriceListItem(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const item = await this.repository.updatePriceListItem(id, tenantId, req.body);
+      if (!item) {
+        return res.status(404).json({ error: 'Item não encontrado' });
+      }
+
+      res.json(item);
+    } catch (error) {
+      console.error('Erro ao atualizar item:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async deletePriceListItem(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      await this.repository.deletePriceListItem(id, tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao excluir item:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  // REGRAS DE PRECIFICAÇÃO
+  async getAllPricingRules(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const rules = await this.repository.getAllPricingRules(tenantId);
+      res.json(rules);
+    } catch (error) {
+      console.error('Erro ao buscar regras de precificação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async createPricingRule(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const ruleData = {
+        ...req.body,
+        tenantId
+      };
+
+      const rule = await this.repository.createPricingRule(ruleData);
+      res.status(201).json(rule);
+    } catch (error) {
+      console.error('Erro ao criar regra de precificação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async updatePricingRule(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const rule = await this.repository.updatePricingRule(id, tenantId, req.body);
+      if (!rule) {
+        return res.status(404).json({ error: 'Regra não encontrada' });
+      }
+
+      res.json(rule);
+    } catch (error) {
+      console.error('Erro ao atualizar regra:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async deletePricingRule(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      await this.repository.deletePricingRule(id, tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao excluir regra:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  // PRECIFICAÇÃO DINÂMICA
+  async getDynamicPricing(req: Request, res: Response) {
+    try {
+      const { priceListId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const pricing = await this.repository.getDynamicPricing(priceListId, tenantId);
+      res.json(pricing);
+    } catch (error) {
+      console.error('Erro ao buscar precificação dinâmica:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async updateDynamicPricing(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const pricingData = {
+        ...req.body,
+        tenantId
+      };
+
+      const pricing = await this.repository.updateDynamicPricing(pricingData);
+      res.json(pricing);
+    } catch (error) {
+      console.error('Erro ao atualizar precificação dinâmica:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  // CONTROLE DE MARGEM
+  async bulkUpdateMargins(req: Request, res: Response) {
+    try {
+      const { priceListId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const result = await this.repository.bulkUpdateMargins(priceListId, tenantId, req.body);
+      res.json(result);
+    } catch (error) {
+      console.error('Erro ao atualizar margens:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  // ESTATÍSTICAS
+  async getLPUStats(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const stats = await this.repository.getLPUStats(tenantId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas LPU:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+}

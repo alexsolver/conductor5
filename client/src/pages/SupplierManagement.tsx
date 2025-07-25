@@ -163,9 +163,9 @@ export function SupplierManagement() {
 
   // Filter suppliers
   const filteredSuppliers = suppliers.filter((supplier: Supplier) => {
-    const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.documentNumber.includes(searchTerm);
+    const matchesSearch = supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         supplier.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         supplier.documentNumber?.includes(searchTerm);
     const matchesStatus = statusFilter === "all" || supplier.status === statusFilter;
     
     return matchesSearch && matchesStatus;
