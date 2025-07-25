@@ -30,6 +30,7 @@ import {
   Activity,
   CreditCard,
   HardDrive,
+  DollarSign,
   UserCog,
   Workflow,
   Target,
@@ -92,6 +93,8 @@ const baseNavigation: Array<{
       { name: "Gestão de Estoque", href: "/stock-management", icon: Warehouse },
       { name: "Gestão de Fornecedores", href: "/supplier-management", icon: Building2 },
       { name: "Gestão de Serviços", href: "/services-management", icon: Wrench },
+      { name: "Controle de Ativos", href: "/assets-management", icon: HardDrive },
+      { name: "LPU - Lista de Preços", href: "/lpu-management", icon: DollarSign },
     ]
   },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
