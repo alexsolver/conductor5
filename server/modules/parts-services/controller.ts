@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PartsServicesRepository } from "./repository";
+import { tenantPartsServicesRepository } from "./tenant-repository";
 import { 
   insertItemSchema, 
   insertItemLinkSchema, 
@@ -43,25 +44,7 @@ export class PartsServicesController {
     }
   }
 
-  async getItems(req: Request, res: Response) {
-    try {
-      const tenantId = req.user.tenantId;
-      const filters = {
-        search: req.query.search as string,
-        type: req.query.type as string,
-        category: req.query.category as string,
-        status: req.query.status as string,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
-      };
-      
-      const result = await this.repository.getItems(tenantId, filters);
-      res.json(result);
-    } catch (error) {
-      console.error("Error fetching items:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  }
+  // Override with tenant repository method - original method moved later
 
   async getItemById(req: Request, res: Response) {
     try {
@@ -537,10 +520,86 @@ export class PartsServicesController {
   async getDashboardStats(req: Request, res: Response) {
     try {
       const tenantId = req.user.tenantId;
-      const stats = await this.repository.getDashboardStats(tenantId);
+      const stats = await tenantPartsServicesRepository.getDashboardStats(tenantId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async getItems(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+      const filters = {
+        search: req.query.search as string,
+        category: req.query.category as string,
+        type: req.query.type as string,
+        status: req.query.status as string,
+        limit: parseInt(req.query.limit as string) || 50,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+      
+      const items = await tenantPartsServicesRepository.getItems(tenantId, filters);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async getSuppliers(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+      const filters = {
+        search: req.query.search as string,
+        status: req.query.status as string,
+        limit: parseInt(req.query.limit as string) || 50,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+      
+      const suppliers = await tenantPartsServicesRepository.getSuppliers(tenantId, filters);
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async getStockLevels(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+      const filters = {
+        itemId: req.query.itemId as string,
+        locationId: req.query.locationId as string,
+        lowStock: req.query.lowStock === 'true',
+        limit: parseInt(req.query.limit as string) || 50,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+      
+      const stockLevels = await tenantPartsServicesRepository.getStockLevels(tenantId, filters);
+      res.json(stockLevels);
+    } catch (error) {
+      console.error("Error fetching stock levels:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async getStockLocations(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+      const filters = {
+        search: req.query.search as string,
+        parentId: req.query.parentId as string,
+        isActive: req.query.isActive === 'true',
+        limit: parseInt(req.query.limit as string) || 50,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+      
+      const locations = await tenantPartsServicesRepository.getStockLocations(tenantId, filters);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching stock locations:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
