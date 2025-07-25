@@ -76,28 +76,32 @@ export function StockManagement() {
   const queryClient = useQueryClient();
 
   // Fetch stock data
-  const { data: stockItems = [], isLoading: isLoadingStock } = useQuery({
+  const { data: stockResponse, isLoading: isLoadingStock } = useQuery({
     queryKey: ["/api/materials-services/stock/items"],
     enabled: true
   });
+  const stockItems: StockItem[] = (stockResponse as any)?.data || [];
 
   // Fetch stock statistics
-  const { data: stockStats = {} } = useQuery({
+  const { data: statsResponse } = useQuery({
     queryKey: ["/api/materials-services/stock/stats"],
     enabled: true
   });
+  const stockStats = (statsResponse as any)?.data || {};
 
   // Fetch recent movements
-  const { data: recentMovements = [] } = useQuery({
+  const { data: movementsResponse } = useQuery({
     queryKey: ["/api/materials-services/stock/movements"],
     enabled: true
   });
+  const recentMovements: StockMovement[] = (movementsResponse as any)?.data || [];
 
   // Fetch warehouses for filters
-  const { data: warehouses = [] } = useQuery({
+  const { data: warehousesResponse } = useQuery({
     queryKey: ["/api/materials-services/warehouses"],
     enabled: true
   });
+  const warehouses = (warehousesResponse as any)?.data || [];
 
   // Stock movement mutation
   const stockMovementMutation = useMutation({

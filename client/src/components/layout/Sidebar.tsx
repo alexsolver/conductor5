@@ -47,7 +47,8 @@ import {
   Warehouse,
   Route,
   Calendar,
-  Globe2
+  Globe2,
+  Wrench
 } from "lucide-react";
 
 interface SidebarProps {
@@ -89,6 +90,8 @@ const baseNavigation: Array<{
       { name: "Controle de Implantação", href: "/materials-services-control", icon: Settings },
       { name: "Catálogo de Itens", href: "/item-catalog", icon: Package },
       { name: "Gestão de Estoque", href: "/stock-management", icon: Warehouse },
+      { name: "Gestão de Fornecedores", href: "/supplier-management", icon: Building2 },
+      { name: "Gestão de Serviços", href: "/services-management", icon: Wrench },
     ]
   },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
