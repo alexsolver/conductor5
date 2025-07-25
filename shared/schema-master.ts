@@ -1506,3 +1506,123 @@ export const insertContractEquipmentSchema = createInsertSchema(contractEquipmen
   id: true,
   createdAt: true,
 });
+
+// ============================================
+// PARTS & SERVICES MODULE
+// ============================================
+
+// Items table
+export const items = pgTable("items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  type: varchar("type", { length: 50 }).notNull(), // 'part' | 'service' | 'kit'
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  internalCode: varchar("internal_code", { length: 100 }).notNull(),
+  manufacturerCode: varchar("manufacturer_code", { length: 100 }),
+  supplierCode: varchar("supplier_code", { length: 100 }),
+  barcode: varchar("barcode", { length: 255 }),
+  sku: varchar("sku", { length: 100 }),
+  manufacturer: varchar("manufacturer", { length: 255 }),
+  model: varchar("model", { length: 255 }),
+  specifications: jsonb("specifications"),
+  technicalDetails: text("technical_details"),
+  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
+  salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  unit: varchar("unit", { length: 50 }).default("UN"),
+  abcClassification: varchar("abc_classification", { length: 1 }),
+  criticality: varchar("criticality", { length: 20 }),
+  status: varchar("status", { length: 20 }).notNull().default("active"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
+  tags: text("tags").array(),
+  customFields: jsonb("custom_fields"),
+  notes: text("notes")
+});
+
+// Stock locations table
+export const stockLocations = pgTable("stock_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull(),
+  description: text("description"),
+  parentLocationId: uuid("parent_location_id"),
+  locationPath: text("location_path"),
+  level: integer("level").default(0),
+  address: text("address"),
+  coordinates: jsonb("coordinates"),
+  capacity: jsonb("capacity"),
+  isActive: boolean("is_active").notNull().default(true),
+  allowNegativeStock: boolean("allow_negative_stock").default(false),
+  requiresApproval: boolean("requires_approval").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by")
+});
+
+// Stock levels table
+export const stockLevels = pgTable("stock_levels", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").notNull().references(() => items.id),
+  locationId: uuid("location_id").notNull().references(() => stockLocations.id),
+  currentStock: decimal("current_stock", { precision: 15, scale: 4 }).notNull().default("0"),
+  availableStock: decimal("available_stock", { precision: 15, scale: 4 }).notNull().default("0"),
+  reservedStock: decimal("reserved_stock", { precision: 15, scale: 4 }).notNull().default("0"),
+  minimumStock: decimal("minimum_stock", { precision: 15, scale: 4 }).default("0"),
+  maximumStock: decimal("maximum_stock", { precision: 15, scale: 4 }),
+  reorderPoint: decimal("reorder_point", { precision: 15, scale: 4 }),
+  averageCost: decimal("average_cost", { precision: 15, scale: 4 }),
+  lastCost: decimal("last_cost", { precision: 15, scale: 4 }),
+  lastInventoryDate: timestamp("last_inventory_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// Suppliers table
+export const suppliers = pgTable("suppliers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull().default("supplier"),
+  documentNumber: varchar("document_number", { length: 50 }),
+  email: varchar("email", { length: 255 }),
+  phone: varchar("phone", { length: 50 }),
+  website: text("website"),
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  country: varchar("country", { length: 100 }),
+  postalCode: varchar("postal_code", { length: 20 }),
+  contactPerson: varchar("contact_person", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 50 }),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  creditLimit: decimal("credit_limit", { precision: 15, scale: 2 }),
+  rating: varchar("rating", { length: 10 }),
+  notes: text("notes"),
+  status: varchar("status", { length: 20 }).notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by")
+});
+
+// Types for parts and services
+export type Item = typeof items.$inferSelect;
+export type InsertItem = typeof items.$inferInsert;
+export type StockLocation = typeof stockLocations.$inferSelect;
+export type InsertStockLocation = typeof stockLocations.$inferInsert;
+export type StockLevel = typeof stockLevels.$inferSelect;
+export type InsertStockLevel = typeof stockLevels.$inferInsert;
+export type Supplier = typeof suppliers.$inferSelect;
+export type InsertSupplier = typeof suppliers.$inferInsert;

@@ -65,7 +65,7 @@ import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
-// Removed: PartsServices module - completely eliminated from system
+import PartsServices from "./pages/PartsServices";
 import PartsServicesImplementationControl from "./pages/PartsServicesImplementationControl";
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
@@ -157,6 +157,7 @@ function AppRouter() {
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
+        <Route path="/parts-services" component={PartsServices} />
         <Route path="/parts-services-implementation" component={PartsServicesImplementationControl} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />

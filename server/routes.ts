@@ -36,7 +36,7 @@ import scheduleRoutes from './modules/schedule-management/infrastructure/routes/
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
-// Removed: parts-services module - completely eliminated from system
+import partsServicesRoutes from './modules/parts-services/routes';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -800,9 +800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/contracts', contractRoutes);
 
   // Parts and Services Management routes - Gestão de Peças e Serviços
-  // Removed: /api/parts-services routes - module eliminated from system
-  
-  // Removed: /api/parts-services-complete routes - module eliminated from system
+  app.use('/api/parts-services', partsServicesRoutes);
 
 
 
