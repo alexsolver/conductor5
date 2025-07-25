@@ -66,6 +66,7 @@ import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
 // Removed: PartsServices module - completely eliminated from system
+import PartsServicesImplementationControl from "./pages/PartsServicesImplementationControl";
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Clientes from "./pages/Clientes";
