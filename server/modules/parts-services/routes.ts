@@ -2,11 +2,13 @@ import { Router } from "express";
 import { PartsServicesController } from "./controller";
 import { tenantPartsServicesController } from "./tenant-controller";
 import { linksController, uploadAttachment } from "./links-controller";
+import { InventoryController } from "./inventory-controller";
 import { jwtAuth } from "../../middleware/jwtAuth";
 
 const router = Router();
 const controller = new PartsServicesController();
 const tenantController = tenantPartsServicesController;
+const inventoryController = new InventoryController();
 
 // Apply authentication middleware to all routes
 router.use(jwtAuth);
@@ -103,5 +105,36 @@ router.get("/service-kits/:kitId/items", linksController.getKitItems.bind(linksC
 // ============================================
 
 router.get("/dashboard/stats", tenantController.getDashboardStats.bind(tenantController));
+
+// ============================================
+// INVENTÁRIO / CONTROLE DE ESTOQUE ROUTES
+// ============================================
+
+// Dashboard de inventário
+router.get('/inventory/stats', jwtAuth, inventoryController.getInventoryStats.bind(inventoryController));
+
+// Stock Locations
+router.get('/inventory/locations', jwtAuth, inventoryController.getStockLocations.bind(inventoryController));
+router.post('/inventory/locations', jwtAuth, inventoryController.createStockLocation.bind(inventoryController));
+router.get('/inventory/locations/:id', jwtAuth, inventoryController.getStockLocationById.bind(inventoryController));
+router.put('/inventory/locations/:id', jwtAuth, inventoryController.updateStockLocation.bind(inventoryController));
+router.delete('/inventory/locations/:id', jwtAuth, inventoryController.deleteStockLocation.bind(inventoryController));
+
+// Stock Levels
+router.get('/inventory/stock-levels', jwtAuth, inventoryController.getStockLevels.bind(inventoryController));
+router.put('/inventory/stock-levels/:itemId/:locationId', jwtAuth, inventoryController.updateStockLevel.bind(inventoryController));
+
+// Stock Movements
+router.post('/inventory/movements', jwtAuth, inventoryController.createStockMovement.bind(inventoryController));
+router.get('/inventory/movements', jwtAuth, inventoryController.getStockMovements.bind(inventoryController));
+
+// Stock Transfers
+router.post('/inventory/transfers', jwtAuth, inventoryController.createStockTransfer.bind(inventoryController));
+router.get('/inventory/transfers', jwtAuth, inventoryController.getStockTransfers.bind(inventoryController));
+
+// Service Kits
+router.post('/inventory/service-kits', jwtAuth, inventoryController.createServiceKit.bind(inventoryController));
+router.get('/inventory/service-kits', jwtAuth, inventoryController.getServiceKits.bind(inventoryController));
+router.get('/inventory/service-kits/:id', jwtAuth, inventoryController.getServiceKitById.bind(inventoryController));
 
 export default router;

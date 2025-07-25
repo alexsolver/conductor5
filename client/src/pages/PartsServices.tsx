@@ -735,19 +735,7 @@ export default function PartsServices() {
         </TabsContent>
 
         <TabsContent value="stock" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Controle de Estoque</CardTitle>
-              <CardDescription>
-                Visualização dos níveis de estoque por localização
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Controle de estoque em desenvolvimento
-              </div>
-            </CardContent>
-          </Card>
+          <InventoryModule />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
