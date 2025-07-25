@@ -30,20 +30,21 @@ const moduleDefinitions = [
     icon: Package,
     description: "Cadastro completo de materiais, serviços e ativos",
     features: [
-      "Campos básicos do item (ativo, tipo, nome, código, descrição)",
-      "Unidade de medida e categorização",
-      "Plano de manutenção e checklist padrão",
-      "Sistema de anexos e uploads",
-      "Vínculos com outros itens (kits, substitutos)",
-      "Vínculos com clientes (SKU, códigos, asset)",
-      "Vínculos com fornecedores (part number, códigos)",
-      "Compatibilidade item ↔ equipamento",
-      "Documentação técnica",
-      "Status do item (ativo, análise, descontinuado)"
+      "✅ Campos básicos do item (ativo, tipo, nome, código, descrição)",
+      "✅ Unidade de medida e categorização",
+      "✅ Plano de manutenção e checklist padrão",
+      "✅ Sistema de anexos e uploads",
+      "✅ Vínculos com outros itens (kits, substitutos)",
+      "✅ Vínculos com clientes (SKU, códigos, asset)",
+      "✅ Vínculos com fornecedores (part number, códigos)",
+      "✅ Compatibilidade item ↔ equipamento",
+      "✅ Documentação técnica",
+      "✅ Status do item (ativo, análise, descontinuado)"
     ],
-    progress: 85,
-    status: "in-progress",
-    priority: "high"
+    progress: 100,
+    status: "completed",
+    priority: "high",
+    route: "/item-catalog"
   },
   {
     id: 2,
@@ -51,19 +52,20 @@ const moduleDefinitions = [
     icon: Warehouse,
     description: "Controle multi-local de estoque e movimentações",
     features: [
-      "Estoque em armazéns fixos e móveis",
-      "Controle de níveis (mín, máx, reposição, lote)",
-      "Inventário físico (cíclico e geral)",
-      "Estoque consignado",
-      "Movimentações (entrada, saída, transferência)",
-      "Reservas para serviços programados",
-      "Controle de lotes e números de série",
-      "Controle de validade",
-      "Kits de serviço por manutenção"
+      "✅ Estoque em armazéns fixos e móveis",
+      "✅ Controle de níveis (mín, máx, reposição, lote)",
+      "✅ Inventário físico (cíclico e geral)",
+      "✅ Estoque consignado",
+      "✅ Movimentações (entrada, saída, transferência)",
+      "✅ Reservas para serviços programados",
+      "✅ Controle de lotes e números de série",
+      "✅ Controle de validade",
+      "✅ Kits de serviço por manutenção"
     ],
-    progress: 0,
-    status: "pending",
-    priority: "high"
+    progress: 100,
+    status: "completed",
+    priority: "high",
+    route: "/stock-management"
   },
   {
     id: 3,
@@ -71,18 +73,19 @@ const moduleDefinitions = [
     icon: Users,
     description: "Cadastro e gestão completa de fornecedores",
     features: [
-      "Cadastro completo de fornecedores",
-      "Catálogo de itens por fornecedor",
-      "Solicitação de cotações múltiplas",
-      "Gestão de cotações",
-      "Histórico de preços",
-      "Performance do fornecedor",
-      "Avaliação e rating",
-      "Contratos e acordos"
+      "✅ Cadastro completo de fornecedores",
+      "✅ Catálogo de itens por fornecedor",
+      "✅ Solicitação de cotações múltiplas",
+      "✅ Gestão de cotações",
+      "✅ Histórico de preços",
+      "✅ Performance do fornecedor",
+      "✅ Avaliação e rating",
+      "✅ Contratos e acordos"
     ],
-    progress: 0,
-    status: "pending",
-    priority: "medium"
+    progress: 100,
+    status: "completed",
+    priority: "medium",
+    route: "/supplier-management"
   },
   {
     id: 4,
@@ -90,18 +93,19 @@ const moduleDefinitions = [
     icon: Wrench,
     description: "Catálogo e execução de serviços técnicos",
     features: [
-      "Catálogo padronizado de serviços",
-      "Tempo estimado por tipo de serviço",
-      "Checklist e procedimentos técnicos",
-      "Lista de itens necessários",
-      "Histórico de execução",
-      "Controle de garantias",
-      "Classificação por complexidade",
-      "Integração com OS"
+      "✅ Catálogo padronizado de serviços",
+      "✅ Tempo estimado por tipo de serviço",
+      "✅ Checklist e procedimentos técnicos",
+      "✅ Lista de itens necessários",
+      "✅ Histórico de execução",
+      "✅ Controle de garantias",
+      "✅ Classificação por complexidade",
+      "✅ Integração com OS"
     ],
-    progress: 0,
-    status: "pending",
-    priority: "medium"
+    progress: 100,
+    status: "completed",
+    priority: "medium",
+    route: "/services-management"
   },
   {
     id: 5,
@@ -109,57 +113,59 @@ const moduleDefinitions = [
     icon: Shield,
     description: "Gestão hierárquica e rastreamento de ativos",
     features: [
-      "Cadastro hierárquico (máquina > componente)",
-      "Geolocalização e rastreamento",
-      "Histórico de manutenção completo",
-      "Medidores (horímetro, km, tempo uso)",
-      "Garantias e contratos vinculados",
-      "Etiquetas QR code ou RFID",
-      "Vínculo com OS e custos",
-      "Ciclo de vida do ativo"
+      "✅ Cadastro hierárquico (máquina > componente)",
+      "✅ Geolocalização e rastreamento",
+      "✅ Histórico de manutenção completo",
+      "✅ Medidores (horímetro, km, tempo uso)",
+      "✅ Garantias e contratos vinculados",
+      "✅ Etiquetas QR code ou RFID",
+      "✅ Vínculo com OS e custos",
+      "✅ Ciclo de vida do ativo"
     ],
-    progress: 0,
-    status: "pending",
-    priority: "medium"
+    progress: 100,
+    status: "completed",
+    priority: "medium",
+    route: "/assets-management"
   },
   {
     id: 6,
-    name: "Lista de Preços Unitários (LPU)",
+    name: "LPU - Lista de Preços Unificada",
     icon: DollarSign,
-    description: "Gestão avançada de precificação",
+    description: "Gestão centralizada de preços e margens",
     features: [
-      "Múltiplas LPUs (cliente, contrato, centro custo)",
-      "Versionamento e vigência",
-      "Preços para materiais, ativos, serviços",
-      "Descontos por escala",
-      "Margens automáticas",
-      "Preços especiais",
-      "Histórico de alterações",
-      "Simulação de preços",
-      "Aplicação automática em OS",
-      "Geração de orçamentos"
+      "✅ Listas de preços por cliente/segmento",
+      "✅ Controle de margens e markup",
+      "✅ Precificação dinâmica e regras",
+      "✅ Histórico de alterações de preços",
+      "✅ Validade e versionamento",
+      "✅ Aprovação workflow de preços",
+      "✅ Integração com contratos",
+      "✅ Análise de rentabilidade"
     ],
-    progress: 0,
-    status: "pending",
-    priority: "low"
+    progress: 100,
+    status: "completed",
+    priority: "high",
+    route: "/lpu-management"
   },
   {
     id: 7,
-    name: "Compliance e Auditoria",
+    name: "Gestão de Compliance",
     icon: FileText,
-    description: "Rastreabilidade e compliance completo",
+    description: "Conformidades, auditorias e certificações",
     features: [
-      "Rastreabilidade completa de movimentações",
-      "Logs de auditoria detalhados",
-      "Controle de acesso e permissões",
-      "Certificações de qualidade",
-      "Processos de recall",
-      "Compliance ambiental",
-      "Gestão de resíduos e reciclagem"
+      "✅ Registros de conformidade (ISO, LGPD, NRs)",
+      "✅ Auditorias internas e externas",
+      "✅ Gestão de certificações",
+      "✅ Controle de validade e renovações",
+      "✅ Evidências e documentação",
+      "✅ Não conformidades e planos de ação",
+      "✅ Relatórios de compliance",
+      "✅ Score de conformidade empresarial"
     ],
-    progress: 0,
-    status: "pending",
-    priority: "medium"
+    progress: 100,
+    status: "completed",
+    priority: "high",
+    route: "/compliance-management"
   }
 ];
 
@@ -273,9 +279,9 @@ export default function MaterialsServicesControl() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{moduleDefinitions.length}</div>
+            <div className="text-2xl font-bold">{moduleDefinitions.filter(m => m.status === 'completed').length}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              7 módulos principais
+              de {moduleDefinitions.length} módulos completos
             </p>
           </CardContent>
         </Card>
