@@ -686,33 +686,6 @@ export const complianceEvidence = pgTable('compliance_evidence', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const complianceAlerts = pgTable('compliance_alerts', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  
-  type: varchar('type', { length: 30 }).notNull(), // expiration, audit_due, non_compliance
-  severity: varchar('severity', { length: 20 }).notNull().default('medium'), // low, medium, high, critical
-  title: varchar('title', { length: 200 }).notNull(),
-  description: text('description'),
-  
-  relatedEntityType: varchar('related_entity_type', { length: 30 }), // certification, audit, evidence
-  relatedEntityId: uuid('related_entity_id'),
-  
-  triggerDate: timestamp('trigger_date'),
-  dueDate: timestamp('due_date'),
-  
-  status: varchar('status', { length: 20 }).notNull().default('active'), // active, acknowledged, resolved, dismissed
-  assignedTo: uuid('assigned_to'),
-  acknowledgedBy: uuid('acknowledged_by'),
-  acknowledgedAt: timestamp('acknowledged_at'),
-  resolvedBy: uuid('resolved_by'),
-  resolvedAt: timestamp('resolved_at'),
-  resolution: text('resolution'),
-  
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
 export const complianceScores = pgTable('compliance_scores', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
