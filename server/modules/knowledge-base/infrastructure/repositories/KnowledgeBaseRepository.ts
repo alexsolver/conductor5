@@ -1,7 +1,6 @@
-
 import { eq, and, like, desc, asc, sql, count, inArray, isNull, or } from 'drizzle-orm';
 import { poolManager } from '../../../../database/ConnectionPoolManager';
-import { validateTenantAccess, logError } from '../../../../utils/logger';
+import { logError } from '../../../../utils/logger';
 import {
   knowledgeCategories,
   knowledgeArticles,
@@ -14,12 +13,13 @@ import {
   knowledgeApprovals,
   knowledgeTemplates
 } from '../../../../../shared/schema-knowledge-base';
+import { TenantValidator } from '../../../../utils/TenantValidator';
 
 export class KnowledgeBaseRepository {
   // Categories
   async createCategory(tenantId: string, categoryData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -49,12 +49,12 @@ export class KnowledgeBaseRepository {
 
   async getCategories(tenantId: string, filters: any = {}) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       let whereClause = `WHERE tenant_id = '${validatedTenantId}' AND is_active = true`;
-      
+
       if (filters.parentId !== undefined) {
         whereClause += filters.parentId ? 
           ` AND parent_category_id = '${filters.parentId}'` : 
@@ -81,7 +81,7 @@ export class KnowledgeBaseRepository {
 
   async updateCategory(tenantId: string, categoryId: string, updateData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -109,7 +109,7 @@ export class KnowledgeBaseRepository {
 
   async deleteCategory(tenantId: string, categoryId: string) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -130,7 +130,7 @@ export class KnowledgeBaseRepository {
   // Articles
   async createArticle(tenantId: string, articleData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -183,24 +183,24 @@ export class KnowledgeBaseRepository {
 
   async getArticles(tenantId: string, filters: any = {}) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       let whereClause = `WHERE a.tenant_id = '${validatedTenantId}'`;
-      
+
       if (filters.categoryId) {
         whereClause += ` AND a.category_id = '${filters.categoryId}'`;
       }
-      
+
       if (filters.status) {
         whereClause += ` AND a.status = '${filters.status}'`;
       }
-      
+
       if (filters.visibility) {
         whereClause += ` AND a.visibility = '${filters.visibility}'`;
       }
-      
+
       if (filters.search) {
         whereClause += ` AND a.searchable_content ILIKE '%${filters.search.toLowerCase()}%'`;
       }
@@ -238,7 +238,7 @@ export class KnowledgeBaseRepository {
 
   async getArticleById(tenantId: string, articleId: string, trackView: boolean = true) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -273,7 +273,7 @@ export class KnowledgeBaseRepository {
 
   async updateArticle(tenantId: string, articleId: string, updateData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -332,7 +332,7 @@ export class KnowledgeBaseRepository {
 
   async deleteArticle(tenantId: string, articleId: string) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -353,7 +353,7 @@ export class KnowledgeBaseRepository {
   // Article Versions
   async createArticleVersion(tenantId: string, articleId: string, versionData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -381,7 +381,7 @@ export class KnowledgeBaseRepository {
 
   async getArticleVersions(tenantId: string, articleId: string) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -402,7 +402,7 @@ export class KnowledgeBaseRepository {
   // Tags
   async createTag(tenantId: string, tagData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -427,7 +427,7 @@ export class KnowledgeBaseRepository {
 
   async getTags(tenantId: string) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -448,16 +448,16 @@ export class KnowledgeBaseRepository {
   // Search
   async searchArticles(tenantId: string, query: string, filters: any = {}) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       let whereClause = `WHERE a.tenant_id = '${validatedTenantId}' AND a.status = 'published'`;
-      
+
       if (query) {
         whereClause += ` AND a.searchable_content ILIKE '%${query.toLowerCase()}%'`;
       }
-      
+
       if (filters.categoryId) {
         whereClause += ` AND a.category_id = '${filters.categoryId}'`;
       }
@@ -491,7 +491,7 @@ export class KnowledgeBaseRepository {
   // Rating
   async rateArticle(tenantId: string, articleId: string, userId: string, ratingData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -513,7 +513,7 @@ export class KnowledgeBaseRepository {
           WHERE article_id = ${articleId} AND user_id = ${userId} AND tenant_id = ${validatedTenantId}
           RETURNING *
         `);
-        
+
         return result.rows?.[0];
       } else {
         // Create new rating
@@ -553,7 +553,7 @@ export class KnowledgeBaseRepository {
   // Comments
   async createComment(tenantId: string, commentData: any) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -580,7 +580,7 @@ export class KnowledgeBaseRepository {
 
   async getComments(tenantId: string, articleId: string) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
@@ -601,7 +601,7 @@ export class KnowledgeBaseRepository {
   // Analytics
   async getAnalytics(tenantId: string, filters: any = {}) {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
