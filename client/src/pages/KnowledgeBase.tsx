@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe } from "lucide-react";
@@ -118,7 +117,7 @@ export default function KnowledgeBase() {
       if (filters.status) params.append('status', filters.status);
       if (filters.type) params.append('type', filters.type);
       if (filters.visibility) params.append('visibility', filters.visibility);
-      
+
       const response = await fetch(`/api/knowledge-base/articles?${params}`);
       if (!response.ok) throw new Error('Failed to fetch articles');
       return response.json();
@@ -365,7 +364,7 @@ export default function KnowledgeBase() {
             <div className="prose max-w-none">
               <div className="whitespace-pre-wrap">{fullArticle.content}</div>
             </div>
-            
+
             <div className="mt-8 pt-6 border-t">
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium">Este artigo foi útil?</span>
@@ -499,6 +498,61 @@ export default function KnowledgeBase() {
               <Form {...articleForm}>
                 <form onSubmit={articleForm.handleSubmit(handleCreateArticle)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Templates Rápidos</label>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            articleForm.setValue('title', 'Como fazer: ');
+                            articleForm.setValue('content', '# Como fazer: [Título da Tarefa]\n\n## Objetivo\nDescreva o que será alcançado.\n\n## Pré-requisitos\n- Item 1\n- Item 2\n\n## Passo a Passo\n1. Primeiro passo\n2. Segundo passo\n3. Terceiro passo\n\n## Resultado Esperado\nDescreva o resultado final.\n\n## Dicas Adicionais\n- Dica 1\n- Dica 2');
+                            articleForm.setValue('type', 'procedure');
+                          }}
+                        >
+                          Procedimento
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            articleForm.setValue('title', 'FAQ: ');
+                            articleForm.setValue('content', '# Perguntas Frequentes\n\n## Pergunta 1\n**Pergunta:** \n**Resposta:** \n\n## Pergunta 2\n**Pergunta:** \n**Resposta:** \n\n## Pergunta 3\n**Pergunta:** \n**Resposta:** ');
+                            articleForm.setValue('type', 'faq');
+                          }}
+                        >
+                          FAQ
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            articleForm.setValue('title', 'Solucionando: ');
+                            articleForm.setValue('content', '# Solução de Problema: [Nome do Problema]\n\n## Descrição do Problema\nDescreva o problema que está sendo resolvido.\n\n## Sintomas\n- Sintoma 1\n- Sintoma 2\n\n## Causas Possíveis\n1. Causa 1\n2. Causa 2\n\n## Solução\n### Método 1\n1. Passo 1\n2. Passo 2\n\n### Método 2 (Alternativo)\n1. Passo 1\n2. Passo 2\n\n## Prevenção\nComo evitar que o problema aconteça novamente.');
+                            articleForm.setValue('type', 'troubleshooting');
+                          }}
+                        >
+                          Solução de Problemas
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            articleForm.setValue('title', '');
+                            articleForm.setValue('content', '# Título do Artigo\n\n## Introdução\nBreve introdução sobre o tópico.\n\n## Desenvolvimento\nConteúdo principal do artigo.\n\n## Conclusão\nResumo e considerações finais.');
+                            articleForm.setValue('type', 'article');
+                          }}
+                        >
+                          Artigo Geral
+                        </Button>
+                      </div>
+                    </div>
+
                     <FormField
                       control={articleForm.control}
                       name="title"
@@ -512,6 +566,7 @@ export default function KnowledgeBase() {
                         </FormItem>
                       )}
                     />
+                  </div>
                     <FormField
                       control={articleForm.control}
                       name="category_id"
@@ -812,7 +867,7 @@ export default function KnowledgeBase() {
                       >
                         <BookOpen className="h-6 w-6" />
                       </div>
-                      <div>
+This code adds article templates to the article creation form, enhancing the user experience.                      <div>
                         <CardTitle className="text-lg">{category.name}</CardTitle>
                         <CardDescription>{category.article_count} artigos</CardDescription>
                       </div>
