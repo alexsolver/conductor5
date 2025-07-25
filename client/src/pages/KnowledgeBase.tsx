@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe, Play, Schedule, CheckSquare, Edit3, Settings, Download, Upload } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe, Play, CalendarClock, CheckSquare, Edit3, Settings, Download, Upload } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1245,7 +1245,7 @@ export default function KnowledgeBase() {
                           e.stopPropagation();
                           setShowScheduleDialog(true);
                         }}>
-                          <Schedule className="h-4 w-4 mr-2" />
+                          <CalendarClock className="h-4 w-4 mr-2" />
                           Agendar Publicação
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
@@ -1398,7 +1398,7 @@ export default function KnowledgeBase() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Schedule className="h-5 w-5" />
+              <CalendarClock className="h-5 w-5" />
               Agendar Publicação
             </DialogTitle>
             <DialogDescription>
