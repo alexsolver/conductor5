@@ -1,0 +1,43 @@
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+psql:migrate_parts_services_items.sql:124: NOTICE:  relation "idx_items_tenant_id" already exists, skipping
+CREATE INDEX
+psql:migrate_parts_services_items.sql:125: NOTICE:  relation "idx_items_type" already exists, skipping
+CREATE INDEX
+psql:migrate_parts_services_items.sql:126: NOTICE:  relation "idx_items_active" already exists, skipping
+CREATE INDEX
+psql:migrate_parts_services_items.sql:127: NOTICE:  relation "idx_items_name" already exists, skipping
+CREATE INDEX
+psql:migrate_parts_services_items.sql:128: NOTICE:  relation "idx_items_integration_code" already exists, skipping
+CREATE INDEX
+psql:migrate_parts_services_items.sql:129: ERROR:  column "category_id" does not exist
+psql:migrate_parts_services_items.sql:130: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:131: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:132: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:133: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:134: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:135: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:136: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:137: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:138: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:139: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:140: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:149: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:152: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:154: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:156: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:158: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:161: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:162: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:163: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:164: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:165: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:166: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:174: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrate_parts_services_items.sql:184: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
