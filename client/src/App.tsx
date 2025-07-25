@@ -65,6 +65,7 @@ import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
+import MaterialsServicesControl from "./pages/MaterialsServicesControl";
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Clientes from "./pages/Clientes";
@@ -155,7 +156,7 @@ function AppRouter() {
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
-
+        <Route path="/materials-services-control" component={MaterialsServicesControl} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />
