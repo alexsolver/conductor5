@@ -1198,25 +1198,26 @@ export default function KnowledgeBase() {
                           <CardTitle className="text-xl">{article.title}</CardTitle>
                           {article.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                         </div>
-                      <CardDescription>
-                        {article.excerpt || (article.content?.substring(0, 200) + '...')}
-                      </CardDescription>
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant="outline"
-                          style={{ 
-                            backgroundColor: article.category_color ? `${article.category_color}15` : undefined,
-                            borderColor: article.category_color || undefined
-                          }}
-                        >
-                          {article.category_name}
-                        </Badge>
-                        <Badge className={statusColors[article.status]}>
-                          {article.status.replace('_', ' ')}
-                        </Badge>
-                        <Badge className={visibilityColors[article.visibility]}>
-                          {article.visibility}
-                        </Badge>
+                        <CardDescription>
+                          {article.excerpt || (article.content?.substring(0, 200) + '...')}
+                        </CardDescription>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="outline"
+                            style={{ 
+                              backgroundColor: article.category_color ? `${article.category_color}15` : undefined,
+                              borderColor: article.category_color || undefined
+                            }}
+                          >
+                            {article.category_name}
+                          </Badge>
+                          <Badge className={statusColors[article.status]}>
+                            {article.status.replace('_', ' ')}
+                          </Badge>
+                          <Badge className={visibilityColors[article.visibility]}>
+                            {article.visibility}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     <DropdownMenu>
