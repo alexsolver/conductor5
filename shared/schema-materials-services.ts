@@ -14,15 +14,15 @@ export const items = pgTable('items', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
 
-  // Campos básicos
+  // Campos básicos conforme especificação
   active: boolean('active').default(true).notNull(),
-  type: itemTypeEnum('type').notNull(),
+  type: itemTypeEnum('type').notNull(), // material/service
   name: varchar('name', { length: 255 }).notNull(),
   integrationCode: varchar('integration_code', { length: 100 }),
   description: text('description'),
   measurementUnit: measurementUnitEnum('measurement_unit').default('UN'),
   maintenancePlan: text('maintenance_plan'),
-  category: varchar('category', { length: 100 }),
+  group: varchar('group', { length: 100 }), // Renomeado de category para group
   defaultChecklist: jsonb('default_checklist'),
   status: itemStatusEnum('status').default('active'),
 
@@ -49,34 +49,64 @@ export const itemAttachments = pgTable('item_attachments', {
   createdBy: uuid('created_by')
 });
 
-// Vínculos de itens (kits, substitutos, equivalências)
+// VÍNCULOS DE ITENS - SISTEMA COMPLEXO CONFORME ESPECIFICAÇÃO
 export const itemLinks = pgTable('item_links', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-
+  
   linkType: linkTypeEnum('link_type').notNull(),
-  parentItemId: uuid('parent_item_id').notNull(),
+  itemId: uuid('item_id').notNull(), // Item principal
 
-  // Para vínculos item-item
+  // 1. VÍNCULOS ITEM ↔ ITEM
   linkedItemId: uuid('linked_item_id'),
-  relationship: varchar('relationship', { length: 50 }), // kit, substitute, equivalent
-
-  // Para vínculos item-cliente
-  customerId: uuid('customer_id'),
-  customerAlias: varchar('customer_alias', { length: 255 }),
-  customerSku: varchar('customer_sku', { length: 100 }),
-  customerBarcode: varchar('customer_barcode', { length: 100 }),
-  customerQrCode: varchar('customer_qr_code', { length: 255 }),
-  isAsset: boolean('is_asset').default(false),
-
-  // Para vínculos item-fornecedor
-  supplierId: uuid('supplier_id'),
-  partNumber: varchar('part_number', { length: 100 }),
-  supplierDescription: text('supplier_description'),
-  supplierQrCode: varchar('supplier_qr_code', { length: 255 }),
-  supplierBarcode: varchar('supplier_barcode', { length: 100 }),
+  relationship: varchar('relationship', { length: 50 }), // kit, substitute, equivalent, compatible
 
   isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: uuid('created_by')
+});
+
+// VÍNCULOS ITEM ↔ CLIENTE (dados específicos por cliente)
+export const itemCustomerLinks = pgTable('item_customer_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  itemId: uuid('item_id').notNull(),
+  customerId: uuid('customer_id').notNull(), // Vinculado ao módulo empresa cliente
+
+  // Campos específicos do cliente conforme especificação
+  alias: varchar('alias', { length: 255 }), // Apelido
+  sku: varchar('sku', { length: 100 }), // SKU do cliente
+  barcode: varchar('barcode', { length: 100 }), // Código de barras
+  qrCode: varchar('qr_code', { length: 255 }), // Código QR
+  isAsset: boolean('is_asset').default(false), // Se SIM → vai para Controle de Ativos (só materiais)
+
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: uuid('created_by')
+});
+
+// VÍNCULOS ITEM ↔ FORNECEDOR (dados específicos por fornecedor)
+export const itemSupplierLinks = pgTable('item_supplier_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  itemId: uuid('item_id').notNull(),
+  supplierId: uuid('supplier_id').notNull(),
+
+  // Campos específicos do fornecedor conforme especificação
+  partNumber: varchar('part_number', { length: 100 }), // Part Number
+  description: text('description'), // Descrição do fornecedor
+  qrCode: varchar('qr_code', { length: 255 }), // Código QR
+  barcode: varchar('barcode', { length: 100 }), // Código de Barras
+
+  // Dados comerciais
+  unitPrice: decimal('unit_price', { precision: 10, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('BRL'),
+  leadTime: integer('lead_time'), // days
+  minimumOrderQuantity: decimal('minimum_order_quantity', { precision: 10, scale: 2 }),
+
+  isActive: boolean('is_active').default(true),
+  validFrom: timestamp('valid_from').defaultNow(),
+  validTo: timestamp('valid_to'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdBy: uuid('created_by')
 });
@@ -142,15 +172,15 @@ export const stockMovements = pgTable('stock_movements', {
   createdBy: uuid('created_by').notNull()
 });
 
-// 3. GESTÃO DE FORNECEDORES
+// 3. GESTÃO DE FORNECEDORES  
 export const suppliers = pgTable('suppliers', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
 
   name: varchar('name', { length: 255 }).notNull(),
-  code: varchar('code', { length: 50 }).notNull(),
+  code: varchar('code', { length: 50 }),
   tradeName: varchar('trade_name', { length: 255 }),
-  documentNumber: varchar('document_number', { length: 20 }),
+  document: varchar('document', { length: 20 }), // Alinhado com banco real
   email: varchar('email', { length: 255 }),
   phone: varchar('phone', { length: 20 }),
   
@@ -160,10 +190,14 @@ export const suppliers = pgTable('suppliers', {
   state: varchar('state', { length: 50 }),
   zipCode: varchar('zip_code', { length: 20 }),
   country: varchar('country', { length: 50 }).default('Brasil'),
+  website: varchar('website', { length: 255 }),
+  contactPerson: varchar('contact_person', { length: 255 }),
+  paymentTerms: text('payment_terms'),
+  notes: text('notes'),
 
   // Performance
   performanceRating: decimal('performance_rating', { precision: 3, scale: 2 }),
-  isActive: boolean('is_active').default(true),
+  active: boolean('active').default(true), // Alinhado com banco real
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

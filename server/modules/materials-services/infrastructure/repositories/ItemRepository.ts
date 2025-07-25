@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, and, like, desc, sql } from 'drizzle-orm';
-import { items, itemAttachments, itemLinks } from '../../../../../shared/schema-materials-services';
+import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
 
 export class ItemRepository {
@@ -142,27 +142,38 @@ export class ItemRepository {
       .orderBy(desc(itemAttachments.createdAt));
   }
 
-  async addLink(linkData: {
+  async addItemLink(linkData: {
     tenantId: string;
-    linkType: 'item_item' | 'item_customer' | 'item_supplier';
-    parentItemId: string;
-    linkedItemId?: string;
-    relationship?: string;
-    customerId?: string;
-    customerAlias?: string;
-    customerSku?: string;
-    customerBarcode?: string;
-    customerQrCode?: string;
-    isAsset?: boolean;
-    supplierId?: string;
-    partNumber?: string;
-    supplierDescription?: string;
-    supplierQrCode?: string;
-    supplierBarcode?: string;
+    itemId: string;
+    linkedItemId: string;
+    relationship: string;
     createdBy?: string;
   }) {
     const [result] = await this.db
       .insert(itemLinks)
+      .values({
+        ...linkData,
+        linkType: 'item_item' as any,
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return result;
+  }
+
+  async addCustomerLink(linkData: {
+    tenantId: string;
+    itemId: string;
+    customerId: string;
+    alias?: string;
+    sku?: string;
+    barcode?: string;
+    qrCode?: string;
+    isAsset?: boolean;
+    createdBy?: string;
+  }) {
+    const [result] = await this.db
+      .insert(itemCustomerLinks)
       .values({
         ...linkData,
         createdAt: new Date()
@@ -172,23 +183,50 @@ export class ItemRepository {
     return result;
   }
 
-  async getLinks(itemId: string, tenantId: string, linkType?: string) {
-    let query = this.db
+  async addSupplierLink(linkData: {
+    tenantId: string;
+    itemId: string;
+    supplierId: string;
+    partNumber?: string;
+    description?: string;
+    qrCode?: string;
+    barcode?: string;
+    unitPrice?: number;
+    createdBy?: string;
+  }) {
+    const [result] = await this.db
+      .insert(itemSupplierLinks)
+      .values({
+        ...linkData,
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return result;
+  }
+
+  async getItemLinks(itemId: string, tenantId: string) {
+    return await this.db
       .select()
       .from(itemLinks)
-      .where(and(eq(itemLinks.parentItemId, itemId), eq(itemLinks.tenantId, tenantId)));
+      .where(and(eq(itemLinks.itemId, itemId), eq(itemLinks.tenantId, tenantId)))
+      .orderBy(desc(itemLinks.createdAt));
+  }
 
-    if (linkType) {
-      query = query.where(
-        and(
-          eq(itemLinks.parentItemId, itemId),
-          eq(itemLinks.tenantId, tenantId),
-          eq(itemLinks.linkType, linkType as any)
-        )
-      );
-    }
+  async getCustomerLinks(itemId: string, tenantId: string) {
+    return await this.db
+      .select()
+      .from(itemCustomerLinks)
+      .where(and(eq(itemCustomerLinks.itemId, itemId), eq(itemCustomerLinks.tenantId, tenantId)))
+      .orderBy(desc(itemCustomerLinks.createdAt));
+  }
 
-    return await query.orderBy(desc(itemLinks.createdAt));
+  async getSupplierLinks(itemId: string, tenantId: string) {
+    return await this.db
+      .select()
+      .from(itemSupplierLinks)
+      .where(and(eq(itemSupplierLinks.itemId, itemId), eq(itemSupplierLinks.tenantId, tenantId)))
+      .orderBy(desc(itemSupplierLinks.createdAt));
   }
 
   async getStats(tenantId: string) {

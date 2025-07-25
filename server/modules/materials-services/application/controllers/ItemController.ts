@@ -1,6 +1,12 @@
 import { Request, Response } from 'express';
 import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+  };
+}
 
 export class ItemController {
   constructor(private itemRepository: ItemRepository) {}
@@ -93,9 +99,11 @@ export class ItemController {
       }
 
       // Get attachments and links
-      const [attachments, links] = await Promise.all([
+      const [attachments, itemLinks, customerLinks, supplierLinks] = await Promise.all([
         this.itemRepository.getAttachments(id, tenantId),
-        this.itemRepository.getLinks(id, tenantId)
+        this.itemRepository.getItemLinks(id, tenantId),
+        this.itemRepository.getCustomerLinks(id, tenantId),
+        this.itemRepository.getSupplierLinks(id, tenantId)
       ]);
 
       res.json({
@@ -103,7 +111,11 @@ export class ItemController {
         data: {
           ...item,
           attachments,
-          links
+          links: {
+            items: itemLinks,
+            customers: customerLinks,
+            suppliers: supplierLinks
+          }
         }
       });
     } catch (error) {
@@ -229,7 +241,48 @@ export class ItemController {
         createdBy: req.user?.id
       };
 
-      const link = await this.itemRepository.addLink(linkData);
+      const { linkType, ...otherData } = linkData;
+      
+      let link;
+      switch(linkType) {
+        case 'item_item':
+          link = await this.itemRepository.addItemLink({
+            tenantId,
+            itemId: id,
+            linkedItemId: otherData.linkedItemId!,
+            relationship: otherData.relationship!,
+            createdBy: req.user?.id
+          });
+          break;
+        case 'item_customer':
+          link = await this.itemRepository.addCustomerLink({
+            tenantId,
+            itemId: id,
+            customerId: otherData.customerId!,
+            alias: otherData.alias,
+            sku: otherData.sku,
+            barcode: otherData.barcode,
+            qrCode: otherData.qrCode,
+            isAsset: otherData.isAsset,
+            createdBy: req.user?.id
+          });
+          break;
+        case 'item_supplier':
+          link = await this.itemRepository.addSupplierLink({
+            tenantId,
+            itemId: id,
+            supplierId: otherData.supplierId!,
+            partNumber: otherData.partNumber,
+            description: otherData.description,
+            qrCode: otherData.qrCode,
+            barcode: otherData.barcode,
+            unitPrice: otherData.unitPrice,
+            createdBy: req.user?.id
+          });
+          break;
+        default:
+          throw new Error('Invalid link type');
+      }
       
       res.status(201).json({
         success: true,

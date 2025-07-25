@@ -135,7 +135,7 @@ export class SupplierRepository {
     const activeSuppliers = await this.db
       .select({ count: suppliers.id })
       .from(suppliers)
-      .where(and(eq(suppliers.tenantId, tenantId), eq(suppliers.isActive, true)));
+      .where(and(eq(suppliers.tenantId, tenantId), eq(suppliers.active, true)));
 
     return {
       total: totalSuppliers.length,
