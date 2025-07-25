@@ -1132,7 +1132,7 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
   status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, cancelled
   priority: varchar("priority", { length: 20 }).default("medium"),
-  linkedItemIds: jsonb("jsonb("linked_item_ids"), // array of UUIDs for related items
+  linkedItemIds: jsonb("linked_item_ids"), // array of UUIDs for related items
   linkedItemTypes: jsonb("linked_item_types"), // corresponding types for linked items
   attachmentIds: jsonb("attachment_ids"), // array of attachment UUIDs
   formData: jsonb("form_data"), // custom form responses

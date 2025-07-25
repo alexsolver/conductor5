@@ -185,3 +185,80 @@ export class NotificationPreferenceController {
     }
   }
 }
+import { Request, Response } from 'express';
+import { eq } from 'drizzle-orm';
+import { db } from '../../../../db';
+import { notificationPreferences } from '../../../../../shared/schema-master';
+
+export class NotificationPreferenceController {
+  static async getPreferences(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user as any;
+      const { userId } = req.params;
+
+      const preferences = await db
+        .select()
+        .from(notificationPreferences)
+        .where(eq(notificationPreferences.tenantId, tenantId))
+        .where(eq(notificationPreferences.userId, userId));
+
+      res.json(preferences);
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error);
+      res.status(500).json({ error: 'Failed to fetch notification preferences' });
+    }
+  }
+
+  static async updatePreferences(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user as any;
+      const { userId } = req.params;
+      const { notificationType, channels, enabled, scheduleSettings, filters } = req.body;
+
+      const updatedPreference = await db
+        .update(notificationPreferences)
+        .set({
+          channels,
+          enabled,
+          scheduleSettings,
+          filters,
+          updatedAt: new Date()
+        })
+        .where(eq(notificationPreferences.tenantId, tenantId))
+        .where(eq(notificationPreferences.userId, userId))
+        .where(eq(notificationPreferences.notificationType, notificationType))
+        .returning();
+
+      res.json(updatedPreference[0]);
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+      res.status(500).json({ error: 'Failed to update notification preferences' });
+    }
+  }
+
+  static async createPreference(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user as any;
+      const { userId, notificationType, channels, enabled, scheduleSettings, filters } = req.body;
+
+      const newPreference = await db
+        .insert(notificationPreferences)
+        .values({
+          id: crypto.randomUUID(),
+          tenantId,
+          userId,
+          notificationType,
+          channels: channels || ['in_app'],
+          enabled: enabled !== undefined ? enabled : true,
+          scheduleSettings: scheduleSettings || {},
+          filters: filters || {}
+        })
+        .returning();
+
+      res.status(201).json(newPreference[0]);
+    } catch (error) {
+      console.error('Error creating notification preference:', error);
+      res.status(500).json({ error: 'Failed to create notification preference' });
+    }
+  }
+}
