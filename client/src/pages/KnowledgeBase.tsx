@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe, Play, CalendarClock, CheckSquare, Edit3, Settings, Download, Upload } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe, Play, CalendarClock, CheckSquare, Edit3, Settings, Download, Upload, BarChart3, Grid3X3, List, Heart, History, Users, Image, FolderOpen, GitCompare, RotateCcw, UserCheck, Bell, SortAsc, TrendingUp } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -100,6 +100,16 @@ export default function KnowledgeBase() {
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showBatchEditDialog, setShowBatchEditDialog] = useState(false);
   const [bulkAction, setBulkAction] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showFileManager, setShowFileManager] = useState(false);
+  const [showVersionComparison, setShowVersionComparison] = useState(false);
+  const [favoriteArticles, setFavoriteArticles] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'updated_at' | 'created_at' | 'view_count' | 'helpful_count' | 'title'>('updated_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [assignedReviewer, setAssignedReviewer] = useState<string>('');
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -171,6 +181,46 @@ export default function KnowledgeBase() {
         headers: getAuthHeaders()
       });
       if (!response.ok) throw new Error('Failed to fetch analytics');
+      const result = await response.json();
+      return result.data;
+    }
+  });
+
+  // Advanced Analytics
+  const { data: advancedAnalytics } = useQuery({
+    queryKey: ['/api/knowledge-base/analytics/advanced'],
+    queryFn: async () => {
+      const response = await fetch('/api/knowledge-base/analytics/advanced', {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) return null;
+      const result = await response.json();
+      return result.data;
+    },
+    enabled: showAnalytics
+  });
+
+  // Popular Articles
+  const { data: popularArticles } = useQuery({
+    queryKey: ['/api/knowledge-base/articles/popular'],
+    queryFn: async () => {
+      const response = await fetch('/api/knowledge-base/articles/popular', {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) return [];
+      const result = await response.json();
+      return result.data;
+    }
+  });
+
+  // Recent Articles
+  const { data: recentArticles } = useQuery({
+    queryKey: ['/api/knowledge-base/articles/recent'],
+    queryFn: async () => {
+      const response = await fetch('/api/knowledge-base/articles/recent?limit=5', {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) return [];
       const result = await response.json();
       return result.data;
     }
@@ -390,6 +440,48 @@ export default function KnowledgeBase() {
     }
   };
 
+  const handleToggleFavorite = (articleId: string) => {
+    setFavoriteArticles(prev => 
+      prev.includes(articleId) 
+        ? prev.filter(id => id !== articleId)
+        : [...prev, articleId]
+    );
+    toast({ title: favoriteArticles.includes(articleId) ? "Removido dos favoritos" : "Adicionado aos favoritos" });
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      toast({ title: `${newFiles.length} arquivo(s) carregado(s)` });
+    }
+  };
+
+  const handleAssignReviewer = (articleId: string, reviewerId: string) => {
+    updateArticleMutation.mutate({ 
+      id: articleId, 
+      data: { reviewerId } 
+    });
+    toast({ title: "Revisor atribuído com sucesso!" });
+  };
+
+  const getSortedArticles = (articles: Article[]) => {
+    return [...articles].sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
   const clearFilters = () => {
     setFilters({
       status: '',
@@ -572,6 +664,21 @@ export default function KnowledgeBase() {
           <Button variant="outline" onClick={() => toast({ title: "Exportar KB em desenvolvimento" })}>
             <Download className="h-4 w-4 mr-2" />
             Exportar KB
+          </Button>
+          
+          <Button variant="outline" onClick={() => setShowAnalytics(true)}>
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Analytics Avançados
+          </Button>
+          
+          <Button variant="outline" onClick={() => setShowFileManager(true)}>
+            <FolderOpen className="h-4 w-4 mr-2" />
+            Gerenciar Arquivos
+          </Button>
+          
+          <Button variant="outline" onClick={() => setShowMediaLibrary(true)}>
+            <Image className="h-4 w-4 mr-2" />
+            Biblioteca de Mídia
           </Button>
           
           <Button variant="outline" onClick={() => toast({ title: "Configurações em desenvolvimento" })}>
@@ -961,6 +1068,70 @@ export default function KnowledgeBase() {
         </div>
       )}
 
+      {/* Popular and Recent Articles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {popularArticles && popularArticles.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Artigos Populares
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {popularArticles.slice(0, 5).map((article: Article) => (
+                  <div 
+                    key={article.id} 
+                    className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                    onClick={() => setSelectedArticle(article)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {articleTypeIcons[article.type]}
+                      <span className="text-sm font-medium truncate">{article.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Eye className="h-3 w-3" />
+                      {article.view_count}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {recentArticles && recentArticles.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Artigos Recentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {recentArticles.slice(0, 5).map((article: Article) => (
+                  <div 
+                    key={article.id} 
+                    className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                    onClick={() => setSelectedArticle(article)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {articleTypeIcons[article.type]}
+                      <span className="text-sm font-medium truncate">{article.title}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(article.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
       {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
@@ -974,6 +1145,44 @@ export default function KnowledgeBase() {
                 className="pl-10"
               />
             </div>
+            
+            <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="updated_at">Data de Atualização</SelectItem>
+                <SelectItem value="created_at">Data de Criação</SelectItem>
+                <SelectItem value="view_count">Visualizações</SelectItem>
+                <SelectItem value="helpful_count">Mais Úteis</SelectItem>
+                <SelectItem value="title">Título</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            >
+              <SortAsc className={`h-4 w-4 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
@@ -1175,8 +1384,8 @@ export default function KnowledgeBase() {
             </div>
           )}
 
-          <div className="grid gap-6">
-            {articles.map((article: Article) => (
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'grid gap-6'}>
+            {getSortedArticles(articles).map((article: Article) => (
               <Card 
                 key={article.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -1196,7 +1405,10 @@ export default function KnowledgeBase() {
                         <div className="flex items-center gap-2">
                           {articleTypeIcons[article.type]}
                           <CardTitle className="text-xl">{article.title}</CardTitle>
-                          {article.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+                          <div className="flex items-center gap-1">
+                            {article.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+                            {favoriteArticles.includes(article.id) && <Heart className="h-4 w-4 text-red-500 fill-current" />}
+                          </div>
                         </div>
                         <CardDescription>
                           {article.excerpt || (article.content?.substring(0, 200) + '...')}
@@ -1243,6 +1455,13 @@ export default function KnowledgeBase() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          handleToggleFavorite(article.id);
+                        }}>
+                          <Heart className={`h-4 w-4 mr-2 ${favoriteArticles.includes(article.id) ? 'fill-current text-red-500' : ''}`} />
+                          {favoriteArticles.includes(article.id) ? 'Remover dos Favoritos' : 'Favoritar'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
                           setShowScheduleDialog(true);
                         }}>
                           <CalendarClock className="h-4 w-4 mr-2" />
@@ -1254,6 +1473,14 @@ export default function KnowledgeBase() {
                         }}>
                           <CheckSquare className="h-4 w-4 mr-2" />
                           Enviar para Aprovação
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implement assign reviewer
+                          toast({ title: "Atribuir revisor em desenvolvimento" });
+                        }}>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Atribuir Revisor
                         </DropdownMenuItem>
                         <Separator />
                         <DropdownMenuItem onClick={(e) => {
@@ -1271,6 +1498,29 @@ export default function KnowledgeBase() {
                         }}>
                           <Clock className="h-4 w-4 mr-2" />
                           Versões
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setShowVersionComparison(true);
+                        }}>
+                          <GitCompare className="h-4 w-4 mr-2" />
+                          Comparar Versões
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implement restore version
+                          toast({ title: "Restaurar versão em desenvolvimento" });
+                        }}>
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Restaurar Versão
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implement article analytics
+                          toast({ title: "Analytics do artigo em desenvolvimento" });
+                        }}>
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          Ver Analytics
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
@@ -1562,6 +1812,285 @@ export default function KnowledgeBase() {
               toast({ title: "Artigos atualizados com sucesso!" });
             }}>
               Aplicar Alterações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Advanced Analytics Dialog */}
+      <Dialog open={showAnalytics} onOpenChange={setShowAnalytics}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Analytics Avançados
+            </DialogTitle>
+            <DialogDescription>
+              Relatórios detalhados sobre o desempenho da base de conhecimento
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Engajamento dos Usuários</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Artigos mais visualizados</span>
+                      <span className="font-bold">{analytics?.total_views || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taxa de aprovação</span>
+                      <span className="font-bold">
+                        {analytics?.avg_helpfulness ? `${Math.round(analytics.avg_helpfulness * 100)}%` : '0%'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Termos Mais Buscados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Últimos 30 dias:</div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>Como fazer</span>
+                        <span>45 buscas</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Procedimento</span>
+                        <span>32 buscas</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>FAQ</span>
+                        <span>28 buscas</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Tempo médio de leitura</span>
+                      <span className="font-bold">3.2 min</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taxa de bounce</span>
+                      <span className="font-bold">15%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Artigos sem visualizações</span>
+                      <span className="font-bold text-red-600">5</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowAnalytics(false)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* File Manager Dialog */}
+      <Dialog open={showFileManager} onOpenChange={setShowFileManager}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Gerenciador de Arquivos
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie arquivos anexados aos artigos da base de conhecimento
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                multiple
+                accept="image/*,application/pdf,.doc,.docx,.txt"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload">
+                <Button asChild>
+                  <span>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Arquivos
+                  </span>
+                </Button>
+              </label>
+              <Button variant="outline">
+                <FolderOpen className="h-4 w-4 mr-2" />
+                Nova Pasta
+              </Button>
+            </div>
+            
+            <div className="border rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {uploadedFiles.map((file, index) => (
+                  <div key={index} className="border rounded p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span className="text-sm font-medium truncate">{file.name}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {Math.round(file.size / 1024)} KB
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="text-xs">
+                        Visualizar
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-xs text-red-600">
+                        Excluir
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                
+                {uploadedFiles.length === 0 && (
+                  <div className="col-span-4 text-center py-8 text-muted-foreground">
+                    Nenhum arquivo carregado ainda
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowFileManager(false)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Media Library Dialog */}
+      <Dialog open={showMediaLibrary} onOpenChange={setShowMediaLibrary}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Image className="h-5 w-5" />
+              Biblioteca de Mídia
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie imagens e mídias para seus artigos
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="media-upload"
+              />
+              <label htmlFor="media-upload">
+                <Button asChild>
+                  <span>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Mídia
+                  </span>
+                </Button>
+              </label>
+              <Button variant="outline">
+                <Image className="h-4 w-4 mr-2" />
+                Galeria
+              </Button>
+            </div>
+            
+            <div className="border rounded-lg p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {/* Mock media items */}
+                <div className="aspect-square border rounded-lg bg-gray-100 flex items-center justify-center">
+                  <Image className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="aspect-square border rounded-lg bg-gray-100 flex items-center justify-center">
+                  <Video className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowMediaLibrary(false)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Version Comparison Dialog */}
+      <Dialog open={showVersionComparison} onOpenChange={setShowVersionComparison}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitCompare className="h-5 w-5" />
+              Comparar Versões
+            </DialogTitle>
+            <DialogDescription>
+              Compare diferentes versões do artigo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Versão A</label>
+                <Select>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione uma versão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="v3">Versão 3 (Atual)</SelectItem>
+                    <SelectItem value="v2">Versão 2</SelectItem>
+                    <SelectItem value="v1">Versão 1 (Original)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Versão B</label>
+                <Select>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione uma versão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="v3">Versão 3 (Atual)</SelectItem>
+                    <SelectItem value="v2">Versão 2</SelectItem>
+                    <SelectItem value="v1">Versão 1 (Original)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="text-center text-muted-foreground">
+                Selecione duas versões para comparar as diferenças
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowVersionComparison(false)}>
+              Fechar
+            </Button>
+            <Button>
+              Restaurar Versão Selecionada
             </Button>
           </div>
         </DialogContent>

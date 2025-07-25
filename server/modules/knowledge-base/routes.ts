@@ -37,5 +37,10 @@ knowledgeBaseRouter.post('/tags', jwtAuth, knowledgeBaseController.createTag.bin
 
 // Analytics
 knowledgeBaseRouter.get('/analytics', jwtAuth, knowledgeBaseController.getAnalytics.bind(knowledgeBaseController));
+knowledgeBaseRouter.get('/analytics/advanced', jwtAuth, knowledgeBaseController.getAdvancedAnalytics.bind(knowledgeBaseController));
+
+// Popular and Recent Articles
+knowledgeBaseRouter.get('/articles/popular', jwtAuth, knowledgeBaseController.getPopularArticles.bind(knowledgeBaseController));
+knowledgeBaseRouter.get('/articles/recent', jwtAuth, knowledgeBaseController.getRecentArticles.bind(knowledgeBaseController));
 
 export { knowledgeBaseRouter };

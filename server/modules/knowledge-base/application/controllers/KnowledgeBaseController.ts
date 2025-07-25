@@ -460,6 +460,71 @@ export class KnowledgeBaseController {
     }
   }
 
+  async getAdvancedAnalytics(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const analytics = await this.knowledgeBaseRepository.getAdvancedAnalytics(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: analytics 
+      });
+    } catch (error) {
+      console.error('Error fetching advanced analytics:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch advanced analytics' 
+      });
+    }
+  }
+
+  async getPopularArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const limit = req.query.limit as string || '10';
+      const articles = await this.knowledgeBaseRepository.getPopularArticles(req.user.tenantId, parseInt(limit));
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching popular articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch popular articles' 
+      });
+    }
+  }
+
+  async getRecentArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const limit = req.query.limit as string || '10';
+      const articles = await this.knowledgeBaseRepository.getRecentArticles(req.user.tenantId, parseInt(limit));
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching recent articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch recent articles' 
+      });
+    }
+  }
+
   // Versions
   async getArticleVersions(req: AuthenticatedRequest, res: Response) {
     try {

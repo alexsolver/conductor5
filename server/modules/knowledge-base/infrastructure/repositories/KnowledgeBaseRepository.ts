@@ -624,4 +624,79 @@ export class KnowledgeBaseRepository {
       throw error;
     }
   }
+
+  async getAdvancedAnalytics(tenantId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          COUNT(*) as total_articles,
+          AVG(view_count) as avg_views_per_article,
+          COUNT(CASE WHEN view_count = 0 THEN 1 END) as articles_never_viewed,
+          COUNT(CASE WHEN helpful_count > not_helpful_count THEN 1 END) as helpful_articles,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as articles_last_30_days,
+          COUNT(CASE WHEN status = 'published' AND featured = true THEN 1 END) as featured_articles
+        FROM ${sql.identifier(schemaName)}.knowledge_articles
+        WHERE tenant_id = ${validatedTenantId}
+      `);
+
+      return result.rows?.[0] || {};
+    } catch (error) {
+      logError('Error fetching advanced analytics', error, { tenantId });
+      throw error;
+    }
+  }
+
+  async getPopularArticles(tenantId: string, limit: number = 10) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          a.*,
+          c.name as category_name,
+          c.color as category_color
+        FROM ${sql.identifier(schemaName)}.knowledge_articles a
+        LEFT JOIN ${sql.identifier(schemaName)}.knowledge_categories c ON a.category_id = c.id
+        WHERE a.tenant_id = ${validatedTenantId} AND a.status = 'published'
+        ORDER BY a.view_count DESC, a.helpful_count DESC
+        LIMIT ${limit}
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching popular articles', error, { tenantId, limit });
+      throw error;
+    }
+  }
+
+  async getRecentArticles(tenantId: string, limit: number = 10) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          a.*,
+          c.name as category_name,
+          c.color as category_color
+        FROM ${sql.identifier(schemaName)}.knowledge_articles a
+        LEFT JOIN ${sql.identifier(schemaName)}.knowledge_categories c ON a.category_id = c.id
+        WHERE a.tenant_id = ${validatedTenantId} AND a.status = 'published'
+        ORDER BY a.created_at DESC
+        LIMIT ${limit}
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching recent articles', error, { tenantId, limit });
+      throw error;
+    }
+  }
 }
