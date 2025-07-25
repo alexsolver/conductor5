@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, and, like, desc, sql } from 'drizzle-orm';
+import { eq, and, like, desc, sql, or } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
 
@@ -37,48 +37,51 @@ export class ItemRepository {
     status?: string;
     active?: boolean;
   }): Promise<Item[]> {
-    let query = this.db
-      .select()
-      .from(items)
-      .where(eq(items.tenantId, tenantId));
+    const conditions = [eq(items.tenantId, tenantId)];
 
     if (options?.search) {
-      query = query.where(
-        and(
-          eq(items.tenantId, tenantId),
-          like(items.name, `%${options.search}%`)
-        )
+      conditions.push(
+        or(
+          like(items.name, `%${options.search}%`),
+          like(items.description, `%${options.search}%`),
+          like(items.integrationCode, `%${options.search}%`)
+        )!
       );
     }
 
-    if (options?.type) {
-      query = query.where(
-        and(
-          eq(items.tenantId, tenantId),
-          eq(items.type, options.type as any)
-        )
-      );
+    if (options?.type && options.type !== 'all') {
+      conditions.push(eq(items.type, options.type as any));
     }
 
-    if (options?.status) {
-      query = query.where(
-        and(
-          eq(items.tenantId, tenantId),
-          eq(items.status, options.status as any)
-        )
-      );
+    if (options?.status && options.status !== 'all') {
+      conditions.push(eq(items.status, options.status as any));
     }
 
     if (options?.active !== undefined) {
-      query = query.where(
-        and(
-          eq(items.tenantId, tenantId),
-          eq(items.active, options.active)
-        )
-      );
+      conditions.push(eq(items.active, options.active));
     }
 
-    query = query.orderBy(desc(items.createdAt));
+    let query = this.db
+      .select({
+        id: items.id,
+        tenantId: items.tenantId,
+        active: items.active,
+        type: items.type,
+        name: items.name,
+        integrationCode: items.integrationCode,
+        description: items.description,
+        measurementUnit: items.measurementUnit,
+        maintenancePlan: items.maintenancePlan,
+        defaultChecklist: items.defaultChecklist,
+        status: items.status,
+        createdAt: items.createdAt,
+        updatedAt: items.updatedAt,
+        createdBy: items.createdBy,
+        updatedBy: items.updatedBy
+      })
+      .from(items)
+      .where(and(...conditions))
+      .orderBy(desc(items.createdAt));
 
     if (options?.limit) {
       query = query.limit(options.limit);
@@ -88,8 +91,7 @@ export class ItemRepository {
       query = query.offset(options.offset);
     }
 
-    const result = await query;
-    return result as Item[];
+    return await query;
   }
 
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {
@@ -110,7 +112,7 @@ export class ItemRepository {
       .delete(items)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)));
     
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async addAttachment(itemId: string, tenantId: string, attachment: {

@@ -22,7 +22,7 @@ export const items = pgTable('items', {
   description: text('description'),
   measurementUnit: measurementUnitEnum('measurement_unit').default('UN'),
   maintenancePlan: text('maintenance_plan'),
-  group: varchar('group', { length: 100 }), // Renomeado de category para group
+  group: varchar('group_name', { length: 100 }), // Renomeado de category para group
   defaultChecklist: jsonb('default_checklist'),
   status: itemStatusEnum('status').default('active'),
 

@@ -328,10 +328,10 @@ export function SupplierManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {supplierStats.averageRating.toFixed(1)}/5
+              {supplierStats.averageRating ? supplierStats.averageRating.toFixed(1) : '0.0'}/5
             </div>
             <div className="flex mt-1">
-              {renderStarRating(Math.round(supplierStats.averageRating))}
+              {renderStarRating(Math.round(supplierStats.averageRating || 0))}
             </div>
           </CardContent>
         </Card>
