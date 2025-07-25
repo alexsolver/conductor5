@@ -44,6 +44,7 @@ import {
   Folder,
   Clock,
   Package,
+  Warehouse,
   Route,
   Calendar,
   Globe2
@@ -87,6 +88,7 @@ const baseNavigation: Array<{
     children: [
       { name: "Controle de Implantação", href: "/materials-services-control", icon: Settings },
       { name: "Catálogo de Itens", href: "/item-catalog", icon: Package },
+      { name: "Gestão de Estoque", href: "/stock-management", icon: Warehouse },
     ]
   },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },

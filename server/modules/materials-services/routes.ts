@@ -1,51 +1,143 @@
 import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { jwtAuth, type AuthenticatedRequest } from '../../middleware/jwtAuth';
 import { ItemController } from './application/controllers/ItemController';
 import { SupplierController } from './application/controllers/SupplierController';
+import { StockController } from './application/controllers/StockController';
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
+import { StockRepository } from './infrastructure/repositories/StockRepository';
+import { schemaManager } from '../../db';
 
 // Create router
 const router = Router();
 
-// Initialize repositories and controllers
-// Note: In a real implementation, you would use dependency injection
-let itemController: ItemController;
-let supplierController: SupplierController;
-
-// Initialize function to be called with database connection
-export function initializeMaterialsServicesRoutes(db: any) {
-  const itemRepository = new ItemRepository(db);
-  const supplierRepository = new SupplierRepository(db);
-  
-  itemController = new ItemController(itemRepository);
-  supplierController = new SupplierController(supplierRepository);
-}
-
 // Apply JWT authentication to all routes
 router.use(jwtAuth);
 
+// Helper function to initialize controllers for each request
+async function getControllers(tenantId: string) {
+  const { db } = await schemaManager.getTenantDb(tenantId);
+  const itemRepository = new ItemRepository(db);
+  const supplierRepository = new SupplierRepository(db);
+  const stockRepository = new StockRepository(db);
+  
+  return {
+    itemController: new ItemController(itemRepository),
+    supplierController: new SupplierController(supplierRepository),
+    stockController: new StockController(stockRepository)
+  };
+}
+
 // Items routes
-router.post('/items', (req, res) => itemController.createItem(req, res));
-router.get('/items', (req, res) => itemController.getItems(req, res));
-router.get('/items/stats', (req, res) => itemController.getStats(req, res));
-router.get('/items/:id', (req, res) => itemController.getItem(req, res));
-router.put('/items/:id', (req, res) => itemController.updateItem(req, res));
-router.delete('/items/:id', (req, res) => itemController.deleteItem(req, res));
-router.post('/items/:id/attachments', (req, res) => itemController.addAttachment(req, res));
-router.post('/items/:id/links', (req, res) => itemController.addLink(req, res));
+router.post('/items', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.createItem(req, res);
+});
+
+router.get('/items', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getItems(req, res);
+});
+
+router.get('/items/stats', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getStats(req, res);
+});
+
+router.get('/items/:id', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getItem(req, res);
+});
+
+router.put('/items/:id', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.updateItem(req, res);
+});
+
+router.delete('/items/:id', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.deleteItem(req, res);
+});
+
+router.post('/items/:id/attachments', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.addAttachment(req, res);
+});
+
+router.post('/items/:id/links', async (req: AuthenticatedRequest, res) => {
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.addLink(req, res);
+});
 
 // Suppliers routes
-router.post('/suppliers', (req, res) => supplierController.createSupplier(req, res));
-router.get('/suppliers', (req, res) => supplierController.getSuppliers(req, res));
-router.get('/suppliers/stats', (req, res) => supplierController.getStats(req, res));
-router.get('/suppliers/:id', (req, res) => supplierController.getSupplier(req, res));
-router.put('/suppliers/:id', (req, res) => supplierController.updateSupplier(req, res));
-router.delete('/suppliers/:id', (req, res) => supplierController.deleteSupplier(req, res));
-router.post('/suppliers/:id/catalog', (req, res) => supplierController.addCatalogItem(req, res));
+router.post('/suppliers', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.createSupplier(req, res);
+});
+
+router.get('/suppliers', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.getSuppliers(req, res);
+});
+
+router.get('/suppliers/stats', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.getStats(req, res);
+});
+
+router.get('/suppliers/:id', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.getSupplier(req, res);
+});
+
+router.put('/suppliers/:id', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.updateSupplier(req, res);
+});
+
+router.delete('/suppliers/:id', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.deleteSupplier(req, res);
+});
+
+router.post('/suppliers/:id/catalog', async (req: AuthenticatedRequest, res) => {
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.addCatalogItem(req, res);
+});
+
+// Stock Management routes
+router.get('/stock/items', async (req: AuthenticatedRequest, res) => {
+  const { stockController } = await getControllers(req.user.tenantId);
+  return stockController.getStockItems(req, res);
+});
+
+router.get('/stock/stats', async (req: AuthenticatedRequest, res) => {
+  const { stockController } = await getControllers(req.user.tenantId);
+  return stockController.getStockStats(req, res);
+});
+
+router.get('/stock/movements', async (req: AuthenticatedRequest, res) => {
+  const { stockController } = await getControllers(req.user.tenantId);
+  return stockController.getStockMovements(req, res);
+});
+
+router.post('/stock/movements', async (req: AuthenticatedRequest, res) => {
+  const { stockController } = await getControllers(req.user.tenantId);
+  return stockController.createStockMovement(req, res);
+});
+
+router.post('/stock/adjustments', async (req: AuthenticatedRequest, res) => {
+  const { stockController } = await getControllers(req.user.tenantId);
+  return stockController.createStockAdjustment(req, res);
+});
+
+router.get('/warehouses', async (req: AuthenticatedRequest, res) => {
+  const { stockController } = await getControllers(req.user.tenantId);
+  return stockController.getWarehouses(req, res);
+});
 
 // Dashboard/Overview routes
-router.get('/dashboard', jwtAuth, async (req, res) => {
+router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
   try {
     // This would aggregate data from multiple repositories
     res.json({
