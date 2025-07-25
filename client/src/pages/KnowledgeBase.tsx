@@ -92,11 +92,22 @@ export default function KnowledgeBase() {
 
   const queryClient = useQueryClient();
 
+  // Get auth token
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
   // Fetch categories
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/knowledge-base/categories'],
     queryFn: async () => {
-      const response = await fetch('/api/knowledge-base/categories');
+      const response = await fetch('/api/knowledge-base/categories', {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw new Error('Failed to fetch categories');
       const result = await response.json();
       return result.data || [];
@@ -118,7 +129,9 @@ export default function KnowledgeBase() {
       if (filters.type) params.append('type', filters.type);
       if (filters.visibility) params.append('visibility', filters.visibility);
 
-      const response = await fetch(`/api/knowledge-base/articles?${params}`);
+      const response = await fetch(`/api/knowledge-base/articles?${params}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw new Error('Failed to fetch articles');
       return response.json();
     }
@@ -129,7 +142,9 @@ export default function KnowledgeBase() {
     queryKey: ['/api/knowledge-base/articles', selectedArticle?.id],
     queryFn: async () => {
       if (!selectedArticle?.id) return null;
-      const response = await fetch(`/api/knowledge-base/articles/${selectedArticle.id}`);
+      const response = await fetch(`/api/knowledge-base/articles/${selectedArticle.id}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw new Error('Failed to fetch article');
       const result = await response.json();
       return result.data;
@@ -141,7 +156,9 @@ export default function KnowledgeBase() {
   const { data: analytics } = useQuery({
     queryKey: ['/api/knowledge-base/analytics'],
     queryFn: async () => {
-      const response = await fetch('/api/knowledge-base/analytics');
+      const response = await fetch('/api/knowledge-base/analytics', {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw new Error('Failed to fetch analytics');
       const result = await response.json();
       return result.data;
@@ -155,7 +172,7 @@ export default function KnowledgeBase() {
     mutationFn: async (data: any) => {
       const response = await fetch('/api/knowledge-base/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error('Failed to create category');
@@ -176,7 +193,7 @@ export default function KnowledgeBase() {
     mutationFn: async (data: any) => {
       const response = await fetch('/api/knowledge-base/articles', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error('Failed to create article');
@@ -197,7 +214,7 @@ export default function KnowledgeBase() {
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const response = await fetch(`/api/knowledge-base/articles/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error('Failed to update article');
@@ -219,7 +236,7 @@ export default function KnowledgeBase() {
     mutationFn: async ({ articleId, isHelpful }: { articleId: string; isHelpful: boolean }) => {
       const response = await fetch(`/api/knowledge-base/articles/${articleId}/rate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ isHelpful }),
       });
       if (!response.ok) throw new Error('Failed to rate article');
