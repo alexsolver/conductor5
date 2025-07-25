@@ -3,14 +3,15 @@
  * Clean Architecture - Infrastructure Layer
  */
 
-import { db } from '../../../../db';
-import { notificationPreferences } from '../../../../../shared/schema-master';
-import { INotificationPreferenceRepository } from '../../domain/ports/INotificationPreferenceRepository';
-import { NotificationPreference } from '../../domain/entities/NotificationPreference';
 import { eq, and } from 'drizzle-orm';
+import { NotificationPreference } from '../../domain/entities/NotificationPreference';
+import { INotificationPreferenceRepository } from '../../domain/ports/INotificationPreferenceRepository';
+import { schemaManager } from '../../../../db';
+import { notificationPreferences } from '../../../../../shared/schema-master';
 
 export class DrizzleNotificationPreferenceRepository implements INotificationPreferenceRepository {
   async save(preference: NotificationPreference): Promise<void> {
+    const { db } = await schemaManager.getTenantDb(preference.getTenantId());
     await db.insert(notificationPreferences).values({
       id: preference.getId(),
       tenantId: preference.getTenantId(),
@@ -26,6 +27,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
   }
 
   async findById(id: string, tenantId: string): Promise<NotificationPreference | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const result = await db
       .select()
       .from(notificationPreferences)
@@ -45,6 +47,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
   }
 
   async findByUserId(userId: string, tenantId: string): Promise<NotificationPreference[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const results = await db
       .select()
       .from(notificationPreferences)
@@ -59,6 +62,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
   }
 
   async update(preference: NotificationPreference): Promise<void> {
+    const { db } = await schemaManager.getTenantDb(preference.getTenantId());
     await db
       .update(notificationPreferences)
       .set({
@@ -77,6 +81,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     await db
       .delete(notificationPreferences)
       .where(
@@ -88,6 +93,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
   }
 
   async findDefaultPreferences(tenantId: string): Promise<NotificationPreference[]> {
+   const { db } = await schemaManager.getTenantDb(tenantId);
     const results = await db
       .select()
       .from(notificationPreferences)

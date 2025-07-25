@@ -7,11 +7,11 @@
 import { eq, and, desc, count, sql } from 'drizzle-orm';
 import { Notification } from '../../domain/entities/Notification';
 import { INotificationRepository } from '../../domain/ports/INotificationRepository';
-import { getTenantDatabase } from '../../../../db';
+import { schemaManager } from '../../../../db';
 
 export class DrizzleNotificationRepository implements INotificationRepository {
   async save(notification: Notification): Promise<void> {
-    const db = await getTenantDatabase(notification.getTenantId());
+    const { db } = await schemaManager.getTenantDb(notification.getTenantId());
     const { notifications } = await import('../../../../../shared/schema-master');
 
     await db.insert(notifications).values({
@@ -39,7 +39,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<Notification | null> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -57,7 +57,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findByUserId(userId: string, tenantId: string, limit = 20, offset = 0): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -75,7 +75,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findPendingNotifications(tenantId: string): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -91,7 +91,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findOverdueNotifications(tenantId: string): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -107,7 +107,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findByStatus(status: string, tenantId: string): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -123,7 +123,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findByType(type: string, tenantId: string): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -139,7 +139,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findBySeverity(severity: string, tenantId: string): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -155,7 +155,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async findByRelatedEntity(entityType: string, entityId: string, tenantId: string): Promise<Notification[]> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -172,7 +172,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async update(notification: Notification): Promise<void> {
-    const db = await getTenantDatabase(notification.getTenantId());
+    const { db } = await schemaManager.getTenantDb(notification.getTenantId());
     const { notifications } = await import('../../../../../shared/schema-master');
 
     await db
@@ -192,7 +192,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     await db
@@ -204,7 +204,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async countByUser(userId: string, tenantId: string): Promise<number> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -219,7 +219,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async countUnreadByUser(userId: string, tenantId: string): Promise<number> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     const result = await db
@@ -235,7 +235,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async markAsRead(id: string, tenantId: string): Promise<void> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     await db
@@ -251,7 +251,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   }
 
   async markAllAsReadForUser(userId: string, tenantId: string): Promise<void> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     await db
@@ -275,7 +275,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     byType: Record<string, number>;
     bySeverity: Record<string, number>;
   }> {
-    const db = await getTenantDatabase(tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const { notifications } = await import('../../../../../shared/schema-master');
 
     // Get total counts
