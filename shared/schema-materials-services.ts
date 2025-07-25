@@ -396,7 +396,7 @@ export const auditLogs = pgTable('audit_logs', {
   createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
-export const certifications = pgTable('certifications', {
+export const materialCertifications = pgTable('certifications', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
 
@@ -435,7 +435,7 @@ export const stockLocationsRelations = relations(stockLocations, ({ many }) => (
 
 export const suppliersRelations = relations(suppliers, ({ many }) => ({
   catalog: many(supplierCatalog),
-  certifications: many(certifications)
+  certifications: many(materialCertifications)
 }));
 
 export const assetsRelations = relations(assets, ({ many, one }) => ({
@@ -447,7 +447,7 @@ export const assetsRelations = relations(assets, ({ many, one }) => ({
   }),
   movements: many(assetMovements),
   services: many(serviceExecution),
-  certifications: many(certifications)
+  certifications: many(materialCertifications)
 }));
 
 export const priceListsRelations = relations(priceLists, ({ many }) => ({

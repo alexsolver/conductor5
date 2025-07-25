@@ -1,6 +1,6 @@
 import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { userSkills, skills as technicalSkills, users, certifications, qualityCertifications } from '../../../../../shared/schema';
+import { userSkills, skills as technicalSkills, users, certifications } from '../../../../../shared/schema';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 
@@ -156,7 +156,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     })
     .from(userSkills)
     .innerJoin(technicalSkills, eq(userSkills.skillId, technicalSkills.id))
-    .leftJoin(certifications, eq(technicalSkills.id, certifications.id)) // FIXED: relacionamento correto
+    .leftJoin(certifications, eq(technicalSkills.suggestedCertification, certifications.name))
     .where(and(
       eq(userSkills.userId, userId),
       eq(userSkills.isActive, true)
