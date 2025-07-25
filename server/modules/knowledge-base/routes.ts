@@ -38,9 +38,31 @@ knowledgeBaseRouter.post('/tags', jwtAuth, knowledgeBaseController.createTag.bin
 // Analytics
 knowledgeBaseRouter.get('/analytics', jwtAuth, knowledgeBaseController.getAnalytics.bind(knowledgeBaseController));
 knowledgeBaseRouter.get('/analytics/advanced', jwtAuth, knowledgeBaseController.getAdvancedAnalytics.bind(knowledgeBaseController));
-
-// Popular and Recent Articles
 knowledgeBaseRouter.get('/articles/popular', jwtAuth, knowledgeBaseController.getPopularArticles.bind(knowledgeBaseController));
 knowledgeBaseRouter.get('/articles/recent', jwtAuth, knowledgeBaseController.getRecentArticles.bind(knowledgeBaseController));
+knowledgeBaseRouter.get('/analytics/search', jwtAuth, knowledgeBaseController.getSearchAnalytics.bind(knowledgeBaseController));
+knowledgeBaseRouter.get('/analytics/user-engagement', jwtAuth, knowledgeBaseController.getUserEngagement.bind(knowledgeBaseController));
+
+// Media Management
+knowledgeBaseRouter.get('/media', jwtAuth, knowledgeBaseController.getMediaLibrary.bind(knowledgeBaseController));
+knowledgeBaseRouter.post('/media', jwtAuth, knowledgeBaseController.uploadMedia.bind(knowledgeBaseController));
+
+// Article Templates
+knowledgeBaseRouter.get('/templates', jwtAuth, knowledgeBaseController.getArticleTemplates.bind(knowledgeBaseController));
+knowledgeBaseRouter.post('/templates', jwtAuth, knowledgeBaseController.createArticleTemplate.bind(knowledgeBaseController));
+
+// Article Cloning
+knowledgeBaseRouter.post('/articles/:articleId/clone', jwtAuth, knowledgeBaseController.cloneArticle.bind(knowledgeBaseController));
+
+// Ticket Integration
+knowledgeBaseRouter.post('/articles/:articleId/link-ticket', jwtAuth, knowledgeBaseController.linkArticleToTicket.bind(knowledgeBaseController));
+knowledgeBaseRouter.get('/tickets/:ticketId/articles', jwtAuth, knowledgeBaseController.getArticlesByTicket.bind(knowledgeBaseController));
+
+// Favorites
+knowledgeBaseRouter.post('/articles/:articleId/favorite', jwtAuth, knowledgeBaseController.toggleFavorite.bind(knowledgeBaseController));
+knowledgeBaseRouter.get('/favorites', jwtAuth, knowledgeBaseController.getFavoriteArticles.bind(knowledgeBaseController));
+
+// Versions
+knowledgeBaseRouter.get('/articles/:articleId/versions', jwtAuth, knowledgeBaseController.getArticleVersions.bind(knowledgeBaseController));
 
 export { knowledgeBaseRouter };

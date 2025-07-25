@@ -525,6 +525,270 @@ export class KnowledgeBaseController {
     }
   }
 
+  // Search Analytics
+  async getSearchAnalytics(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const analytics = await this.knowledgeBaseRepository.getSearchAnalytics(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: analytics 
+      });
+    } catch (error) {
+      console.error('Error fetching search analytics:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch search analytics' 
+      });
+    }
+  }
+
+  // User Engagement
+  async getUserEngagement(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const engagement = await this.knowledgeBaseRepository.getUserEngagement(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: engagement 
+      });
+    } catch (error) {
+      console.error('Error fetching user engagement:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch user engagement' 
+      });
+    }
+  }
+
+  // Media Management
+  async getMediaLibrary(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const media = await this.knowledgeBaseRepository.getMediaLibrary(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: media 
+      });
+    } catch (error) {
+      console.error('Error fetching media library:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch media library' 
+      });
+    }
+  }
+
+  async uploadMedia(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const mediaData = {
+        ...req.body,
+        uploadedBy: req.user.id
+      };
+
+      const media = await this.knowledgeBaseRepository.uploadMedia(req.user.tenantId, mediaData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: media,
+        message: 'Media uploaded successfully' 
+      });
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to upload media' 
+      });
+    }
+  }
+
+  // Article Templates
+  async getArticleTemplates(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const templates = await this.knowledgeBaseRepository.getArticleTemplates(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: templates 
+      });
+    } catch (error) {
+      console.error('Error fetching article templates:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch article templates' 
+      });
+    }
+  }
+
+  async createArticleTemplate(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const templateData = {
+        ...req.body,
+        createdBy: req.user.id
+      };
+
+      const template = await this.knowledgeBaseRepository.createArticleTemplate(req.user.tenantId, templateData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: template,
+        message: 'Template created successfully' 
+      });
+    } catch (error) {
+      console.error('Error creating article template:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create template' 
+      });
+    }
+  }
+
+  // Article Cloning
+  async cloneArticle(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const cloneData = {
+        ...req.body,
+        authorId: req.user.id
+      };
+
+      const clonedArticle = await this.knowledgeBaseRepository.cloneArticle(req.user.tenantId, articleId, cloneData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: clonedArticle,
+        message: 'Article cloned successfully' 
+      });
+    } catch (error) {
+      console.error('Error cloning article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to clone article' 
+      });
+    }
+  }
+
+  // Ticket Integration
+  async linkArticleToTicket(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const { ticketId } = req.body;
+
+      const link = await this.knowledgeBaseRepository.linkArticleToTicket(req.user.tenantId, articleId, ticketId);
+      
+      res.json({ 
+        success: true, 
+        data: link,
+        message: 'Article linked to ticket successfully' 
+      });
+    } catch (error) {
+      console.error('Error linking article to ticket:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to link article to ticket' 
+      });
+    }
+  }
+
+  async getArticlesByTicket(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { ticketId } = req.params;
+      const articles = await this.knowledgeBaseRepository.getArticlesByTicket(req.user.tenantId, ticketId);
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching articles by ticket:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch articles by ticket' 
+      });
+    }
+  }
+
+  // Favorites
+  async toggleFavorite(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const favorite = await this.knowledgeBaseRepository.toggleFavorite(req.user.tenantId, articleId, req.user.id);
+      
+      res.json({ 
+        success: true, 
+        data: favorite,
+        message: favorite ? 'Article added to favorites' : 'Article removed from favorites'
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to toggle favorite' 
+      });
+    }
+  }
+
+  async getFavoriteArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const articles = await this.knowledgeBaseRepository.getFavoriteArticles(req.user.tenantId, req.user.id);
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching favorite articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch favorite articles' 
+      });
+    }
+  }
+
   // Versions
   async getArticleVersions(req: AuthenticatedRequest, res: Response) {
     try {

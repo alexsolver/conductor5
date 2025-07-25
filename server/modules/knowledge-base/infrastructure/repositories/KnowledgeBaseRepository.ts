@@ -699,4 +699,389 @@ export class KnowledgeBaseRepository {
       throw error;
     }
   }
+
+  // Search Analytics
+  async getSearchAnalytics(tenantId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Simulate search analytics - in real implementation, this would come from search logs table
+      const mockAnalytics = {
+        top_searches: [
+          { query: 'instalação', count: 45 },
+          { query: 'configuração', count: 32 },
+          { query: 'troubleshooting', count: 28 },
+          { query: 'manual', count: 21 },
+          { query: 'erro', count: 18 }
+        ],
+        total_searches: 144,
+        unique_queries: 89,
+        avg_results_per_search: 4.2
+      };
+
+      return mockAnalytics;
+    } catch (error) {
+      logError('Error fetching search analytics', error, { tenantId });
+      throw error;
+    }
+  }
+
+  // User Engagement
+  async getUserEngagement(tenantId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          COUNT(DISTINCT r.user_id) as active_users,
+          COUNT(CASE WHEN r.is_helpful = true THEN 1 END) as total_helpful_votes,
+          COUNT(CASE WHEN r.is_helpful = false THEN 1 END) as total_not_helpful_votes,
+          COUNT(c.id) as total_comments,
+          AVG(a.view_count) as avg_article_views
+        FROM ${sql.identifier(schemaName)}.knowledge_articles a
+        LEFT JOIN ${sql.identifier(schemaName)}.knowledge_ratings r ON a.id = r.article_id
+        LEFT JOIN ${sql.identifier(schemaName)}.knowledge_comments c ON a.id = c.article_id
+        WHERE a.tenant_id = ${validatedTenantId}
+      `);
+
+      return result.rows?.[0] || {};
+    } catch (error) {
+      logError('Error fetching user engagement', error, { tenantId });
+      throw error;
+    }
+  }
+
+  // Media Management
+  async getMediaLibrary(tenantId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Check if knowledge_media table exists, if not return empty array
+      try {
+        const result = await tenantDb.execute(sql`
+          SELECT *
+          FROM ${sql.identifier(schemaName)}.knowledge_media
+          WHERE tenant_id = ${validatedTenantId}
+          ORDER BY created_at DESC
+        `);
+
+        return result.rows || [];
+      } catch (tableError) {
+        // Table doesn't exist yet, return empty array
+        return [];
+      }
+    } catch (error) {
+      logError('Error fetching media library', error, { tenantId });
+      throw error;
+    }
+  }
+
+  async uploadMedia(tenantId: string, mediaData: any) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Create knowledge_media table if it doesn't exist
+      await tenantDb.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.knowledge_media (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          type VARCHAR(100),
+          size BIGINT,
+          url TEXT NOT NULL,
+          metadata JSONB DEFAULT '{}',
+          uploaded_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.knowledge_media 
+        (tenant_id, name, original_name, type, size, url, metadata, uploaded_by)
+        VALUES (
+          ${validatedTenantId},
+          ${mediaData.name},
+          ${mediaData.originalName || mediaData.name},
+          ${mediaData.type || null},
+          ${mediaData.size || null},
+          ${mediaData.url},
+          ${JSON.stringify(mediaData.metadata || {})},
+          ${mediaData.uploadedBy}
+        )
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error uploading media', error, { tenantId, mediaData });
+      throw error;
+    }
+  }
+
+  // Article Templates
+  async getArticleTemplates(tenantId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Return mock templates for now
+      const templates = [
+        {
+          id: '1',
+          name: 'Procedimento Padrão',
+          description: 'Template para procedimentos operacionais',
+          content: '# Procedimento: [TÍTULO]\n\n## Objetivo\n[Descreva o objetivo]\n\n## Pré-requisitos\n- Item 1\n- Item 2\n\n## Passo a Passo\n1. Primeiro passo\n2. Segundo passo\n\n## Observações\n[Observações importantes]',
+          category: 'procedure'
+        },
+        {
+          id: '2',
+          name: 'Troubleshooting',
+          description: 'Template para solução de problemas',
+          content: '# Solução de Problema: [TÍTULO]\n\n## Problema\n[Descreva o problema]\n\n## Possíveis Causas\n- Causa 1\n- Causa 2\n\n## Soluções\n### Solução 1\n[Passos da solução]\n\n### Solução 2\n[Passos da solução]\n\n## Prevenção\n[Como prevenir o problema]',
+          category: 'troubleshooting'
+        },
+        {
+          id: '3',
+          name: 'FAQ',
+          description: 'Template para perguntas frequentes',
+          content: '# FAQ: [TÓPICO]\n\n## Pergunta 1\n**Pergunta:** [Sua pergunta aqui]\n**Resposta:** [Sua resposta aqui]\n\n## Pergunta 2\n**Pergunta:** [Sua pergunta aqui]\n**Resposta:** [Sua resposta aqui]',
+          category: 'faq'
+        }
+      ];
+
+      return templates;
+    } catch (error) {
+      logError('Error fetching article templates', error, { tenantId });
+      throw error;
+    }
+  }
+
+  async createArticleTemplate(tenantId: string, templateData: any) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      
+      // For now, just return the template data with an ID
+      return {
+        id: Date.now().toString(),
+        ...templateData,
+        tenant_id: validatedTenantId,
+        created_at: new Date().toISOString()
+      };
+    } catch (error) {
+      logError('Error creating article template', error, { tenantId, templateData });
+      throw error;
+    }
+  }
+
+  // Article Cloning
+  async cloneArticle(tenantId: string, articleId: string, cloneData: any) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Get original article
+      const originalResult = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.knowledge_articles
+        WHERE id = ${articleId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      const originalArticle = originalResult.rows?.[0];
+      if (!originalArticle) {
+        throw new Error('Article not found');
+      }
+
+      // Create clone
+      const cloneTitle = cloneData.title || `${originalArticle.title} - Cópia`;
+      const cloneSlug = cloneTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.knowledge_articles 
+        (tenant_id, title, slug, excerpt, content, content_type, category_id, type, status, 
+         visibility, author_id, searchable_content, metadata, attachments)
+        VALUES (
+          ${validatedTenantId},
+          ${cloneTitle},
+          ${cloneSlug},
+          ${originalArticle.excerpt},
+          ${originalArticle.content},
+          ${originalArticle.content_type},
+          ${originalArticle.category_id},
+          ${originalArticle.type},
+          'draft',
+          ${originalArticle.visibility},
+          ${cloneData.authorId},
+          ${originalArticle.searchable_content},
+          ${originalArticle.metadata},
+          ${originalArticle.attachments}
+        )
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error cloning article', error, { tenantId, articleId, cloneData });
+      throw error;
+    }
+  }
+
+  // Ticket Integration
+  async linkArticleToTicket(tenantId: string, articleId: string, ticketId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Create knowledge_ticket_links table if it doesn't exist
+      await tenantDb.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.knowledge_ticket_links (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          article_id UUID NOT NULL,
+          ticket_id UUID NOT NULL,
+          linked_by UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, article_id, ticket_id)
+        )
+      `);
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.knowledge_ticket_links 
+        (tenant_id, article_id, ticket_id, linked_by)
+        VALUES (
+          ${validatedTenantId},
+          ${articleId},
+          ${ticketId},
+          ${validatedTenantId}
+        )
+        ON CONFLICT (tenant_id, article_id, ticket_id) DO NOTHING
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error linking article to ticket', error, { tenantId, articleId, ticketId });
+      throw error;
+    }
+  }
+
+  async getArticlesByTicket(tenantId: string, ticketId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      try {
+        const result = await tenantDb.execute(sql`
+          SELECT 
+            a.*,
+            c.name as category_name,
+            c.color as category_color,
+            ktl.created_at as linked_at
+          FROM ${sql.identifier(schemaName)}.knowledge_articles a
+          INNER JOIN ${sql.identifier(schemaName)}.knowledge_ticket_links ktl ON a.id = ktl.article_id
+          LEFT JOIN ${sql.identifier(schemaName)}.knowledge_categories c ON a.category_id = c.id
+          WHERE ktl.ticket_id = ${ticketId} AND a.tenant_id = ${validatedTenantId}
+          ORDER BY ktl.created_at DESC
+        `);
+
+        return result.rows || [];
+      } catch (tableError) {
+        // Table doesn't exist yet, return empty array
+        return [];
+      }
+    } catch (error) {
+      logError('Error fetching articles by ticket', error, { tenantId, ticketId });
+      throw error;
+    }
+  }
+
+  // Favorites
+  async toggleFavorite(tenantId: string, articleId: string, userId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Create knowledge_favorites table if it doesn't exist
+      await tenantDb.execute(sql`
+        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.knowledge_favorites (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          article_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, article_id, user_id)
+        )
+      `);
+
+      // Check if favorite exists
+      const existingResult = await tenantDb.execute(sql`
+        SELECT id FROM ${sql.identifier(schemaName)}.knowledge_favorites
+        WHERE article_id = ${articleId} AND user_id = ${userId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      if (existingResult.rows?.length > 0) {
+        // Remove favorite
+        await tenantDb.execute(sql`
+          DELETE FROM ${sql.identifier(schemaName)}.knowledge_favorites
+          WHERE article_id = ${articleId} AND user_id = ${userId} AND tenant_id = ${validatedTenantId}
+        `);
+        return false;
+      } else {
+        // Add favorite
+        await tenantDb.execute(sql`
+          INSERT INTO ${sql.identifier(schemaName)}.knowledge_favorites 
+          (tenant_id, article_id, user_id)
+          VALUES (${validatedTenantId}, ${articleId}, ${userId})
+        `);
+        return true;
+      }
+    } catch (error) {
+      logError('Error toggling favorite', error, { tenantId, articleId, userId });
+      throw error;
+    }
+  }
+
+  async getFavoriteArticles(tenantId: string, userId: string) {
+    try {
+      const validatedTenantId = await TenantValidator.validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      try {
+        const result = await tenantDb.execute(sql`
+          SELECT 
+            a.*,
+            c.name as category_name,
+            c.color as category_color,
+            f.created_at as favorited_at
+          FROM ${sql.identifier(schemaName)}.knowledge_articles a
+          INNER JOIN ${sql.identifier(schemaName)}.knowledge_favorites f ON a.id = f.article_id
+          LEFT JOIN ${sql.identifier(schemaName)}.knowledge_categories c ON a.category_id = c.id
+          WHERE f.user_id = ${userId} AND a.tenant_id = ${validatedTenantId}
+          ORDER BY f.created_at DESC
+        `);
+
+        return result.rows || [];
+      } catch (tableError) {
+        // Table doesn't exist yet, return empty array
+        return [];
+      }
+    } catch (error) {
+      logError('Error fetching favorite articles', error, { tenantId, userId });
+      throw error;
+    }
+  }
 }

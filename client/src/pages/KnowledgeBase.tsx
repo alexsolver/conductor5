@@ -110,6 +110,7 @@ export default function KnowledgeBase() {
   const [assignedReviewer, setAssignedReviewer] = useState<string>('');
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [selectedTab, setSelectedTab] = useState('articles');
 
   const queryClient = useQueryClient();
 
@@ -120,6 +121,26 @@ export default function KnowledgeBase() {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     };
+  };
+
+  // Custom API request function with auth headers
+  const apiRequest = async (method: string, url: string, data?: any) => {
+    const headers = getAuthHeaders();
+    const options: any = {
+      method,
+      headers
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const result = await response.json();
+    return result.data;
   };
 
   // Fetch categories
@@ -176,54 +197,43 @@ export default function KnowledgeBase() {
   // Analytics
   const { data: analytics } = useQuery({
     queryKey: ['/api/knowledge-base/analytics'],
-    queryFn: async () => {
-      const response = await fetch('/api/knowledge-base/analytics', {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) throw new Error('Failed to fetch analytics');
-      const result = await response.json();
-      return result.data;
-    }
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/analytics')
   });
 
-  // Advanced Analytics
   const { data: advancedAnalytics } = useQuery({
-    queryKey: ['/api/knowledge-base/analytics/advanced'],
-    queryFn: async () => {
-      const response = await fetch('/api/knowledge-base/analytics/advanced', {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) return null;
-      const result = await response.json();
-      return result.data;
-    },
-    enabled: showAnalytics
+    queryKey: ['/api/knowledge-base/advanced-analytics'],
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/advanced-analytics')
   });
 
-  // Popular Articles
   const { data: popularArticles } = useQuery({
-    queryKey: ['/api/knowledge-base/articles/popular'],
-    queryFn: async () => {
-      const response = await fetch('/api/knowledge-base/articles/popular', {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) return [];
-      const result = await response.json();
-      return result.data;
-    }
+    queryKey: ['/api/knowledge-base/popular-articles'],
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/popular-articles?limit=5')
   });
 
-  // Recent Articles
   const { data: recentArticles } = useQuery({
-    queryKey: ['/api/knowledge-base/articles/recent'],
-    queryFn: async () => {
-      const response = await fetch('/api/knowledge-base/articles/recent?limit=5', {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) return [];
-      const result = await response.json();
-      return result.data;
-    }
+    queryKey: ['/api/knowledge-base/recent-articles'],
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/recent-articles?limit=5')
+  });
+
+  // Search Analytics
+  const { data: searchAnalytics } = useQuery({
+    queryKey: ['/api/knowledge-base/search-analytics'],
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/search-analytics'),
+    enabled: selectedTab === 'analytics'
+  });
+
+  // User Engagement
+  const { data: userEngagement } = useQuery({
+    queryKey: ['/api/knowledge-base/user-engagement'],
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/user-engagement'),
+    enabled: selectedTab === 'analytics'
+  });
+
+  // File Management
+  const { data: mediaLibrary } = useQuery({
+    queryKey: ['/api/knowledge-base/media'],
+    queryFn: () => apiRequest('GET', '/api/knowledge-base/media'),
+    enabled: showMediaLibrary
   });
 
   const articles = articlesResponse?.data || [];
@@ -399,7 +409,7 @@ export default function KnowledgeBase() {
       toast({ title: "Selecione pelo menos um artigo", variant: "destructive" });
       return;
     }
-    
+
     if (bulkAction === 'delete') {
       selectedArticles.forEach(articleId => {
         // TODO: Implement bulk delete
@@ -470,10 +480,10 @@ export default function KnowledgeBase() {
     return [...articles].sort((a, b) => {
       let aValue = a[sortBy];
       let bValue = b[sortBy];
-      
+
       if (typeof aValue === 'string') aValue = aValue.toLowerCase();
       if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-      
+
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -660,32 +670,32 @@ export default function KnowledgeBase() {
               </Button>
             </div>
           )}
-          
+
           <Button variant="outline" onClick={() => toast({ title: "Exportar KB em desenvolvimento" })}>
             <Download className="h-4 w-4 mr-2" />
             Exportar KB
           </Button>
-          
+
           <Button variant="outline" onClick={() => setShowAnalytics(true)}>
             <BarChart3 className="h-4 w-4 mr-2" />
             Analytics Avançados
           </Button>
-          
+
           <Button variant="outline" onClick={() => setShowFileManager(true)}>
             <FolderOpen className="h-4 w-4 mr-2" />
             Gerenciar Arquivos
           </Button>
-          
+
           <Button variant="outline" onClick={() => setShowMediaLibrary(true)}>
             <Image className="h-4 w-4 mr-2" />
             Biblioteca de Mídia
           </Button>
-          
+
           <Button variant="outline" onClick={() => toast({ title: "Configurações em desenvolvimento" })}>
             <Settings className="h-4 w-4 mr-2" />
             Configurações
           </Button>
-          
+
           <Dialog open={showCreateCategory} onOpenChange={setShowCreateCategory}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -842,7 +852,11 @@ export default function KnowledgeBase() {
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <replit_final_file>
+```
+Before presenting the final code, let's analyze the request.
+The user wants to add some features such as media management, advanced analytics and improve the interface.
+The plan is to apply the changes step by step.FormMessage />
                         </FormItem>
                       )}
                     />
@@ -1145,7 +1159,7 @@ export default function KnowledgeBase() {
                 className="pl-10"
               />
             </div>
-            
+
             <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
               <Button
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -1162,7 +1176,7 @@ export default function KnowledgeBase() {
                 <Grid3X3 className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -1175,7 +1189,7 @@ export default function KnowledgeBase() {
                 <SelectItem value="title">Título</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -1270,10 +1284,32 @@ export default function KnowledgeBase() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="articles" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="articles">Artigos</TabsTrigger>
-          <TabsTrigger value="categories">Categorias</TabsTrigger>
+      <Tabs defaultValue="articles" className="space-y-6" onValueChange={setSelectedTab}>
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="articles" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Artigos
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Categorias
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Tags
+          </TabsTrigger>
+          <TabsTrigger value="media" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Mídia
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <Star className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Configurações
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="categories" className="space-y-6">
@@ -1339,7 +1375,7 @@ export default function KnowledgeBase() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  
+
                 </CardHeader>
                 {category.description && (
                   <CardContent>
@@ -1591,8 +1627,248 @@ export default function KnowledgeBase() {
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="media" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold">Biblioteca de Mídia</h2>
+              <p className="text-muted-foreground">Gerencie arquivos, imagens e vídeos do sistema</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowMediaLibrary(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload de Arquivos
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {mediaLibrary?.map((file: any) => (
+              <Card key={file.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
+                    {file.type?.startsWith('image/') ? (
+                      <img 
+                        src={file.url} 
+                        alt={file.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : file.type?.startsWith('video/') ? (
+                      <Video className="h-12 w-12 text-muted-foreground" />
+                    ) : (
+                      <FileText className="h-12 w-12 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-medium text-sm truncate">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {file.size ? `${Math.round(file.size / 1024)}KB` : 'N/A'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(file.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-1 mt-3">
+                    <Button size="sm" variant="outline" className="flex-1">
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1">
+                      <Download className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1 text-destructive">
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {(!mediaLibrary || mediaLibrary.length === 0) && (
+            <div className="text-center py-12">
+              <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Nenhum arquivo encontrado</h3>
+              <p className="text-muted-foreground mb-4">
+                Faça upload de arquivos para começar a construir sua biblioteca de mídia
+              </p>
+              <Button onClick={() => setShowMediaLibrary(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Fazer Upload
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold">Analytics da Base de Conhecimento</h2>
+            <p className="text-muted-foreground">Métricas e insights sobre o uso do sistema</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total de Artigos</p>
+                    <p className="text-2xl font-bold">{analytics?.total_articles || 0}</p>
+                  </div>
+                  <FileText className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Publicados</p>
+                    <p className="text-2xl font-bold">{analytics?.published_articles || 0}</p>
+                  </div>
+                  <Eye className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div><p className="text-sm font-medium text-muted-foreground">Total de Views</p>
+                    <p className="text-2xl font-bold">{analytics?.total_views || 0}</p>
+                  </div>
+                  <Star className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Taxa de Utilidade</p>
+                    <p className="text-2xl font-bold">
+                      {analytics?.avg_helpfulness ? Math.round(analytics.avg_helpfulness * 100) : 0}%
+                    </p>
+                  </div>
+                  <ThumbsUp className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Artigos Mais Populares</CardTitle>
+                <CardDescription>Top 5 artigos por visualizações</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {popularArticles?.map((article: any, index: number) => (
+                    <div key={article.id} className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{article.title}</p>
+                        <p className="text-xs text-muted-foreground">{article.view_count} visualizações</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Artigos Recentes</CardTitle>
+                <CardDescription>Últimos 5 artigos criados</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentArticles?.map((article: any) => (
+                    <div key={article.id} className="flex items-center gap-3">
+                      <div className="flex-shrink-0">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{article.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(article.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Análise de Buscas</CardTitle>
+                <CardDescription>Termos mais buscados</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {searchAnalytics?.top_searches?.map((search: any, index: number) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{search.query}</p>
+                        <p className="text-xs text-muted-foreground">{search.count} buscas</p>
+                      </div>
+                    </div>
+                  )) || (
+                    <p className="text-sm text-muted-foreground">Nenhuma busca registrada ainda</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Engajamento dos Usuários</CardTitle>
+                <CardDescription>Métricas de interação</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Artigos nunca visualizados:</span>
+                    <span className="font-medium">{advancedAnalytics?.articles_never_viewed || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Artigos úteis:</span>
+                    <span className="font-medium">{advancedAnalytics?.helpful_articles || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Artigos em destaque:</span>
+                    <span className="font-medium">{advancedAnalytics?.featured_articles || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Criados nos últimos 30 dias:</span>
+                    <span className="font-medium">{advancedAnalytics?.articles_last_30_days || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Média de views por artigo:</span>
+                    <span className="font-medium">
+                      {advancedAnalytics?.avg_views_per_article ? Math.round(advancedAnalytics.avg_views_per_article) : 0}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold">Configurações</h2>
+            <p className="text-muted-foreground">Gerenciar configurações do sistema</p>
+          </div>
+          {/* TODO: Implement settings */}
+        </TabsContent>
       </Tabs>
-      
+
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1850,7 +2126,7 @@ export default function KnowledgeBase() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Termos Mais Buscados</CardTitle>
@@ -1875,7 +2151,7 @@ export default function KnowledgeBase() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Performance</CardTitle>
@@ -1942,7 +2218,7 @@ export default function KnowledgeBase() {
                 Nova Pasta
               </Button>
             </div>
-            
+
             <div className="border rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {uploadedFiles.map((file, index) => (
@@ -1964,7 +2240,7 @@ export default function KnowledgeBase() {
                     </div>
                   </div>
                 ))}
-                
+
                 {uploadedFiles.length === 0 && (
                   <div className="col-span-4 text-center py-8 text-muted-foreground">
                     Nenhum arquivo carregado ainda
@@ -2016,7 +2292,7 @@ export default function KnowledgeBase() {
                 Galeria
               </Button>
             </div>
-            
+
             <div className="border rounded-lg p-4">
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {/* Mock media items */}
@@ -2078,7 +2354,7 @@ export default function KnowledgeBase() {
                 </Select>
               </div>
             </div>
-            
+
             <div className="border rounded-lg p-4 bg-gray-50">
               <div className="text-center text-muted-foreground">
                 Selecione duas versões para comparar as diferenças
