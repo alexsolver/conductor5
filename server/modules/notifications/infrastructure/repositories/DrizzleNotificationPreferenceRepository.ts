@@ -1,4 +1,3 @@
-
 /**
  * DrizzleNotificationPreferenceRepository
  * Clean Architecture - Infrastructure Layer
@@ -57,26 +56,6 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
       );
 
     return results.map(result => NotificationPreference.fromPersistence(result));
-  }
-
-  async findByUserAndType(userId: string, notificationType: string, tenantId: string): Promise<NotificationPreference | null> {
-    const result = await db
-      .select()
-      .from(notificationPreferences)
-      .where(
-        and(
-          eq(notificationPreferences.userId, userId),
-          eq(notificationPreferences.notificationType, notificationType),
-          eq(notificationPreferences.tenantId, tenantId)
-        )
-      )
-      .limit(1);
-
-    if (result.length === 0) {
-      return null;
-    }
-
-    return NotificationPreference.fromPersistence(result[0]);
   }
 
   async update(preference: NotificationPreference): Promise<void> {
