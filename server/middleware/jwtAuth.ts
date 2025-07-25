@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends Request {
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Access token required' });
     }
@@ -25,7 +25,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const container = DependencyContainer.getInstance();
     const tokenService = container.tokenService;
-    
+
     // Verify JWT token
     const payload = tokenService.verifyAccessToken(token);
     if (!payload) {
@@ -35,7 +35,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Verify user exists and is active
     const userRepository = container.userRepository;
     const user = await userRepository.findById(payload.userId);
-    
+
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
@@ -44,7 +44,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const { RBACService } = await import('./rbacMiddleware');
     const rbacInstance = RBACService.getInstance();
     const permissions = rbacInstance.getRolePermissions(user.role);
-    
+
     req.user = {
       id: user.id,
       email: user.email,
@@ -53,6 +53,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       permissions: permissions,
       attributes: {}
     };
+
+    // Log successful authentication for parts-services endpoints
+    if (req.path.includes('/parts-services')) {
+      console.log(`[AUTH] Parts-Services access granted for tenant: ${req.user.tenantId}`);
+    }
 
     // Debug: Uncomment for troubleshooting permission issues
     // console.log('🔑 JWT Debug - User authenticated with permissions:', {
@@ -71,6 +76,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       url: req.url,
       userAgent: req.get('User-Agent')
     });
+    console.error(`[AUTH ERROR] Token verification failed:`, error);
     return res.status(401).json({ message: 'Authentication failed' });
   }
 };
@@ -79,7 +85,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next(); // Continue without user context
     }
@@ -87,12 +93,12 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     const token = authHeader.substring(7);
     const container = DependencyContainer.getInstance();
     const tokenService = container.tokenService;
-    
+
     const payload = tokenService.verifyAccessToken(token);
     if (payload) {
       const userRepository = container.userRepository;
       const user = await userRepository.findById(payload.userId);
-      
+
       if (user && user.isActive) {
         req.user = {
           id: user.id,
