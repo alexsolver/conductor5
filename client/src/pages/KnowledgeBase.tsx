@@ -383,26 +383,57 @@ export default function KnowledgeBase() {
             </div>
 
             <div className="mt-8 pt-6 border-t">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium">Este artigo foi útil?</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">Este artigo foi útil?</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRateArticle(fullArticle.id, true)}
+                      className="flex items-center gap-1"
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                      Sim ({fullArticle.helpful_count})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRateArticle(fullArticle.id, false)}
+                      className="flex items-center gap-1"
+                    >
+                      <ThumbsDown className="h-4 w-4" />
+                      Não ({fullArticle.not_helpful_count})
+                    </Button>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleRateArticle(fullArticle.id, true)}
-                    className="flex items-center gap-1"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/knowledge-base/article/${fullArticle.id}`);
+                      toast({ title: "Link copiado!" });
+                    }}
                   >
-                    <ThumbsUp className="h-4 w-4" />
-                    Sim ({fullArticle.helpful_count})
+                    <Globe className="h-4 w-4 mr-1" />
+                    Compartilhar
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleRateArticle(fullArticle.id, false)}
-                    className="flex items-center gap-1"
+                    onClick={() => window.print()}
                   >
-                    <ThumbsDown className="h-4 w-4" />
-                    Não ({fullArticle.not_helpful_count})
+                    <FileText className="h-4 w-4 mr-1" />
+                    Imprimir
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toast({ title: "Comentários em desenvolvimento" })}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    Comentários
                   </Button>
                 </div>
               </div>
@@ -847,11 +878,21 @@ export default function KnowledgeBase() {
                       <SelectItem value="article">Artigo</SelectItem>
                       <SelectItem value="procedure">Procedimento</SelectItem>
                       <SelectItem value="faq">FAQ</SelectItem>
+                      <SelectItem value="troubleshooting">Solução de Problemas</SelectItem>
+                      <SelectItem value="manual">Manual</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button variant="outline" onClick={() => toast({ title: "Importar artigos em desenvolvimento" })}>
+              <Plus className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
+            <Button variant="outline" onClick={() => toast({ title: "Relatórios em desenvolvimento" })}>
+              <FileText className="h-4 w-4 mr-2" />
+              Relatórios
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -902,6 +943,25 @@ This code adds article templates to the article creation form, enhancing the use
                         }}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Implement delete category
+                            toast({ title: "Funcionalidade em desenvolvimento" });
+                          }}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implement category analytics
+                          toast({ title: "Analytics da categoria em desenvolvimento" });
+                        }}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Estatísticas
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -982,6 +1042,41 @@ This code adds article templates to the article creation form, enhancing the use
                         }}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implement duplicate article
+                          toast({ title: "Duplicar artigo em desenvolvimento" });
+                        }}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implement article versions
+                          toast({ title: "Histórico de versões em desenvolvimento" });
+                        }}>
+                          <Clock className="h-4 w-4 mr-2" />
+                          Versões
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(`${window.location.origin}/knowledge-base/article/${article.id}`);
+                          toast({ title: "Link copiado para a área de transferência!" });
+                        }}>
+                          <Globe className="h-4 w-4 mr-2" />
+                          Compartilhar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Implement delete article
+                            toast({ title: "Excluir artigo em desenvolvimento" });
+                          }}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
