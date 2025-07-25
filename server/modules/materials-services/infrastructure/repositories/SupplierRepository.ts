@@ -1,16 +1,16 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { db } from '../../../../db';
 import { eq, and, like, desc } from 'drizzle-orm';
 import { suppliers, supplierCatalog } from '../../../../../shared/schema-materials-services';
 import type { Supplier } from '../../domain/entities';
 
 export class SupplierRepository {
-  constructor(private db: ReturnType<typeof drizzle>) {}
 
   async create(data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>): Promise<Supplier> {
-    const [supplier] = await this.db
+    const [supplier] = await db
       .insert(suppliers)
       .values({
         ...data,
+        document: data.document || '', // Campo obrigatório conforme banco
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -20,7 +20,7 @@ export class SupplierRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<Supplier | null> {
-    const [supplier] = await this.db
+    const [supplier] = await db
       .select()
       .from(suppliers)
       .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)))
@@ -35,30 +35,21 @@ export class SupplierRepository {
     search?: string;
     active?: boolean;
   }): Promise<Supplier[]> {
-    let query = this.db
-      .select()
-      .from(suppliers)
-      .where(eq(suppliers.tenantId, tenantId));
+    let conditions = [eq(suppliers.tenantId, tenantId)];
 
     if (options?.search) {
-      query = query.where(
-        and(
-          eq(suppliers.tenantId, tenantId),
-          like(suppliers.name, `%${options.search}%`)
-        )
-      );
+      conditions.push(like(suppliers.name, `%${options.search}%`));
     }
 
     if (options?.active !== undefined) {
-      query = query.where(
-        and(
-          eq(suppliers.tenantId, tenantId),
-          eq(suppliers.isActive, options.active)
-        )
-      );
+      conditions.push(eq(suppliers.active, options.active));
     }
 
-    query = query.orderBy(desc(suppliers.createdAt));
+    let query = db
+      .select()
+      .from(suppliers)
+      .where(and(...conditions))
+      .orderBy(desc(suppliers.createdAt));
 
     if (options?.limit) {
       query = query.limit(options.limit);
@@ -73,7 +64,7 @@ export class SupplierRepository {
   }
 
   async update(id: string, tenantId: string, data: Partial<Supplier>): Promise<Supplier | null> {
-    const [supplier] = await this.db
+    const [supplier] = await db
       .update(suppliers)
       .set({
         ...data,
@@ -86,11 +77,11 @@ export class SupplierRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(suppliers)
       .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)));
     
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async addCatalogItem(data: {
@@ -106,7 +97,7 @@ export class SupplierRepository {
     validFrom?: Date;
     validTo?: Date;
   }) {
-    const [result] = await this.db
+    const [result] = await db
       .insert(supplierCatalog)
       .values({
         ...data,
@@ -119,7 +110,7 @@ export class SupplierRepository {
   }
 
   async getCatalog(supplierId: string, tenantId: string) {
-    return await this.db
+    return await db
       .select()
       .from(supplierCatalog)
       .where(and(eq(supplierCatalog.supplierId, supplierId), eq(supplierCatalog.tenantId, tenantId)))
@@ -127,12 +118,12 @@ export class SupplierRepository {
   }
 
   async getStats(tenantId: string) {
-    const totalSuppliers = await this.db
+    const totalSuppliers = await db
       .select({ count: suppliers.id })
       .from(suppliers)
       .where(eq(suppliers.tenantId, tenantId));
 
-    const activeSuppliers = await this.db
+    const activeSuppliers = await db
       .select({ count: suppliers.id })
       .from(suppliers)
       .where(and(eq(suppliers.tenantId, tenantId), eq(suppliers.active, true)));

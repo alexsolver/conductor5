@@ -191,7 +191,7 @@ export class ComplianceRepository {
       .select()
       .from(complianceAlerts)
       .where(and(...conditions))
-      .orderBy(desc(complianceAlerts.triggerDate));
+      .orderBy(desc(complianceAlerts.createdAt));
   }
 
   async createAlert(data: InsertComplianceAlert) {

@@ -16,15 +16,15 @@ export const items = pgTable('items', {
 
   // Campos básicos conforme especificação
   active: boolean('active').default(true).notNull(),
-  type: itemTypeEnum('type').notNull(), // material/service
+  type: varchar('type', { length: 20 }).notNull(), // material/service
   name: varchar('name', { length: 255 }).notNull(),
   integrationCode: varchar('integration_code', { length: 100 }),
   description: text('description'),
-  measurementUnit: measurementUnitEnum('measurement_unit').default('UN'),
+  measurementUnit: varchar('measurement_unit', { length: 10 }).default('UN'),
   maintenancePlan: text('maintenance_plan'),
-  group: varchar('group_name', { length: 100 }), // Renomeado de category para group
+  groupName: varchar('group_name', { length: 100 }), // Alinhado com coluna real
   defaultChecklist: jsonb('default_checklist'),
-  status: itemStatusEnum('status').default('active'),
+  status: varchar('status', { length: 20 }).default('active'),
 
   // Metadados de auditoria
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -180,7 +180,7 @@ export const suppliers = pgTable('suppliers', {
   name: varchar('name', { length: 255 }).notNull(),
   code: varchar('code', { length: 50 }),
   tradeName: varchar('trade_name', { length: 255 }),
-  document: varchar('document', { length: 20 }), // Alinhado com banco real
+  document: varchar('document', { length: 20 }).notNull(), // Campo obrigatório conforme banco real
   email: varchar('email', { length: 255 }),
   phone: varchar('phone', { length: 20 }),
   
@@ -584,25 +584,46 @@ export const dynamicPricing = pgTable('dynamic_pricing', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// GESTÃO DE COMPLIANCE - Sistema completo de auditorias e certificações
-export const complianceAudits = pgTable('compliance_audits', {
+// GESTÃO DE COMPLIANCE - Alinhado com tabelas reais do banco
+export const complianceAlerts = pgTable('compliance_alerts', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   
-  title: varchar('title', { length: 200 }).notNull(),
-  type: varchar('type', { length: 30 }).notNull(), // internal, external, regulatory
-  standard: varchar('standard', { length: 50 }), // ISO9001, ISO14001, etc
-  auditor: uuid('auditor'),
+  title: varchar('title', { length: 255 }),
+  description: text('description'),
+  severity: varchar('severity', { length: 20 }),
+  status: varchar('status', { length: 20 }),
+  category: varchar('category', { length: 50 }),
   
-  status: varchar('status', { length: 20 }).notNull().default('planning'), // planning, in_progress, completed, cancelled
-  scheduledDate: timestamp('scheduled_date'),
-  completedDate: timestamp('completed_date'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const complianceCertifications = pgTable('compliance_certifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
-  scope: text('scope'),
-  findings: jsonb('findings'),
-  score: decimal('score', { precision: 5, scale: 2 }), // compliance score
-  actionPlan: text('action_plan'),
-  nextAuditDate: timestamp('next_audit_date'),
+  name: varchar('name', { length: 255 }),
+  issuer: varchar('issuer', { length: 255 }),
+  issuedDate: timestamp('issued_date'),
+  expiryDate: timestamp('expiry_date'),
+  status: varchar('status', { length: 20 }),
+  certificateNumber: varchar('certificate_number', { length: 100 }),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const complianceScores = pgTable('compliance_scores', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  category: varchar('category', { length: 50 }),
+  score: integer('score'),
+  maxScore: integer('max_score'),
+  calculatedAt: timestamp('calculated_at'),
+  details: jsonb('details')
+});
   
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

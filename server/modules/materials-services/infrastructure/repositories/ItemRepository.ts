@@ -1,16 +1,16 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { db } from '../../../../db';
 import { eq, and, like, desc, sql, or } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
 
 export class ItemRepository {
-  constructor(private db: ReturnType<typeof drizzle>) {}
 
   async create(data: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>): Promise<Item> {
-    const [item] = await this.db
+    const [item] = await db
       .insert(items)
       .values({
         ...data,
+        maintenancePlan: data.maintenancePlan || null,
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -50,7 +50,7 @@ export class ItemRepository {
     }
 
     if (options?.type && options.type !== 'all') {
-      conditions.push(eq(items.type, options.type as any));
+      conditions.push(eq(items.type, options.type));
     }
 
     if (options?.status && options.status !== 'all') {
