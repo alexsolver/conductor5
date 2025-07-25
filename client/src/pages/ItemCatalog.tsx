@@ -141,25 +141,31 @@ export default function ItemCatalog() {
   });
 
   // Queries
-  const { data: items = [], isLoading: isLoadingItems } = useQuery({
+  const { data: itemsResponse, isLoading: isLoadingItems } = useQuery({
     queryKey: ["/api/materials-services/items"],
     enabled: true
   });
 
-  const { data: itemStats = { total: 0, materials: 0, services: 0, active: 0 } } = useQuery({
+  const { data: itemStatsResponse } = useQuery({
     queryKey: ["/api/materials-services/items/stats"],
     enabled: true
   });
 
-  const { data: customers = [] } = useQuery({
+  const { data: customersResponse } = useQuery({
     queryKey: ["/api/clientes"],
     enabled: true
   });
 
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliersResponse } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
     enabled: true
   });
+
+  // Extract data from API responses
+  const items: Item[] = (itemsResponse as any)?.data || [];
+  const itemStats = (itemStatsResponse as any)?.data || { total: 0, materials: 0, services: 0, active: 0 };
+  const customers = (customersResponse as any)?.data || [];
+  const suppliers = (suppliersResponse as any)?.data || [];
 
   // Filtros
   const filteredItems = items.filter((item: Item) => {
