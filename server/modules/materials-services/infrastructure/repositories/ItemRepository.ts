@@ -83,12 +83,10 @@ export class ItemRepository {
       .where(and(...conditions))
       .orderBy(desc(items.createdAt));
 
-    if (options?.limit) {
+    if (options?.limit && options?.offset) {
+      query = query.limit(options.limit).offset(options.offset);
+    } else if (options?.limit) {
       query = query.limit(options.limit);
-    }
-
-    if (options?.offset) {
-      query = query.offset(options.offset);
     }
 
     return await query;
