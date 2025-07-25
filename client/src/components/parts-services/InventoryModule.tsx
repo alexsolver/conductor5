@@ -97,15 +97,24 @@ export function InventoryModule() {
   const movementForm = useForm({
     resolver: zodResolver(stockMovementSchema),
     defaultValues: {
+      itemId: '',
+      locationId: '',
       movementType: 'in' as const,
+      quantity: '',
+      unitCost: '',
       reasonCode: '',
+      notes: '',
     }
   });
 
   const adjustmentForm = useForm({
     resolver: zodResolver(stockAdjustmentSchema),
     defaultValues: {
+      itemId: '',
+      locationId: '',
+      newQuantity: '',
       reason: '',
+      notes: '',
     }
   });
 
@@ -116,7 +125,6 @@ export function InventoryModule() {
 
   const { data: stockLevels, isLoading: stockLoading } = useQuery<StockLevel[]>({
     queryKey: ['/api/parts-services/inventory/stock-levels', searchStock, filterLocation],
-    queryFn: () => apiRequest('GET', `/api/parts-services/inventory/stock-levels?search=${searchStock}&location=${filterLocation === 'all' ? '' : filterLocation}`),
   });
 
   const { data: stockMovements } = useQuery<StockMovement[]>({

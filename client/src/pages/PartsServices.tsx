@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ItemLinksModal } from "@/components/parts-services/ItemLinksModal";
 import { FileUploadModal } from "@/components/parts-services/FileUploadModal";
+import { InventoryModule } from "@/components/parts-services/InventoryModule";
 import { 
   Search, 
   Plus, 

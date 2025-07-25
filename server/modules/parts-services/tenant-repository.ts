@@ -366,9 +366,10 @@ export class TenantPartsServicesRepository {
         whereClause = sql`${whereClause} AND (loc.name ILIKE ${`%${filters.search}%`} OR loc.code ILIKE ${`%${filters.search}%`})`;
       }
 
-      if (filters?.parentId) {
-        whereClause = sql`${whereClause} AND loc.parent_location_id = ${filters.parentId}`;
-      }
+      // Note: parent_location_id column does not exist in current schema
+      // if (filters?.parentId) {
+      //   whereClause = sql`${whereClause} AND loc.parent_location_id = ${filters.parentId}`;
+      // }
 
       if (filters?.isActive !== undefined) {
         whereClause = sql`${whereClause} AND loc.is_active = ${filters.isActive}`;
@@ -381,9 +382,7 @@ export class TenantPartsServicesRepository {
           loc.name,
           loc.code,
           loc.description,
-          loc.parent_location_id,
-          loc.location_path,
-          loc.level,
+          loc.location_type,
           loc.address,
           loc.coordinates,
           loc.capacity,
