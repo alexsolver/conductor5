@@ -46,12 +46,12 @@ export class TenantPartsServicesRepository {
       const lowStockResult = await db.execute(sql`
         SELECT COUNT(*) as count 
         FROM ${sql.identifier(schemaName)}.stock_levels 
-        WHERE current_stock <= minimum_stock
+        WHERE current_quantity <= minimum_stock
       `);
 
       // Get total stock value
       const stockValueResult = await db.execute(sql`
-        SELECT COALESCE(SUM(current_stock * average_cost), 0) as value 
+        SELECT COALESCE(SUM(current_quantity * average_cost), 0) as value 
         FROM ${sql.identifier(schemaName)}.stock_levels 
         WHERE average_cost IS NOT NULL
       `);
@@ -199,7 +199,7 @@ export class TenantPartsServicesRepository {
       let whereClause = sql`WHERE s.tenant_id = ${tenantId}`;
 
       if (filters?.search) {
-        whereClause = sql`${whereClause} AND (s.name ILIKE ${`%${filters.search}%`} OR s.code ILIKE ${`%${filters.search}%`})`;
+        whereClause = sql`${whereClause} AND (s.name ILIKE ${`%${filters.search}%`} OR s.supplier_code ILIKE ${`%${filters.search}%`})`;
       }
 
       if (filters?.status) {
@@ -211,9 +211,10 @@ export class TenantPartsServicesRepository {
           s.id,
           s.tenant_id,
           s.name,
-          s.code,
-          s.type,
+          s.supplier_code,
+          s.trade_name,
           s.document_number,
+          s.document_type,
           s.email,
           s.phone,
           s.website,
@@ -221,19 +222,20 @@ export class TenantPartsServicesRepository {
           s.city,
           s.state,
           s.country,
-          s.postal_code,
-          s.contact_person,
-          s.contact_phone,
-          s.contact_email,
+          s.zip_code,
           s.payment_terms,
-          s.credit_limit,
+          s.delivery_time,
+          s.minimum_order,
+          s.currency,
+          s.category,
           s.rating,
           s.notes,
           s.status,
           s.created_at,
           s.updated_at,
           s.created_by,
-          s.updated_by
+          s.updated_by,
+          s.custom_fields
         FROM ${sql.identifier(schemaName)}.suppliers s
         ${whereClause}
         ORDER BY s.created_at DESC
@@ -253,17 +255,17 @@ export class TenantPartsServicesRepository {
     try {
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.suppliers (
-          tenant_id, name, code, type, document_number, email, phone,
-          website, address, city, state, country, postal_code,
-          contact_person, contact_phone, contact_email, payment_terms,
-          credit_limit, rating, notes, status, created_at, updated_at,
+          tenant_id, name, supplier_code, trade_name, document_number, email, phone,
+          website, address, city, state, country, zip_code,
+          payment_terms, delivery_time, minimum_order, currency, category,
+          rating, notes, status, created_at, updated_at,
           created_by, updated_by
         ) VALUES (
-          ${tenantId}, ${data.name}, ${data.code}, ${data.type || 'supplier'}, ${data.documentNumber}, ${data.email}, ${data.phone},
-          ${data.website}, ${data.address}, ${data.city}, ${data.state}, ${data.country}, ${data.postalCode},
-          ${data.contactPerson}, ${data.contactPhone}, ${data.contactEmail}, ${data.paymentTerms},
-          ${data.creditLimit}, ${data.rating}, ${data.notes}, ${data.status || 'active'}, NOW(), NOW(),
-          ${data.createdBy}, ${data.updatedBy}
+          ${tenantId}, ${data.name}, ${data.supplier_code}, ${data.trade_name}, ${data.document_number}, ${data.email}, ${data.phone},
+          ${data.website}, ${data.address}, ${data.city}, ${data.state}, ${data.country}, ${data.zip_code},
+          ${data.payment_terms}, ${data.delivery_time}, ${data.minimum_order}, ${data.currency}, ${data.category},
+          ${data.rating}, ${data.notes}, ${data.status || 'active'}, NOW(), NOW(),
+          ${data.created_by}, ${data.updated_by}
         )
         RETURNING *
       `);
@@ -302,7 +304,7 @@ export class TenantPartsServicesRepository {
       }
 
       if (filters?.lowStock) {
-        whereClause = sql`${whereClause} AND sl.current_stock <= sl.minimum_stock`;
+        whereClause = sql`${whereClause} AND sl.current_quantity <= sl.minimum_stock`;
       }
 
       const result = await db.execute(sql`
@@ -311,15 +313,16 @@ export class TenantPartsServicesRepository {
           sl.tenant_id,
           sl.item_id,
           sl.location_id,
-          sl.current_stock,
-          sl.available_stock,
-          sl.reserved_stock,
+          sl.current_quantity,
           sl.minimum_stock,
           sl.maximum_stock,
           sl.reorder_point,
+          sl.safety_stock,
           sl.average_cost,
           sl.last_cost,
-          sl.last_inventory_date,
+          sl.total_value,
+          sl.last_movement_date,
+          sl.last_count_date,
           sl.created_at,
           sl.updated_at,
           i.title as item_title,
