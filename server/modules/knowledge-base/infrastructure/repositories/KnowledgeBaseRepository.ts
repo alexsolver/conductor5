@@ -13,7 +13,7 @@ import {
   knowledgeApprovals,
   knowledgeTemplates
 } from '../../../../../shared/schema-knowledge-base';
-import { TenantValidator } from '../../../../utils/TenantValidator';
+import { TenantValidator } from '../../../../database/TenantValidator';
 
 export class KnowledgeBaseRepository {
   // Categories
