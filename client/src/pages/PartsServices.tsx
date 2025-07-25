@@ -128,67 +128,39 @@ export default function PartsServices() {
   
   const queryClient = useQueryClient();
 
-  // Dashboard Stats Query
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['parts-services', 'dashboard', 'stats'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/dashboard/stats');
-      return response as DashboardStats;
-    }
+  // Dashboard Stats Query - usando endpoint correto que retorna dados reais
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
+    queryKey: ['/api/parts-services/dashboard/stats'],
   });
 
-  // Items Query
-  const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['parts-services', 'items'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/items');
-      return response as { items: Item[] };
-    }
+  // Items Query - usando endpoint que já sabemos que funciona 
+  const { data: itemsData, isLoading: itemsLoading } = useQuery<{ items: any[]; total: number }>({
+    queryKey: ['/api/parts-services/items'],
   });
 
   // Suppliers Query
-  const { data: suppliersData, isLoading: suppliersLoading } = useQuery({
-    queryKey: ['parts-services', 'suppliers'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/suppliers');
-      return response as { suppliers: Supplier[] };
-    }
+  const { data: suppliersData, isLoading: suppliersLoading } = useQuery<{ suppliers: any[] }>({
+    queryKey: ['/api/parts-services/suppliers'],
   });
 
   // Stock Locations Query
-  const { data: locationsData } = useQuery({
-    queryKey: ['parts-services', 'stock-locations'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/stock-locations');
-      return response as { locations: StockLocation[] };
-    }
+  const { data: locationsData } = useQuery<{ locations: any[] }>({
+    queryKey: ['/api/parts-services/stock-locations'],
   });
 
   // Service Kits Query
-  const { data: kitsData } = useQuery({
-    queryKey: ['parts-services', 'service-kits'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/service-kits');
-      return response as { kits: ServiceKit[] };
-    }
+  const { data: kitsData } = useQuery<{ kits: any[] }>({
+    queryKey: ['/api/parts-services/service-kits'],
   });
 
   // Price Lists Query
-  const { data: priceListsData } = useQuery({
-    queryKey: ['parts-services', 'price-lists'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/price-lists');
-      return response as { priceLists: PriceList[] };
-    }
+  const { data: priceListsData } = useQuery<{ priceLists: any[] }>({
+    queryKey: ['/api/parts-services/price-lists'],
   });
 
   // Assets Query
-  const { data: assetsData } = useQuery({
-    queryKey: ['parts-services', 'assets'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parts-services/assets');
-      return response as { assets: Asset[] };
-    }
+  const { data: assetsData } = useQuery<{ assets: any[] }>({
+    queryKey: ['/api/parts-services/assets'],
   });
 
   if (statsLoading || itemsLoading || suppliersLoading) {
