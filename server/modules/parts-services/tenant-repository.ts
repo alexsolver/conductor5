@@ -392,7 +392,6 @@ export class TenantPartsServicesRepository {
           loc.code,
           loc.description,
           loc.address,
-          loc.coordinates,
           loc.capacity,
           loc.is_active,
           loc.allow_negative_stock,

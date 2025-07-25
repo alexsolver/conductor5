@@ -242,7 +242,7 @@ export class DrizzleInventoryRepository {
   // MOVIMENTAÇÕES DE ESTOQUE - Versão simplificada para MVP
   async createStockMovement(data: StockMovementData) {
     const id = createId();
-    
+
     // Para MVP, vamos apenas registrar que o movimento foi criado
     // As tabelas de movimentação serão implementadas em próxima versão
     console.log('Movimento de estoque registrado:', { id, ...data });
@@ -263,7 +263,7 @@ export class DrizzleInventoryRepository {
       const level = currentLevel[0];
       const quantityChange = data.movementType === 'in' ? data.quantity : -data.quantity;
       const newQuantity = (level.currentQuantity || 0) + quantityChange;
-      
+
       await this.db
         .update(schema.stockLevels)
         .set({
@@ -319,10 +319,10 @@ export class DrizzleInventoryRepository {
   // TRANSFERÊNCIAS DE ESTOQUE - MVP Simplificado
   async createStockTransfer(data: StockTransferData) {
     const id = createId();
-    
+
     // Para MVP, apenas registrar que a transferência foi criada
     console.log('Transferência criada:', { id, ...data });
-    
+
     return { id, ...data };
   }
 
@@ -352,10 +352,10 @@ export class DrizzleInventoryRepository {
   // SERVICE KITS - MVP Simplificado
   async createServiceKit(data: ServiceKitData) {
     const id = createId();
-    
+
     // Para MVP, apenas registrar que o kit foi criado
     console.log('Kit de serviço criado:', { id, ...data });
-    
+
     return { id, ...data };
   }
 
@@ -406,9 +406,9 @@ export class DrizzleInventoryRepository {
   // DASHBOARD STATS
   async getInventoryStats(tenantId: string): Promise<InventoryStats> {
     const schemaName = this.getTenantSchema(tenantId);
-    
+
     try {
-      const result = await db.execute(sql`
+      const result = await this.db.execute(sql`
         SELECT 
           COUNT(DISTINCT sl.item_id) as total_items,
           COUNT(DISTINCT sl.location_id) as total_locations,
@@ -419,7 +419,7 @@ export class DrizzleInventoryRepository {
       `);
 
       const stats = result.rows[0];
-      
+
       return {
         totalItems: Number(stats.total_items) || 0,
         totalLocations: Number(stats.total_locations) || 0,
@@ -431,7 +431,7 @@ export class DrizzleInventoryRepository {
       };
     } catch (error) {
       console.error('Erro ao buscar estatísticas do inventário:', error);
-      
+
       // Return default stats if table doesn't exist yet
       return {
         totalItems: 0,

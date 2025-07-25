@@ -237,7 +237,7 @@ export const stockLocations = pgTable('stock_locations', {
   
   // Endereço e coordenadas
   address: text('address'),
-  coordinates: jsonb('coordinates'), // {lat, lng}
+  coordinates: jsonb('coordinates'), // {lat, lng}</old_str>
   
   // Capacidade e controles
   capacity: decimal('capacity', { precision: 12, scale: 2 }),
