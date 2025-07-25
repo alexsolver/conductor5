@@ -1,384 +1,579 @@
-import { pgTable, uuid, varchar, text, timestamp, boolean, numeric, jsonb, pgEnum } from "drizzle-orm/pg-core";
 
-// ============================================
-// ENUMS ESPECÍFICOS PARA PEÇAS E SERVIÇOS
-// ============================================
+import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
+// Enums
 export const itemTypeEnum = pgEnum('item_type', ['material', 'service']);
-export const unitOfMeasureEnum = pgEnum('unit_of_measure', ['unit', 'kg', 'm', 'm2', 'm3', 'liter', 'hour', 'day', 'month']);
-export const itemStatusEnum = pgEnum('item_status', ['active', 'inactive', 'discontinued']);
-export const supplierStatusEnum = pgEnum('supplier_status', ['active', 'inactive', 'blocked']);
-export const movementTypeEnum = pgEnum('movement_type', ['in', 'out', 'transfer', 'adjustment', 'return']);
+export const measurementUnitEnum = pgEnum('measurement_unit', ['UN', 'M', 'M2', 'M3', 'KG', 'L', 'H', 'PC', 'CX', 'GL', 'SET']);
+export const movementTypeEnum = pgEnum('movement_type', ['entrada', 'saida', 'transferencia', 'ajuste', 'devolucao', 'inventario']);
+export const assetStatusEnum = pgEnum('asset_status', ['ativo', 'inativo', 'manutencao', 'descartado']);
+export const linkTypeEnum = pgEnum('link_type', ['item_item', 'item_cliente', 'item_fornecedor']);
 
-// ============================================
-// TABELA PRINCIPAL: ITEMS
-// Conforme especificação do anexo
-// ============================================
-
-export const items = pgTable("items", {
-  // Campos básicos obrigatórios
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+// ================================
+// ITENS (CORE)
+// ================================
+export const items = pgTable('items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
-  // Campos especificados no anexo
-  active: boolean("active").default(true).notNull(), // Ativo (SIM/NÃO)
-  type: itemTypeEnum("type").notNull(), // Tipo: Material/Serviço
-  title: varchar("title", { length: 255 }).notNull(), // Nome
-  integrationCode: varchar("integration_code", { length: 100 }), // Código de Integração
-  description: text("description"), // Descrição
-  unitOfMeasure: unitOfMeasureEnum("unit_of_measure").notNull(), // Unidade de Medida
-  defaultMaintenancePlan: text("default_maintenance_plan"), // Plano de manutenção padrão
-  itemGroup: varchar("item_group", { length: 100 }), // Grupo
-  defaultChecklist: jsonb("default_checklist"), // Checklist Padrão (JSON)
-  attachments: jsonb("attachments"), // Anexos (upload de arquivos)
+  // Campos obrigatórios conforme requisitos
+  active: boolean('active').default(true).notNull(),
+  type: itemTypeEnum('type').notNull(), // Material/Serviço
+  name: varchar('name', { length: 255 }).notNull(),
+  integrationCode: varchar('integration_code', { length: 100 }),
+  description: text('description'),
+  measurementUnit: measurementUnitEnum('measurement_unit').default('UN'),
+  maintenancePlan: text('maintenance_plan'),
+  group: varchar('group', { length: 100 }),
+  defaultChecklist: jsonb('default_checklist'), // Checklist padrão
   
-  // Campos adicionais para controle
-  internalCode: varchar("internal_code", { length: 100 }).notNull(),
-  manufacturerCode: varchar("manufacturer_code", { length: 100 }),
-  barcode: varchar("barcode", { length: 100 }),
-  qrCode: varchar("qr_code", { length: 255 }),
-  status: itemStatusEnum("status").default('active').notNull(),
-  minimumStock: numeric("minimum_stock", { precision: 10, scale: 2 }),
-  maximumStock: numeric("maximum_stock", { precision: 10, scale: 2 }),
-  costPrice: numeric("cost_price", { precision: 10, scale: 2 }),
-  salePrice: numeric("sale_price", { precision: 10, scale: 2 }),
-  weight: numeric("weight", { precision: 10, scale: 3 }),
-  dimensions: jsonb("dimensions"), // {length, width, height}
-  category: varchar("category", { length: 100 }),
-  subcategory: varchar("subcategory", { length: 100 }),
-  brand: varchar("brand", { length: 100 }),
-  model: varchar("model", { length: 100 }),
-  specifications: jsonb("specifications"),
-  warrantyMonths: numeric("warranty_months", { precision: 3, scale: 0 }),
-  tags: jsonb("tags"), // Array de tags
-  customFields: jsonb("custom_fields"),
+  // Campos técnicos adicionais
+  internalCode: varchar('internal_code', { length: 100 }),
+  manufacturerCode: varchar('manufacturer_code', { length: 100 }),
+  barcode: varchar('barcode', { length: 100 }),
+  qrCode: varchar('qr_code', { length: 255 }),
+  sku: varchar('sku', { length: 100 }),
+  manufacturer: varchar('manufacturer', { length: 255 }),
+  model: varchar('model', { length: 255 }),
   
-  // Campos de auditoria
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by"),
-  updatedBy: uuid("updated_by"),
+  // Preços e custos
+  costPrice: decimal('cost_price', { precision: 12, scale: 2 }),
+  salePrice: decimal('sale_price', { precision: 12, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('BRL'),
+  
+  // Classificações
+  abcClassification: varchar('abc_classification', { length: 1 }),
+  criticality: varchar('criticality', { length: 20 }),
+  category: varchar('category', { length: 100 }),
+  subcategory: varchar('subcategory', { length: 100 }),
+  
+  // Especificações técnicas
+  specifications: jsonb('specifications'),
+  technicalDetails: text('technical_details'),
+  weight: decimal('weight', { precision: 10, scale: 3 }),
+  dimensions: jsonb('dimensions'), // {length, width, height}
+  
+  // Estoque
+  minimumStock: decimal('minimum_stock', { precision: 10, scale: 2 }).default('0'),
+  maximumStock: decimal('maximum_stock', { precision: 10, scale: 2 }),
+  reorderPoint: decimal('reorder_point', { precision: 10, scale: 2 }),
+  economicLot: decimal('economic_lot', { precision: 10, scale: 2 }),
+  
+  // Garantia e validade
+  warrantyPeriod: integer('warranty_period'), // em dias
+  hasExpiration: boolean('has_expiration').default(false),
+  shelfLife: integer('shelf_life'), // em dias
+  
+  // Metadados
+  tags: jsonb('tags'),
+  customFields: jsonb('custom_fields'),
+  notes: text('notes'),
+  status: varchar('status', { length: 20 }).default('active'),
+  
+  // Auditoria
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by')
 });
 
-// ============================================
-// VÍNCULOS ENTRE ITENS (conforme anexo)
-// ============================================
-
-export const itemLinks = pgTable("item_links", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  parentItemId: uuid("parent_item_id").notNull(),
-  childItemId: uuid("child_item_id").notNull(),
-  linkType: varchar("link_type", { length: 50 }).notNull(), // 'component', 'alternative', 'upgrade', 'kit'
-  quantity: numeric("quantity", { precision: 10, scale: 2 }).default("1"),
-  description: text("description"),
-  isOptional: boolean("is_optional").default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// ================================
+// ANEXOS DE ITENS
+// ================================
+export const itemAttachments = pgTable('item_attachments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  itemId: uuid('item_id').notNull(),
+  
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  originalName: varchar('original_name', { length: 255 }).notNull(),
+  filePath: varchar('file_path', { length: 500 }).notNull(),
+  fileSize: integer('file_size'),
+  mimeType: varchar('mime_type', { length: 100 }),
+  description: text('description'),
+  category: varchar('category', { length: 50 }), // manual, foto, especificacao, etc
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: uuid('created_by')
 });
 
-// ============================================
-// VÍNCULOS COM EMPRESAS CLIENTES (conforme anexo)
-// ============================================
-
-export const itemClientLinks = pgTable("item_client_links", {
-  id: uuid("id").primaryKey().defaultRandom(), // ID (gerado automaticamente)
-  tenantId: uuid("tenant_id").notNull(),
-  itemId: uuid("item_id").notNull(),
-  clientId: uuid("client_id").notNull(), // Cliente (vinculado ao módulo empresa cliente)
+// ================================
+// VÍNCULOS DE ITENS (CORE REQUIREMENT)
+// ================================
+export const itemLinks = pgTable('item_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
-  // Campos específicos conforme anexo
-  nickname: varchar("nickname", { length: 255 }), // Apelido
-  sku: varchar("sku", { length: 100 }), // SKU
-  barcode: varchar("barcode", { length: 100 }), // Código de barras
-  qrCode: varchar("qr_code", { length: 255 }), // Código QR
-  isAsset: boolean("is_asset").default(false), // Asset (SIM/NÃO)
+  linkType: linkTypeEnum('link_type').notNull(),
+  parentItemId: uuid('parent_item_id').notNull(),
   
-  // Campos adicionais para gestão
-  clientItemCode: varchar("client_item_code", { length: 100 }),
-  clientDescription: text("client_description"),
-  clientPrice: numeric("client_price", { precision: 10, scale: 2 }),
-  contractedQuantity: numeric("contracted_quantity", { precision: 10, scale: 2 }),
-  minimumOrderQuantity: numeric("minimum_order_quantity", { precision: 10, scale: 2 }),
-  leadTimeDays: numeric("lead_time_days", { precision: 3, scale: 0 }),
-  warrantyMonths: numeric("warranty_months", { precision: 3, scale: 0 }),
-  notes: text("notes"),
-  isActive: boolean("is_active").default(true),
+  // Para vínculos item-item
+  linkedItemId: uuid('linked_item_id'),
   
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  // Para vínculos item-cliente
+  customerId: uuid('customer_id'),
+  customerAlias: varchar('customer_alias', { length: 255 }),
+  customerSku: varchar('customer_sku', { length: 100 }),
+  customerBarcode: varchar('customer_barcode', { length: 100 }),
+  customerQrCode: varchar('customer_qr_code', { length: 255 }),
+  isAsset: boolean('is_asset').default(false),
+  
+  // Para vínculos item-fornecedor
+  supplierId: uuid('supplier_id'),
+  partNumber: varchar('part_number', { length: 100 }),
+  supplierDescription: text('supplier_description'),
+  supplierQrCode: varchar('supplier_qr_code', { length: 255 }),
+  supplierBarcode: varchar('supplier_barcode', { length: 100 }),
+  supplierPrice: decimal('supplier_price', { precision: 12, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('BRL'),
+  minimumOrderQuantity: decimal('minimum_order_quantity', { precision: 10, scale: 2 }),
+  deliveryTimeDays: integer('delivery_time_days'),
+  isPreferred: boolean('is_preferred').default(false),
+  
+  // Metadados do vínculo
+  isActive: boolean('is_active').default(true),
+  notes: text('notes'),
+  customFields: jsonb('custom_fields'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by')
 });
 
-// ============================================
-// VÍNCULOS COM FORNECEDORES (conforme anexo)
-// ============================================
-
-export const itemSupplierLinks = pgTable("item_supplier_links", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  itemId: uuid("item_id").notNull(),
-  supplierId: uuid("supplier_id").notNull(),
-  
-  // Campos específicos conforme anexo
-  partNumber: varchar("part_number", { length: 100 }).notNull(), // Part Number
-  supplierDescription: text("supplier_description"), // Descrição
-  qrCode: varchar("qr_code", { length: 255 }), // Código de QR
-  barcode: varchar("barcode", { length: 100 }), // Código de Barras
-  
-  // Campos adicionais para gestão
-  supplierItemCode: varchar("supplier_item_code", { length: 100 }),
-  costPrice: numeric("cost_price", { precision: 10, scale: 2 }),
-  minimumOrderQuantity: numeric("minimum_order_quantity", { precision: 10, scale: 2 }),
-  leadTimeDays: numeric("lead_time_days", { precision: 3, scale: 0 }),
-  packageSize: numeric("package_size", { precision: 10, scale: 2 }),
-  packageUnit: varchar("package_unit", { length: 50 }),
-  warrantyMonths: numeric("warranty_months", { precision: 3, scale: 0 }),
-  catalogPage: varchar("catalog_page", { length: 100 }),
-  notes: text("notes"),
-  isPreferred: boolean("is_preferred").default(false),
-  isActive: boolean("is_active").default(true),
-  lastPriceUpdate: timestamp("last_price_update"),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// ============================================
-// FORNECEDORES EXPANDIDOS
-// ============================================
-
-export const suppliers = pgTable("suppliers", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+// ================================
+// FORNECEDORES COMPLETO
+// ================================
+export const suppliers = pgTable('suppliers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
   // Dados básicos
-  name: varchar("name", { length: 255 }).notNull(),
-  supplierCode: varchar("supplier_code", { length: 50 }).notNull(),
-  tradeName: varchar("trade_name", { length: 255 }),
-  documentNumber: varchar("document_number", { length: 20 }), // CNPJ/CPF
-  stateRegistration: varchar("state_registration", { length: 20 }),
-  municipalRegistration: varchar("municipal_registration", { length: 20 }),
+  name: varchar('name', { length: 255 }).notNull(),
+  supplierCode: varchar('supplier_code', { length: 50 }),
+  tradeName: varchar('trade_name', { length: 255 }),
+  documentNumber: varchar('document_number', { length: 20 }),
+  documentType: varchar('document_type', { length: 10 }), // CNPJ, CPF
   
   // Contato
-  email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 20 }),
-  cellphone: varchar("cellphone", { length: 20 }),
-  website: varchar("website", { length: 255 }),
+  email: varchar('email', { length: 255 }),
+  phone: varchar('phone', { length: 20 }),
+  website: varchar('website', { length: 255 }),
   
   // Endereço
-  zipCode: varchar("zip_code", { length: 10 }),
-  address: text("address"),
-  addressNumber: varchar("address_number", { length: 20 }),
-  complement: varchar("complement", { length: 100 }),
-  neighborhood: varchar("neighborhood", { length: 100 }),
-  city: varchar("city", { length: 100 }),
-  state: varchar("state", { length: 2 }),
-  country: varchar("country", { length: 100 }).default('Brasil'),
+  address: text('address'),
+  city: varchar('city', { length: 100 }),
+  state: varchar('state', { length: 50 }),
+  country: varchar('country', { length: 50 }).default('BR'),
+  zipCode: varchar('zip_code', { length: 10 }),
   
   // Dados comerciais
-  status: supplierStatusEnum("status").default('active').notNull(),
-  supplierType: varchar("supplier_type", { length: 50 }), // 'parts', 'services', 'both'
-  paymentTerms: varchar("payment_terms", { length: 100 }),
-  creditLimit: numeric("credit_limit", { precision: 12, scale: 2 }),
-  deliveryTerms: text("delivery_terms"),
-  notes: text("notes"),
+  paymentTerms: varchar('payment_terms', { length: 100 }),
+  deliveryTime: integer('delivery_time'), // em dias
+  minimumOrder: decimal('minimum_order', { precision: 12, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('BRL'),
+  category: varchar('category', { length: 100 }),
+  rating: decimal('rating', { precision: 3, scale: 2 }),
   
-  // Dados do contato principal
-  contactName: varchar("contact_name", { length: 255 }),
-  contactEmail: varchar("contact_email", { length: 255 }),
-  contactPhone: varchar("contact_phone", { length: 20 }),
-  contactPosition: varchar("contact_position", { length: 100 }),
+  // Status e metadados
+  status: varchar('status', { length: 20 }).default('active'),
+  notes: text('notes'),
+  customFields: jsonb('custom_fields'),
   
-  // Classificação e avaliação
-  category: varchar("category", { length: 100 }),
-  rating: numeric("rating", { precision: 2, scale: 1 }), // 1.0 a 5.0
-  certifications: jsonb("certifications"), // ISO, etc.
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by"),
-  updatedBy: uuid("updated_by"),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by')
 });
 
-// ============================================
-// CATÁLOGO DE PRODUTOS DOS FORNECEDORES
-// ============================================
-
-export const supplierCatalog = pgTable("supplier_catalog", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  supplierId: uuid("supplier_id").notNull(),
+// ================================
+// CATÁLOGO DE FORNECEDORES
+// ================================
+export const supplierCatalog = pgTable('supplier_catalog', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  supplierId: uuid('supplier_id').notNull(),
+  itemId: uuid('item_id'),
   
-  // Produto no catálogo do fornecedor
-  supplierItemCode: varchar("supplier_item_code", { length: 100 }).notNull(),
-  supplierItemName: varchar("supplier_item_name", { length: 255 }).notNull(),
-  supplierDescription: text("supplier_description"),
-  category: varchar("category", { length: 100 }),
-  subcategory: varchar("subcategory", { length: 100 }),
-  brand: varchar("brand", { length: 100 }),
-  model: varchar("model", { length: 100 }),
-  partNumber: varchar("part_number", { length: 100 }),
-  barcode: varchar("barcode", { length: 100 }),
-  qrCode: varchar("qr_code", { length: 255 }),
+  // Dados do produto no catálogo
+  supplierProductCode: varchar('supplier_product_code', { length: 100 }).notNull(),
+  supplierProductName: varchar('supplier_product_name', { length: 255 }),
+  description: text('description'),
+  specifications: jsonb('specifications'),
   
   // Preços e condições
-  listPrice: numeric("list_price", { precision: 10, scale: 2 }),
-  discountedPrice: numeric("discounted_price", { precision: 10, scale: 2 }),
-  minimumOrderQuantity: numeric("minimum_order_quantity", { precision: 10, scale: 2 }),
-  packageSize: numeric("package_size", { precision: 10, scale: 2 }),
-  packageUnit: varchar("package_unit", { length: 50 }),
-  leadTimeDays: numeric("lead_time_days", { precision: 3, scale: 0 }),
+  price: decimal('price', { precision: 12, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('BRL'),
+  minimumQuantity: decimal('minimum_quantity', { precision: 10, scale: 2 }),
+  unitOfMeasure: varchar('unit_of_measure', { length: 10 }),
+  deliveryTime: integer('delivery_time'),
   
-  // Especificações
-  unitOfMeasure: unitOfMeasureEnum("unit_of_measure"),
-  weight: numeric("weight", { precision: 10, scale: 3 }),
-  dimensions: jsonb("dimensions"),
-  specifications: jsonb("specifications"),
-  datasheet: varchar("datasheet", { length: 255 }),
-  image: varchar("image", { length: 255 }),
+  // Validação e status
+  validFrom: timestamp('valid_from'),
+  validTo: timestamp('valid_to'),
+  isActive: boolean('is_active').default(true),
   
-  // Controle
-  isActive: boolean("is_active").default(true),
-  isAvailable: boolean("is_available").default(true),
-  availabilityDate: timestamp("availability_date"),
-  lastPriceUpdate: timestamp("last_price_update"),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-// ============================================
-// STOCK MOVEMENTS (MOVIMENTAÇÕES)
-// ============================================
-
-export const stockMovements = pgTable("stock_movements", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  itemId: uuid("item_id").notNull(),
-  locationId: uuid("location_id").notNull(),
+// ================================
+// LOCALIZAÇÕES DE ESTOQUE
+// ================================
+export const stockLocations = pgTable('stock_locations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
-  // Dados da movimentação
-  movementType: movementTypeEnum("movement_type").notNull(),
-  quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull(),
-  unitCost: numeric("unit_cost", { precision: 10, scale: 2 }),
-  totalCost: numeric("total_cost", { precision: 10, scale: 2 }),
+  // Dados básicos
+  name: varchar('name', { length: 255 }).notNull(),
+  code: varchar('code', { length: 50 }),
+  description: text('description'),
+  locationType: varchar('location_type', { length: 20 }).default('warehouse'), // warehouse, mobile, customer, supplier
+  
+  // Hierarquia
+  parentLocationId: uuid('parent_location_id'),
+  locationPath: varchar('location_path', { length: 500 }), // /central/setor1/prateleira1
+  level: integer('level').default(1),
+  
+  // Endereço e coordenadas
+  address: text('address'),
+  coordinates: jsonb('coordinates'), // {lat, lng}
+  
+  // Capacidade e controles
+  capacity: decimal('capacity', { precision: 12, scale: 2 }),
+  allowNegativeStock: boolean('allow_negative_stock').default(false),
+  requiresApproval: boolean('requires_approval').default(false),
+  isActive: boolean('is_active').default(true),
+  
+  // Responsável
+  managerId: uuid('manager_id'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by')
+});
+
+// ================================
+// NÍVEIS DE ESTOQUE
+// ================================
+export const stockLevels = pgTable('stock_levels', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  itemId: uuid('item_id').notNull(),
+  locationId: uuid('location_id').notNull(),
+  
+  // Quantidades
+  currentQuantity: decimal('current_quantity', { precision: 10, scale: 2 }).default('0'),
+  reservedQuantity: decimal('reserved_quantity', { precision: 10, scale: 2 }).default('0'),
+  availableQuantity: decimal('available_quantity', { precision: 10, scale: 2 }).default('0'),
+  
+  // Níveis de controle
+  minimumStock: decimal('minimum_stock', { precision: 10, scale: 2 }).default('0'),
+  maximumStock: decimal('maximum_stock', { precision: 10, scale: 2 }),
+  reorderPoint: decimal('reorder_point', { precision: 10, scale: 2 }),
+  safetyStock: decimal('safety_stock', { precision: 10, scale: 2 }),
+  
+  // Custos
+  averageCost: decimal('average_cost', { precision: 12, scale: 2 }),
+  lastCost: decimal('last_cost', { precision: 12, scale: 2 }),
+  totalValue: decimal('total_value', { precision: 12, scale: 2 }),
+  
+  // Controle de datas
+  lastMovementDate: timestamp('last_movement_date'),
+  lastCountDate: timestamp('last_count_date'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// ================================
+// MOVIMENTAÇÕES DE ESTOQUE
+// ================================
+export const stockMovements = pgTable('stock_movements', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
   // Referências
-  referenceNumber: varchar("reference_number", { length: 100 }),
-  referenceType: varchar("reference_type", { length: 50 }), // 'purchase_order', 'work_order', 'transfer', etc.
-  referenceId: uuid("reference_id"),
+  itemId: uuid('item_id').notNull(),
+  fromLocationId: uuid('from_location_id'),
+  toLocationId: uuid('to_location_id'),
   
-  // Localização origem/destino para transferências
-  fromLocationId: uuid("from_location_id"),
-  toLocationId: uuid("to_location_id"),
+  // Tipo e dados da movimentação
+  movementType: movementTypeEnum('movement_type').notNull(),
+  quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
+  unitCost: decimal('unit_cost', { precision: 12, scale: 2 }),
+  totalCost: decimal('total_cost', { precision: 12, scale: 2 }),
   
-  // Dados adicionais
-  reason: varchar("reason", { length: 255 }),
-  notes: text("notes"),
-  batchNumber: varchar("batch_number", { length: 100 }),
-  serialNumber: varchar("serial_number", { length: 100 }),
-  expirationDate: timestamp("expiration_date"),
+  // Referências de origem
+  referenceType: varchar('reference_type', { length: 20 }), // OS, purchase_order, transfer, etc
+  referenceId: uuid('reference_id'),
+  referenceNumber: varchar('reference_number', { length: 50 }),
   
-  // Controle
-  isConfirmed: boolean("is_confirmed").default(false),
-  confirmedAt: timestamp("confirmed_at"),
-  confirmedBy: uuid("confirmed_by"),
+  // Lote e rastreabilidade
+  batchNumber: varchar('batch_number', { length: 50 }),
+  serialNumber: varchar('serial_number', { length: 100 }),
+  expirationDate: timestamp('expiration_date'),
   
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  createdBy: uuid("created_by").notNull(),
+  // Metadados
+  reason: text('reason'),
+  notes: text('notes'),
+  
+  // Aprovação
+  requiresApproval: boolean('requires_approval').default(false),
+  isApproved: boolean('is_approved').default(true),
+  approvedBy: uuid('approved_by'),
+  approvedAt: timestamp('approved_at'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: uuid('created_by').notNull()
 });
 
-// ============================================
-// RESERVAS DE ESTOQUE
-// ============================================
+// ================================
+// ATIVOS (CONTROLE DE ATIVOS)
+// ================================
+export const assets = pgTable('assets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  // Dados básicos
+  assetCode: varchar('asset_code', { length: 50 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  
+  // Hierarquia
+  parentAssetId: uuid('parent_asset_id'),
+  assetPath: varchar('asset_path', { length: 500 }), // /equipamento1/componente1/peca1
+  level: integer('level').default(1),
+  
+  // Classificação
+  category: varchar('category', { length: 100 }),
+  subcategory: varchar('subcategory', { length: 100 }),
+  criticality: varchar('criticality', { length: 20 }),
+  
+  // Dados técnicos
+  manufacturer: varchar('manufacturer', { length: 255 }),
+  model: varchar('model', { length: 255 }),
+  serialNumber: varchar('serial_number', { length: 100 }),
+  manufactureDate: timestamp('manufacture_date'),
+  purchaseDate: timestamp('purchase_date'),
+  installationDate: timestamp('installation_date'),
+  warrantyExpiration: timestamp('warranty_expiration'),
+  
+  // Localização
+  currentLocationId: uuid('current_location_id'),
+  coordinates: jsonb('coordinates'),
+  
+  // Status e operação
+  status: assetStatusEnum('status').default('ativo'),
+  operationalStatus: varchar('operational_status', { length: 20 }), // funcionando, parado, manutencao
+  
+  // Medidores
+  hasHourMeter: boolean('has_hour_meter').default(false),
+  currentHours: decimal('current_hours', { precision: 10, scale: 2 }),
+  hasKmMeter: boolean('has_km_meter').default(false),
+  currentKm: decimal('current_km', { precision: 10, scale: 2 }),
+  
+  // Custos
+  purchaseValue: decimal('purchase_value', { precision: 12, scale: 2 }),
+  currentValue: decimal('current_value', { precision: 12, scale: 2 }),
+  residualValue: decimal('residual_value', { precision: 12, scale: 2 }),
+  
+  // Metadados
+  specifications: jsonb('specifications'),
+  customFields: jsonb('custom_fields'),
+  notes: text('notes'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by')
+});
 
-export const stockReservations = pgTable("stock_reservations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  itemId: uuid("item_id").notNull(),
-  locationId: uuid("location_id").notNull(),
+// ================================
+// LISTA DE PREÇOS UNITÁRIOS (LPU)
+// ================================
+export const priceList = pgTable('price_list', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   
-  // Dados da reserva
-  quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull(),
-  reservedFor: varchar("reserved_for", { length: 50 }).notNull(), // 'work_order', 'customer', 'project'
-  referenceId: uuid("reference_id").notNull(),
-  referenceName: varchar("reference_name", { length: 255 }),
+  // Dados básicos
+  name: varchar('name', { length: 255 }).notNull(),
+  code: varchar('code', { length: 50 }),
+  description: text('description'),
+  version: varchar('version', { length: 20 }).default('1.0'),
   
-  // Período da reserva
-  reservationDate: timestamp("reservation_date").defaultNow().notNull(),
-  expectedUseDate: timestamp("expected_use_date"),
-  expirationDate: timestamp("expiration_date"),
+  // Vigência
+  validFrom: timestamp('valid_from').notNull(),
+  validTo: timestamp('valid_to'),
+  
+  // Segmentação
+  customerId: uuid('customer_id'),
+  contractId: uuid('contract_id'),
+  costCenterId: uuid('cost_center_id'),
+  region: varchar('region', { length: 100 }),
+  channel: varchar('channel', { length: 100 }),
+  
+  // Configurações
+  currency: varchar('currency', { length: 3 }).default('BRL'),
+  includesTax: boolean('includes_tax').default(false),
+  defaultMargin: decimal('default_margin', { precision: 5, scale: 2 }),
   
   // Status
-  status: varchar("status", { length: 50 }).default('active'), // 'active', 'used', 'cancelled', 'expired'
-  notes: text("notes"),
+  isActive: boolean('is_active').default(true),
+  isDefault: boolean('is_default').default(false),
   
-  // Controle
-  usedQuantity: numeric("used_quantity", { precision: 10, scale: 2 }).default("0"),
-  usedAt: timestamp("used_at"),
-  usedBy: uuid("used_by"),
-  cancelledAt: timestamp("cancelled_at"),
-  cancelledBy: uuid("cancelled_by"),
-  cancellationReason: text("cancellation_reason"),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by')
 });
 
-// ============================================
-// KITS DE SERVIÇO
-// ============================================
-
-export const serviceKits = pgTable("service_kits", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+// ================================
+// ITENS DA LISTA DE PREÇOS
+// ================================
+export const priceListItems = pgTable('price_list_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  priceListId: uuid('price_list_id').notNull(),
+  itemId: uuid('item_id').notNull(),
   
-  // Dados do kit
-  name: varchar("name", { length: 255 }).notNull(),
-  code: varchar("code", { length: 100 }).notNull(),
-  description: text("description"),
-  kitType: varchar("kit_type", { length: 50 }).notNull(), // 'maintenance', 'installation', 'repair'
+  // Preços
+  unitPrice: decimal('unit_price', { precision: 12, scale: 2 }).notNull(),
+  costPrice: decimal('cost_price', { precision: 12, scale: 2 }),
+  margin: decimal('margin', { precision: 5, scale: 2 }),
   
-  // Aplicação
-  equipmentType: varchar("equipment_type", { length: 100 }),
-  brand: varchar("brand", { length: 100 }),
-  model: varchar("model", { length: 100 }),
-  maintenanceType: varchar("maintenance_type", { length: 100 }), // 'preventive', 'corrective'
+  // Descontos por escala
+  minimumQuantity: decimal('minimum_quantity', { precision: 10, scale: 2 }).default('1'),
+  discountPercentage: decimal('discount_percentage', { precision: 5, scale: 2 }),
   
-  // Controle
-  isActive: boolean("is_active").default(true),
-  version: varchar("version", { length: 20 }).default('1.0'),
-  notes: text("notes"),
+  // Configurações
+  isSpecialPrice: boolean('is_special_price').default(false),
+  requiresApproval: boolean('requires_approval').default(false),
+  notes: text('notes'),
   
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by"),
-  updatedBy: uuid("updated_by"),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const serviceKitItems = pgTable("service_kit_items", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  kitId: uuid("kit_id").notNull(),
-  itemId: uuid("item_id").notNull(),
-  
-  // Quantidade e especificações
-  quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull(),
-  isOptional: boolean("is_optional").default(false),
-  isAlternative: boolean("is_alternative").default(false),
-  alternativeGroup: varchar("alternative_group", { length: 50 }),
-  notes: text("notes"),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// ================================
+// RELATIONS
+// ================================
+export const itemsRelations = relations(items, ({ many, one }) => ({
+  attachments: many(itemAttachments),
+  parentLinks: many(itemLinks, { relationName: "parentItem" }),
+  childLinks: many(itemLinks, { relationName: "linkedItem" }),
+  stockLevels: many(stockLevels),
+  movements: many(stockMovements),
+  catalogItems: many(supplierCatalog),
+  priceListItems: many(priceListItems)
+}));
 
-export type Item = typeof items.$inferSelect;
-export type NewItem = typeof items.$inferInsert;
-export type ItemLink = typeof itemLinks.$inferSelect;
-export type ItemClientLink = typeof itemClientLinks.$inferSelect;
-export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
-export type Supplier = typeof suppliers.$inferSelect;
-export type SupplierCatalogItem = typeof supplierCatalog.$inferSelect;
-export type StockMovement = typeof stockMovements.$inferSelect;
-export type StockReservation = typeof stockReservations.$inferSelect;
-export type ServiceKit = typeof serviceKits.$inferSelect;
+export const itemAttachmentsRelations = relations(itemAttachments, ({ one }) => ({
+  item: one(items, {
+    fields: [itemAttachments.itemId],
+    references: [items.id]
+  })
+}));
+
+export const itemLinksRelations = relations(itemLinks, ({ one }) => ({
+  parentItem: one(items, {
+    fields: [itemLinks.parentItemId],
+    references: [items.id],
+    relationName: "parentItem"
+  }),
+  linkedItem: one(items, {
+    fields: [itemLinks.linkedItemId],
+    references: [items.id],
+    relationName: "linkedItem"
+  }),
+  supplier: one(suppliers, {
+    fields: [itemLinks.supplierId],
+    references: [suppliers.id]
+  })
+}));
+
+export const suppliersRelations = relations(suppliers, ({ many }) => ({
+  catalogItems: many(supplierCatalog),
+  itemLinks: many(itemLinks)
+}));
+
+export const supplierCatalogRelations = relations(supplierCatalog, ({ one }) => ({
+  supplier: one(suppliers, {
+    fields: [supplierCatalog.supplierId],
+    references: [suppliers.id]
+  }),
+  item: one(items, {
+    fields: [supplierCatalog.itemId],
+    references: [items.id]
+  })
+}));
+
+export const stockLocationsRelations = relations(stockLocations, ({ many, one }) => ({
+  parentLocation: one(stockLocations, {
+    fields: [stockLocations.parentLocationId],
+    references: [stockLocations.id],
+    relationName: "locationHierarchy"
+  }),
+  childLocations: many(stockLocations, { relationName: "locationHierarchy" }),
+  stockLevels: many(stockLevels),
+  movementsFrom: many(stockMovements, { relationName: "fromLocation" }),
+  movementsTo: many(stockMovements, { relationName: "toLocation" }),
+  assets: many(assets)
+}));
+
+export const stockLevelsRelations = relations(stockLevels, ({ one }) => ({
+  item: one(items, {
+    fields: [stockLevels.itemId],
+    references: [items.id]
+  }),
+  location: one(stockLocations, {
+    fields: [stockLevels.locationId],
+    references: [stockLocations.id]
+  })
+}));
+
+export const stockMovementsRelations = relations(stockMovements, ({ one }) => ({
+  item: one(items, {
+    fields: [stockMovements.itemId],
+    references: [items.id]
+  }),
+  fromLocation: one(stockLocations, {
+    fields: [stockMovements.fromLocationId],
+    references: [stockLocations.id],
+    relationName: "fromLocation"
+  }),
+  toLocation: one(stockLocations, {
+    fields: [stockMovements.toLocationId],
+    references: [stockLocations.id],
+    relationName: "toLocation"
+  })
+}));
+
+export const assetsRelations = relations(assets, ({ one, many }) => ({
+  parentAsset: one(assets, {
+    fields: [assets.parentAssetId],
+    references: [assets.id],
+    relationName: "assetHierarchy"
+  }),
+  childAssets: many(assets, { relationName: "assetHierarchy" }),
+  currentLocation: one(stockLocations, {
+    fields: [assets.currentLocationId],
+    references: [stockLocations.id]
+  })
+}));
+
+export const priceListRelations = relations(priceList, ({ many }) => ({
+  items: many(priceListItems)
+}));
+
+export const priceListItemsRelations = relations(priceListItems, ({ one }) => ({
+  priceList: one(priceList, {
+    fields: [priceListItems.priceListId],
+    references: [priceList.id]
+  }),
+  item: one(items, {
+    fields: [priceListItems.itemId],
+    references: [items.id]
+  })
+}));
