@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { PartsServicesController } from "./controller";
 import { tenantPartsServicesController } from "./tenant-controller";
+import { linksController, uploadAttachment } from "./links-controller";
 import { jwtAuth } from "../../middleware/jwtAuth";
 
 const router = Router();
@@ -67,6 +68,35 @@ router.post("/supplier-catalog", controller.createSupplierCatalogItem.bind(contr
 router.get("/supplier-catalog", controller.getSupplierCatalog.bind(controller));
 router.put("/supplier-catalog/:id", controller.updateSupplierCatalogItem.bind(controller));
 router.delete("/supplier-catalog/:id", controller.deleteSupplierCatalogItem.bind(controller));
+
+// ============================================
+// VÍNCULOS E LINKS ROUTES (NOVOS)
+// ============================================
+
+// Vínculos item-item
+router.post("/items/:itemId/item-links", linksController.createItemLink.bind(linksController));
+router.get("/items/:itemId/item-links", linksController.getItemLinks.bind(linksController));
+router.delete("/item-links/:linkId", linksController.deleteItemLink.bind(linksController));
+
+// Vínculos item-cliente
+router.post("/items/:itemId/customer-links", linksController.createItemCustomerLink.bind(linksController));
+router.get("/items/:itemId/customer-links", linksController.getItemCustomerLinks.bind(linksController));
+router.put("/customer-links/:linkId", linksController.updateItemCustomerLink.bind(linksController));
+
+// Vínculos item-fornecedor
+router.post("/items/:itemId/supplier-links", linksController.createItemSupplierLink.bind(linksController));
+router.get("/items/:itemId/supplier-links", linksController.getItemSupplierLinks.bind(linksController));
+
+// Anexos (upload de arquivos)
+router.post("/items/:itemId/attachments", uploadAttachment, linksController.uploadItemAttachment.bind(linksController));
+router.get("/items/:itemId/attachments", linksController.getItemAttachments.bind(linksController));
+router.delete("/attachments/:attachmentId", linksController.deleteItemAttachment.bind(linksController));
+
+// Kits de serviço
+router.post("/service-kits", linksController.createServiceKit.bind(linksController));
+router.get("/service-kits", linksController.getServiceKits.bind(linksController));
+router.post("/service-kits/:kitId/items", linksController.addItemToKit.bind(linksController));
+router.get("/service-kits/:kitId/items", linksController.getKitItems.bind(linksController));
 
 // ============================================
 // DASHBOARD ROUTES

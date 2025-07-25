@@ -30,7 +30,9 @@ import {
   Eye,
   Filter,
   Download,
-  Upload
+  Upload,
+  Link,
+  Paperclip
 } from "lucide-react";
 
 // Form schemas
@@ -516,13 +518,33 @@ export default function PartsServices() {
                           </p>
                         </div>
                         <div className="flex items-center space-x-1">
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="Visualizar">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="Editar" onClick={() => {
+                            console.log('Editar item:', item.id);
+                            // TODO: Implementar edição
+                          }}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="Vínculos" onClick={() => {
+                            console.log('Vínculos do item:', item.id);
+                            // TODO: Implementar modal de vínculos
+                          }}>
+                            <Link className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" title="Anexos" onClick={() => {
+                            console.log('Anexos do item:', item.id);
+                            // TODO: Implementar upload de anexos
+                          }}>
+                            <Paperclip className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" title="Excluir" onClick={() => {
+                            if (confirm('Tem certeza que deseja excluir este item?')) {
+                              console.log('Excluir item:', item.id);
+                              // TODO: Implementar exclusão
+                            }
+                          }}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
