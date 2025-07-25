@@ -11,4 +11,3 @@
  */
 
 export * from './schema-master';
-export * from './schema-parts-services';
