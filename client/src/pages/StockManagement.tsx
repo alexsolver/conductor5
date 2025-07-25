@@ -374,7 +374,10 @@ function InventoryModal() {
 }
 
 // Warehouses Tab Component
-function WarehousesTab({ warehouses }: { warehouses: any[] }) {
+function WarehousesTab({ warehouses, onCreateWarehouse }: { 
+  warehouses: any[]; 
+  onCreateWarehouse: () => void; 
+}) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -384,7 +387,7 @@ function WarehousesTab({ warehouses }: { warehouses: any[] }) {
             Gerencie seus armazéns e localizações de estoque
           </p>
         </div>
-        <Button>
+        <Button onClick={onCreateWarehouse}>
           <Plus className="h-4 w-4 mr-2" />
           Novo Armazém
         </Button>
@@ -399,7 +402,7 @@ function WarehousesTab({ warehouses }: { warehouses: any[] }) {
               <p className="text-sm text-muted-foreground text-center mb-4">
                 Comece criando seu primeiro armazém para organizar o estoque
               </p>
-              <Button>
+              <Button onClick={onCreateWarehouse}>
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Primeiro Armazém
               </Button>
@@ -487,7 +490,7 @@ interface StockMovement {
   itemId: string;
   itemName: string;
   warehouseId: string;
-  warehouseName: string;
+  warehouse: string;
   movementType: 'entry' | 'exit' | 'transfer' | 'adjustment';
   quantity: number;
   unitCost?: number;
@@ -505,6 +508,7 @@ export function StockManagement() {
   const [isNewMovementOpen, setIsNewMovementOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
+  const [isNewWarehouseOpen, setIsNewWarehouseOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
 
   const { toast } = useToast();
@@ -586,7 +590,7 @@ export function StockManagement() {
     const matchesSearch = item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.itemCode.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    const matchesWarehouse = warehouseFilter === "all" || item.warehouseName === warehouseFilter;
+    const matchesWarehouse = warehouseFilter === "all" || item.warehouse === warehouseFilter;
     
     return matchesSearch && matchesStatus && matchesWarehouse;
   });
@@ -725,7 +729,7 @@ export function StockManagement() {
                             {movement.movementType === 'entry' ? '+' : '-'}{movement.quantity}
                           </span>
                         </TableCell>
-                        <TableCell>{movement.warehouseName}</TableCell>
+                        <TableCell>{movement.warehouse}</TableCell>
                         <TableCell>{new Date(movement.createdAt).toLocaleDateString()}</TableCell>
                       </TableRow>
                     ))}
@@ -854,7 +858,7 @@ export function StockManagement() {
                           </Badge>
                         </TableCell>
                         <TableCell>R$ {item.totalValue.toLocaleString()}</TableCell>
-                        <TableCell>{item.warehouseName}</TableCell>
+                        <TableCell>{item.warehouse}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
                             <Button size="sm" variant="outline" onClick={() => setSelectedItem(item)}>
@@ -926,7 +930,7 @@ export function StockManagement() {
                         <TableCell>
                           {movement.totalCost ? `R$ ${movement.totalCost.toLocaleString()}` : '-'}
                         </TableCell>
-                        <TableCell>{movement.warehouseName}</TableCell>
+                        <TableCell>{movement.warehouse}</TableCell>
                         <TableCell>{movement.createdBy}</TableCell>
                         <TableCell>{new Date(movement.createdAt).toLocaleString()}</TableCell>
                       </TableRow>
@@ -940,7 +944,10 @@ export function StockManagement() {
 
         {/* Warehouses Tab */}
         <TabsContent value="warehouses" className="space-y-6">
-          <WarehousesTab warehouses={warehouses} />
+          <WarehousesTab 
+            warehouses={warehouses} 
+            onCreateWarehouse={() => setIsNewWarehouseOpen(true)}
+          />
         </TabsContent>
       </Tabs>
 
@@ -986,6 +993,129 @@ export function StockManagement() {
           <InventoryModal />
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isNewWarehouseOpen} onOpenChange={setIsNewWarehouseOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Novo Armazém</DialogTitle>
+            <DialogDescription>
+              Cadastre um novo armazém para organizar o estoque
+            </DialogDescription>
+          </DialogHeader>
+          <NewWarehouseForm 
+            onSubmit={(data) => {
+              console.log('Criando armazém:', data);
+              toast({ title: "Armazém criado com sucesso!" });
+              setIsNewWarehouseOpen(false);
+            }}
+            isLoading={false}
+            onCancel={() => setIsNewWarehouseOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+// Formulário para novo armazém
+function NewWarehouseForm({ onSubmit, isLoading, onCancel }: { 
+  onSubmit: (data: any) => void; 
+  isLoading: boolean;
+  onCancel: () => void;
+}) {
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  const [manager, setManager] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !location) {
+      toast({ 
+        title: "Erro", 
+        description: "Nome e localização são obrigatórios",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    onSubmit({
+      name,
+      location,
+      manager: manager || 'Não informado',
+      capacity: capacity ? parseInt(capacity) : null,
+      description: description || '',
+      status: 'active'
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome do Armazém *</Label>
+          <Input
+            id="name"
+            placeholder="Ex: Armazém Central"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="location">Localização *</Label>
+          <Input
+            id="location"
+            placeholder="Ex: São Paulo - Centro"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="manager">Responsável</Label>
+          <Input
+            id="manager"
+            placeholder="Ex: João Silva"
+            value={manager}
+            onChange={(e) => setManager(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="capacity">Capacidade (m²)</Label>
+          <Input
+            id="capacity"
+            type="number"
+            placeholder="Ex: 1000"
+            value={capacity}
+            onChange={(e) => setCapacity(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Descrição</Label>
+        <Input
+          id="description"
+          placeholder="Descrição adicional do armazém"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Criando...' : 'Criar Armazém'}
+        </Button>
+      </div>
+    </form>
   );
 }
