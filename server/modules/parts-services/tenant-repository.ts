@@ -413,7 +413,62 @@ export class TenantPartsServicesRepository {
       throw error;
     }
   }
+
+  // Adding the missing getItemSupplierLinks method here
+  async getItemSupplierLinks(tenantId: string, filters?: {
+    itemId?: string;
+    supplierId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> {
+    const schemaName = this.getTenantSchema(tenantId);
+    const limit = filters?.limit || 50;
+    const offset = filters?.offset || 0;
+
+    try {
+      let whereClause = sql`WHERE isl.tenant_id = ${tenantId}`;
+
+      if (filters?.itemId) {
+        whereClause = sql`${whereClause} AND isl.item_id = ${filters.itemId}`;
+      }
+
+      if (filters?.supplierId) {
+        whereClause = sql`${whereClause} AND isl.supplier_id = ${filters.supplierId}`;
+      }
+
+      const result = await db.execute(sql`
+        SELECT 
+          isl.id,
+          isl.tenant_id,
+          isl.item_id,
+          isl.supplier_id,
+          isl.supplier_item_code,
+          isl.purchase_price,
+          isl.currency,
+          isl.minimum_order_quantity,
+          isl.delivery_time_days,
+          isl.is_preferred,
+          isl.is_active,
+          isl.created_at,
+          isl.updated_at,
+          i.title as item_title,
+          i.internal_code as item_code,
+          s.name as supplier_name,
+          s.supplier_code
+        FROM ${sql.identifier(schemaName)}.item_links isl
+        LEFT JOIN ${sql.identifier(schemaName)}.items i ON isl.item_id = i.id
+        LEFT JOIN ${sql.identifier(schemaName)}.suppliers s ON isl.supplier_id = s.id
+        ${whereClause}
+        ORDER BY isl.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching item supplier links:', error);
+      throw error;
+    }
+  }
 }
 
 export const tenantPartsServicesRepository = new TenantPartsServicesRepository();
-```
