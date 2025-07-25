@@ -1,68 +1,50 @@
-import { Router } from "express";
-import { jwtAuth } from "../../middleware/jwtAuth";
-import { KnowledgeBaseController } from "./application/controllers/KnowledgeBaseController";
+import { Router } from 'express';
+import { KnowledgeBaseController } from './controllers/KnowledgeBaseController';
+import { jwtAuth } from '../../middleware/jwtAuth';
 
-const knowledgeBaseRouter = Router();
-const knowledgeBaseController = new KnowledgeBaseController();
+const router = Router();
+const controller = new KnowledgeBaseController();
 
-// Categories
-knowledgeBaseRouter.get('/categories', jwtAuth, knowledgeBaseController.getCategories.bind(knowledgeBaseController));
-knowledgeBaseRouter.post('/categories', jwtAuth, knowledgeBaseController.createCategory.bind(knowledgeBaseController));
-knowledgeBaseRouter.put('/categories/:categoryId', jwtAuth, knowledgeBaseController.updateCategory.bind(knowledgeBaseController));
-knowledgeBaseRouter.delete('/categories/:categoryId', jwtAuth, knowledgeBaseController.deleteCategory.bind(knowledgeBaseController));
+// Aplicar autenticação JWT a todas as rotas
+router.use(jwtAuth);
 
-// Articles
-knowledgeBaseRouter.get('/articles', jwtAuth, knowledgeBaseController.getArticles.bind(knowledgeBaseController));
-knowledgeBaseRouter.post('/articles', jwtAuth, knowledgeBaseController.createArticle.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/articles/:articleId', jwtAuth, knowledgeBaseController.getArticleById.bind(knowledgeBaseController));
-knowledgeBaseRouter.put('/articles/:articleId', jwtAuth, knowledgeBaseController.updateArticle.bind(knowledgeBaseController));
-knowledgeBaseRouter.delete('/articles/:articleId', jwtAuth, knowledgeBaseController.deleteArticle.bind(knowledgeBaseController));
+// ROTAS DE CATEGORIAS
+router.get('/categories', controller.getAllCategories.bind(controller));
+router.post('/categories', controller.createCategory.bind(controller));
+router.put('/categories/:id', controller.updateCategory.bind(controller));
+router.delete('/categories/:id', controller.deleteCategory.bind(controller));
 
-// Article Versions
-knowledgeBaseRouter.get('/articles/:articleId/versions', jwtAuth, knowledgeBaseController.getArticleVersions.bind(knowledgeBaseController));
+// ROTAS DE ARTIGOS
+router.get('/articles', controller.getAllArticles.bind(controller));
+router.get('/articles/:id', controller.getArticleById.bind(controller));
+router.post('/articles', controller.createArticle.bind(controller));
+router.put('/articles/:id', controller.updateArticle.bind(controller));
+router.delete('/articles/:id', controller.deleteArticle.bind(controller));
 
-// Search
-knowledgeBaseRouter.get('/search', jwtAuth, knowledgeBaseController.searchArticles.bind(knowledgeBaseController));
+// ROTAS DE COMENTÁRIOS
+router.get('/articles/:articleId/comments', controller.getArticleComments.bind(controller));
+router.post('/articles/:articleId/comments', controller.createComment.bind(controller));
+router.put('/comments/:id', controller.updateComment.bind(controller));
+router.delete('/comments/:id', controller.deleteComment.bind(controller));
 
-// Rating & Feedback
-knowledgeBaseRouter.post('/articles/:articleId/rate', jwtAuth, knowledgeBaseController.rateArticle.bind(knowledgeBaseController));
+// ROTAS DE AVALIAÇÕES
+router.get('/articles/:articleId/ratings', controller.getArticleRatings.bind(controller));
+router.post('/articles/:articleId/ratings', controller.createRating.bind(controller));
 
-// Comments
-knowledgeBaseRouter.get('/articles/:articleId/comments', jwtAuth, knowledgeBaseController.getComments.bind(knowledgeBaseController));
-knowledgeBaseRouter.post('/comments', jwtAuth, knowledgeBaseController.createComment.bind(knowledgeBaseController));
+// ROTAS DE TEMPLATES
+router.get('/templates', controller.getAllTemplates.bind(controller));
+router.post('/templates', controller.createTemplate.bind(controller));
+router.put('/templates/:id', controller.updateTemplate.bind(controller));
+router.delete('/templates/:id', controller.deleteTemplate.bind(controller));
 
-// Tags
-knowledgeBaseRouter.get('/tags', jwtAuth, knowledgeBaseController.getTags.bind(knowledgeBaseController));
-knowledgeBaseRouter.post('/tags', jwtAuth, knowledgeBaseController.createTag.bind(knowledgeBaseController));
+// ROTAS DE ANALYTICS
+router.get('/analytics', controller.getAnalytics.bind(controller));
 
-// Analytics
-knowledgeBaseRouter.get('/analytics', jwtAuth, knowledgeBaseController.getAnalytics.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/analytics/advanced', jwtAuth, knowledgeBaseController.getAdvancedAnalytics.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/articles/popular', jwtAuth, knowledgeBaseController.getPopularArticles.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/articles/recent', jwtAuth, knowledgeBaseController.getRecentArticles.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/analytics/search', jwtAuth, knowledgeBaseController.getSearchAnalytics.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/analytics/user-engagement', jwtAuth, knowledgeBaseController.getUserEngagement.bind(knowledgeBaseController));
+// ROTAS DE BUSCA
+router.get('/search', controller.searchArticles.bind(controller));
 
-// Media Management
-knowledgeBaseRouter.get('/media', jwtAuth, knowledgeBaseController.getMediaLibrary.bind(knowledgeBaseController));
-knowledgeBaseRouter.post('/media', jwtAuth, knowledgeBaseController.uploadMedia.bind(knowledgeBaseController));
+// ROTAS DE CONFIGURAÇÕES
+router.get('/settings', controller.getSettings.bind(controller));
+router.put('/settings', controller.updateSettings.bind(controller));
 
-// Article Templates
-knowledgeBaseRouter.get('/templates', jwtAuth, knowledgeBaseController.getArticleTemplates.bind(knowledgeBaseController));
-knowledgeBaseRouter.post('/templates', jwtAuth, knowledgeBaseController.createArticleTemplate.bind(knowledgeBaseController));
-
-// Article Cloning
-knowledgeBaseRouter.post('/articles/:articleId/clone', jwtAuth, knowledgeBaseController.cloneArticle.bind(knowledgeBaseController));
-
-// Ticket Integration
-knowledgeBaseRouter.post('/articles/:articleId/link-ticket', jwtAuth, knowledgeBaseController.linkArticleToTicket.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/tickets/:ticketId/articles', jwtAuth, knowledgeBaseController.getArticlesByTicket.bind(knowledgeBaseController));
-
-// Favorites
-knowledgeBaseRouter.post('/articles/:articleId/favorite', jwtAuth, knowledgeBaseController.toggleFavorite.bind(knowledgeBaseController));
-knowledgeBaseRouter.get('/favorites', jwtAuth, knowledgeBaseController.getFavoriteArticles.bind(knowledgeBaseController));
-
-// Versions
-knowledgeBaseRouter.get('/articles/:articleId/versions', jwtAuth, knowledgeBaseController.getArticleVersions.bind(knowledgeBaseController));
-
-export { knowledgeBaseRouter };
+export default router;

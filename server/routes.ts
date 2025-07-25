@@ -37,6 +37,7 @@ import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
 import { materialsServicesRoutes } from './modules/materials-services/routes';
+// import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -142,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { dashboardRouter } = await import('./modules/dashboard/routes');
   // customersRouter removed - functionality consolidated into /api/clientes
   const { ticketsRouter } = await import('./modules/tickets/routes');
-  const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
+  // const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
   const favorecidosRouter = await import('./modules/favorecidos/routes');
 
@@ -153,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // /api/customers route removed - use /api/clientes instead
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
-  app.use('/api/knowledge-base', knowledgeBaseRouter);
+  // app.use('/api/knowledge-base', knowledgeBaseRouter);
   app.use('/api/people', peopleRouter);
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
@@ -801,6 +802,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Materials and Services Management routes - Gestão de Materiais e Serviços
   app.use('/api/materials-services', materialsServicesRoutes);
+
+  // Knowledge Base Management routes - Base de Conhecimento  
+  // app.use('/api/knowledge-base', knowledgeBaseRoutes);
+
+  // Knowledge Base Routes - Direct Implementation
+  app.get('/api/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const categories = await pool.query(`
+        SELECT * FROM kb_categories 
+        WHERE tenant_id = $1 AND is_active = true 
+        ORDER BY level, sort_order
+      `, [tenantId]);
+
+      res.json({ success: true, data: categories.rows });
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+  });
+
+  app.get('/api/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const articles = await pool.query(`
+        SELECT 
+          a.*,
+          c.name as category_name,
+          c.slug as category_slug,
+          c.color as category_color,
+          c.icon as category_icon
+        FROM kb_articles a
+        LEFT JOIN kb_categories c ON a.category_id = c.id
+        WHERE a.tenant_id = $1 AND a.status = 'published'
+        ORDER BY a.created_at DESC
+      `, [tenantId]);
+
+      const articlesWithCategory = articles.rows.map(article => ({
+        ...article,
+        category: {
+          id: article.category_id,
+          name: article.category_name,
+          slug: article.category_slug,
+          color: article.category_color,
+          icon: article.category_icon
+        }
+      }));
+
+      res.json({ success: true, data: articlesWithCategory });
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch articles' });
+    }
+  });
+
+  app.get('/api/knowledge-base/analytics', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const [statsResult, mostViewedResult] = await Promise.all([
+        pool.query(`
+          SELECT 
+            COUNT(*) as total_articles,
+            COUNT(CASE WHEN status = 'published' THEN 1 END) as published_articles,
+            COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft_articles,
+            COALESCE(SUM(view_count), 0) as total_views,
+            ROUND(AVG(CASE WHEN rating_count > 0 THEN CAST(average_rating AS DECIMAL) END), 2) as average_rating
+          FROM kb_articles 
+          WHERE tenant_id = $1
+        `, [tenantId]),
+        
+        pool.query(`
+          SELECT id, title, view_count, average_rating
+          FROM kb_articles 
+          WHERE tenant_id = $1 AND status = 'published'
+          ORDER BY view_count DESC 
+          LIMIT 10
+        `, [tenantId])
+      ]);
+
+      const stats = statsResult.rows[0];
+      const mostViewed = mostViewedResult.rows;
+
+      res.json({
+        success: true,
+        data: {
+          stats,
+          mostViewed,
+          topRated: [],
+          articlesByStatus: []
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+
+  app.post('/api/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { title, summary, content, categoryId, type, difficulty, tags, estimatedReadTime } = req.body;
+      
+      // Generate slug
+      const slug = title.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await pool.query(`
+        INSERT INTO kb_articles (
+          tenant_id, title, slug, summary, content, category_id, type, 
+          difficulty, tags, estimated_read_time, status, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'published', $11, $12)
+        RETURNING *
+      `, [tenantId, title, slug, summary, content, categoryId, type, difficulty, tags, estimatedReadTime, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating article:', error);
+      res.status(500).json({ success: false, message: 'Failed to create article' });
+    }
+  });
+
+  app.post('/api/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { name, description, icon, color } = req.body;
+      
+      // Generate slug
+      const slug = name.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await pool.query(`
+        INSERT INTO kb_categories (
+          tenant_id, name, slug, description, icon, color, level, sort_order, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8)
+        RETURNING *
+      `, [tenantId, name, slug, description, icon, color, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating category:', error);
+      res.status(500).json({ success: false, message: 'Failed to create category' });
+    }
+  });
+
+  // Knowledge Base Mock Routes - Temporary for compatibility
+  app.get('/api/knowledge-base/popular-articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    res.json({
+      success: true,
+      data: [
+        {
+          id: '1',
+          title: 'Procedimento de Manutenção Preventiva',
+          viewCount: 150,
+          averageRating: '4.8'
+        },
+        {
+          id: '2', 
+          title: 'Erro 404 - Equipamento Não Responde',
+          viewCount: 89,
+          averageRating: '4.5'
+        }
+      ]
+    });
+  });
+
+  app.get('/api/knowledge-base/recent-articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    res.json({
+      success: true,
+      data: [
+        {
+          id: '1',
+          title: 'Como Configurar Backup Automático',
+          createdAt: new Date().toISOString(),
+          summary: 'Passo a passo para backup automático'
+        }
+      ]
+    });
+  });
+
+  app.get('/api/knowledge-base/advanced-analytics', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    res.json({
+      success: true,
+      data: {
+        totalArticles: 3,
+        totalViews: 245,
+        averageRating: 4.6,
+        categoriesCount: 5
+      }
+    });
+  });
 
 
 

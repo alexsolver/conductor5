@@ -1,0 +1,112 @@
+Desenvolta o módulo de Base de Conhecimento, seguindo a estrutura sistêmica da ferramenta e integrando-se com os módulos necessários
+
+Requisitos obrigatórios:
+
+- Comece criando as tabelas no banco de dados
+- Não crie dados mock. Todos os dados devem estar, desde o inicio criados nobanco
+- Não crie botões sem função ou não operacionais
+- Use o padrão crud completo
+- teste tudo antes de finalizar a entrega
+
+OBJETIVO PRINCIPAL
+Desenvolver um sistema completo de Base de Conhecimento integrado ao sistema Conductor, com funcionalidades avançadas de gerenciamento de conteúdo, busca inteligente, e integração com todos os módulos existentes.
+
+CATEGORIAS DE FUNCIONALIDADES
+1. GESTÃO DE ARTIGOS E CONTEÚDO
+Criação e Edição de Artigos: Editor rico com markdown, HTML, e templates predefinidos
+Versionamento de Conteúdo: Histórico completo de versões com controle de mudanças
+Templates de Artigos: Templates específicos para diferentes tipos de conteúdo (procedimentos, troubleshooting, FAQs)
+Aprovação de Conteúdo: Workflow de aprovação com múltiplos níveis hierárquicos
+Agendamento de Publicação: Publicação automática de conteúdo em datas específicas
+Revisão Periódica: Sistema de alertas para revisão obrigatória de conteúdo desatualizado
+Clonagem de Artigos: Duplicação de artigos para criação rápida de conteúdo similar
+2. CATEGORIZAÇÃO E ORGANIZAÇÃO
+Categorias Hierárquicas: Sistema de categorias e subcategorias com múltiplos níveis
+Tags Inteligentes: Sistema de tags automáticas baseado em conteúdo e contexto
+Taxonomia Personalizada: Criação de taxonomias específicas por departamento/área
+Filtros Avançados: Filtros por categoria, autor, data, status, popularidade
+Coleções Temáticas: Agrupamento de artigos por temas específicos
+Índices Automáticos: Geração automática de índices e sumários
+Breadcrumbs Dinâmicos: Navegação hierárquica contextual
+3. BUSCA E DESCOBERTA
+Busca Full-Text: Busca avançada em todo o conteúdo com relevância
+Busca Semântica: Busca por significado e contexto, não apenas palavras-chave
+Sugestões Inteligentes: Auto-complete e sugestões baseadas em histórico
+Busca Facetada: Filtros dinâmicos baseados nos resultados da busca
+Busca por Imagens: Reconhecimento e busca por conteúdo visual
+Busca Contextual: Resultados personalizados baseados no perfil do usuário
+Histórico de Buscas: Registro e análise de padrões de busca
+Busca Federada: Integração com sistemas externos de conhecimento
+4. MÍDIA E RECURSOS VISUAIS
+Galeria de Imagens: Gerenciamento completo de imagens com metadados
+Vídeos Integrados: Upload, streaming e gestão de conteúdo audiovisual
+Diagramas Interativos: Criação de fluxogramas e diagramas técnicos
+Modelos 3D: Visualização de equipamentos e componentes em 3D
+Realidade Aumentada: Sobreposição de informações em equipamentos reais
+Screenshots Automáticos: Captura automática de telas de sistemas
+Anotações Visuais: Marcações e comentários em imagens e vídeos
+Bibliotecas de Ícones: Repositório padronizado de ícones técnicos
+5. COLABORAÇÃO E SOCIAL
+Comentários e Discussões: Sistema de comentários hierárquicos
+Avaliações e Feedback: Sistema de rating e avaliação de utilidade
+Contribuições da Comunidade: Submissão de conteúdo por usuários
+Wiki Colaborativo: Edição colaborativa de documentos
+Fóruns Integrados: Discussões temáticas por categoria
+Gamificação: Sistema de pontos e badges para contribuidores
+Menções e Notificações: Sistema de notificações sociais
+Grupos de Trabalho: Colaboração em grupos específicos
+6. PERSONALIZAÇÃO E IA
+Recomendações Inteligentes: Sugestão de conteúdo baseado em comportamento
+Personalização de Interface: Customização da experiência do usuário
+Chatbot Integrado: Assistente virtual para consultas rápidas
+Análise de Sentimento: Avaliação automática do feedback dos usuários
+Tradução Automática: Tradução de conteúdo em múltiplos idiomas
+Resumos Automáticos: Geração de resumos executivos de artigos longos
+Análise de Gaps: Identificação de lacunas no conhecimento
+Curadoria Automática: Seleção automática de conteúdo relevante
+7. ANALYTICS E MÉTRICAS
+Dashboard de Analytics: Métricas completas de uso e performance
+Heatmaps de Interação: Análise visual de interação com conteúdo
+Relatórios de Uso: Relatórios detalhados por usuário, departamento, período
+Métricas de Qualidade: Avaliação automática da qualidade do conteúdo
+ROI do Conhecimento: Medição do retorno sobre investimento em conhecimento
+Análise de Tendências: Identificação de padrões e tendências de uso
+Benchmarking: Comparação com padrões da indústria
+Previsões de Demanda: Antecipação de necessidades de conteúdo
+8. INTEGRAÇÃO COM EQUIPES DE CAMPO (módulo de tickets)
+Procedimentos de Campo: Guias específicos para operações em campo
+Geolocalização de Conteúdo: Conteúdo contextual baseado em localização
+Realidade Aumentada Field: Sobreposição de informações em equipamentos
+9. GESTÃO DE EQUIPAMENTOS E ATIVOS
+Manuais de Equipamentos: Biblioteca completa de manuais técnicos
+Histórico de Manutenção: Documentação de intervenções e reparos
+Peças e Componentes: Catálogo de peças com especificações técnicas
+Diagramas Técnicos: Esquemas elétricos, hidráulicos e mecânicos
+Códigos de Erro: Base de dados de códigos de erro e soluções
+Procedimentos de Calibração: Guias para calibração de equipamentos
+Normas e Regulamentações: Conformidade com normas técnicas
+Obsolescência: Gestão de equipamentos e peças obsoletas
+10. COMPLIANCE E AUDITORIA
+Trilha de Auditoria: Registro completo de todas as ações no sistema
+Controle de Versões: Versionamento completo com aprovações
+Políticas de Retenção: Gestão automática do ciclo de vida do conteúdo
+Conformidade Regulatória: Adequação a normas específicas da indústria
+Assinaturas Digitais: Validação de autenticidade do conteúdo
+Backup e Recovery: Estratégias de backup e recuperação de conteúdo
+Arquivamento: Arquivamento automático de conteúdo obsoleto
+Relatórios de Compliance: Relatórios para auditorias regulatórias
+11. ACESSIBILIDADE
+Multi-idiomas: Suporte completo a múltiplos idiomas
+12. SEGURANÇA E GOVERNANÇA
+Controle de Acesso Granular: Permissões específicas por conteúdo
+Classificação de Informações: Níveis de confidencialidade
+Watermarks: Marcas d'água em conteúdo sensível
+3 -  INTEGRAÇÕES OBRIGATÓRIAS
+Sistema de Tickets: Vinculação de artigos a tickets e soluções
+Gestão de Usuários: Integração completa com sistema de permissões
+Dashboard Principal: Widgets e métricas no dashboard principal
+Módulo de Equipes: Conhecimento específico por equipe/departamento
+Sistema de Localização: Conteúdo geolocalizado para equipes de campo
+Módulo de Contratos: Conhecimento específico por tipo de contrato
+Sistema de Materiais e Serviços: Vinculação com equipamentos e ativos
+Módulo de Projetos: Documentação de projetos e lições aprendidas
