@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { eq, and, like, desc } from 'drizzle-orm';
+import { eq, and, like, desc, sql } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
 
@@ -193,27 +193,27 @@ export class ItemRepository {
 
   async getStats(tenantId: string) {
     const totalItems = await this.db
-      .select({ count: items.id })
+      .select({ count: sql<number>`count(*)` })
       .from(items)
       .where(eq(items.tenantId, tenantId));
 
     const activeItems = await this.db
-      .select({ count: items.id })
+      .select({ count: sql<number>`count(*)` })
       .from(items)
       .where(and(eq(items.tenantId, tenantId), eq(items.active, true)));
 
     const itemsByType = await this.db
       .select({
         type: items.type,
-        count: items.id
+        count: sql<number>`count(*)`
       })
       .from(items)
       .where(eq(items.tenantId, tenantId))
       .groupBy(items.type);
 
     return {
-      total: totalItems.length,
-      active: activeItems.length,
+      total: totalItems[0]?.count || 0,
+      active: activeItems[0]?.count || 0,
       byType: itemsByType
     };
   }

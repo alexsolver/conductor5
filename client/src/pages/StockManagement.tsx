@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -27,26 +28,459 @@ import {
   Eye,
   Edit,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  MapPin,
+  Users,
+  BarChart3
 } from "lucide-react";
 
+// Types
 interface StockItem {
   id: string;
-  itemId: string;
-  itemName: string;
   itemCode: string;
-  warehouseId: string;
-  warehouseName: string;
+  itemName: string;
   currentStock: number;
   minimumStock: number;
   maximumStock: number;
-  reservedStock: number;
-  availableStock: number;
-  unitCost: number;
+  status: 'ok' | 'low' | 'critical' | 'overstock';
   totalValue: number;
   lastMovement: string;
-  status: 'ok' | 'low' | 'critical' | 'overstock';
+  warehouse: string;
+  location: string;
+  unit: string;
+  category: string;
+  createdAt: string;
 }
+
+// Helper functions
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'ok': return 'bg-green-100 text-green-800';
+    case 'low': return 'bg-yellow-100 text-yellow-800';
+    case 'critical': return 'bg-red-100 text-red-800';
+    case 'overstock': return 'bg-blue-100 text-blue-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'ok': return 'Normal';
+    case 'low': return 'Baixo';
+    case 'critical': return 'Crítico';
+    case 'overstock': return 'Excesso';
+    default: return 'Indefinido';
+  }
+};
+
+// New Movement Form Component
+function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void; isLoading: boolean }) {
+  const [movementType, setMovementType] = useState("entry");
+  const [itemId, setItemId] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unitCost, setUnitCost] = useState("");
+  const [reason, setReason] = useState("");
+
+  const { data: itemsResponse } = useQuery({
+    queryKey: ["/api/materials-services/items"],
+    enabled: true
+  });
+  const items = (itemsResponse as any)?.data || [];
+
+  const { data: warehousesResponse } = useQuery({
+    queryKey: ["/api/materials-services/warehouses"],
+    enabled: true
+  });
+  const warehouses = (warehousesResponse as any)?.data || [];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      movementType,
+      itemId,
+      warehouseId,
+      quantity: parseInt(quantity),
+      unitCost: unitCost ? parseFloat(unitCost) : undefined,
+      reason
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="movementType">Tipo de Movimentação *</Label>
+          <Select value={movementType} onValueChange={setMovementType}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="entry">Entrada</SelectItem>
+              <SelectItem value="exit">Saída</SelectItem>
+              <SelectItem value="transfer">Transferência</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="itemId">Item *</Label>
+          <Select value={itemId} onValueChange={setItemId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um item" />
+            </SelectTrigger>
+            <SelectContent>
+              {items.map((item: any) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.title} ({item.internalCode})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="warehouseId">Armazém *</Label>
+          <Select value={warehouseId} onValueChange={setWarehouseId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um armazém" />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses.map((warehouse: any) => (
+                <SelectItem key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="quantity">Quantidade *</Label>
+          <Input
+            id="quantity"
+            type="number"
+            placeholder="Ex: 10"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="unitCost">Custo Unitário (opcional)</Label>
+          <Input
+            id="unitCost"
+            type="number"
+            step="0.01"
+            placeholder="Ex: 15.99"
+            value={unitCost}
+            onChange={(e) => setUnitCost(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="reason">Motivo *</Label>
+        <Textarea
+          id="reason"
+          placeholder="Descreva o motivo da movimentação..."
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Registrando..." : "Registrar Movimentação"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Adjustment Form Component
+function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void; isLoading: boolean }) {
+  const [itemId, setItemId] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
+  const [newQuantity, setNewQuantity] = useState("");
+  const [adjustmentReason, setAdjustmentReason] = useState("");
+
+  const { data: itemsResponse } = useQuery({
+    queryKey: ["/api/materials-services/items"],
+    enabled: true
+  });
+  const items = (itemsResponse as any)?.data || [];
+
+  const { data: warehousesResponse } = useQuery({
+    queryKey: ["/api/materials-services/warehouses"],
+    enabled: true
+  });
+  const warehouses = (warehousesResponse as any)?.data || [];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      itemId,
+      warehouseId,
+      newQuantity: parseInt(newQuantity),
+      reason: adjustmentReason
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="itemId">Item *</Label>
+          <Select value={itemId} onValueChange={setItemId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um item" />
+            </SelectTrigger>
+            <SelectContent>
+              {items.map((item: any) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.title} ({item.internalCode})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="warehouseId">Armazém *</Label>
+          <Select value={warehouseId} onValueChange={setWarehouseId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um armazém" />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses.map((warehouse: any) => (
+                <SelectItem key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="newQuantity">Nova Quantidade *</Label>
+          <Input
+            id="newQuantity"
+            type="number"
+            placeholder="Ex: 50"
+            value={newQuantity}
+            onChange={(e) => setNewQuantity(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="adjustmentReason">Motivo do Ajuste *</Label>
+        <Textarea
+          id="adjustmentReason"
+          placeholder="Descreva o motivo do ajuste (contagem física, avaria, etc.)..."
+          value={adjustmentReason}
+          onChange={(e) => setAdjustmentReason(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Ajustando..." : "Realizar Ajuste"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Inventory Modal Component
+function InventoryModal() {
+  const { data: stockResponse } = useQuery({
+    queryKey: ["/api/materials-services/stock/items"],
+    enabled: true
+  });
+  const stockItems: StockItem[] = (stockResponse as any)?.data || [];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Total de Itens</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stockItems.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Valor Total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              R$ {stockItems.reduce((acc, item) => acc + item.totalValue, 0).toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Itens Críticos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {stockItems.filter(item => item.status === 'critical').length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Item</TableHead>
+            <TableHead>Estoque</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Valor</TableHead>
+            <TableHead>Última Movimentação</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {stockItems.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell>
+                <div>
+                  <div className="font-medium">{item.itemName}</div>
+                  <div className="text-sm text-muted-foreground">{item.itemCode}</div>
+                </div>
+              </TableCell>
+              <TableCell>{item.currentStock}</TableCell>
+              <TableCell>
+                <Badge className={getStatusColor(item.status)}>
+                  {getStatusLabel(item.status)}
+                </Badge>
+              </TableCell>
+              <TableCell>R$ {item.totalValue.toLocaleString()}</TableCell>
+              <TableCell>{new Date(item.lastMovement).toLocaleDateString()}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// Warehouses Tab Component
+function WarehousesTab({ warehouses }: { warehouses: any[] }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold">Gestão de Armazéns</h3>
+          <p className="text-sm text-muted-foreground">
+            Gerencie seus armazéns e localizações de estoque
+          </p>
+        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Armazém
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {warehouses.length === 0 ? (
+          <Card className="col-span-3">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Warehouse className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum armazém cadastrado</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Comece criando seu primeiro armazém para organizar o estoque
+              </p>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeiro Armazém
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          warehouses.map((warehouse: any) => (
+            <Card key={warehouse.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-base">{warehouse.name}</CardTitle>
+                <Warehouse className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {warehouse.location || 'Localização não informada'}
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Package className="h-4 w-4 mr-1" />
+                    {warehouse.itemCount || 0} itens
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 mr-1" />
+                    {warehouse.manager || 'Sem responsável'}
+                  </div>
+                </div>
+                <div className="flex space-x-2 mt-4">
+                  <Button size="sm" variant="outline" className="flex-1">
+                    <Eye className="h-4 w-4 mr-1" />
+                    Ver
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1">
+                    <Edit className="h-4 w-4 mr-1" />
+                    Editar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {warehouses.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Estatísticas dos Armazéns</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{warehouses.length}</div>
+                <p className="text-sm text-muted-foreground">Total de Armazéns</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {warehouses.reduce((acc, w) => acc + (w.itemCount || 0), 0)}
+                </div>
+                <p className="text-sm text-muted-foreground">Itens Totais</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  R$ {warehouses.reduce((acc, w) => acc + (w.totalValue || 0), 0).toLocaleString()}
+                </div>
+                <p className="text-sm text-muted-foreground">Valor Total</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {warehouses.filter(w => w.status === 'active').length}
+                </div>
+                <p className="text-sm text-muted-foreground">Armazéns Ativos</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+
 
 interface StockMovement {
   id: string;
@@ -70,6 +504,7 @@ export function StockManagement() {
   const [warehouseFilter, setWarehouseFilter] = useState("all");
   const [isNewMovementOpen, setIsNewMovementOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
 
   const { toast } = useToast();
@@ -94,256 +529,238 @@ export function StockManagement() {
     queryKey: ["/api/materials-services/stock/movements"],
     enabled: true
   });
-  const recentMovements: StockMovement[] = (movementsResponse as any)?.data || [];
+  const movements: StockMovement[] = (movementsResponse as any)?.data || [];
 
-  // Fetch warehouses for filters
+  // Fetch warehouses
   const { data: warehousesResponse } = useQuery({
     queryKey: ["/api/materials-services/warehouses"],
     enabled: true
   });
   const warehouses = (warehousesResponse as any)?.data || [];
 
-  // Stock movement mutation
-  const stockMovementMutation = useMutation({
+  // Mutation for creating stock movement
+  const createMovementMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', '/api/materials-services/stock/movements', data);
-      return response.json();
+      return apiRequest('POST', '/api/materials-services/stock/movements', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock"] });
-      toast({ title: "Sucesso", description: "Movimentação registrada com sucesso!" });
+      toast({ title: "Movimentação registrada com sucesso!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock/movements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock/stats"] });
       setIsNewMovementOpen(false);
     },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao registrar movimentação",
-        variant: "destructive"
-      });
+    onError: () => {
+      toast({ title: "Erro ao registrar movimentação", variant: "destructive" });
     }
   });
 
-  // Stock adjustment mutation
-  const stockAdjustmentMutation = useMutation({
+  // Mutation for stock adjustment
+  const adjustmentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', '/api/materials-services/stock/adjustments', data);
-      return response.json();
+      return apiRequest('POST', '/api/materials-services/stock/adjustments', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock"] });
-      toast({ title: "Sucesso", description: "Ajuste de estoque realizado com sucesso!" });
+      toast({ title: "Ajuste de estoque realizado com sucesso!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock/movements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/stock/stats"] });
       setIsAdjustmentOpen(false);
     },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao realizar ajuste",
-        variant: "destructive"
-      });
+    onError: () => {
+      toast({ title: "Erro ao realizar ajuste de estoque", variant: "destructive" });
     }
   });
 
+  // Handlers
+  const handleCreateMovement = (data: any) => {
+    createMovementMutation.mutate(data);
+  };
+
+  const handleStockAdjustment = (data: any) => {
+    adjustmentMutation.mutate(data);
+  };
+
   // Filter stock items
-  const filteredStockItems = stockItems.filter((item: StockItem) => {
+  const filteredStockItems = stockItems.filter(item => {
     const matchesSearch = item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.itemCode.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    const matchesWarehouse = warehouseFilter === "all" || item.warehouseId === warehouseFilter;
+    const matchesWarehouse = warehouseFilter === "all" || item.warehouseName === warehouseFilter;
     
     return matchesSearch && matchesStatus && matchesWarehouse;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ok': return 'bg-green-100 text-green-800';
-      case 'low': return 'bg-yellow-100 text-yellow-800';
-      case 'critical': return 'bg-red-100 text-red-800';
-      case 'overstock': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'ok': return 'Normal';
-      case 'low': return 'Baixo';
-      case 'critical': return 'Crítico';
-      case 'overstock': return 'Excesso';
-      default: return 'Indefinido';
-    }
-  };
-
-  const getMovementTypeIcon = (type: string) => {
-    switch (type) {
-      case 'entry': return <ArrowUp className="h-4 w-4 text-green-600" />;
-      case 'exit': return <ArrowDown className="h-4 w-4 text-red-600" />;
-      case 'transfer': return <ArrowUpDown className="h-4 w-4 text-blue-600" />;
-      case 'adjustment': return <Edit className="h-4 w-4 text-orange-600" />;
-      default: return <Package className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getMovementTypeLabel = (type: string) => {
-    switch (type) {
-      case 'entry': return 'Entrada';
-      case 'exit': return 'Saída';
-      case 'transfer': return 'Transferência';
-      case 'adjustment': return 'Ajuste';
-      default: return type;
-    }
-  };
-
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-          Gestão de Estoque
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400">
-          Controle completo de estoque multi-local com movimentações em tempo real
-        </p>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Gestão de Estoque</h1>
+          <p className="text-muted-foreground">
+            Controle completo do seu inventário e movimentações
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsNewMovementOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Movimentação
+          </Button>
+          <Button variant="outline" onClick={() => setIsAdjustmentOpen(true)}>
+            <ArrowUpDown className="h-4 w-4 mr-2" />
+            Ajuste de Estoque
+          </Button>
+          <Button variant="outline" onClick={() => setIsInventoryOpen(true)}>
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Inventário
+          </Button>
+        </div>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Itens em Estoque</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stockStats.totalItems || 0}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {stockStats.activeWarehouses || 0} armazéns ativos
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
-            <TrendingDown className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stockStats.lowStock || 0}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Requer atenção
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {(stockStats.totalValue || 0).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Inventário total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Movimentações Hoje</CardTitle>
-            <Warehouse className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stockStats.todayMovements || 0}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Últimas 24 horas
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4">
-        <Dialog open={isNewMovementOpen} onOpenChange={setIsNewMovementOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Movimentação
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Nova Movimentação de Estoque</DialogTitle>
-              <DialogDescription>
-                Registre uma nova movimentação de entrada, saída ou transferência.
-              </DialogDescription>
-            </DialogHeader>
-            <NewMovementForm 
-              onSubmit={(data) => stockMovementMutation.mutate(data)}
-              isLoading={stockMovementMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isAdjustmentOpen} onOpenChange={setIsAdjustmentOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <Edit className="h-4 w-4 mr-2" />
-              Ajuste de Estoque
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Ajuste de Estoque</DialogTitle>
-              <DialogDescription>
-                Corrija quantidades de estoque com motivo para auditoria.
-              </DialogDescription>
-            </DialogHeader>
-            <AdjustmentForm 
-              onSubmit={(data) => stockAdjustmentMutation.mutate(data)}
-              isLoading={stockAdjustmentMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <Button variant="outline">
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          Inventário
-        </Button>
-      </div>
-
-      {/* Main Content */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="items">Itens em Estoque</TabsTrigger>
           <TabsTrigger value="movements">Movimentações</TabsTrigger>
           <TabsTrigger value="warehouses">Armazéns</TabsTrigger>
         </TabsList>
 
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Itens em Estoque</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stockStats.totalItems || stockItems.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stockStats.activeItems || stockItems.filter(item => item.status !== 'critical').length} ativos
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stockStats.lowStockItems || stockItems.filter(item => item.status === 'low').length}
+                </div>
+                <p className="text-xs text-muted-foreground">Necessitam reposição</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  R$ {(stockStats.totalValue || stockItems.reduce((acc, item) => acc + item.totalValue, 0)).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Inventário completo</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Movimentações Hoje</CardTitle>
+                <ArrowUpDown className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stockStats.todayMovements || movements.length}</div>
+                <p className="text-xs text-muted-foreground">Entradas e saídas</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Movements */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Movimentações Recentes</CardTitle>
+              <CardDescription>
+                Últimas movimentações de estoque registradas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {movements.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">Nenhuma movimentação registrada</h3>
+                  <p>As movimentações de estoque aparecerão aqui</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Armazém</TableHead>
+                      <TableHead>Data</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {movements.slice(0, 5).map((movement) => (
+                      <TableRow key={movement.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{movement.itemName}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={movement.movementType === 'entry' ? 'default' : 'secondary'}>
+                            {movement.movementType === 'entry' ? 'Entrada' : 
+                             movement.movementType === 'exit' ? 'Saída' : 
+                             movement.movementType === 'transfer' ? 'Transferência' : 'Ajuste'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={movement.movementType === 'entry' ? 'text-green-600' : 'text-red-600'}>
+                            {movement.movementType === 'entry' ? '+' : '-'}{movement.quantity}
+                          </span>
+                        </TableCell>
+                        <TableCell>{movement.warehouseName}</TableCell>
+                        <TableCell>{new Date(movement.createdAt).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Items Tab */}
         <TabsContent value="items" className="space-y-6">
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Filtros</CardTitle>
+              <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="search">Buscar Item</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="search"
                       placeholder="Nome ou código do item..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
+                      className="pl-10"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Status do Estoque</Label>
+                  <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos os status" />
@@ -351,7 +768,7 @@ export function StockManagement() {
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
                       <SelectItem value="ok">Normal</SelectItem>
-                      <SelectItem value="low">Estoque Baixo</SelectItem>
+                      <SelectItem value="low">Baixo</SelectItem>
                       <SelectItem value="critical">Crítico</SelectItem>
                       <SelectItem value="overstock">Excesso</SelectItem>
                     </SelectContent>
@@ -359,7 +776,7 @@ export function StockManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Armazém</Label>
+                  <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos os armazéns" />
@@ -367,58 +784,51 @@ export function StockManagement() {
                     <SelectContent>
                       <SelectItem value="all">Todos os armazéns</SelectItem>
                       {warehouses.map((warehouse: any) => (
-                        <SelectItem key={warehouse.id} value={warehouse.id}>
+                        <SelectItem key={warehouse.id} value={warehouse.name}>
                           {warehouse.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="flex items-end">
-                  <Button variant="outline" className="w-full">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Limpar Filtros
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Stock Items Table */}
+          {/* Items List */}
           <Card>
             <CardHeader>
-              <CardTitle>Itens em Estoque ({filteredStockItems.length})</CardTitle>
+              <CardTitle>Itens em Estoque</CardTitle>
+              <CardDescription>
+                Lista de todos os itens cadastrados no sistema
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Armazém</TableHead>
-                    <TableHead>Estoque Atual</TableHead>
-                    <TableHead>Disponível</TableHead>
-                    <TableHead>Min/Max</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Valor Total</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingStock ? (
+              {isLoadingStock ? (
+                <div className="text-center py-8">
+                  <p>Carregando itens...</p>
+                </div>
+              ) : filteredStockItems.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">Nenhum item encontrado</h3>
+                  <p>Verifique os filtros aplicados</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        Carregando itens...
-                      </TableCell>
+                      <TableHead>Item</TableHead>
+                      <TableHead>Estoque Atual</TableHead>
+                      <TableHead>Min/Max</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Valor Total</TableHead>
+                      <TableHead>Armazém</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
-                  ) : filteredStockItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        Nenhum item encontrado
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredStockItems.map((item: StockItem) => (
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStockItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
                           <div>
@@ -426,16 +836,12 @@ export function StockManagement() {
                             <div className="text-sm text-muted-foreground">{item.itemCode}</div>
                           </div>
                         </TableCell>
-                        <TableCell>{item.warehouseName}</TableCell>
                         <TableCell>
-                          <div className="font-medium">{item.currentStock}</div>
-                          {item.reservedStock > 0 && (
-                            <div className="text-sm text-muted-foreground">
-                              {item.reservedStock} reservado
-                            </div>
-                          )}
+                          <div className="text-center">
+                            <span className="text-lg font-semibold">{item.currentStock}</span>
+                            <div className="text-xs text-muted-foreground">unidades</div>
+                          </div>
                         </TableCell>
-                        <TableCell>{item.availableStock}</TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <div>Min: {item.minimumStock}</div>
@@ -447,12 +853,11 @@ export function StockManagement() {
                             {getStatusLabel(item.status)}
                           </Badge>
                         </TableCell>
+                        <TableCell>R$ {item.totalValue.toLocaleString()}</TableCell>
+                        <TableCell>{item.warehouseName}</TableCell>
                         <TableCell>
-                          R$ {item.totalValue.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Button size="sm" variant="outline">
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline" onClick={() => setSelectedItem(item)}>
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button size="sm" variant="outline">
@@ -461,10 +866,10 @@ export function StockManagement() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -473,213 +878,114 @@ export function StockManagement() {
         <TabsContent value="movements" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Movimentações Recentes</CardTitle>
+              <CardTitle>Histórico de Movimentações</CardTitle>
               <CardDescription>
-                Histórico das últimas movimentações de estoque
+                Todas as movimentações de estoque registradas
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data/Hora</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Armazém</TableHead>
-                    <TableHead>Quantidade</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead>Usuário</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentMovements.length === 0 ? (
+              {movements.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <ArrowUpDown className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">Nenhuma movimentação registrada</h3>
+                  <p>As movimentações de estoque aparecerão aqui</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        Nenhuma movimentação encontrada
-                      </TableCell>
+                      <TableHead>Item</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Custo Total</TableHead>
+                      <TableHead>Armazém</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Data</TableHead>
                     </TableRow>
-                  ) : (
-                    recentMovements.map((movement: StockMovement) => (
+                  </TableHeader>
+                  <TableBody>
+                    {movements.map((movement) => (
                       <TableRow key={movement.id}>
-                        <TableCell>
-                          {new Date(movement.createdAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {getMovementTypeIcon(movement.movementType)}
-                            <span>{getMovementTypeLabel(movement.movementType)}</span>
-                          </div>
-                        </TableCell>
                         <TableCell>
                           <div>
                             <div className="font-medium">{movement.itemName}</div>
                           </div>
                         </TableCell>
+                        <TableCell>
+                          <Badge variant={movement.movementType === 'entry' ? 'default' : 'secondary'}>
+                            {movement.movementType === 'entry' ? 'Entrada' : 
+                             movement.movementType === 'exit' ? 'Saída' : 
+                             movement.movementType === 'transfer' ? 'Transferência' : 'Ajuste'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={movement.movementType === 'entry' ? 'text-green-600' : 'text-red-600'}>
+                            {movement.movementType === 'entry' ? '+' : '-'}{movement.quantity}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {movement.totalCost ? `R$ ${movement.totalCost.toLocaleString()}` : '-'}
+                        </TableCell>
                         <TableCell>{movement.warehouseName}</TableCell>
-                        <TableCell>{movement.quantity}</TableCell>
-                        <TableCell>{movement.reason}</TableCell>
                         <TableCell>{movement.createdBy}</TableCell>
+                        <TableCell>{new Date(movement.createdAt).toLocaleString()}</TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Low Stock Alerts */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                  <span>Alertas de Estoque Baixo</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {filteredStockItems
-                    .filter((item: StockItem) => item.status === 'low' || item.status === 'critical')
-                    .slice(0, 5)
-                    .map((item: StockItem) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <div className="font-medium">{item.itemName}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {item.currentStock} / {item.minimumStock} mín.
-                          </div>
-                        </div>
-                        <Badge className={getStatusColor(item.status)}>
-                          {getStatusLabel(item.status)}
-                        </Badge>
-                      </div>
-                    ))}
-                  {filteredStockItems.filter((item: StockItem) => 
-                    item.status === 'low' || item.status === 'critical'
-                  ).length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhum alerta de estoque baixo
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Atividade Recente</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentMovements.slice(0, 5).map((movement: StockMovement) => (
-                    <div key={movement.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                      {getMovementTypeIcon(movement.movementType)}
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {getMovementTypeLabel(movement.movementType)} - {movement.itemName}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {movement.quantity} unidades - {movement.reason}
-                        </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(movement.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
-                  {recentMovements.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhuma atividade recente
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         {/* Warehouses Tab */}
         <TabsContent value="warehouses" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Armazéns</CardTitle>
-              <CardDescription>
-                Configuração e status dos armazéns
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Warehouse className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">Gestão de Armazéns</h3>
-                <p>Funcionalidade em desenvolvimento</p>
-              </div>
-            </CardContent>
-          </Card>
+          <WarehousesTab warehouses={warehouses} />
         </TabsContent>
       </Tabs>
+
+      {/* Modals */}
+      <Dialog open={isNewMovementOpen} onOpenChange={setIsNewMovementOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Nova Movimentação de Estoque</DialogTitle>
+            <DialogDescription>
+              Registre entrada, saída ou transferência de estoque
+            </DialogDescription>
+          </DialogHeader>
+          <NewMovementForm 
+            onSubmit={handleCreateMovement} 
+            isLoading={createMovementMutation.isPending} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAdjustmentOpen} onOpenChange={setIsAdjustmentOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ajuste de Estoque</DialogTitle>
+            <DialogDescription>
+              Corrija a quantidade em estoque de um item
+            </DialogDescription>
+          </DialogHeader>
+          <AdjustmentForm 
+            onSubmit={handleStockAdjustment} 
+            isLoading={adjustmentMutation.isPending} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isInventoryOpen} onOpenChange={setIsInventoryOpen}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle>Inventário de Estoque</DialogTitle>
+            <DialogDescription>
+              Visualização completa do inventário atual
+            </DialogDescription>
+          </DialogHeader>
+          <InventoryModal />
+        </DialogContent>
+      </Dialog>
     </div>
-  );
-}
-
-// Form components would be implemented separately
-function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void; isLoading: boolean }) {
-  const [formData, setFormData] = useState({
-    itemId: '',
-    warehouseId: '',
-    movementType: 'entry',
-    quantity: '',
-    reason: '',
-    unitCost: ''
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="text-center py-8 text-muted-foreground">
-        <p>Formulário de movimentação em desenvolvimento</p>
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline">Cancelar</Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Salvando..." : "Salvar"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void; isLoading: boolean }) {
-  const [formData, setFormData] = useState({
-    itemId: '',
-    warehouseId: '',
-    newQuantity: '',
-    reason: ''
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="text-center py-8 text-muted-foreground">
-        <p>Formulário de ajuste em desenvolvimento</p>
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline">Cancelar</Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Salvando..." : "Salvar"}
-        </Button>
-      </div>
-    </form>
   );
 }
