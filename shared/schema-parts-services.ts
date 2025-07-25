@@ -11,10 +11,18 @@ export const items = pgTable("items", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   
-  // Informações básicas
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  type: varchar("type", { length: 50 }).notNull(), // 'part' | 'service' | 'kit'
+  // Informações básicas obrigatórias conforme requisitos
+  active: boolean("active").notNull().default(true), // Ativo (SIM/NÃO)
+  type: varchar("type", { length: 50 }).notNull(), // Tipo: Material/Serviço
+  title: varchar("title", { length: 255 }).notNull(), // Nome
+  integrationCode: varchar("integration_code", { length: 100 }), // Código de Integração
+  description: text("description"), // Descrição
+  measurementUnit: varchar("measurement_unit", { length: 50 }).default("UN"), // Unidade de Medida
+  defaultMaintenancePlan: text("default_maintenance_plan"), // Plano de manutenção padrão
+  itemGroup: varchar("item_group", { length: 100 }), // Grupo
+  defaultChecklist: text("default_checklist"), // Checklist Padrão
+  
+  // Campos adicionais para organização
   category: varchar("category", { length: 100 }),
   subcategory: varchar("subcategory", { length: 100 }),
   
@@ -31,16 +39,12 @@ export const items = pgTable("items", {
   specifications: jsonb("specifications"),
   technicalDetails: text("technical_details"),
   
-  // Campos obrigatórios do requisito
-  defaultMaintenancePlan: text("default_maintenance_plan"),
-  itemGroup: varchar("item_group", { length: 100 }),
-  defaultChecklist: text("default_checklist"),
+  
   
   // Informações comerciais
   costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
   salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
   currency: varchar("currency", { length: 3 }).default("BRL"),
-  unit: varchar("unit", { length: 50 }).default("UN"), // UN, KG, M, L, etc.
   
   // Classificação ABC
   abcClassification: varchar("abc_classification", { length: 1 }), // A, B, C
@@ -48,7 +52,6 @@ export const items = pgTable("items", {
   
   // Status e controle
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, inactive, discontinued
-  active: boolean("active").notNull().default(true),
   
   // Auditoria
   createdAt: timestamp("created_at").defaultNow().notNull(),
