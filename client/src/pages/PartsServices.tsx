@@ -15,6 +15,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ItemLinksModal } from "@/components/parts-services/ItemLinksModal";
+import { FileUploadModal } from "@/components/parts-services/FileUploadModal";
 import { 
   Search, 
   Plus, 
@@ -103,6 +105,10 @@ export default function PartsServices() {
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [isCreateSupplierOpen, setIsCreateSupplierOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedItemForLinks, setSelectedItemForLinks] = useState<any>(null);
+  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
+  const [selectedItemForUpload, setSelectedItemForUpload] = useState<any>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -528,14 +534,14 @@ export default function PartsServices() {
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm" title="Vínculos" onClick={() => {
-                            console.log('Vínculos do item:', item.id);
-                            // TODO: Implementar modal de vínculos
+                            setSelectedItemForLinks(item);
+                            setIsLinksModalOpen(true);
                           }}>
                             <Link className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm" title="Anexos" onClick={() => {
-                            console.log('Anexos do item:', item.id);
-                            // TODO: Implementar upload de anexos
+                            setSelectedItemForUpload(item);
+                            setIsUploadModalOpen(true);
                           }}>
                             <Paperclip className="h-4 w-4" />
                           </Button>
@@ -760,6 +766,22 @@ export default function PartsServices() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Vínculos */}
+      <ItemLinksModal
+        isOpen={isLinksModalOpen}
+        onOpenChange={setIsLinksModalOpen}
+        itemId={selectedItemForLinks?.id || ""}
+        itemTitle={selectedItemForLinks?.title || ""}
+      />
+
+      {/* Modal de Upload de Anexos */}
+      <FileUploadModal
+        isOpen={isUploadModalOpen}
+        onOpenChange={setIsUploadModalOpen}
+        itemId={selectedItemForUpload?.id || ""}
+        itemTitle={selectedItemForUpload?.title || ""}
+      />
     </div>
   );
 }
