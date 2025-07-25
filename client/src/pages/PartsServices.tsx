@@ -479,7 +479,7 @@ export default function PartsServices() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {itemsData?.map((item: Item) => (
+                  {Array.isArray(itemsData) && itemsData.map((item: Item) => (
                     <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center space-x-4">
@@ -672,7 +672,7 @@ export default function PartsServices() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {suppliersData?.map((supplier: Supplier) => (
+                  {Array.isArray(suppliersData) && suppliersData.map((supplier: Supplier) => (
                     <div key={supplier.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center space-x-4">
