@@ -72,10 +72,23 @@ const PartsServices = () => {
   const { data: dashboardStats } = useQuery<DashboardStats>({
     queryKey: ['parts-services', 'dashboard'],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+      
       const response = await fetch('/api/parts-services/dashboard/stats', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/auth';
+          throw new Error('Authentication expired');
+        }
+        throw new Error('Failed to fetch dashboard stats');
+      }
       return response.json();
     }
   });
@@ -83,13 +96,26 @@ const PartsServices = () => {
   const { data: itemsData } = useQuery({
     queryKey: ['parts-services', 'items', searchTerm],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+      
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
 
       const response = await fetch(`/api/parts-services/items?${params}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!response.ok) throw new Error('Failed to fetch items');
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/auth';
+          throw new Error('Authentication expired');
+        }
+        throw new Error('Failed to fetch items');
+      }
       return response.json();
     },
     enabled: activeTab === 'items'
@@ -98,13 +124,26 @@ const PartsServices = () => {
   const { data: suppliersData } = useQuery({
     queryKey: ['parts-services', 'suppliers', searchTerm],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+      
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
 
       const response = await fetch(`/api/parts-services/suppliers?${params}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!response.ok) throw new Error('Failed to fetch suppliers');
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/auth';
+          throw new Error('Authentication expired');
+        }
+        throw new Error('Failed to fetch suppliers');
+      }
       return response.json();
     },
     enabled: activeTab === 'suppliers'
@@ -113,13 +152,26 @@ const PartsServices = () => {
   const { data: locationsData } = useQuery({
     queryKey: ['parts-services', 'locations', searchTerm],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+      
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
 
       const response = await fetch(`/api/parts-services/locations?${params}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!response.ok) throw new Error('Failed to fetch locations');
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/auth';
+          throw new Error('Authentication expired');
+        }
+        throw new Error('Failed to fetch locations');
+      }
       return response.json();
     },
     enabled: activeTab === 'locations'
