@@ -302,7 +302,7 @@ export class TenantPartsServicesRepository {
     const offset = filters?.offset || 0;
 
     try {
-      let whereClause = sql`WHERE sl.tenant_id = ${tenantId}`;
+      let whereClause = sql`WHERE sl.tenant_id = ${tenantId}`;`;
 
       if (filters?.itemId) {
         whereClause = sql`${whereClause} AND sl.item_id = ${filters.itemId}`;
