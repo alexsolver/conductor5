@@ -31,6 +31,11 @@ export const items = pgTable("items", {
   specifications: jsonb("specifications"),
   technicalDetails: text("technical_details"),
   
+  // Campos obrigatórios do requisito
+  defaultMaintenancePlan: text("default_maintenance_plan"),
+  itemGroup: varchar("item_group", { length: 100 }),
+  defaultChecklist: text("default_checklist"),
+  
   // Informações comerciais
   costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
   salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
@@ -55,6 +60,63 @@ export const items = pgTable("items", {
   tags: text("tags").array(),
   customFields: jsonb("custom_fields"),
   notes: text("notes")
+});
+
+// Tabela de vínculos item-cliente com campos específicos
+export const itemCustomerLinks = pgTable("item_customer_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Relacionamentos
+  itemId: uuid("item_id").notNull().references(() => items.id),
+  customerId: uuid("customer_id").notNull(), // vinculado ao módulo empresa cliente
+  
+  // Campos específicos por cliente
+  nickname: varchar("nickname", { length: 255 }),
+  customerSku: varchar("customer_sku", { length: 100 }),
+  barcode: varchar("barcode", { length: 255 }),
+  qrCode: varchar("qr_code", { length: 255 }),
+  isAsset: boolean("is_asset").default(false),
+  
+  // Status
+  isActive: boolean("is_active").notNull().default(true),
+  
+  // Auditoria
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by")
+});
+
+// Tabela de vínculos item-fornecedor
+export const itemSupplierLinks = pgTable("item_supplier_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Relacionamentos
+  itemId: uuid("item_id").notNull().references(() => items.id),
+  supplierId: uuid("supplier_id").notNull().references(() => suppliers.id),
+  
+  // Campos específicos do fornecedor
+  partNumber: varchar("part_number", { length: 100 }),
+  supplierDescription: text("supplier_description"),
+  supplierQrCode: varchar("supplier_qr_code", { length: 255 }),
+  supplierBarcode: varchar("supplier_barcode", { length: 255 }),
+  
+  // Informações comerciais
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }),
+  minimumOrderQuantity: decimal("minimum_order_quantity", { precision: 10, scale: 2 }),
+  leadTime: integer("lead_time"), // dias
+  
+  // Status
+  isActive: boolean("is_active").notNull().default(true),
+  isPreferred: boolean("is_preferred").default(false),
+  
+  // Auditoria
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by")
 });
 
 // Tabela de vínculos entre itens (substitutos, compatíveis, kits)
@@ -355,6 +417,18 @@ export const insertSupplierCatalogSchema = createInsertSchema(supplierCatalog).o
   updatedAt: true,
 });
 
+export const insertItemCustomerLinkSchema = createInsertSchema(itemCustomerLinks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Item = typeof items.$inferSelect;
 export type InsertItem = z.infer<typeof insertItemSchema>;
@@ -379,3 +453,9 @@ export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
 
 export type SupplierCatalog = typeof supplierCatalog.$inferSelect;
 export type InsertSupplierCatalog = z.infer<typeof insertSupplierCatalogSchema>;
+
+export type ItemCustomerLink = typeof itemCustomerLinks.$inferSelect;
+export type InsertItemCustomerLink = z.infer<typeof insertItemCustomerLinkSchema>;
+
+export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
+export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
