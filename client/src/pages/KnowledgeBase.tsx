@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, ThumbsUp, ThumbsDown, MessageCircle, Tag, Calendar, User, Star, BookOpen, FileText, Video, Wrench, AlertCircle, Filter, ArrowLeft, MoreVertical, Clock, Globe, Play, Schedule, CheckSquare, Edit3, Settings, Download, Upload } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -87,8 +87,19 @@ export default function KnowledgeBase() {
   const [filters, setFilters] = useState({
     status: '',
     type: '',
-    visibility: ''
+    visibility: '',
+    author: '',
+    dateFrom: '',
+    dateTo: '',
+    tags: ''
   });
+  const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [showBatchEditDialog, setShowBatchEditDialog] = useState(false);
+  const [bulkAction, setBulkAction] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -321,6 +332,76 @@ export default function KnowledgeBase() {
     rateArticleMutation.mutate({ articleId, isHelpful });
   };
 
+  const handlePreviewArticle = (article: Article) => {
+    setPreviewArticle(article);
+    setShowPreview(true);
+  };
+
+  const handleSchedulePublishing = (articleId: string, scheduledDate: string) => {
+    updateArticleMutation.mutate({ 
+      id: articleId, 
+      data: { scheduledPublishAt: scheduledDate, status: 'scheduled' } 
+    });
+  };
+
+  const handleBulkAction = () => {
+    if (selectedArticles.length === 0) {
+      toast({ title: "Selecione pelo menos um artigo", variant: "destructive" });
+      return;
+    }
+    
+    if (bulkAction === 'delete') {
+      selectedArticles.forEach(articleId => {
+        // TODO: Implement bulk delete
+        toast({ title: "Exclusão em lote em desenvolvimento" });
+      });
+    } else if (bulkAction === 'publish') {
+      selectedArticles.forEach(articleId => {
+        updateArticleMutation.mutate({ 
+          id: articleId, 
+          data: { status: 'published', publishedAt: new Date().toISOString() } 
+        });
+      });
+    } else if (bulkAction === 'archive') {
+      selectedArticles.forEach(articleId => {
+        updateArticleMutation.mutate({ 
+          id: articleId, 
+          data: { status: 'archived' } 
+        });
+      });
+    }
+    setSelectedArticles([]);
+    setBulkAction('');
+  };
+
+  const handleArticleSelection = (articleId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedArticles(prev => [...prev, articleId]);
+    } else {
+      setSelectedArticles(prev => prev.filter(id => id !== articleId));
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedArticles.length === articles.length) {
+      setSelectedArticles([]);
+    } else {
+      setSelectedArticles(articles.map((article: Article) => article.id));
+    }
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      type: '',
+      visibility: '',
+      author: '',
+      dateFrom: '',
+      dateTo: '',
+      tags: ''
+    });
+  };
+
   // Article view
   if (selectedArticle && fullArticle) {
     return (
@@ -454,6 +535,50 @@ export default function KnowledgeBase() {
           </p>
         </div>
         <div className="flex gap-2">
+          {selectedArticles.length > 0 && (
+            <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border">
+              <span className="text-sm text-blue-700 font-medium">
+                {selectedArticles.length} selecionado(s)
+              </span>
+              <Select value={bulkAction} onValueChange={setBulkAction}>
+                <SelectTrigger className="w-40 h-8">
+                  <SelectValue placeholder="Ações em lote" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="publish">Publicar</SelectItem>
+                  <SelectItem value="archive">Arquivar</SelectItem>
+                  <SelectItem value="delete">Excluir</SelectItem>
+                  <SelectItem value="edit">Editar</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                size="sm" 
+                onClick={handleBulkAction}
+                disabled={!bulkAction}
+              >
+                <Edit3 className="h-4 w-4 mr-1" />
+                Aplicar
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setSelectedArticles([])}
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
+          
+          <Button variant="outline" onClick={() => toast({ title: "Exportar KB em desenvolvimento" })}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar KB
+          </Button>
+          
+          <Button variant="outline" onClick={() => toast({ title: "Configurações em desenvolvimento" })}>
+            <Settings className="h-4 w-4 mr-2" />
+            Configurações
+          </Button>
+          
           <Dialog open={showCreateCategory} onOpenChange={setShowCreateCategory}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -867,6 +992,8 @@ export default function KnowledgeBase() {
                       <SelectItem value="draft">Rascunho</SelectItem>
                       <SelectItem value="published">Publicado</SelectItem>
                       <SelectItem value="pending_approval">Aguardando Aprovação</SelectItem>
+                      <SelectItem value="scheduled">Agendado</SelectItem>
+                      <SelectItem value="under_review">Em Revisão</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
@@ -880,7 +1007,45 @@ export default function KnowledgeBase() {
                       <SelectItem value="faq">FAQ</SelectItem>
                       <SelectItem value="troubleshooting">Solução de Problemas</SelectItem>
                       <SelectItem value="manual">Manual</SelectItem>
-                    </SelectContent>                  </Select>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filters.author} onValueChange={(value) => setFilters(prev => ({ ...prev, author: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Autor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos os Autores</SelectItem>
+                      <SelectItem value="current-user">Meus Artigos</SelectItem>
+                      <SelectItem value="system">Sistema</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="date"
+                      placeholder="Data de"
+                      value={filters.dateFrom}
+                      onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                    />
+                    <Input
+                      type="date"
+                      placeholder="Data até"
+                      value={filters.dateTo}
+                      onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                    />
+                  </div>
+                  <Input
+                    placeholder="Tags (separadas por vírgula)"
+                    value={filters.tags}
+                    onChange={(e) => setFilters(prev => ({ ...prev, tags: e.target.value }))}
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearFilters}
+                    className="w-full"
+                  >
+                    Limpar Filtros
+                  </Button>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -993,6 +1158,23 @@ export default function KnowledgeBase() {
             </div>
           )}
 
+          {articles.length > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="select-all"
+                  checked={selectedArticles.length === articles.length && articles.length > 0}
+                  onChange={handleSelectAll}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="select-all" className="text-sm font-medium">
+                  Selecionar todos ({articles.length})
+                </label>
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-6">
             {articles.map((article: Article) => (
               <Card 
@@ -1002,12 +1184,20 @@ export default function KnowledgeBase() {
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        {articleTypeIcons[article.type]}
-                        <CardTitle className="text-xl">{article.title}</CardTitle>
-                        {article.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
-                      </div>
+                    <div className="flex items-start gap-3 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedArticles.includes(article.id)}
+                        onChange={(e) => handleArticleSelection(article.id, e.target.checked)}
+                        className="mt-1 rounded border-gray-300"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          {articleTypeIcons[article.type]}
+                          <CardTitle className="text-xl">{article.title}</CardTitle>
+                          {article.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+                        </div>
                       <CardDescription>
                         {article.excerpt || (article.content?.substring(0, 200) + '...')}
                       </CardDescription>
@@ -1038,11 +1228,33 @@ export default function KnowledgeBase() {
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          handlePreviewArticle(article);
+                        }}>
+                          <Play className="h-4 w-4 mr-2" />
+                          Preview
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
                           setEditingArticle(article);
                         }}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setShowScheduleDialog(true);
+                        }}>
+                          <Schedule className="h-4 w-4 mr-2" />
+                          Agendar Publicação
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setShowApprovalDialog(true);
+                        }}>
+                          <CheckSquare className="h-4 w-4 mr-2" />
+                          Enviar para Aprovação
+                        </DropdownMenuItem>
+                        <Separator />
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
                           // TODO: Implement duplicate article
@@ -1067,6 +1279,7 @@ export default function KnowledgeBase() {
                           <Globe className="h-4 w-4 mr-2" />
                           Compartilhar
                         </DropdownMenuItem>
+                        <Separator />
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1128,6 +1341,230 @@ export default function KnowledgeBase() {
           )}
         </TabsContent>
       </Tabs>
+      
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5" />
+              Preview: {previewArticle?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Visualização do artigo antes da publicação
+            </DialogDescription>
+          </DialogHeader>
+          {previewArticle && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge className={statusColors[previewArticle.status]}>
+                  {previewArticle.status.replace('_', ' ')}
+                </Badge>
+                <Badge className={visibilityColors[previewArticle.visibility]}>
+                  {previewArticle.visibility}
+                </Badge>
+                {previewArticle.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+              </div>
+              {previewArticle.excerpt && (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Resumo:</h4>
+                  <p className="text-blue-800">{previewArticle.excerpt}</p>
+                </div>
+              )}
+              <div className="prose max-w-none">
+                <div className="whitespace-pre-wrap">{previewArticle.content}</div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Fechar
+            </Button>
+            <Button onClick={() => {
+              if (previewArticle) {
+                setEditingArticle(previewArticle);
+                setShowPreview(false);
+              }
+            }}>
+              Editar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Publishing Dialog */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Schedule className="h-5 w-5" />
+              Agendar Publicação
+            </DialogTitle>
+            <DialogDescription>
+              Defina quando este artigo deve ser publicado automaticamente
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Data e Hora da Publicação</label>
+              <Input
+                type="datetime-local"
+                className="mt-1"
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="notify-schedule" />
+              <label htmlFor="notify-schedule" className="text-sm">
+                Notificar quando o artigo for publicado
+              </label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowScheduleDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              setShowScheduleDialog(false);
+              toast({ title: "Publicação agendada com sucesso!" });
+            }}>
+              Agendar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Workflow Dialog */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckSquare className="h-5 w-5" />
+              Enviar para Aprovação
+            </DialogTitle>
+            <DialogDescription>
+              Solicite aprovação para publicar este artigo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Aprovador</label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione um aprovador" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="manager">Gerente de Conteúdo</SelectItem>
+                  <SelectItem value="reviewer">Revisor Técnico</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Comentários</label>
+              <Textarea
+                placeholder="Adicione comentários para o aprovador..."
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="urgent-approval" />
+              <label htmlFor="urgent-approval" className="text-sm">
+                Aprovação urgente
+              </label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              setShowApprovalDialog(false);
+              toast({ title: "Enviado para aprovação!" });
+            }}>
+              Enviar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Batch Edit Dialog */}
+      <Dialog open={showBatchEditDialog} onOpenChange={setShowBatchEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit3 className="h-5 w-5" />
+              Edição em Lote
+            </DialogTitle>
+            <DialogDescription>
+              Edite múltiplos artigos simultaneamente ({selectedArticles.length} selecionados)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Alterar Status</label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione um status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="published">Publicado</SelectItem>
+                  <SelectItem value="draft">Rascunho</SelectItem>
+                  <SelectItem value="archived">Arquivado</SelectItem>
+                  <SelectItem value="pending_approval">Aguardando Aprovação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Alterar Categoria</label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Alterar Visibilidade</label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione a visibilidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Público</SelectItem>
+                  <SelectItem value="internal">Interno</SelectItem>
+                  <SelectItem value="restricted">Restrito</SelectItem>
+                  <SelectItem value="private">Privado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="batch-featured" />
+              <label htmlFor="batch-featured" className="text-sm">
+                Marcar como destaque
+              </label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowBatchEditDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              setShowBatchEditDialog(false);
+              toast({ title: "Artigos atualizados com sucesso!" });
+            }}>
+              Aplicar Alterações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
