@@ -76,8 +76,8 @@ interface ArticleWithCategory extends Article {
 const KnowledgeBase = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
   const [isCreateArticleOpen, setIsCreateArticleOpen] = useState(false);
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<ArticleWithCategory | null>(null);
@@ -486,7 +486,7 @@ const KnowledgeBase = () => {
             <SelectValue placeholder="Filtrar por categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((category: Category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
@@ -499,7 +499,7 @@ const KnowledgeBase = () => {
             <SelectValue placeholder="Filtrar por tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value="procedure">Procedimento</SelectItem>
             <SelectItem value="troubleshooting">Solução de Problemas</SelectItem>
             <SelectItem value="faq">FAQ</SelectItem>
