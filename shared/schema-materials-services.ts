@@ -585,6 +585,38 @@ export const dynamicPricing = pgTable('dynamic_pricing', {
 });
 
 // GESTÃO DE COMPLIANCE - Alinhado com tabelas reais do banco
+export const complianceAudits = pgTable('compliance_audits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  title: varchar('title', { length: 200 }).notNull(),
+  type: varchar('type', { length: 30 }).notNull(), // internal, external, regulatory, certification
+  status: varchar('status', { length: 20 }).notNull().default('planned'), // planned, in_progress, completed, cancelled
+  
+  auditorName: varchar('auditor_name', { length: 100 }),
+  auditorOrganization: varchar('auditor_organization', { length: 100 }),
+  
+  scheduledDate: timestamp('scheduled_date'),
+  startDate: timestamp('start_date'),
+  completionDate: timestamp('completion_date'),
+  
+  scope: text('scope'),
+  methodology: text('methodology'),
+  findings: jsonb('findings'),
+  recommendations: text('recommendations'),
+  
+  overallScore: decimal('overall_score', { precision: 5, scale: 2 }),
+  criticalIssues: integer('critical_issues').default(0),
+  majorIssues: integer('major_issues').default(0),
+  minorIssues: integer('minor_issues').default(0),
+  
+  responsiblePerson: uuid('responsible_person'),
+  nextAuditDate: timestamp('next_audit_date'),
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const complianceAlerts = pgTable('compliance_alerts', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
@@ -597,36 +629,6 @@ export const complianceAlerts = pgTable('compliance_alerts', {
   
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
-
-export const complianceCertifications = pgTable('compliance_certifications', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  
-  name: varchar('name', { length: 255 }),
-  issuer: varchar('issuer', { length: 255 }),
-  issuedDate: timestamp('issued_date'),
-  expiryDate: timestamp('expiry_date'),
-  status: varchar('status', { length: 20 }),
-  certificateNumber: varchar('certificate_number', { length: 100 }),
-  
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
-
-export const complianceScores = pgTable('compliance_scores', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  
-  category: varchar('category', { length: 50 }),
-  score: integer('score'),
-  maxScore: integer('max_score'),
-  calculatedAt: timestamp('calculated_at'),
-  details: jsonb('details')
-});
-  
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const complianceCertifications = pgTable('compliance_certifications', {
