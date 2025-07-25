@@ -1,0 +1,107 @@
+Módulo Materiais e Serviços 
+Crie uma página de controle de implantação e progresso para acompanharmos e desenvolva o módulo: 
+Módulo Materiais e Serviços 
+Siga o padrão sistêmico da plataforma e os requisitos abaixo
+ 
+0. Regras Gerais
+•	Módulo isolado conforme arquitetura da plataforma
+•	Sem dados mock; todos os dados criados no banco desde o início
+•	Padrão CRUD completo para todas as entidades
+•	Não criar botões sem função
+•	Testar todas as funcionalidades antes da entrega
+•	Controle de acesso (RBAC/ABAC)
+•	Rastreabilidade completa com logs para auditoria e compliance
+ 
+1. Catálogo e Cadastro de Itens
+
+Campos básicos do item:
+•	Ativo (SIM/NÃO)
+•	Tipo: Material / Serviço / Ativo
+•	Nome do item
+•	Código de Integração
+•	Descrição
+•	Unidade de Medida
+•	Plano de manutenção padrão (quando aplicável)
+•	Grupo / Categoria
+•	Checklist padrão (quando aplicável)
+•	Anexos (upload de arquivos)
+
+Vínculos:
+•	Vínculo com outros itens (kits, substitutos, equivalências)
+•	Vínculo com clientes:
+o	Apelido
+o	SKU
+o	Código de barras
+o	Código QR
+o	Asset (SIM/NÃO)
+•	Vínculo com fornecedores:
+o	Part Number
+o	Descrição
+o	Código QR
+o	Código de Barras
+
+Funcionalidades adicionais:
+•	Compatibilidade item ↔ equipamento / serviço
+•	Documentação técnica vinculada ao item
+•	Status do item (ativo, em análise, descontinuado)
+ 
+2. Gestão de Estoque
+
+Gestão multi-local:
+•	Estoque em armazéns fixos e móveis
+•	Controle de níveis (mínimo, máximo, ponto de reposição, lote econômico)
+•	Inventário físico (contagem cíclica e geral)
+•	Estoque consignado
+
+Operações:
+•	Movimentações: entrada, saída, transferências, devoluções
+•	Reservas para serviços programados
+
+Rastreabilidade:
+•	Controle de lotes, números de série e validade
+•	Kits de serviço por tipo de manutenção
+ 
+3. Gestão de Fornecedores
+•	Cadastro de fornecedores
+•	Catálogo de itens de cada fornecedor
+•	Solicitação e gestão de cotações múltiplas
+•	Histórico de preços e performance do fornecedor
+ 
+4. Gestão de Serviços
+•	Catálogo padronizado de serviços (tratados como itens especiais)
+•	Tempo estimado por tipo de serviço
+•	Checklist e procedimentos técnicos
+•	Lista de itens necessários para execução do serviço
+•	Histórico de execução e garantias
+•	Classificação de serviços por complexidade
+ 
+5. Controle de Ativos
+•	Cadastro de ativos hierárquico (máquina > componente > item)
+•	Geolocalização e rastreio de movimentação
+•	Histórico de manutenção completo
+•	Medidores e ciclo de vida (horímetro, km, tempo de uso)
+•	Garantias e contratos vinculados
+•	Etiquetas com QR code ou RFID
+•	Vínculo do ativo com OS, itens e custos
+ 
+6. Lista de Preços Unitários (LPU)
+
+Tabelas e Versões:
+•	Múltiplas LPUs por cliente, contrato ou centro de custo
+•	Versionamento, vigência e periodicidade
+•	Itens contemplados: materiais, ativos, serviços, deslocamentos e horas técnicas
+•	Preço unitário por item + descontos por escala
+•	Margens automáticas e preços especiais
+•	Histórico de alterações e simulação de preços
+
+Aplicação:
+•	Aplicação automática em OS e orçamentos
+•	Comparação valor estimado vs. executado
+•	Geração de orçamentos e faturas baseadas na LPU
+ 
+7. Compliance e Auditoria
+•	Rastreabilidade completa de movimentações
+•	Logs de auditoria detalhados
+•	Controle de acesso e permissões
+•	Certificações de qualidade e processos de recall
+•	Compliance ambiental (resíduos e reciclagem)
