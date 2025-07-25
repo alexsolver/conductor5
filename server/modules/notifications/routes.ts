@@ -16,7 +16,7 @@ import { NotificationService } from './infrastructure/services/NotificationServi
 import { UuidGenerator } from '../shared/infrastructure/UuidGenerator';
 import { ConsoleEmailService } from '../shared/infrastructure/services/EmailService';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { tenantValidator } from '../../middleware/tenantValidator';
+import { enhancedTenantValidator } from '../../middleware/tenantValidator';
 
 const router = Router();
 
@@ -57,7 +57,7 @@ const preferenceController = new NotificationPreferenceController(
 
 // Apply middleware
 router.use(jwtAuth);
-router.use(tenantValidator);
+router.use(enhancedTenantValidator());
 
 // Notification routes
 router.post('/notifications', (req, res) => notificationController.createNotification(req, res));
