@@ -1,4 +1,13 @@
-import { sql } from "drizzle-orm";
+import { desc, eq, and, or, ilike, sql } from 'drizzle-orm';
+import { 
+  items, 
+  suppliers, 
+  stockLocations, 
+  stockLevels,
+  stockMovements,
+  itemLinks,
+  supplierCatalog
+} from '../../../shared/schema-parts-services';
 import { db } from "../../db";
 
 export class TenantPartsServicesRepository {
@@ -9,7 +18,7 @@ export class TenantPartsServicesRepository {
   // ============================================
   // DASHBOARD AND STATISTICS
   // ============================================
-  
+
   async getDashboardStats(tenantId: string): Promise<{
     totalItems: number;
     totalSuppliers: number;
@@ -73,7 +82,7 @@ export class TenantPartsServicesRepository {
   // ============================================
   // ITEMS MANAGEMENT
   // ============================================
-  
+
   async getItems(tenantId: string, filters?: {
     search?: string;
     category?: string;
@@ -184,7 +193,7 @@ export class TenantPartsServicesRepository {
   // ============================================
   // SUPPLIERS MANAGEMENT
   // ============================================
-  
+
   async getSuppliers(tenantId: string, filters?: {
     search?: string;
     status?: string;
@@ -280,7 +289,7 @@ export class TenantPartsServicesRepository {
   // ============================================
   // STOCK LEVELS MANAGEMENT
   // ============================================
-  
+
   async getStockLevels(tenantId: string, filters?: {
     itemId?: string;
     locationId?: string;
@@ -347,7 +356,7 @@ export class TenantPartsServicesRepository {
   // ============================================
   // STOCK LOCATIONS MANAGEMENT
   // ============================================
-  
+
   async getStockLocations(tenantId: string, filters?: {
     search?: string;
     parentId?: string;
@@ -407,3 +416,4 @@ export class TenantPartsServicesRepository {
 }
 
 export const tenantPartsServicesRepository = new TenantPartsServicesRepository();
+```

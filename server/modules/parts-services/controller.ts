@@ -234,6 +234,528 @@ export class PartsServicesController {
     }
   }
 
+  async getItemById(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const item = await tenantPartsServicesRepository.getItemById(tenantId, id);
+
+      if (!item) {
+        return res.status(404).json({ error: 'Item não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        data: item
+      });
+    } catch (error) {
+      console.error('Error fetching item by ID:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar item',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async createItemLink(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+      const { itemId } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const linkData = {
+        ...req.body,
+        sourceItemId: itemId,
+        createdBy: userId,
+        updatedBy: userId
+      };
+
+      const newLink = await tenantPartsServicesRepository.createItemLink(tenantId, linkData);
+
+      res.status(201).json({
+        success: true,
+        data: newLink,
+        message: 'Vínculo criado com sucesso'
+      });
+    } catch (error) {
+      console.error('Error creating item link:', error);
+      res.status(500).json({ 
+        error: 'Erro ao criar vínculo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async getItemLinks(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { itemId } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const links = await tenantPartsServicesRepository.getItemLinks(tenantId, itemId);
+
+      res.json({
+        success: true,
+        data: links
+      });
+    } catch (error) {
+      console.error('Error fetching item links:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar vínculos do item',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async deleteItemLink(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const deleted = await tenantPartsServicesRepository.deleteItemLink(tenantId, id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Vínculo não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        message: 'Vínculo excluído com sucesso'
+      });
+    } catch (error) {
+      console.error('Error deleting item link:', error);
+      res.status(500).json({ 
+        error: 'Erro ao excluir vínculo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async createStockLocation(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const locationData = {
+        ...req.body,
+        createdBy: userId,
+        updatedBy: userId
+      };
+
+      const newLocation = await tenantPartsServicesRepository.createStockLocation(tenantId, locationData);
+
+      res.status(201).json({
+        success: true,
+        data: newLocation,
+        message: 'Localização criada com sucesso'
+      });
+    } catch (error) {
+      console.error('Error creating stock location:', error);
+      res.status(500).json({ 
+        error: 'Erro ao criar localização',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async getStockLocationById(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const location = await tenantPartsServicesRepository.getStockLocationById(tenantId, id);
+
+      if (!location) {
+        return res.status(404).json({ error: 'Localização não encontrada' });
+      }
+
+      res.json({
+        success: true,
+        data: location
+      });
+    } catch (error) {
+      console.error('Error fetching stock location by ID:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar localização',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async updateStockLocation(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const locationData = {
+        ...req.body,
+        updatedBy: userId
+      };
+
+      const updatedLocation = await tenantPartsServicesRepository.updateStockLocation(tenantId, id, locationData);
+
+      if (!updatedLocation) {
+        return res.status(404).json({ error: 'Localização não encontrada' });
+      }
+
+      res.json({
+        success: true,
+        data: updatedLocation,
+        message: 'Localização atualizada com sucesso'
+      });
+    } catch (error) {
+      console.error('Error updating stock location:', error);
+      res.status(500).json({ 
+        error: 'Erro ao atualizar localização',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async updateStockLevel(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { itemId, locationId } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const updatedLevel = await tenantPartsServicesRepository.updateStockLevel(tenantId, itemId, locationId, req.body);
+
+      res.json({
+        success: true,
+        data: updatedLevel,
+        message: 'Nível de estoque atualizado com sucesso'
+      });
+    } catch (error) {
+      console.error('Error updating stock level:', error);
+      res.status(500).json({ 
+        error: 'Erro ao atualizar nível de estoque',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async createStockMovement(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const movementData = {
+        ...req.body,
+        createdBy: userId
+      };
+
+      const newMovement = await tenantPartsServicesRepository.createStockMovement(tenantId, movementData);
+
+      res.status(201).json({
+        success: true,
+        data: newMovement,
+        message: 'Movimentação criada com sucesso'
+      });
+    } catch (error) {
+      console.error('Error creating stock movement:', error);
+      res.status(500).json({ 
+        error: 'Erro ao criar movimentação',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async getStockMovements(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const {
+        itemId,
+        locationId,
+        movementType,
+        limit = 50,
+        offset = 0
+      } = req.query;
+
+      const filters = {
+        itemId: itemId as string,
+        locationId: locationId as string,
+        movementType: movementType as string,
+        limit: Number(limit),
+        offset: Number(offset)
+      };
+
+      const movements = await tenantPartsServicesRepository.getStockMovements(tenantId, filters);
+
+      res.json({
+        success: true,
+        data: movements
+      });
+    } catch (error) {
+      console.error('Error fetching stock movements:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar movimentações',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async getSupplierById(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const supplier = await tenantPartsServicesRepository.getSupplierById(tenantId, id);
+
+      if (!supplier) {
+        return res.status(404).json({ error: 'Fornecedor não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        data: supplier
+      });
+    } catch (error) {
+      console.error('Error fetching supplier by ID:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar fornecedor',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async updateSupplier(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const supplierData = {
+        ...req.body,
+        updated_by: userId
+      };
+
+      const updatedSupplier = await tenantPartsServicesRepository.updateSupplier(tenantId, id, supplierData);
+
+      if (!updatedSupplier) {
+        return res.status(404).json({ error: 'Fornecedor não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        data: updatedSupplier,
+        message: 'Fornecedor atualizado com sucesso'
+      });
+    } catch (error) {
+      console.error('Error updating supplier:', error);
+      res.status(500).json({ 
+        error: 'Erro ao atualizar fornecedor',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async deleteSupplier(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const deleted = await tenantPartsServicesRepository.deleteSupplier(tenantId, id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Fornecedor não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        message: 'Fornecedor excluído com sucesso'
+      });
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
+      res.status(500).json({ 
+        error: 'Erro ao excluir fornecedor',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async createSupplierCatalogItem(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const catalogData = {
+        ...req.body,
+        updatedBy: userId
+      };
+
+      const newCatalogItem = await tenantPartsServicesRepository.createSupplierCatalogItem(tenantId, catalogData);
+
+      res.status(201).json({
+        success: true,
+        data: newCatalogItem,
+        message: 'Item do catálogo criado com sucesso'
+      });
+    } catch (error) {
+      console.error('Error creating supplier catalog item:', error);
+      res.status(500).json({ 
+        error: 'Erro ao criar item do catálogo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async getSupplierCatalog(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const {
+        supplierId,
+        itemId,
+        limit = 50,
+        offset = 0
+      } = req.query;
+
+      const filters = {
+        supplierId: supplierId as string,
+        itemId: itemId as string,
+        limit: Number(limit),
+        offset: Number(offset)
+      };
+
+      const catalog = await tenantPartsServicesRepository.getSupplierCatalog(tenantId, filters);
+
+      res.json({
+        success: true,
+        data: catalog
+      });
+    } catch (error) {
+      console.error('Error fetching supplier catalog:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar catálogo de fornecedores',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async updateSupplierCatalogItem(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const catalogData = {
+        ...req.body,
+        updatedBy: userId
+      };
+
+      const updatedItem = await tenantPartsServicesRepository.updateSupplierCatalogItem(tenantId, id, catalogData);
+
+      if (!updatedItem) {
+        return res.status(404).json({ error: 'Item do catálogo não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        data: updatedItem,
+        message: 'Item do catálogo atualizado com sucesso'
+      });
+    } catch (error) {
+      console.error('Error updating supplier catalog item:', error);
+      res.status(500).json({ 
+        error: 'Erro ao atualizar item do catálogo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  async deleteSupplierCatalogItem(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenant_id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const deleted = await tenantPartsServicesRepository.deleteSupplierCatalogItem(tenantId, id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Item do catálogo não encontrado' });
+      }
+
+      res.json({
+        success: true,
+        message: 'Item do catálogo excluído com sucesso'
+      });
+    } catch (error) {
+      console.error('Error deleting supplier catalog item:', error);
+      res.status(500).json({ 
+        error: 'Erro ao excluir item do catálogo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
   // ============================================
   // SUPPLIERS CRUD
   // ============================================
