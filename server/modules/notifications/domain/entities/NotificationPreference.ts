@@ -184,6 +184,21 @@ export class NotificationPreference {
     );
   }
 
+  updateFilters(filters: NotificationFilters): NotificationPreference {
+    return new NotificationPreference(
+      this.id,
+      this.tenantId,
+      this.userId,
+      this.notificationType,
+      this.channels,
+      this.enabled,
+      this.scheduleSettings,
+      filters,
+      this.createdAt,
+      new Date()
+    );
+  }
+
   // Factory method for reconstruction from persistence
   static fromPersistence(data: any): NotificationPreference {
     return new NotificationPreference(
