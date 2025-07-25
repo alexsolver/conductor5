@@ -157,7 +157,7 @@ function AppRouter() {
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
-        {/* Removed: /parts-services route - module eliminated from system */}
+        <Route path="/parts-services-implementation" component={PartsServicesImplementationControl} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />
