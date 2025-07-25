@@ -33,12 +33,10 @@ CREATE TABLE IF NOT EXISTS items (
     default_maintenance_plan VARCHAR(255),
     item_group VARCHAR(100),
     default_checklist TEXT,
-    category_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_by UUID,
     updated_by UUID,
-    CONSTRAINT fk_items_category FOREIGN KEY (category_id) REFERENCES item_categories(id),
     CONSTRAINT unique_integration_code_per_tenant UNIQUE(tenant_id, integration_code)
 );
 
@@ -126,7 +124,7 @@ CREATE INDEX IF NOT EXISTS idx_items_type ON items(type);
 CREATE INDEX IF NOT EXISTS idx_items_active ON items(active);
 CREATE INDEX IF NOT EXISTS idx_items_name ON items(name);
 CREATE INDEX IF NOT EXISTS idx_items_integration_code ON items(integration_code);
-CREATE INDEX IF NOT EXISTS idx_items_category_id ON items(category_id);
+-- Índice removido: category_id não existe na estrutura atual
 CREATE INDEX IF NOT EXISTS idx_item_attachments_item_id ON item_attachments(item_id);
 CREATE INDEX IF NOT EXISTS idx_item_attachments_tenant_id ON item_attachments(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_item_links_parent_item ON item_links(parent_item_id);
@@ -174,13 +172,10 @@ VALUES
     ('3f99462f-3621-4b1b-bea8-782acc50d62e', 'Consumíveis', 'Materiais de consumo geral', NULL, true);
 
 -- DADOS INICIAIS - ITENS EXEMPLO
-INSERT INTO items (tenant_id, active, type, name, integration_code, description, unit_of_measure, item_group, category_id)
+INSERT INTO items (tenant_id, active, type, name, integration_code, description, unit_of_measure, item_group)
 VALUES 
-    ('3f99462f-3621-4b1b-bea8-782acc50d62e', true, 'material', 'Parafuso Phillips M6x20', 'PAR001', 'Parafuso Phillips cabeça chata M6 x 20mm', 'UN', 'PARAFUSOS', 
-     (SELECT id FROM item_categories WHERE name = 'Peças Mecânicas' AND tenant_id = '3f99462f-3621-4b1b-bea8-782acc50d62e' LIMIT 1)),
-    ('3f99462f-3621-4b1b-bea8-782acc50d62e', true, 'material', 'Cabo Elétrico 2,5mm²', 'CAB001', 'Cabo elétrico flexível 2,5mm² isolação PVC', 'MT', 'CABOS', 
-     (SELECT id FROM item_categories WHERE name = 'Peças Elétricas' AND tenant_id = '3f99462f-3621-4b1b-bea8-782acc50d62e' LIMIT 1)),
-    ('3f99462f-3621-4b1b-bea8-782acc50d62e', true, 'service', 'Manutenção Preventiva Mensal', 'SRV001', 'Serviço de manutenção preventiva mensal completa', 'HR', 'MANUTENCAO', 
-     (SELECT id FROM item_categories WHERE name = 'Serviços de Manutenção' AND tenant_id = '3f99462f-3621-4b1b-bea8-782acc50d62e' LIMIT 1));
+    ('3f99462f-3621-4b1b-bea8-782acc50d62e', true, 'material', 'Parafuso Phillips M6x20', 'PAR001', 'Parafuso Phillips cabeça chata M6 x 20mm', 'UN', 'PARAFUSOS'),
+    ('3f99462f-3621-4b1b-bea8-782acc50d62e', true, 'material', 'Cabo Elétrico 2,5mm²', 'CAB001', 'Cabo elétrico flexível 2,5mm² isolação PVC', 'MT', 'CABOS'),
+    ('3f99462f-3621-4b1b-bea8-782acc50d62e', true, 'service', 'Manutenção Preventiva Mensal', 'SRV001', 'Serviço de manutenção preventiva mensal completa', 'HR', 'MANUTENCAO');
 
 COMMIT;
