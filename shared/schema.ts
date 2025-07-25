@@ -11,3 +11,6 @@
  */
 
 export * from './schema-master';
+export * from './schema-multilocation';
+export * from './schema-materials-services';
+export * from './schema-knowledge-base';
