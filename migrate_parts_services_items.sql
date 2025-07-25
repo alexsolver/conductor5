@@ -146,6 +146,13 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Remover triggers existentes antes de recriar
+DROP TRIGGER IF EXISTS update_items_updated_at ON items;
+DROP TRIGGER IF EXISTS update_item_categories_updated_at ON item_categories;
+DROP TRIGGER IF EXISTS update_item_customer_links_updated_at ON item_customer_links;
+DROP TRIGGER IF EXISTS update_item_supplier_links_updated_at ON item_supplier_links;
+
+-- Recriar triggers
 CREATE TRIGGER update_items_updated_at BEFORE UPDATE ON items
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_item_categories_updated_at BEFORE UPDATE ON item_categories
