@@ -404,33 +404,48 @@ export class DrizzleInventoryRepository {
   }
 
   // DASHBOARD STATS
-  async getInventoryStats() {
-    const stats = await this.db
-      .select({
-        totalItems: count(schema.stockLevels.id),
-        totalValue: sum(schema.stockLevels.totalValue),
-        totalLocations: count(schema.stockLocations.id),
-      })
-      .from(schema.stockLevels)
-      .leftJoin(schema.stockLocations, eq(schema.stockLevels.locationId, schema.stockLocations.id))
-      .where(eq(schema.stockLevels.tenantId, this.tenantId));
+  async getInventoryStats(tenantId: string): Promise<InventoryStats> {
+    const schemaName = this.getTenantSchema(tenantId);
+    
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          COUNT(DISTINCT sl.item_id) as total_items,
+          COUNT(DISTINCT sl.location_id) as total_locations,
+          COUNT(*) FILTER (WHERE sl.current_quantity <= sl.reorder_point) as low_stock_items,
+          SUM(sl.current_quantity * sl.unit_cost) as total_value
+        FROM ${sql.identifier(schemaName)}.stock_levels sl
+        WHERE sl.tenant_id = ${tenantId}
+      `);
 
-    const lowStockCount = await this.db
-      .select({ count: count(schema.stockLevels.id) })
-      .from(schema.stockLevels)
-      .where(
-        and(
-          eq(schema.stockLevels.tenantId, this.tenantId),
-          lte(schema.stockLevels.currentQuantity, schema.stockLevels.reorderPoint)
-        )
-      );
+      const stats = result.rows[0];
+      
+      return {
+        totalItems: Number(stats.total_items) || 0,
+        totalLocations: Number(stats.total_locations) || 0,
+        lowStockItems: Number(stats.low_stock_items) || 0,
+        totalValue: Number(stats.total_value) || 0,
+        criticalItems: 0,
+        outOfStockItems: 0,
+        movements: 0,
+      };
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas do inventário:', error);
+      
+      // Return default stats if table doesn't exist yet
+      return {
+        totalItems: 0,
+        totalLocations: 0,
+        lowStockItems: 0,
+        totalValue: 0,
+        criticalItems: 0,
+        outOfStockItems: 0,
+        movements: 0,
+      };
+    }
+  }
 
-    return {
-      totalItems: stats[0]?.totalItems || 0,
-      totalValue: stats[0]?.totalValue || 0,
-      lowStockItems: lowStockCount[0]?.count || 0,
-      totalLocations: stats[0]?.totalLocations || 0,
-      recentMovements: 15, // Para MVP, valor fixo
-    };
+  private getTenantSchema(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 }

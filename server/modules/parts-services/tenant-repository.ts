@@ -382,7 +382,7 @@ export class TenantPartsServicesRepository {
           loc.name,
           loc.code,
           loc.description,
-          loc.location_type,
+          loc.type,
           loc.address,
           loc.coordinates,
           loc.capacity,
