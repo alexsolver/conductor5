@@ -880,8 +880,7 @@ export default function KnowledgeBase() {
                       <SelectItem value="faq">FAQ</SelectItem>
                       <SelectItem value="troubleshooting">Solução de Problemas</SelectItem>
                       <SelectItem value="manual">Manual</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    </SelectContent>                  </Select>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -925,10 +924,11 @@ export default function KnowledgeBase() {
                       >
                         <BookOpen className="h-6 w-6" />
                       </div>
-This code adds article templates to the article creation form, enhancing the user experience.                      <div>
+                      <div>
                         <CardTitle className="text-lg">{category.name}</CardTitle>
                         <CardDescription>{category.article_count} artigos</CardDescription>
                       </div>
+                    </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -965,7 +965,7 @@ This code adds article templates to the article creation form, enhancing the use
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
+                  
                 </CardHeader>
                 {category.description && (
                   <CardContent>
