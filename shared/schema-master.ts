@@ -244,7 +244,7 @@ export const tickets = pgTable("tickets", {
   followers: text("followers").array(),
   tags: text("tags").array(),
   contactType: varchar("contact_type", { length: 50 }),
-  
+
   // Template/Environment fields - Added to match frontend
   environment: varchar("environment", { length: 100 }),
   templateName: varchar("template_name", { length: 255 }),
@@ -257,14 +257,14 @@ export const tickets = pgTable("tickets", {
   groupField: varchar("group_field", { length: 100 }),
   serviceVersion: varchar("service_version", { length: 100 }),
   summary: text("summary"),
-  
+
   // Assignment/Publication fields - Added to match frontend
   publicationPriority: varchar("publication_priority", { length: 50 }),
   responsibleTeam: varchar("responsible_team", { length: 100 }),
   infrastructure: varchar("infrastructure", { length: 100 }),
   environmentPublication: varchar("environment_publication", { length: 100 }),
   closeToPublish: boolean("close_to_publish").default(false),
-  
+
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -787,6 +787,86 @@ export const shiftSwapRequests = pgTable("shift_swap_requests", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ===========================
+// NOTIFICATIONS SYSTEM TABLES
+// ===========================
+
+export const notifications = pgTable('notifications', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  userId: varchar('user_id', { length: 36 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull(), // ticket_assignment, sla_breach, etc.
+  severity: varchar('severity', { length: 20 }).notNull().default('info'), // info, warning, error, critical
+  title: varchar('title', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  metadata: jsonb('metadata').default({}),
+  channels: jsonb('channels').notNull().default(['in_app']), // ['in_app', 'email', 'sms', 'push']
+  status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, sent, delivered, failed
+  scheduledAt: timestamp('scheduled_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at'),
+  sentAt: timestamp('sent_at'),
+  deliveredAt: timestamp('delivered_at'),
+  failedAt: timestamp('failed_at'),
+  readAt: timestamp('read_at'),
+  relatedEntityType: varchar('related_entity_type', { length: 50 }),
+  relatedEntityId: varchar('related_entity_id', { length: 36 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+export const notificationPreferences = pgTable('notification_preferences', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  userId: varchar('user_id', { length: 36 }).notNull(),
+  notificationType: varchar('notification_type', { length: 50 }).notNull(),
+  channels: jsonb('channels').notNull().default(['in_app']),
+  enabled: boolean('enabled').notNull().default(true),
+  scheduleSettings: jsonb('schedule_settings').default({}),
+  filters: jsonb('filters').default({}),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+export const notificationTemplates = pgTable('notification_templates', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  channel: varchar('channel', { length: 20 }).notNull(),
+  subject: varchar('subject', { length: 255 }),
+  bodyTemplate: text('body_template').notNull(),
+  variables: jsonb('variables').default({}),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+export const notificationLogs = pgTable('notification_logs', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  notificationId: varchar('notification_id', { length: 36 }).notNull(),
+  channel: varchar('channel', { length: 20 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull(),
+  response: jsonb('response'),
+  error: text('error'),
+  attemptedAt: timestamp('attempted_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at').notNull().defaultNow()
+});
+
+// Notification indexes for performance
+export const notificationIndexes = [
+  index('idx_notifications_tenant_user').on(notifications.tenantId, notifications.userId),
+  index('idx_notifications_tenant_status').on(notifications.tenantId, notifications.status),
+  index('idx_notifications_tenant_type').on(notifications.tenantId, notifications.type),
+  index('idx_notifications_tenant_severity').on(notifications.tenantId, notifications.severity),
+  index('idx_notifications_scheduled').on(notifications.scheduledAt),
+  index('idx_notifications_related_entity').on(notifications.relatedEntityType, notifications.relatedEntityId),
+  index('idx_notification_preferences_tenant_user').on(notificationPreferences.tenantId, notificationPreferences.userId),
+  index('idx_notification_preferences_tenant_type').on(notificationPreferences.tenantId, notificationPreferences.notificationType),
+  index('idx_notification_templates_tenant_type').on(notificationTemplates.tenantId, notificationTemplates.type),
+  index('idx_notification_logs_tenant_notification').on(notificationLogs.tenantId, notificationLogs.notificationId)
+];
+
 export const insertMarketLocalizationSchema = createInsertSchema(marketLocalization);
 export const insertFieldAliasMappingSchema = createInsertSchema(fieldAliasMapping);
 export const insertLocalizationContextSchema = createInsertSchema(localizationContext);
@@ -1052,7 +1132,7 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
   status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, cancelled
   priority: varchar("priority", { length: 20 }).default("medium"),
-  linkedItemIds: jsonb("linked_item_ids"), // array of UUIDs for related items
+  linkedItemIds: jsonb("jsonb("linked_item_ids"), // array of UUIDs for related items
   linkedItemTypes: jsonb("linked_item_types"), // corresponding types for linked items
   attachmentIds: jsonb("attachment_ids"), // array of attachment UUIDs
   formData: jsonb("form_data"), // custom form responses
@@ -1143,9 +1223,6 @@ export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 
 // User Group schemas for validation
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
-
-
-
 
 // ========================================
 // CONTRACT MANAGEMENT TABLES
@@ -1626,3 +1703,19 @@ export type StockLevel = typeof stockLevels.$inferSelect;
 export type InsertStockLevel = typeof stockLevels.$inferInsert;
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = typeof suppliers.$inferInsert;
+
+// Notification types
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
+export type InsertNotificationTemplate = typeof notificationTemplates.$inferInsert;
+export type NotificationLog = typeof notificationLogs.$inferSelect;
+export type InsertNotificationLog = typeof notificationLogs.$inferInsert;
+
+// Zod Schemas for notifications
+export const insertNotificationSchema = createInsertSchema(notifications);
+export const insertNotificationPreferenceSchema = createInsertSchema(notificationPreferences);
+export const insertNotificationTemplateSchema = createInsertSchema(notificationTemplates);
+export const insertNotificationLogSchema = createInsertSchema(notificationLogs);

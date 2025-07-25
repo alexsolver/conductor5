@@ -15,7 +15,7 @@ export function Header() {
       >
         <Menu className="h-5 w-5" />
       </Button>
-      
+
       <div className="flex-1 px-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Link href="/">
@@ -55,7 +55,7 @@ export function Header() {
             </Button>
           </Link>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           {/* Notifications */}
           <Button

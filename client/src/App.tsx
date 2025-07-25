@@ -17,7 +17,7 @@ import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
 import FavorecidosTable from "./pages/FavorecidosTable";
 import Locations from "./pages/Locations";
-import KnowledgeBase from "./pages/KnowledgeBase";
+import KnowledgeBase from './pages/KnowledgeBase';
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
@@ -73,6 +73,7 @@ import { ServicesManagement } from "./pages/ServicesManagement";
 import AssetManagement from "./pages/AssetManagement";
 import LPUManagement from "./pages/LPUManagement";
 import ComplianceManagement from "./pages/ComplianceManagement";
+import NotificationManagement from './pages/NotificationManagement';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Clientes from "./pages/Clientes";
@@ -171,6 +172,7 @@ function AppRouter() {
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/lpu-management" component={LPUManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
+        <Route path="/notifications" component={NotificationManagement} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />

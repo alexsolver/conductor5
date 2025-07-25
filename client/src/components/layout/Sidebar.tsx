@@ -49,7 +49,8 @@ import {
   Route,
   Calendar,
   Globe2,
-  Wrench
+  Wrench,
+  Bell
 } from "lucide-react";
 
 interface SidebarProps {

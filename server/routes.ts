@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
-import { pool } from "./db";
+import { schemaManager } from "./db";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
 import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
@@ -38,6 +38,7 @@ import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
 import { materialsServicesRoutes } from './modules/materials-services/routes';
 // import knowledgeBaseRoutes from './modules/knowledge-base/routes';
+import notificationsRoutes from './modules/notifications/routes';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -804,6 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/materials-services', materialsServicesRoutes);
 
   // Knowledge Base Management routes - Base de Conhecimento  
+  //<previous_generation>
   // app.use('/api/knowledge-base', knowledgeBaseRoutes);
 
   // Knowledge Base Routes - Direct Implementation
@@ -814,7 +816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
-      const categories = await pool.query(`
+      const categories = await schemaManager.query(`
         SELECT * FROM kb_categories 
         WHERE tenant_id = $1 AND is_active = true 
         ORDER BY level, sort_order
@@ -834,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
-      const articles = await pool.query(`
+      const articles = await schemaManager.query(`
         SELECT 
           a.*,
           c.name as category_name,
@@ -873,7 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const [statsResult, mostViewedResult] = await Promise.all([
-        pool.query(`
+        schemaManager.query(`
           SELECT 
             COUNT(*) as total_articles,
             COUNT(CASE WHEN status = 'published' THEN 1 END) as published_articles,
@@ -883,8 +885,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM kb_articles 
           WHERE tenant_id = $1
         `, [tenantId]),
-        
-        pool.query(`
+
+        schemaManager.query(`
           SELECT id, title, view_count, average_rating
           FROM kb_articles 
           WHERE tenant_id = $1 AND status = 'published'
@@ -920,7 +922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { title, summary, content, categoryId, type, difficulty, tags, estimatedReadTime } = req.body;
-      
+
       // Generate slug
       const slug = title.toLowerCase()
         .normalize('NFD')
@@ -929,7 +931,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .replace(/\s+/g, '-')
         .trim();
 
-      const result = await pool.query(`
+      const result = await schemaManager.query(`
         INSERT INTO kb_articles (
           tenant_id, title, slug, summary, content, category_id, type, 
           difficulty, tags, estimated_read_time, status, created_by, updated_by
@@ -953,7 +955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, description, icon, color } = req.body;
-      
+
       // Generate slug
       const slug = name.toLowerCase()
         .normalize('NFD')
@@ -962,7 +964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .replace(/\s+/g, '-')
         .trim();
 
-      const result = await pool.query(`
+      const result = await schemaManager.query(`
         INSERT INTO kb_categories (
           tenant_id, name, slug, description, icon, color, level, sort_order, created_by, updated_by
         ) VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8)
@@ -1051,6 +1053,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Additional module routes
+  app.use('/api/knowledge-base', knowlegeBaseRoutes);
+  app.use('/api/materials-services', materialsServicesRoutes);
+  app.use('/api/technical-skills', technicalSkillsRoutes);
+  app.use('/api/schedule', scheduleRoutes);
+  app.use('/api/notifications', notificationsRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
