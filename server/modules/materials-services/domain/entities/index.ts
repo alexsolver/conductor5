@@ -8,7 +8,7 @@ export interface Item {
   name: string;
   integrationCode?: string;
   description?: string;
-  measurementUnit: string;
+  measurementUnit: 'UN' | 'M' | 'M2' | 'M3' | 'KG' | 'L' | 'H' | 'PC' | 'CX' | 'GL' | 'SET';
   maintenancePlan?: string;
   category?: string;
   defaultChecklist?: any;
@@ -19,90 +19,78 @@ export interface Item {
   updatedBy?: string;
 }
 
+export interface ItemAttachment {
+  id: string;
+  tenantId: string;
+  itemId: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  fileUrl: string;
+  description?: string;
+  createdAt: Date;
+  createdBy?: string;
+}
+
+export interface ItemLink {
+  id: string;
+  tenantId: string;
+  parentItemId: string;
+  linkedItemId?: string;
+  linkedCustomerId?: string;
+  linkedSupplierId?: string;
+  linkType: 'item_item' | 'item_customer' | 'item_supplier';
+  relationship?: string;
+  customerAlias?: string;
+  customerSku?: string;
+  customerBarcode?: string;
+  customerQrCode?: string;
+  isAsset?: boolean;
+  supplierPartNumber?: string;
+  supplierDescription?: string;
+  supplierQrCode?: string;
+  supplierBarcode?: string;
+  createdAt: Date;
+  createdBy?: string;
+}
+
 export interface Supplier {
   id: string;
   tenantId: string;
+  active: boolean;
   name: string;
-  code: string;
   tradeName?: string;
-  documentNumber?: string;
+  document: string;
   email?: string;
   phone?: string;
   address?: string;
   city?: string;
   state?: string;
+  country?: string;
   zipCode?: string;
-  country: string;
-  performanceRating?: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy?: string;
-  updatedBy?: string;
-}
-
-export interface Asset {
-  id: string;
-  tenantId: string;
-  name: string;
-  code: string;
-  serialNumber?: string;
-  model?: string;
-  manufacturer?: string;
-  parentAssetId?: string;
-  assetLevel?: string;
-  status: 'active' | 'inactive' | 'maintenance' | 'disposed';
-  currentLocationId?: string;
-  coordinates?: any;
-  acquisitionDate?: Date;
-  acquisitionCost?: number;
-  warrantyExpiry?: Date;
-  hourMeter?: number;
-  kilometerMeter?: number;
-  usageTime?: number;
-  qrCode?: string;
-  rfidTag?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy?: string;
-  updatedBy?: string;
-}
-
-export interface StockLevel {
-  id: string;
-  tenantId: string;
-  itemId: string;
-  locationId: string;
-  currentStock: number;
-  minimumLevel: number;
-  maximumLevel: number;
-  reorderPoint: number;
-  economicOrderQuantity: number;
-  batchNumber?: string;
-  serialNumber?: string;
-  expiryDate?: Date;
-  updatedAt: Date;
-  updatedBy?: string;
-}
-
-export interface PriceList {
-  id: string;
-  tenantId: string;
-  name: string;
-  code: string;
-  version: string;
-  customerId?: string;
-  contractId?: string;
-  costCenterId?: string;
-  validFrom: Date;
-  validTo?: Date;
-  isActive: boolean;
-  currency: string;
-  automaticMargin?: number;
+  website?: string;
+  contactPerson?: string;
+  paymentTerms?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
   createdBy?: string;
   updatedBy?: string;
+}
+
+export interface SupplierCatalog {
+  id: string;
+  tenantId: string;
+  supplierId: string;
+  itemId: string;
+  supplierItemCode?: string;
+  supplierDescription?: string;
+  unitPrice?: number;
+  currency?: string;
+  leadTime?: number;
+  minimumOrderQuantity?: number;
+  validFrom?: Date;
+  validTo?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

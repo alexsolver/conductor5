@@ -41,8 +41,8 @@ const moduleDefinitions = [
       "Documentação técnica",
       "Status do item (ativo, análise, descontinuado)"
     ],
-    progress: 0,
-    status: "pending",
+    progress: 85,
+    status: "in-progress",
     priority: "high"
   },
   {
@@ -395,10 +395,17 @@ export default function MaterialsServicesControl() {
                     </div>
 
                     <div className="flex space-x-2 pt-4">
-                      <Button size="sm">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Iniciar Desenvolvimento
-                      </Button>
+                      {selectedModule.id === 1 ? (
+                        <Button size="sm" onClick={() => window.location.href = '/item-catalog'}>
+                          <Package className="h-4 w-4 mr-2" />
+                          Acessar Catálogo de Itens
+                        </Button>
+                      ) : (
+                        <Button size="sm">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Iniciar Desenvolvimento
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm">
                         Ver Detalhes Técnicos
                       </Button>

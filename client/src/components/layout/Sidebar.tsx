@@ -81,6 +81,14 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Locais", href: "/locations", icon: MapPin },
+  {
+    name: "Materiais e Serviços",
+    icon: Package,
+    children: [
+      { name: "Controle de Implantação", href: "/materials-services-control", icon: Settings },
+      { name: "Catálogo de Itens", href: "/item-catalog", icon: Package },
+    ]
+  },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
   { name: "Compliance", href: "/compliance", icon: Shield },
