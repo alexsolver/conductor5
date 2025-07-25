@@ -431,11 +431,27 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
                   </div>
                 </div>
                 <div className="flex space-x-2 mt-4">
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setSelectedWarehouse(warehouse);
+                      setIsViewWarehouseOpen(true);
+                    }}
+                  >
                     <Eye className="h-4 w-4 mr-1" />
                     Ver
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setSelectedWarehouse(warehouse);
+                      setIsEditWarehouseOpen(true);
+                    }}
+                  >
                     <Edit className="h-4 w-4 mr-1" />
                     Editar
                   </Button>
@@ -509,7 +525,12 @@ export function StockManagement() {
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isNewWarehouseOpen, setIsNewWarehouseOpen] = useState(false);
+  const [isEditItemOpen, setIsEditItemOpen] = useState(false);
+  const [isViewItemOpen, setIsViewItemOpen] = useState(false);
+  const [isEditWarehouseOpen, setIsEditWarehouseOpen] = useState(false);
+  const [isViewWarehouseOpen, setIsViewWarehouseOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
+  const [selectedWarehouse, setSelectedWarehouse] = useState<any>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -861,10 +882,24 @@ export function StockManagement() {
                         <TableCell>{item.warehouse}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => setSelectedItem(item)}>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setIsViewItemOpen(true);
+                              }}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setIsEditItemOpen(true);
+                              }}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                           </div>
@@ -1013,6 +1048,154 @@ export function StockManagement() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* View Item Modal */}
+      <Dialog open={isViewItemOpen} onOpenChange={setIsViewItemOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Visualizar Item</DialogTitle>
+            <DialogDescription>
+              Informações detalhadas do item em estoque
+            </DialogDescription>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Nome do Item</Label>
+                  <p className="text-sm text-muted-foreground">{selectedItem.itemName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Código</Label>
+                  <p className="text-sm text-muted-foreground">{selectedItem.itemCode}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Estoque Atual</Label>
+                  <p className="text-sm text-muted-foreground">{selectedItem.currentStock} unidades</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge className={getStatusColor(selectedItem.status)}>
+                    {getStatusLabel(selectedItem.status)}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Estoque Mínimo</Label>
+                  <p className="text-sm text-muted-foreground">{selectedItem.minimumStock}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Estoque Máximo</Label>
+                  <p className="text-sm text-muted-foreground">{selectedItem.maximumStock}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Valor Total</Label>
+                  <p className="text-sm text-muted-foreground">R$ {selectedItem.totalValue.toLocaleString()}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Armazém</Label>
+                  <p className="text-sm text-muted-foreground">{selectedItem.warehouse}</p>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={() => setIsViewItemOpen(false)}>Fechar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Modal */}
+      <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Editar Item</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do item em estoque
+            </DialogDescription>
+          </DialogHeader>
+          {selectedItem && (
+            <EditItemForm 
+              item={selectedItem}
+              onSubmit={(data) => {
+                console.log('Editando item:', data);
+                toast({ title: "Item atualizado com sucesso!" });
+                setIsEditItemOpen(false);
+              }}
+              onCancel={() => setIsEditItemOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Warehouse Modal */}
+      <Dialog open={isViewWarehouseOpen} onOpenChange={setIsViewWarehouseOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Visualizar Armazém</DialogTitle>
+            <DialogDescription>
+              Informações detalhadas do armazém
+            </DialogDescription>
+          </DialogHeader>
+          {selectedWarehouse && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Nome</Label>
+                  <p className="text-sm text-muted-foreground">{selectedWarehouse.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Localização</Label>
+                  <p className="text-sm text-muted-foreground">{selectedWarehouse.location || 'Não informada'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Responsável</Label>
+                  <p className="text-sm text-muted-foreground">{selectedWarehouse.manager || 'Não informado'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Total de Itens</Label>
+                  <p className="text-sm text-muted-foreground">{selectedWarehouse.itemCount || 0} itens</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Valor Total</Label>
+                  <p className="text-sm text-muted-foreground">R$ {(selectedWarehouse.totalValue || 0).toLocaleString()}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge variant={selectedWarehouse.status === 'active' ? 'default' : 'secondary'}>
+                    {selectedWarehouse.status === 'active' ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={() => setIsViewWarehouseOpen(false)}>Fechar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Warehouse Modal */}
+      <Dialog open={isEditWarehouseOpen} onOpenChange={setIsEditWarehouseOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Editar Armazém</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do armazém
+            </DialogDescription>
+          </DialogHeader>
+          {selectedWarehouse && (
+            <EditWarehouseForm 
+              warehouse={selectedWarehouse}
+              onSubmit={(data) => {
+                console.log('Editando armazém:', data);
+                toast({ title: "Armazém atualizado com sucesso!" });
+                setIsEditWarehouseOpen(false);
+              }}
+              onCancel={() => setIsEditWarehouseOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1114,6 +1297,180 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
         </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? 'Criando...' : 'Criar Armazém'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Formulário para editar item
+function EditItemForm({ item, onSubmit, onCancel }: { 
+  item: StockItem; 
+  onSubmit: (data: any) => void; 
+  onCancel: () => void;
+}) {
+  const { toast } = useToast();
+  const [minimumStock, setMinimumStock] = useState(item.minimumStock.toString());
+  const [maximumStock, setMaximumStock] = useState(item.maximumStock.toString());
+  const [warehouse, setWarehouse] = useState(item.warehouse);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    onSubmit({
+      id: item.id,
+      minimumStock: parseInt(minimumStock),
+      maximumStock: parseInt(maximumStock),
+      warehouse
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Nome do Item</Label>
+          <Input value={item.itemName} disabled />
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Código</Label>
+          <Input value={item.itemCode} disabled />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="minimumStock">Estoque Mínimo *</Label>
+          <Input
+            id="minimumStock"
+            type="number"
+            value={minimumStock}
+            onChange={(e) => setMinimumStock(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="maximumStock">Estoque Máximo *</Label>
+          <Input
+            id="maximumStock"
+            type="number"
+            value={maximumStock}
+            onChange={(e) => setMaximumStock(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="warehouse">Armazém</Label>
+          <Input
+            id="warehouse"
+            value={warehouse}
+            onChange={(e) => setWarehouse(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Estoque Atual</Label>
+          <Input value={`${item.currentStock} unidades`} disabled />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          Salvar Alterações
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Formulário para editar armazém
+function EditWarehouseForm({ warehouse, onSubmit, onCancel }: { 
+  warehouse: any; 
+  onSubmit: (data: any) => void; 
+  onCancel: () => void;
+}) {
+  const { toast } = useToast();
+  const [name, setName] = useState(warehouse.name || '');
+  const [location, setLocation] = useState(warehouse.location || '');
+  const [manager, setManager] = useState(warehouse.manager || '');
+  const [status, setStatus] = useState(warehouse.status || 'active');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !location) {
+      toast({ 
+        title: "Erro", 
+        description: "Nome e localização são obrigatórios",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    onSubmit({
+      id: warehouse.id,
+      name,
+      location,
+      manager,
+      status
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome do Armazém *</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="location">Localização *</Label>
+          <Input
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="manager">Responsável</Label>
+          <Input
+            id="manager"
+            value={manager}
+            onChange={(e) => setManager(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <select 
+            id="status"
+            value={status} 
+            onChange={(e) => setStatus(e.target.value)} 
+            className="w-full p-2 border rounded"
+          >
+            <option value="active">Ativo</option>
+            <option value="inactive">Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          Salvar Alterações
         </Button>
       </div>
     </form>
