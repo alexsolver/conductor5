@@ -1,26 +1,35 @@
-import { eq, and, desc, asc, ilike, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { 
   items, 
-  stockLocations, 
-  stockLevels, 
+  itemAttachments,
+  itemLinks,
   suppliers,
+  stockLocations, 
+  stockLevels,
+  stockMovements,
   type Item,
   type InsertItem,
+  type ItemAttachment,
+  type InsertItemAttachment,
+  type ItemLink,
+  type InsertItemLink,
+  type Supplier,
+  type InsertSupplier,
   type StockLocation,
   type InsertStockLocation,
   type StockLevel,
   type InsertStockLevel,
-  type Supplier,
-  type InsertSupplier
-} from "../../../shared/schema";
+  type StockMovement,
+  type InsertStockMovement
+} from "../../../shared/schema-parts-services";
 
 export class PartsServicesRepository {
-  
+
   // ============================================
-  // ITEMS MANAGEMENT
+  // ITEMS MANAGEMENT - CRUD COMPLETO
   // ============================================
-  
+
   async createItem(tenantId: string, data: InsertItem): Promise<Item> {
     const [item] = await db.insert(items).values({
       ...data,
@@ -33,51 +42,43 @@ export class PartsServicesRepository {
   async getItems(tenantId: string, filters?: {
     search?: string;
     type?: string;
-    category?: string;
-    status?: string;
+    active?: boolean;
     limit?: number;
     offset?: number;
   }): Promise<{ items: Item[]; total: number }> {
-    // Build where conditions
     let whereConditions = [eq(items.tenantId, tenantId)];
-    
+
     if (filters?.search) {
       whereConditions.push(
-        sql`${items.title} ILIKE ${`%${filters.search}%`} OR 
-            ${items.internalCode} ILIKE ${`%${filters.search}%`} OR 
-            ${items.manufacturerCode} ILIKE ${`%${filters.search}%`}`
+        sql`${items.name} ILIKE ${`%${filters.search}%`} OR 
+            ${items.integrationCode} ILIKE ${`%${filters.search}%`}`
       );
     }
-    
+
     if (filters?.type) {
       whereConditions.push(eq(items.type, filters.type));
     }
-    
-    if (filters?.category) {
-      whereConditions.push(eq(items.category, filters.category));
+
+    if (filters?.active !== undefined) {
+      whereConditions.push(eq(items.active, filters.active));
     }
-    
-    if (filters?.status) {
-      whereConditions.push(eq(items.status, filters.status));
-    }
-    
+
     // Get total count
     const countQuery = db.select({ count: sql`count(*)` }).from(items).where(and(...whereConditions));
     const [{ count }] = await countQuery;
-    
+
     // Build main query
     let query = db.select().from(items).where(and(...whereConditions));
-    
-    // Apply pagination
+
     if (filters?.limit) {
       query = query.limit(filters.limit);
     }
     if (filters?.offset) {
       query = query.offset(filters.offset);
     }
-    
+
     const itemsList = await query.orderBy(desc(items.createdAt));
-    
+
     return {
       items: itemsList,
       total: Number(count)
@@ -106,68 +107,83 @@ export class PartsServicesRepository {
   }
 
   // ============================================
-  // ITEM LINKS MANAGEMENT
+  // SUPPLIERS MANAGEMENT - CRUD COMPLETO
   // ============================================
-  
-  async createItemLink(tenantId: string, data: InsertItemLink): Promise<ItemLink> {
-    const [link] = await db.insert(itemLinks).values({
+
+  async createSupplier(tenantId: string, data: InsertSupplier): Promise<Supplier> {
+    const [supplier] = await db.insert(suppliers).values({
       ...data,
       tenantId,
       updatedAt: new Date()
     }).returning();
-    return link;
+    return supplier;
   }
 
-  async getItemLinks(tenantId: string, itemId: string): Promise<ItemLink[]> {
-    return await db.select()
-      .from(itemLinks)
-      .where(and(
-        eq(itemLinks.tenantId, tenantId),
-        eq(itemLinks.sourceItemId, itemId),
-        eq(itemLinks.isActive, true)
-      ))
-      .orderBy(asc(itemLinks.priority));
+  async getSuppliers(tenantId: string, filters?: {
+    search?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ suppliers: Supplier[]; total: number }> {
+    let whereConditions = [eq(suppliers.tenantId, tenantId)];
+
+    if (filters?.search) {
+      whereConditions.push(
+        sql`${suppliers.name} ILIKE ${`%${filters.search}%`} OR 
+            ${suppliers.supplierCode} ILIKE ${`%${filters.search}%`} OR 
+            ${suppliers.documentNumber} ILIKE ${`%${filters.search}%`}`
+      );
+    }
+
+    if (filters?.status) {
+      whereConditions.push(eq(suppliers.status, filters.status));
+    }
+
+    const countQuery = db.select({ count: sql`count(*)` }).from(suppliers).where(and(...whereConditions));
+    const [{ count }] = await countQuery;
+
+    let query = db.select().from(suppliers).where(and(...whereConditions));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    const suppliersList = await query.orderBy(asc(suppliers.name));
+
+    return {
+      suppliers: suppliersList,
+      total: Number(count)
+    };
   }
 
-  async deleteItemLink(tenantId: string, id: string): Promise<boolean> {
-    const result = await db.delete(itemLinks)
-      .where(and(eq(itemLinks.id, id), eq(itemLinks.tenantId, tenantId)));
+  async getSupplierById(tenantId: string, id: string): Promise<Supplier | null> {
+    const [supplier] = await db.select()
+      .from(suppliers)
+      .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)));
+    return supplier || null;
+  }
+
+  async updateSupplier(tenantId: string, id: string, data: Partial<InsertSupplier>): Promise<Supplier | null> {
+    const [supplier] = await db.update(suppliers)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)))
+      .returning();
+    return supplier || null;
+  }
+
+  async deleteSupplier(tenantId: string, id: string): Promise<boolean> {
+    const result = await db.delete(suppliers)
+      .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)));
     return (result.rowCount || 0) > 0;
   }
 
   // ============================================
-  // ITEM ATTACHMENTS MANAGEMENT
+  // STOCK LOCATIONS - CRUD COMPLETO
   // ============================================
-  
-  async createItemAttachment(tenantId: string, data: InsertItemAttachment): Promise<ItemAttachment> {
-    const [attachment] = await db.insert(itemAttachments).values({
-      ...data,
-      tenantId,
-      updatedAt: new Date()
-    }).returning();
-    return attachment;
-  }
 
-  async getItemAttachments(tenantId: string, itemId: string): Promise<ItemAttachment[]> {
-    return await db.select()
-      .from(itemAttachments)
-      .where(and(
-        eq(itemAttachments.tenantId, tenantId),
-        eq(itemAttachments.itemId, itemId)
-      ))
-      .orderBy(desc(itemAttachments.createdAt));
-  }
-
-  async deleteItemAttachment(tenantId: string, id: string): Promise<boolean> {
-    const result = await db.delete(itemAttachments)
-      .where(and(eq(itemAttachments.id, id), eq(itemAttachments.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // ============================================
-  // STOCK LOCATIONS MANAGEMENT
-  // ============================================
-  
   async createStockLocation(tenantId: string, data: InsertStockLocation): Promise<StockLocation> {
     const [location] = await db.insert(stockLocations).values({
       ...data,
@@ -184,13 +200,6 @@ export class PartsServicesRepository {
       .orderBy(asc(stockLocations.name));
   }
 
-  async getStockLocationById(tenantId: string, id: string): Promise<StockLocation | null> {
-    const [location] = await db.select()
-      .from(stockLocations)
-      .where(and(eq(stockLocations.id, id), eq(stockLocations.tenantId, tenantId)));
-    return location || null;
-  }
-
   async updateStockLocation(tenantId: string, id: string, data: Partial<InsertStockLocation>): Promise<StockLocation | null> {
     const [location] = await db.update(stockLocations)
       .set({ ...data, updatedAt: new Date() })
@@ -199,7 +208,89 @@ export class PartsServicesRepository {
     return location || null;
   }
 
+  async deleteStockLocation(tenantId: string, id: string): Promise<boolean> {
+    const result = await db.delete(stockLocations)
+      .where(and(eq(stockLocations.id, id), eq(stockLocations.tenantId, tenantId)));
+    return (result.rowCount || 0) > 0;
+  }
+
   // ============================================
+  // ITEM LINKS - CRUD COMPLETO
+  // ============================================
+
+  async createItemLink(tenantId: string, data: InsertItemLink): Promise<ItemLink> {
+    const [link] = await db.insert(itemLinks).values({
+      ...data,
+      tenantId,
+      updatedAt: new Date()
+    }).returning();
+    return link;
+  }
+
+  async getItemLinks(tenantId: string, itemId?: string): Promise<ItemLink[]> {
+    let whereConditions = [eq(itemLinks.tenantId, tenantId), eq(itemLinks.isActive, true)];
+
+    if (itemId) {
+      whereConditions.push(eq(itemLinks.parentItemId, itemId));
+    }
+
+    return await db.select()
+      .from(itemLinks)
+      .where(and(...whereConditions))
+      .orderBy(desc(itemLinks.createdAt));
+  }
+
+  async updateItemLink(tenantId: string, id: string, data: Partial<InsertItemLink>): Promise<ItemLink | null> {
+    const [link] = await db.update(itemLinks)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(itemLinks.id, id), eq(itemLinks.tenantId, tenantId)))
+      .returning();
+    return link || null;
+  }
+
+  async deleteItemLink(tenantId: string, id: string): Promise<boolean> {
+    const result = await db.delete(itemLinks)
+      .where(and(eq(itemLinks.id, id), eq(itemLinks.tenantId, tenantId)));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // ============================================
+  // DASHBOARD STATS
+  // ============================================
+
+  async getDashboardStats(tenantId: string): Promise<{
+    totalItems: number;
+    totalSuppliers: number;
+    totalLocations: number;
+    lowStockItems: number;
+    totalStockValue: number;
+  }> {
+    const [
+      totalItemsResult,
+      totalSuppliersResult,
+      totalLocationsResult,
+      lowStockResult,
+      stockValueResult
+    ] = await Promise.all([
+      db.select({ count: sql`count(*)` }).from(items).where(and(eq(items.tenantId, tenantId), eq(items.active, true))),
+      db.select({ count: sql`count(*)` }).from(suppliers).where(and(eq(suppliers.tenantId, tenantId), eq(suppliers.status, "active"))),
+      db.select({ count: sql`count(*)` }).from(stockLocations).where(and(eq(stockLocations.tenantId, tenantId), eq(stockLocations.isActive, true))),
+      db.select({ count: sql`count(*)` }).from(stockLevels).where(and(eq(stockLevels.tenantId, tenantId), sql`${stockLevels.currentQuantity} <= ${stockLevels.minimumStock}`)),
+      db.select({ 
+        value: sql`sum(CAST(${stockLevels.currentQuantity} AS DECIMAL) * CAST(${stockLevels.averageCost} AS DECIMAL))` 
+      }).from(stockLevels).where(eq(stockLevels.tenantId, tenantId))
+    ]);
+
+    return {
+      totalItems: Number(totalItemsResult[0]?.count || 0),
+      totalSuppliers: Number(totalSuppliersResult[0]?.count || 0),
+      totalLocations: Number(totalLocationsResult[0]?.count || 0),
+      lowStockItems: Number(lowStockResult[0]?.count || 0),
+      totalStockValue: Number(stockValueResult[0]?.value || 0)
+    };
+  }
+
+   // ============================================
   // STOCK LEVELS MANAGEMENT
   // ============================================
   
@@ -384,88 +475,6 @@ export class PartsServicesRepository {
   }
 
   // ============================================
-  // SUPPLIERS MANAGEMENT
-  // ============================================
-  
-  async createSupplier(tenantId: string, data: InsertSupplier): Promise<Supplier> {
-    const [supplier] = await db.insert(suppliers).values({
-      ...data,
-      tenantId,
-      updatedAt: new Date()
-    }).returning();
-    return supplier;
-  }
-
-  async getSuppliers(tenantId: string, filters?: {
-    search?: string;
-    status?: string;
-    category?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<{ suppliers: Supplier[]; total: number }> {
-    let whereConditions = [eq(suppliers.tenantId, tenantId)];
-    
-    if (filters?.search) {
-      whereConditions.push(
-        sql`${suppliers.name} ILIKE ${`%${filters.search}%`} OR 
-            ${suppliers.supplierCode} ILIKE ${`%${filters.search}%`} OR 
-            ${suppliers.documentNumber} ILIKE ${`%${filters.search}%`}`
-      );
-    }
-    
-    if (filters?.status) {
-      whereConditions.push(eq(suppliers.status, filters.status));
-    }
-    
-    if (filters?.category) {
-      whereConditions.push(eq(suppliers.category, filters.category));
-    }
-    
-    // Get total count
-    const countQuery = db.select({ count: sql`count(*)` }).from(suppliers).where(and(...whereConditions));
-    const [{ count }] = await countQuery;
-    
-    // Build main query
-    let query = db.select().from(suppliers).where(and(...whereConditions));
-    
-    // Apply pagination
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-    if (filters?.offset) {
-      query = query.offset(filters.offset);
-    }
-    
-    const suppliersList = await query.orderBy(asc(suppliers.name));
-    
-    return {
-      suppliers: suppliersList,
-      total: Number(count)
-    };
-  }
-
-  async getSupplierById(tenantId: string, id: string): Promise<Supplier | null> {
-    const [supplier] = await db.select()
-      .from(suppliers)
-      .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)));
-    return supplier || null;
-  }
-
-  async updateSupplier(tenantId: string, id: string, data: Partial<InsertSupplier>): Promise<Supplier | null> {
-    const [supplier] = await db.update(suppliers)
-      .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)))
-      .returning();
-    return supplier || null;
-  }
-
-  async deleteSupplier(tenantId: string, id: string): Promise<boolean> {
-    const result = await db.delete(suppliers)
-      .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // ============================================
   // SUPPLIER CATALOG MANAGEMENT
   // ============================================
   
@@ -504,49 +513,5 @@ export class PartsServicesRepository {
     const result = await db.delete(supplierCatalog)
       .where(and(eq(supplierCatalog.id, id), eq(supplierCatalog.tenantId, tenantId)));
     return (result.rowCount || 0) > 0;
-  }
-
-  // ============================================
-  // DASHBOARD AND STATISTICS
-  // ============================================
-  
-  async getDashboardStats(tenantId: string): Promise<{
-    totalItems: number;
-    totalSuppliers: number;
-    totalLocations: number;
-    lowStockItems: number;
-    totalStockValue: number;
-    recentMovements: number;
-  }> {
-    // Execute all queries in parallel
-    const [
-      totalItemsResult,
-      totalSuppliersResult,
-      totalLocationsResult,
-      lowStockResult,
-      stockValueResult,
-      recentMovementsResult
-    ] = await Promise.all([
-      db.select({ count: sql`count(*)` }).from(items).where(and(eq(items.tenantId, tenantId), eq(items.active, true))),
-      db.select({ count: sql`count(*)` }).from(suppliers).where(and(eq(suppliers.tenantId, tenantId), eq(suppliers.status, "active"))),
-      db.select({ count: sql`count(*)` }).from(stockLocations).where(and(eq(stockLocations.tenantId, tenantId), eq(stockLocations.isActive, true))),
-      db.select({ count: sql`count(*)` }).from(stockLevels).where(and(eq(stockLevels.tenantId, tenantId), sql`${stockLevels.currentStock} <= ${stockLevels.minimumStock}`)),
-      db.select({ 
-        value: sql`sum(CAST(${stockLevels.currentStock} AS DECIMAL) * CAST(${stockLevels.averageCost} AS DECIMAL))` 
-      }).from(stockLevels).where(eq(stockLevels.tenantId, tenantId)),
-      db.select({ count: sql`count(*)` }).from(stockMovements).where(and(
-        eq(stockMovements.tenantId, tenantId),
-        sql`${stockMovements.createdAt} >= NOW() - INTERVAL '30 days'`
-      ))
-    ]);
-
-    return {
-      totalItems: Number(totalItemsResult[0]?.count || 0),
-      totalSuppliers: Number(totalSuppliersResult[0]?.count || 0),
-      totalLocations: Number(totalLocationsResult[0]?.count || 0),
-      lowStockItems: Number(lowStockResult[0]?.count || 0),
-      totalStockValue: Number(stockValueResult[0]?.value || 0),
-      recentMovements: Number(recentMovementsResult[0]?.count || 0)
-    };
   }
 }

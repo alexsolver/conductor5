@@ -590,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return res.status(400).json({ message: "Tenant ID required" });
+        return res.status(401).json({ message: "Tenant ID required" });
       }
 
       // Get all integrations from database, filter only communication category
