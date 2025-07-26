@@ -211,14 +211,28 @@ export default function TicketsTable() {
       return;
     }
 
+    // Mapear colunas selecionadas para o formato esperado pelo schema
+    const columnsData = [
+      { id: "number", label: "Número", visible: selectedColumns.includes("number"), order: 1, width: 120 },
+      { id: "subject", label: "Assunto", visible: selectedColumns.includes("subject"), order: 2, width: 300 },
+      { id: "customer", label: "Cliente", visible: selectedColumns.includes("customer"), order: 3, width: 150 },
+      { id: "category", label: "Categoria", visible: selectedColumns.includes("category"), order: 4, width: 120 },
+      { id: "status", label: "Status", visible: selectedColumns.includes("status"), order: 5, width: 120 },
+      { id: "priority", label: "Prioridade", visible: selectedColumns.includes("priority"), order: 6, width: 120 },
+      { id: "impact", label: "Impacto", visible: selectedColumns.includes("impact"), order: 7, width: 120 },
+      { id: "assigned_to", label: "Atribuído", visible: selectedColumns.includes("assigned_to"), order: 8, width: 150 },
+      { id: "created", label: "Criado", visible: selectedColumns.includes("created"), order: 9, width: 150 }
+    ];
+
     const viewData = {
       name: newViewName,
-      description: newViewDescription,
-      columns: selectedColumns,
+      description: newViewDescription || "",
+      columns: columnsData,
       filters: [],
-      sorting: [{ field: "created_at", direction: "desc" }],
+      sorting: [{ column: "createdAt", direction: "desc" }],
       isPublic: isPublicView,
-      isDefault: false
+      isDefault: false,
+      pageSize: 25
     };
 
     createViewMutation.mutate(viewData);
