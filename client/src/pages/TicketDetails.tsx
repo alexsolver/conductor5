@@ -1969,32 +1969,9 @@ export default function TicketDetails() {
                   {ticket.customerCompany?.name || ticket.company || 'Não especificado'}
                 </span>
               </div>
-              {ticket.customerCompany?.displayName && ticket.customerCompany.displayName !== ticket.customerCompany.name && (
-                <div className="text-xs text-blue-700">
-                  Nome de exibição: {ticket.customerCompany.displayName}
-                </div>
-              )}
-              <div className="flex gap-2 mt-2">
-                {ticket.customerCompany?.subscriptionTier && (
-                  <Badge className="text-xs bg-purple-100 text-purple-800">
-                    {ticket.customerCompany.subscriptionTier === 'enterprise' ? 'Enterprise' :
-                     ticket.customerCompany.subscriptionTier === 'professional' ? 'Profissional' :
-                     ticket.customerCompany.subscriptionTier === 'basic' ? 'Básico' : 
-                     ticket.customerCompany.subscriptionTier}
-                  </Badge>
-                )}
-                {ticket.customerCompany?.size && (
-                  <Badge className="text-xs bg-green-100 text-green-800">
-                    {ticket.customerCompany.size === 'large' ? 'Grande' :
-                     ticket.customerCompany.size === 'medium' ? 'Médio' :
-                     ticket.customerCompany.size === 'small' ? 'Pequeno' :
-                     ticket.customerCompany.size}
-                  </Badge>
-                )}
-              </div>
               {ticket.customerCompany?.industry && (
                 <div className="text-xs text-blue-600 mt-1">
-                  Setor: {ticket.customerCompany.industry}
+                  🏷️ Setor: {ticket.customerCompany.industry}
                 </div>
               )}
             </div>
