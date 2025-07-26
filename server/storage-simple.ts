@@ -2330,9 +2330,9 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(`
-        SELECT id, name, address, city, state, country, type, is_active, created_at, updated_at
+        SELECT id, name, address, city, state, country, postal_code, latitude, longitude, active, is_active, created_at, updated_at
         FROM "${schemaName}".locations
-        WHERE is_active = true
+        WHERE (active IS NULL OR active = true) AND (is_active IS NULL OR is_active = true)
         ORDER BY created_at DESC
       `);
 
@@ -2361,7 +2361,10 @@ export class DatabaseStorage implements IStorage {
         city: locationData.city || '',
         state: locationData.state || '',
         country: locationData.country || 'Brasil',
-        type: locationData.type || 'Escritório',
+        postal_code: locationData.postal_code || locationData.zipCode || '',
+        latitude: locationData.latitude || '',
+        longitude: locationData.longitude || '',
+        active: true,
         is_active: true,
         created_at: now,
         updated_at: now
@@ -2369,10 +2372,11 @@ export class DatabaseStorage implements IStorage {
 
       await tenantDb.execute(`
         INSERT INTO "${schemaName}".locations 
-        (id, tenant_id, name, address, city, state, country, type, is_active, created_at, updated_at)
+        (id, tenant_id, name, address, city, state, country, postal_code, latitude, longitude, active, is_active, created_at, updated_at)
         VALUES ('${location.id}', '${location.tenant_id}', '${location.name}', 
                 '${location.address}', '${location.city}', '${location.state}', 
-                '${location.country}', '${location.type}', ${location.is_active}, 
+                '${location.country}', '${location.postal_code}', '${location.latitude}', 
+                '${location.longitude}', ${location.active}, ${location.is_active}, 
                 '${location.created_at}', '${location.updated_at}')
       `);
 
