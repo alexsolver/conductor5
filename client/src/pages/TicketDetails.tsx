@@ -842,8 +842,7 @@ export default function TicketDetails() {
                             {tags.length > 0 ? (
                               tags.map((tag, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
-                                  ```text
-                  {tag}
+                                  {tag}
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -2422,8 +2421,7 @@ export default function TicketDetails() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
-                    <Dialog```text
-Header>
+                    <DialogHeader>
                       <DialogTitle>Verificação de Segurança</DialogTitle>
                       <DialogDescription>
                         Digite sua senha para acessar dados sensíveis do favorecido
@@ -2448,8 +2446,7 @@ Header>
                       </div>
                     </div>
                   </DialogContent>
-                </Dialog>
-              </div>
+                </Dialog              </div>
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Nome:</span>
