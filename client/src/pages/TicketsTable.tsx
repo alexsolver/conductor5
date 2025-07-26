@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
@@ -121,6 +121,36 @@ export default function TicketsTable() {
     "number", "subject", "customer", "category", "status", "priority", "created"
   ]);
   const [isPublicView, setIsPublicView] = useState(false);
+  
+  // Estados para gerenciar visualizações
+  const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
+  const [editingView, setEditingView] = useState<any>(null);
+  const [columnsOrder, setColumnsOrder] = useState<any[]>([]);
+
+  // Campos disponíveis para seleção em visualizações (expandido)
+  const availableColumns = [
+    { id: "number", label: "Número" },
+    { id: "subject", label: "Assunto" },
+    { id: "description", label: "Descrição" },
+    { id: "customer", label: "Cliente" },
+    { id: "category", label: "Categoria" },
+    { id: "subcategory", label: "Subcategoria" },
+    { id: "status", label: "Status" },
+    { id: "priority", label: "Prioridade" },
+    { id: "impact", label: "Impacto" },
+    { id: "urgency", label: "Urgência" },
+    { id: "assigned_to", label: "Atribuído a" },
+    { id: "created_by", label: "Criado por" },
+    { id: "created", label: "Criado em" },
+    { id: "updated", label: "Atualizado em" },
+    { id: "due_date", label: "Prazo" },
+    { id: "resolution_time", label: "Tempo de Resolução" },
+    { id: "sla_status", label: "Status SLA" },
+    { id: "tags", label: "Tags" },
+    { id: "location", label: "Localização" },
+    { id: "source", label: "Origem" },
+    { id: "satisfaction", label: "Satisfação" }
+  ];
   const itemsPerPage = 20;
   
   const { toast } = useToast();
@@ -186,8 +216,8 @@ export default function TicketsTable() {
     .filter((col: any) => col.visible)
     .sort((a: any, b: any) => a.order - b.order);
 
-  // Função para renderizar célula baseada na coluna
-  const renderCell = (column: any, ticket: Ticket) => {
+  // Componente de célula otimizado com React.memo
+  const TableCellComponent = memo(({ column, ticket }: { column: any, ticket: Ticket }) => {
     switch (column.id) {
       case 'number':
         return (
@@ -263,12 +293,93 @@ export default function TicketsTable() {
             {new Date(ticket.createdAt).toLocaleDateString()}
           </TableCell>
         );
+      case 'description':
+        return (
+          <TableCell className="max-w-xs truncate">
+            {ticket.description?.substring(0, 100) || '-'}
+          </TableCell>
+        );
+      case 'subcategory':
+        return (
+          <TableCell>
+            {(ticket as any).subcategory || '-'}
+          </TableCell>
+        );
+      case 'urgency':
+        return (
+          <TableCell>
+            <DynamicBadge fieldName="urgency" value={(ticket as any).urgency || 'medium'}>
+              {(ticket as any).urgency || 'Medium'}
+            </DynamicBadge>
+          </TableCell>
+        );
+      case 'created_by':
+        return (
+          <TableCell>
+            {ticket.caller?.fullName || 'N/A'}
+          </TableCell>
+        );
+      case 'updated':
+        return (
+          <TableCell>
+            {new Date(ticket.updatedAt).toLocaleDateString()}
+          </TableCell>
+        );
+      case 'due_date':
+        return (
+          <TableCell>
+            {(ticket as any).dueDate ? new Date((ticket as any).dueDate).toLocaleDateString() : '-'}
+          </TableCell>
+        );
+      case 'resolution_time':
+        return (
+          <TableCell>
+            {(ticket as any).resolutionTime || '-'}
+          </TableCell>
+        );
+      case 'sla_status':
+        return (
+          <TableCell>
+            <DynamicBadge fieldName="sla_status" value={(ticket as any).slaStatus || 'on_track'}>
+              {(ticket as any).slaStatus || 'On Track'}
+            </DynamicBadge>
+          </TableCell>
+        );
+      case 'tags':
+        return (
+          <TableCell>
+            {(ticket as any).tags?.join(', ') || '-'}
+          </TableCell>
+        );
+      case 'location':
+        return (
+          <TableCell>
+            {(ticket as any).location || '-'}
+          </TableCell>
+        );
+      case 'source':
+        return (
+          <TableCell>
+            {(ticket as any).source || '-'}
+          </TableCell>
+        );
+      case 'satisfaction':
+        return (
+          <TableCell>
+            {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
+          </TableCell>
+        );
       default:
         return <TableCell>-</TableCell>;
     }
-  };
+  });
 
-  // Mutation para criar nova visualização
+  // Função de renderização otimizada
+  const renderCell = useCallback((column: any, ticket: Ticket) => (
+    <TableCellComponent key={`${ticket.id}-${column.id}`} column={column} ticket={ticket} />
+  ), []);
+
+  // Mutations para gerenciar visualizações
   const createViewMutation = useMutation({
     mutationFn: async (viewData: any) => {
       return apiRequest('POST', '/api/ticket-views', viewData);
@@ -286,6 +397,50 @@ export default function TicketsTable() {
       toast({
         title: "Erro",
         description: error.message || "Erro ao criar visualização",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateViewMutation = useMutation({
+    mutationFn: async ({ id, viewData }: { id: string, viewData: any }) => {
+      return apiRequest('PUT', `/api/ticket-views/${id}`, viewData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Visualização atualizada",
+        description: "Visualização editada com sucesso"
+      });
+      refetchViews();
+      setEditingView(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar visualização",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteViewMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest('DELETE', `/api/ticket-views/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Visualização excluída",
+        description: "Visualização removida com sucesso"
+      });
+      refetchViews();
+      if (selectedViewId !== "default") {
+        setSelectedViewId("default");
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir visualização",
         variant: "destructive"
       });
     }
@@ -334,7 +489,46 @@ export default function TicketsTable() {
       pageSize: 25
     };
 
-    createViewMutation.mutate(viewData);
+    if (editingView) {
+      updateViewMutation.mutate({ id: editingView.id, viewData });
+    } else {
+      createViewMutation.mutate(viewData);
+    }
+  };
+
+  // Handle edit existing view
+  const handleEditView = (view: any) => {
+    setEditingView(view);
+    setIsManageViewsOpen(false);
+    setIsNewViewDialogOpen(true);
+    setNewViewName(view.name);
+    setNewViewDescription(view.description || "");
+    setSelectedColumns(view.columns?.map((col: any) => col.id) || []);
+    setIsPublicView(view.isPublic || false);
+  };
+
+  // Handle delete view
+  const handleDeleteView = (viewId: string) => {
+    if (window.confirm("Tem certeza que deseja excluir esta visualização?")) {
+      deleteViewMutation.mutate(viewId);
+    }
+  };
+
+  // Handle column reordering
+  const moveColumn = (fromIndex: number, toIndex: number) => {
+    const newColumns = [...selectedColumns];
+    const [movedColumn] = newColumns.splice(fromIndex, 1);
+    newColumns.splice(toIndex, 0, movedColumn);
+    setSelectedColumns(newColumns);
+  };
+
+  // Reset dialog on close
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      setEditingView(null);
+      resetNewViewForm();
+    }
+    setIsNewViewDialogOpen(open);
   };
 
   // Debug logging
@@ -869,10 +1063,16 @@ export default function TicketsTable() {
               <Filter className="h-5 w-5" />
               Visualizações de Tickets
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Visualização
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Visualização
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setIsManageViewsOpen(true)}>
+                <Settings className="h-4 w-4 mr-2" />
+                Gerenciar
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-6 pt-[0px] pb-[0px]">
@@ -1047,11 +1247,13 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
-      {/* Modal Nova Visualização */}
-      <Dialog open={isNewViewDialogOpen} onOpenChange={setIsNewViewDialogOpen}>
+      {/* Modal Nova/Editar Visualização */}
+      <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Nova Visualização de Tickets</DialogTitle>
+            <DialogTitle>
+              {editingView ? 'Editar Visualização de Tickets' : 'Nova Visualização de Tickets'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1074,34 +1276,65 @@ export default function TicketsTable() {
             </div>
             <div>
               <label className="text-sm font-medium">Colunas a Exibir</label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {[
-                  { key: "number", label: "Number" },
-                  { key: "subject", label: "Subject" },
-                  { key: "customer", label: "Customer" },
-                  { key: "category", label: "Category" },
-                  { key: "status", label: "Status" },
-                  { key: "priority", label: "Priority" },
-                  { key: "impact", label: "Impact" },
-                  { key: "assigned_to", label: "Assigned To" },
-                  { key: "created", label: "Created" }
-                ].map((col) => (
-                  <label key={col.key} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      className="rounded"
-                      checked={selectedColumns.includes(col.key)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedColumns([...selectedColumns, col.key]);
-                        } else {
-                          setSelectedColumns(selectedColumns.filter(c => c !== col.key));
-                        }
-                      }}
-                    />
-                    <span className="text-sm">{col.label}</span>
-                  </label>
-                ))}
+              <div className="mt-2 space-y-2">
+                <div className="text-xs text-gray-500 mb-2">Clique para selecionar/desmarcar colunas. Arraste para reordenar.</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableColumns.map((col) => (
+                    <label key={col.id} className="flex items-center space-x-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="rounded"
+                        checked={selectedColumns.includes(col.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedColumns([...selectedColumns, col.id]);
+                          } else {
+                            setSelectedColumns(selectedColumns.filter(c => c !== col.id));
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{col.label}</span>
+                    </label>
+                  ))}
+                </div>
+                
+                {/* Ordem das Colunas Selecionadas */}
+                {selectedColumns.length > 0 && (
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <div className="text-sm font-medium mb-2">Ordem das Colunas:</div>
+                    <div className="space-y-1">
+                      {selectedColumns.map((columnId, index) => {
+                        const column = availableColumns.find(col => col.id === columnId);
+                        return (
+                          <div key={columnId} className="flex items-center gap-2 p-2 bg-white dark:bg-gray-700 rounded border">
+                            <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
+                            <span className="text-sm flex-1">{column?.label}</span>
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => index > 0 && moveColumn(index, index - 1)}
+                                disabled={index === 0}
+                                className="h-6 w-6 p-0"
+                              >
+                                ↑
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => index < selectedColumns.length - 1 && moveColumn(index, index + 1)}
+                                disabled={index === selectedColumns.length - 1}
+                                className="h-6 w-6 p-0"
+                              >
+                                ↓
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -1123,13 +1356,111 @@ export default function TicketsTable() {
             </Button>
             <Button 
               onClick={handleCreateView}
-              disabled={createViewMutation.isPending}
+              disabled={createViewMutation.isPending || updateViewMutation.isPending}
             >
-              {createViewMutation.isPending ? "Criando..." : "Criar Visualização"}
+              {editingView 
+                ? (updateViewMutation.isPending ? "Salvando..." : "Salvar Alterações")
+                : (createViewMutation.isPending ? "Criando..." : "Criar Visualização")
+              }
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Gerenciar Visualizações */}
+      <Dialog open={isManageViewsOpen} onOpenChange={setIsManageViewsOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Gerenciar Visualizações
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {ticketViews.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Nenhuma visualização personalizada criada ainda.</p>
+                <p className="text-sm">Clique em "Nova Visualização" para criar sua primeira visualização.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {ticketViews.map((view: any) => (
+                  <div key={view.id} className="border rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-medium">{view.name}</h3>
+                        <div className="flex gap-2">
+                          {view.isPublic && (
+                            <Badge variant="secondary" className="text-xs">Pública</Badge>
+                          )}
+                          {view.isDefault && (
+                            <Badge variant="default" className="text-xs">Padrão</Badge>
+                          )}
+                          {selectedViewId === view.id && (
+                            <Badge variant="outline" className="text-xs border-green-500 text-green-600">Ativa</Badge>
+                          )}
+                        </div>
+                      </div>
+                      {view.description && (
+                        <p className="text-sm text-gray-600 mt-1">{view.description}</p>
+                      )}
+                      <div className="text-xs text-gray-500 mt-2">
+                        {view.columns?.length || 0} colunas • 
+                        Criada em {new Date(view.createdAt).toLocaleDateString()} •
+                        {view.isPublic ? 'Visível para todos' : 'Apenas para você'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedViewId(view.id)}
+                        disabled={selectedViewId === view.id}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        {selectedViewId === view.id ? 'Ativa' : 'Ativar'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditView(view)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteView(view.id)}
+                        className="border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Excluir
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between items-center pt-4">
+            <div className="text-sm text-gray-500">
+              {ticketViews.length} visualização(ões) criada(s)
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsNewViewDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Visualização
+              </Button>
+              <Button variant="default" onClick={() => setIsManageViewsOpen(false)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal Filtros Avançados */}
       <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
         <DialogContent className="max-w-3xl">
