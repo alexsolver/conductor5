@@ -299,7 +299,13 @@ export default function TicketDetails() {
         businessImpact: ticket.businessImpact || "",
         symptoms: ticket.symptoms || "",
         workaround: ticket.workaround || "",
+        followers: ticket.followers || [],
       });
+      
+      // Initialize followers from ticket data
+      if (ticket.followers && Array.isArray(ticket.followers)) {
+        setFollowers(ticket.followers);
+      }
       
       // Simulate communication data
       setCommunications([
@@ -1052,17 +1058,55 @@ export default function TicketDetails() {
             {/* Solicitante */}
             <div className="mb-4">
               <h4 className="text-xs font-medium text-gray-500 mb-1">Solicitante</h4>
-              <div className="text-sm text-gray-700">
-                {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
-              </div>
+              {isEditMode ? (
+                <Select 
+                  onValueChange={(value) => form.setValue('callerId', value)} 
+                  defaultValue={ticket.callerId || ''}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Selecione o solicitante" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Não especificado</SelectItem>
+                    {customers?.customers?.map((customer: any) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-sm text-gray-700">
+                  {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
+                </div>
+              )}
             </div>
 
             {/* Atribuído a */}
             <div className="mb-4">
               <h4 className="text-xs font-medium text-gray-500 mb-1">Atribuído a</h4>
-              <div className="text-sm text-gray-700">
-                {users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
-              </div>
+              {isEditMode ? (
+                <Select 
+                  onValueChange={(value) => form.setValue('assignedToId', value)} 
+                  defaultValue={ticket.assignedToId || ''}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Selecione o responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Não atribuído</SelectItem>
+                    {users?.users?.map((user: any) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-sm text-gray-700">
+                  {users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1078,14 +1122,20 @@ export default function TicketDetails() {
                       <span className="text-sm text-gray-700">
                         {user?.name || followerId}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setFollowers(followers.filter((_, i) => i !== index))}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      {isEditMode && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => {
+                            const newFollowers = followers.filter((_, i) => i !== index);
+                            setFollowers(newFollowers);
+                            form.setValue('followers', newFollowers);
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   );
                 })
@@ -1093,22 +1143,26 @@ export default function TicketDetails() {
                 <div className="text-sm text-gray-500">Nenhum seguidor</div>
               )}
               
-              <Select onValueChange={(value) => {
-                if (value && !followers.includes(value)) {
-                  setFollowers([...followers, value]);
-                }
-              }}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="+ Adicionar agente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users?.users?.filter((user: any) => !followers.includes(user.id)).map((user: any) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isEditMode && (
+                <Select onValueChange={(value) => {
+                  if (value && !followers.includes(value)) {
+                    const newFollowers = [...followers, value];
+                    setFollowers(newFollowers);
+                    form.setValue('followers', newFollowers);
+                  }
+                }}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="+ Adicionar agente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users?.users?.filter((user: any) => !followers.includes(user.id)).map((user: any) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
