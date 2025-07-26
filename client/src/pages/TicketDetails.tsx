@@ -12,7 +12,7 @@ import {
   Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
   Heading1, Heading2, Heading3, Undo, Redo, Strikethrough, AlertTriangle,
   Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
-  CheckCircle, Star, TrendingUp, Building2
+  CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -263,6 +263,7 @@ export default function TicketDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
+  const [isCompanyDetailsOpen, setIsCompanyDetailsOpen] = useState(false);
 
 
   // Basic information - consolidated into single tab
@@ -1957,19 +1958,36 @@ export default function TicketDetails() {
 
           {/* Empresa Cliente Section - Topo */}
           <div className="mb-6 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              EMPRESA CLIENTE
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                EMPRESA CLIENTE
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                onClick={() => setIsCompanyDetailsOpen(true)}
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Ver Detalhes
+              </Button>
+            </div>
             <div className="space-y-2">
-              <div className="text-sm">
-                <span className="font-medium text-blue-900">
+              <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
+                   onClick={() => setIsCompanyDetailsOpen(true)}>
+                <span className="font-medium text-blue-900 underline decoration-dotted">
                   {ticket.customerCompany?.name || ticket.company || 'Não especificado'}
                 </span>
               </div>
               {ticket.customerCompany?.industry && (
                 <div className="text-xs text-blue-600 mt-1">
                   🏷️ Setor: {ticket.customerCompany.industry}
+                </div>
+              )}
+              {ticket.customerCompany?.cnpj && (
+                <div className="text-xs text-blue-600">
+                  📄 CNPJ: {ticket.customerCompany.cnpj}
                 </div>
               )}
             </div>
@@ -2585,6 +2603,213 @@ export default function TicketDetails() {
         onClose={() => setShowInternalActionModal(false)} 
       />
 
+      {/* Company Details Modal */}
+      <Dialog open={isCompanyDetailsOpen} onOpenChange={setIsCompanyDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-blue-600" />
+              Detalhes da Empresa Cliente
+            </DialogTitle>
+            <DialogDescription>
+              Informações completas e gestão da empresa vinculada ao ticket
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Informações Básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Informações Básicas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Nome da Empresa</Label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {ticket?.customerCompany?.name || ticket?.company || 'Empresa Não Especificada'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.cnpj || 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Setor</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.industry || 'Não especificado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Porte</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.size || 'Não especificado'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contatos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Contatos Principais
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Email Principal</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.email || 'contato@empresa.com'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Telefone</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.phone || '(11) 1234-5678'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Responsável Técnico</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.techContact || 'Não designado'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Gerente de Conta</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.accountManager || 'Não designado'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Endereço */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Endereço
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.address || 'Endereço não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">CEP</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.zipCode || '00000-000'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Cidade</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.city || 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Estado</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.state || 'SP'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">País</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.customerCompany?.country || 'Brasil'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Estatísticas e Histórico */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Estatísticas de Suporte
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-blue-600">12</p>
+                    <p className="text-xs text-gray-600">Total de Tickets</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">9</p>
+                    <p className="text-xs text-gray-600">Resolvidos</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-orange-600">2h 15min</p>
+                    <p className="text-xs text-gray-600">Tempo Médio</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-purple-600">4.8/5</p>
+                    <p className="text-xs text-gray-600">Satisfação</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Ações Rápidas */}
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                onClick={() => navigate("/customers")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Gerenciar Clientes
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate("/contracts")}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Ver Contratos
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate("/tickets?company=" + (ticket?.customerCompany?.id || ''))}
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                Todos os Tickets
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.open(`mailto:${ticket?.customerCompany?.email}`, '_blank')}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Enviar Email
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCompanyDetailsOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
