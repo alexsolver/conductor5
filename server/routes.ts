@@ -2201,6 +2201,254 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sla/rules/applicable', jwtAuth, requireTenantAccess, slaController.getApplicableSlaRules.bind(slaController));
   app.post('/api/sla/metrics/calculate/:ticketId', jwtAuth, requireTenantAccess, slaController.calculateTicketSlaMetrics.bind(slaController));
 
+  // ========================================
+  // PROJECT MANAGEMENT ROUTES WITH AUTOMATIC TICKET INTEGRATION
+  // ========================================
+
+  // Project CRUD Routes
+  app.get('/api/projects', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const options = {
+        limit: parseInt(req.query.limit as string) || 50,
+        offset: parseInt(req.query.offset as string) || 0,
+        search: req.query.search as string,
+        status: req.query.status as string
+      };
+
+      const projects = await unifiedStorage.getProjects(tenantId, options);
+      res.json({ success: true, data: projects });
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch projects' });
+    }
+  });
+
+  app.get('/api/projects/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const stats = await unifiedStorage.getProjectStats(tenantId);
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      console.error('Error fetching project stats:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch project stats' });
+    }
+  });
+
+  app.get('/api/projects/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const project = await unifiedStorage.getProjectById(tenantId, req.params.id);
+      if (!project) {
+        return res.status(404).json({ success: false, message: 'Project not found' });
+      }
+
+      res.json({ success: true, data: project });
+    } catch (error) {
+      console.error('Error fetching project:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch project' });
+    }
+  });
+
+  app.post('/api/projects', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const project = await unifiedStorage.createProject(tenantId, req.body);
+      res.status(201).json({ success: true, data: project });
+    } catch (error) {
+      console.error('Error creating project:', error);
+      res.status(500).json({ success: false, message: 'Failed to create project' });
+    }
+  });
+
+  app.put('/api/projects/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const project = await unifiedStorage.updateProject(tenantId, req.params.id, req.body);
+      if (!project) {
+        return res.status(404).json({ success: false, message: 'Project not found' });
+      }
+
+      res.json({ success: true, data: project });
+    } catch (error) {
+      console.error('Error updating project:', error);
+      res.status(500).json({ success: false, message: 'Failed to update project' });
+    }
+  });
+
+  app.delete('/api/projects/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const success = await unifiedStorage.deleteProject(tenantId, req.params.id);
+      if (!success) {
+        return res.status(404).json({ success: false, message: 'Project not found' });
+      }
+
+      res.json({ success: true, message: 'Project deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete project' });
+    }
+  });
+
+  // ========================================
+  // PROJECT ACTIONS ROUTES WITH AUTOMATIC TICKET INTEGRATION
+  // ========================================
+
+  app.get('/api/project-actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const options = {
+        limit: parseInt(req.query.limit as string) || 50,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+
+      const projectId = req.query.projectId as string;
+      const actions = await unifiedStorage.getProjectActions(tenantId, projectId, options);
+      res.json({ success: true, data: actions });
+    } catch (error) {
+      console.error('Error fetching project actions:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch project actions' });
+    }
+  });
+
+  app.get('/api/project-actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const action = await unifiedStorage.getProjectActionById(tenantId, req.params.id);
+      if (!action) {
+        return res.status(404).json({ success: false, message: 'Project action not found' });
+      }
+
+      res.json({ success: true, data: action });
+    } catch (error) {
+      console.error('Error fetching project action:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch project action' });
+    }
+  });
+
+  // AUTOMATIC TICKET INTEGRATION: Every project action creation creates a corresponding ticket
+  app.post('/api/project-actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Create project action with automatic ticket creation
+      const action = await unifiedStorage.createProjectAction(tenantId, req.body);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: action,
+        message: action.related_ticket_id 
+          ? 'Project action created with automatic ticket integration'
+          : 'Project action created (ticket creation failed)'
+      });
+    } catch (error) {
+      console.error('Error creating project action:', error);
+      res.status(500).json({ success: false, message: 'Failed to create project action' });
+    }
+  });
+
+  // AUTOMATIC TICKET SYNC: Project action updates sync with related tickets
+  app.put('/api/project-actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Update project action with automatic ticket sync
+      const action = await unifiedStorage.updateProjectAction(tenantId, req.params.id, req.body);
+      if (!action) {
+        return res.status(404).json({ success: false, message: 'Project action not found' });
+      }
+
+      res.json({ 
+        success: true, 
+        data: action,
+        message: action.related_ticket_id 
+          ? 'Project action updated with automatic ticket sync'
+          : 'Project action updated'
+      });
+    } catch (error) {
+      console.error('Error updating project action:', error);
+      res.status(500).json({ success: false, message: 'Failed to update project action' });
+    }
+  });
+
+  app.delete('/api/project-actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const success = await unifiedStorage.deleteProjectAction(tenantId, req.params.id);
+      if (!success) {
+        return res.status(404).json({ success: false, message: 'Project action not found' });
+      }
+
+      res.json({ success: true, message: 'Project action deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting project action:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete project action' });
+    }
+  });
+
+  // MANUAL TICKET CONVERSION: Convert existing project action to ticket
+  app.post('/api/project-actions/:id/convert-to-ticket', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const ticket = await unifiedStorage.convertProjectActionToTicket(tenantId, req.params.id);
+      res.json({ 
+        success: true, 
+        data: ticket, 
+        message: 'Project action converted to ticket successfully' 
+      });
+    } catch (error) {
+      console.error('Error converting project action to ticket:', error);
+      res.status(500).json({ success: false, message: 'Failed to convert project action to ticket' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -659,7 +659,7 @@ export default function Projects() {
                     <div>
                       <Label className="text-sm font-medium text-gray-700">Orçamento</Label>
                       <p className="text-sm text-gray-900 mt-1">
-                        R$ {selectedProject.budget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        R$ {(selectedProject.budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </p>
                     </div>
                   )}
@@ -667,7 +667,7 @@ export default function Projects() {
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Custo Atual</Label>
                     <p className="text-sm text-gray-900 mt-1">
-                      R$ {selectedProject.actualCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {(selectedProject.actualCost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
@@ -722,7 +722,7 @@ export default function Projects() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.byStatus.in_progress || 0}</div>
+              <div className="text-2xl font-bold">{stats?.data?.active_projects || 0}</div>
             </CardContent>
           </Card>
 
@@ -733,7 +733,7 @@ export default function Projects() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                R$ {stats.totalBudget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {(stats?.data?.total_budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
@@ -744,7 +744,7 @@ export default function Projects() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.byStatus.completed || 0}</div>
+              <div className="text-2xl font-bold">{stats?.data?.completed_projects || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -856,7 +856,7 @@ export default function Projects() {
                 
                 {project.budget && (
                   <div className="text-sm text-gray-600">
-                    <span className="font-medium">Orçamento:</span> R$ {project.budget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    <span className="font-medium">Orçamento:</span> R$ {(project.budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 )}
                 
