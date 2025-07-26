@@ -30,10 +30,7 @@ import {
   Trash2, 
   FolderTree,
   CircleDot,
-  Clock,
   AlertTriangle,
-  Users,
-  MapPin,
   Server,
   CheckCircle2,
   ArrowUpDown,
@@ -508,7 +505,7 @@ export default function TicketConfiguration() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="categories" className="flex items-center space-x-2">
             <FolderTree className="w-4 h-4" />
             <span>Categorias</span>
@@ -524,18 +521,6 @@ export default function TicketConfiguration() {
           <TabsTrigger value="hierarchical" className="flex items-center space-x-2">
             <Building2 className="w-4 h-4" />
             <span>Por Cliente</span>
-          </TabsTrigger>
-          <TabsTrigger value="groups" className="flex items-center space-x-2">
-            <Users className="w-4 h-4" />
-            <span>Grupos</span>
-          </TabsTrigger>
-          <TabsTrigger value="locations" className="flex items-center space-x-2">
-            <MapPin className="w-4 h-4" />
-            <span>Localizações</span>
-          </TabsTrigger>
-          <TabsTrigger value="slas" className="flex items-center space-x-2">
-            <Clock className="w-4 h-4" />
-            <span>SLAs</span>
           </TabsTrigger>
         </TabsList>
 
@@ -876,36 +861,7 @@ export default function TicketConfiguration() {
           </Card>
         </TabsContent>
 
-        {/* Other tabs - placeholder for now */}
-        <TabsContent value="groups">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8 text-gray-500">
-                Configuração de grupos de atendimento em desenvolvimento
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="locations">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8 text-gray-500">
-                Configuração de localizações em desenvolvimento
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="slas">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8 text-gray-500">
-                Configuração de SLAs em desenvolvimento
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        
       </Tabs>
 
       {/* Dialog for creating/editing items */}
