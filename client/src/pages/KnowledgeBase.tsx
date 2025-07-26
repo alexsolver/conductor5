@@ -108,8 +108,8 @@ const KnowledgeBase = () => {
     retry: 1
   });
 
-  const categories = categoriesData?.data || [];
-  const articles = articlesData?.data || [];
+  const categories = Array.isArray(categoriesData?.data) ? categoriesData.data : [];
+  const articles = Array.isArray(articlesData?.data) ? articlesData.data : [];
   const analytics = analyticsData?.data || {};
 
   // Ícones por categoria
