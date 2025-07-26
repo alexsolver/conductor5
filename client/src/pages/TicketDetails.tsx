@@ -1705,8 +1705,7 @@ export default function TicketDetails() {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className```text
-="text-xl font-semibold">🕒 Últimas Interações</h2>
+              <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
               <Badge variant="outline" className="text-xs">
                 Histórico do Solicitante
               </Badge>
