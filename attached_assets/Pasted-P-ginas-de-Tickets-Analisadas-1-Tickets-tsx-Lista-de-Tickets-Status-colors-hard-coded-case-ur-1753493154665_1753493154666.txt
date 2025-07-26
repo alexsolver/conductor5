@@ -1,0 +1,82 @@
+Páginas de Tickets Analisadas:
+1. Tickets.tsx (Lista de Tickets)
+Status colors hard coded:
+
+case "urgent": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+case "high": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
+case "medium": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+case "low": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+Enums de prioridade e status hard coded:
+
+priority: z.enum(["low", "medium", "high", "urgent"])
+callerType: z.enum(["customer", "user"])
+contactType: z.enum(["email", "phone", "chat", "portal"])
+2. TicketDetails.tsx (Detalhes do Ticket)
+Categorias hard coded:
+
+<SelectItem value="hardware">Hardware</SelectItem>
+<SelectItem value="software">Software</SelectItem>
+<SelectItem value="rede">Rede</SelectItem>
+<SelectItem value="acesso">Acesso</SelectItem>
+<SelectItem value="outros">Outros</SelectItem>
+Localizações hard coded:
+
+<SelectItem value="matriz">Matriz</SelectItem>
+<SelectItem value="filial1">Filial 1</SelectItem>
+<SelectItem value="filial2">Filial 2</SelectItem>
+<SelectItem value="remoto">Remoto</SelectItem>
+Dados simulados (mock) hard coded:
+
+// Comunicações simuladas
+setCommunications([
+  {
+    id: 1,
+    type: "email",
+    channel: "Email",
+    from: "cliente@empresa.com",
+    to: "suporte@conductor.com",
+    // ...
+  }
+]);
+// Histórico simulado
+setHistory([
+  {
+    id: 1,
+    action: "Ticket criado",
+    user: "Sistema",
+    // ...
+  }
+]);
+3. TicketsTable.tsx
+Schema com valores default hard coded:
+priority: "medium",
+impact: "medium", 
+urgency: "medium",
+state: "new",
+callerType: "customer",
+contactType: "email",
+status: "open"
+4. TicketEdit.tsx
+Tipos de ação hard coded:
+
+<SelectItem value="investigation">Investigação</SelectItem>
+<SelectItem value="repair">Reparo</SelectItem>
+<SelectItem value="analysis">Análise</SelectItem>
+<SelectItem value="documentation">Documentação</SelectItem>
+Grupos de atribuição hard coded:
+
+<SelectItem value="support">Suporte Técnico</SelectItem>
+<SelectItem value="network">Infraestrutura</SelectItem>
+<SelectItem value="security">Segurança</SelectItem>
+<SelectItem value="development">Desenvolvimento</SelectItem>
+5. TicketConfiguration.tsx
+Cores padrão hard coded:
+color: "#3b82f6"  // Azul padrão
+Principais Problemas Identificados:
+Enums não configuráveis - Prioridades, status, categorias deveriam vir do banco
+Cores hard coded - Sistema de cores deveria ser configurável
+Dados mock - Muitas informações simuladas em vez de vindas da API
+Localizações fixas - Filiais e locais deveriam ser cadastráveis
+Textos não internationalizados - Muitos textos em português fixo
+Valores default - Configurações que deveriam ser por tenant
+Recomendação: Implementar um sistema de configuração de metadados onde administradores possam gerenciar essas informações via interface, tornando o sistema mais flexível e adaptável a diferentes organizações.
