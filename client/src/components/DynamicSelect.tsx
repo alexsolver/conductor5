@@ -14,6 +14,7 @@ interface DynamicSelectProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  showAllOption?: boolean;
 }
 
 export function DynamicSelect({ 
@@ -22,7 +23,8 @@ export function DynamicSelect({
   onValueChange, 
   placeholder, 
   className,
-  disabled = false 
+  disabled = false,
+  showAllOption = false
 }: DynamicSelectProps) {
   const { getFieldOptions, isLoading } = useTicketMetadata();
   
@@ -54,6 +56,14 @@ export function DynamicSelect({
         <SelectValue placeholder={placeholder || `Selecione ${fieldName}`} />
       </SelectTrigger>
       <SelectContent>
+        {showAllOption && (
+          <SelectItem value="all">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gray-400" />
+              <span>All</span>
+            </div>
+          </SelectItem>
+        )}
         {options.map((option) => (
           <SelectItem key={option.id} value={option.optionValue}>
             <div className="flex items-center gap-2">

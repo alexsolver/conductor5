@@ -669,26 +669,7 @@ export default function TicketDetails() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "critical": return "bg-red-100 text-red-800";
-      case "high": return "bg-orange-100 text-orange-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "low": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open": return "bg-blue-100 text-blue-800";
-      case "in_progress": return "bg-purple-100 text-purple-800";
-      case "pending": return "bg-yellow-100 text-yellow-800";
-      case "resolved": return "bg-green-100 text-green-800";
-      case "closed": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
 
   // Render tab content based on activeTab
   function renderTabContent() {
@@ -853,20 +834,15 @@ export default function TicketDetails() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="open">Aberto</SelectItem>
-                        <SelectItem value="in_progress">Em Progresso</SelectItem>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="resolved">Resolvido</SelectItem>
-                        <SelectItem value="closed">Fechado</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <DynamicSelect
+                        fieldName="status"
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Selecione o status"
+                        disabled={!isEditMode}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1386,39 +1362,28 @@ export default function TicketDetails() {
                 {/* Priority and Status Fields */}
                 {isEditMode ? (
                   <div className="flex items-center gap-2">
-                    <Select onValueChange={(value) => form.setValue('priority', value)} defaultValue={ticket.priority}>
-                      <SelectTrigger className="w-24 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">low</SelectItem>
-                        <SelectItem value="medium">medium</SelectItem>
-                        <SelectItem value="high">high</SelectItem>
-                        <SelectItem value="critical">critical</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <DynamicSelect
+                      fieldName="priority"
+                      value={ticket.priority}
+                      onValueChange={(value) => form.setValue('priority', value)}
+                      className="w-24 h-8"
+                    />
                     
-                    <Select onValueChange={(value) => form.setValue('status', value)} defaultValue={ticket.status}>
-                      <SelectTrigger className="w-32 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">open</SelectItem>
-                        <SelectItem value="in_progress">in_progress</SelectItem>
-                        <SelectItem value="pending">pending</SelectItem>
-                        <SelectItem value="resolved">resolved</SelectItem>
-                        <SelectItem value="closed">closed</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <DynamicSelect
+                      fieldName="status"
+                      value={ticket.status}
+                      onValueChange={(value) => form.setValue('status', value)}
+                      className="w-32 h-8"
+                    />
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Badge className={getPriorityColor(ticket.priority)}>
+                    <DynamicBadge fieldName="priority" value={ticket.priority}>
                       {ticket.priority}
-                    </Badge>
-                    <Badge className={getStatusColor(ticket.status)}>
+                    </DynamicBadge>
+                    <DynamicBadge fieldName="status" value={ticket.status}>
                       {ticket.status}
-                    </Badge>
+                    </DynamicBadge>
                   </div>
                 )}
               </div>
