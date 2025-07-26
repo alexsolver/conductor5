@@ -352,13 +352,45 @@ export default function TicketConfiguration() {
   };
 
   const onHierarchicalSubmit = (data: z.infer<typeof hierarchicalConfigSchema>) => {
+    console.log('Form submission triggered');
+    console.log('Raw form data:', data);
+    console.log('Selected customer:', selectedCustomer);
+    console.log('Form values:', hierarchicalForm.getValues());
+    console.log('Form state errors:', hierarchicalForm.formState.errors);
+    
     // Ensure customerId is set from selectedCustomer
     const submissionData = {
       ...data,
       customerId: selectedCustomer
     };
     
-    console.log('Submitting hierarchical config:', submissionData);
+    console.log('Final submission data:', submissionData);
+    
+    // Validate that we have required fields
+    if (!submissionData.customerId || !submissionData.fieldName || !submissionData.displayName) {
+      console.error('Missing required fields:', {
+        customerId: submissionData.customerId,
+        fieldName: submissionData.fieldName,
+        displayName: submissionData.displayName
+      });
+      toast({
+        title: "Erro de validação",
+        description: "Verifique se todos os campos obrigatórios estão preenchidos",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!submissionData.options || submissionData.options.length === 0) {
+      console.error('No options provided');
+      toast({
+        title: "Erro de validação", 
+        description: "Pelo menos uma opção é necessária",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     createHierarchicalConfigMutation.mutate(submissionData);
   };
 
@@ -1260,7 +1292,16 @@ export default function TicketConfiguration() {
                 <Button type="button" variant="outline" onClick={() => setIsHierarchicalDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createHierarchicalConfigMutation.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={createHierarchicalConfigMutation.isPending}
+                  onClick={() => {
+                    console.log('Button clicked - checking form state');
+                    console.log('Form valid:', hierarchicalForm.formState.isValid);
+                    console.log('Form errors:', hierarchicalForm.formState.errors);
+                    console.log('Selected customer at button click:', selectedCustomer);
+                  }}
+                >
                   {createHierarchicalConfigMutation.isPending ? "Criando..." : "Criar Configuração"}
                 </Button>
               </div>
