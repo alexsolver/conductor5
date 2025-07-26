@@ -162,13 +162,11 @@ export default function Tickets() {
     );
   }
 
+  // Log para debug
+  console.log('🚀 Tickets component is rendering...', { currentViewId, tickets });
+
   return (
     <div className="p-4 space-y-6">
-      {/* TESTE DE VISIBILIDADE - POSICIONADO NO TOPO */}
-      <div style={{backgroundColor: 'red', color: 'white', padding: '15px', fontSize: '20px', fontWeight: 'bold', textAlign: 'center'}}>
-        🚨 TESTE DE VISIBILIDADE - COMPONENTE DE VISUALIZAÇÕES 🚨
-      </div>
-
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
@@ -315,52 +313,40 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* SISTEMA DE VISUALIZAÇÕES DE TICKETS - VERSÃO TESTE */}
-      <div style={{backgroundColor: 'lightblue', padding: '20px', margin: '10px 0', border: '3px solid red'}}>
-        <h2 style={{color: 'black', fontSize: '18px', fontWeight: 'bold'}}>
-          🚀 SISTEMA DE VISUALIZAÇÕES - TESTE DE VISIBILIDADE
-        </h2>
-        <p style={{color: 'black', marginBottom: '10px'}}>
-          Se você está vendo este texto, o componente está renderizando corretamente!
-        </p>
-      </div>
-
-      {/* SISTEMA DE VISUALIZAÇÕES DE TICKETS - VERSÃO VISÍVEL */}
-      <Card className="mb-4" style={{border: '2px solid orange'}}>
-        <CardContent className="p-4">
+      {/* Sistema de Visualizações Customizáveis */}
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                📊 Visualizações de Tickets
-              </h3>
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Visualizações de Tickets
+            </CardTitle>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Visualização
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Visualização Ativa:</span>
               <Select value={currentViewId || "default"} onValueChange={handleViewChange}>
-                <SelectTrigger className="w-[240px]">
-                  <SelectValue placeholder="Selecionar visualização..." />
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Selecionar..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">
-                    ⭐ Visualização Padrão
-                  </SelectItem>
-                  <SelectItem value="my-tickets">
-                    👤 Meus Tickets
-                  </SelectItem>
-                  <SelectItem value="urgent">
-                    🚨 Tickets Urgentes
-                  </SelectItem>
+                  <SelectItem value="default">Visualização Padrão</SelectItem>
+                  <SelectItem value="my-tickets">Meus Tickets</SelectItem>
+                  <SelectItem value="urgent">Tickets Urgentes</SelectItem>
+                  <SelectItem value="resolved">Tickets Resolvidos</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="bg-blue-50 hover:bg-blue-100">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Visualização
-              </Button>
             </div>
-            
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtros Avançados
-              </Button>
-            </div>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+            </Button>
           </div>
         </CardContent>
       </Card>
