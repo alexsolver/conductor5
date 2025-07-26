@@ -881,9 +881,9 @@ export default function Projects() {
                   </div>
                 )}
                 
-                {project.tags.length > 0 && (
+                {Array.isArray(project.tags) && project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {(Array.isArray(project.tags) ? project.tags.slice(0, 3) : []).map((tag, index) => (
+                    {project.tags.slice(0, 3).map((tag, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {tag}
                       </Badge>
