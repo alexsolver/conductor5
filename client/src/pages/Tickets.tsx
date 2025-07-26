@@ -63,9 +63,12 @@ export default function Tickets() {
   // Função para trocar visualização ativa
   const handleViewChange = (viewId: string) => {
     setCurrentViewId(viewId);
-    // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
     console.log('Visualização alterada para:', viewId);
+    // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
   };
+
+  // Debug logging
+  console.log('Tickets page rendering, currentViewId:', currentViewId);
 
   // Form setup
   const form = useForm<CreateTicketFormData>({
@@ -307,33 +310,55 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* Sistema de Visualizações Customizáveis - VERSÃO SIMPLIFICADA */}
-      <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border">
-        <div className="flex items-center space-x-4">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Visualizações:</h3>
-          <Select value={currentViewId || "default"} onValueChange={handleViewChange}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Selecionar visualização" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Visualização Padrão</SelectItem>
-              <SelectItem value="my-tickets">Meus Tickets</SelectItem>
-              <SelectItem value="urgent">Tickets Urgentes</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Visualização
-          </Button>
-        </div>
-        
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
-          </Button>
-        </div>
+      {/* SISTEMA DE VISUALIZAÇÕES DE TICKETS - VERSÃO TESTE */}
+      <div style={{backgroundColor: 'lightblue', padding: '20px', margin: '10px 0', border: '3px solid red'}}>
+        <h2 style={{color: 'black', fontSize: '18px', fontWeight: 'bold'}}>
+          🚀 SISTEMA DE VISUALIZAÇÕES - TESTE DE VISIBILIDADE
+        </h2>
+        <p style={{color: 'black', marginBottom: '10px'}}>
+          Se você está vendo este texto, o componente está renderizando corretamente!
+        </p>
       </div>
+
+      {/* SISTEMA DE VISUALIZAÇÕES DE TICKETS - VERSÃO VISÍVEL */}
+      <Card className="mb-4" style={{border: '2px solid orange'}}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                📊 Visualizações de Tickets
+              </h3>
+              <Select value={currentViewId || "default"} onValueChange={handleViewChange}>
+                <SelectTrigger className="w-[240px]">
+                  <SelectValue placeholder="Selecionar visualização..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">
+                    ⭐ Visualização Padrão
+                  </SelectItem>
+                  <SelectItem value="my-tickets">
+                    👤 Meus Tickets
+                  </SelectItem>
+                  <SelectItem value="urgent">
+                    🚨 Tickets Urgentes
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" className="bg-blue-50 hover:bg-blue-100">
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Visualização
+              </Button>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros Avançados
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         {tickets?.tickets?.map((ticket: any) => (
