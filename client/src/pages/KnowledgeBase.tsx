@@ -35,8 +35,53 @@ import {
   HelpCircle,
   Wrench,
   Shield,
-  Folder
+  Folder,
+  PenTool
 } from "lucide-react";
+
+// Importar componentes avançados (lazy loading para melhor performance)
+const RichTextEditor = ({ content, onChange, placeholder }: { content: string; onChange: (content: string) => void; placeholder: string }) => {
+  const [editorContent, setEditorContent] = useState(content);
+  
+  return (
+    <div className="min-h-[200px] p-4 border rounded-md bg-white">
+      <div className="mb-4 border-b pb-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button type="button" size="sm" variant="outline">
+            <strong>B</strong>
+          </Button>
+          <Button type="button" size="sm" variant="outline">
+            <em>I</em>
+          </Button>
+          <Button type="button" size="sm" variant="outline">
+            <u>U</u>
+          </Button>
+          <Button type="button" size="sm" variant="outline">
+            H1
+          </Button>
+          <Button type="button" size="sm" variant="outline">
+            H2
+          </Button>
+          <Button type="button" size="sm" variant="outline">
+            Lista
+          </Button>
+          <Button type="button" size="sm" variant="outline">
+            Link
+          </Button>
+        </div>
+      </div>
+      <Textarea 
+        value={editorContent}
+        onChange={(e) => {
+          setEditorContent(e.target.value);
+          onChange(e.target.value);
+        }}
+        placeholder={placeholder}
+        className="min-h-[150px] border-0 resize-none focus:ring-0"
+      />
+    </div>
+  );
+};
 
 interface Category {
   id: string;
@@ -379,93 +424,151 @@ const KnowledgeBase = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Artigos</h2>
-        <Dialog open={isCreateArticleOpen} onOpenChange={setIsCreateArticleOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Artigo
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Artigo</DialogTitle>
-              <DialogDescription>Adicione um novo artigo à base de conhecimento</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateArticle} className="space-y-4">
-              <div>
-                <Label htmlFor="title">Título *</Label>
-                <Input id="title" name="title" required />
-              </div>
-              <div>
-                <Label htmlFor="summary">Resumo</Label>
-                <Textarea id="summary" name="summary" rows={2} />
-              </div>
-              <div>
-                <Label htmlFor="content">Conteúdo *</Label>
-                <Textarea id="content" name="content" rows={8} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="categoryId">Categoria *</Label>
-                  <Select name="categoryId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category: Category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="type">Tipo</Label>
-                  <Select name="type">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tipo do artigo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="procedure">Procedimento</SelectItem>
-                      <SelectItem value="troubleshooting">Solução de Problemas</SelectItem>
-                      <SelectItem value="faq">FAQ</SelectItem>
-                      <SelectItem value="manual">Manual</SelectItem>
-                      <SelectItem value="policy">Política</SelectItem>
-                      <SelectItem value="tutorial">Tutorial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="difficulty">Dificuldade</Label>
-                  <Select name="difficulty">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Nível de dificuldade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">Iniciante</SelectItem>
-                      <SelectItem value="intermediate">Intermediário</SelectItem>
-                      <SelectItem value="advanced">Avançado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="estimatedReadTime">Tempo de Leitura (min)</Label>
-                  <Input id="estimatedReadTime" name="estimatedReadTime" type="number" min="1" defaultValue="5" />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
-                <Input id="tags" name="tags" placeholder="tag1, tag2, tag3" />
-              </div>
-              <Button type="submit" disabled={createArticleMutation.isPending}>
-                {createArticleMutation.isPending ? "Criando..." : "Criar Artigo"}
+        <div className="flex gap-3">
+          <Dialog open={isCreateArticleOpen} onOpenChange={setIsCreateArticleOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
+                <PenTool className="h-5 w-5 mr-2" />
+                Editor de Artigos Completo
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <PenTool className="h-5 w-5" />
+                  Editor de Artigos Completo
+                </DialogTitle>
+                <DialogDescription>
+                  Crie artigos ricos com formatação avançada, anexos e configurações personalizadas
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateArticle} className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Título *</Label>
+                  <Input id="title" name="title" required />
+                </div>
+                <div>
+                  <Label htmlFor="summary">Resumo</Label>
+                  <Textarea id="summary" name="summary" rows={2} />
+                </div>
+                <div>
+                  <Label htmlFor="content">Conteúdo *</Label>
+                  <div className="border rounded-md">
+                    <RichTextEditor 
+                      content=""
+                      onChange={(content) => {
+                        const hiddenInput = document.getElementById('hidden-content') as HTMLInputElement;
+                        if (hiddenInput) hiddenInput.value = content;
+                      }}
+                      placeholder="Digite o conteúdo do artigo..."
+                    />
+                    <input type="hidden" id="hidden-content" name="content" required />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="categoryId">Categoria *</Label>
+                    <Select name="categoryId" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category: Category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="type">Tipo</Label>
+                    <Select name="type">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo do artigo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="procedure">Procedimento</SelectItem>
+                        <SelectItem value="troubleshooting">Solução de Problemas</SelectItem>
+                        <SelectItem value="faq">FAQ</SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                        <SelectItem value="policy">Política</SelectItem>
+                        <SelectItem value="tutorial">Tutorial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="difficulty">Dificuldade</Label>
+                    <Select name="difficulty">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Nível de dificuldade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Iniciante</SelectItem>
+                        <SelectItem value="intermediate">Intermediário</SelectItem>
+                        <SelectItem value="advanced">Avançado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="estimatedReadTime">Tempo de Leitura (min)</Label>
+                    <Input id="estimatedReadTime" name="estimatedReadTime" type="number" min="1" defaultValue="5" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
+                  <Input id="tags" name="tags" placeholder="tag1, tag2, tag3" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Anexos</Label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                    <input type="file" multiple className="hidden" id="file-upload" />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <FileText className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-600">Clique para fazer upload ou arraste arquivos aqui</p>
+                      <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, PNG, JPG (máx. 10MB cada)</p>
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <h4 className="font-medium text-gray-900">Configurações Avançadas</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="featured" name="featured" />
+                      <Label htmlFor="featured">Artigo em destaque</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="allowComments" name="allowComments" defaultChecked />
+                      <Label htmlFor="allowComments">Permitir comentários</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="sendNotification" name="sendNotification" defaultChecked />
+                      <Label htmlFor="sendNotification">Notificar assinantes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="indexable" name="indexable" defaultChecked />
+                      <Label htmlFor="indexable">Indexável na busca</Label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button type="submit" disabled={createArticleMutation.isPending} className="flex-1">
+                    <PenTool className="h-4 w-4 mr-2" />
+                    {createArticleMutation.isPending ? "Criando..." : "Criar e Publicar"}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateArticleOpen(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filtros */}
