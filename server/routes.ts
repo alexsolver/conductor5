@@ -468,7 +468,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Hierarchical ticket metadata routes
   try {
     const { TicketMetadataHierarchicalController } = await import('./modules/tickets/TicketMetadataHierarchicalController');
+    const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');
     const hierarchicalController = new TicketMetadataHierarchicalController();
+    const categoryHierarchyController = new TicketHierarchicalController();
 
     // Customer-specific configuration routes
     app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
