@@ -85,7 +85,7 @@ export default function TicketEdit() {
   const [isEmailHistoryModalOpen, setIsEmailHistoryModalOpen] = useState(false);
   const [isTicketHistoryModalOpen, setIsTicketHistoryModalOpen] = useState(false);
   const [isApprovalRequestModalOpen, setIsApprovalRequestModalOpen] = useState(false);
-  
+
   // Use metadata system
   const { isLoading: metadataLoading } = useTicketMetadata();
 
@@ -297,7 +297,7 @@ export default function TicketEdit() {
       environment_publication: data.environmentPublication,
       close_to_publish: data.closeToPublish,
     };
-    
+
     updateTicketMutation.mutate(mappedData);
   };
 
@@ -362,7 +362,7 @@ export default function TicketEdit() {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -411,7 +411,7 @@ export default function TicketEdit() {
                       <TabsTrigger value="details">Detalhes</TabsTrigger>
                       <TabsTrigger value="people">Pessoas</TabsTrigger>
                     </TabsList>
-                    
+
                     {/* Tab 1: Basic Information */}
                     <TabsContent value="basic" className="space-y-4">
                       <FormField
@@ -1027,9 +1027,7 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-                    </TabsContent>
-
-                    {/* Tab 4: Technical Details */}
+                    </Tabs                    {/* Tab 4: Technical Details */}
                     <TabsContent value="details" className="space-y-4">
                       <FormField
                         control={form.control}
@@ -1197,7 +1195,7 @@ export default function TicketEdit() {
                         <Paperclip className="w-6 h-6 text-blue-600" />
                         <span className="text-xs text-gray-700">Anexos</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
@@ -1207,7 +1205,7 @@ export default function TicketEdit() {
                         <MessageSquare className="w-6 h-6 text-green-600" />
                         <span className="text-xs text-gray-700">Ação Interna</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
@@ -1217,7 +1215,7 @@ export default function TicketEdit() {
                         <Mail className="w-6 h-6 text-purple-600" />
                         <span className="text-xs text-gray-700">E-mail</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
@@ -1227,7 +1225,7 @@ export default function TicketEdit() {
                         <FileCheck className="w-6 h-6 text-orange-600" />
                         <span className="text-xs text-gray-700">Pedidos de aprovação</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         className="flex flex-col items-center space-y-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
@@ -1248,7 +1246,7 @@ export default function TicketEdit() {
                     >
                       Voltar à lista
                     </Button>
-                    
+
                     <Button 
                       type="submit" 
                       disabled={updateTicketMutation.isPending}
@@ -1318,31 +1316,31 @@ export default function TicketEdit() {
         onClose={() => setIsLinkingModalOpen(false)}
         currentTicket={ticket}
       />
-      
+
       <AttachmentsModal
         ticketId={id!}
         isOpen={isAttachmentsModalOpen}
         onClose={() => setIsAttachmentsModalOpen(false)}
       />
-      
+
       <InternalActionModal
         ticketId={id!}
         isOpen={isInternalActionModalOpen}
         onClose={() => setIsInternalActionModalOpen(false)}
       />
-      
+
       <EmailHistoryModal
         ticketId={id!}
         isOpen={isEmailHistoryModalOpen}
         onClose={() => setIsEmailHistoryModalOpen(false)}
       />
-      
+
       <TicketHistoryModal
         ticketId={id!}
         isOpen={isTicketHistoryModalOpen}
         onClose={() => setIsTicketHistoryModalOpen(false)}
       />
-      
+
       <ApprovalRequestModal
         ticketId={id!}
         isOpen={isApprovalRequestModalOpen}
