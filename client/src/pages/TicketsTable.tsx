@@ -110,6 +110,7 @@ export default function TicketsTable() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedViewId, setSelectedViewId] = useState("default");
   const itemsPerPage = 20;
   
   const { toast } = useToast();
@@ -146,10 +147,17 @@ export default function TicketsTable() {
     retry: 3,
   });
 
+  // Fetch ticket views from backend
+  const { data: ticketViewsData } = useQuery({
+    queryKey: ["/api/ticket-views"],
+    retry: 3,
+  });
+
   const tickets = ticketsData?.tickets || [];
   const pagination = ticketsData?.pagination || { total: 0, totalPages: 0 };
   // Legacy customers array removed
   const users = usersData?.users || [];
+  const ticketViews = ticketViewsData?.views || [];
 
   // Debug logging
   console.log('TicketsTable - Data:', {
@@ -676,25 +684,7 @@ export default function TicketsTable() {
         </Dialog>
       </div>
 
-      {/* SISTEMA DE VISUALIZAÇÕES DE TICKETS */}
-      <div 
-        style={{
-          backgroundColor: '#ff0000',
-          color: '#ffffff',
-          padding: '30px',
-          margin: '20px 0',
-          border: '5px solid #000000',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          zIndex: 9999,
-          position: 'relative'
-        }}
-      >
-        🚨 SELETOR DE VISUALIZAÇÕES - PÁGINA CORRETA /TICKETS 🚨
-      </div>
-
-      {/* Seletor de Visualizações Funcionais */}
+      {/* Seletor de Visualizações */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -714,12 +704,15 @@ export default function TicketsTable() {
               <span className="text-sm font-medium">Visualização Ativa:</span>
               <select 
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
-                defaultValue="default"
+                value={selectedViewId}
+                onChange={(e) => setSelectedViewId(e.target.value)}
               >
                 <option value="default">Visualização Padrão</option>
-                <option value="my-tickets">Meus Tickets</option>
-                <option value="urgent">Tickets Urgentes</option>
-                <option value="resolved">Tickets Resolvidos</option>
+                {ticketViews.map((view: any) => (
+                  <option key={view.id} value={view.id}>
+                    {view.name}
+                  </option>
+                ))}
               </select>
             </div>
             <Button variant="outline" size="sm">
