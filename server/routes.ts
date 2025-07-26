@@ -8,8 +8,8 @@ import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRou
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
-import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations } from "@shared/schema-master";
-import { eq, and } from "drizzle-orm";
+import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, customerCompanies } from "@shared/schema-master";
+import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
@@ -145,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import microservice routers
   const { dashboardRouter } = await import('./modules/dashboard/routes');
-  // customersRouter removed - functionality consolidated into /api/clientes
+  // const { customersRouter } = await import('./modules/customers/routes'); // Temporarily disabled due to schema issues
   const { ticketsRouter } = await import('./modules/tickets/routes');
   // const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
-  // /api/customers route removed - use /api/clientes instead
+  // app.use('/api/customers', customersRouter); // Temporarily disabled due to schema issues
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
   
@@ -218,6 +218,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching clientes:", error);
       res.status(500).json({ success: false, message: "Erro ao buscar clientes" });
+    }
+  });
+
+  // === CUSTOMER COMPANIES ROUTES ===
+  app.get("/api/customers/companies", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant context required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `SELECT * FROM "${schemaName}"."customer_companies" WHERE tenant_id = $1 ORDER BY name`,
+        [req.user.tenantId]
+      );
+
+      const companies = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name,
+        description: row.description,
+        size: row.size,
+        subscriptionTier: row.subscription_tier,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      res.json({
+        success: true,
+        data: companies
+      });
+    } catch (error) {
+      console.error('Error fetching customer companies:', error);
+      res.status(500).json({ message: 'Failed to fetch customer companies' });
+    }
+  });
+
+  app.post("/api/customers/companies", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant context required' });
+      }
+
+      const { name, displayName, description, size, subscriptionTier } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: 'Name is required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `INSERT INTO "${schemaName}"."customer_companies" 
+         (tenant_id, name, display_name, description, size, subscription_tier, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [req.user.tenantId, name, displayName, description, size, subscriptionTier, req.user.id]
+      );
+
+      const company = result.rows[0];
+      const formattedCompany = {
+        id: company.id,
+        name: company.name,
+        displayName: company.display_name,
+        description: company.description,
+        size: company.size,
+        subscriptionTier: company.subscription_tier,
+        status: company.status,
+        createdAt: company.created_at,
+        updatedAt: company.updated_at
+      };
+
+      res.status(201).json({
+        success: true,
+        data: formattedCompany
+      });
+    } catch (error) {
+      console.error('Error creating customer company:', error);
+      res.status(500).json({ message: 'Failed to create customer company' });
     }
   });
 
@@ -1536,6 +1619,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+
+  // Customer companies direct route for testing
+  app.get('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      // Direct database query using Drizzle
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const companies = await tenantDb
+        .select()
+        .from(customerCompanies)
+        .where(eq(customerCompanies.tenantId, tenantId))
+        .orderBy(customerCompanies.name);
+
+      res.json({
+        success: true,
+        data: companies
+      });
+    } catch (error) {
+      console.error('Error fetching customer companies:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch customer companies' 
+      });
+    }
+  });
+
+  // Customer companies POST route for testing
+  app.post('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { name, displayName, description, size, subscriptionTier } = req.body;
+      
+      // Direct database insert using Drizzle
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const [company] = await tenantDb
+        .insert(customerCompanies)
+        .values({
+          tenantId,
+          name,
+          displayName,
+          description,
+          size,
+          subscriptionTier,
+          status: 'active',
+          createdBy: req.user.id
+        })
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        data: company
+      });
+    } catch (error) {
+      console.error('Error creating customer company:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create customer company' 
+      });
+    }
+  });
 
   // Customer companies compatibility route for contract creation
   app.get('/api/customer-companies',jwtAuth, async (req: AuthenticatedRequest, res) => {

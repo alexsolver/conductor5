@@ -139,39 +139,81 @@ const customerCompanyController = getCustomerCompanyController();
 
 // Customer Company Routes
 // GET /api/customers/companies - Get all customer companies
-customersRouter.get('/companies', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.getCompanies(req, res);
+customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    // Use direct SQL query to avoid schema issues
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    
+    const result = await pool.query(
+      `SELECT * FROM "${schemaName}"."customer_companies" WHERE tenant_id = $1 ORDER BY name`,
+      [req.user.tenantId]
+    );
+
+    const companies = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      displayName: row.display_name,
+      description: row.description,
+      size: row.size,
+      subscriptionTier: row.subscription_tier,
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    res.json({
+      success: true,
+      data: companies
+    });
+  } catch (error) {
+    console.error('Error fetching customer companies:', error);
+    res.status(500).json({ message: 'Failed to fetch customer companies' });
+  }
 });
 
 // POST /api/customers/companies - Create new customer company
-customersRouter.post('/companies', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.createCompany(req, res);
-});
+customersRouter.post('/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
 
-// GET /api/customers/companies/:id - Get customer company by ID
-customersRouter.get('/companies/:id', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.getCompanyById(req, res);
-});
+    const { name, displayName, description, size, subscriptionTier } = req.body;
+    
+    const pool = (await import('../../db')).schemaManager.getPool();
+    const result = await pool.query(
+      `INSERT INTO "${(await import('../../db')).schemaManager.getSchemaName(req.user.tenantId)}"."customer_companies" 
+       (tenant_id, name, display_name, description, size, subscription_tier, status, created_by) 
+       VALUES ($1, $2, $3, $4, $5, $6, 'active', $7) 
+       RETURNING *`,
+      [req.user.tenantId, name, displayName, description, size, subscriptionTier, req.user.id]
+    );
 
-// PUT /api/customers/companies/:id - Update customer company
-customersRouter.put('/companies/:id', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.updateCompany(req, res);
-});
-
-// DELETE /api/customers/companies/:id - Delete customer company
-customersRouter.delete('/companies/:id', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.deleteCompany(req, res);
-});
-
-// Customer Company Membership Routes
-// POST /api/customers/companies/memberships - Add customer to company
-customersRouter.post('/companies/memberships', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.addMembership(req, res);
-});
-
-// PUT /api/customers/companies/memberships/:membershipId - Update membership
-customersRouter.put('/companies/memberships/:membershipId', jwtAuth, (req: AuthenticatedRequest, res) => {
-  customerCompanyController.updateMembership(req, res);
+    const company = result.rows[0];
+    res.status(201).json({
+      success: true,
+      data: {
+        id: company.id,
+        name: company.name,
+        displayName: company.display_name,
+        description: company.description,
+        size: company.size,
+        subscriptionTier: company.subscription_tier,
+        status: company.status,
+        createdAt: company.created_at,
+        updatedAt: company.updated_at
+      }
+    });
+  } catch (error) {
+    console.error('Error creating customer company:', error);
+    res.status(500).json({ message: 'Failed to create customer company' });
+  }
 });
 
 // GET /api/customers/:customerId/companies - Get companies for a customer

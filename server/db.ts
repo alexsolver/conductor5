@@ -20,6 +20,14 @@ export const db = drizzle({ client: pool, schema });
 
 // Simplified schema manager with all required methods
 export const schemaManager = {
+  getPool() {
+    return pool;
+  },
+  
+  getSchemaName(tenantId: string) {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  },
+
   async getTenantDb(tenantId: string) {
     return { db };
   },
