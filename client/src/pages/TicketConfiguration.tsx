@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -305,6 +305,7 @@ export default function TicketConfiguration() {
   // Hierarchical configuration mutations
   const createHierarchicalConfigMutation = useMutation({
     mutationFn: async (data: z.infer<typeof hierarchicalConfigSchema>) => {
+      console.log('API call with data:', data);
       const response = await apiRequest('POST', `/api/ticket-metadata-hierarchical/customer/${data.customerId}/configuration`, data);
       return response.json();
     },
@@ -313,8 +314,23 @@ export default function TicketConfiguration() {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-metadata-hierarchical/customer', selectedCustomer, 'configuration'] });
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       setIsHierarchicalDialogOpen(false);
-      hierarchicalForm.reset();
+      hierarchicalForm.reset({
+        customerId: "",
+        fieldName: "priority",
+        displayName: "",
+        options: [
+          { value: "", label: "", color: "#3b82f6", isDefault: false }
+        ]
+      });
       toast({ title: "Configuração hierárquica criada com sucesso" });
+    },
+    onError: (error) => {
+      console.error('Error creating hierarchical config:', error);
+      toast({ 
+        title: "Erro ao criar configuração", 
+        description: "Verifique os dados e tente novamente",
+        variant: "destructive"
+      });
     }
   });
 
@@ -336,7 +352,14 @@ export default function TicketConfiguration() {
   };
 
   const onHierarchicalSubmit = (data: z.infer<typeof hierarchicalConfigSchema>) => {
-    createHierarchicalConfigMutation.mutate(data);
+    // Ensure customerId is set from selectedCustomer
+    const submissionData = {
+      ...data,
+      customerId: selectedCustomer
+    };
+    
+    console.log('Submitting hierarchical config:', submissionData);
+    createHierarchicalConfigMutation.mutate(submissionData);
   };
 
   const openEditDialog = (item: any, type: string) => {
@@ -664,7 +687,18 @@ export default function TicketConfiguration() {
                   </CardDescription>
                 </div>
                 <Button 
-                  onClick={() => setIsHierarchicalDialogOpen(true)}
+                  onClick={() => {
+                    // Reset and set customerId before opening dialog
+                    hierarchicalForm.reset({
+                      customerId: selectedCustomer,
+                      fieldName: "priority",
+                      displayName: "",
+                      options: [
+                        { value: "", label: "", color: "#3b82f6", isDefault: false }
+                      ]
+                    });
+                    setIsHierarchicalDialogOpen(true);
+                  }}
                   disabled={!selectedCustomer}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -1056,15 +1090,21 @@ export default function TicketConfiguration() {
             <DialogTitle>
               Nova Configuração Hierárquica
             </DialogTitle>
-            <p className="text-sm text-gray-600">
+            <DialogDescription className="text-sm text-gray-600">
               Crie configurações específicas para a empresa cliente selecionada
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...hierarchicalForm}>
             <form onSubmit={hierarchicalForm.handleSubmit(onHierarchicalSubmit)} className="space-y-6">
               {/* Customer Field - Hidden as it's pre-selected */}
-              <input type="hidden" {...hierarchicalForm.register("customerId")} value={selectedCustomer} />
+              <FormField
+                control={hierarchicalForm.control}
+                name="customerId"
+                render={({ field }) => (
+                  <input type="hidden" {...field} value={selectedCustomer} />
+                )}
+              />
               
               {/* Field Selection */}
               <FormField
