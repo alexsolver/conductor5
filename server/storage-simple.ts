@@ -97,6 +97,10 @@ export interface IStorage {
   updateProjectAction(tenantId: string, actionId: string, actionData: any): Promise<any>;
   deleteProjectAction(tenantId: string, actionId: string): Promise<boolean>;
   convertProjectActionToTicket(tenantId: string, actionId: string): Promise<any>;
+
+  // Locations Management
+  getLocations(tenantId: string): Promise<any[]>;
+  createLocation(tenantId: string, locationData: any): Promise<any>;
 }
 
 // ===========================
@@ -2312,6 +2316,71 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logError('Error fetching project action by ID', error, { tenantId, actionId });
       return undefined;
+    }
+  }
+
+  // ===========================
+  // LOCATIONS MANAGEMENT
+  // ===========================
+
+  async getLocations(tenantId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(`
+        SELECT id, name, address, city, state, country, type, is_active, created_at, updated_at
+        FROM "${schemaName}".locations
+        WHERE is_active = true
+        ORDER BY created_at DESC
+      `);
+
+      logInfo('Locations fetched successfully', { tenantId: validatedTenantId, count: result.rows?.length });
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching locations', error, { tenantId });
+      return [];
+    }
+  }
+
+  async createLocation(tenantId: string, locationData: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const locationId = randomUUID();
+      const now = new Date().toISOString();
+
+      const location = {
+        id: locationId,
+        tenant_id: validatedTenantId,
+        name: locationData.name,
+        address: locationData.address || '',
+        city: locationData.city || '',
+        state: locationData.state || '',
+        country: locationData.country || 'Brasil',
+        type: locationData.type || 'Escritório',
+        is_active: true,
+        created_at: now,
+        updated_at: now
+      };
+
+      await tenantDb.execute(`
+        INSERT INTO "${schemaName}".locations 
+        (id, tenant_id, name, address, city, state, country, type, is_active, created_at, updated_at)
+        VALUES ('${location.id}', '${location.tenant_id}', '${location.name}', 
+                '${location.address}', '${location.city}', '${location.state}', 
+                '${location.country}', '${location.type}', ${location.is_active}, 
+                '${location.created_at}', '${location.updated_at}')
+      `);
+
+      logInfo('Location created successfully', { tenantId: validatedTenantId, locationId });
+      return location;
+    } catch (error) {
+      logError('Error creating location', error, { tenantId, locationData });
+      throw error;
     }
   }
 
