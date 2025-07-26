@@ -88,26 +88,26 @@ export default function TicketTemplates() {
 
   // Query para buscar templates
   const { data: templates = [], isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates/company/null'],
-    queryFn: () => apiRequest('GET', '/api/ticket-templates/company/null'),
+    queryKey: ['/api/ticket-templates'],
+    queryFn: () => apiRequest('GET', '/api/ticket-templates'),
   });
 
   // Query para buscar estatísticas
   const { data: stats } = useQuery({
-    queryKey: ['/api/ticket-templates/company/null/stats'],
-    queryFn: () => apiRequest('GET', '/api/ticket-templates/company/null/stats'),
+    queryKey: ['/api/ticket-templates/stats'],
+    queryFn: () => apiRequest('GET', '/api/ticket-templates/stats'),
   });
 
   // Query para buscar categorias
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/ticket-templates/company/null/categories'],
-    queryFn: () => apiRequest('GET', '/api/ticket-templates/company/null/categories'),
+    queryKey: ['/api/ticket-templates/categories'],
+    queryFn: () => apiRequest('GET', '/api/ticket-templates/categories'),
   });
 
   // Mutation para criar template
   const createTemplateMutation = useMutation({
     mutationFn: (data: TemplateFormData) => 
-      apiRequest('POST', '/api/ticket-templates/company/null', {
+      apiRequest('POST', '/api/ticket-templates', {
         ...data,
         tenantId: 'current-tenant-id', // TODO: Pegar do contexto
         defaultTitle: data.defaultTitle,
@@ -120,8 +120,8 @@ export default function TicketTemplates() {
         createdById: 'current-user-id', // TODO: Pegar do contexto
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/stats'] });
       setIsCreateOpen(false);
       form.reset();
       toast({
@@ -143,7 +143,7 @@ export default function TicketTemplates() {
     mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
       apiRequest('PUT', `/api/ticket-templates/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });
       setIsEditOpen(false);
       setEditingTemplate(null);
       form.reset();
@@ -165,8 +165,8 @@ export default function TicketTemplates() {
   const deleteTemplateMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/ticket-templates/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/stats'] });
       toast({
         title: "Template excluído",
         description: "O template foi excluído com sucesso.",

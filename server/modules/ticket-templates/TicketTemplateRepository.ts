@@ -11,18 +11,38 @@ export class TicketTemplateRepository {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
     
-    const query = `
-      SELECT * FROM "${schemaName}".ticket_templates 
-      WHERE tenant_id = $1 
-      AND (
-        customer_company_id = $2 
-        ${includePublic ? 'OR customer_company_id IS NULL' : ''}
-      )
-      AND is_active = true
-      ORDER BY sort_order ASC, usage_count DESC, name ASC
-    `;
+    // Handle null, undefined, or 'null' string values
+    const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
     
-    const result = await pool.query(query, [tenantId, customerCompanyId]);
+    let query: string;
+    let params: any[];
+    
+    if (companyId === null) {
+      // Show all public templates when no specific company
+      query = `
+        SELECT * FROM "${schemaName}".ticket_templates 
+        WHERE tenant_id = $1 
+        AND (customer_company_id IS NULL OR is_public = true)
+        AND is_active = true
+        ORDER BY sort_order ASC, usage_count DESC, name ASC
+      `;
+      params = [tenantId];
+    } else {
+      // Show company-specific + public templates
+      query = `
+        SELECT * FROM "${schemaName}".ticket_templates 
+        WHERE tenant_id = $1 
+        AND (
+          customer_company_id = $2 
+          ${includePublic ? 'OR customer_company_id IS NULL' : ''}
+        )
+        AND is_active = true
+        ORDER BY sort_order ASC, usage_count DESC, name ASC
+      `;
+      params = [tenantId, companyId];
+    }
+    
+    const result = await pool.query(query, params);
     return result.rows;
   }
 
@@ -43,6 +63,9 @@ export class TicketTemplateRepository {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(template.tenantId);
     
+    // Handle null, undefined, or 'null' string values for customerCompanyId
+    const companyId = template.customerCompanyId === 'null' || template.customerCompanyId === undefined || template.customerCompanyId === null ? null : template.customerCompanyId;
+    
     const query = `
       INSERT INTO "${schemaName}".ticket_templates (
         tenant_id, customer_company_id, name, description, category, subcategory,
@@ -60,7 +83,7 @@ export class TicketTemplateRepository {
 
     const values = [
       template.tenantId,
-      template.customerCompanyId,
+      companyId, // Use the processed companyId instead of original
       template.name,
       template.description,
       template.category,
@@ -160,12 +183,15 @@ export class TicketTemplateRepository {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
     
+    // Handle null, undefined, or 'null' string values
+    const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
+    
     let whereClause = 'WHERE tenant_id = $1';
     const values = [tenantId];
     
-    if (customerCompanyId) {
+    if (companyId !== null) {
       whereClause += ' AND (customer_company_id = $2 OR customer_company_id IS NULL)';
-      values.push(customerCompanyId);
+      values.push(companyId);
     }
 
     const query = `
@@ -247,12 +273,15 @@ export class TicketTemplateRepository {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
     
+    // Handle null, undefined, or 'null' string values
+    const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
+    
     let whereClause = 'WHERE tenant_id = $1';
     const values = [tenantId];
     
-    if (customerCompanyId) {
+    if (companyId !== null) {
       whereClause += ' AND (customer_company_id = $2 OR customer_company_id IS NULL)';
-      values.push(customerCompanyId);
+      values.push(companyId);
     }
 
     const query = `

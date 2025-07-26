@@ -514,6 +514,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // TICKET TEMPLATES ROUTES
     // ========================================
     
+    // Simplified routes (show all public templates)
+    app.get('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
+      req.params = { ...req.params, customerCompanyId: 'all' };
+      return ticketTemplateController.getTemplatesByCompany(req, res);
+    });
+    app.post('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
+      req.params = { ...req.params, customerCompanyId: 'all' };
+      return ticketTemplateController.createTemplate(req, res);
+    });
+    app.get('/api/ticket-templates/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {  
+      req.params = { ...req.params, customerCompanyId: 'all' };
+      return ticketTemplateController.getTemplateStats(req, res);
+    });
+    app.get('/api/ticket-templates/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+      req.params = { ...req.params, customerCompanyId: 'all' };
+      return ticketTemplateController.getTemplateCategories(req, res);
+    });
+    
     // Templates por empresa cliente
     app.get('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
     app.post('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
