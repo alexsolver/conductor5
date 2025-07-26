@@ -16,6 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerLocationManager } from './CustomerLocationManager';
 import { LocationModal } from './LocationModal';
+import { DynamicCustomFields } from '@/components/DynamicCustomFields';
 
 const customerSchema = z.object({
   firstName: z.string().min(1, 'Nome é obrigatório'),
