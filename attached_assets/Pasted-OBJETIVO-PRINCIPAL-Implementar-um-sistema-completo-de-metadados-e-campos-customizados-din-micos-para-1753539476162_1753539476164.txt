@@ -1,0 +1,193 @@
+OBJETIVO PRINCIPAL
+Implementar um sistema completo de metadados e campos customizados dinâmicos para os seguintes módulos:
+
+Clientes (customers)
+Favorecidos (favorecidos)
+Tickets (tickets)
+Habilidades (skills)
+Controle de Materiais e Serviços (materials-services)
+Gestão de Locais (locations)
+REQUISITOS TÉCNICOS ESPECÍFICOS
+1. ARQUITETURA DE METADADOS
+Crie uma tabela centralizada custom_fields_metadata:
+
+CREATE TABLE custom_fields_metadata (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  module_type VARCHAR(50) NOT NULL, -- 'customers', 'tickets', 'favorecidos', etc.
+  field_name VARCHAR(100) NOT NULL,
+  field_type VARCHAR(30) NOT NULL, -- 'text', 'number', 'select', 'multiselect', 'date', 'boolean', 'textarea', 'file', 'email', 'phone'
+  field_label VARCHAR(200) NOT NULL,
+  is_required BOOLEAN DEFAULT false,
+  validation_rules JSONB, -- regex, min/max length, custom validations
+  field_options JSONB, -- para selects: [{"value": "opt1", "label": "Opção 1", "color": "#ff0000"}]
+  display_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  created_by UUID,
+  updated_at TIMESTAMP DEFAULT NOW(),
+  updated_by UUID
+);
+Crie uma tabela para armazenar valores custom_fields_values:
+
+CREATE TABLE custom_fields_values (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  field_id UUID REFERENCES custom_fields_metadata(id),
+  entity_id UUID NOT NULL, -- ID do registro (customer, ticket, etc.)
+  entity_type VARCHAR(50) NOT NULL, -- 'customers', 'tickets', etc.
+  field_value JSONB, -- valor dinâmico do campo
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+2. INTERFACE ADMINISTRATIVA
+Crie um componente CustomFieldsAdministrator.tsx com:
+
+2.1 Seletor de Módulo
+Dropdown para escolher: Clientes, Favorecidos, Tickets, Habilidades, Materiais/Serviços, Locais
+Filtros por módulo ativo
+2.2 Builder de Campos Dinâmico
+interface FieldCreationInterface {
+  fieldTypes: [
+    'text', 'number', 'select', 'multiselect', 
+    'date', 'boolean', 'textarea', 'file', 'email', 'phone'
+  ];
+  
+  validation: {
+    required: boolean;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string; // regex
+    customMessage?: string;
+  };
+  
+  // Para campos SELECT/MULTISELECT
+  optionsBuilder: {
+    value: string;
+    label: string;
+    color?: string;
+    icon?: string;
+    isDefault?: boolean;
+  }[];
+}
+2.3 Preview em Tempo Real
+Mostrar como o campo aparecerá no formulário final
+Validação instantânea das regras criadas
+2.4 Gerenciamento de Campos Existentes
+Lista de campos por módulo
+Editar, desativar, reordenar campos
+Histórico de alterações
+3. INTEGRAÇÃO NOS FORMULÁRIOS
+Para cada módulo, modifique os formulários existentes:
+
+3.1 Component DynamicCustomFields.tsx
+interface DynamicCustomFieldsProps {
+  moduleType: 'customers' | 'tickets' | 'favorecidos' | 'skills' | 'materials-services' | 'locations';
+  entityId?: string; // Para edição
+  values?: Record<string, any>;
+  onChange: (fieldName: string, value: any) => void;
+  errors?: Record<string, string>;
+}
+3.2 Renderização Dinâmica
+Carregar campos do backend via API
+Renderizar componentes baseado no field_type
+Aplicar validações dinâmicas
+Salvar valores na tabela custom_fields_values
+4. PREPARAÇÃO PARA SAAS MODULAR
+4.1 Sistema de Feature Flags
+interface TenantModuleAccess {
+  tenantId: string;
+  enabledModules: {
+    customers: boolean;
+    favorecidos: boolean;
+    tickets: boolean;
+    skills: boolean;
+    materials: boolean;
+    locations: boolean;
+  };
+  customFieldsPerModule: {
+    [moduleType: string]: CustomFieldConfiguration[];
+  };
+}
+4.2 Middleware de Validação Modular
+const moduleAccessMiddleware = (moduleType: string) => {
+  return (req, res, next) => {
+    const tenantModules = getTenantEnabledModules(req.user.tenantId);
+    if (!tenantModules[moduleType]) {
+      return res.status(403).json({ error: 'Module not enabled for this tenant' });
+    }
+    next();
+  };
+};
+4.3 Roteamento Condicional
+Componentes só carregam se módulo estiver ativo
+Menu sidebar dinâmico baseado em módulos habilitados
+Lazy loading de módulos desativados
+5. APIS REQUERIDAS
+5.1 Gestão de Metadados
+// GET /api/custom-fields/:moduleType
+// POST /api/custom-fields
+// PUT /api/custom-fields/:id
+// DELETE /api/custom-fields/:id
+5.2 Valores de Campos
+// GET /api/custom-fields-values/:entityType/:entityId
+// POST /api/custom-fields-values
+// PUT /api/custom-fields-values/:id
+5.3 Configuração de Módulos
+// GET /api/tenant-modules/enabled
+// PUT /api/tenant-modules/toggle/:moduleType
+6. VALIDAÇÕES E SEGURANÇA
+6.1 Validação Server-Side
+Validar tipos de dados dinâmicamente
+Aplicar regras de regex e comprimento
+Verificar campos obrigatórios
+6.2 Isolamento Multi-Tenant
+Todas as queries filtradas por tenant_id
+Validação de acesso aos módulos
+Logs de auditoria para alterações
+7. EXPERIÊNCIA DO USUÁRIO
+7.1 Interface Administrativa
+Drag & drop para reordenar campos
+Wizard step-by-step para criação
+Validação em tempo real
+Confirmação antes de deletar campos com dados
+7.2 Formulários Finais
+Campos customizados integrados naturalmente
+Validação client-side + server-side
+Mensagens de erro específicas
+Salvamento automático (draft)
+IMPLEMENTAÇÃO PRIORITÁRIA
+FASE 1: Estrutura Base
+Criar tabelas de metadados e valores
+APIs básicas de CRUD
+Componente administrativo principal
+FASE 2: Integração
+Modificar formulários existentes
+Implementar renderização dinâmica
+Sistema de validações
+FASE 3: SaaS Modular
+Feature flags por tenant
+Middleware de validação
+Interface de ativação de módulos
+ARQUIVOS A SEREM CRIADOS/MODIFICADOS
+Backend:
+server/modules/custom-fields/routes.ts
+server/modules/custom-fields/CustomFieldsController.ts
+server/modules/custom-fields/CustomFieldsRepository.ts
+shared/schema-master.ts (adicionar tabelas)
+Frontend:
+client/src/pages/CustomFieldsAdministrator.tsx
+client/src/components/DynamicCustomFields.tsx
+client/src/components/CustomFieldBuilder.tsx
+Modificar formulários existentes dos 6 módulos
+Database:
+Migration script para criar as novas tabelas
+Índices para performance multi-tenant
+CRITÉRIOS DE SUCESSO
+✅ Interface de criação de campos funcionando
+✅ Campos aparecendo dinamicamente nos formulários
+✅ Validações client + server funcionando
+✅ Isolamento multi-tenant garantido
+✅ Sistema preparado para ativação modular SaaS
+✅ Performance adequada (consultas otimizadas)
+IMPLEMENTE ESTA SOLUÇÃO COMPLETA MANTENDO A ARQUITETURA LIMPA EXISTENTE E GARANTINDO COMPATIBILIDADE TOTAL COM O SISTEMA MULTI-TENANT ATUAL.
