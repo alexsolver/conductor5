@@ -574,6 +574,101 @@ export const insertFavorecidoSchema = createInsertSchema(favorecidos);
 export const insertProjectSchema = createInsertSchema(projects);
 export const insertProjectActionSchema = createInsertSchema(projectActions);
 
+// Hierarchical Categories Schemas
+export const insertTicketCategorySchema = createInsertSchema(ticketCategories);
+export const insertTicketSubcategorySchema = createInsertSchema(ticketSubcategories);
+export const insertTicketActionSchema = createInsertSchema(ticketActions);
+
+export type TicketCategory = typeof ticketCategories.$inferSelect;
+export type TicketSubcategory = typeof ticketSubcategories.$inferSelect;
+export type TicketAction = typeof ticketActions.$inferSelect;
+export type InsertTicketCategory = typeof ticketCategories.$inferInsert;
+export type InsertTicketSubcategory = typeof ticketSubcategories.$inferInsert;
+export type InsertTicketAction = typeof ticketActions.$inferInsert;
+
+// ========================================
+// TICKET HIERARCHICAL CATEGORIES (CATEGORIA → SUBCATEGORIA → AÇÃO)
+// ========================================
+
+// Ticket Categories - Nível 1 da hierarquia
+export const ticketCategories = pgTable("ticket_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id"), // Nullable para permitir configurações globais
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  code: varchar("code", { length: 50 }).notNull(), // Código único para integração
+  color: varchar("color", { length: 7 }).default("#3b82f6"), // Cor hexadecimal
+  icon: varchar("icon", { length: 50 }), // Nome do ícone Lucide
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  isSystem: boolean("is_system").default(false), // Indica se é categoria do sistema
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  // Constraint de unicidade hierárquica: tenant + customer + code
+  unique("ticket_categories_tenant_customer_code_unique").on(table.tenantId, table.customerId, table.code),
+  // Indexes para performance
+  index("ticket_categories_tenant_idx").on(table.tenantId),
+  index("ticket_categories_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("ticket_categories_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Ticket Subcategories - Nível 2 da hierarquia
+export const ticketSubcategories = pgTable("ticket_subcategories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id"), // Nullable para permitir configurações globais
+  categoryId: uuid("category_id").notNull().references(() => ticketCategories.id, { onDelete: 'cascade' }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  code: varchar("code", { length: 50 }).notNull(), // Código único dentro da categoria
+  color: varchar("color", { length: 7 }), // Se null, herda da categoria pai
+  icon: varchar("icon", { length: 50 }), // Se null, herda da categoria pai
+  sortOrder: integer("sort_order").default(0),
+  slaHours: integer("sla_hours"), // SLA específico da subcategoria
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  // Constraint de unicidade: categoria + code
+  unique("ticket_subcategories_category_code_unique").on(table.categoryId, table.code),
+  // Indexes para performance
+  index("ticket_subcategories_tenant_idx").on(table.tenantId),
+  index("ticket_subcategories_category_idx").on(table.categoryId),
+  index("ticket_subcategories_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("ticket_subcategories_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Ticket Actions - Nível 3 da hierarquia (ações específicas)
+export const ticketActions = pgTable("ticket_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id"), // Nullable para permitir configurações globais
+  subcategoryId: uuid("subcategory_id").notNull().references(() => ticketSubcategories.id, { onDelete: 'cascade' }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  code: varchar("code", { length: 50 }).notNull(), // Código único dentro da subcategoria
+  actionType: varchar("action_type", { length: 50 }).default("standard"), // standard, escalation, resolution, investigation
+  estimatedHours: integer("estimated_hours"), // Tempo estimado para a ação
+  requiredSkills: text("required_skills").array(), // Habilidades necessárias
+  templates: jsonb("templates"), // Templates de resposta ou documentação
+  automationRules: jsonb("automation_rules"), // Regras de automação específicas
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  // Constraint de unicidade: subcategoria + code
+  unique("ticket_actions_subcategory_code_unique").on(table.subcategoryId, table.code),
+  // Indexes para performance
+  index("ticket_actions_tenant_idx").on(table.tenantId),
+  index("ticket_actions_subcategory_idx").on(table.subcategoryId),
+  index("ticket_actions_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("ticket_actions_type_idx").on(table.actionType),
+  index("ticket_actions_active_idx").on(table.tenantId, table.isActive),
+]);
+
 // ========================================
 // MULTILOCATION TABLES (ENTERPRISE INTERNATIONAL SUPPORT)
 // ========================================
