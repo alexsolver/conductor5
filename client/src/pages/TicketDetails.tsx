@@ -1712,7 +1712,7 @@ export default function TicketDetails() {
                         ATUAL
                       </Badge>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">#{ticket.ticketNumber || 'T-2024-001'}</p>
+                        <p className="font-medium text-sm">#{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'T-2024-001'}</p>
                         <p className="text-sm text-gray-700 mt-1">{ticket.subject || 'Problema com sistema'}</p>
                         <p className="text-xs text-gray-500 mt-2">
                           Criado em {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'hoje'}
@@ -2405,7 +2405,7 @@ export default function TicketDetails() {
                 Voltar
               </Button>
               <div className="flex items-center gap-4">
-                <h1 className="text-xl font-semibold">Ticket #{ticket.ticketNumber}</h1>
+                <h1 className="text-xl font-semibold">Ticket #{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'N/A'}</h1>
 
                 {/* Priority and Status Fields */}
                 {isEditMode ? (
