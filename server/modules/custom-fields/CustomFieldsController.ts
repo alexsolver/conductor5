@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { CustomFieldsRepository } from './CustomFieldsRepository.js';
+import { CustomFieldsRepository } from './CustomFieldsRepository.ts';
 import { 
   insertCustomFieldMetadataSchema, 
   insertCustomFieldValueSchema,
   ModuleType,
   FieldType
-} from '../../../shared/schema-custom-fields.js';
+} from '../../../shared/schema-custom-fields.ts';
 import { ZodError } from 'zod';
 
 export interface AuthenticatedRequest extends Request {

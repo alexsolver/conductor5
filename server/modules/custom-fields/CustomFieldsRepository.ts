@@ -1,5 +1,5 @@
 import { eq, and, desc } from 'drizzle-orm';
-import { SchemaManager } from '../../storage.ts';
+import { SchemaManager } from '../../db.js';
 import { 
   customFieldsMetadata, 
   customFieldsValues, 
@@ -11,7 +11,7 @@ import {
   TenantModuleAccess,
   InsertTenantModuleAccess,
   ModuleType
-} from '../../../shared/schema-custom-fields.js';
+} from '../../../shared/schema-custom-fields.ts';
 
 export class CustomFieldsRepository {
   constructor(private schemaManager: SchemaManager) {}

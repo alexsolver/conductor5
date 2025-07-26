@@ -41,6 +41,7 @@ import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
+import customFieldsRoutes from './modules/custom-fields/routes.ts';
 // Hierarchical ticket metadata import - loaded dynamically below
 
 
@@ -626,6 +627,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
+
+  // Custom Fields routes - Universal metadata and dynamic fields system
+  app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
   // Holiday routes for journey control system
   app.use('/api/holidays', holidayRoutes);
