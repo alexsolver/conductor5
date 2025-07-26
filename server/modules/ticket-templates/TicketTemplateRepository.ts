@@ -69,15 +69,15 @@ export class TicketTemplateRepository {
     const query = `
       INSERT INTO "${schemaName}".ticket_templates (
         tenant_id, customer_company_id, name, description, category, subcategory,
-        default_title, default_description, default_priority, 
-        default_urgency, default_impact,
+        default_title, default_description, default_type, default_priority, 
+        default_status, default_category, default_urgency, default_impact,
         default_assignee_id, default_assignment_group, default_department,
         required_fields, optional_fields, hidden_fields, custom_fields,
         auto_assignment_rules, sla_override, is_active, 
         sort_order, created_by
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-        $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
       ) RETURNING *
     `;
 
@@ -90,7 +90,10 @@ export class TicketTemplateRepository {
       template.subcategory,
       template.defaultTitle,
       template.defaultDescription,
-      template.defaultPriority,
+      template.defaultType || 'support',
+      template.defaultPriority || 'medium',
+      template.defaultStatus || 'open',
+      template.defaultCategory || template.category || 'Geral',
       template.defaultUrgency,
       template.defaultImpact,
       template.defaultAssigneeId,

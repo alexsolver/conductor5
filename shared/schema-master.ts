@@ -2176,10 +2176,10 @@ export type TicketTemplate = typeof ticketTemplates.$inferSelect;
 export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
 
 // Template Zod schemas  
-export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates, {
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   customerCompanyId: z.string().uuid().nullable().optional(),
-  defaultCategory: z.string().optional(),
-});
+  defaultCategory: z.string().min(1, "Default category is required"),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   id: z.string().optional(),
   createdAt: z.date().optional(),

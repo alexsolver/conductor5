@@ -57,13 +57,24 @@ export class TicketTemplateController {
       const tenantId = req.user.tenantId;
       const userId = req.user.id;
 
-      // Validar dados de entrada
-      const templateData = insertTicketTemplateSchema.parse({
+      // Validar dados de entrada e mapear campos
+      const inputData = {
         ...req.body,
         tenantId,
         customerCompanyId: (customerCompanyId === 'public' || customerCompanyId === 'all') ? null : customerCompanyId,
-        createdById: userId
-      });
+        createdById: userId,
+        // Map frontend field names to backend expected names
+        defaultPriority: req.body.priority || req.body.defaultPriority || 'medium',
+        defaultStatus: req.body.status || req.body.defaultStatus || 'open',
+        defaultType: req.body.type || req.body.defaultType || 'support',
+        defaultCategory: req.body.defaultCategory || req.body.category || 'Geral'
+      };
+      
+      console.log('🐛 Debug - Input data for validation:', JSON.stringify(inputData, null, 2));
+      console.log('🐛 Debug - customerCompanyId param:', customerCompanyId);
+      console.log('🐛 Debug - converted customerCompanyId:', inputData.customerCompanyId);
+      
+      const templateData = insertTicketTemplateSchema.parse(inputData);
 
       const template = await this.repository.createTemplate(templateData);
       
