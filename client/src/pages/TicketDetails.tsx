@@ -1027,7 +1027,7 @@ export default function TicketDetails() {
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="priority"
@@ -1050,48 +1050,6 @@ export default function TicketDetails() {
 
                 <FormField
                   control={form.control}
-                  name="impact"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Impacto</FormLabel>
-                      <FormControl>
-                        <DynamicSelect
-                          fieldName="impact"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione o impacto"
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="urgency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Urgência</FormLabel>
-                      <FormControl>
-                        <DynamicSelect
-                          fieldName="urgency"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione a urgência"
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <FormField
-                  control={form.control}
                   name="status"
                   render={({ field }) => (
                     <FormItem>
@@ -1102,30 +1060,6 @@ export default function TicketDetails() {
                           value={field.value}
                           onValueChange={field.onChange}
                           placeholder="Selecione o status"
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 mt-4">
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Localização</FormLabel>
-                      <FormControl>
-                        <DynamicSelect
-                          fieldName="location"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione a localização"
                           disabled={!isEditMode}
                         />
                       </FormControl>
@@ -1996,7 +1930,7 @@ export default function TicketDetails() {
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Empresa
+                EMPRESA CLIENTE
               </h3>
               <Button
                 variant="ghost"
@@ -2055,7 +1989,7 @@ export default function TicketDetails() {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-purple-800 flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Cliente
+                  CLIENTE/SOLICITANTE
                 </h3>
                 <Button
                   variant="ghost"
