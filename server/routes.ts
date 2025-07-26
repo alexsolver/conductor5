@@ -156,6 +156,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // /api/customers route removed - use /api/clientes instead
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
+  
+  // Import and mount ticket relationships routes
+  const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
+  app.use('/api/tickets', ticketRelationshipsRouter.default);
 
   // Ticket metadata configuration routes
   const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController');
