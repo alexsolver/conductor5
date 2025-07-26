@@ -1,0 +1,239 @@
+Analisando o sistema completo, vejo que já existe uma implementação parcial de templates de tickets. Com base na arquitetura atual e seguindo o princípio de hierarquia por empresa cliente que você estabeleceu, vou sugerir uma estrutura completa e otimizada para templates de abertura de tickets.
+
+Estrutura Recomendada para Templates de Tickets
+1. Arquitetura Hierárquica por Empresa Cliente
+interface TicketTemplate {
+  id: string;
+  tenantId: string;
+  customerCompanyId: string; // OBRIGATÓRIO - sempre atrelado a empresa cliente
+  
+  // Identificação do template
+  name: string;
+  description?: string;
+  category: string;
+  subcategory?: string;
+  
+  // Configurações pré-definidas do ticket
+  defaultTitle?: string;
+  defaultDescription?: string;
+  defaultType: string;
+  defaultPriority: string;
+  defaultStatus: string;
+  defaultCategory: string;
+  defaultUrgency?: string;
+  defaultImpact?: string;
+  
+  // Atribuições automáticas
+  defaultAssigneeId?: string;
+  defaultAssignmentGroup?: string;
+  defaultDepartment?: string;
+  
+  // Campos obrigatórios e opcionais
+  requiredFields: string[];
+  optionalFields: string[];
+  hiddenFields: string[];
+  
+  // Campos customizados específicos do template
+  customFields: Record<string, any>;
+  
+  // Automações
+  autoAssignmentRules?: {
+    byLocation?: string;
+    bySkill?: string[];
+    byWorkload?: boolean;
+  };
+  
+  // SLA específico
+  slaOverride?: {
+    responseTime?: number;
+    resolutionTime?: number;
+  };
+  
+  // Metadados
+  isActive: boolean;
+  isPublic: boolean; // Visível para todos usuários da empresa
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+  lastUsedAt?: Date;
+  usageCount: number;
+}
+2. Estrutura de Banco de Dados
+-- Templates sempre específicos por empresa cliente
+CREATE TABLE ticket_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  customer_company_id UUID NOT NULL REFERENCES customer_companies(id) ON DELETE CASCADE,
+  
+  -- Identificação
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  category VARCHAR(100) NOT NULL,
+  subcategory VARCHAR(100),
+  
+  -- Configurações padrão
+  default_title VARCHAR(500),
+  default_description TEXT,
+  default_type VARCHAR(50) NOT NULL,
+  default_priority VARCHAR(50) NOT NULL,
+  default_status VARCHAR(50) NOT NULL DEFAULT 'open',
+  default_category VARCHAR(100) NOT NULL,
+  default_urgency VARCHAR(50),
+  default_impact VARCHAR(50),
+  
+  -- Atribuições
+  default_assignee_id UUID,
+  default_assignment_group VARCHAR(100),
+  default_department VARCHAR(100),
+  
+  -- Configurações de campos
+  required_fields TEXT[] DEFAULT '{}',
+  optional_fields TEXT[] DEFAULT '{}',
+  hidden_fields TEXT[] DEFAULT '{}',
+  custom_fields JSONB DEFAULT '{}',
+  
+  -- Automações
+  auto_assignment_rules JSONB DEFAULT '{}',
+  sla_override JSONB DEFAULT '{}',
+  
+  -- Metadados
+  is_active BOOLEAN DEFAULT true,
+  is_public BOOLEAN DEFAULT true,
+  sort_order INTEGER DEFAULT 0,
+  usage_count INTEGER DEFAULT 0,
+  last_used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  created_by_id UUID NOT NULL,
+  
+  -- Constraints
+  UNIQUE(tenant_id, customer_company_id, name),
+  
+  -- Índices otimizados
+  INDEX idx_templates_company_active (tenant_id, customer_company_id, is_active, category),
+  INDEX idx_templates_usage (tenant_id, customer_company_id, usage_count DESC, last_used_at DESC)
+);
+3. API Endpoints Específicos
+// Templates por empresa cliente
+GET    /api/ticket-templates/company/{customerCompanyId}
+POST   /api/ticket-templates/company/{customerCompanyId}
+PUT    /api/ticket-templates/company/{customerCompanyId}/{templateId}
+DELETE /api/ticket-templates/company/{customerCompanyId}/{templateId}
+// Busca e filtros
+GET    /api/ticket-templates/company/{customerCompanyId}/search?q={query}&category={cat}
+GET    /api/ticket-templates/company/{customerCompanyId}/categories
+GET    /api/ticket-templates/company/{customerCompanyId}/popular
+// Aplicar template
+POST   /api/ticket-templates/company/{customerCompanyId}/{templateId}/apply
+GET    /api/ticket-templates/company/{customerCompanyId}/{templateId}/preview
+// Estatísticas
+GET    /api/ticket-templates/company/{customerCompanyId}/stats
+4. Interface de Usuário Proposta
+A. Página de Gerenciamento de Templates
+Localização: /ticket-templates
+Estrutura:
+Lista de templates organizados por categoria
+Filtros por categoria, status, popularidade
+Busca por nome/descrição
+Ações: Criar, Editar, Duplicar, Ativar/Desativar, Excluir
+Estatísticas de uso
+B. Modal de Criação/Edição
+interface TemplateFormSections {
+  // Seção 1: Informações Básicas
+  basicInfo: {
+    name: string;
+    description: string;
+    category: string;
+    subcategory: string;
+  };
+  
+  // Seção 2: Configurações Padrão do Ticket
+  ticketDefaults: {
+    title: string;
+    description: string;
+    type: string;
+    priority: string;
+    status: string;
+    category: string;
+    urgency: string;
+    impact: string;
+  };
+  
+  // Seção 3: Atribuições Automáticas
+  assignments: {
+    assigneeId: string;
+    assignmentGroup: string;
+    department: string;
+    autoAssignmentRules: object;
+  };
+  
+  // Seção 4: Configuração de Campos
+  fieldConfiguration: {
+    requiredFields: string[];
+    optionalFields: string[];
+    hiddenFields: string[];
+    customFields: object;
+  };
+  
+  // Seção 5: SLA e Automações
+  automations: {
+    slaOverride: object;
+    notifications: object;
+    workflows: object;
+  };
+}
+C. Seletor de Template na Criação de Ticket
+interface TemplateSelector {
+  // Exibição em cards com preview
+  templates: TemplateCard[];
+  
+  // Filtros rápidos
+  filters: {
+    category: string;
+    popular: boolean;
+    recent: boolean;
+  };
+  
+  // Preview do template
+  preview: {
+    title: string;
+    description: string;
+    fieldsToFill: string[];
+    estimatedTime: number;
+  };
+}
+5. Fluxo de Uso Recomendado
+Para Administradores da Empresa Cliente:
+Criar Templates: Acesso completo para criar templates específicos
+Configurar Campos: Definir quais campos são obrigatórios/opcionais
+Definir Automações: Regras de atribuição automática
+Gerenciar Visibilidade: Templates públicos ou privados
+Para Usuários Finais:
+Selecionar Template: Interface intuitiva com busca e filtros
+Preview: Visualizar o que será preenchido automaticamente
+Completar Campos: Preencher apenas campos não padronizados
+Criar Ticket: Aplicação automática das configurações do template
+6. Funcionalidades Avançadas
+A. Templates Inteligentes
+Sugestão Automática: Baseada no histórico do usuário
+Auto-categorização: IA para sugerir categoria baseada na descrição
+Campos Dinâmicos: Campos que aparecem baseados em seleções anteriores
+B. Analytics de Templates
+Mais Utilizados: Ranking por uso
+Tempo de Resolução: Média por template
+Taxa de Sucesso: % de tickets resolvidos no primeiro contato
+Feedback dos Usuários: Avaliação da utilidade do template
+C. Versionamento de Templates
+Histórico de Alterações: Controle de versões
+Rollback: Voltar para versão anterior
+Comparação: Diff entre versões
+7. Benefícios da Estrutura Proposta
+Isolamento por Empresa: Cada empresa cliente tem seus templates específicos
+Flexibilidade Total: Configuração completa de campos e automações
+Facilidade de Uso: Interface intuitiva para criação de tickets
+Produtividade: Redução do tempo de criação de tickets
+Consistência: Padronização dos dados de entrada
+Analytics: Insights sobre uso e eficiência
+Escalabilidade: Estrutura preparada para crescimento
+Esta estrutura aproveita a arquitetura existente do sistema, mantém a hierarquia por empresa cliente e oferece uma solução completa e robusta para templates de tickets.
