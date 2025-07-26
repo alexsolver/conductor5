@@ -1,0 +1,112 @@
+Desenvolver um módulo completo de alertas e notificações para uma plataforma de gestão de serviços e equipes de campo, seguindo a arquitetura Clean Architecture já implementada no sistema. O módulo deve integrar-se nativamente com todos os módulos existentes: tickets, clientes, materiais, compliance, timecard, conhecimento, etc.
+
+ARQUITETURA OBRIGATÓRIA
+Domain Layer: Entidades, eventos de domínio, regras de negócio
+Application Layer: Use cases, controllers, comandos/queries CQRS
+Infrastructure Layer: Repositórios Drizzle, serviços externos
+Presentation Layer: Componentes React/TypeScript com Shadcn/UI
+FUNCIONALIDADES BÁSICAS
+1. Gerenciamento de Alertas
+CRUD completo de tipos de alertas (sistema, usuário, automático)
+Configuração de severidade (info, warning, error, critical)
+Agendamento e triggers automáticos
+Histórico completo de alertas enviados
+Dashboard centralizado com métricas
+2. Canais de Notificação
+In-app: Toast notifications, badge counters, central de notificações
+Email: Templates personalizáveis, SMTP configurável
+SMS: Integração com o módulo de integrações em Tenant Admin Comunicacao
+Push: Notificações browser para eventos importantes
+3. Regras de Negócio
+Alertas por vencimento de compliance/certificações
+Notificações de tickets críticos não atendidos
+Alertas de timecard (horas extras, ausências)
+Notificações de estoque baixo/materiais
+Alertas de SLA próximo ao vencimento
+4. Preferências de Usuário
+Configuração individual de canais preferidos
+Horários de silêncio (DND)
+Filtros por tipo de alerta
+Frequência de notificações (imediato, agrupado, diário)
+FUNCIONALIDADES AVANÇADAS
+1. Automação Inteligente
+Alertas Predictivos: ML para detectar padrões e antecipar problemas
+Escalation Rules: Hierarquia automática quando alertas não são visualizados
+Smart Grouping: Agrupamento inteligente de alertas relacionados
+Auto-Resolution: Resolução automática baseada em condições
+2. Integração Omnichannel
+WhatsApp Business: Para comunicação com clientes
+Slack/Teams: Integração com ferramentas corporativas
+Webhook Customizados: APIs para sistemas externos
+3. Recursos Enterprise
+Tenant Isolation: Alertas isolados por tenant
+Role-Based Alerts: Notificações baseadas em permissões
+Geographic Routing: Alertas por localização de equipes
+Multi-language: Notificações no idioma do usuário
+Compliance Tracking: Auditoria completa de notificações
+5. Performance e Monitoramento
+Queue management para alto volume
+Rate limiting por usuário/tenant
+Retry policies para falhas de entrega
+Health checks dos canais de notificação
+Métricas de performance em tempo real
+
+INTEGRAÇÕES SISTÊMICAS OBRIGATÓRIAS
+Módulo de Tickets
+Alertas automáticos para tickets críticos
+Notificações de atribuição/reassignação
+SLA breach warnings
+Escalation automática por tempo
+Módulo de Compliance
+Alertas de vencimento de certificações
+Notificações de auditorias pendentes
+Compliance violations warnings
+Módulo de Timecard
+Alertas de horas extras não aprovadas
+Notificações de ausências não justificadas
+Lembretes de marcação de ponto
+Módulo de Materiais
+Alertas de estoque baixo
+Notificações de vencimento de materiais
+Aprovações de requisições pendentes
+Base de Conhecimento
+Alertas de artigos desatualizados
+Notificações de novas publicações
+Feedback requests automáticos
+ESPECIFICAÇÕES TÉCNICAS
+Database Schema
+Tabelas: notifications, notification_types, notification_channels, user_preferences, notification_logs, notification_templates
+Campos obrigatórios: tenantId, userId, type, severity, channel, status, scheduledAt, sentAt
+Índices otimizados para consultas por tenant/usuário
+Auditoria completa com timestamps
+API Endpoints
+RESTful endpoints seguindo padrão do sistema
+WebSocket para notificações em tempo real
+Rate limiting e validação de entrada
+Documentação OpenAPI completa
+Frontend Components
+Notification Bell com counter badge
+Toast notifications system
+Notification Center modal
+Settings panel para preferências
+Admin dashboard para configurações
+Real-time Features
+WebSocket connection para updates instantâneos
+Server-Sent Events como fallback
+Offline queue para reconexão
+Push notifications quando tab não está ativa
+DELIVERABLES ESPERADOS
+Backend completo com todas as camadas da Clean Architecture
+Frontend responsivo seguindo design system do projeto
+Integração nativa com todos os módulos existentes
+Documentação técnica completa da API
+Tests unitários e de integração
+Migration scripts para banco de dados
+Configuração de produção pronta para deploy
+VALIDAÇÃO FINAL
+Dados reais desde o primeiro momento (zero mock data)
+Todos os botões funcionais com ações reais
+Performance otimizada para multi-tenant
+Segurança validada com isolation por tenant
+Interface consistente com design system existente
+Execute esta implementação seguindo rigorosamente a arquitetura Clean e os padrões já estabelecidos no sistema.
