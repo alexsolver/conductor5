@@ -685,7 +685,6 @@ export default function TicketsTable() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Seletor de Visualizações */}
       <Card className="mb-6">
         <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[3px] pb-[3px]">
@@ -701,7 +700,7 @@ export default function TicketsTable() {
           </div>
         </CardHeader>
         <CardContent className="p-6 pt-[0px] pb-[0px]">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pt-[10px] pb-[10px]">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Visualização Ativa:</span>
               <select 
@@ -724,7 +723,6 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
-
       {/* Filters */}
       <Card>
         <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[0px] pb-[0px]">
@@ -923,7 +921,6 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
-
       {/* Modal Nova Visualização */}
       <Dialog open={isNewViewDialogOpen} onOpenChange={setIsNewViewDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -968,7 +965,6 @@ export default function TicketsTable() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal Filtros Avançados */}
       <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
         <DialogContent className="max-w-3xl">
