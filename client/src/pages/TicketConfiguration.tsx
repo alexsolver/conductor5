@@ -39,7 +39,9 @@ import {
   ArrowUpDown,
   Palette,
   Eye,
-  EyeOff
+  EyeOff,
+  Building2,
+  Layers
 } from "lucide-react";
 
 // Schema definitions
@@ -66,6 +68,19 @@ const prioritySchema = z.object({
   slaHours: z.number().min(0),
   color: z.string().default("#3b82f6"),
   active: z.boolean().default(true)
+});
+
+// Schema for hierarchical configuration
+const hierarchicalConfigSchema = z.object({
+  customerId: z.string().min(1, "Empresa cliente é obrigatória"),
+  fieldName: z.string().min(1, "Campo é obrigatório"),
+  displayName: z.string().min(1, "Nome de exibição é obrigatório"),
+  options: z.array(z.object({
+    value: z.string().min(1, "Valor é obrigatório"),
+    label: z.string().min(1, "Rótulo é obrigatório"),
+    color: z.string().default("#3b82f6"),
+    isDefault: z.boolean().default(false)
+  })).min(1, "Pelo menos uma opção é necessária")
 });
 
 interface TicketCategory {
@@ -97,6 +112,27 @@ interface TicketPriority {
   active: boolean;
 }
 
+interface Customer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  company: string;
+  email: string;
+}
+
+interface HierarchicalConfiguration {
+  id: string;
+  customerId: string;
+  fieldName: string;
+  displayName: string;
+  options: {
+    value: string;
+    label: string;
+    color: string;
+    isDefault: boolean;
+  }[];
+}
+
 export default function TicketConfiguration() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -104,6 +140,8 @@ export default function TicketConfiguration() {
   const [activeTab, setActiveTab] = useState("categories");
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+  const [isHierarchicalDialogOpen, setIsHierarchicalDialogOpen] = useState(false);
 
   // Form setups
   const categoryForm = useForm({
@@ -140,6 +178,18 @@ export default function TicketConfiguration() {
     }
   });
 
+  const hierarchicalForm = useForm({
+    resolver: zodResolver(hierarchicalConfigSchema),
+    defaultValues: {
+      customerId: "",
+      fieldName: "priority",
+      displayName: "",
+      options: [
+        { value: "", label: "", color: "#3b82f6", isDefault: false }
+      ]
+    }
+  });
+
   // Data queries
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ['/api/ticket-config/categories'],
@@ -163,6 +213,25 @@ export default function TicketConfiguration() {
       const response = await apiRequest('GET', '/api/ticket-config/priorities');
       return response.json();
     }
+  });
+
+  // Queries for hierarchical configurations
+  const { data: customers = [], isLoading: customersLoading } = useQuery({
+    queryKey: ['/api/customers'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/customers');
+      return response.json();
+    }
+  });
+
+  const { data: hierarchicalConfig, isLoading: hierarchicalLoading } = useQuery({
+    queryKey: ['/api/ticket-metadata-hierarchical/customer', selectedCustomer, 'configuration'],
+    queryFn: async () => {
+      if (!selectedCustomer) return null;
+      const response = await apiRequest('GET', `/api/ticket-metadata-hierarchical/customer/${selectedCustomer}/configuration`);
+      return response.json();
+    },
+    enabled: !!selectedCustomer
   });
 
   // Mutations
@@ -218,6 +287,20 @@ export default function TicketConfiguration() {
     }
   });
 
+  // Hierarchical configuration mutations
+  const createHierarchicalConfigMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof hierarchicalConfigSchema>) => {
+      const response = await apiRequest('POST', `/api/ticket-metadata-hierarchical/customer/${data.customerId}/configuration`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-metadata-hierarchical/customer', selectedCustomer, 'configuration'] });
+      setIsHierarchicalDialogOpen(false);
+      hierarchicalForm.reset();
+      toast({ title: "Configuração hierárquica criada com sucesso" });
+    }
+  });
+
   // Form handlers
   const onCategorySubmit = (data: z.infer<typeof categorySchema>) => {
     if (editingItem) {
@@ -233,6 +316,10 @@ export default function TicketConfiguration() {
 
   const onPrioritySubmit = (data: z.infer<typeof prioritySchema>) => {
     createPriorityMutation.mutate(data);
+  };
+
+  const onHierarchicalSubmit = (data: z.infer<typeof hierarchicalConfigSchema>) => {
+    createHierarchicalConfigMutation.mutate(data);
   };
 
   const openEditDialog = (item: any, type: string) => {
@@ -322,7 +409,7 @@ export default function TicketConfiguration() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="categories" className="flex items-center space-x-2">
             <FolderTree className="w-4 h-4" />
             <span>Categorias</span>
@@ -334,6 +421,10 @@ export default function TicketConfiguration() {
           <TabsTrigger value="priorities" className="flex items-center space-x-2">
             <AlertTriangle className="w-4 h-4" />
             <span>Prioridades</span>
+          </TabsTrigger>
+          <TabsTrigger value="hierarchical" className="flex items-center space-x-2">
+            <Building2 className="w-4 h-4" />
+            <span>Por Cliente</span>
           </TabsTrigger>
           <TabsTrigger value="groups" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
@@ -537,6 +628,138 @@ export default function TicketConfiguration() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Hierarchical Configuration Tab */}
+        <TabsContent value="hierarchical" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Building2 className="w-5 h-5" />
+                    <span>Configurações por Cliente</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Configure prioridades, status e categorias específicas para cada empresa cliente
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={() => setIsHierarchicalDialogOpen(true)}
+                  disabled={!selectedCustomer}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Configuração
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Customer Selection */}
+              <div className="mb-6">
+                <Label htmlFor="customer-select" className="text-base font-medium">
+                  Empresa Cliente
+                </Label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Selecione uma empresa para visualizar ou criar configurações específicas
+                </p>
+                <Select onValueChange={setSelectedCustomer} value={selectedCustomer}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione uma empresa cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customersLoading ? (
+                      <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
+                    ) : customers.length > 0 ? (
+                      customers.map((customer: Customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.company || `${customer.firstName} ${customer.lastName}`} 
+                          <span className="text-gray-500 ml-2">({customer.email})</span>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="empty" disabled>Nenhum cliente encontrado</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Configuration Display */}
+              {selectedCustomer && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Configurações Atuais</h3>
+                    {hierarchicalLoading && (
+                      <div className="text-sm text-gray-500">Carregando configurações...</div>
+                    )}
+                  </div>
+                  
+                  {hierarchicalConfig && hierarchicalConfig.configurations?.length > 0 ? (
+                    <div className="grid gap-4">
+                      {hierarchicalConfig.configurations.map((config: any) => (
+                        <Card key={config.fieldName} className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="font-medium">{config.displayName}</h4>
+                              <p className="text-sm text-gray-500">Campo: {config.fieldName}</p>
+                            </div>
+                            <Badge variant="outline">
+                              <Layers className="w-3 h-3 mr-1" />
+                              Específico do Cliente
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {config.options?.map((option: any) => (
+                              <Badge 
+                                key={option.value}
+                                className="px-3 py-1"
+                                style={{ 
+                                  backgroundColor: option.color + '20',
+                                  borderColor: option.color,
+                                  color: option.color
+                                }}
+                              >
+                                {option.label}
+                                {option.isDefault && <span className="ml-1 text-xs">(Padrão)</span>}
+                              </Badge>
+                            ))}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : selectedCustomer && !hierarchicalLoading ? (
+                    <Card className="p-8 text-center">
+                      <div className="text-gray-500">
+                        <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <h3 className="text-lg font-medium mb-2">Nenhuma configuração específica</h3>
+                        <p className="text-sm mb-4">
+                          Esta empresa usa as configurações padrão do sistema. 
+                          <br />
+                          Clique em "Nova Configuração" para criar configurações personalizadas.
+                        </p>
+                        <Button onClick={() => setIsHierarchicalDialogOpen(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Configuração Personalizada
+                        </Button>
+                      </div>
+                    </Card>
+                  ) : null}
+                </div>
+              )}
+
+              {!selectedCustomer && (
+                <Card className="p-8 text-center">
+                  <div className="text-gray-500">
+                    <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <h3 className="text-lg font-medium mb-2">Selecione uma Empresa</h3>
+                    <p className="text-sm">
+                      Escolha uma empresa cliente acima para visualizar ou configurar 
+                      suas configurações específicas de tickets.
+                    </p>
+                  </div>
+                </Card>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -804,6 +1027,186 @@ export default function TicketConfiguration() {
               </form>
             </Form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Hierarchical Configuration Dialog */}
+      <Dialog open={isHierarchicalDialogOpen} onOpenChange={setIsHierarchicalDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Nova Configuração Hierárquica
+            </DialogTitle>
+            <p className="text-sm text-gray-600">
+              Crie configurações específicas para a empresa cliente selecionada
+            </p>
+          </DialogHeader>
+
+          <Form {...hierarchicalForm}>
+            <form onSubmit={hierarchicalForm.handleSubmit(onHierarchicalSubmit)} className="space-y-6">
+              {/* Customer Field - Hidden as it's pre-selected */}
+              <input type="hidden" {...hierarchicalForm.register("customerId")} value={selectedCustomer} />
+              
+              {/* Field Selection */}
+              <FormField
+                control={hierarchicalForm.control}
+                name="fieldName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Campo de Configuração</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o campo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="priority">Prioridade</SelectItem>
+                        <SelectItem value="status">Status</SelectItem>
+                        <SelectItem value="category">Categoria</SelectItem>
+                        <SelectItem value="urgency">Urgência</SelectItem>
+                        <SelectItem value="impact">Impacto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Display Name */}
+              <FormField
+                control={hierarchicalForm.control}
+                name="displayName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome de Exibição</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: Prioridade Personalizada, Severidade Médica" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Options Configuration */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Opções de Configuração</Label>
+                <p className="text-sm text-gray-600">
+                  Configure as opções que ficarão disponíveis para esta empresa
+                </p>
+                
+                {hierarchicalForm.watch("options").map((_, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-3 p-4 border rounded-lg">
+                    <div className="col-span-3">
+                      <FormField
+                        control={hierarchicalForm.control}
+                        name={`options.${index}.value`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Valor</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Ex: p1, urgente" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="col-span-4">
+                      <FormField
+                        control={hierarchicalForm.control}
+                        name={`options.${index}.label`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Rótulo</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Ex: P1 - Crítico, Urgente" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="col-span-2">
+                      <FormField
+                        control={hierarchicalForm.control}
+                        name={`options.${index}.color`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Cor</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="color" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="col-span-2">
+                      <FormField
+                        control={hierarchicalForm.control}
+                        name={`options.${index}.isDefault`}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-center justify-center h-full">
+                            <FormLabel className="text-sm">Padrão</FormLabel>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="col-span-1 flex items-end">
+                      {index > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const options = hierarchicalForm.getValues("options");
+                            hierarchicalForm.setValue("options", options.filter((_, i) => i !== index));
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const options = hierarchicalForm.getValues("options");
+                    hierarchicalForm.setValue("options", [
+                      ...options,
+                      { value: "", label: "", color: "#3b82f6", isDefault: false }
+                    ]);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Opção
+                </Button>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsHierarchicalDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createHierarchicalConfigMutation.isPending}>
+                  {createHierarchicalConfigMutation.isPending ? "Criando..." : "Criar Configuração"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
