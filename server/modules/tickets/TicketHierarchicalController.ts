@@ -4,9 +4,18 @@
  */
 
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../middleware/auth';
 import { TicketHierarchicalService } from './TicketHierarchicalService';
 import { z } from 'zod';
+
+// AuthenticatedRequest interface
+interface AuthenticatedRequest extends Request {
+  user: {
+    tenantId: string;
+    userId: string;
+    role: string;
+    permissions: string[];
+  };
+}
 
 export class TicketHierarchicalController {
   private hierarchicalService: TicketHierarchicalService;
@@ -32,12 +41,12 @@ export class TicketHierarchicalController {
         success: true,
         data: categories
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting categories:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to get categories',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -58,12 +67,12 @@ export class TicketHierarchicalController {
         success: true,
         data: category
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating category:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to create category',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -82,12 +91,12 @@ export class TicketHierarchicalController {
         success: true,
         data: category
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating category:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to update category',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -105,12 +114,12 @@ export class TicketHierarchicalController {
         success: true,
         message: 'Category deleted successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting category:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to delete category',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -133,12 +142,12 @@ export class TicketHierarchicalController {
         success: true,
         data: subcategories
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting subcategories:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to get subcategories',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -161,12 +170,12 @@ export class TicketHierarchicalController {
         success: true,
         data: subcategory
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating subcategory:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to create subcategory',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -185,12 +194,12 @@ export class TicketHierarchicalController {
         success: true,
         data: subcategory
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating subcategory:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to update subcategory',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -208,12 +217,12 @@ export class TicketHierarchicalController {
         success: true,
         message: 'Subcategory deleted successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting subcategory:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to delete subcategory',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -236,12 +245,12 @@ export class TicketHierarchicalController {
         success: true,
         data: actions
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting actions:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to get actions',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -264,12 +273,12 @@ export class TicketHierarchicalController {
         success: true,
         data: action
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating action:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to create action',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -288,12 +297,12 @@ export class TicketHierarchicalController {
         success: true,
         data: action
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating action:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to update action',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -311,12 +320,12 @@ export class TicketHierarchicalController {
         success: true,
         message: 'Action deleted successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting action:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to delete action',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -338,12 +347,12 @@ export class TicketHierarchicalController {
         success: true,
         data: hierarchy
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting hierarchy:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to get hierarchy',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }

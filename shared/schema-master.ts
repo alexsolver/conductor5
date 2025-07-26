@@ -574,18 +574,6 @@ export const insertFavorecidoSchema = createInsertSchema(favorecidos);
 export const insertProjectSchema = createInsertSchema(projects);
 export const insertProjectActionSchema = createInsertSchema(projectActions);
 
-// Hierarchical Categories Schemas
-export const insertTicketCategorySchema = createInsertSchema(ticketCategories);
-export const insertTicketSubcategorySchema = createInsertSchema(ticketSubcategories);
-export const insertTicketActionSchema = createInsertSchema(ticketActions);
-
-export type TicketCategory = typeof ticketCategories.$inferSelect;
-export type TicketSubcategory = typeof ticketSubcategories.$inferSelect;
-export type TicketAction = typeof ticketActions.$inferSelect;
-export type InsertTicketCategory = typeof ticketCategories.$inferInsert;
-export type InsertTicketSubcategory = typeof ticketSubcategories.$inferInsert;
-export type InsertTicketAction = typeof ticketActions.$inferInsert;
-
 // ========================================
 // TICKET HIERARCHICAL CATEGORIES (CATEGORIA → SUBCATEGORIA → AÇÃO)
 // ========================================
@@ -668,6 +656,18 @@ export const ticketActions = pgTable("ticket_actions", {
   index("ticket_actions_type_idx").on(table.actionType),
   index("ticket_actions_active_idx").on(table.tenantId, table.isActive),
 ]);
+
+// Hierarchical Categories Schemas (after table definitions)
+export const insertTicketCategorySchema = createInsertSchema(ticketCategories);
+export const insertTicketSubcategorySchema = createInsertSchema(ticketSubcategories);
+export const insertTicketActionSchema = createInsertSchema(ticketActions);
+
+export type TicketCategory = typeof ticketCategories.$inferSelect;
+export type TicketSubcategory = typeof ticketSubcategories.$inferSelect;
+export type TicketAction = typeof ticketActions.$inferSelect;
+export type InsertTicketCategory = typeof ticketCategories.$inferInsert;
+export type InsertTicketSubcategory = typeof ticketSubcategories.$inferInsert;
+export type InsertTicketAction = typeof ticketActions.$inferInsert;
 
 // ========================================
 // MULTILOCATION TABLES (ENTERPRISE INTERNATIONAL SUPPORT)
