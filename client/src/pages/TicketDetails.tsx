@@ -48,6 +48,7 @@ const ticketFormSchema = z.object({
   subcategory: z.string().optional(),
   callerId: z.string().min(1, "Caller is required"),
   callerType: z.enum(["customer", "user"]),
+  favorecidoId: z.string().optional(),
   beneficiaryId: z.string().optional(),
   beneficiaryType: z.enum(["customer", "user"]),
   assignedToId: z.string().optional(),
@@ -2047,6 +2048,118 @@ export default function TicketDetails() {
             </div>
           </div>
 
+          {/* Cliente/Solicitante e Favorecido Section */}
+          <div className="mb-6 space-y-4">
+            {/* Cliente/Solicitante */}
+            <div className="p-3 bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-purple-800 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  CLIENTE/SOLICITANTE
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-100"
+                  onClick={() => console.log('Open customer management')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Gerenciar
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {isEditMode ? (
+                  <Select 
+                    onValueChange={(value) => form.setValue('callerId', value)} 
+                    defaultValue={ticket.callerId || ''}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Não especificado</SelectItem>
+                      {customers?.customers?.map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-purple-900 font-medium cursor-pointer hover:text-purple-700 transition-colors"
+                       onClick={() => console.log('Open customer details')}>
+                    <span className="underline decoration-dotted">
+                      {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 
+                       ticket.callerId === 'unspecified' || !ticket.callerId ? 'Não especificado' : 'Cliente não encontrado'}
+                    </span>
+                  </div>
+                )}
+                {customers?.customers?.find((c: any) => c.id === ticket.callerId) && (
+                  <div className="text-xs text-purple-600">
+                    📧 {customers.customers.find((c: any) => c.id === ticket.callerId)?.email || 'Email não informado'}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Favorecido */}
+            <div className="p-3 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-indigo-800 flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  FAVORECIDO
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100"
+                  onClick={() => console.log('Open favorecido management')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Gerenciar
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {isEditMode ? (
+                  <Select 
+                    onValueChange={(value) => form.setValue('favorecidoId', value)} 
+                    defaultValue={ticket.favorecidoId || ''}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione o favorecido" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Não especificado</SelectItem>
+                      {customers?.customers?.map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-indigo-900 font-medium cursor-pointer hover:text-indigo-700 transition-colors"
+                       onClick={() => console.log('Open favorecido details')}>
+                    <span className="underline decoration-dotted">
+                      {customers?.customers?.find((c: any) => c.id === ticket.favorecidoId)?.name || 
+                       ticket.favorecidoId === 'unspecified' || !ticket.favorecidoId ? 'Não especificado' : 'Favorecido não encontrado'}
+                    </span>
+                  </div>
+                )}
+                {customers?.customers?.find((c: any) => c.id === ticket.favorecidoId) && (
+                  <div className="text-xs text-indigo-600">
+                    📧 {customers.customers.find((c: any) => c.id === ticket.favorecidoId)?.email || 'Email não informado'}
+                  </div>
+                )}
+                {customers?.customers?.find((c: any) => c.id === ticket.favorecidoId)?.phone && (
+                  <div className="text-xs text-indigo-600">
+                    📞 {customers.customers.find((c: any) => c.id === ticket.favorecidoId)?.phone}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Impacto, Urgência e Local Section */}
           <div className="mb-6 space-y-4">
             {/* Impacto */}
@@ -2174,41 +2287,10 @@ export default function TicketDetails() {
             </div>
           </div>
 
-          {/* Solicitante e Atribuído Section */}
+          {/* Atribuído a Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">Atribuição</h3>
-
-            {/* Solicitante */}
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">Atribuído a</h3>
             <div className="mb-4">
-              <h4 className="text-xs font-medium text-gray-500 mb-1">Solicitante</h4>
-              {isEditMode ? (
-                <Select 
-                  onValueChange={(value) => form.setValue('callerId', value)} 
-                  defaultValue={ticket.callerId || ''}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Selecione o solicitante" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unspecified">Não especificado</SelectItem>
-                    {customers?.customers?.map((customer: any) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="text-sm text-gray-700">
-                  {ticket.callerId === 'unspecified' || !ticket.callerId ? 'Não especificado' : 
-                   customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
-                </div>
-              )}
-            </div>
-
-            {/* Atribuído a */}
-            <div className="mb-4">
-              <h4 className="text-xs font-medium text-gray-500 mb-1">Atribuído a</h4>
               {isEditMode ? (
                 <Select 
                   onValueChange={(value) => form.setValue('assignedToId', value)} 
