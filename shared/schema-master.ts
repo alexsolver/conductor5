@@ -2115,3 +2115,70 @@ export const insertSlaRuleSchema = createInsertSchema(slaRules);
 export const insertSlaStatusTimeoutSchema = createInsertSchema(slaStatusTimeouts);
 export const insertSlaEscalationSchema = createInsertSchema(slaEscalations);
 export const insertSlaMetricSchema = createInsertSchema(slaMetrics);
+
+// ========================================
+// TICKET TEMPLATES SYSTEM
+// ========================================
+
+export const ticketTemplates = pgTable("ticket_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerCompanyId: uuid("customer_company_id").references(() => customers.id, { onDelete: 'cascade' }),
+  
+  // Identificação
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(),
+  subcategory: varchar("subcategory", { length: 100 }),
+  
+  // Configurações padrão do ticket
+  defaultTitle: varchar("default_title", { length: 500 }),
+  defaultDescription: text("default_description"),
+  defaultType: varchar("default_type", { length: 50 }).default("support").notNull(),
+  defaultPriority: varchar("default_priority", { length: 50 }).default("medium").notNull(),
+  defaultStatus: varchar("default_status", { length: 50 }).default("open").notNull(),
+  defaultCategory: varchar("default_category", { length: 100 }).notNull(),
+  defaultUrgency: varchar("default_urgency", { length: 50 }),
+  defaultImpact: varchar("default_impact", { length: 50 }),
+  
+  // Atribuições automáticas
+  defaultAssigneeId: uuid("default_assignee_id"),
+  defaultAssignmentGroup: varchar("default_assignment_group", { length: 100 }),
+  defaultDepartment: varchar("default_department", { length: 100 }),
+  
+  // Configurações de campos
+  requiredFields: text("required_fields").array().default([]),
+  optionalFields: text("optional_fields").array().default([]),
+  hiddenFields: text("hidden_fields").array().default([]),
+  customFields: jsonb("custom_fields").default({}),
+  
+  // Automações e SLA
+  autoAssignmentRules: jsonb("auto_assignment_rules").default({}),
+  slaOverride: jsonb("sla_override").default({}),
+  
+  // Metadados
+  isActive: boolean("is_active").default(true),
+  isPublic: boolean("is_public").default(true),
+  sortOrder: integer("sort_order").default(0),
+  usageCount: integer("usage_count").default(0),
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").notNull(),
+}, (table) => [
+  index("templates_company_active_idx").on(table.tenantId, table.customerCompanyId, table.isActive, table.category),
+  index("templates_usage_idx").on(table.tenantId, table.customerCompanyId, table.usageCount.desc(), table.lastUsedAt.desc()),
+  unique("templates_unique_name").on(table.tenantId, table.customerCompanyId, table.name),
+]);
+
+// Template types
+export type TicketTemplate = typeof ticketTemplates.$inferSelect;
+export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
+
+// Template Zod schemas
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates);
+export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
+  id: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});

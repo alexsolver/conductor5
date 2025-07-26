@@ -1,287 +1,343 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Filter, Copy, Trash2, Edit3, Play, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { apiRequest } from '@/lib/queryClient';
+import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock } from 'lucide-react';
 
-// Schema for form validation
-const templateFormSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  description: z.string().optional(),
+// Schema para validação do formulário
+const templateSchema = z.object({
+  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
   category: z.string().min(1, "Categoria é obrigatória"),
-  priority: z.enum(["low", "medium", "high", "critical"]),
-  estimated_time: z.number().optional(),
-  assignee_id: z.string().optional(),
-  custom_fields: z.record(z.any()).optional(),
-  is_active: z.boolean().optional()
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  urgency: z.enum(['low', 'medium', 'high', 'critical']),
+  impact: z.enum(['low', 'medium', 'high', 'critical']),
+  defaultTitle: z.string().min(5, "Título padrão deve ter pelo menos 5 caracteres"),
+  defaultDescription: z.string().min(20, "Descrição padrão deve ter pelo menos 20 caracteres"),
+  defaultTags: z.string().optional(),
+  estimatedHours: z.number().min(0).max(100),
+  requiresApproval: z.boolean(),
+  autoAssign: z.boolean(),
+  defaultAssigneeRole: z.string().optional(),
 });
 
-type TemplateFormData = z.infer<typeof templateFormSchema>;
-
-const CATEGORIES = [
-  "Geral",
-  "Suporte Técnico",
-  "Atendimento",
-  "Financeiro",
-  "Comercial",
-  "Recursos Humanos",
-  "TI/Infraestrutura",
-  "Marketing",
-  "Jurídico"
-];
-
-const PRIORITIES = [
-  { value: "low", label: "Baixa", color: "bg-green-100 text-green-800" },
-  { value: "medium", label: "Média", color: "bg-yellow-100 text-yellow-800" },
-  { value: "high", label: "Alta", color: "bg-orange-100 text-orange-800" },
-  { value: "critical", label: "Crítica", color: "bg-red-100 text-red-800" }
-];
+type TemplateFormData = z.infer<typeof templateSchema>;
 
 interface TicketTemplate {
   id: string;
   name: string;
-  description?: string;
+  description: string;
   category: string;
   priority: string;
-  estimated_time?: number;
-  assignee_id?: string;
-  custom_fields?: Record<string, any>;
+  urgency: string;
+  impact: string;
+  default_title: string;
+  default_description: string;
+  default_tags: string;
+  estimated_hours: number;
+  requires_approval: boolean;
+  auto_assign: boolean;
+  default_assignee_role: string;
   is_active: boolean;
+  usage_count: number;
   created_at: string;
   updated_at: string;
 }
 
 export default function TicketTemplates() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TicketTemplate | null>(null);
-
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query to fetch templates
-  const { data: templates = [], isLoading } = useQuery({
-    queryKey: ['/api/templates'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/templates');
-      const data = await response.json();
-      return data.data || [];
-    }
-  });
-
-  // Form setup
+  // Form para criar/editar templates
   const form = useForm<TemplateFormData>({
-    resolver: zodResolver(templateFormSchema),
+    resolver: zodResolver(templateSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      category: "",
-      priority: "medium",
-      estimated_time: undefined,
-      assignee_id: "",
-      custom_fields: {},
-      is_active: true
-    }
+      name: '',
+      description: '',
+      category: '',
+      priority: 'medium',
+      urgency: 'medium',
+      impact: 'medium',
+      defaultTitle: '',
+      defaultDescription: '',
+      defaultTags: '',
+      estimatedHours: 2,
+      requiresApproval: false,
+      autoAssign: false,
+      defaultAssigneeRole: '',
+    },
   });
 
-  // Mutations
+  // Query para buscar templates
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ['/api/ticket-templates/company/null'],
+    queryFn: () => apiRequest('GET', '/api/ticket-templates/company/null'),
+  });
+
+  // Query para buscar estatísticas
+  const { data: stats } = useQuery({
+    queryKey: ['/api/ticket-templates/company/null/stats'],
+    queryFn: () => apiRequest('GET', '/api/ticket-templates/company/null/stats'),
+  });
+
+  // Query para buscar categorias
+  const { data: categories = [] } = useQuery({
+    queryKey: ['/api/ticket-templates/company/null/categories'],
+    queryFn: () => apiRequest('GET', '/api/ticket-templates/company/null/categories'),
+  });
+
+  // Mutation para criar template
   const createTemplateMutation = useMutation({
-    mutationFn: async (data: TemplateFormData) => {
-      const response = await apiRequest('POST', '/api/templates', data);
-      return response.json();
-    },
+    mutationFn: (data: TemplateFormData) => 
+      apiRequest('POST', '/api/ticket-templates/company/null', {
+        ...data,
+        tenantId: 'current-tenant-id', // TODO: Pegar do contexto
+        defaultTitle: data.defaultTitle,
+        defaultDescription: data.defaultDescription,
+        defaultTags: data.defaultTags,
+        estimatedHours: data.estimatedHours,
+        requiresApproval: data.requiresApproval,
+        autoAssign: data.autoAssign,
+        defaultAssigneeRole: data.defaultAssigneeRole,
+        createdById: 'current-user-id', // TODO: Pegar do contexto
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
-      setIsCreateDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null/stats'] });
+      setIsCreateOpen(false);
       form.reset();
       toast({
         title: "Template criado",
-        description: "Template de chamado criado com sucesso!"
+        description: "O template foi criado com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Erro ao criar template",
-        description: "Ocorreu um erro ao criar o template. Tente novamente.",
-        variant: "destructive"
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
       });
-    }
+    },
   });
 
+  // Mutation para atualizar template
   const updateTemplateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: TemplateFormData }) => {
-      const response = await apiRequest('PUT', `/api/templates/${id}`, data);
-      return response.json();
-    },
+    mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
+      apiRequest('PUT', `/api/ticket-templates/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null'] });
+      setIsEditOpen(false);
       setEditingTemplate(null);
       form.reset();
       toast({
         title: "Template atualizado",
-        description: "Template de chamado atualizado com sucesso!"
+        description: "O template foi atualizado com sucesso.",
       });
-    }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar template",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    },
   });
 
+  // Mutation para deletar template
   const deleteTemplateMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/templates/${id}`);
-      return response.json();
-    },
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/ticket-templates/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company/null/stats'] });
       toast({
         title: "Template excluído",
-        description: "Template de chamado excluído com sucesso!"
+        description: "O template foi excluído com sucesso.",
       });
-    }
-  });
-
-  const duplicateTemplateMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiRequest(`/api/templates/${id}/duplicate`, {
-        method: 'POST'
-      });
-      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
+    onError: (error: any) => {
       toast({
-        title: "Template duplicado",
-        description: "Template de chamado duplicado com sucesso!"
+        title: "Erro ao excluir template",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
       });
-    }
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const response = await apiRequest('/api/templates/bulk-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateIds: ids })
-      });
-      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
-      setSelectedTemplates([]);
-      toast({
-        title: "Templates excluídos",
-        description: `${selectedTemplates.length} templates excluídos com sucesso!`
-      });
-    }
   });
 
-  // Filter templates
-  const filteredTemplates = templates.filter((template: TicketTemplate) => {
-    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         template.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || categoryFilter === 'all' || template.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const onSubmit = (data: TemplateFormData) => {
-    if (editingTemplate) {
-      updateTemplateMutation.mutate({ id: editingTemplate.id, data });
-    } else {
-      createTemplateMutation.mutate(data);
-    }
+  // Handlers
+  const handleCreateTemplate = (data: TemplateFormData) => {
+    createTemplateMutation.mutate(data);
   };
 
-  const handleEdit = (template: TicketTemplate) => {
+  const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
     form.reset({
       name: template.name,
-      description: template.description || "",
+      description: template.description,
       category: template.category,
-      priority: template.priority as "low" | "medium" | "high" | "critical",
-      estimated_time: template.estimated_time,
-      assignee_id: template.assignee_id || "",
-      custom_fields: template.custom_fields || {},
-      is_active: template.is_active
+      priority: template.priority as any,
+      urgency: template.urgency as any,
+      impact: template.impact as any,
+      defaultTitle: template.default_title,
+      defaultDescription: template.default_description,
+      defaultTags: template.default_tags || '',
+      estimatedHours: template.estimated_hours,
+      requiresApproval: template.requires_approval,
+      autoAssign: template.auto_assign,
+      defaultAssigneeRole: template.default_assignee_role || '',
     });
+    setIsEditOpen(true);
   };
 
-  const handleSelectTemplate = (templateId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedTemplates([...selectedTemplates, templateId]);
-    } else {
-      setSelectedTemplates(selectedTemplates.filter(id => id !== templateId));
+  const handleUpdateTemplate = (data: TemplateFormData) => {
+    if (!editingTemplate) return;
+    updateTemplateMutation.mutate({ id: editingTemplate.id, data });
+  };
+
+  const handleDeleteTemplate = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este template?')) {
+      deleteTemplateMutation.mutate(id);
     }
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedTemplates(filteredTemplates.map((t: TicketTemplate) => t.id));
-    } else {
-      setSelectedTemplates([]);
+  // Filtrar templates
+  const filteredTemplates = templates.filter((template: TicketTemplate) => {
+    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         template.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'low': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'high': return 'bg-orange-100 text-orange-800';
+      case 'critical': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const priorityConfig = PRIORITIES.find(p => p.value === priority);
-    return (
-      <Badge className={priorityConfig?.color || "bg-gray-100 text-gray-800"}>
-        {priorityConfig?.label || priority}
-      </Badge>
-    );
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'low': return 'Baixa';
+      case 'medium': return 'Média';
+      case 'high': return 'Alta';
+      case 'critical': return 'Crítica';
+      default: return priority;
+    }
   };
 
   return (
-    <div className="container mx-auto py-6 pl-[16px] pr-[16px]">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Templates de Abertura de Chamados</h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie templates para agilizar a criação de chamados
+          <h1 className="text-3xl font-bold">Templates de Tickets</h1>
+          <p className="text-muted-foreground">
+            Gerencie templates para agilizar a criação de tickets
           </p>
         </div>
-
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Template
-        </Button>
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Template
+            </Button>
+          </DialogTrigger>
+        </Dialog>
       </div>
+
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Ativos</p>
+                  <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
+                </div>
+                <Users className="w-8 h-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Uso médio</p>
+                  <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
+                </div>
+                <Clock className="w-8 h-8 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Mais usado</p>
+                  <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar templates por nome ou descrição..."
+                  placeholder="Buscar templates..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrar por categoria" />
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full sm:w-48">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as categorias</SelectItem>
-                {CATEGORIES.map(category => (
+                {categories.map((category: string) => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
@@ -289,130 +345,75 @@ export default function TicketTemplates() {
               </SelectContent>
             </Select>
           </div>
-
-          {selectedTemplates.length > 0 && (
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t">
-              <span className="text-sm text-muted-foreground">
-                {selectedTemplates.length} template(s) selecionado(s)
-              </span>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => bulkDeleteMutation.mutate(selectedTemplates)}
-                disabled={bulkDeleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Excluir Selecionados
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
+
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Carregando templates...</p>
+        </div>
+      ) : filteredTemplates.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            {searchTerm || selectedCategory !== 'all' ? 
+              'Nenhum template encontrado com os filtros aplicados.' :
+              'Nenhum template encontrado. Crie o primeiro!'
+            }
+          </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template: TicketTemplate) => (
             <Card key={template.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedTemplates.includes(template.id)}
-                      onCheckedChange={(checked) => 
-                        handleSelectTemplate(template.id, checked as boolean)
-                      }
-                    />
-                    <div className="flex-1">
-                      <CardTitle className="text-lg leading-tight">
-                        {template.name}
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        {template.category}
-                      </CardDescription>
-                    </div>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{template.name}</CardTitle>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditTemplate(template)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTemplate(template.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {template.description}
+                </p>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">{template.category}</Badge>
+                    <Badge className={getPriorityColor(template.priority)}>
+                      {getPriorityLabel(template.priority)}
+                    </Badge>
                   </div>
                   
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(template)}>
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => duplicateTemplateMutation.mutate(template.id)}
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Duplicar
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => deleteTemplateMutation.mutate(template.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="space-y-3">
-                  {template.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {template.description}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    {getPriorityBadge(template.priority)}
-                    {template.estimated_time && (
-                      <span className="text-xs text-muted-foreground">
-                        {template.estimated_time}h estimado
-                      </span>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>Estimativa: {template.estimated_hours}h</p>
+                    <p>Usado: {template.usage_count || 0} vezes</p>
+                    {template.requires_approval && (
+                      <p className="text-orange-600">Requer aprovação</p>
+                    )}
+                    {template.auto_assign && (
+                      <p className="text-blue-600">Atribuição automática</p>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <Badge variant={template.is_active ? "default" : "secondary"}>
-                      {template.is_active ? "Ativo" : "Inativo"}
-                    </Badge>
-                    
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => {
-                        // TODO: Navigate to create ticket with template
-                        toast({
-                          title: "Usar template",
-                          description: "Redirecionando para criação de chamado..."
-                        });
-                      }}
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Usar
-                    </Button>
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground">
+                      Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -420,44 +421,307 @@ export default function TicketTemplates() {
           ))}
         </div>
       )}
-      {filteredTemplates.length === 0 && !isLoading && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <div className="text-muted-foreground">
-              <p className="text-lg font-medium">Nenhum template encontrado</p>
-              <p className="mt-2">
-                {searchTerm || categoryFilter ? 
-                  "Tente ajustar os filtros de busca." : 
-                  "Crie seu primeiro template para começar."
-                }
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {/* Create/Edit Dialog */}
-      <Dialog 
-        open={isCreateDialogOpen || editingTemplate !== null} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsCreateDialogOpen(false);
-            setEditingTemplate(null);
-            form.reset();
-          }
-        }}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTemplate ? "Editar Template" : "Novo Template"}
-            </DialogTitle>
-            <DialogDescription>
-              Configure os dados do template para abertura de chamados.
-            </DialogDescription>
-          </DialogHeader>
 
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Template</DialogTitle>
+          </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Template *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Problema de Hardware" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Suporte Técnico" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição *</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Descreva quando este template deve ser usado..."
+                      rows={3}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prioridade Padrão</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="urgency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Urgência Padrão</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="impact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Impacto Padrão</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Baixo</SelectItem>
+                        <SelectItem value="medium">Médio</SelectItem>
+                        <SelectItem value="high">Alto</SelectItem>
+                        <SelectItem value="critical">Crítico</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="defaultTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Título Padrão *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Ex: Problema com [EQUIPAMENTO] - use [VARIÁVEIS] para personalização"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="defaultDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição Padrão *</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Template da descrição que será preenchida automaticamente..."
+                      rows={5}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="defaultTags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags Padrão</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="hardware,suporte,urgente"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="estimatedHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Horas Estimadas</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        min="0"
+                        max="100"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="requiresApproval"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Requer Aprovação</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Tickets criados com este template precisam de aprovação
+                      </p>
+                    </div>
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="autoAssign"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Atribuição Automática</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Atribuir automaticamente para o role especificado
+                      </p>
+                    </div>
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {form.watch('autoAssign') && (
+                <FormField
+                  control={form.control}
+                  name="defaultAssigneeRole"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role do Responsável</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Ex: suporte_tecnico, administrador"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsCreateOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createTemplateMutation.isPending}
+              >
+                {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Template</DialogTitle>
+          </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(handleUpdateTemplate)} className="space-y-4">
+              {/* Same form fields as create, but with update handler */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -466,7 +730,7 @@ export default function TicketTemplates() {
                     <FormItem>
                       <FormLabel>Nome do Template *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Suporte Técnico - Problema de Login" {...field} />
+                        <Input placeholder="Ex: Problema de Hardware" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -479,20 +743,9 @@ export default function TicketTemplates() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Categoria *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a categoria" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {CATEGORIES.map(category => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input placeholder="Ex: Suporte Técnico" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -504,11 +757,11 @@ export default function TicketTemplates() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição</FormLabel>
+                    <FormLabel>Descrição *</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Descreva o que este template resolve..."
-                        className="min-h-24"
+                        placeholder="Descreva quando este template deve ser usado..."
+                        rows={3}
                         {...field} 
                       />
                     </FormControl>
@@ -517,90 +770,19 @@ export default function TicketTemplates() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prioridade</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {PRIORITIES.map(priority => (
-                            <SelectItem key={priority.value} value={priority.value}>
-                              {priority.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="estimated_time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tempo Estimado (horas)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Ex: 2"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="is_active"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Template ativo</FormLabel>
-                      <FormDescription>
-                        Templates inativos não aparecem na lista de seleção
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex justify-end gap-2 pt-4">
                 <Button 
                   type="button" 
-                  variant="outline"
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    setEditingTemplate(null);
-                    form.reset();
-                  }}
+                  variant="outline" 
+                  onClick={() => setIsEditOpen(false)}
                 >
                   Cancelar
                 </Button>
                 <Button 
-                  type="submit"
-                  disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+                  type="submit" 
+                  disabled={updateTemplateMutation.isPending}
                 >
-                  {editingTemplate ? "Atualizar" : "Criar"} Template
+                  {updateTemplateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
             </form>

@@ -468,9 +468,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Hierarchical ticket metadata routes
   try {
     const { TicketMetadataHierarchicalController } = await import('./modules/tickets/TicketMetadataHierarchicalController');
-    const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');
+    const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
+    const { TicketTemplateController } = await import('./modules/ticket-templates/TicketTemplateController');
     const hierarchicalController = new TicketMetadataHierarchicalController();
     const categoryHierarchyController = new TicketHierarchicalController();
+    const ticketTemplateController = new TicketTemplateController(schemaManager);
 
     // Customer-specific configuration routes
     app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
@@ -507,6 +509,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     console.log('✅ Hierarchical ticket metadata routes registered');
     console.log('✅ Category hierarchy routes registered');
+    
+    // ========================================
+    // TICKET TEMPLATES ROUTES
+    // ========================================
+    
+    // Templates por empresa cliente
+    app.get('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
+    app.post('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
+
+    // CRUD individual de templates
+    app.get('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.getTemplateById.bind(ticketTemplateController));
+    app.put('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.updateTemplate.bind(ticketTemplateController));
+    app.delete('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
+
+    // Busca e filtros
+    app.get('/api/ticket-templates/company/:customerCompanyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:customerCompanyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:customerCompanyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
+
+    // Aplicar template e preview
+    app.post('/api/ticket-templates/:templateId/apply', jwtAuth, ticketTemplateController.applyTemplate.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/:templateId/preview', jwtAuth, ticketTemplateController.previewTemplate.bind(ticketTemplateController));
+
+    // Estatísticas
+    app.get('/api/ticket-templates/company/:customerCompanyId/stats', jwtAuth, ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
+
+    console.log('✅ Ticket Templates routes registered');
   } catch (error) {
     console.warn('⚠️ Failed to load hierarchical controller:', error);
   }
