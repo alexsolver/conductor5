@@ -39,7 +39,7 @@ const getAvailableFields = (moduleType: string) => {
     { id: 'phone-field', type: 'phone', label: 'Telefone', icon: 'Phone' },
   ];
 
-  const moduleSpecific = {
+  const moduleSpecific: Record<string, any[]> = {
     tickets: [
       { id: 'priority-field', type: 'priority', label: 'Prioridade', icon: 'AlertTriangle' },
       { id: 'status-field', type: 'status', label: 'Status', icon: 'Circle' },

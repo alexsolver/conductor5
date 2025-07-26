@@ -215,13 +215,23 @@ export function CustomFieldsWrapper({
       {/* Always visible design mode hint for demonstration */}
       {!isDesignMode && hasDesignPermission && (
         <div className="fixed bottom-6 left-6 z-50">
-          <div className="bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-3 shadow-lg max-w-sm">
-            <div className="flex items-start gap-2">
+          <div className="bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-4 shadow-lg max-w-sm">
+            <div className="flex items-start gap-2 mb-3">
               <Settings className="h-4 w-4 text-purple-600 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-purple-900">🎯 Sistema Drag & Drop Ativo</p>
                 <p className="text-purple-700">Clique no botão "Editar Layout" (canto inferior direito) para arrastar campos personalizados para o formulário</p>
               </div>
+            </div>
+            <div className="border-t border-purple-200 pt-3">
+              <Button
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open('/drag-drop-demo', '_blank')}
+                className="w-full text-purple-700 border-purple-300 hover:bg-purple-50"
+              >
+                🚀 Ver Demo Completa
+              </Button>
             </div>
           </div>
         </div>

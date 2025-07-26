@@ -75,6 +75,7 @@ import LPUManagement from "./pages/LPUManagement";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import NotificationManagement from './pages/NotificationManagement';
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
+import DragDropDemo from './pages/DragDropDemo';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Clientes from "./pages/Clientes";
@@ -175,6 +176,7 @@ function AppRouter() {
         <Route path="/compliance-management" component={ComplianceManagement} />
         <Route path="/notifications" component={NotificationManagement} />
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
+        <Route path="/drag-drop-demo" component={DragDropDemo} />
 
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route component={NotFound} />
