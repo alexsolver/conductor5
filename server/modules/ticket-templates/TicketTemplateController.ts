@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { TicketTemplateRepository } from './TicketTemplateRepository';
 import { insertTicketTemplateSchema } from '../../../shared/schema';
 import { z } from 'zod';
+import { AuthenticatedRequest } from '../../middleware/jwtAuth';
 
 export class TicketTemplateController {
   private repository: TicketTemplateRepository;
@@ -11,7 +12,7 @@ export class TicketTemplateController {
   }
 
   // GET /api/ticket-templates/company/:customerCompanyId
-  async getTemplatesByCompany(req: Request, res: Response) {
+  async getTemplatesByCompany(req: AuthenticatedRequest, res: Response) {
     try {
       const { customerCompanyId } = req.params;
       const tenantId = req.user.tenantId;
@@ -31,7 +32,7 @@ export class TicketTemplateController {
   }
 
   // GET /api/ticket-templates/:templateId
-  async getTemplateById(req: Request, res: Response) {
+  async getTemplateById(req: AuthenticatedRequest, res: Response) {
     try {
       const { templateId } = req.params;
       const tenantId = req.user.tenantId;
@@ -50,7 +51,7 @@ export class TicketTemplateController {
   }
 
   // POST /api/ticket-templates/company/:customerCompanyId
-  async createTemplate(req: Request, res: Response) {
+  async createTemplate(req: AuthenticatedRequest, res: Response) {
     try {
       const { customerCompanyId } = req.params;
       const tenantId = req.user.tenantId;
@@ -60,7 +61,7 @@ export class TicketTemplateController {
       const templateData = insertTicketTemplateSchema.parse({
         ...req.body,
         tenantId,
-        customerCompanyId: customerCompanyId === 'public' ? null : customerCompanyId,
+        customerCompanyId: (customerCompanyId === 'public' || customerCompanyId === 'all') ? null : customerCompanyId,
         createdById: userId
       });
 

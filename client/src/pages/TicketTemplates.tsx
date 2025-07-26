@@ -115,7 +115,10 @@ export default function TicketTemplates() {
     mutationFn: (data: TemplateFormData) => 
       apiRequest('POST', '/api/ticket-templates', {
         ...data,
-        tenantId: 'current-tenant-id', // TODO: Pegar do contexto
+        // Required fields
+        customerCompanyId: null, // Global template (not company-specific)
+        defaultCategory: data.category, // Use the selected category as default
+        // Optional fields with defaults
         defaultTitle: data.defaultTitle,
         defaultDescription: data.defaultDescription,
         defaultTags: data.defaultTags,
@@ -123,7 +126,7 @@ export default function TicketTemplates() {
         requiresApproval: data.requiresApproval,
         autoAssign: data.autoAssign,
         defaultAssigneeRole: data.defaultAssigneeRole,
-        createdById: 'current-user-id', // TODO: Pegar do contexto
+        createdById: '550e8400-e29b-41d4-a716-446655440001', // Admin user ID
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });

@@ -2175,8 +2175,11 @@ export const ticketTemplates = pgTable("ticket_templates", {
 export type TicketTemplate = typeof ticketTemplates.$inferSelect;
 export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
 
-// Template Zod schemas
-export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates);
+// Template Zod schemas  
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates, {
+  customerCompanyId: z.string().uuid().nullable().optional(),
+  defaultCategory: z.string().optional(),
+});
 export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   id: z.string().optional(),
   createdAt: z.date().optional(),
