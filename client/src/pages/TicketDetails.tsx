@@ -1568,143 +1568,57 @@ export default function TicketDetails() {
                   </div>
                 )}
 
-                {/* Comunicações */}
-                {communications.length > 0 && communications.map((comm, index) => (
-                  <div key={index} className="relative">
-                    <div className="absolute -left-6 w-3 h-3 bg-teal-500 rounded-full"></div>
-                    <Card className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="h-4 w-4 text-teal-600" />
-                          <span className="font-medium text-sm">Comunicação #{index + 1}</span>
-                          {historyViewMode === 'advanced' && (
-                            <Badge variant="secondary" className="text-xs">COMMUNICATION</Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : `${25 + index * 10} min atrás`}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {comm.type === 'internal' ? 'Nota interna' : 'Mensagem'} por {comm.from || 'Agente'}
-                      </p>
-                      {historyViewMode === 'advanced' && (
-                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                          <p>Channel: {comm.channel || 'web_portal'} | Type: {comm.type} | Length: {comm.content?.length || 150}chars</p>
-                          <p>Encryption: AES256 | Compressed: GZIP | Indexed: YES | Searchable: YES</p>
-                          <p>Sentiment: NEUTRAL | Language: pt-BR | Auto_Translation: DISABLED</p>
-                        </div>
-                      )}
-                    </Card>
-                  </div>
-                ))}
 
-                {/* Anexos */}
-                {attachments.length > 0 && attachments.map((attachment, index) => (
-                  <div key={index} className="relative">
-                    <div className="absolute -left-6 w-3 h-3 bg-pink-500 rounded-full"></div>
-                    <Card className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Paperclip className="h-4 w-4 text-pink-600" />
-                          <span className="font-medium text-sm">Anexo Adicionado</span>
-                          {historyViewMode === 'advanced' && (
-                            <Badge variant="secondary" className="text-xs">FILE_UPLOAD</Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">{30 + index * 5} min atrás</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Arquivo "{attachment.name || `documento_${index + 1}.pdf`}" anexado
-                      </p>
-                      {historyViewMode === 'advanced' && (
-                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                          <p>File_Size: {attachment.size || '2.3'}MB | MIME: application/pdf | Virus_Scan: CLEAN</p>
-                          <p>Storage: AWS_S3 | Bucket: conductor-attachments | CDN: CloudFront | Backup: ENABLED</p>
-                          <p>Access_Log: ENABLED | Download_Count: 0 | Retention: 7years | Compliance: GDPR</p>
-                        </div>
-                      )}
-                    </Card>
-                  </div>
-                ))}
-
-                {/* Última Atividade */}
-                <div className="relative">
-                  <div className="absolute -left-6 w-3 h-3 bg-emerald-500 rounded-full"></div>
-                  <Card className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-emerald-600" />
-                        <span className="font-medium text-sm">Atividade Atual</span>
-                        {historyViewMode === 'advanced' && (
-                          <Badge variant="secondary" className="text-xs">LIVE_SESSION</Badge>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">Agora</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Você está visualizando este ticket no momento
-                    </p>
-                    {historyViewMode === 'advanced' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                        <p>Current_Session: {ticket.id?.slice(0, 12)} | Active_Time: 00:02:15 | Tab_Focus: TRUE</p>
-                        <p>WebSocket: CONNECTED | Realtime_Updates: ENABLED | Collaboration: NONE</p>
-                        <p>Memory_Footprint: 8.2MB | CPU_Usage: 0.3% | Network_Latency: 45ms</p>
-                      </div>
-                    )}
-                  </Card>
-                </div>
               </div>
             </div>
 
-            {/* Related Tickets */}
+            {/* Related Tickets - usando dados reais do ticketRelationships */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
                 <Link className="h-4 w-4" />
                 Tickets Relacionados
                 <Badge variant="outline" className="text-xs">
-                  {relatedTickets.length}
+                  {ticketRelationships?.related_tickets?.length || 0}
                 </Badge>
               </h3>
-              {relatedTickets.map((relTicket: any) => (
-                <Card key={relTicket.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+              {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ? 
+                ticketRelationships.related_tickets.map((relTicket: any) => (
+                  <Card key={relTicket.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Badge 
+                          variant={relTicket.status === 'open' ? 'destructive' : 
+                                  relTicket.status === 'in_progress' ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {relTicket.status === 'open' ? 'Aberto' :
+                           relTicket.status === 'in_progress' ? 'Em Progresso' :
+                           relTicket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
+                        </Badge>
+                        <span className="font-medium">{relTicket.ticket_number}</span>
+                      </div>
                       <Badge 
-                        variant={relTicket.status === 'open' ? 'destructive' : 
-                                relTicket.status === 'in_progress' ? 'default' : 'secondary'}
+                        variant={relTicket.priority === 'high' ? 'destructive' : 
+                                relTicket.priority === 'medium' ? 'default' : 'outline'}
                         className="text-xs"
                       >
-                        {relTicket.status === 'open' ? 'Aberto' :
-                         relTicket.status === 'in_progress' ? 'Em Progresso' :
-                         relTicket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
+                        {relTicket.priority === 'high' ? 'Alta' :
+                         relTicket.priority === 'medium' ? 'Média' : 'Baixa'}
                       </Badge>
-                      <span className="font-medium">{relTicket.ticketNumber}</span>
                     </div>
-                    <Badge 
-                      variant={relTicket.priority === 'high' ? 'destructive' : 
-                              relTicket.priority === 'medium' ? 'default' : 'outline'}
-                      className="text-xs"
-                    >
-                      {relTicket.priority === 'high' ? 'Alta' :
-                       relTicket.priority === 'medium' ? 'Média' : 'Baixa'}
-                    </Badge>
-                  </div>
-                  <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
-                  <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                    <span>Categoria: {relTicket.category}</span>
-                    <span>
-                      {relTicket.resolvedAt 
-                        ? `Resolvido em ${relTicket.resolvedAt.toLocaleDateString('pt-BR')}`
-                        : `Criado em ${relTicket.createdAt.toLocaleDateString('pt-BR')}`
-                      }
-                    </span>
-                  </div>
-                </Card>
-              ))}
-
-              {relatedTickets.length === 0 && (
+                    <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
+                    <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                      <span>Categoria: {relTicket.category}</span>
+                      <span>
+                        {relTicket.resolved_at 
+                          ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')}`
+                          : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')}`
+                        }
+                      </span>
+                    </div>
+                  </Card>
+                )) : (
                 <div className="text-center py-8 text-gray-500">
                   <History className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                   <p>Nenhum ticket relacionado</p>
