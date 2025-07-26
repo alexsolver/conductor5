@@ -328,6 +328,8 @@ export default function TicketEdit() {
     );
   }
 
+  console.log("🎫 TicketEdit renderizando com ticket:", ticket?.id, "isLinkingModalOpen:", isLinkingModalOpen);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -355,7 +357,12 @@ export default function TicketEdit() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsLinkingModalOpen(true)}
+            onClick={() => {
+              console.log("🔗 Botão Vincular clicado!");
+              setIsLinkingModalOpen(true);
+            }}
+            className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+            style={{ backgroundColor: '#dbeafe', borderColor: '#93c5fd', color: '#1d4ed8' }}
           >
             <Link2 className="w-4 h-4 mr-2" />
             Vincular
