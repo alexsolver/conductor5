@@ -444,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { tenantId } = req.params;
 
       // Initialize tenant schema
-      await unifiedSchemaManager.initializeTenantSchema(tenantId);
+      await schemaManager.initializeTenantSchema(tenantId);
 
       res.json({ message: `Schema initialized for tenant ${tenantId}` });
     } catch (error) {
@@ -517,19 +517,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Simplified routes (show all public templates)
     app.get('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, customerCompanyId: 'all' };
-      return ticketTemplateController.getTemplatesByCompany(req, res);
+      return await ticketTemplateController.getTemplatesByCompany(req, res);
     });
     app.post('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, customerCompanyId: 'all' };
-      return ticketTemplateController.createTemplate(req, res);
+      return await ticketTemplateController.createTemplate(req, res);
     });
     app.get('/api/ticket-templates/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {  
       req.params = { ...req.params, customerCompanyId: 'all' };
-      return ticketTemplateController.getTemplateStats(req, res);
+      return await ticketTemplateController.getTemplateStats(req, res);
     });
     app.get('/api/ticket-templates/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, customerCompanyId: 'all' };
-      return ticketTemplateController.getTemplateCategories(req, res);
+      return await ticketTemplateController.getTemplateCategories(req, res);
     });
     
     // Templates por empresa cliente
@@ -784,9 +784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // app.use('/api/locations', locationRoutes); // Temporarily removed
 
-  // Ticket Templates routes
-  const ticketTemplatesRoutes = (await import('./routes/ticketTemplates')).default;
-  app.use('/api/templates', ticketTemplatesRoutes);
+  // Ticket Templates routes are now integrated directly above
   // Auth routes already mounted above, removing duplicate
 
   // Email Templates routes  

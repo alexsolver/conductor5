@@ -8,12 +8,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
-import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock, Building2, Settings } from 'lucide-react';
+
+// Import new components
+import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
+import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
+import TemplateAnalytics from '@/components/templates/TemplateAnalytics';
 
 // Schema para validação do formulário
 const templateSchema = z.object({
@@ -62,6 +68,8 @@ export default function TicketTemplates() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [activeTab, setActiveTab] = useState('templates');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -86,46 +94,46 @@ export default function TicketTemplates() {
     },
   });
 
-  // Query para buscar templates
+  // Query para buscar templates baseado na empresa selecionada
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates'],
+    queryKey: ['/api/ticket-templates/company', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ticket-templates');
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}`);
       return response.json();
     },
   });
 
-  const templates = templatesResponse?.data || [];
+  const templates = Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
 
-  // Query para buscar estatísticas
+  // Query para buscar estatísticas baseado na empresa selecionada
   const { data: statsResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/stats'],
+    queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ticket-templates/stats');
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/stats`);
       return response.json();
     },
   });
 
   const stats = statsResponse?.data?.[0] || {};
 
-  // Query para buscar categorias
+  // Query para buscar categorias baseado na empresa selecionada
   const { data: categoriesResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/categories'],
+    queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ticket-templates/categories');
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/categories`);
       return response.json();
     },
   });
 
-  const categories = categoriesResponse?.data || [];
+  const categories = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
 
   // Mutation para criar template
   const createTemplateMutation = useMutation({
-    mutationFn: (data: TemplateFormData) => 
-      apiRequest('POST', '/api/ticket-templates', {
+    mutationFn: (data: TemplateFormData & { customFields?: CustomField[] }) => 
+      apiRequest('POST', `/api/ticket-templates/company/${selectedCompany}`, {
         ...data,
         // Required fields
-        customerCompanyId: null, // Global template (not company-specific)
+        customerCompanyId: selectedCompany === 'all' ? null : selectedCompany,
         defaultCategory: data.category, // Use the selected category as default
         // Optional fields with defaults
         defaultTitle: data.defaultTitle,
@@ -135,12 +143,17 @@ export default function TicketTemplates() {
         requiresApproval: data.requiresApproval,
         autoAssign: data.autoAssign,
         defaultAssigneeRole: data.defaultAssigneeRole,
-        createdById: '550e8400-e29b-41d4-a716-446655440001', // Admin user ID
+        customFields: JSON.stringify(data.customFields || customFields),
+        hiddenFields: JSON.stringify(customFields.filter(f => f.hidden).map(f => f.name)),
+        requiredFields: JSON.stringify(customFields.filter(f => f.required).map(f => f.name)),
+        optionalFields: JSON.stringify(customFields.filter(f => !f.required && !f.hidden).map(f => f.name)),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'] });
       setIsCreateOpen(false);
+      setCustomFields([]);
       form.reset();
       toast({
         title: "Template criado",
@@ -161,9 +174,11 @@ export default function TicketTemplates() {
     mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
       apiRequest('PUT', `/api/ticket-templates/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
       setIsEditOpen(false);
       setEditingTemplate(null);
+      setCustomFields([]);
       form.reset();
       toast({
         title: "Template atualizado",
@@ -183,8 +198,8 @@ export default function TicketTemplates() {
   const deleteTemplateMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/ticket-templates/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
       toast({
         title: "Template excluído",
         description: "O template foi excluído com sucesso.",
@@ -201,11 +216,20 @@ export default function TicketTemplates() {
 
   // Handlers
   const handleCreateTemplate = (data: TemplateFormData) => {
-    createTemplateMutation.mutate(data);
+    createTemplateMutation.mutate({ ...data, customFields });
   };
 
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
+    
+    // Parse custom fields if they exist
+    try {
+      const parsedCustomFields = template.custom_fields ? JSON.parse(template.custom_fields) : [];
+      setCustomFields(parsedCustomFields);
+    } catch (e) {
+      setCustomFields([]);
+    }
+    
     form.reset({
       name: template.name,
       description: template.description,
@@ -270,68 +294,90 @@ export default function TicketTemplates() {
         <div>
           <h1 className="text-3xl font-bold">Templates de Tickets</h1>
           <p className="text-muted-foreground">
-            Gerencie templates para agilizar a criação de tickets
+            Sistema completo de templates com campos customizáveis e análise inteligente
           </p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Template
-            </Button>
-          </DialogTrigger>
-        </Dialog>
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Template
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
+      {/* Company Selector */}
+      <CompanyTemplateSelector 
+        selectedCompany={selectedCompany}
+        onCompanyChange={setSelectedCompany}
+        showStats={false}
+      />
+
+      {/* Main Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Gerenciar Templates
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics e Relatórios
+          </TabsTrigger>
+          <TabsTrigger value="company" className="flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            Configurações da Empresa
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="templates" className="space-y-6">
+
+        {/* Stats Cards */}
+        {stats && Object.keys(stats).length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
+                  </div>
+                  <BarChart3 className="w-8 h-8 text-blue-500" />
                 </div>
-                <BarChart3 className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Ativos</p>
-                  <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ativos</p>
+                    <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-green-500" />
                 </div>
-                <Users className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Uso médio</p>
-                  <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Uso médio</p>
+                    <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
+                  </div>
+                  <Clock className="w-8 h-8 text-orange-500" />
                 </div>
-                <Clock className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Mais usado</p>
-                  <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Mais usado</p>
+                    <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
+                  </div>
+                  <BarChart3 className="w-8 h-8 text-purple-500" />
                 </div>
-                <BarChart3 className="w-8 h-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
       {/* Filters */}
       <Card>
@@ -439,12 +485,52 @@ export default function TicketTemplates() {
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <TemplateAnalytics customerCompanyId={selectedCompany} />
+        </TabsContent>
+
+        <TabsContent value="company" className="space-y-6">
+          <CompanyTemplateSelector 
+            selectedCompany={selectedCompany}
+            onCompanyChange={setSelectedCompany}
+            showStats={true}
+          />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações Avançadas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Configure templates específicos para esta empresa, definindo terminologias 
+                e fluxos personalizados que atendem às necessidades específicas do cliente.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <h4 className="font-medium mb-2">Templates Personalizados</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Crie templates específicos para esta empresa com campos customizados.
+                  </p>
+                </Card>
+                <Card className="p-4">
+                  <h4 className="font-medium mb-2">Aprovações Automáticas</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Configure regras de aprovação baseadas no perfil da empresa.
+                  </p>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Criar Novo Template</DialogTitle>
+            <DialogTitle>Criar Novo Template - {selectedCompany === 'all' ? 'Global' : 'Específico da Empresa'}</DialogTitle>
           </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
@@ -570,147 +656,6 @@ export default function TicketTemplates() {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="defaultTitle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título Padrão *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Ex: Problema com [EQUIPAMENTO] - use [VARIÁVEIS] para personalização"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="defaultDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição Padrão *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Template da descrição que será preenchida automaticamente..."
-                      rows={5}
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="defaultTags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags Padrão</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="hardware,suporte,urgente"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="estimatedHours"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Horas Estimadas</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        min="0"
-                        max="100"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="requiresApproval"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Requer Aprovação</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Tickets criados com este template precisam de aprovação
-                      </p>
-                    </div>
-                    <FormControl>
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4"
-                        checked={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="autoAssign"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Atribuição Automática</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Atribuir automaticamente para o role especificado
-                      </p>
-                    </div>
-                    <FormControl>
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4"
-                        checked={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {form.watch('autoAssign') && (
-                <FormField
-                  control={form.control}
-                  name="defaultAssigneeRole"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role do Responsável</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Ex: suporte_tecnico, administrador"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-
             <div className="flex justify-end gap-2 pt-4">
               <Button 
                 type="button" 
@@ -731,15 +676,19 @@ export default function TicketTemplates() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* Edit Dialog - Similar structure with populated fields */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Template</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleUpdateTemplate)} className="space-y-4">
-              {/* Same form fields as create, but with update handler */}
+            <form onSubmit={form.handleSubmit((data) => {
+              if (editingTemplate) {
+                updateTemplateMutation.mutate({ id: editingTemplate.id, data });
+              }
+            })} className="space-y-4">
+              {/* Similar form structure as create, but populated with current values */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
