@@ -1996,7 +1996,7 @@ export default function TicketDetails() {
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                EMPRESA CLIENTE
+                Empresa
               </h3>
               <Button
                 variant="ghost"
@@ -2055,7 +2055,7 @@ export default function TicketDetails() {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-purple-800 flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  CLIENTE/SOLICITANTE
+                  Cliente
                 </h3>
                 <Button
                   variant="ghost"

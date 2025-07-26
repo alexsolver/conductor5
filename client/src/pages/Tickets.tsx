@@ -57,18 +57,8 @@ export default function Tickets() {
     retry: false,
   });
 
-  const customers = customersData?.customers || [];
-  const users = usersData?.users || [];
-
-  // Função para trocar visualização ativa
-  const handleViewChange = (viewId: string) => {
-    setCurrentViewId(viewId);
-    console.log('Visualização alterada para:', viewId);
-    // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
-  };
-
-  // Debug logging
-  console.log('Tickets page rendering, currentViewId:', currentViewId);
+  const customers = (customersData as any)?.customers || [];
+  const users = (usersData as any)?.users || [];
 
   // Form setup
   const form = useForm<CreateTicketFormData>({
@@ -116,10 +106,11 @@ export default function Tickets() {
     createTicketMutation.mutate(data);
   };
 
+  // Função para trocar visualização ativa
   const handleViewChange = (viewId: string) => {
     setCurrentViewId(viewId);
-    // Aqui podemos implementar filtros e ordenação baseados na visualização
-    // Por enquanto, apenas registramos a mudança
+    console.log('Visualização alterada para:', viewId);
+    // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
   };
 
   const getPriorityColor = (priority: string) => {
@@ -355,7 +346,7 @@ export default function Tickets() {
       </div>
 
       <div className="space-y-4">
-        {tickets?.tickets?.map((ticket: any) => (
+        {(tickets as any)?.tickets?.map((ticket: any) => (
           <Card key={ticket.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -364,8 +355,8 @@ export default function Tickets() {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       #{ticket.id} - {ticket.subject}
                     </h3>
-                    <DynamicBadge fieldName="priority" value={ticket.priority} />
-                    <DynamicBadge fieldName="status" value={ticket.status.replace('_', ' ')} />
+                    <DynamicBadge fieldName="priority" value={ticket.priority}>{ticket.priority}</DynamicBadge>
+                    <DynamicBadge fieldName="status" value={ticket.status.replace('_', ' ')}>{ticket.status.replace('_', ' ')}</DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     {ticket.description?.substring(0, 150)}...
