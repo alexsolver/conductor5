@@ -164,6 +164,11 @@ export default function Tickets() {
 
   return (
     <div className="p-4 space-y-6">
+      {/* TESTE DE VISIBILIDADE - POSICIONADO NO TOPO */}
+      <div style={{backgroundColor: 'red', color: 'white', padding: '15px', fontSize: '20px', fontWeight: 'bold', textAlign: 'center'}}>
+        🚨 TESTE DE VISIBILIDADE - COMPONENTE DE VISUALIZAÇÕES 🚨
+      </div>
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
