@@ -41,6 +41,7 @@ import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
+import { ticketMetadataHierarchicalController } from './modules/tickets/TicketMetadataHierarchicalController';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1741,6 +1742,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
+
+  // ========================================
+  // HIERARCHICAL TICKET METADATA ROUTES - CUSTOMER-SPECIFIC CONFIGURATIONS
+  // ========================================
+  
+  // Customer-specific configuration management
+  app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.getCustomerConfiguration.bind(ticketMetadataHierarchicalController));
+  app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.resolveFieldForCustomer.bind(ticketMetadataHierarchicalController));
+  app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.createCustomerSpecificConfiguration.bind(ticketMetadataHierarchicalController));
+  app.post('/api/ticket-metadata-hierarchical/examples', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.createPracticalExamples.bind(ticketMetadataHierarchicalController));
+  app.post('/api/ticket-metadata-hierarchical/compare', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.compareCustomerConfigurations.bind(ticketMetadataHierarchicalController));
 
   // ========================================
   // SLA SYSTEM ROUTES - INTEGRATED WITH TICKET METADATA

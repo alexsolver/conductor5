@@ -792,9 +792,11 @@ export const shiftSwapRequests = pgTable("shift_swap_requests", {
 // ========================================
 
 // Main table for field configurations (priority, status, category, etc.)
+// HIERARCHICAL SUPPORT: customerId = NULL for global tenant configs, specific UUID for client-specific configs
 export const ticketFieldConfigurations = pgTable("ticket_field_configurations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }), // NULL = global, UUID = client-specific
   fieldName: varchar("field_name", { length: 50 }).notNull(), // 'priority', 'status', 'category', 'location'
   displayName: varchar("display_name", { length: 100 }).notNull(),
   description: text("description"),
@@ -806,15 +808,21 @@ export const ticketFieldConfigurations = pgTable("ticket_field_configurations", 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  unique("ticket_field_configs_tenant_field_unique").on(table.tenantId, table.fieldName),
+  // Unique constraint updated for hierarchical support
+  unique("ticket_field_configs_tenant_customer_field_unique").on(table.tenantId, table.customerId, table.fieldName),
   index("ticket_field_configs_tenant_active_idx").on(table.tenantId, table.isActive),
   index("ticket_field_configs_tenant_type_idx").on(table.tenantId, table.fieldType),
+  // New hierarchical indexes for optimal resolution performance
+  index("ticket_field_configs_hierarchical_idx").on(table.tenantId, table.customerId, table.fieldName),
+  index("ticket_field_configs_customer_idx").on(table.tenantId, table.customerId),
 ]);
 
 // Options for select fields (values for dropdowns)
+// HIERARCHICAL SUPPORT: customerId = NULL for global options, specific UUID for client-specific options
 export const ticketFieldOptions = pgTable("ticket_field_options", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }), // NULL = global, UUID = client-specific
   fieldConfigId: uuid("field_config_id").references(() => ticketFieldConfigurations.id, { onDelete: "cascade" }),
   optionValue: varchar("option_value", { length: 50 }).notNull(),
   displayLabel: varchar("display_label", { length: 100 }).notNull(),
@@ -829,15 +837,21 @@ export const ticketFieldOptions = pgTable("ticket_field_options", {
   escalationRules: jsonb("escalation_rules"), // Escalation rules
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
-  unique("ticket_field_options_tenant_config_value_unique").on(table.tenantId, table.fieldConfigId, table.optionValue),
+  // Updated unique constraint for hierarchical support
+  unique("ticket_field_options_tenant_customer_config_value_unique").on(table.tenantId, table.customerId, table.fieldConfigId, table.optionValue),
   index("ticket_field_options_tenant_config_idx").on(table.tenantId, table.fieldConfigId),
   index("ticket_field_options_tenant_active_idx").on(table.tenantId, table.isActive),
+  // New hierarchical indexes for optimal resolution performance
+  index("ticket_field_options_hierarchical_idx").on(table.tenantId, table.customerId, table.fieldConfigId),
+  index("ticket_field_options_customer_idx").on(table.tenantId, table.customerId),
 ]);
 
 // Style configurations for colors and theming
+// HIERARCHICAL SUPPORT: customerId = NULL for global styles, specific UUID for client-specific styles
 export const ticketStyleConfigurations = pgTable("ticket_style_configurations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }), // NULL = global, UUID = client-specific
   styleName: varchar("style_name", { length: 50 }).notNull(), // 'priority_colors', 'status_colors'
   fieldName: varchar("field_name", { length: 50 }).notNull(),
   styleMapping: jsonb("style_mapping").notNull(), // {"high": {"bg": "#FF5733", "text": "#FFFFFF"}}
@@ -845,22 +859,32 @@ export const ticketStyleConfigurations = pgTable("ticket_style_configurations", 
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
-  unique("ticket_style_configs_tenant_style_field_unique").on(table.tenantId, table.styleName, table.fieldName),
+  // Updated unique constraint for hierarchical support
+  unique("ticket_style_configs_tenant_customer_style_field_unique").on(table.tenantId, table.customerId, table.styleName, table.fieldName),
   index("ticket_style_configs_tenant_field_idx").on(table.tenantId, table.fieldName),
+  // New hierarchical indexes for optimal resolution performance
+  index("ticket_style_configs_hierarchical_idx").on(table.tenantId, table.customerId, table.fieldName),
+  index("ticket_style_configs_customer_idx").on(table.tenantId, table.customerId),
 ]);
 
 // Default configurations per tenant
+// HIERARCHICAL SUPPORT: customerId = NULL for global defaults, specific UUID for client-specific defaults
 export const ticketDefaultConfigurations = pgTable("ticket_default_configurations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }), // NULL = global, UUID = client-specific
   fieldName: varchar("field_name", { length: 50 }).notNull(),
   defaultValue: varchar("default_value", { length: 100 }).notNull(),
   applyToNewTickets: boolean("apply_to_new_tickets").default(true),
   applyToImportedTickets: boolean("apply_to_imported_tickets").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
-  unique("ticket_default_configs_tenant_field_unique").on(table.tenantId, table.fieldName),
+  // Updated unique constraint for hierarchical support
+  unique("ticket_default_configs_tenant_customer_field_unique").on(table.tenantId, table.customerId, table.fieldName),
   index("ticket_default_configs_tenant_idx").on(table.tenantId),
+  // New hierarchical indexes for optimal resolution performance
+  index("ticket_default_configs_hierarchical_idx").on(table.tenantId, table.customerId, table.fieldName),
+  index("ticket_default_configs_customer_idx").on(table.tenantId, table.customerId),
 ]);
 
 // ===========================
