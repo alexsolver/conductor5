@@ -18,6 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
+import { TicketViewSelector } from "@/components/TicketViewSelector";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
@@ -35,6 +36,7 @@ export default function Tickets() {
   const { t } = useTranslation();
   const { formatDate } = useLocalization();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [currentViewId, setCurrentViewId] = useState<string | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -104,6 +106,12 @@ export default function Tickets() {
     createTicketMutation.mutate(data);
   };
 
+  const handleViewChange = (viewId: string) => {
+    setCurrentViewId(viewId);
+    // Aqui podemos implementar filtros e ordenação baseados na visualização
+    // Por enquanto, apenas registramos a mudança
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
@@ -152,10 +160,6 @@ export default function Tickets() {
           <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
@@ -293,6 +297,22 @@ export default function Tickets() {
               </Form>
             </DialogContent>
           </Dialog>
+        </div>
+      </div>
+
+      {/* Sistema de Visualizações Customizáveis */}
+      <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border">
+        <TicketViewSelector
+          currentViewId={currentViewId}
+          onViewChange={handleViewChange}
+          userRole="user" // Aqui pode ser determinado dinamicamente baseado no usuário
+        />
+        
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros
+          </Button>
         </div>
       </div>
 

@@ -44,6 +44,7 @@ import { slaController } from './modules/tickets/SlaController';
 import customFieldsRoutes from './modules/custom-fields/routes.ts';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
 import ticketHistoryRoutes from './modules/ticket-history/routes';
+import { TicketViewsController } from './controllers/TicketViewsController';
 // Hierarchical ticket metadata import - loaded dynamically below
 
 
@@ -2560,6 +2561,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
   app.use('/api/field-layouts', fieldLayoutRoutes);
   app.use('/api/ticket-history', ticketHistoryRoutes);
+
+  // ========================================
+  // TICKET VIEWS ROUTES - Sistema de Visualizações Customizáveis
+  // ========================================
+  const ticketViewsController = new TicketViewsController();
+
+  // Listar visualizações disponíveis para o usuário
+  app.get('/api/ticket-views', jwtAuth, ticketViewsController.getViews.bind(ticketViewsController));
+  
+  // Buscar visualização específica
+  app.get('/api/ticket-views/:id', jwtAuth, ticketViewsController.getViewById.bind(ticketViewsController));
+  
+  // Criar nova visualização
+  app.post('/api/ticket-views', jwtAuth, ticketViewsController.createView.bind(ticketViewsController));
+  
+  // Atualizar visualização existente
+  app.put('/api/ticket-views/:id', jwtAuth, ticketViewsController.updateView.bind(ticketViewsController));
+  
+  // Deletar visualização
+  app.delete('/api/ticket-views/:id', jwtAuth, ticketViewsController.deleteView.bind(ticketViewsController));
+  
+  // Definir visualização ativa para o usuário
+  app.post('/api/ticket-views/:id/set-active', jwtAuth, ticketViewsController.setActiveView.bind(ticketViewsController));
+  
+  // Preferências do usuário
+  app.get('/api/ticket-views/user/preferences', jwtAuth, ticketViewsController.getUserPreferences.bind(ticketViewsController));
+  app.put('/api/ticket-views/user/settings', jwtAuth, ticketViewsController.updatePersonalSettings.bind(ticketViewsController));
 
   const httpServer = createServer(app);
   return httpServer;

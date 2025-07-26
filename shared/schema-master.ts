@@ -2299,3 +2299,123 @@ export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
+
+// ========================================
+// TICKET LIST VIEWS - Visualizações Customizáveis
+// ========================================
+
+// Ticket List Views - Visualizações personalizadas da lista de tickets
+export const ticketListViews = pgTable("ticket_list_views", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  
+  // Permissões e visibilidade
+  createdById: uuid("created_by_id").notNull(), // Referência ao usuário que criou
+  isPublic: boolean("is_public").default(false), // true = visível para todos do tenant
+  isDefault: boolean("is_default").default(false), // true = visualização padrão
+  
+  // Configuração das colunas
+  columns: jsonb("columns").notNull(), // Array de objetos: {id, label, visible, order, width}
+  
+  // Configuração de filtros
+  filters: jsonb("filters").default([]), // Array de filtros aplicados
+  
+  // Configuração de ordenação
+  sorting: jsonb("sorting").default([]), // Array de ordenação: {column, direction}
+  
+  // Configurações de paginação
+  pageSize: integer("page_size").default(25),
+  
+  // Metadados
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("ticket_views_tenant_idx").on(table.tenantId),
+  index("ticket_views_creator_idx").on(table.tenantId, table.createdById),
+  index("ticket_views_public_idx").on(table.tenantId, table.isPublic),
+  unique("ticket_views_tenant_name_creator").on(table.tenantId, table.name, table.createdById),
+]);
+
+// Shared Views Access - Controle de acesso para visualizações compartilhadas
+export const ticketViewShares = pgTable("ticket_view_shares", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  viewId: uuid("view_id").references(() => ticketListViews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").notNull(), // Usuário com acesso à visualização
+  
+  // Permissões
+  canEdit: boolean("can_edit").default(false), // Pode editar a visualização
+  canShare: boolean("can_share").default(false), // Pode compartilhar com outros
+  
+  // Metadados
+  sharedAt: timestamp("shared_at").defaultNow(),
+  sharedById: uuid("shared_by_id").notNull(), // Quem compartilhou
+}, (table) => [
+  index("view_shares_view_idx").on(table.viewId),
+  index("view_shares_user_idx").on(table.tenantId, table.userId),
+  unique("view_shares_unique").on(table.viewId, table.userId),
+]);
+
+// User View Preferences - Preferências pessoais de visualização
+export const userViewPreferences = pgTable("user_view_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  
+  // Visualização ativa
+  activeViewId: uuid("active_view_id").references(() => ticketListViews.id),
+  
+  // Preferências pessoais (override da visualização)
+  personalSettings: jsonb("personal_settings").default({}), // Configurações que sobrescrevem a view
+  
+  // Metadados
+  lastUsedAt: timestamp("last_used_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("user_prefs_user_idx").on(table.tenantId, table.userId),
+  unique("user_prefs_unique").on(table.tenantId, table.userId),
+]);
+
+// Types para as novas tabelas
+export type TicketListView = typeof ticketListViews.$inferSelect;
+export type InsertTicketListView = typeof ticketListViews.$inferInsert;
+export type TicketViewShare = typeof ticketViewShares.$inferSelect;
+export type InsertTicketViewShare = typeof ticketViewShares.$inferInsert;
+export type UserViewPreference = typeof userViewPreferences.$inferSelect;
+export type InsertUserViewPreference = typeof userViewPreferences.$inferInsert;
+
+// Zod schemas para validação
+export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
+  name: z.string().min(1, "Nome da visualização é obrigatório"),
+  columns: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    visible: z.boolean(),
+    order: z.number(),
+    width: z.number().optional(),
+  })),
+  filters: z.array(z.object({
+    column: z.string(),
+    operator: z.string(),
+    value: z.any(),
+  })).optional(),
+  sorting: z.array(z.object({
+    column: z.string(),
+    direction: z.enum(['asc', 'desc']),
+  })).optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares).omit({ 
+  id: true, 
+  sharedAt: true 
+});
+
+export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
