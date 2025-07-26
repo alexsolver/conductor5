@@ -244,7 +244,7 @@ export default function AuthPage() {
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
               <img 
-                src="/conductor-logo.png" 
+                src="/conductor-logo.svg" 
                 alt="Conductor Logo" 
                 className="w-28 h-28 object-contain"
               />
