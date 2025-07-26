@@ -201,8 +201,8 @@ export default function Locations() {
     createLocationMutation.mutate(data);
   };
 
-  const locations = locationsData?.locations || [];
-  const stats = statsData || {};
+  const locations = locationsData?.data || [];
+  const stats = statsData?.data || {};
 
   return (
     <div className="p-4 space-y-6">
