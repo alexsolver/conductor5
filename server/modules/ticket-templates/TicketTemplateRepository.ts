@@ -22,7 +22,7 @@ export class TicketTemplateRepository {
       query = `
         SELECT * FROM "${schemaName}".ticket_templates 
         WHERE tenant_id = $1 
-        AND (customer_company_id IS NULL OR is_public = true)
+        AND customer_company_id IS NULL
         AND is_active = true
         ORDER BY sort_order ASC, usage_count DESC, name ASC
       `;
@@ -69,15 +69,15 @@ export class TicketTemplateRepository {
     const query = `
       INSERT INTO "${schemaName}".ticket_templates (
         tenant_id, customer_company_id, name, description, category, subcategory,
-        default_title, default_description, default_type, default_priority, 
-        default_status, default_category, default_urgency, default_impact,
+        default_title, default_description, default_priority, 
+        default_urgency, default_impact,
         default_assignee_id, default_assignment_group, default_department,
         required_fields, optional_fields, hidden_fields, custom_fields,
-        auto_assignment_rules, sla_override, is_active, is_public, 
-        sort_order, created_by_id
+        auto_assignment_rules, sla_override, is_active, 
+        sort_order, created_by
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+        $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
       ) RETURNING *
     `;
 
@@ -90,10 +90,7 @@ export class TicketTemplateRepository {
       template.subcategory,
       template.defaultTitle,
       template.defaultDescription,
-      template.defaultType,
       template.defaultPriority,
-      template.defaultStatus,
-      template.defaultCategory,
       template.defaultUrgency,
       template.defaultImpact,
       template.defaultAssigneeId,
@@ -106,7 +103,6 @@ export class TicketTemplateRepository {
       JSON.stringify(template.autoAssignmentRules || {}),
       JSON.stringify(template.slaOverride || {}),
       template.isActive ?? true,
-      template.isPublic ?? true,
       template.sortOrder ?? 0,
       template.createdById
     ];

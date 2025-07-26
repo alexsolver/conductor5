@@ -87,22 +87,28 @@ export default function TicketTemplates() {
   });
 
   // Query para buscar templates
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['/api/ticket-templates'],
     queryFn: () => apiRequest('GET', '/api/ticket-templates'),
   });
 
+  const templates = templatesResponse?.data || [];
+
   // Query para buscar estatísticas
-  const { data: stats } = useQuery({
+  const { data: statsResponse } = useQuery({
     queryKey: ['/api/ticket-templates/stats'],
     queryFn: () => apiRequest('GET', '/api/ticket-templates/stats'),
   });
 
+  const stats = statsResponse?.data?.[0] || {};
+
   // Query para buscar categorias
-  const { data: categories = [] } = useQuery({
+  const { data: categoriesResponse } = useQuery({
     queryKey: ['/api/ticket-templates/categories'],
     queryFn: () => apiRequest('GET', '/api/ticket-templates/categories'),
   });
+
+  const categories = categoriesResponse?.data || [];
 
   // Mutation para criar template
   const createTemplateMutation = useMutation({
@@ -218,7 +224,7 @@ export default function TicketTemplates() {
   };
 
   // Filtrar templates
-  const filteredTemplates = templates.filter((template: TicketTemplate) => {
+  const filteredTemplates = (templates || []).filter((template: TicketTemplate) => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
