@@ -163,10 +163,14 @@ export default function ProjectActions() {
   });
 
   // Fetch projects
-  const { data: projects = [] } = useQuery<Project[]>({
+  const { data: projectsResponse } = useQuery({
     queryKey: ['/api/projects'],
     staleTime: 30000
   });
+  
+  // Extract projects array from API response
+  const projects = Array.isArray(projectsResponse?.data) ? projectsResponse.data : 
+                  Array.isArray(projectsResponse) ? projectsResponse : [];
 
   // Fetch all actions
   const { data: actions = [], isLoading } = useQuery<ProjectAction[]>({
@@ -576,7 +580,7 @@ export default function ProjectActions() {
             className="border border-gray-300 rounded-md px-3 py-2 bg-white min-w-[200px]"
           >
             <option value="all">Todos os Projetos</option>
-            {projects.map(project => (
+            {Array.isArray(projects) && projects.map(project => (
               <option key={project.id} value={project.id}>{project.name}</option>
             ))}
           </select>
