@@ -1611,7 +1611,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY sort_order
       `);
 
-      res.json({ success: true, data: result });
+      // Return only the rows array with mapped field names
+      const mappedData = result.rows.map((row: any) => ({
+        id: row.id,
+        fieldName: row.field_name,
+        label: row.display_name,
+        fieldType: row.field_type,
+        isRequired: row.is_required,
+        isSystem: row.is_system_field,
+        displayOrder: row.sort_order,
+        isActive: row.is_active
+      }));
+
+      res.json({ success: true, data: mappedData });
     } catch (error) {
       console.error('Error fetching field configurations:', error);
       res.status(500).json({ error: 'Failed to fetch field configurations' });
@@ -1635,14 +1647,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
       
       if (fieldName) {
-        query += ` AND fieldName = '${fieldName}'`;
+        query += ` AND fieldname = '${fieldName}'`;
       }
       
       query += ` ORDER BY sort_order`;
       
       const result = await tenantDb.execute(query);
 
-      res.json({ success: true, data: result });
+      // Return only the rows array with mapped field names
+      const mappedData = result.rows.map((row: any) => ({
+        id: row.id,
+        fieldName: row.fieldname,
+        optionValue: row.option_value,
+        optionLabel: row.display_label,
+        bgColor: `bg-[${row.color_hex}]`,
+        textColor: 'text-white',
+        sortOrder: row.sort_order,
+        isActive: row.is_active
+      }));
+
+      res.json({ success: true, data: mappedData });
     } catch (error) {
       console.error('Error fetching field options:', error);
       res.status(500).json({ error: 'Failed to fetch field options' });
