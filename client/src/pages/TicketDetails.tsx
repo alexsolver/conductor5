@@ -33,6 +33,7 @@ import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
+import FieldLayoutManager from "@/components/layout/FieldLayoutManager";
 
 // Form schema
 const ticketFormSchema = z.object({
@@ -261,6 +262,7 @@ export default function TicketDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
+  const [isCustomFieldsVisible, setIsCustomFieldsVisible] = useState(false);
 
   // Basic information - consolidated into single tab
   const basicTabs = [
@@ -2178,7 +2180,16 @@ export default function TicketDetails() {
             </div>
             
             <div className="flex gap-2">
-
+              {/* Custom Fields Toggle Button */}
+              <Button 
+                variant={isCustomFieldsVisible ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => setIsCustomFieldsVisible(!isCustomFieldsVisible)}
+                className={isCustomFieldsVisible ? "bg-purple-600 hover:bg-purple-700" : ""}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                {isCustomFieldsVisible ? "Ocultar Campos" : "Campos Customizados"}
+              </Button>
               
               {!isEditMode ? (
                 <>
@@ -2540,6 +2551,14 @@ export default function TicketDetails() {
         ticketId={id || ''} 
         isOpen={showInternalActionModal} 
         onClose={() => setShowInternalActionModal(false)} 
+      />
+
+      {/* Custom Fields Layout Manager */}
+      <FieldLayoutManager 
+        ticketId={id}
+        entityType="ticket"
+        isVisible={isCustomFieldsVisible}
+        onToggleVisibility={setIsCustomFieldsVisible}
       />
     </div>
   );

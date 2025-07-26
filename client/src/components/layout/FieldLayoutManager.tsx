@@ -1,276 +1,287 @@
-import React, { useState } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
-  Layout, 
-  Plus, 
-  Save, 
-  Eye, 
-  Settings,
-  Palette,
-  Target,
-  Type,
-  AlignLeft,
-  Hash,
-  Calendar,
-  Mail,
-  Phone
-} from 'lucide-react';
+  Save, RefreshCw, Trash2, Eye, EyeOff, 
+  Settings, Layout, Plus 
+} from "lucide-react";
+import FieldsPalette from "./FieldsPalette";
+import DropZone from "./DropZone";
+import DynamicFieldRenderer, { CustomField } from "./DynamicFieldRenderer";
+import { useCustomFields } from "@/hooks/useCustomFields";
+import { useToast } from "@/hooks/use-toast";
 
 interface FieldLayoutManagerProps {
-  moduleType: 'customers' | 'tickets' | 'favorecidos' | 'habilidades' | 'materials' | 'services' | 'locais';
-  pageType: 'create' | 'edit' | 'details' | 'list';
-  isDesignMode: boolean;
-  onDesignModeChange: (enabled: boolean) => void;
-  hasDesignPermission: boolean;
-  children?: React.ReactNode;
+  ticketId?: string;
+  entityType?: 'ticket' | 'customer' | 'user';
+  entityId?: string;
+  isVisible?: boolean;
+  onToggleVisibility?: (visible: boolean) => void;
 }
 
-// Available field types
-const availableFields = [
-  { id: 'text-field', type: 'text', label: 'Campo de Texto', icon: Type },
-  { id: 'textarea-field', type: 'textarea', label: 'Área de Texto', icon: AlignLeft },
-  { id: 'number-field', type: 'number', label: 'Número', icon: Hash },
-  { id: 'date-field', type: 'date', label: 'Data', icon: Calendar },
-  { id: 'email-field', type: 'email', label: 'E-mail', icon: Mail },
-  { id: 'phone-field', type: 'phone', label: 'Telefone', icon: Phone },
-];
-
-// Drop zones
-const dropZones = [
-  { id: 'main-section', title: 'Seção Principal', description: 'Campos principais do formulário' },
-  { id: 'details-section', title: 'Detalhes', description: 'Informações detalhadas' },
-  { id: 'metadata-section', title: 'Metadados', description: 'Informações adicionais' },
-];
-
-interface DroppedField {
-  id: string;
-  type: string;
-  label: string;
-  sectionId: string;
-  position: number;
-}
-
-export function FieldLayoutManager({
-  moduleType,
-  pageType,
-  isDesignMode,
-  onDesignModeChange,
-  hasDesignPermission,
-  children
+export default function FieldLayoutManager({
+  ticketId,
+  entityType = 'ticket',
+  entityId,
+  isVisible = false,
+  onToggleVisibility
 }: FieldLayoutManagerProps) {
-  const [droppedFields, setDroppedFields] = useState<DroppedField[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedField, setDraggedField] = useState<any>(null);
+  const { toast } = useToast();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
+  const {
+    fields,
+    isLoading,
+    addField,
+    updateField,
+    removeField,
+    updateFieldValue,
+    saveFields,
+    clearFields,
+    getFieldValues,
+    validateFields,
+    isSaving
+  } = useCustomFields({ ticketId, entityType, entityId });
 
-  function handleDragStart(event: any) {
-    setActiveId(event.active.id);
-  }
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    
+    if (active.data.current?.type === 'field') {
+      setDraggedField(active.data.current);
+    }
+  };
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (over && over.id.toString().includes('-section')) {
-      const fieldData = availableFields.find(f => f.id === active.id);
-      if (fieldData) {
-        const newField: DroppedField = {
-          id: `${fieldData.id}-${Date.now()}`,
-          type: fieldData.type,
-          label: fieldData.label,
-          sectionId: over.id.toString(),
-          position: droppedFields.filter(f => f.sectionId === over.id).length
-        };
-        
-        setDroppedFields(prev => [...prev, newField]);
-      }
+    if (!over) {
+      setActiveId(null);
+      setDraggedField(null);
+      return;
     }
-    
+
+    if (active.data.current?.type === 'field' && over.data.current?.type === 'dropzone') {
+      const fieldData = active.data.current;
+      
+      addField(fieldData.fieldType, fieldData.label);
+      
+      toast({
+        title: "Campo adicionado",
+        description: `Campo "${fieldData.label}" foi adicionado à área de formulário`
+      });
+    }
+
     setActiveId(null);
-  }
+    setDraggedField(null);
+  };
 
-  function handleRemoveField(fieldId: string) {
-    setDroppedFields(prev => prev.filter(f => f.id !== fieldId));
-  }
+  const handleSaveAll = async () => {
+    if (validateFields()) {
+      await saveFields();
+    }
+  };
 
-  function DraggableField({ field }: { field: typeof availableFields[0] }) {
-    const IconComponent = field.icon;
-    
+  const handleToggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+    if (isEditMode) {
+      // Save automatically when exiting edit mode
+      handleSaveAll();
+    }
+  };
+
+  if (!isVisible) {
     return (
-      <div
-        draggable
-        onDragStart={(e) => {
-          e.dataTransfer.setData('text/plain', field.id);
-          setActiveId(field.id);
-        }}
-        className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
-      >
-        <div className="flex items-center gap-2">
-          <IconComponent className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-medium">{field.label}</span>
-        </div>
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onClick={() => onToggleVisibility?.(true)}
+          size="lg"
+          className="rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          <Layout className="w-5 h-5 mr-2" />
+          Campos Customizados
+        </Button>
       </div>
     );
-  }
-
-  function DropZone({ zone }: { zone: typeof dropZones[0] }) {
-    const fieldsInZone = droppedFields.filter(f => f.sectionId === zone.id);
-    
-    return (
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const fieldId = e.dataTransfer.getData('text/plain');
-          const fieldData = availableFields.find(f => f.id === fieldId);
-          
-          if (fieldData) {
-            const newField: DroppedField = {
-              id: `${fieldData.id}-${Date.now()}`,
-              type: fieldData.type,
-              label: fieldData.label,
-              sectionId: zone.id,
-              position: fieldsInZone.length
-            };
-            
-            setDroppedFields(prev => [...prev, newField]);
-          }
-          setActiveId(null);
-        }}
-        className="min-h-32 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-colors"
-      >
-        <h3 className="font-medium text-gray-900 mb-1">{zone.title}</h3>
-        <p className="text-sm text-gray-500 mb-3">{zone.description}</p>
-        
-        {fieldsInZone.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Arraste campos aqui</p>
-        ) : (
-          <div className="space-y-2">
-            {fieldsInZone.map((field) => (
-              <div key={field.id} className="flex items-center justify-between p-2 bg-white border rounded">
-                <span className="text-sm">{field.label}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveField(field.id)}
-                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                >
-                  ×
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (!isDesignMode) {
-    return <>{children}</>;
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="min-h-screen bg-gray-100">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 sticky top-0 z-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Palette className="h-6 w-6" />
-              <div>
-                <h2 className="text-lg font-bold">Sistema Drag & Drop Ativo</h2>
-                <p className="text-sm opacity-90">Arraste campos da paleta para as seções do formulário</p>
-              </div>
-              <Badge className="bg-white text-blue-600">{droppedFields.length} campos</Badge>
-            </div>
-            <Button 
-              variant="secondary" 
-              onClick={() => onDesignModeChange(false)}
-              className="bg-white text-blue-600 hover:bg-gray-100"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Sair do Modo Edição
-            </Button>
-          </div>
+    <div className="fixed inset-0 z-50 bg-black/50 flex">
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        {/* Left Panel - Fields Palette */}
+        <div className="w-80 bg-white border-r overflow-y-auto">
+          <FieldsPalette />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 p-6">
-          {/* Form Area with Drop Zones */}
-          <div className="lg:col-span-3">
-            <Card>
+        {/* Main Panel - Form Builder */}
+        <div className="flex-1 bg-gray-50 overflow-y-auto">
+          <div className="p-6">
+            {/* Header */}
+            <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-green-600" />
-                  Formulário com Zonas de Drop
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-blue-600" />
+                      Gerenciador de Campos Customizados
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {fields.length} campos configurados
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={isEditMode}
+                        onCheckedChange={setIsEditMode}
+                      />
+                      <Label className="flex items-center gap-2">
+                        {isEditMode ? (
+                          <>
+                            <Eye className="w-4 h-4" />
+                            Modo Edição
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff className="w-4 h-4" />
+                            Modo Visualização
+                          </>
+                        )}
+                      </Label>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => onToggleVisibility?.(false)}
+                    >
+                      Fechar
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {dropZones.map((zone) => (
-                  <DropZone key={zone.id} zone={zone} />
-                ))}
-              </CardContent>
             </Card>
-            
-            {/* Original Page Content Overlay */}
-            <div className="mt-6 opacity-50 pointer-events-none">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Conteúdo Original da Página</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {children}
+
+            {/* Action Bar */}
+            {isEditMode && (
+              <Card className="mb-6">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Layout className="w-3 h-3" />
+                        {fields.length} campos
+                      </Badge>
+                      {fields.length > 0 && (
+                        <Badge variant="secondary">
+                          {fields.filter(f => f.required).length} obrigatórios
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearFields}
+                        disabled={fields.length === 0}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Limpar Tudo
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        onClick={handleSaveAll}
+                        disabled={isSaving || isLoading}
+                        className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                      >
+                        {isSaving ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Salvar Campos
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
-          </div>
+            )}
 
-          {/* Fields Palette */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Layout className="h-5 w-5" />
-                  Paleta de Campos
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Arraste para adicionar ao formulário
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {availableFields.map((field) => (
-                  <DraggableField key={field.id} field={field} />
-                ))}
-              </CardContent>
-            </Card>
+            {/* Form Building Area */}
+            <div className="grid grid-cols-1 gap-4">
+              {fields.length === 0 ? (
+                <DropZone 
+                  id="main-dropzone" 
+                  label="Arraste campos da paleta para começar a construir seu formulário"
+                  className="col-span-full min-h-[300px]"
+                />
+              ) : (
+                <>
+                  {fields.map((field) => (
+                    <DynamicFieldRenderer
+                      key={field.id}
+                      field={field}
+                      isEditMode={isEditMode}
+                      onUpdate={(updatedField) => updateField(field.id, updatedField)}
+                      onRemove={removeField}
+                      onChange={updateFieldValue}
+                    />
+                  ))}
+                  
+                  {isEditMode && (
+                    <DropZone 
+                      id="add-field-dropzone"
+                      label="Arraste mais campos aqui"
+                      className="min-h-[120px] border-green-300 bg-green-50"
+                    />
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Values Preview (Debug Mode) */}
+            {fields.length > 0 && !isEditMode && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-sm">Valores dos Campos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto">
+                    {JSON.stringify(getFieldValues(), null, 2)}
+                  </pre>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
         {/* Drag Overlay */}
         <DragOverlay>
-          {activeId ? (
-            <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-lg">
+          {draggedField ? (
+            <div className="p-3 border rounded-lg bg-white shadow-lg opacity-80">
               <div className="flex items-center gap-2">
-                <Layout className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium">
-                  {availableFields.find(f => f.id === activeId)?.label}
-                </span>
+                <span className="font-medium text-sm">{draggedField.label}</span>
+                <Badge variant="outline" className="text-xs">
+                  {draggedField.fieldType}
+                </Badge>
               </div>
             </div>
           ) : null}
         </DragOverlay>
-      </div>
-    </DndContext>
+      </DndContext>
+    </div>
   );
 }
