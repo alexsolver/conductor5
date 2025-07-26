@@ -1163,6 +1163,370 @@ export default function TicketDetails() {
           </div>
         );
 
+      case "attachments":
+        return (
+          <div className="space-y-6">
+            {/* Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="flex flex-col items-center gap-4 cursor-pointer">
+                <Upload className="h-12 w-12 text-gray-400" />
+                <div>
+                  <p className="text-lg font-medium text-gray-700">
+                    Arraste arquivos aqui ou clique para selecionar
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Máximo 200MB por arquivo. Todos os formatos aceitos.
+                  </p>
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => e.target.files && handleFiles(e.target.files)}
+              />
+            </div>
+
+            {/* Attachments List */}
+            {attachments.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium">Anexos ({attachments.length})</h3>
+                {attachments.map((attachment) => (
+                  <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-gray-400" />
+                      <div>
+                        <p className="font-medium">{attachment.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {formatFileSize(attachment.size)} • Adicionado em {attachment.uploadedAt}
+                        </p>
+                        {attachment.description && (
+                          <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => removeAttachment(attachment.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      case "notes":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">📝 Notas</h2>
+              <Badge variant="outline" className="text-xs">
+                {notes.length} nota(s)
+              </Badge>
+            </div>
+
+            {/* Add New Note */}
+            <Card className="p-4">
+              <h3 className="font-medium text-gray-700 mb-3">Adicionar Nova Nota</h3>
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Digite sua nota aqui..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+                <div className="flex justify-end">
+                  <Button onClick={addNote} disabled={!newNote.trim()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Nota
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Notes Timeline */}
+            {notes.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-700">Timeline de Notas</h3>
+                <div className="space-y-3">
+                  {notes.map((note: any) => (
+                    <Card key={note.id} className="p-4 border-l-4 border-l-blue-400">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {note.createdBy}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {note.createdAt.toLocaleString('pt-BR')}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setNotes(prev => prev.filter(n => n.id !== note.id))}
+                        >
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {notes.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>Nenhuma nota adicionada ainda</p>
+                <p className="text-sm">Use o formulário acima para adicionar a primeira nota</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case "communications":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">💬 Comunicação</h2>
+              <Badge variant="outline" className="text-xs">
+                {communications.length} interação(ões)
+              </Badge>
+            </div>
+
+            {/* Communication Timeline */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 mb-4">
+                <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="text-xs">Email</Badge>
+                  <Badge variant="secondary" className="text-xs">WhatsApp</Badge>
+                  <Badge variant="secondary" className="text-xs">Telefone</Badge>
+                </div>
+              </div>
+
+              {communications.slice().reverse().map((comm: any) => (
+                <Card key={comm.id} className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Channel Icon */}
+                    <div className={`p-2 rounded-full ${
+                      comm.type === 'email' ? 'bg-blue-100 text-blue-600' :
+                      comm.type === 'whatsapp' ? 'bg-green-100 text-green-600' :
+                      comm.type === 'call' ? 'bg-purple-100 text-purple-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {comm.type === 'email' && <MessageSquare className="h-4 w-4" />}
+                      {comm.type === 'whatsapp' && <Send className="h-4 w-4" />}
+                      {comm.type === 'call' && <Clock className="h-4 w-4" />}
+                    </div>
+
+                    {/* Communication Content */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {comm.channel}
+                          </Badge>
+                          <span className="text-sm font-medium text-gray-800">
+                            {comm.from} → {comm.to}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {comm.timestamp.toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+
+                      {comm.subject && (
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Assunto: {comm.subject}
+                        </p>
+                      )}
+
+                      <p className="text-gray-800 text-sm mb-2">{comm.content}</p>
+
+                      <div className="flex items-center justify-between">
+                        <Badge 
+                          variant={comm.status === 'sent' ? 'default' : 
+                                  comm.status === 'received' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {comm.status === 'sent' ? 'Enviado' :
+                           comm.status === 'received' ? 'Recebido' :
+                           comm.status === 'completed' ? 'Concluído' : comm.status}
+                        </Badge>
+                        <Button variant="ghost" size="sm">
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "history":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">📜 Histórico</h2>
+              <Badge variant="outline" className="text-xs">
+                {relatedTickets.length} ticket(s) relacionado(s)
+              </Badge>
+            </div>
+
+            {/* Related Tickets */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-700">Tickets Relacionados</h3>
+              {relatedTickets.map((relTicket: any) => (
+                <Card key={relTicket.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge 
+                        variant={relTicket.status === 'open' ? 'destructive' : 
+                                relTicket.status === 'in_progress' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {relTicket.status === 'open' ? 'Aberto' :
+                         relTicket.status === 'in_progress' ? 'Em Progresso' :
+                         relTicket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
+                      </Badge>
+                      <span className="font-medium">{relTicket.ticketNumber}</span>
+                    </div>
+                    <Badge 
+                      variant={relTicket.priority === 'high' ? 'destructive' : 
+                              relTicket.priority === 'medium' ? 'default' : 'outline'}
+                      className="text-xs"
+                    >
+                      {relTicket.priority === 'high' ? 'Alta' :
+                       relTicket.priority === 'medium' ? 'Média' : 'Baixa'}
+                    </Badge>
+                  </div>
+                  <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
+                  <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                    <span>Categoria: {relTicket.category}</span>
+                    <span>
+                      {relTicket.resolvedAt 
+                        ? `Resolvido em ${relTicket.resolvedAt.toLocaleDateString('pt-BR')}`
+                        : `Criado em ${relTicket.createdAt.toLocaleDateString('pt-BR')}`
+                      }
+                    </span>
+                  </div>
+                </Card>
+              ))}
+
+              {relatedTickets.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <History className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p>Nenhum ticket relacionado</p>
+                  <p className="text-sm">Tickets similares aparecerão automaticamente aqui</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "internal-actions":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline" className="h-20 flex-col">
+                <Settings className="h-6 w-6 mb-2" />
+                Configurar SLA
+              </Button>
+              <Button variant="outline" className="h-20 flex-col">
+                <Users className="h-6 w-6 mb-2" />
+                Reassign
+              </Button>
+              <Button variant="outline" className="h-20 flex-col">
+                <Clock className="h-6 w-6 mb-2" />
+                Agendar
+              </Button>
+              <Button variant="outline" className="h-20 flex-col">
+                <AlertTriangle className="h-6 w-6 mb-2" />
+                Escalar
+              </Button>
+            </div>
+          </div>
+        );
+
+      case "external-actions":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">🔗 Ações Externas</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              <Button variant="outline" className="h-16 justify-start">
+                <ExternalLink className="h-5 w-5 mr-3" />
+                Abrir no ServiceNow
+              </Button>
+              <Button variant="outline" className="h-16 justify-start">
+                <MessageSquare className="h-5 w-5 mr-3" />
+                Criar thread no Slack
+              </Button>
+              <Button variant="outline" className="h-16 justify-start">
+                <Mail className="h-5 w-5 mr-3" />
+                Enviar por email
+              </Button>
+            </div>
+          </div>
+        );
+
+      case "latest-interactions":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
+            </div>
+            <div className="space-y-3">
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">Há 2 minutos</span>
+                </div>
+                <p className="text-sm text-gray-600">Ticket visualizado por Admin User</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <MessageSquare className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm font-medium">Há 1 hora</span>
+                </div>
+                <p className="text-sm text-gray-600">Nova mensagem adicionada</p>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-4">
