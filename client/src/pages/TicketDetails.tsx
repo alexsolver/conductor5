@@ -308,6 +308,15 @@ export default function TicketDetails() {
     },
   });
 
+  // Fetch companies for client company selection
+  const { data: companiesData } = useQuery({
+    queryKey: ["/api/customers/companies"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers/companies");
+      return response.json();
+    },
+  });
+
   // Fetch ticket relationships (attachments, notes, etc.)
   const { data: ticketRelationships } = useQuery({
     queryKey: ["/api/tickets", id, "relationships"],
@@ -1974,20 +1983,40 @@ export default function TicketDetails() {
               </Button>
             </div>
             <div className="space-y-2">
-              <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
-                   onClick={() => setIsCompanyDetailsOpen(true)}>
-                <span className="font-medium text-blue-900 underline decoration-dotted">
-                  {ticket.customerCompany?.name || ticket.company || 'Não especificado'}
-                </span>
-              </div>
-              {ticket.customerCompany?.industry && (
-                <div className="text-xs text-blue-600 mt-1">
-                  🏷️ Setor: {ticket.customerCompany.industry}
+              {isEditMode ? (
+                <Select 
+                  onValueChange={(value) => form.setValue('customerCompanyId', value)} 
+                  defaultValue={ticket.customerCompanyId || ticket.company || ''}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Selecione a empresa cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unspecified">Não especificado</SelectItem>
+                    {companiesData?.data?.map((company: any) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
+                     onClick={() => setIsCompanyDetailsOpen(true)}>
+                  <span className="font-medium text-blue-900 underline decoration-dotted">
+                    {companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.name || 
+                     ticket.customerCompany?.name || ticket.company || 'Não especificado'}
+                  </span>
                 </div>
               )}
-              {ticket.customerCompany?.cnpj && (
+              {(ticket.customerCompany?.industry || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry) && (
+                <div className="text-xs text-blue-600 mt-1">
+                  🏷️ Setor: {ticket.customerCompany?.industry || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry}
+                </div>
+              )}
+              {(ticket.customerCompany?.cnpj || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj) && (
                 <div className="text-xs text-blue-600">
-                  📄 CNPJ: {ticket.customerCompany.cnpj}
+                  📄 CNPJ: {ticket.customerCompany?.cnpj || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj}
                 </div>
               )}
             </div>
