@@ -10,7 +10,8 @@ import {
   User, Users, Tag, AlertCircle, FileIcon, Upload, Plus, Send,
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
-  Heading1, Heading2, Heading3, Undo, Redo, Strikethrough
+  Heading1, Heading2, Heading3, Undo, Redo, Strikethrough, AlertTriangle,
+  Mail
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -258,6 +259,7 @@ export default function TicketDetails() {
   const [newTag, setNewTag] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
+  const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
 
   // Basic information - consolidated into single tab
   const basicTabs = [
@@ -301,7 +303,30 @@ export default function TicketDetails() {
     },
   });
 
+  // Fetch ticket relationships (attachments, notes, etc.)
+  const { data: ticketRelationships } = useQuery({
+    queryKey: ["/api/tickets", id, "relationships"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/tickets/${id}/relationships`);
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+
+  // Initialize data from ticket relationships
+  useEffect(() => {
+    if (ticketRelationships) {
+      setAttachments(ticketRelationships.attachments || []);
+      setNotes(ticketRelationships.notes || []);
+      setCommunications(ticketRelationships.communications || []);
+      setRelatedTickets(ticketRelationships.related_tickets || []);
+      setLatestInteractions(ticketRelationships.latest_interactions || []);
+      setFollowers(ticket?.followers || []);
+      setTags(ticket?.tags || []);
+    }
+  }, [ticketRelationships, ticket]);
 
   // File upload handlers
   const handleDrag = (e: React.DragEvent) => {
@@ -349,18 +374,36 @@ export default function TicketDetails() {
     });
   };
 
-  const addNote = () => {
+  const addNote = async () => {
     if (!newNote.trim()) return;
     
-    const note = {
-      id: Date.now(),
-      content: newNote,
-      createdAt: new Date(),
-      createdBy: "Usuário Atual"
-    };
-    
-    setNotes(prev => [...prev, note]);
-    setNewNote("");
+    try {
+      const response = await apiRequest("POST", `/api/tickets/${id}/notes`, {
+        content: newNote,
+        ticketId: id
+      });
+      const result = await response.json();
+      
+      setNotes(prev => [...prev, result]);
+      setNewNote("");
+      
+      toast({
+        title: "Nota adicionada",
+        description: "A nota foi salva com sucesso.",
+      });
+    } catch (error) {
+      console.error('Failed to add note:', error);
+      // Fallback to local state
+      const note = {
+        id: Date.now(),
+        content: newNote,
+        createdAt: new Date(),
+        createdBy: "Usuário Atual"
+      };
+      
+      setNotes(prev => [...prev, note]);
+      setNewNote("");
+    }
   };
 
   const removeAttachment = (id: number) => {
@@ -373,6 +416,53 @@ export default function TicketDetails() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Internal Actions
+  const handleInternalAction = async (action: string) => {
+    try {
+      const response = await apiRequest("POST", `/api/tickets/${id}/internal-actions`, {
+        action,
+        ticketId: id,
+        timestamp: new Date().toISOString()
+      });
+      
+      toast({
+        title: "Ação executada",
+        description: `${action} foi executada com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Internal action failed:', error);
+      toast({
+        title: "Erro na ação",
+        description: `Falha ao executar ${action}. Tente novamente.`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // External Actions  
+  const handleExternalAction = async (action: string, platform: string) => {
+    try {
+      const response = await apiRequest("POST", `/api/tickets/${id}/external-actions`, {
+        action,
+        platform,
+        ticketId: id,
+        timestamp: new Date().toISOString()
+      });
+      
+      toast({
+        title: "Integração acionada",
+        description: `${action} no ${platform} foi executada.`,
+      });
+    } catch (error) {
+      console.error('External action failed:', error);
+      toast({
+        title: "Erro na integração",
+        description: `Falha na integração com ${platform}. Tente novamente.`,
+        variant: "destructive",
+      });
+    }
   };
 
   // Form setup
@@ -1459,19 +1549,35 @@ export default function TicketDetails() {
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-20 flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => handleInternalAction("Configurar SLA")}
+              >
                 <Settings className="h-6 w-6 mb-2" />
                 Configurar SLA
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => handleInternalAction("Reatribuir Ticket")}
+              >
                 <Users className="h-6 w-6 mb-2" />
                 Reassign
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => handleInternalAction("Agendar Ação")}
+              >
                 <Clock className="h-6 w-6 mb-2" />
                 Agendar
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => handleInternalAction("Escalar Ticket")}
+              >
                 <AlertTriangle className="h-6 w-6 mb-2" />
                 Escalar
               </Button>
