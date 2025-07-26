@@ -242,12 +242,12 @@ export default function AuthPage() {
         {/* Right side - Hero Section */}
         <div className="hidden lg:block space-y-6">
           <div className="text-center">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center">
-              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-8 h-8 text-purple-600" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
+            <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+              <img 
+                src="/conductor-logo.svg" 
+                alt="Conductor Logo" 
+                className="w-28 h-28 object-contain"
+              />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
               Streamline Your Support Operations

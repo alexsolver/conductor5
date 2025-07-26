@@ -1,0 +1,46 @@
+
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0097a7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main curved line -->
+  <path d="M20 50 Q100 20 180 50 Q160 70 140 90" 
+        stroke="url(#logoGradient)" 
+        stroke-width="8" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <!-- Person figure -->
+  <g fill="url(#logoGradient)">
+    <!-- Head -->
+    <circle cx="100" cy="80" r="12"/>
+    
+    <!-- Body/Torso -->
+    <path d="M88 100 L112 100 L108 140 L92 140 Z"/>
+    
+    <!-- Arms raised -->
+    <path d="M88 105 L75 95 L70 105 L80 115 Z"/>
+    <path d="M112 105 L125 95 L130 105 L120 115 Z"/>
+    
+    <!-- Legs -->
+    <path d="M92 140 L88 170 L95 175 L98 145"/>
+    <path d="M108 140 L112 170 L105 175 L102 145"/>
+  </g>
+  
+  <!-- Additional curved elements -->
+  <path d="M160 60 Q170 80 160 100" 
+        stroke="url(#logoGradient)" 
+        stroke-width="6" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <path d="M40 60 Q30 80 40 100" 
+        stroke="url(#logoGradient)" 
+        stroke-width="6" 
+        fill="none" 
+        stroke-linecap="round"/>
+</svg>
