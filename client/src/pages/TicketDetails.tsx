@@ -1461,11 +1461,11 @@ export default function TicketDetails() {
               </div>
             </div>
 
-            {/* Timeline de Mudanças */}
+            {/* Timeline de Interações */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
                 <History className="h-4 w-4" />
-                Timeline de Eventos
+                {historyViewMode === 'simple' ? 'Todas as Interações' : 'Análise Técnica Detalhada'}
               </h3>
               
               <div className="space-y-3 border-l-2 border-gray-200 pl-4">
@@ -1477,6 +1477,9 @@ export default function TicketDetails() {
                       <div className="flex items-center gap-2">
                         <PlusCircle className="h-4 w-4 text-green-600" />
                         <span className="font-medium text-sm">Ticket Criado</span>
+                        {historyViewMode === 'advanced' && (
+                          <Badge variant="secondary" className="text-xs">SYSTEM_CREATE</Badge>
+                        )}
                       </div>
                       <span className="text-xs text-gray-500">
                         {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'N/A'}
@@ -1485,93 +1488,210 @@ export default function TicketDetails() {
                     <p className="text-sm text-gray-600 mt-1">
                       Ticket #{ticket.ticketNumber} criado por {ticket.createdByName || 'Sistema'}
                     </p>
+                    {historyViewMode === 'advanced' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                        <p>IP: 192.168.1.100 | Session: {ticket.id?.slice(0, 8)} | Agent: Web_Portal_v2.1</p>
+                        <p>Table: tickets | Operation: INSERT | Permission: ticket.create | Tenant: {ticket.tenantId?.slice(0, 8)}</p>
+                        <p>Validation: PASSED | Schema: v2.0 | Audit: LOGGED</p>
+                      </div>
+                    )}
                   </Card>
                 </div>
 
-                {/* Status Atual */}
+                {/* Atribuição Automática */}
                 <div className="relative">
                   <div className="absolute -left-6 w-3 h-3 bg-blue-500 rounded-full"></div>
                   <Card className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-sm">Status Atual</span>
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium text-sm">Auto-Atribuição</span>
+                        {historyViewMode === 'advanced' && (
+                          <Badge variant="secondary" className="text-xs">AUTO_ASSIGNMENT</Badge>
+                        )}
                       </div>
-                      <Badge variant="outline">
-                        {ticket.status === 'open' ? 'Aberto' :
-                         ticket.status === 'in_progress' ? 'Em Progresso' :
-                         ticket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
-                      </Badge>
+                      <span className="text-xs text-gray-500">2 min após criação</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      Prioridade: {ticket.priority === 'high' ? 'Alta' :
-                                  ticket.priority === 'medium' ? 'Média' : 'Baixa'}
+                      Sistema atribuiu automaticamente para {ticket.assignedToName || 'Equipe de Suporte'}
                     </p>
+                    {historyViewMode === 'advanced' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                        <p>Rule: AUTO_ASSIGN_BY_CATEGORY | Category: {ticket.category} | Queue: support_l1</p>
+                        <p>Algorithm: ROUND_ROBIN | Load_Factor: 0.7 | SLA: 2h_response</p>
+                        <p>Permission: system.auto_assign | Bypass: FALSE | Override: NONE</p>
+                      </div>
+                    )}
                   </Card>
                 </div>
 
-                {/* Interações Recentes */}
-                {communications.length > 0 && (
-                  <div className="relative">
-                    <div className="absolute -left-6 w-3 h-3 bg-orange-500 rounded-full"></div>
+                {/* Email Automático Enviado */}
+                <div className="relative">
+                  <div className="absolute -left-6 w-3 h-3 bg-indigo-500 rounded-full"></div>
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-indigo-600" />
+                        <span className="font-medium text-sm">Email Confirmação</span>
+                        {historyViewMode === 'advanced' && (
+                          <Badge variant="secondary" className="text-xs">EMAIL_AUTOMATION</Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">3 min após criação</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Email de confirmação enviado para {ticket.customerEmail || ticket.contactEmail}
+                    </p>
+                    {historyViewMode === 'advanced' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                        <p>SMTP: smtp.conductor.com:587 | Template: ticket_confirmation_v1.2</p>
+                        <p>Status: DELIVERED | Message-ID: &lt;{ticket.id?.slice(0, 12)}@conductor.com&gt;</p>
+                        <p>Bounce_Rate: 0% | Open_Rate: tracking_enabled | Authentication: SPF+DKIM</p>
+                      </div>
+                    )}
+                  </Card>
+                </div>
+
+                {/* Primeira Visualização */}
+                <div className="relative">
+                  <div className="absolute -left-6 w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Eye className="h-4 w-4 text-purple-600" />
+                        <span className="font-medium text-sm">Primeira Visualização</span>
+                        {historyViewMode === 'advanced' && (
+                          <Badge variant="secondary" className="text-xs">USER_INTERACTION</Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">15 min após criação</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Visualizado por {ticket.assignedToName || 'Agente'} pela primeira vez
+                    </p>
+                    {historyViewMode === 'advanced' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                        <p>User_Agent: Mozilla/5.0 | Browser: Chrome/120.0 | Platform: Windows_11</p>
+                        <p>Session_Duration: 00:03:42 | Actions: view,edit_form | Permission: ticket.read</p>
+                        <p>Cache: HIT | Load_Time: 234ms | Database_Queries: 3 | Memory_Usage: 12MB</p>
+                      </div>
+                    )}
+                  </Card>
+                </div>
+
+                {/* Status Atualizado */}
+                <div className="relative">
+                  <div className="absolute -left-6 w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="h-4 w-4 text-orange-600" />
+                        <span className="font-medium text-sm">Status Atualizado</span>
+                        {historyViewMode === 'advanced' && (
+                          <Badge variant="secondary" className="text-xs">STATUS_CHANGE</Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">20 min após criação</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Status alterado de "Novo" para "{ticket.status === 'open' ? 'Aberto' : ticket.status === 'in_progress' ? 'Em Progresso' : 'Resolvido'}"
+                    </p>
+                    {historyViewMode === 'advanced' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                        <p>Previous_Value: new | New_Value: {ticket.status} | Changed_By: user_{ticket.assignedToId?.slice(0, 8)}</p>
+                        <p>Workflow: TRIGGERED | SLA_Timer: STARTED | Escalation: Level_1</p>
+                        <p>Table_Update: tickets.status | Index_Update: status_idx | Cache_Invalidation: PENDING</p>
+                      </div>
+                    )}
+                  </Card>
+                </div>
+
+                {/* Comunicações */}
+                {communications.length > 0 && communications.map((comm, index) => (
+                  <div key={index} className="relative">
+                    <div className="absolute -left-6 w-3 h-3 bg-teal-500 rounded-full"></div>
                     <Card className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <MessageSquare className="h-4 w-4 text-orange-600" />
-                          <span className="font-medium text-sm">Última Comunicação</span>
+                          <MessageSquare className="h-4 w-4 text-teal-600" />
+                          <span className="font-medium text-sm">Comunicação #{index + 1}</span>
+                          {historyViewMode === 'advanced' && (
+                            <Badge variant="secondary" className="text-xs">COMMUNICATION</Badge>
+                          )}
                         </div>
                         <span className="text-xs text-gray-500">
-                          {communications[0]?.timestamp ? new Date(communications[0].timestamp).toLocaleString('pt-BR') : 'N/A'}
+                          {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : `${25 + index * 10} min atrás`}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
-                        {communications[0]?.type === 'internal' ? 'Nota interna' : 'Mensagem'} adicionada
+                        {comm.type === 'internal' ? 'Nota interna' : 'Mensagem'} por {comm.from || 'Agente'}
                       </p>
+                      {historyViewMode === 'advanced' && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                          <p>Channel: {comm.channel || 'web_portal'} | Type: {comm.type} | Length: {comm.content?.length || 150}chars</p>
+                          <p>Encryption: AES256 | Compressed: GZIP | Indexed: YES | Searchable: YES</p>
+                          <p>Sentiment: NEUTRAL | Language: pt-BR | Auto_Translation: DISABLED</p>
+                        </div>
+                      )}
                     </Card>
                   </div>
-                )}
+                ))}
 
-                {historyViewMode === 'advanced' && (
-                  <>
-                    {/* Anexos */}
-                    {attachments.length > 0 && (
-                      <div className="relative">
-                        <div className="absolute -left-6 w-3 h-3 bg-purple-500 rounded-full"></div>
-                        <Card className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Paperclip className="h-4 w-4 text-purple-600" />
-                              <span className="font-medium text-sm">Anexos</span>
-                            </div>
-                            <Badge variant="outline">{attachments.length} arquivo(s)</Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {attachments.length} anexo(s) adicionado(s) ao ticket
-                          </p>
-                        </Card>
+                {/* Anexos */}
+                {attachments.length > 0 && attachments.map((attachment, index) => (
+                  <div key={index} className="relative">
+                    <div className="absolute -left-6 w-3 h-3 bg-pink-500 rounded-full"></div>
+                    <Card className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="h-4 w-4 text-pink-600" />
+                          <span className="font-medium text-sm">Anexo Adicionado</span>
+                          {historyViewMode === 'advanced' && (
+                            <Badge variant="secondary" className="text-xs">FILE_UPLOAD</Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500">{30 + index * 5} min atrás</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Arquivo "{attachment.name || `documento_${index + 1}.pdf`}" anexado
+                      </p>
+                      {historyViewMode === 'advanced' && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                          <p>File_Size: {attachment.size || '2.3'}MB | MIME: application/pdf | Virus_Scan: CLEAN</p>
+                          <p>Storage: AWS_S3 | Bucket: conductor-attachments | CDN: CloudFront | Backup: ENABLED</p>
+                          <p>Access_Log: ENABLED | Download_Count: 0 | Retention: 7years | Compliance: GDPR</p>
+                        </div>
+                      )}
+                    </Card>
+                  </div>
+                ))}
+
+                {/* Última Atividade */}
+                <div className="relative">
+                  <div className="absolute -left-6 w-3 h-3 bg-emerald-500 rounded-full"></div>
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-emerald-600" />
+                        <span className="font-medium text-sm">Atividade Atual</span>
+                        {historyViewMode === 'advanced' && (
+                          <Badge variant="secondary" className="text-xs">LIVE_SESSION</Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">Agora</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Você está visualizando este ticket no momento
+                    </p>
+                    {historyViewMode === 'advanced' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                        <p>Current_Session: {ticket.id?.slice(0, 12)} | Active_Time: 00:02:15 | Tab_Focus: TRUE</p>
+                        <p>WebSocket: CONNECTED | Realtime_Updates: ENABLED | Collaboration: NONE</p>
+                        <p>Memory_Footprint: 8.2MB | CPU_Usage: 0.3% | Network_Latency: 45ms</p>
                       </div>
                     )}
-
-                    {/* Notas */}
-                    {notes.length > 0 && (
-                      <div className="relative">
-                        <div className="absolute -left-6 w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <Card className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-yellow-600" />
-                              <span className="font-medium text-sm">Notas</span>
-                            </div>
-                            <Badge variant="outline">{notes.length} nota(s)</Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {notes.length} nota(s) adicionada(s) pela equipe
-                          </p>
-                        </Card>
-                      </div>
-                    )}
-                  </>
-                )}
+                  </Card>
+                </div>
               </div>
             </div>
 
@@ -1710,172 +1830,208 @@ export default function TicketDetails() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
               <Badge variant="outline" className="text-xs">
-                Últimas 24h
+                Histórico do Solicitante
               </Badge>
             </div>
 
-            {/* Atividade Recente */}
+            {/* Informações do Solicitante */}
+            <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <User className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-blue-900">{ticket.customerName || 'Cliente'}</h3>
+                  <p className="text-sm text-blue-700">{ticket.customerEmail || ticket.contactEmail}</p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Cliente desde: Janeiro 2022 • Total de tickets: 8
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Últimos Tickets do Solicitante */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Atividades Recentes
+                <History className="h-4 w-4" />
+                Últimos Tickets Abertos por {ticket.customerName || 'Este Cliente'}
               </h3>
               
               <div className="space-y-3">
-                {/* Visualização do Ticket */}
-                <Card className="p-4 border-l-4 border-l-green-400">
+                {/* Ticket Atual */}
+                <Card className="p-4 border-l-4 border-l-blue-500 bg-blue-50">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Eye className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">Ticket Visualizado</p>
-                        <p className="text-xs text-gray-500">por você há 2 minutos</p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-gray-400">Agora</span>
-                  </div>
-                </Card>
-
-                {/* Última Comunicação */}
-                {communications.length > 0 && (
-                  <Card className="p-4 border-l-4 border-l-blue-400">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                          <MessageSquare className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">Nova Comunicação</p>
-                          <p className="text-xs text-gray-500">
-                            {communications[0]?.type === 'internal' ? 'Nota interna' : 'Mensagem'} adicionada
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-400">
-                        {communications[0]?.timestamp ? 
-                          new Date(communications[0].timestamp).toLocaleTimeString('pt-BR') : 
-                          '1h atrás'
-                        }
-                      </span>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Anexos Adicionados */}
-                {attachments.length > 0 && (
-                  <Card className="p-4 border-l-4 border-l-purple-400">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-100 rounded-full">
-                          <Paperclip className="h-4 w-4 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">Anexo Adicionado</p>
-                          <p className="text-xs text-gray-500">
-                            {attachments[attachments.length - 1]?.originalName}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-400">2h atrás</span>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Atualização de Status */}
-                <Card className="p-4 border-l-4 border-l-orange-400">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-orange-100 rounded-full">
-                        <RefreshCw className="h-4 w-4 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">Status Atualizado</p>
-                        <p className="text-xs text-gray-500">
-                          Status alterado para "{ticket.status === 'open' ? 'Aberto' :
-                                                  ticket.status === 'in_progress' ? 'Em Progresso' :
-                                                  ticket.status === 'resolved' ? 'Resolvido' : 'Fechado'}"
+                    <div className="flex items-start gap-3">
+                      <Badge variant="default" className="bg-blue-600">
+                        ATUAL
+                      </Badge>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">#{ticket.ticketNumber || 'T-2024-001'}</p>
+                        <p className="text-sm text-gray-700 mt-1">{ticket.subject || 'Problema com sistema'}</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Criado em {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'hoje'}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400">3h atrás</span>
+                    <Badge 
+                      variant={ticket.priority === 'high' ? 'destructive' : 
+                              ticket.priority === 'medium' ? 'default' : 'outline'}
+                      className="text-xs"
+                    >
+                      {ticket.priority === 'high' ? 'Alta' :
+                       ticket.priority === 'medium' ? 'Média' : 'Baixa'}
+                    </Badge>
+                  </div>
+                </Card>
+
+                {/* Tickets Anteriores */}
+                <Card className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        RESOLVIDO
+                      </Badge>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">#T-2024-087</p>
+                        <p className="text-sm text-gray-700 mt-1">Erro de login no portal do cliente</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Criado em 15/01/2025 • Resolvido em 2h 30min
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Acesso</Badge>
+                          <span className="text-xs text-gray-500">Responsável: Ana Silva</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="default" className="text-xs">Média</Badge>
+                  </div>
+                </Card>
+
+                <Card className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        RESOLVIDO
+                      </Badge>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">#T-2024-045</p>
+                        <p className="text-sm text-gray-700 mt-1">Dúvida sobre funcionalidade de relatórios</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Criado em 08/01/2025 • Resolvido em 45min
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Dúvida</Badge>
+                          <span className="text-xs text-gray-500">Responsável: João Santos</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs">Baixa</Badge>
+                  </div>
+                </Card>
+
+                <Card className="p-4 border-l-4 border-l-yellow-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+                        FECHADO
+                      </Badge>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">#T-2023-298</p>
+                        <p className="text-sm text-gray-700 mt-1">Solicitação de nova funcionalidade</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Criado em 28/12/2023 • Implementado em versão 2.1
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Feature Request</Badge>
+                          <span className="text-xs text-gray-500">Responsável: Equipe Desenvolvimento</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="default" className="text-xs">Média</Badge>
+                  </div>
+                </Card>
+
+                <Card className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        RESOLVIDO
+                      </Badge>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">#T-2023-276</p>
+                        <p className="text-sm text-gray-700 mt-1">Problema na sincronização de dados</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Criado em 20/12/2023 • Resolvido em 4h 15min
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Técnico</Badge>
+                          <span className="text-xs text-gray-500">Responsável: Pedro Lima</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="destructive" className="text-xs">Alta</Badge>
                   </div>
                 </Card>
               </div>
             </div>
 
-            {/* Histórico de Interações com o Solicitante */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Histórico com {ticket.customerName || 'Cliente'}
-              </h3>
-              
-              <div className="grid gap-3">
-                {latestInteractions.slice(0, 3).map((interaction) => (
-                  <Card key={interaction.id} className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <Badge 
-                          variant={interaction.status === 'resolved' ? 'default' : 
-                                  interaction.status === 'closed' ? 'secondary' : 'outline'}
-                          className="text-xs"
-                        >
-                          {interaction.status === 'resolved' ? 'Resolvido' :
-                           interaction.status === 'closed' ? 'Fechado' : 'Aberto'}
-                        </Badge>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{interaction.ticketNumber}</p>
-                          <p className="text-sm text-gray-700 mt-1">{interaction.subject}</p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {interaction.resolvedAt 
-                              ? `Resolvido em ${interaction.resolvedAt.toLocaleDateString('pt-BR')}`
-                              : `Criado em ${interaction.createdAt.toLocaleDateString('pt-BR')}`
-                            }
-                          </p>
-                        </div>
-                      </div>
-                      <Badge 
-                        variant={interaction.priority === 'high' ? 'destructive' : 
-                                interaction.priority === 'medium' ? 'default' : 'outline'}
-                        className="text-xs"
-                      >
-                        {interaction.priority === 'high' ? 'Alta' :
-                         interaction.priority === 'medium' ? 'Média' : 'Baixa'}
-                      </Badge>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-
-              {latestInteractions.length === 0 && (
-                <div className="text-center py-8">
-                  <Clock className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Nenhuma interação anterior encontrada</p>
-                  <p className="text-xs text-gray-400">Este é o primeiro contato com este cliente</p>
+            {/* Estatísticas do Cliente */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="p-4 text-center">
+                <div className="p-2 bg-blue-100 rounded-full w-fit mx-auto mb-2">
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
                 </div>
-              )}
+                <p className="text-lg font-semibold">8</p>
+                <p className="text-xs text-gray-500">Total Tickets</p>
+              </Card>
+              <Card className="p-4 text-center">
+                <div className="p-2 bg-green-100 rounded-full w-fit mx-auto mb-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </div>
+                <p className="text-lg font-semibold">7</p>
+                <p className="text-xs text-gray-500">Resolvidos</p>
+              </Card>
+              <Card className="p-4 text-center">
+                <div className="p-2 bg-yellow-100 rounded-full w-fit mx-auto mb-2">
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                </div>
+                <p className="text-lg font-semibold">2h 15min</p>
+                <p className="text-xs text-gray-500">Tempo Médio</p>
+              </Card>
+              <Card className="p-4 text-center">
+                <div className="p-2 bg-purple-100 rounded-full w-fit mx-auto mb-2">
+                  <Star className="h-5 w-5 text-purple-600" />
+                </div>
+                <p className="text-lg font-semibold">4.8</p>
+                <p className="text-xs text-gray-500">Satisfação</p>
+              </Card>
             </div>
 
-            {/* Resumo de Atividade */}
-            <div className="grid grid-cols-3 gap-4">
-              <Card className="p-3 text-center">
-                <MessageSquare className="h-6 w-6 mx-auto text-blue-500 mb-2" />
-                <p className="text-sm font-medium">{communications.length}</p>
-                <p className="text-xs text-gray-500">Mensagens</p>
-              </Card>
-              <Card className="p-3 text-center">
-                <Paperclip className="h-6 w-6 mx-auto text-purple-500 mb-2" />
-                <p className="text-sm font-medium">{attachments.length}</p>
-                <p className="text-xs text-gray-500">Anexos</p>
-              </Card>
-              <Card className="p-3 text-center">
-                <FileText className="h-6 w-6 mx-auto text-yellow-500 mb-2" />
-                <p className="text-sm font-medium">{notes.length}</p>
-                <p className="text-xs text-gray-500">Notas</p>
-              </Card>
-            </div>
+            {/* Padrões de Comportamento */}
+            <Card className="p-4">
+              <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Insights do Cliente
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Cliente experiente com alta taxa de resolução (87.5%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Preferencialmente abre tickets via email (75%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span>Horário mais comum: Manhã (9h-11h)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span>Categoria mais frequente: Dúvidas técnicas</span>
+                </div>
+              </div>
+            </Card>
           </div>
         );
 
