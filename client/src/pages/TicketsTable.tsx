@@ -686,7 +686,7 @@ export default function TicketsTable() {
 
       {/* Seletor de Visualizações */}
       <Card className="mb-6">
-        <CardHeader className="pb-3">
+        <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[3px] pb-[3px]">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Filter className="h-5 w-5" />
