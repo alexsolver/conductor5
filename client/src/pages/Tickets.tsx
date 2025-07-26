@@ -313,43 +313,46 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* Sistema de Visualizações Customizáveis */}
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Visualizações de Tickets
-            </CardTitle>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Visualização
-            </Button>
+      {/* COMPONENTE TESTE MÁXIMA VISIBILIDADE */}
+      <div 
+        style={{
+          backgroundColor: '#ff0000',
+          color: '#ffffff',
+          padding: '30px',
+          margin: '20px 0',
+          border: '5px solid #000000',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          zIndex: 9999,
+          position: 'relative'
+        }}
+      >
+        🚨 TESTE DE VISIBILIDADE MÁXIMA - SELETOR DE VISUALIZAÇÕES 🚨
+      </div>
+
+      {/* Filtros básicos atuais */}
+      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h3 className="text-lg font-semibold mb-4">Filtros de Tickets</h3>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Visualização:</span>
+            <select 
+              value={currentViewId || "default"} 
+              onChange={(e) => handleViewChange(e.target.value)}
+              className="px-3 py-2 border rounded-md"
+            >
+              <option value="default">Visualização Padrão</option>
+              <option value="my-tickets">Meus Tickets</option>
+              <option value="urgent">Tickets Urgentes</option>
+              <option value="resolved">Tickets Resolvidos</option>
+            </select>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Visualização Ativa:</span>
-              <Select value={currentViewId || "default"} onValueChange={handleViewChange}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Selecionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Visualização Padrão</SelectItem>
-                  <SelectItem value="my-tickets">Meus Tickets</SelectItem>
-                  <SelectItem value="urgent">Tickets Urgentes</SelectItem>
-                  <SelectItem value="resolved">Tickets Resolvidos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-md">
+            Nova Visualização
+          </button>
+        </div>
+      </div>
 
       <div className="space-y-4">
         {tickets?.tickets?.map((ticket: any) => (
