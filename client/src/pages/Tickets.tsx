@@ -60,6 +60,13 @@ export default function Tickets() {
   const customers = customersData?.customers || [];
   const users = usersData?.users || [];
 
+  // Função para trocar visualização ativa
+  const handleViewChange = (viewId: string) => {
+    setCurrentViewId(viewId);
+    // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
+    console.log('Visualização alterada para:', viewId);
+  };
+
   // Form setup
   const form = useForm<CreateTicketFormData>({
     resolver: zodResolver(createTicketSchema),
@@ -300,13 +307,25 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* Sistema de Visualizações Customizáveis */}
+      {/* Sistema de Visualizações Customizáveis - VERSÃO SIMPLIFICADA */}
       <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border">
-        <TicketViewSelector
-          currentViewId={currentViewId}
-          onViewChange={handleViewChange}
-          userRole="user" // Aqui pode ser determinado dinamicamente baseado no usuário
-        />
+        <div className="flex items-center space-x-4">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Visualizações:</h3>
+          <Select value={currentViewId || "default"} onValueChange={handleViewChange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Selecionar visualização" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Visualização Padrão</SelectItem>
+              <SelectItem value="my-tickets">Meus Tickets</SelectItem>
+              <SelectItem value="urgent">Tickets Urgentes</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Visualização
+          </Button>
+        </div>
         
         <div className="flex space-x-2">
           <Button variant="outline" size="sm">
