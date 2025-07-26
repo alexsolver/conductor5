@@ -28,6 +28,7 @@ import ApprovalRequestModal from "@/components/tickets/ApprovalRequestModal";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
+import { CustomFieldsWrapper } from "@/components/layout/CustomFieldsWrapper";
 
 // Form schema - Dynamic schema will be generated from metadata
 const baseTicketFormSchema = z.object({
@@ -331,9 +332,18 @@ export default function TicketEdit() {
   console.log("🎫 TicketEdit renderizando com ticket:", ticket?.id, "isLinkingModalOpen:", isLinkingModalOpen);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <CustomFieldsWrapper
+      moduleType="tickets"
+      pageType="edit"
+      form={form}
+      hasDesignPermission={true}
+      onFieldChange={(fieldKey, value) => {
+        console.log(`Campo ${fieldKey} alterado:`, value);
+      }}
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -1338,6 +1348,7 @@ export default function TicketEdit() {
         isOpen={isApprovalRequestModalOpen}
         onClose={() => setIsApprovalRequestModalOpen(false)}
       />
-    </div>
+      </div>
+    </CustomFieldsWrapper>
   );
 }

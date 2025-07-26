@@ -42,6 +42,7 @@ import notificationsRoutes from './modules/notifications/routes';
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
 import customFieldsRoutes from './modules/custom-fields/routes.ts';
+import { fieldLayoutRoutes } from './modules/field-layouts/routes';
 // Hierarchical ticket metadata import - loaded dynamically below
 
 
@@ -2208,6 +2209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
+  app.use('/api/field-layouts', fieldLayoutRoutes);
 
   // ========================================
   // HIERARCHICAL TICKET METADATA ROUTES - HANDLED ABOVE
