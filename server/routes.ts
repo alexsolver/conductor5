@@ -482,7 +482,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
     app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
     
+    // Category Hierarchy Routes (Categoria → Subcategoria → Ação)
+    
+    // Categories (Nível 1)
+    app.get('/api/ticket-hierarchy/categories', jwtAuth, categoryHierarchyController.getCategories.bind(categoryHierarchyController));
+    app.post('/api/ticket-hierarchy/categories', jwtAuth, categoryHierarchyController.createCategory.bind(categoryHierarchyController));
+    app.put('/api/ticket-hierarchy/categories/:id', jwtAuth, categoryHierarchyController.updateCategory.bind(categoryHierarchyController));
+    app.delete('/api/ticket-hierarchy/categories/:id', jwtAuth, categoryHierarchyController.deleteCategory.bind(categoryHierarchyController));
+
+    // Subcategories (Nível 2)
+    app.get('/api/ticket-hierarchy/categories/:categoryId/subcategories', jwtAuth, categoryHierarchyController.getSubcategories.bind(categoryHierarchyController));
+    app.post('/api/ticket-hierarchy/categories/:categoryId/subcategories', jwtAuth, categoryHierarchyController.createSubcategory.bind(categoryHierarchyController));
+    app.put('/api/ticket-hierarchy/subcategories/:id', jwtAuth, categoryHierarchyController.updateSubcategory.bind(categoryHierarchyController));
+    app.delete('/api/ticket-hierarchy/subcategories/:id', jwtAuth, categoryHierarchyController.deleteSubcategory.bind(categoryHierarchyController));
+
+    // Actions (Nível 3)
+    app.get('/api/ticket-hierarchy/subcategories/:subcategoryId/actions', jwtAuth, categoryHierarchyController.getActions.bind(categoryHierarchyController));
+    app.post('/api/ticket-hierarchy/subcategories/:subcategoryId/actions', jwtAuth, categoryHierarchyController.createAction.bind(categoryHierarchyController));
+    app.put('/api/ticket-hierarchy/actions/:id', jwtAuth, categoryHierarchyController.updateAction.bind(categoryHierarchyController));
+    app.delete('/api/ticket-hierarchy/actions/:id', jwtAuth, categoryHierarchyController.deleteAction.bind(categoryHierarchyController));
+
+    // Full hierarchy visualization
+    app.get('/api/ticket-hierarchy/full', jwtAuth, categoryHierarchyController.getFullHierarchy.bind(categoryHierarchyController));
+
     console.log('✅ Hierarchical ticket metadata routes registered');
+    console.log('✅ Category hierarchy routes registered');
   } catch (error) {
     console.warn('⚠️ Failed to load hierarchical controller:', error);
   }
