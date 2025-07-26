@@ -89,7 +89,10 @@ export default function TicketTemplates() {
   // Query para buscar templates
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['/api/ticket-templates'],
-    queryFn: () => apiRequest('GET', '/api/ticket-templates'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-templates');
+      return response.json();
+    },
   });
 
   const templates = templatesResponse?.data || [];
@@ -97,7 +100,10 @@ export default function TicketTemplates() {
   // Query para buscar estatísticas
   const { data: statsResponse } = useQuery({
     queryKey: ['/api/ticket-templates/stats'],
-    queryFn: () => apiRequest('GET', '/api/ticket-templates/stats'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-templates/stats');
+      return response.json();
+    },
   });
 
   const stats = statsResponse?.data?.[0] || {};
@@ -105,7 +111,10 @@ export default function TicketTemplates() {
   // Query para buscar categorias
   const { data: categoriesResponse } = useQuery({
     queryKey: ['/api/ticket-templates/categories'],
-    queryFn: () => apiRequest('GET', '/api/ticket-templates/categories'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-templates/categories');
+      return response.json();
+    },
   });
 
   const categories = categoriesResponse?.data || [];
