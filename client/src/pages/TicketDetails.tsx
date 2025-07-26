@@ -11,7 +11,8 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
   Heading1, Heading2, Heading3, Undo, Redo, Strikethrough, AlertTriangle,
-  Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff
+  Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
+  CheckCircle, Star, TrendingUp
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
