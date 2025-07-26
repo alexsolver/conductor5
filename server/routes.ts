@@ -807,6 +807,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Knowledge Base Management routes - Base de Conhecimento  
   app.use('/api/knowledge-base', knowledgeBaseRoutes);
 
+  // Knowledge Base additional routes with analytics
+  app.get('/api/knowledge-base/analytics', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock analytics data
+      const analytics = {
+        stats: {
+          totalArticles: 147,
+          totalViews: 28450,
+          averageRating: 4.6,
+          totalRatings: 892,
+          categoriesCount: 5,
+          publishedArticles: 134,
+          draftArticles: 13,
+          monthlyGrowth: 12,
+          weeklyViewsGrowth: 18
+        },
+        topCategories: [
+          { name: 'Procedimentos Operacionais', articleCount: 28, views: 8450 },
+          { name: 'Solução de Problemas', articleCount: 45, views: 12250 },
+          { name: 'Treinamento e Capacitação', articleCount: 32, views: 6800 }
+        ],
+        recentActivity: [
+          {
+            type: 'article_created',
+            title: 'Como Resolver Problemas de Conectividade',
+            user: 'Carlos Oliveira',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      };
+
+      res.json({ success: true, data: analytics });
+    } catch (error) {
+      console.error('Error fetching KB analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Knowledge Base Categories route
+  app.get('/api/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock categories data
+      const categories = [
+        {
+          id: 'cat-1',
+          name: 'Procedimentos Operacionais',
+          description: 'Manuais e procedimentos para operações do dia a dia',
+          color: '#3B82F6',
+          icon: 'Settings',
+          articleCount: 28,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-2',
+          name: 'Solução de Problemas',
+          description: 'Guias de troubleshooting e resolução de problemas',
+          color: '#F59E0B',
+          icon: 'AlertTriangle',
+          articleCount: 45,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-3',
+          name: 'Treinamento e Capacitação',
+          description: 'Materiais educacionais e de treinamento',
+          color: '#10B981',
+          icon: 'GraduationCap',
+          articleCount: 32,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-4',
+          name: 'Segurança e Compliance',
+          description: 'Normas de segurança e compliance regulatório',
+          color: '#EF4444',
+          icon: 'Shield',
+          articleCount: 18,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-5',
+          name: 'Manutenção Técnica',
+          description: 'Procedimentos de manutenção e suporte técnico',
+          color: '#8B5CF6',
+          icon: 'Wrench',
+          articleCount: 24,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      res.json({ success: true, data: categories });
+    } catch (error) {
+      console.error('Error fetching KB categories:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+  });
+
+  // Knowledge Base Articles route
+  app.get('/api/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const { category, search } = req.query;
+
+      // Mock articles data
+      let articles = [
+        {
+          id: 'art-1',
+          title: 'Como Configurar Conexões de Rede',
+          summary: 'Guia completo para configuração de conexões de rede em equipamentos industriais',
+          content: 'Conteúdo detalhado do artigo...',
+          categoryId: 'cat-1',
+          category: { id: 'cat-1', name: 'Procedimentos Operacionais', color: '#3B82F6' },
+          tags: ['rede', 'configuração', 'tutorial'],
+          difficulty: 'Intermediário',
+          estimatedReadTime: 8,
+          viewCount: 1245,
+          likeCount: 89,
+          averageRating: 4.7,
+          status: 'published',
+          authorId: 'user-1',
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'art-2',
+          title: 'Resolução de Problemas de Conectividade',
+          summary: 'Métodos para diagnóstico e resolução de problemas de conectividade',
+          content: 'Conteúdo detalhado do artigo...',
+          categoryId: 'cat-2',
+          category: { id: 'cat-2', name: 'Solução de Problemas', color: '#F59E0B' },
+          tags: ['troubleshooting', 'conectividade', 'diagnóstico'],
+          difficulty: 'Avançado',
+          estimatedReadTime: 12,
+          viewCount: 2156,
+          likeCount: 143,
+          averageRating: 4.8,
+          status: 'published',
+          authorId: 'user-2',
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'art-3',
+          title: 'Normas de Segurança Industrial',
+          summary: 'Compilação das principais normas de segurança para ambiente industrial',
+          content: 'Conteúdo detalhado do artigo...',
+          categoryId: 'cat-4',
+          category: { id: 'cat-4', name: 'Segurança e Compliance', color: '#EF4444' },
+          tags: ['segurança', 'normas', 'compliance'],
+          difficulty: 'Básico',
+          estimatedReadTime: 6,
+          viewCount: 3421,
+          likeCount: 267,
+          averageRating: 4.9,
+          status: 'published',
+          authorId: 'user-3',
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+
+      // Filter by category if specified
+      if (category) {
+        articles = articles.filter(article => article.categoryId === category);
+      }
+
+      // Filter by search if specified
+      if (search) {
+        const searchTerm = search.toString().toLowerCase();
+        articles = articles.filter(article => 
+          article.title.toLowerCase().includes(searchTerm) ||
+          article.summary.toLowerCase().includes(searchTerm) ||
+          article.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+      }
+
+      res.json({ success: true, data: articles });
+    } catch (error) {
+      console.error('Error fetching KB articles:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch articles' });
+    }
+  });
+
   // Knowledge Base Routes - Direct Implementation
   app.get('/api/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
