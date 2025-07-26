@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MapPin, Building2, User, Wrench, Users, Search, Filter, MoreHorizontal, Map } from 'lucide-react';
+import { Plus, MapPin, Building2, User, Wrench, Users, Search, Filter, MoreHorizontal, Map, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -736,9 +736,10 @@ export default function Locations() {
               </TableHeader>
               <TableBody>
                 {locations.map((location: Location) => {
-                  const typeConfig = locationTypeConfig[location.type];
-                  const statusConf = statusConfig[location.status];
-                  const TypeIcon = typeConfig.icon;
+                  console.log('Location type:', location.type, 'Available configs:', Object.keys(locationTypeConfig));
+                  const typeConfig = locationTypeConfig[location.type] || locationTypeConfig['cliente'];
+                  const statusConf = statusConfig[location.status] || statusConfig['ativo'];
+                  const TypeIcon = typeConfig?.icon || Building;
                   
                   return (
                     <TableRow key={location.id}>
