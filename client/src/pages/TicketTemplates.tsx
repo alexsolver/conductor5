@@ -20,6 +20,7 @@ import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock, Buil
 import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
 import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
 import TemplateAnalytics from '@/components/templates/TemplateAnalytics';
+import TemplateEditor from '@/components/templates/TemplateEditor';
 
 // Schema para validação do formulário
 const templateSchema = z.object({
@@ -312,10 +313,14 @@ export default function TicketTemplates() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Gerenciar Templates
+          </TabsTrigger>
+          <TabsTrigger value="editor" className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Editor Visual
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
@@ -485,6 +490,33 @@ export default function TicketTemplates() {
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="editor" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Editor Visual de Templates</CardTitle>
+              <p className="text-muted-foreground">
+                Crie e edite templates usando a interface drag-and-drop avançada
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="h-[800px]">
+                <TemplateEditor
+                  onSave={(template) => {
+                    console.log('Template salvo:', template);
+                    toast({
+                      title: "Template salvo",
+                      description: "O template foi salvo com sucesso.",
+                    });
+                  }}
+                  onPreview={(template) => {
+                    console.log('Preview do template:', template);
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">

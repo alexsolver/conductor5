@@ -2171,15 +2171,129 @@ export const ticketTemplates = pgTable("ticket_templates", {
   unique("templates_unique_name").on(table.tenantId, table.customerCompanyId, table.name),
 ]);
 
+// ========================================
+// TEMPLATE VERSIONING AND DYNAMIC FIELDS
+// ========================================
+
+// Template Versions - Controle de versões
+export const templateVersions = pgTable("template_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
+  versionNumber: varchar("version_number", { length: 20 }).notNull(), // v1.0, v1.1, etc.
+  changes: text("changes").notNull(), // Descrição das mudanças
+  templateData: jsonb("template_data").notNull(), // Snapshot completo do template
+  createdById: uuid("created_by_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("template_versions_template_idx").on(table.tenantId, table.templateId),
+  index("template_versions_version_idx").on(table.tenantId, table.versionNumber),
+  unique("template_versions_unique").on(table.templateId, table.versionNumber),
+]);
+
+// Dynamic Field Definitions - Definições de campos dinâmicos
+export const dynamicFieldDefinitions = pgTable("dynamic_field_definitions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
+  fieldKey: varchar("field_key", { length: 100 }).notNull(), // campo único no template
+  fieldType: varchar("field_type", { length: 50 }).notNull(), // text, select, checkbox, etc.
+  fieldLabel: varchar("field_label", { length: 255 }).notNull(),
+  fieldDescription: text("field_description"),
+  
+  // Configurações do campo
+  isRequired: boolean("is_required").default(false),
+  isVisible: boolean("is_visible").default(true),
+  sortOrder: integer("sort_order").default(0),
+  
+  // Validações
+  validationRules: jsonb("validation_rules").default({}), // {minLength: 5, maxLength: 100, pattern: "regex"}
+  
+  // Opções para campos select/radio/checkbox
+  fieldOptions: jsonb("field_options").default([]), // [{value: "opt1", label: "Opção 1"}]
+  
+  // Configurações condicionais
+  conditionalLogic: jsonb("conditional_logic").default({}), // {showIf: {field: "priority", value: "high"}}
+  
+  // Estilo e posicionamento
+  styling: jsonb("styling").default({}), // {width: "50%", cssClass: "custom-field"}
+  gridPosition: jsonb("grid_position").default({}), // {row: 1, col: 1, span: 2}
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("dynamic_fields_template_idx").on(table.tenantId, table.templateId),
+  index("dynamic_fields_order_idx").on(table.tenantId, table.templateId, table.sortOrder),
+  unique("dynamic_fields_unique_key").on(table.templateId, table.fieldKey),
+]);
+
+// Field Validation Rules - Regras de validação
+export const fieldValidationRules = pgTable("field_validation_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ruleName: varchar("rule_name", { length: 100 }).notNull(),
+  ruleType: varchar("rule_type", { length: 50 }).notNull(), // regex, length, numeric, custom
+  ruleConfig: jsonb("rule_config").notNull(), // Configuração específica da regra
+  errorMessage: text("error_message").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("validation_rules_tenant_type_idx").on(table.tenantId, table.ruleType),
+  unique("validation_rules_tenant_name_unique").on(table.tenantId, table.ruleName),
+]);
+
+// Template Approval Workflow - Fluxo de aprovação
+export const templateApprovals = pgTable("template_approvals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
+  versionId: uuid("version_id").references(() => templateVersions.id, { onDelete: 'cascade' }),
+  
+  // Workflow
+  status: varchar("status", { length: 50 }).default("pending"), // pending, approved, rejected, revision_needed
+  requestedById: uuid("requested_by_id").notNull(),
+  approverIds: uuid("approver_ids").array().default([]),
+  
+  // Comentários e feedback
+  requestComments: text("request_comments"),
+  approvalComments: text("approval_comments"),
+  rejectionReason: text("rejection_reason"),
+  
+  // Timestamps
+  requestedAt: timestamp("requested_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("template_approvals_template_idx").on(table.tenantId, table.templateId),
+  index("template_approvals_status_idx").on(table.tenantId, table.status),
+]);
+
 // Template types
 export type TicketTemplate = typeof ticketTemplates.$inferSelect;
 export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
+export type TemplateVersion = typeof templateVersions.$inferSelect;
+export type InsertTemplateVersion = typeof templateVersions.$inferInsert;
+export type DynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferSelect;
+export type InsertDynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferInsert;
+export type FieldValidationRule = typeof fieldValidationRules.$inferSelect;
+export type InsertFieldValidationRule = typeof fieldValidationRules.$inferInsert;
+export type TemplateApproval = typeof templateApprovals.$inferSelect;
+export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
 
 // Template Zod schemas  
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   customerCompanyId: z.string().uuid().nullable().optional(),
   defaultCategory: z.string().min(1, "Default category is required"),
 }).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertTemplateVersionSchema = createInsertSchema(templateVersions);
+export const insertDynamicFieldDefinitionSchema = createInsertSchema(dynamicFieldDefinitions);
+export const insertFieldValidationRuleSchema = createInsertSchema(fieldValidationRules);
+export const insertTemplateApprovalSchema = createInsertSchema(templateApprovals);
+
 export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   id: z.string().optional(),
   createdAt: z.date().optional(),
