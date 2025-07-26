@@ -1801,3 +1801,198 @@ export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationPreferenceSchema = createInsertSchema(notificationPreferences);
 export const insertNotificationTemplateSchema = createInsertSchema(notificationTemplates);
 export const insertNotificationLogSchema = createInsertSchema(notificationLogs);
+
+// ========================================
+// ENHANCED SLA SYSTEM INTEGRATED WITH TICKET METADATA
+// ========================================
+
+// Main SLA configurations table
+export const ticketSlas = pgTable("ticket_slas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  slaLevel: varchar("sla_level", { length: 50 }).notNull(), // L1, L2, L3, L4, Premium, Standard, Basic
+  isActive: boolean("is_active").default(true),
+  
+  // Integration with ticket metadata fields
+  priorityField: varchar("priority_field", { length: 100 }).default("priority"), // which field to check
+  statusField: varchar("status_field", { length: 100 }).default("status"),
+  categoryField: varchar("category_field", { length: 100 }).default("category"),
+  
+  // Business Hours Configuration
+  businessHoursStart: time("business_hours_start").default("08:00"),
+  businessHoursEnd: time("business_hours_end").default("18:00"),
+  businessDays: text("business_days").array().default(["monday", "tuesday", "wednesday", "thursday", "friday"]),
+  timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo"),
+  includeWeekends: boolean("include_weekends").default(false),
+  includeHolidays: boolean("include_holidays").default(false),
+  
+  // Notification Settings
+  notifyBeachMinutes: integer("notify_breach_minutes").default(15), // Notify X minutes before breach
+  escalationEnabled: boolean("escalation_enabled").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").references(() => users.id)
+}, (table) => [
+  index("ticket_slas_tenant_level_idx").on(table.tenantId, table.slaLevel),
+  index("ticket_slas_tenant_active_idx").on(table.tenantId, table.isActive),
+  unique("ticket_slas_tenant_name_unique").on(table.tenantId, table.name),
+]);
+
+// SLA rules based on ticket metadata field values
+export const slaRules = pgTable("sla_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  slaId: uuid("sla_id").references(() => ticketSlas.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Field-based conditions (integrated with ticket metadata)
+  fieldName: varchar("field_name", { length: 100 }).notNull(), // priority, status, category, etc.
+  fieldValue: varchar("field_value", { length: 100 }).notNull(), // urgent, high, critical, etc.
+  
+  // Time limits in minutes
+  firstResponseTime: integer("first_response_time").notNull(), // Time to first response
+  resolutionTime: integer("resolution_time").notNull(), // Time to resolution
+  
+  // Escalation levels
+  escalationL1Time: integer("escalation_l1_time"), // Escalate to L1 after X minutes
+  escalationL2Time: integer("escalation_l2_time"), // Escalate to L2 after X minutes
+  escalationL3Time: integer("escalation_l3_time"), // Escalate to L3 after X minutes
+  escalationL1GroupId: uuid("escalation_l1_group_id"),
+  escalationL2GroupId: uuid("escalation_l2_group_id"),
+  escalationL3GroupId: uuid("escalation_l3_group_id"),
+  
+  // Priority and order
+  priority: integer("priority").default(100), // Lower number = higher priority
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_rules_tenant_sla_idx").on(table.tenantId, table.slaId),
+  index("sla_rules_field_value_idx").on(table.fieldName, table.fieldValue),
+  index("sla_rules_priority_idx").on(table.priority),
+  unique("sla_rules_unique_condition").on(table.slaId, table.fieldName, table.fieldValue),
+]);
+
+// SLA status timeouts - idle time limits per status
+export const slaStatusTimeouts = pgTable("sla_status_timeouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  slaId: uuid("sla_id").references(() => ticketSlas.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Status-based timeout configuration
+  statusValue: varchar("status_value", { length: 100 }).notNull(), // open, in_progress, resolved, etc.
+  maxIdleTime: integer("max_idle_time").notNull(), // Maximum idle time in minutes
+  
+  // Actions on timeout
+  timeoutAction: varchar("timeout_action", { length: 50 }).default("escalate"), // escalate, notify, auto_close
+  escalateToGroupId: uuid("escalate_to_group_id"),
+  escalateToUserId: uuid("escalate_to_user_id"),
+  notificationTemplate: text("notification_template"),
+  
+  // Business rules
+  applyDuringBusinessHours: boolean("apply_during_business_hours").default(true),
+  resetOnUpdate: boolean("reset_on_update").default(true), // Reset timer on ticket update
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_status_timeouts_tenant_sla_idx").on(table.tenantId, table.slaId),
+  index("sla_status_timeouts_status_idx").on(table.statusValue),
+  unique("sla_status_timeouts_unique").on(table.slaId, table.statusValue),
+]);
+
+// SLA escalations tracking
+export const slaEscalations = pgTable("sla_escalations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  slaRuleId: uuid("sla_rule_id").references(() => slaRules.id).notNull(),
+  
+  // Escalation details
+  escalationLevel: varchar("escalation_level", { length: 10 }).notNull(), // L1, L2, L3
+  escalatedAt: timestamp("escalated_at").defaultNow().notNull(),
+  escalatedFromGroupId: uuid("escalated_from_group_id"),
+  escalatedToGroupId: uuid("escalated_to_group_id"),
+  escalatedFromUserId: uuid("escalated_from_user_id"),
+  escalatedToUserId: uuid("escalated_to_user_id"),
+  
+  // Status and resolution
+  escalationStatus: varchar("escalation_status", { length: 50 }).default("pending"), // pending, acknowledged, resolved
+  acknowledgedAt: timestamp("acknowledged_at"),
+  acknowledgedBy: uuid("acknowledged_by"),
+  resolvedAt: timestamp("resolved_at"),
+  
+  // Notes and reason
+  escalationReason: text("escalation_reason"),
+  escalationNotes: text("escalation_notes"),
+  isAutomatic: boolean("is_automatic").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_escalations_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("sla_escalations_rule_idx").on(table.slaRuleId),
+  index("sla_escalations_level_idx").on(table.escalationLevel),
+  index("sla_escalations_status_idx").on(table.escalationStatus),
+]);
+
+// SLA metrics and compliance tracking
+export const slaMetrics = pgTable("sla_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  slaRuleId: uuid("sla_rule_id").references(() => slaRules.id).notNull(),
+  
+  // Time calculations (in minutes)
+  firstResponseTime: integer("first_response_time"), // Actual time to first response
+  firstResponseDue: timestamp("first_response_due"), // When first response was due
+  firstResponseMet: boolean("first_response_met"),
+  
+  resolutionTime: integer("resolution_time"), // Actual time to resolution
+  resolutionDue: timestamp("resolution_due"), // When resolution was due
+  resolutionMet: boolean("resolution_met"),
+  
+  // Status idle tracking
+  statusTimeouts: jsonb("status_timeouts").default({}), // { "status": { "timeSpent": 120, "maxAllowed": 240, "breached": false } }
+  totalIdleTime: integer("total_idle_time").default(0), // Total idle time across all statuses
+  
+  // Overall compliance
+  overallCompliance: boolean("overall_compliance"), // Met all SLA requirements
+  breachReason: text("breach_reason"), // Reason for SLA breach
+  
+  // Business metrics
+  businessHoursOnly: boolean("business_hours_only").default(true),
+  pausedTime: integer("paused_time").default(0), // Time ticket was paused (not counted)
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_metrics_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("sla_metrics_rule_idx").on(table.slaRuleId),
+  index("sla_metrics_compliance_idx").on(table.overallCompliance),
+  index("sla_metrics_response_met_idx").on(table.firstResponseMet),
+  index("sla_metrics_resolution_met_idx").on(table.resolutionMet),
+  unique("sla_metrics_ticket_rule_unique").on(table.ticketId, table.slaRuleId),
+]);
+
+// Enhanced SLA types
+export type TicketSla = typeof ticketSlas.$inferSelect;
+export type InsertTicketSla = typeof ticketSlas.$inferInsert;
+export type SlaRule = typeof slaRules.$inferSelect;
+export type InsertSlaRule = typeof slaRules.$inferInsert;
+export type SlaStatusTimeout = typeof slaStatusTimeouts.$inferSelect;
+export type InsertSlaStatusTimeout = typeof slaStatusTimeouts.$inferInsert;
+export type SlaEscalation = typeof slaEscalations.$inferSelect;
+export type InsertSlaEscalation = typeof slaEscalations.$inferInsert;
+export type SlaMetric = typeof slaMetrics.$inferSelect;
+export type InsertSlaMetric = typeof slaMetrics.$inferInsert;
+
+// Enhanced SLA Zod schemas
+export const insertTicketSlaSchema = createInsertSchema(ticketSlas);
+export const insertSlaRuleSchema = createInsertSchema(slaRules);
+export const insertSlaStatusTimeoutSchema = createInsertSchema(slaStatusTimeouts);
+export const insertSlaEscalationSchema = createInsertSchema(slaEscalations);
+export const insertSlaMetricSchema = createInsertSchema(slaMetrics);

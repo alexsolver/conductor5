@@ -40,6 +40,7 @@ import { materialsServicesRoutes } from './modules/materials-services/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
+import { slaController } from './modules/tickets/SlaController';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1740,6 +1741,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
+
+  // ========================================
+  // SLA SYSTEM ROUTES - INTEGRATED WITH TICKET METADATA
+  // ========================================
+
+  // Ticket SLA management routes
+  app.post('/api/sla/tickets-slas', jwtAuth, requireTenantAccess, slaController.createTicketSla.bind(slaController));
+  app.get('/api/sla/tickets-slas', jwtAuth, requireTenantAccess, slaController.getTicketSlas.bind(slaController));
+  app.get('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.getTicketSlaById.bind(slaController));
+  app.put('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.updateTicketSla.bind(slaController));
+  app.delete('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.deleteTicketSla.bind(slaController));
+
+  // SLA rules management routes
+  app.post('/api/sla/rules', jwtAuth, requireTenantAccess, slaController.createSlaRule.bind(slaController));
+  app.get('/api/sla/rules/:slaId', jwtAuth, requireTenantAccess, slaController.getSlaRules.bind(slaController));
+  app.put('/api/sla/rules/:id', jwtAuth, requireTenantAccess, slaController.updateSlaRule.bind(slaController));
+  app.delete('/api/sla/rules/:id', jwtAuth, requireTenantAccess, slaController.deleteSlaRule.bind(slaController));
+
+  // Status timeout management routes  
+  app.post('/api/sla/status-timeouts', jwtAuth, requireTenantAccess, slaController.createStatusTimeout.bind(slaController));
+  app.get('/api/sla/status-timeouts/:slaId', jwtAuth, requireTenantAccess, slaController.getStatusTimeouts.bind(slaController));
+  app.put('/api/sla/status-timeouts/:id', jwtAuth, requireTenantAccess, slaController.updateStatusTimeout.bind(slaController));
+  app.delete('/api/sla/status-timeouts/:id', jwtAuth, requireTenantAccess, slaController.deleteStatusTimeout.bind(slaController));
+
+  // Escalation tracking routes
+  app.get('/api/sla/escalations/ticket/:ticketId', jwtAuth, requireTenantAccess, slaController.getTicketEscalations.bind(slaController));
+  app.get('/api/sla/escalations/pending', jwtAuth, requireTenantAccess, slaController.getPendingEscalations.bind(slaController));
+  app.put('/api/sla/escalations/:id/acknowledge', jwtAuth, requireTenantAccess, slaController.acknowledgeEscalation.bind(slaController));
+
+  // Metrics and compliance routes
+  app.get('/api/sla/metrics/ticket/:ticketId', jwtAuth, requireTenantAccess, slaController.getTicketMetrics.bind(slaController));
+  app.get('/api/sla/metrics/compliance-stats', jwtAuth, requireTenantAccess, slaController.getSlaComplianceStats.bind(slaController));
+
+  // Metadata integration routes
+  app.post('/api/sla/rules/applicable', jwtAuth, requireTenantAccess, slaController.getApplicableSlaRules.bind(slaController));
+  app.post('/api/sla/metrics/calculate/:ticketId', jwtAuth, requireTenantAccess, slaController.calculateTicketSlaMetrics.bind(slaController));
 
   const httpServer = createServer(app);
   return httpServer;
