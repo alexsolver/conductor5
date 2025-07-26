@@ -1,22 +1,49 @@
 /**
  * TICKET METADATA HIERARCHICAL SERVICE
- * Provides hierarchical resolution of ticket configurations by customer company
- * 
- * Resolution Order:
- * 1. Customer-specific configuration (customerId = specific UUID)
- * 2. Global tenant configuration (customerId = NULL)
- * 3. System default configuration (hard-coded fallback)
+ * Manages customer-specific ticket configurations with hierarchical inheritance
+ * Resolution order: Customer → Tenant → System defaults
  */
 
-import { eq, and, isNull, or } from "drizzle-orm";
-import { db } from "../../db";
-import { 
-  ticketFieldConfigurations, 
-  ticketFieldOptions, 
-  ticketStyleConfigurations, 
-  ticketDefaultConfigurations,
-  customers
-} from "@shared/schema";
+import { pool } from '../../db';
+
+// System default configurations for fallback
+const SYSTEM_DEFAULT_CONFIGS = {
+  priority: {
+    fieldName: 'priority',
+    displayName: 'Prioridade',
+    fieldType: 'select',
+    isRequired: true,
+    options: [
+      { value: 'low', label: 'Baixa', color: '#22c55e', isDefault: false },
+      { value: 'medium', label: 'Média', color: '#eab308', isDefault: true },
+      { value: 'high', label: 'Alta', color: '#f97316', isDefault: false },
+      { value: 'urgent', label: 'Urgente', color: '#ef4444', isDefault: false }
+    ]
+  },
+  status: {
+    fieldName: 'status',
+    displayName: 'Status',
+    fieldType: 'select',
+    isRequired: true,
+    options: [
+      { value: 'open', label: 'Aberto', color: '#3b82f6', isDefault: true },
+      { value: 'in_progress', label: 'Em Progresso', color: '#eab308', isDefault: false },
+      { value: 'resolved', label: 'Resolvido', color: '#22c55e', isDefault: false },
+      { value: 'closed', label: 'Fechado', color: '#6b7280', isDefault: false }
+    ]
+  },
+  category: {
+    fieldName: 'category',
+    displayName: 'Categoria',
+    fieldType: 'select',
+    isRequired: false,
+    options: [
+      { value: 'technical', label: 'Técnico', color: '#3b82f6', isDefault: false },
+      { value: 'support', label: 'Suporte', color: '#22c55e', isDefault: true },
+      { value: 'billing', label: 'Financeiro', color: '#f97316', isDefault: false }
+    ]
+  }
+};
 
 export interface HierarchicalFieldConfig {
   id: string;
@@ -26,7 +53,7 @@ export interface HierarchicalFieldConfig {
   isRequired: boolean;
   isSystemField: boolean;
   sortOrder: number;
-  source: "customer" | "tenant" | "system"; // Indicates configuration source
+  source: "customer" | "tenant" | "system";
   customerId?: string | null;
 }
 
@@ -44,6 +71,10 @@ export interface HierarchicalFieldOption {
 
 export class TicketMetadataHierarchicalService {
   
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   /**
    * HIERARCHICAL FIELD CONFIGURATION RESOLUTION
    * Returns customer-specific configs first, falls back to tenant global, then system defaults
@@ -54,54 +85,79 @@ export class TicketMetadataHierarchicalService {
     fieldName: string
   ): Promise<HierarchicalFieldConfig | null> {
     
+    const schemaName = this.getSchemaName(tenantId);
+    
     // 1. Try customer-specific configuration first (if customerId provided)
     if (customerId) {
-      const customerConfig = await db
-        .select()
-        .from(ticketFieldConfigurations)
-        .where(
-          and(
-            eq(ticketFieldConfigurations.tenantId, tenantId),
-            eq(ticketFieldConfigurations.customerId, customerId),
-            eq(ticketFieldConfigurations.fieldName, fieldName),
-            eq(ticketFieldConfigurations.isActive, true)
-          )
-        )
-        .limit(1);
-
-      if (customerConfig.length > 0) {
+      const customerQuery = `
+        SELECT * FROM ${schemaName}.ticket_field_configurations 
+        WHERE tenant_id = $1 
+        AND customer_id = $2 
+        AND field_name = $3 
+        AND is_active = true
+        ORDER BY sort_order ASC
+      `;
+      
+      const customerResult = await pool.query(customerQuery, [tenantId, customerId, fieldName]);
+      if (customerResult.rows.length > 0) {
+        const config = customerResult.rows[0];
         return {
-          ...customerConfig[0],
+          id: config.id,
+          fieldName: config.field_name,
+          displayName: config.display_name,
+          fieldType: config.field_type,
+          isRequired: config.is_required,
+          isSystemField: false,
+          sortOrder: config.sort_order,
           source: "customer" as const,
-          customerId: customerConfig[0].customerId
+          customerId: config.customer_id
         };
       }
     }
 
     // 2. Fallback to global tenant configuration
-    const tenantConfig = await db
-      .select()
-      .from(ticketFieldConfigurations)
-      .where(
-        and(
-          eq(ticketFieldConfigurations.tenantId, tenantId),
-          isNull(ticketFieldConfigurations.customerId), // NULL = global
-          eq(ticketFieldConfigurations.fieldName, fieldName),
-          eq(ticketFieldConfigurations.isActive, true)
-        )
-      )
-      .limit(1);
-
-    if (tenantConfig.length > 0) {
+    const tenantQuery = `
+      SELECT * FROM ${schemaName}.ticket_field_configurations 
+      WHERE tenant_id = $1 
+      AND customer_id IS NULL 
+      AND field_name = $2 
+      AND is_active = true
+      ORDER BY sort_order ASC
+    `;
+    
+    const tenantResult = await pool.query(tenantQuery, [tenantId, fieldName]);
+    if (tenantResult.rows.length > 0) {
+      const config = tenantResult.rows[0];
       return {
-        ...tenantConfig[0],
+        id: config.id,
+        fieldName: config.field_name,
+        displayName: config.display_name,
+        fieldType: config.field_type,
+        isRequired: config.is_required,
+        isSystemField: false,
+        sortOrder: config.sort_order,
         source: "tenant" as const,
         customerId: null
       };
     }
 
-    // 3. System default configuration (hard-coded fallback)
-    return this.getSystemDefaultFieldConfig(fieldName);
+    // 3. Final fallback to system defaults
+    if (SYSTEM_DEFAULT_CONFIGS[fieldName as keyof typeof SYSTEM_DEFAULT_CONFIGS]) {
+      const systemConfig = SYSTEM_DEFAULT_CONFIGS[fieldName as keyof typeof SYSTEM_DEFAULT_CONFIGS];
+      return {
+        id: `system-${fieldName}`,
+        fieldName: systemConfig.fieldName,
+        displayName: systemConfig.displayName,
+        fieldType: systemConfig.fieldType,
+        isRequired: systemConfig.isRequired,
+        isSystemField: true,
+        sortOrder: 0,
+        source: "system" as const,
+        customerId: null
+      };
+    }
+
+    return null;
   }
 
   /**
@@ -109,212 +165,137 @@ export class TicketMetadataHierarchicalService {
    * Returns customer-specific options first, falls back to tenant global, then system defaults
    */
   async resolveFieldOptions(
-    tenantId: string, 
-    customerId: string | null, 
+    tenantId: string,
+    customerId: string | null,
     fieldName: string
   ): Promise<HierarchicalFieldOption[]> {
     
+    const schemaName = this.getSchemaName(tenantId);
+
     // 1. Try customer-specific options first (if customerId provided)
     if (customerId) {
-      const customerOptions = await this.getFieldOptionsForCustomer(tenantId, customerId, fieldName);
-      if (customerOptions.length > 0) {
-        return customerOptions.map(option => ({
-          ...option,
+      const customerOptionsQuery = `
+        SELECT * FROM ${schemaName}.ticket_field_options
+        WHERE tenant_id = $1 
+        AND customer_id = $2 
+        AND fieldname = $3 
+        AND is_active = true
+        ORDER BY sort_order ASC
+      `;
+      
+      const customerResult = await pool.query(customerOptionsQuery, [tenantId, customerId, fieldName]);
+      if (customerResult.rows.length > 0) {
+        return customerResult.rows.map(option => ({
+          id: option.id,
+          optionValue: option.option_value,
+          displayLabel: option.display_label,
+          colorHex: option.color_hex,
+          iconName: option.icon_name,
+          sortOrder: option.sort_order,
+          isDefault: option.is_default,
           source: "customer" as const,
-          customerId: option.customerId
+          customerId: option.customer_id
         }));
       }
     }
 
     // 2. Fallback to global tenant options
-    const tenantOptions = await this.getFieldOptionsForTenant(tenantId, fieldName);
-    if (tenantOptions.length > 0) {
-      return tenantOptions.map(option => ({
-        ...option,
+    const tenantOptionsQuery = `
+      SELECT * FROM ${schemaName}.ticket_field_options
+      WHERE tenant_id = $1 
+      AND customer_id IS NULL 
+      AND fieldname = $2 
+      AND is_active = true
+      ORDER BY sort_order ASC
+    `;
+    
+    const tenantResult = await pool.query(tenantOptionsQuery, [tenantId, fieldName]);
+    if (tenantResult.rows.length > 0) {
+      return tenantResult.rows.map(option => ({
+        id: option.id,
+        optionValue: option.option_value,
+        displayLabel: option.display_label,
+        colorHex: option.color_hex,
+        iconName: option.icon_name,
+        sortOrder: option.sort_order,
+        isDefault: option.is_default,
         source: "tenant" as const,
         customerId: null
       }));
     }
 
-    // 3. System default options (hard-coded fallback)
-    return this.getSystemDefaultFieldOptions(fieldName);
+    // 3. Final fallback to system defaults
+    if (SYSTEM_DEFAULT_CONFIGS[fieldName as keyof typeof SYSTEM_DEFAULT_CONFIGS]) {
+      const systemConfig = SYSTEM_DEFAULT_CONFIGS[fieldName as keyof typeof SYSTEM_DEFAULT_CONFIGS];
+      return systemConfig.options.map((option, index) => ({
+        id: `system-${fieldName}-${option.value}`,
+        optionValue: option.value,
+        displayLabel: option.label,
+        colorHex: option.color,
+        iconName: undefined,
+        sortOrder: index,
+        isDefault: option.isDefault,
+        source: "system" as const,
+        customerId: null
+      }));
+    }
+
+    return [];
   }
 
   /**
-   * GET ALL CONFIGURATIONS FOR A CUSTOMER (WITH INHERITANCE)
-   * Returns complete configuration showing what comes from customer vs tenant vs system
+   * GET COMPLETE CUSTOMER CONFIGURATION
+   * Returns all fields with their hierarchical configurations
    */
   async getCustomerCompleteConfiguration(
-    tenantId: string, 
+    tenantId: string,
     customerId: string
-  ) {
-    const fieldNames = ['priority', 'status', 'category', 'urgency', 'impact', 'environment'];
+  ): Promise<{
+    fieldConfigurations: HierarchicalFieldConfig[];
+    fieldOptions: { [fieldName: string]: HierarchicalFieldOption[] };
+    inheritanceMap: { [fieldName: string]: { configSource: string; optionsSource: string } };
+  }> {
     
-    const configurations = await Promise.all(
-      fieldNames.map(async (fieldName) => {
-        const config = await this.resolveFieldConfiguration(tenantId, customerId, fieldName);
-        const options = await this.resolveFieldOptions(tenantId, customerId, fieldName);
-        
-        return {
-          fieldName,
-          configuration: config,
-          options,
-          inheritance: {
-            configSource: config?.source || "none",
-            optionsSource: options.length > 0 ? options[0].source : "none",
-            hasCustomerOverride: config?.source === "customer",
-            hasCustomerOptions: options.some(o => o.source === "customer")
-          }
-        };
-      })
+    const fieldNames = ['priority', 'status', 'category', 'urgency', 'impact'];
+    
+    // Resolve configurations for all fields
+    const fieldConfigurations = await Promise.all(
+      fieldNames.map(fieldName => 
+        this.resolveFieldConfiguration(tenantId, customerId, fieldName)
+      )
     );
 
-    return configurations;
-  }
-
-  /**
-   * PRACTICAL EXAMPLES: CREATE CUSTOMER-SPECIFIC CONFIGURATIONS
-   */
-  async createCustomerSpecificConfiguration(
-    tenantId: string,
-    customerId: string,
-    fieldName: string,
-    customerConfig: {
-      displayName: string;
-      options: Array<{
-        value: string;
-        label: string;
-        color?: string;
-        isDefault?: boolean;
-      }>;
-    }
-  ) {
-    // 1. Create customer-specific field configuration
-    const [fieldConfig] = await db
-      .insert(ticketFieldConfigurations)
-      .values({
-        tenantId,
-        customerId, // Specific customer ID
-        fieldName,
-        displayName: customerConfig.displayName,
-        fieldType: "select",
-        isRequired: true,
-        isSystemField: false,
-        sortOrder: 1,
-        isActive: true
-      })
-      .returning();
-
-    // 2. Create customer-specific field options
-    const optionValues = customerConfig.options.map((option, index) => ({
-      tenantId,
-      customerId, // Specific customer ID
-      fieldConfigId: fieldConfig.id,
-      optionValue: option.value,
-      displayLabel: option.label,
-      colorHex: option.color || "#3B82F6",
-      sortOrder: index + 1,
-      isDefault: option.isDefault || false,
-      isActive: true
-    }));
-
-    const createdOptions = await db
-      .insert(ticketFieldOptions)
-      .values(optionValues)
-      .returning();
+    // Resolve options for all fields
+    const fieldOptionsPromises = fieldNames.map(async fieldName => {
+      const options = await this.resolveFieldOptions(tenantId, customerId, fieldName);
+      return { fieldName, options };
+    });
+    
+    const fieldOptionsResults = await Promise.all(fieldOptionsPromises);
+    
+    const fieldOptions: { [fieldName: string]: HierarchicalFieldOption[] } = {};
+    const inheritanceMap: { [fieldName: string]: { configSource: string; optionsSource: string } } = {};
+    
+    fieldOptionsResults.forEach(({ fieldName, options }) => {
+      fieldOptions[fieldName] = options;
+    });
+    
+    fieldConfigurations.forEach((config, index) => {
+      const fieldName = fieldNames[index];
+      if (config) {
+        const options = fieldOptions[fieldName] || [];
+        inheritanceMap[fieldName] = {
+          configSource: config.source,
+          optionsSource: options.length > 0 ? options[0].source : "none"
+        };
+      }
+    });
 
     return {
-      fieldConfiguration: fieldConfig,
-      fieldOptions: createdOptions
+      fieldConfigurations: fieldConfigurations.filter(Boolean) as HierarchicalFieldConfig[],
+      fieldOptions,
+      inheritanceMap
     };
-  }
-
-  // ===========================
-  // HELPER METHODS
-  // ===========================
-
-  private async getFieldOptionsForCustomer(tenantId: string, customerId: string, fieldName: string) {
-    return await db
-      .select()
-      .from(ticketFieldOptions)
-      .innerJoin(
-        ticketFieldConfigurations,
-        eq(ticketFieldOptions.fieldConfigId, ticketFieldConfigurations.id)
-      )
-      .where(
-        and(
-          eq(ticketFieldOptions.tenantId, tenantId),
-          eq(ticketFieldOptions.customerId, customerId),
-          eq(ticketFieldConfigurations.fieldName, fieldName),
-          eq(ticketFieldOptions.isActive, true)
-        )
-      )
-      .orderBy(ticketFieldOptions.sortOrder);
-  }
-
-  private async getFieldOptionsForTenant(tenantId: string, fieldName: string) {
-    return await db
-      .select()
-      .from(ticketFieldOptions)
-      .innerJoin(
-        ticketFieldConfigurations,
-        eq(ticketFieldOptions.fieldConfigId, ticketFieldConfigurations.id)
-      )
-      .where(
-        and(
-          eq(ticketFieldOptions.tenantId, tenantId),
-          isNull(ticketFieldOptions.customerId), // NULL = global tenant
-          eq(ticketFieldConfigurations.fieldName, fieldName),
-          eq(ticketFieldOptions.isActive, true)
-        )
-      )
-      .orderBy(ticketFieldOptions.sortOrder);
-  }
-
-  private getSystemDefaultFieldConfig(fieldName: string): HierarchicalFieldConfig | null {
-    const systemDefaults: Record<string, HierarchicalFieldConfig> = {
-      priority: {
-        id: "system-priority",
-        fieldName: "priority",
-        displayName: "Prioridade",
-        fieldType: "select",
-        isRequired: true,
-        isSystemField: true,
-        sortOrder: 1,
-        source: "system"
-      },
-      status: {
-        id: "system-status",
-        fieldName: "status",
-        displayName: "Status",
-        fieldType: "select",
-        isRequired: true,
-        isSystemField: true,
-        sortOrder: 2,
-        source: "system"
-      }
-    };
-
-    return systemDefaults[fieldName] || null;
-  }
-
-  private getSystemDefaultFieldOptions(fieldName: string): HierarchicalFieldOption[] {
-    const systemDefaults: Record<string, HierarchicalFieldOption[]> = {
-      priority: [
-        { id: "sys-low", optionValue: "low", displayLabel: "Baixa", colorHex: "#10B981", sortOrder: 1, isDefault: false, source: "system" },
-        { id: "sys-medium", optionValue: "medium", displayLabel: "Média", colorHex: "#F59E0B", sortOrder: 2, isDefault: true, source: "system" },
-        { id: "sys-high", optionValue: "high", displayLabel: "Alta", colorHex: "#F97316", sortOrder: 3, isDefault: false, source: "system" },
-        { id: "sys-critical", optionValue: "critical", displayLabel: "Crítica", colorHex: "#EF4444", sortOrder: 4, isDefault: false, source: "system" }
-      ],
-      status: [
-        { id: "sys-open", optionValue: "open", displayLabel: "Aberto", colorHex: "#2563EB", sortOrder: 1, isDefault: true, source: "system" },
-        { id: "sys-progress", optionValue: "in_progress", displayLabel: "Em Andamento", colorHex: "#F59E0B", sortOrder: 2, isDefault: false, source: "system" },
-        { id: "sys-resolved", optionValue: "resolved", displayLabel: "Resolvido", colorHex: "#10B981", sortOrder: 3, isDefault: false, source: "system" },
-        { id: "sys-closed", optionValue: "closed", displayLabel: "Fechado", colorHex: "#6B7280", sortOrder: 4, isDefault: false, source: "system" }
-      ]
-    };
-
-    return systemDefaults[fieldName] || [];
   }
 }
 

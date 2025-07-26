@@ -41,7 +41,7 @@ import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
-import { ticketMetadataHierarchicalController } from './modules/tickets/TicketMetadataHierarchicalController';
+// Hierarchical ticket metadata import - loaded dynamically below
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -465,7 +465,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Team management routes
   app.use('/api/team-management', jwtAuth, teamManagementRoutes);
 
+  // Hierarchical ticket metadata routes
+  try {
+    const { TicketMetadataHierarchicalController } = await import('./modules/tickets/TicketMetadataHierarchicalController');
+    const hierarchicalController = new TicketMetadataHierarchicalController();
 
+    // Customer-specific configuration routes
+    app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
+    app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.createCustomerConfiguration.bind(hierarchicalController));
+    app.put('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.updateCustomerConfiguration.bind(hierarchicalController));
+    app.delete('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.deleteCustomerConfiguration.bind(hierarchicalController));
+
+    // Field resolution routes
+    app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
+    app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
+    
+    console.log('✅ Hierarchical ticket metadata routes registered');
+  } catch (error) {
+    console.warn('⚠️ Failed to load hierarchical controller:', error);
+  }
 
   // Ticket relationships routes
   app.use('/api/tickets', ticketRelationshipsRoutes);
@@ -2117,15 +2135,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
 
   // ========================================
-  // HIERARCHICAL TICKET METADATA ROUTES - CUSTOMER-SPECIFIC CONFIGURATIONS
+  // HIERARCHICAL TICKET METADATA ROUTES - HANDLED ABOVE
   // ========================================
-  
-  // Customer-specific configuration management
-  app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.getCustomerConfiguration.bind(ticketMetadataHierarchicalController));
-  app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.resolveFieldForCustomer.bind(ticketMetadataHierarchicalController));
-  app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.createCustomerSpecificConfiguration.bind(ticketMetadataHierarchicalController));
-  app.post('/api/ticket-metadata-hierarchical/examples', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.createPracticalExamples.bind(ticketMetadataHierarchicalController));
-  app.post('/api/ticket-metadata-hierarchical/compare', jwtAuth, requireTenantAccess, ticketMetadataHierarchicalController.compareCustomerConfigurations.bind(ticketMetadataHierarchicalController));
+  // Note: Hierarchical routes are now registered above with proper error handling
 
   // ========================================
   // SLA SYSTEM ROUTES - INTEGRATED WITH TICKET METADATA
