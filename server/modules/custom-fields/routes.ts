@@ -72,6 +72,46 @@ router.delete('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, 
 });
 
 // ===========================
+// SIMPLIFIED TICKET ROUTES FOR DRAG-AND-DROP
+// ===========================
+
+// Get custom fields for a specific ticket
+router.get('/ticket/:ticketId', jwtAuth, (req, res) => {
+  // Modify params to match the entity values route structure
+  const modifiedReq = req as AuthenticatedRequest;
+  modifiedReq.params = {
+    ...modifiedReq.params,
+    entityType: 'tickets',
+    entityId: req.params.ticketId
+  };
+  customFieldsController.getEntityValues(modifiedReq, res);
+});
+
+// Save custom fields for a specific ticket
+router.post('/ticket/:ticketId', jwtAuth, (req, res) => {
+  // Modify params to match the entity values route structure
+  const modifiedReq = req as AuthenticatedRequest;
+  modifiedReq.params = {
+    ...modifiedReq.params,
+    entityType: 'tickets',
+    entityId: req.params.ticketId
+  };
+  customFieldsController.saveEntityValues(modifiedReq, res);
+});
+
+// Delete custom fields for a specific ticket
+router.delete('/ticket/:ticketId', jwtAuth, (req, res) => {
+  // Modify params to match the entity values route structure
+  const modifiedReq = req as AuthenticatedRequest;
+  modifiedReq.params = {
+    ...modifiedReq.params,
+    entityType: 'tickets',
+    entityId: req.params.ticketId
+  };
+  customFieldsController.deleteEntityValues(modifiedReq, res);
+});
+
+// ===========================
 // TENANT MODULE ACCESS ROUTES
 // ===========================
 

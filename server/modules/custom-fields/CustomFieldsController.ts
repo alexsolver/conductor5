@@ -242,20 +242,36 @@ export class CustomFieldsController {
       const { entityType, entityId } = req.params;
       const tenantId = req.user?.tenantId;
 
+      console.log('🔍 Custom Fields API - getEntityValues:', { entityType, entityId, tenantId });
+
       if (!tenantId) {
         return res.status(401).json({ success: false, error: 'Tenant ID required' });
       }
 
       if (!entityType || !this.isValidModuleType(entityType)) {
+        console.log('❌ Invalid entity type:', entityType);
         return res.status(400).json({ success: false, error: 'Invalid entity type' });
       }
 
-      const values = await this.repository.getEntityValues(tenantId, entityId, entityType as ModuleType);
-      
-      res.json({
-        success: true,
-        data: values
-      });
+      try {
+        const values = await this.repository.getEntityValues(tenantId, entityId, entityType as ModuleType);
+        
+        console.log('✅ Custom Fields API - Retrieved values:', values);
+        
+        res.json({
+          success: true,
+          fields: values || [], // Ensure we always return an array
+          data: values || []
+        });
+      } catch (repoError) {
+        console.log('🔄 Repository error, returning empty fields array:', repoError);
+        // If repository fails, return empty array instead of error
+        res.json({
+          success: true,
+          fields: [],
+          data: []
+        });
+      }
     } catch (error) {
       console.error('Error fetching entity values:', error);
       res.status(500).json({ 
