@@ -317,6 +317,31 @@ export default function TicketDetails() {
     },
   });
 
+  // Fetch field options for impact, urgency, and locations
+  const { data: impactOptions } = useQuery({
+    queryKey: ["/api/ticket-metadata/field-options", "impact"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/ticket-metadata/field-options/impact");
+      return response.json();
+    },
+  });
+
+  const { data: urgencyOptions } = useQuery({
+    queryKey: ["/api/ticket-metadata/field-options", "urgency"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/ticket-metadata/field-options/urgency");
+      return response.json();
+    },
+  });
+
+  const { data: locationsData } = useQuery({
+    queryKey: ["/api/locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/locations");
+      return response.json();
+    },
+  });
+
   // Fetch ticket relationships (attachments, notes, etc.)
   const { data: ticketRelationships } = useQuery({
     queryKey: ["/api/tickets", id, "relationships"],
@@ -2019,6 +2044,133 @@ export default function TicketDetails() {
                   📄 CNPJ: {ticket.customerCompany?.cnpj || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Impacto, Urgência e Local Section */}
+          <div className="mb-6 space-y-4">
+            {/* Impacto */}
+            <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-orange-800 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  IMPACTO
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {isEditMode ? (
+                  <Select 
+                    onValueChange={(value) => form.setValue('impact', value)} 
+                    defaultValue={ticket.impact || ''}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione o impacto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Não especificado</SelectItem>
+                      {impactOptions?.data?.map((option: any) => (
+                        <SelectItem key={option.id} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-orange-900 font-medium">
+                    {impactOptions?.data?.find((o: any) => o.value === ticket.impact)?.label || 
+                     ticket.impact || 'Não especificado'}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Urgência */}
+            <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-yellow-800 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  URGÊNCIA
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {isEditMode ? (
+                  <Select 
+                    onValueChange={(value) => form.setValue('urgency', value)} 
+                    defaultValue={ticket.urgency || ''}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione a urgência" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Não especificado</SelectItem>
+                      {urgencyOptions?.data?.map((option: any) => (
+                        <SelectItem key={option.id} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-yellow-900 font-medium">
+                    {urgencyOptions?.data?.find((o: any) => o.value === ticket.urgency)?.label || 
+                     ticket.urgency || 'Não especificado'}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Local */}
+            <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  LOCAL
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-100"
+                  onClick={() => console.log('Open locations management')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Gerenciar
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {isEditMode ? (
+                  <Select 
+                    onValueChange={(value) => form.setValue('location', value)} 
+                    defaultValue={ticket.location || ''}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione o local" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Não especificado</SelectItem>
+                      {locationsData?.data?.map((location: any) => (
+                        <SelectItem key={location.id} value={location.id}>
+                          {location.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-green-900 font-medium cursor-pointer hover:text-green-700 transition-colors"
+                       onClick={() => console.log('Open location details')}>
+                    <span className="underline decoration-dotted">
+                      {locationsData?.data?.find((l: any) => l.id === ticket.location)?.name || 
+                       ticket.location || 'Não especificado'}
+                    </span>
+                  </div>
+                )}
+                {(ticket.locationDetails || locationsData?.data?.find((l: any) => l.id === ticket.location)) && (
+                  <div className="text-xs text-green-600">
+                    📍 {ticket.locationDetails?.address || 
+                        locationsData?.data?.find((l: any) => l.id === ticket.location)?.address || 
+                        'Endereço não informado'}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
