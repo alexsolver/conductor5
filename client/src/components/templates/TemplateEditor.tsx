@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import {
   DndContext,
@@ -191,7 +190,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     const newFields = [...fields, newField];
     setFields(newFields);
     setSelectedFieldId(newField.id);
-    
+
     // Adicionar ao histórico
     setHistory(prev => [...prev.slice(0, historyIndex + 1), newFields]);
     setHistoryIndex(prev => prev + 1);
@@ -207,7 +206,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         const newIndex = items.findIndex(item => item.id === over.id);
 
         const newFields = arrayMove(items, oldIndex, newIndex);
-        
+
         // Atualizar sortOrder
         const updatedFields = newFields.map((field, index) => ({
           ...field,
@@ -270,7 +269,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
               <Grid3X3 className="w-4 h-4" />
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button onClick={() => onPreview({ fields })} variant="outline">
               <Eye className="w-4 h-4 mr-2" />
@@ -293,7 +292,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
               <TabsTrigger value="design">Componentes</TabsTrigger>
               <TabsTrigger value="properties">Propriedades</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="design" className="space-y-4">
               <div>
                 <h3 className="font-medium mb-3">Campos Disponíveis</h3>
