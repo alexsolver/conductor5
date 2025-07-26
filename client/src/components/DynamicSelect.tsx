@@ -4,7 +4,7 @@
  */
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTicketMetadataSimple } from "@/hooks/useTicketMetadata.simple";
+import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface DynamicSelectProps {
@@ -24,11 +24,11 @@ export function DynamicSelect({
   className,
   disabled = false 
 }: DynamicSelectProps) {
-  const { getFieldOptions, isInitializing } = useTicketMetadataSimple();
+  const { getFieldOptions, isLoading } = useTicketMetadata();
   
   const options = getFieldOptions(fieldName);
 
-  if (isInitializing) {
+  if (isLoading) {
     return (
       <div className={`flex items-center gap-2 p-2 border rounded-md bg-gray-50 ${className}`}>
         <Loader2 className="h-4 w-4 animate-spin" />

@@ -4,7 +4,7 @@
  */
 
 import { Badge } from "@/components/ui/badge";
-import { useTicketMetadataSimple } from "@/hooks/useTicketMetadata.simple";
+import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { cn } from "@/lib/utils";
 
 interface DynamicBadgeProps {
@@ -22,7 +22,7 @@ export function DynamicBadge({
   className,
   variant = "secondary"
 }: DynamicBadgeProps) {
-  const { getFieldOption } = useTicketMetadataSimple();
+  const { getFieldOption } = useTicketMetadata();
   
   const option = getFieldOption(fieldName, value);
   const dynamicStyles = option ? `${option.bgColor} ${option.textColor}` : "";
