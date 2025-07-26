@@ -12,7 +12,7 @@ import {
   Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
   Heading1, Heading2, Heading3, Undo, Redo, Strikethrough, AlertTriangle,
   Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
-  CheckCircle, Star, TrendingUp
+  CheckCircle, Star, TrendingUp, Building2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -105,9 +105,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
           >
             <Redo className="h-4 w-4" />
           </Button>
-          
+
           <div className="w-px h-6 bg-gray-300 mx-1" />
-          
+
           {/* Headings */}
           <Button
             type="button"
@@ -139,9 +139,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
           >
             <Heading3 className="h-4 w-4" />
           </Button>
-          
+
           <div className="w-px h-6 bg-gray-300 mx-1" />
-          
+
           {/* Text Formatting */}
           <Button
             type="button"
@@ -183,9 +183,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
           >
             <Code className="h-4 w-4" />
           </Button>
-          
+
           <div className="w-px h-6 bg-gray-300 mx-1" />
-          
+
           {/* Lists */}
           <Button
             type="button"
@@ -207,9 +207,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
           >
             <ListOrdered className="h-4 w-4" />
           </Button>
-          
+
           <div className="w-px h-6 bg-gray-300 mx-1" />
-          
+
           {/* Quote */}
           <Button
             type="button"
@@ -364,7 +364,7 @@ export default function TicketDetails() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -380,7 +380,7 @@ export default function TicketDetails() {
         });
         return;
       }
-      
+
       const newAttachment = {
         id: Date.now() + Math.random(),
         name: file.name,
@@ -390,24 +390,24 @@ export default function TicketDetails() {
         description: "",
         file: file
       };
-      
+
       setAttachments(prev => [...prev, newAttachment]);
     });
   };
 
   const addNote = async () => {
     if (!newNote.trim()) return;
-    
+
     try {
       const response = await apiRequest("POST", `/api/tickets/${id}/notes`, {
         content: newNote,
         ticketId: id
       });
       const result = await response.json();
-      
+
       setNotes(prev => [...prev, result]);
       setNewNote("");
-      
+
       toast({
         title: "Nota adicionada",
         description: "A nota foi salva com sucesso.",
@@ -421,7 +421,7 @@ export default function TicketDetails() {
         createdAt: new Date(),
         createdBy: "Usuário Atual"
       };
-      
+
       setNotes(prev => [...prev, note]);
       setNewNote("");
     }
@@ -483,12 +483,12 @@ export default function TicketDetails() {
         workaround: ticket.workaround || "",
         followers: ticket.followers || [],
       });
-      
+
       // Initialize followers from ticket data
       if (ticket.followers && Array.isArray(ticket.followers)) {
         setFollowers(ticket.followers);
       }
-      
+
       // Simulate communication data
       setCommunications([
         {
@@ -842,7 +842,8 @@ export default function TicketDetails() {
                             {tags.length > 0 ? (
                               tags.map((tag, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
-                                  {tag}
+                                  ```text
+                  {tag}
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -990,7 +991,7 @@ export default function TicketDetails() {
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -1147,7 +1148,7 @@ export default function TicketDetails() {
             {/* Atribuição */}
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">ATRIBUIÇÃO</h3>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -1485,7 +1486,7 @@ export default function TicketDetails() {
                 <History className="h-4 w-4" />
                 {historyViewMode === 'simple' ? 'Todas as Interações' : 'Análise Técnica Detalhada'}
               </h3>
-              
+
               <div className="space-y-3 border-l-2 border-gray-200 pl-4">
                 {/* Real history data from API */}
                 {history.length > 0 ? history.map((historyItem: any, index: number) => {
@@ -1507,7 +1508,7 @@ export default function TicketDetails() {
                   };
 
                   const { icon: Icon, color } = getActionIcon(historyItem.action_type);
-                  
+
                   return (
                     <div key={historyItem.id} className="relative">
                       <div className={`absolute -left-6 w-3 h-3 bg-${color}-500 rounded-full`}></div>
@@ -1642,7 +1643,7 @@ export default function TicketDetails() {
                 Nova Ação
               </Button>
             </div>
-            
+
             <div className="space-y-4">
               {internalActions.length === 0 ? (
                 <div className="text-center py-8">
@@ -1704,7 +1705,8 @@ export default function TicketDetails() {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
+              <h2 className```text
+="text-xl font-semibold">🕒 Últimas Interações</h2>
               <Badge variant="outline" className="text-xs">
                 Histórico do Solicitante
               </Badge>
@@ -1732,7 +1734,7 @@ export default function TicketDetails() {
                 <History className="h-4 w-4" />
                 Últimos Tickets Abertos por {ticket.customerName || 'Este Cliente'}
               </h3>
-              
+
               <div className="space-y-3">
                 {/* Ticket Atual */}
                 <Card className="p-4 border-l-4 border-l-blue-500 bg-blue-50">
@@ -1955,19 +1957,53 @@ export default function TicketDetails() {
       <div className="w-72 bg-white border-r flex-shrink-0 h-full overflow-y-auto">
         <div className="p-4 h-full">
 
-
-
-
-
-
-          
-
-          
+          {/* Empresa Cliente Section - Topo */}
+          <div className="mb-6 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              EMPRESA CLIENTE
+            </h3>
+            <div className="space-y-2">
+              <div className="text-sm">
+                <span className="font-medium text-blue-900">
+                  {ticket.customerCompany?.name || ticket.company || 'Não especificado'}
+                </span>
+              </div>
+              {ticket.customerCompany?.displayName && ticket.customerCompany.displayName !== ticket.customerCompany.name && (
+                <div className="text-xs text-blue-700">
+                  Nome de exibição: {ticket.customerCompany.displayName}
+                </div>
+              )}
+              <div className="flex gap-2 mt-2">
+                {ticket.customerCompany?.subscriptionTier && (
+                  <Badge className="text-xs bg-purple-100 text-purple-800">
+                    {ticket.customerCompany.subscriptionTier === 'enterprise' ? 'Enterprise' :
+                     ticket.customerCompany.subscriptionTier === 'professional' ? 'Profissional' :
+                     ticket.customerCompany.subscriptionTier === 'basic' ? 'Básico' : 
+                     ticket.customerCompany.subscriptionTier}
+                  </Badge>
+                )}
+                {ticket.customerCompany?.size && (
+                  <Badge className="text-xs bg-green-100 text-green-800">
+                    {ticket.customerCompany.size === 'large' ? 'Grande' :
+                     ticket.customerCompany.size === 'medium' ? 'Médio' :
+                     ticket.customerCompany.size === 'small' ? 'Pequeno' :
+                     ticket.customerCompany.size}
+                  </Badge>
+                )}
+              </div>
+              {ticket.customerCompany?.industry && (
+                <div className="text-xs text-blue-600 mt-1">
+                  Setor: {ticket.customerCompany.industry}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Solicitante e Atribuído Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-3">Atribuição</h3>
-            
+
             {/* Solicitante */}
             <div className="mb-4">
               <h4 className="text-xs font-medium text-gray-500 mb-1">Solicitante</h4>
@@ -2057,7 +2093,7 @@ export default function TicketDetails() {
               ) : (
                 <div className="text-sm text-gray-500">Nenhum seguidor</div>
               )}
-              
+
               {isEditMode && (
                 <Select onValueChange={(value) => {
                   if (value && !followers.includes(value)) {
@@ -2104,7 +2140,7 @@ export default function TicketDetails() {
                   <div className="text-sm text-gray-500">Nenhuma tag</div>
                 )}
               </div>
-              
+
               <div className="flex gap-1">
                 <Input
                   type="text"
@@ -2180,7 +2216,7 @@ export default function TicketDetails() {
               </Button>
               <div className="flex items-center gap-4">
                 <h1 className="text-xl font-semibold">Ticket #{ticket.ticketNumber}</h1>
-                
+
                 {/* Priority and Status Fields */}
                 {isEditMode ? (
                   <div className="flex items-center gap-2">
@@ -2190,7 +2226,7 @@ export default function TicketDetails() {
                       onValueChange={(value) => form.setValue('priority', value as any)}
                       className="w-24 h-8"
                     />
-                    
+
                     <DynamicSelect
                       fieldName="status"
                       value={ticket.status}
@@ -2210,7 +2246,7 @@ export default function TicketDetails() {
                 )}
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               {!isEditMode ? (
                 <>
@@ -2410,7 +2446,8 @@ export default function TicketDetails() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
+                    <Dialog```text
+Header>
                       <DialogTitle>Verificação de Segurança</DialogTitle>
                       <DialogDescription>
                         Digite sua senha para acessar dados sensíveis do favorecido
@@ -2509,7 +2546,7 @@ export default function TicketDetails() {
           </div>
         </div>
       </div>
-      
+
       {/* Password Dialog for Sensitive Fields */}
       <Dialog open={showPasswordDialog.open} onOpenChange={(open) => setShowPasswordDialog({...showPasswordDialog, open})}>
         <DialogContent>
@@ -2559,7 +2596,7 @@ export default function TicketDetails() {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* TicketLinkingModal */}
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
