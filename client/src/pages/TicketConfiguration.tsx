@@ -3,7 +3,7 @@
  * Comprehensive admin interface for managing ticket metadata and configurations
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -202,6 +202,14 @@ export default function TicketConfiguration() {
     }
   });
 
+  // Sync selectedCustomer with hierarchical form whenever it changes
+  React.useEffect(() => {
+    if (selectedCustomer) {
+      console.log('UseEffect: Syncing selectedCustomer with form:', selectedCustomer);
+      hierarchicalForm.setValue('customerId', selectedCustomer);
+    }
+  }, [selectedCustomer]);
+
   // Data queries
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ['/api/ticket-config/categories'],
@@ -358,6 +366,9 @@ export default function TicketConfiguration() {
     console.log('Form values:', hierarchicalForm.getValues());
     console.log('Form state errors:', hierarchicalForm.formState.errors);
     
+    // Force customerId sync before submission
+    hierarchicalForm.setValue('customerId', selectedCustomer);
+    
     // Ensure customerId is set from selectedCustomer
     const submissionData = {
       ...data,
@@ -391,6 +402,22 @@ export default function TicketConfiguration() {
       return;
     }
     
+    // Filter out empty options
+    submissionData.options = submissionData.options.filter(option => 
+      option.value && option.label
+    );
+    
+    if (submissionData.options.length === 0) {
+      console.error('All options are empty after filtering');
+      toast({
+        title: "Erro de validação",
+        description: "Pelo menos uma opção completa (valor e rótulo) é necessária",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    console.log('Submitting with filtered options:', submissionData.options);
     createHierarchicalConfigMutation.mutate(submissionData);
   };
 
@@ -1133,9 +1160,13 @@ export default function TicketConfiguration() {
               <FormField
                 control={hierarchicalForm.control}
                 name="customerId"
-                render={({ field }) => (
-                  <input type="hidden" {...field} value={selectedCustomer} />
-                )}
+                render={({ field }) => {
+                  // Sync field value with selectedCustomer whenever it changes
+                  if (field.value !== selectedCustomer && selectedCustomer) {
+                    field.onChange(selectedCustomer);
+                  }
+                  return <input type="hidden" {...field} value={selectedCustomer} />;
+                }}
               />
               
               {/* Field Selection */}
