@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X } from "lucide-react";
+import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X, Undo, Redo, Bold, Italic, List, ListOrdered, ArrowLeft, Quote, Code, Heading1, Heading2, Heading3, Strikethrough } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
@@ -60,6 +62,98 @@ const ticketSchema = z.object({
 });
 
 type TicketFormData = z.infer<typeof ticketSchema>;
+
+// Rich Text Editor Component
+function RichTextEditor({ value, onChange, disabled = false }: { value: string, onChange: (value: string) => void, disabled?: boolean }) {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: value || '',
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+    editable: !disabled,
+  });
+
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className={`border rounded-md ${disabled ? 'bg-gray-50' : 'bg-white'}`}>
+      {!disabled && (
+        <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            title="Desfazer"
+          >
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            title="Refazer"
+          >
+            <Redo className="h-4 w-4" />
+          </Button>
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={editor.isActive('bold') ? 'bg-gray-200' : ''}
+            title="Negrito"
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={editor.isActive('italic') ? 'bg-gray-200' : ''}
+            title="Itálico"
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
+            title="Lista com marcadores"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
+            title="Lista numerada"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+      <div className="min-h-[100px] p-3">
+        <EditorContent 
+          editor={editor} 
+          className="prose prose-sm max-w-none focus:outline-none"
+        />
+      </div>
+    </div>
+  );
+}
 
 interface Ticket {
   id: string;
@@ -113,6 +207,8 @@ export default function TicketsTable() {
   const [selectedViewId, setSelectedViewId] = useState("default");
   const [isNewViewDialogOpen, setIsNewViewDialogOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
+  const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
+  const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
   
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
@@ -445,6 +541,8 @@ export default function TicketsTable() {
       });
     }
   });
+
+
 
   // Reset form para nova visualização
   const resetNewViewForm = () => {
@@ -1027,14 +1125,23 @@ export default function TicketsTable() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              New Ticket
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => setIsNewTicketModalOpen(true)}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Ticket
+          </Button>
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                New Ticket (Old)
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader className="flex flex-row items-center justify-between">
               <DialogTitle className="text-2xl font-semibold">Create New Ticket</DialogTitle>
               <Button
@@ -1053,7 +1160,8 @@ export default function TicketsTable() {
               <TicketForm />
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
       {/* Seletor de Visualizações */}
       <Card className="mb-6">
@@ -1554,6 +1662,326 @@ export default function TicketsTable() {
               Aplicar Filtros
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Criação de Novo Ticket */}
+      <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Plus className="h-5 w-5" />
+              Novo Ticket
+            </DialogTitle>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              
+              {/* Layout principal idêntico ao TicketDetails - sem sidebar direita */}
+              <div className="space-y-6">
+                
+                {/* Informações Básicas */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Informações Básicas</h3>
+                    
+                    <FormField
+                      control={form.control}
+                      name="shortDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Título do Ticket *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Resumo breve do problema ou solicitação" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="priority"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Prioridade *</FormLabel>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="priority"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Selecione a prioridade"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="impact"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Impacto</FormLabel>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="impact"
+                                value={field.value || "medium"}
+                                onValueChange={field.onChange}
+                                placeholder="Selecione o impacto"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Categoria</FormLabel>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="category"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Selecione a categoria"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="urgency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Urgência</FormLabel>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="urgency"
+                                value={field.value || "medium"}
+                                onValueChange={field.onChange}
+                                placeholder="Selecione a urgência"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Atribuição e Contato */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Atribuição e Contato</h3>
+                    
+                    <FormField
+                      control={form.control}
+                      name="callerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Solicitante *</FormLabel>
+                          <FormControl>
+                            <PersonSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              onTypeChange={(type) => form.setValue('callerType', type)}
+                              placeholder="Selecione o solicitante"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="assignedToId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Atribuído a</FormLabel>
+                          <FormControl>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um usuário" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unassigned">Não atribuído</SelectItem>
+                                {users.map((user: any) => (
+                                  <SelectItem key={user.id} value={user.id}>
+                                    {user.firstName} {user.lastName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="contactType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Contato</FormLabel>
+                          <FormControl>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Como foi solicitado?" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
+                                <SelectItem value="chat">Chat</SelectItem>
+                                <SelectItem value="self_service">Portal de Autoatendimento</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Localização</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Local físico ou departamento" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Descrição Detalhada */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Descrição Detalhada</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição do Problema/Solicitação *</FormLabel>
+                        <FormControl>
+                          <RichTextEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Informações Adicionais */}
+                <div className="grid grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="symptoms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sintomas</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Descreva os sintomas observados" 
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="businessImpact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Impacto no Negócio</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Como isso afeta as operações?" 
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Workaround */}
+                <FormField
+                  control={form.control}
+                  name="workaround"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Solução Temporária</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Existe alguma solução temporária disponível?" 
+                          className="min-h-[60px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex justify-end gap-3 pt-6 border-t">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsNewTicketModalOpen(false)}
+                  disabled={createTicketMutation.isPending}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createTicketMutation.isPending}
+                  className="min-w-[120px]"
+                >
+                  {createTicketMutation.isPending ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Ticket
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
