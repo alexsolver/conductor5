@@ -111,6 +111,8 @@ export default function TicketsTable() {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedViewId, setSelectedViewId] = useState("default");
+  const [isNewViewDialogOpen, setIsNewViewDialogOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const itemsPerPage = 20;
   
   const { toast } = useToast();
@@ -692,13 +694,13 @@ export default function TicketsTable() {
               <Filter className="h-5 w-5" />
               Visualizações de Tickets
             </CardTitle>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Visualização
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-[0px] pb-[0px]">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Visualização Ativa:</span>
@@ -715,7 +717,7 @@ export default function TicketsTable() {
                 ))}
               </select>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsAdvancedFiltersOpen(true)}>
               <Filter className="h-4 w-4 mr-2" />
               Filtros Avançados
             </Button>
@@ -921,6 +923,147 @@ export default function TicketsTable() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal Nova Visualização */}
+      <Dialog open={isNewViewDialogOpen} onOpenChange={setIsNewViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nova Visualização de Tickets</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nome da Visualização</label>
+              <Input placeholder="Ex: Meus Tickets Urgentes" className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Descrição</label>
+              <Input placeholder="Descrição opcional da visualização" className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Colunas a Exibir</label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {["Number", "Subject", "Customer", "Category", "Status", "Priority", "Impact", "Assigned To", "Created"].map((col) => (
+                  <label key={col} className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">{col}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="public" className="rounded" />
+              <label htmlFor="public" className="text-sm">Tornar visualização pública (visível para outros usuários)</label>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setIsNewViewDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              // TODO: Implementar criação de visualização
+              setIsNewViewDialogOpen(false);
+            }}>
+              Criar Visualização
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Filtros Avançados */}
+      <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Filtros Avançados</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Data de Criação</label>
+                <div className="flex space-x-2 mt-1">
+                  <Input type="date" placeholder="De" />
+                  <Input type="date" placeholder="Até" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Data de Resolução</label>
+                <div className="flex space-x-2 mt-1">
+                  <Input type="date" placeholder="De" />
+                  <Input type="date" placeholder="Até" />
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Atribuído a</label>
+                <select className="w-full px-3 py-2 border rounded-md mt-1">
+                  <option value="">Todos os usuários</option>
+                  {users.map((user: any) => (
+                    <option key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Cliente</label>
+                <Input placeholder="Nome ou email do cliente" className="mt-1" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Categoria</label>
+                <DynamicSelect
+                  fieldName="category"
+                  value=""
+                  onValueChange={() => {}}
+                  placeholder="Todas as categorias"
+                  showAllOption={true}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <DynamicSelect
+                  fieldName="status"
+                  value=""
+                  onValueChange={() => {}}
+                  placeholder="Todos os status"
+                  showAllOption={true}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Prioridade</label>
+                <DynamicSelect
+                  fieldName="priority"
+                  value=""
+                  onValueChange={() => {}}
+                  placeholder="Todas as prioridades"
+                  showAllOption={true}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Tags</label>
+              <Input placeholder="Ex: urgente, cliente-vip, bug" className="mt-1" />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setIsAdvancedFiltersOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="outline" onClick={() => {
+              // TODO: Implementar limpeza de filtros
+            }}>
+              Limpar Filtros
+            </Button>
+            <Button onClick={() => {
+              // TODO: Implementar aplicação de filtros avançados
+              setIsAdvancedFiltersOpen(false);
+            }}>
+              Aplicar Filtros
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
