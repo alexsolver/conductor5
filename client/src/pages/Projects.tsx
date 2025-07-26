@@ -942,6 +942,9 @@ export default function Projects() {
           </div>
         )}
       </div>
+      
+      {/* End of Tabs */}
+      </div>
     </div>
   );
 }
