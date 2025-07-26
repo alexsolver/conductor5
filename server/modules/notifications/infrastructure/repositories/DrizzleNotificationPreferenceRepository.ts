@@ -92,6 +92,23 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
       );
   }
 
+  async findByUserAndType(userId: string, notificationType: string, tenantId: string): Promise<NotificationPreference | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const result = await db
+      .select()
+      .from(notificationPreferences)
+      .where(
+        and(
+          eq(notificationPreferences.userId, userId),
+          eq(notificationPreferences.notificationType, notificationType),
+          eq(notificationPreferences.tenantId, tenantId)
+        )
+      )
+      .limit(1);
+
+    return result.length > 0 ? NotificationPreference.fromPersistence(result[0]) : null;
+  }
+
   async findDefaultPreferences(tenantId: string): Promise<NotificationPreference[]> {
    const { db } = await schemaManager.getTenantDb(tenantId);
     const results = await db

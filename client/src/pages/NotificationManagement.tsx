@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Switch } from '../components/ui/switch';
 import { apiRequest } from '../lib/queryClient';
-import { toast } from '../components/ui/use-toast';
+import { useToast } from '../hooks/use-toast';
 import { NotificationPreferences } from '../components/notifications/NotificationPreferences';
 import { 
   Bell, 
@@ -71,6 +71,7 @@ export default function NotificationManagement() {
   });
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch notifications
   const { data: notificationsData, isLoading } = useQuery({

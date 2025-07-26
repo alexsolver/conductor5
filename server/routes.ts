@@ -1055,7 +1055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Additional module routes
-  app.use('/api/knowledge-base', knowlegeBaseRoutes);
+  // app.use('/api/knowledge-base', knowledgeBaseRoutes); // Knowledge Base routes handled inline above
   app.use('/api/materials-services', materialsServicesRoutes);
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);

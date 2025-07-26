@@ -853,19 +853,19 @@ export const notificationLogs = pgTable('notification_logs', {
   createdAt: timestamp('created_at').notNull().defaultNow()
 });
 
-// Notification indexes for performance
-export const notificationIndexes = [
-  index('idx_notifications_tenant_user').on(notifications.tenantId, notifications.userId),
-  index('idx_notifications_tenant_status').on(notifications.tenantId, notifications.status),
-  index('idx_notifications_tenant_type').on(notifications.tenantId, notifications.type),
-  index('idx_notifications_tenant_severity').on(notifications.tenantId, notifications.severity),
-  index('idx_notifications_scheduled').on(notifications.scheduledAt),
-  index('idx_notifications_related_entity').on(notifications.relatedEntityType, notifications.relatedEntityId),
-  index('idx_notification_preferences_tenant_user').on(notificationPreferences.tenantId, notificationPreferences.userId),
-  index('idx_notification_preferences_tenant_type').on(notificationPreferences.tenantId, notificationPreferences.notificationType),
-  index('idx_notification_templates_tenant_type').on(notificationTemplates.tenantId, notificationTemplates.type),
-  index('idx_notification_logs_tenant_notification').on(notificationLogs.tenantId, notificationLogs.notificationId)
-];
+// Notification indexes for performance - Commented temporarily for stability
+// export const notificationIndexes = [
+//   index('idx_notifications_tenant_user').on(notifications.tenantId, notifications.userId),
+//   index('idx_notifications_tenant_status').on(notifications.tenantId, notifications.status),
+//   index('idx_notifications_tenant_type').on(notifications.tenantId, notifications.type),
+//   index('idx_notifications_tenant_severity').on(notifications.tenantId, notifications.severity),
+//   index('idx_notifications_scheduled').on(notifications.scheduledAt),
+//   index('idx_notifications_related_entity').on(notifications.relatedEntityType, notifications.relatedEntityId),
+//   index('idx_notification_preferences_tenant_user').on(notificationPreferences.tenantId, notificationPreferences.userId),
+//   index('idx_notification_preferences_tenant_type').on(notificationPreferences.tenantId, notificationPreferences.notificationType),
+//   index('idx_notification_templates_tenant_type').on(notificationTemplates.tenantId, notificationTemplates.type),
+//   index('idx_notification_logs_tenant_notification').on(notificationLogs.tenantId, notificationLogs.notificationId)
+// ];
 
 export const insertMarketLocalizationSchema = createInsertSchema(marketLocalization);
 export const insertFieldAliasMappingSchema = createInsertSchema(fieldAliasMapping);

@@ -15,7 +15,7 @@ import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { apiRequest } from '../../lib/queryClient';
-import { toast } from '../ui/use-toast';
+import { useToast } from '../../hooks/use-toast';
 import { 
   Bell, 
   Mail, 
@@ -46,6 +46,7 @@ interface NotificationPreference {
 export function NotificationPreferences() {
   const [selectedType, setSelectedType] = useState('all');
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch preferences
   const { data: preferencesData, isLoading } = useQuery({
