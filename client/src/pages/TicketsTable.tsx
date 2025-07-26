@@ -675,6 +675,61 @@ export default function TicketsTable() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* SISTEMA DE VISUALIZAÇÕES DE TICKETS */}
+      <div 
+        style={{
+          backgroundColor: '#ff0000',
+          color: '#ffffff',
+          padding: '30px',
+          margin: '20px 0',
+          border: '5px solid #000000',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          zIndex: 9999,
+          position: 'relative'
+        }}
+      >
+        🚨 SELETOR DE VISUALIZAÇÕES - PÁGINA CORRETA /TICKETS 🚨
+      </div>
+
+      {/* Seletor de Visualizações Funcionais */}
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Visualizações de Tickets
+            </CardTitle>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Visualização
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Visualização Ativa:</span>
+              <select 
+                className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
+                defaultValue="default"
+              >
+                <option value="default">Visualização Padrão</option>
+                <option value="my-tickets">Meus Tickets</option>
+                <option value="urgent">Tickets Urgentes</option>
+                <option value="resolved">Tickets Resolvidos</option>
+              </select>
+            </div>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros Avançados
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Filters */}
       <Card>
         <CardHeader>
