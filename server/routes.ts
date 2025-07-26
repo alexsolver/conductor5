@@ -43,6 +43,7 @@ import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
 import customFieldsRoutes from './modules/custom-fields/routes.ts';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
+import ticketHistoryRoutes from './modules/ticket-history/routes';
 // Hierarchical ticket metadata import - loaded dynamically below
 
 
@@ -2500,6 +2501,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to convert project action to ticket' });
     }
   });
+
+  // TICKET HISTORY ROUTES - DIRECT INTEGRATION FOR REAL DATA
+  app.get('/api/ticket-history/tickets/:ticketId/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { ticketId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(401).json({ error: "Tenant ID é obrigatório" });
+      }
+
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const { pool } = await import('./db');
+      
+      const query = `
+        SELECT 
+          th.id,
+          th.ticket_id,
+          th.action_type,
+          th.field_name,
+          th.old_value,
+          th.new_value,
+          th.performed_by_name,
+          th.ip_address,
+          th.user_agent,
+          th.session_id,
+          th.description,
+          th.metadata,
+          th.created_at
+        FROM "${schemaName}".ticket_history th
+        WHERE th.ticket_id = $1 AND th.tenant_id = $2
+        ORDER BY th.created_at DESC
+      `;
+
+      const result = await pool.query(query, [ticketId, tenantId]);
+
+      res.json({
+        success: true,
+        data: result.rows,
+        count: result.rows.length
+      });
+    } catch (error) {
+      console.error("Erro ao buscar histórico do ticket:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Erro interno do servidor" 
+      });
+    }
+  });
+
+  // Additional module routes
+  // app.use('/api/knowledge-base', knowledgeBaseRoutes); // Knowledge Base routes handled inline above
+  app.use('/api/materials-services', materialsServicesRoutes);
+  app.use('/api/technical-skills', technicalSkillsRoutes);
+  app.use('/api/schedule', scheduleRoutes);
+  app.use('/api/notifications', notificationsRoutes);
+  app.use('/api/ticket-metadata', ticketMetadataRoutes);
+  app.use('/api/field-layouts', fieldLayoutRoutes);
+  app.use('/api/ticket-history', ticketHistoryRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

@@ -317,6 +317,16 @@ export default function TicketDetails() {
     enabled: !!id,
   });
 
+  // Fetch real ticket history data from API
+  const { data: ticketHistoryData } = useQuery({
+    queryKey: ["/api/ticket-history/tickets", id, "history"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/ticket-history/tickets/${id}/history`);
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
 
   // Initialize data from ticket relationships
@@ -331,6 +341,13 @@ export default function TicketDetails() {
       setTags(ticket?.tags || []);
     }
   }, [ticketRelationships, ticket]);
+
+  // Initialize real history data from API
+  useEffect(() => {
+    if (ticketHistoryData?.success && ticketHistoryData?.data) {
+      setHistory(ticketHistoryData.data);
+    }
+  }, [ticketHistoryData]);
 
   // File upload handlers
   const handleDrag = (e: React.DragEvent) => {
@@ -1470,142 +1487,86 @@ export default function TicketDetails() {
               </h3>
               
               <div className="space-y-3 border-l-2 border-gray-200 pl-4">
-                {/* Criação do Ticket */}
-                <div className="relative">
-                  <div className="absolute -left-6 w-3 h-3 bg-green-500 rounded-full"></div>
-                  <Card className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <PlusCircle className="h-4 w-4 text-green-600" />
-                        <span className="font-medium text-sm">Ticket Criado</span>
-                        {historyViewMode === 'advanced' && (
-                          <Badge variant="secondary" className="text-xs">SYSTEM_CREATE</Badge>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'N/A'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Ticket #{ticket.ticketNumber} criado por {ticket.createdByName || 'Sistema'}
-                    </p>
-                    {historyViewMode === 'advanced' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                        <p>IP: 192.168.1.100 | Session: {ticket.id?.slice(0, 8)} | Agent: Web_Portal_v2.1</p>
-                        <p>Table: tickets | Operation: INSERT | Permission: ticket.create | Tenant: {ticket.tenantId?.slice(0, 8)}</p>
-                        <p>Validation: PASSED | Schema: v2.0 | Audit: LOGGED</p>
-                      </div>
-                    )}
-                  </Card>
-                </div>
+                {/* Real history data from API */}
+                {history.length > 0 ? history.map((historyItem: any, index: number) => {
+                  // Map action types to icons and colors
+                  const getActionIcon = (actionType: string) => {
+                    switch (actionType) {
+                      case 'created': return { icon: PlusCircle, color: 'green' };
+                      case 'assigned': 
+                      case 'assignment': return { icon: User, color: 'blue' };
+                      case 'status_changed':
+                      case 'status_change': return { icon: RefreshCw, color: 'orange' };
+                      case 'viewed': return { icon: Eye, color: 'purple' };
+                      case 'email_sent': 
+                      case 'email_received': return { icon: Mail, color: 'indigo' };
+                      case 'communication': return { icon: MessageSquare, color: 'teal' };
+                      case 'attachment_added': return { icon: Paperclip, color: 'pink' };
+                      default: return { icon: Activity, color: 'gray' };
+                    }
+                  };
 
-                {/* Atribuição Automática */}
-                <div className="relative">
-                  <div className="absolute -left-6 w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <Card className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-sm">Auto-Atribuição</span>
+                  const { icon: Icon, color } = getActionIcon(historyItem.action_type);
+                  
+                  return (
+                    <div key={historyItem.id} className="relative">
+                      <div className={`absolute -left-6 w-3 h-3 bg-${color}-500 rounded-full`}></div>
+                      <Card className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-4 w-4 text-${color}-600`} />
+                            <span className="font-medium text-sm">
+                              {historyItem.action_type === 'created' && 'Ticket Criado'}
+                              {historyItem.action_type === 'assigned' && 'Atribuição'}
+                              {historyItem.action_type === 'assignment' && 'Atribuição'}
+                              {historyItem.action_type === 'status_changed' && 'Status Alterado'}
+                              {historyItem.action_type === 'status_change' && 'Status Alterado'}
+                              {historyItem.action_type === 'viewed' && 'Visualização'}
+                              {historyItem.action_type === 'email_sent' && 'Email Enviado'}
+                              {historyItem.action_type === 'email_received' && 'Email Recebido'}
+                              {historyItem.action_type === 'communication' && 'Comunicação'}
+                              {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
+                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added'].includes(historyItem.action_type) && 'Atividade'}
+                            </span>
+                            {historyViewMode === 'advanced' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {historyItem.action_type.toUpperCase()}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {new Date(historyItem.created_at).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {historyItem.description || `Ação realizada por ${historyItem.performed_by_name}`}
+                          {historyItem.field_name && historyItem.old_value && historyItem.new_value && (
+                            ` - ${historyItem.field_name}: "${historyItem.old_value}" → "${historyItem.new_value}"`
+                          )}
+                        </p>
                         {historyViewMode === 'advanced' && (
-                          <Badge variant="secondary" className="text-xs">AUTO_ASSIGNMENT</Badge>
+                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
+                            <p>User: {historyItem.performed_by_name} | IP: {historyItem.ip_address || 'N/A'}</p>
+                            {historyItem.user_agent && (
+                              <p>User-Agent: {historyItem.user_agent}</p>
+                            )}
+                            {historyItem.session_id && (
+                              <p>Session: {historyItem.session_id}</p>
+                            )}
+                            {historyItem.metadata && (
+                              <p>Metadata: {JSON.stringify(historyItem.metadata, null, 2)}</p>
+                            )}
+                          </div>
                         )}
-                      </div>
-                      <span className="text-xs text-gray-500">2 min após criação</span>
+                      </Card>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Sistema atribuiu automaticamente para {ticket.assignedToName || 'Equipe de Suporte'}
-                    </p>
-                    {historyViewMode === 'advanced' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                        <p>Rule: AUTO_ASSIGN_BY_CATEGORY | Category: {ticket.category} | Queue: support_l1</p>
-                        <p>Algorithm: ROUND_ROBIN | Load_Factor: 0.7 | SLA: 2h_response</p>
-                        <p>Permission: system.auto_assign | Bypass: FALSE | Override: NONE</p>
-                      </div>
-                    )}
-                  </Card>
-                </div>
-
-                {/* Email Automático Enviado */}
-                <div className="relative">
-                  <div className="absolute -left-6 w-3 h-3 bg-indigo-500 rounded-full"></div>
-                  <Card className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-indigo-600" />
-                        <span className="font-medium text-sm">Email Confirmação</span>
-                        {historyViewMode === 'advanced' && (
-                          <Badge variant="secondary" className="text-xs">EMAIL_AUTOMATION</Badge>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">3 min após criação</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Email de confirmação enviado para {ticket.customerEmail || ticket.contactEmail}
-                    </p>
-                    {historyViewMode === 'advanced' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                        <p>SMTP: smtp.conductor.com:587 | Template: ticket_confirmation_v1.2</p>
-                        <p>Status: DELIVERED | Message-ID: &lt;{ticket.id?.slice(0, 12)}@conductor.com&gt;</p>
-                        <p>Bounce_Rate: 0% | Open_Rate: tracking_enabled | Authentication: SPF+DKIM</p>
-                      </div>
-                    )}
-                  </Card>
-                </div>
-
-                {/* Primeira Visualização */}
-                <div className="relative">
-                  <div className="absolute -left-6 w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <Card className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Eye className="h-4 w-4 text-purple-600" />
-                        <span className="font-medium text-sm">Primeira Visualização</span>
-                        {historyViewMode === 'advanced' && (
-                          <Badge variant="secondary" className="text-xs">USER_INTERACTION</Badge>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">15 min após criação</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Visualizado por {ticket.assignedToName || 'Agente'} pela primeira vez
-                    </p>
-                    {historyViewMode === 'advanced' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                        <p>User_Agent: Mozilla/5.0 | Browser: Chrome/120.0 | Platform: Windows_11</p>
-                        <p>Session_Duration: 00:03:42 | Actions: view,edit_form | Permission: ticket.read</p>
-                        <p>Cache: HIT | Load_Time: 234ms | Database_Queries: 3 | Memory_Usage: 12MB</p>
-                      </div>
-                    )}
-                  </Card>
-                </div>
-
-                {/* Status Atualizado */}
-                <div className="relative">
-                  <div className="absolute -left-6 w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <Card className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <RefreshCw className="h-4 w-4 text-orange-600" />
-                        <span className="font-medium text-sm">Status Atualizado</span>
-                        {historyViewMode === 'advanced' && (
-                          <Badge variant="secondary" className="text-xs">STATUS_CHANGE</Badge>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">20 min após criação</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Status alterado de "Novo" para "{ticket.status === 'open' ? 'Aberto' : ticket.status === 'in_progress' ? 'Em Progresso' : 'Resolvido'}"
-                    </p>
-                    {historyViewMode === 'advanced' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                        <p>Previous_Value: new | New_Value: {ticket.status} | Changed_By: user_{ticket.assignedToId?.slice(0, 8)}</p>
-                        <p>Workflow: TRIGGERED | SLA_Timer: STARTED | Escalation: Level_1</p>
-                        <p>Table_Update: tickets.status | Index_Update: status_idx | Cache_Invalidation: PENDING</p>
-                      </div>
-                    )}
-                  </Card>
-                </div>
+                  );
+                }) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum histórico disponível</p>
+                  </div>
+                )}
 
                 {/* Comunicações */}
                 {communications.length > 0 && communications.map((comm, index) => (
