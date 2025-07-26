@@ -120,6 +120,18 @@ interface Customer {
   email: string;
 }
 
+interface Company {
+  id: string;
+  name: string;
+  displayName: string | null;
+  description: string | null;
+  size: string | null;
+  subscriptionTier: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface HierarchicalConfiguration {
   id: string;
   customerId: string;
@@ -216,7 +228,7 @@ export default function TicketConfiguration() {
   });
 
   // Queries for hierarchical configurations
-  const { data: customersData, isLoading: customersLoading } = useQuery({
+  const { data: companiesData, isLoading: companiesLoading } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/customers/companies');
@@ -224,8 +236,8 @@ export default function TicketConfiguration() {
     }
   });
 
-  // Extract customers from the response structure
-  const customers = customersData?.success ? customersData.data : (customersData || []);
+  // Extract companies from the response structure
+  const companies: Company[] = companiesData?.success ? companiesData.data : (companiesData || []);
 
   const { data: hierarchicalConfig, isLoading: hierarchicalLoading } = useQuery({
     queryKey: ['/api/ticket-metadata-hierarchical/customer', selectedCustomer, 'configuration'],
@@ -674,17 +686,19 @@ export default function TicketConfiguration() {
                     <SelectValue placeholder="Selecione uma empresa cliente..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {customersLoading ? (
-                      <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
-                    ) : customers.length > 0 ? (
-                      customers.map((customer: Customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.company || `${customer.firstName} ${customer.lastName}`} 
-                          <span className="text-gray-500 ml-2">({customer.email})</span>
+                    {companiesLoading ? (
+                      <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
+                    ) : companies.length > 0 ? (
+                      companies.map((company: Company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.displayName || company.name}
+                          {company.description && (
+                            <span className="text-gray-500 ml-2">({company.description})</span>
+                          )}
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="empty" disabled>Nenhum cliente encontrado</SelectItem>
+                      <SelectItem value="empty" disabled>Nenhuma empresa encontrada</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
