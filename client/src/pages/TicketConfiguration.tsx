@@ -6,7 +6,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,6 +227,12 @@ function TicketConfiguration() {
         { value: "", label: "", color: "#3b82f6", isDefault: false }
       ]
     }
+  });
+
+  // Field array for hierarchical options
+  const { fields: hierarchicalOptions, append: addHierarchicalOption, remove: removeHierarchicalOption } = useFieldArray({
+    control: hierarchicalForm.control,
+    name: "options"
   });
 
   // Internal hierarchy forms
@@ -1829,7 +1835,7 @@ function TicketConfiguration() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={addHierarchicalOption}
+                  onClick={() => addHierarchicalOption({ value: "", label: "", color: "#3b82f6", isDefault: false })}
                   className="w-full"
                 >
                   <Plus className="w-4 h-4 mr-2" />
