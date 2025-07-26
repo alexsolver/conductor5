@@ -8,7 +8,9 @@ import {
   ArrowLeft, Edit, Save, X, Trash2, Eye, ChevronRight, ChevronLeft,
   Paperclip, FileText, MessageSquare, History, Settings,
   User, Users, Tag, AlertCircle, FileIcon, Upload, Plus, Send,
-  Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2
+  Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
+  Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
+  Heading1, Heading2, Heading3, Undo, Redo, Strikethrough
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -76,15 +78,75 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
   return (
     <div className={`border rounded-md ${disabled ? 'bg-gray-50' : 'bg-white'}`}>
       {!disabled && (
-        <div className="flex gap-2 p-2 border-b bg-gray-50">
+        <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50">
+          {/* Undo/Redo */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            title="Desfazer"
+          >
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            title="Refazer"
+          >
+            <Redo className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+          
+          {/* Headings */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}
+            title="Título 1"
+          >
+            <Heading1 className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
+            title="Título 2"
+          >
+            <Heading2 className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={editor.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}
+            title="Título 3"
+          >
+            <Heading3 className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+          
+          {/* Text Formatting */}
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={editor.isActive('bold') ? 'bg-gray-200' : ''}
+            title="Negrito"
           >
-            <strong>B</strong>
+            <Bold className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -92,22 +154,75 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
             size="sm"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={editor.isActive('italic') ? 'bg-gray-200' : ''}
+            title="Itálico"
           >
-            <em>I</em>
+            <Italic className="h-4 w-4" />
           </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={editor.isActive('strike') ? 'bg-gray-200' : ''}
+            title="Riscado"
+          >
+            <Strikethrough className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            className={editor.isActive('code') ? 'bg-gray-200' : ''}
+            title="Código"
+          >
+            <Code className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+          
+          {/* Lists */}
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
+            title="Lista com marcadores"
           >
-            • Lista
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
+            title="Lista numerada"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+          
+          {/* Quote */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
+            title="Citação"
+          >
+            <Quote className="h-4 w-4" />
           </Button>
         </div>
       )}
       <div className="min-h-[100px] p-3">
-        <EditorContent editor={editor} />
+        <EditorContent 
+          editor={editor} 
+          className="prose prose-sm max-w-none focus:outline-none"
+        />
       </div>
     </div>
   );
