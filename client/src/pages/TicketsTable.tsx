@@ -169,6 +169,105 @@ export default function TicketsTable() {
   const users = usersData?.users || [];
   const ticketViews = ticketViewsData?.data || [];
 
+  // Obter visualização ativa
+  const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
+  const activeColumns = activeView?.columns || [
+    { id: "number", label: "Número", visible: true, order: 1, width: 120 },
+    { id: "subject", label: "Assunto", visible: true, order: 2, width: 300 },
+    { id: "customer", label: "Cliente", visible: true, order: 3, width: 150 },
+    { id: "category", label: "Categoria", visible: true, order: 4, width: 120 },
+    { id: "status", label: "Status", visible: true, order: 5, width: 120 },
+    { id: "priority", label: "Prioridade", visible: true, order: 6, width: 120 },
+    { id: "created", label: "Criado", visible: true, order: 7, width: 150 }
+  ];
+
+  // Filtrar apenas colunas visíveis e ordenar
+  const visibleColumns = activeColumns
+    .filter((col: any) => col.visible)
+    .sort((a: any, b: any) => a.order - b.order);
+
+  // Função para renderizar célula baseada na coluna
+  const renderCell = (column: any, ticket: Ticket) => {
+    switch (column.id) {
+      case 'number':
+        return (
+          <TableCell className="font-mono text-sm">
+            <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+              {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+            </Link>
+          </TableCell>
+        );
+      case 'subject':
+        return (
+          <TableCell className="font-medium max-w-xs truncate">
+            {(ticket as any).shortDescription || ticket.subject}
+          </TableCell>
+        );
+      case 'customer':
+        return (
+          <TableCell>
+            <div>
+              <div className="font-medium">
+                {ticket.customer?.fullName || 'N/A'}
+              </div>
+              <div className="text-sm text-gray-500">
+                {ticket.customer?.email || 'N/A'}
+              </div>
+            </div>
+          </TableCell>
+        );
+      case 'category':
+        return (
+          <TableCell>
+            <DynamicBadge fieldName="category" value={(ticket as any).category || 'other'}>
+              {(ticket as any).category || 'Other'}
+            </DynamicBadge>
+          </TableCell>
+        );
+      case 'status':
+        return (
+          <TableCell>
+            <DynamicBadge fieldName="status" value={((ticket as any).state || ticket.status).replace('_', ' ')} />
+          </TableCell>
+        );
+      case 'priority':
+        return (
+          <TableCell>
+            <DynamicBadge fieldName="priority" value={ticket.priority} />
+          </TableCell>
+        );
+      case 'impact':
+        return (
+          <TableCell>
+            <DynamicBadge fieldName="impact" value={(ticket as any).impact || 'medium'}>
+              {(ticket as any).impact || 'Medium'}
+            </DynamicBadge>
+          </TableCell>
+        );
+      case 'assigned_to':
+        return (
+          <TableCell>
+            {ticket.assignedTo ? (
+              <div>
+                <div className="font-medium">{ticket.assignedTo.firstName} {ticket.assignedTo.lastName}</div>
+                <div className="text-sm text-gray-500">{ticket.assignedTo.email}</div>
+              </div>
+            ) : (
+              <span className="text-gray-400">Unassigned</span>
+            )}
+          </TableCell>
+        );
+      case 'created':
+        return (
+          <TableCell>
+            {new Date(ticket.createdAt).toLocaleDateString()}
+          </TableCell>
+        );
+      default:
+        return <TableCell>-</TableCell>;
+    }
+  };
+
   // Mutation para criar nova visualização
   const createViewMutation = useMutation({
     mutationFn: async (viewData: any) => {
@@ -855,22 +954,18 @@ export default function TicketsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Number</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Impact</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead>Created</TableHead>
+                  {visibleColumns.map((column: any) => (
+                    <TableHead key={column.id} style={{ width: column.width }}>
+                      {column.label}
+                    </TableHead>
+                  ))}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8">
+                    <TableCell colSpan={visibleColumns.length + 1} className="text-center py-8">
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                         <span className="ml-2">Loading tickets...</span>
@@ -879,7 +974,7 @@ export default function TicketsTable() {
                   </TableRow>
                 ) : tickets.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={visibleColumns.length + 1} className="text-center py-8 text-gray-500">
                       {ticketsError ? (
                         <div>
                           <p>Error loading tickets: {ticketsError.message}</p>
@@ -892,55 +987,9 @@ export default function TicketsTable() {
                   </TableRow>
                 ) : tickets.map((ticket: Ticket) => (
                   <TableRow key={ticket.id}>
-                    <TableCell className="font-mono text-sm">
-                      <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
-                        {(ticket as any).number || `#${ticket.id.slice(-8)}`}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="font-medium max-w-xs truncate">
-                      {(ticket as any).shortDescription || ticket.subject}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {ticket.customer_first_name && ticket.customer_last_name 
-                            ? `${ticket.customer_first_name} ${ticket.customer_last_name}`
-                            : ticket.customer?.fullName || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {ticket.customer_email || ticket.customer?.email || 'N/A'}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <DynamicBadge fieldName="category" value={(ticket as any).category || 'other'}>
-                        {(ticket as any).category || 'Other'}
-                      </DynamicBadge>
-                    </TableCell>
-                    <TableCell>
-                      <DynamicBadge fieldName="status" value={((ticket as any).state || ticket.status).replace('_', ' ')} />
-                    </TableCell>
-                    <TableCell>
-                      <DynamicBadge fieldName="priority" value={ticket.priority} />
-                    </TableCell>
-                    <TableCell>
-                      <DynamicBadge fieldName="impact" value={(ticket as any).impact || 'medium'}>
-                        {(ticket as any).impact || 'Medium'}
-                      </DynamicBadge>
-                    </TableCell>
-                    <TableCell>
-                      {ticket.assignedTo ? (
-                        <div>
-                          <div className="font-medium">{ticket.assignedTo.firstName} {ticket.assignedTo.lastName}</div>
-                          <div className="text-sm text-gray-500">{ticket.assignedTo.email}</div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">Unassigned</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(ticket.createdAt).toLocaleDateString()}
-                    </TableCell>
+                    {visibleColumns.map((column: any) => 
+                      renderCell(column, ticket)
+                    )}
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
