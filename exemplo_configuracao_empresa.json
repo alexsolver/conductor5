@@ -1,0 +1,34 @@
+{
+  "empresa_tech": {
+    "fieldName": "priority",
+    "displayName": "Prioridade Tech",
+    "options": [
+      { "value": "p1", "label": "P1 - Crítico", "color": "#DC2626", "isDefault": false },
+      { "value": "p2", "label": "P2 - Alto", "color": "#EA580C", "isDefault": false },
+      { "value": "p3", "label": "P3 - Médio", "color": "#CA8A04", "isDefault": true },
+      { "value": "p4", "label": "P4 - Baixo", "color": "#16A34A", "isDefault": false }
+    ]
+  },
+  
+  "empresa_hospital": {
+    "fieldName": "priority", 
+    "displayName": "Severidade Médica",
+    "options": [
+      { "value": "emergencial", "label": "Emergencial", "color": "#B91C1C", "isDefault": false },
+      { "value": "urgente", "label": "Urgente", "color": "#DC2626", "isDefault": false },
+      { "value": "moderado", "label": "Moderado", "color": "#D97706", "isDefault": true },
+      { "value": "eletivo", "label": "Eletivo", "color": "#059669", "isDefault": false }
+    ]
+  },
+
+  "empresa_financeira": {
+    "fieldName": "priority",
+    "displayName": "Nível de Risco", 
+    "options": [
+      { "value": "alto_risco", "label": "Alto Risco", "color": "#991B1B", "isDefault": false },
+      { "value": "medio_risco", "label": "Médio Risco", "color": "#B45309", "isDefault": true },
+      { "value": "baixo_risco", "label": "Baixo Risco", "color": "#047857", "isDefault": false },
+      { "value": "sem_risco", "label": "Sem Risco", "color": "#1F2937", "isDefault": false }
+    ]
+  }
+}
