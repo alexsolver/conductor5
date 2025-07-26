@@ -747,7 +747,7 @@ export default function TicketEdit() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {customers.map((customer) => (
+                                {customers.map((customer: any) => (
                                   <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
@@ -773,7 +773,7 @@ export default function TicketEdit() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="none">Nenhum</SelectItem>
-                                {customers.map((customer) => (
+                                {customers.map((customer: any) => (
                                   <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
@@ -799,7 +799,7 @@ export default function TicketEdit() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="unassigned">Não atribuído</SelectItem>
-                                {users.map((user) => (
+                                {users.map((user: any) => (
                                   <SelectItem key={user.id} value={user.id}>
                                     {user.username}
                                   </SelectItem>
