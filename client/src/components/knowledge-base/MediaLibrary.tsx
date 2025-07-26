@@ -94,25 +94,49 @@ const MediaLibrary = ({ onSelectFile, selectionMode = false, acceptedTypes }: Me
   const queryClient = useQueryClient();
 
   // Queries
-  const { data: mediaFiles = [], isLoading: filesLoading } = useQuery({
+  const { data: mediaFilesResponse, isLoading: filesLoading } = useQuery({
     queryKey: ['/api/knowledge-base/media/files', selectedFolder, searchQuery, selectedType],
-    queryFn: () => apiRequest('GET', `/api/knowledge-base/media/files?folder=${selectedFolder || ''}&search=${searchQuery}&type=${selectedType}`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/knowledge-base/media/files?folder=${selectedFolder || ''}&search=${searchQuery}&type=${selectedType}`);
+      return response.json();
+    }
   });
 
-  const { data: folders = [], isLoading: foldersLoading } = useQuery({
+  const { data: foldersResponse, isLoading: foldersLoading } = useQuery({
     queryKey: ['/api/knowledge-base/media/folders'],
-    queryFn: () => apiRequest('GET', '/api/knowledge-base/media/folders')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/knowledge-base/media/folders');
+      return response.json();
+    }
   });
 
-  const { data: mediaStats, isLoading: statsLoading } = useQuery({
+  const { data: mediaStatsResponse, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/knowledge-base/media/stats'],
-    queryFn: () => apiRequest('GET', '/api/knowledge-base/media/stats')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/knowledge-base/media/stats');
+      return response.json();
+    }
+  });
+
+  // Extract data from API response format
+  const mediaFiles = Array.isArray(mediaFilesResponse?.data) ? mediaFilesResponse.data : [];
+  const folders = Array.isArray(foldersResponse?.data) ? foldersResponse.data : [];
+  const mediaStats = mediaStatsResponse?.data || null;
+
+  // Debug logging
+  console.log('📁 MediaLibrary Debug:', {
+    mediaFilesResponse,
+    mediaFiles: mediaFiles?.length,
+    isArray: Array.isArray(mediaFiles),
+    folders: folders?.length,
+    mediaStats
   });
 
   // Mutations
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return apiRequest('POST', '/api/knowledge-base/media/upload', formData);
+      const response = await apiRequest('POST', '/api/knowledge-base/media/upload', formData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/media/files'] });
@@ -126,7 +150,10 @@ const MediaLibrary = ({ onSelectFile, selectionMode = false, acceptedTypes }: Me
   });
 
   const createFolderMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/knowledge-base/media/folders', data),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/knowledge-base/media/folders', data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/media/folders'] });
       setIsFolderDialogOpen(false);
@@ -135,7 +162,10 @@ const MediaLibrary = ({ onSelectFile, selectionMode = false, acceptedTypes }: Me
   });
 
   const deleteFileMutation = useMutation({
-    mutationFn: (fileId: string) => apiRequest('DELETE', `/api/knowledge-base/media/files/${fileId}`),
+    mutationFn: async (fileId: string) => {
+      const response = await apiRequest('DELETE', `/api/knowledge-base/media/files/${fileId}`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/media/files'] });
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/media/stats'] });
