@@ -104,7 +104,9 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
           id: user.id,
           email: user.email,
           role: user.role,
-          tenantId: user.tenantId
+          tenantId: user.tenantId,
+          permissions: [],
+          attributes: {}
         };
       }
     }
