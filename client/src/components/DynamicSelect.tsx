@@ -9,7 +9,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 
 interface DynamicSelectProps {
   fieldName: string;
-  value: string;
+  value?: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
   className?: string;

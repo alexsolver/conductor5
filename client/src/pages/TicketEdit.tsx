@@ -29,24 +29,24 @@ import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 
-// Form schema - Updated to match database field names exactly
-const ticketFormSchema = z.object({
+// Form schema - Dynamic schema will be generated from metadata
+const baseTicketFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
-  priority: z.enum(["low", "medium", "high", "critical"]),
-  urgency: z.enum(["low", "medium", "high", "critical"]),
-  impact: z.enum(["low", "medium", "high", "critical"]),
-  status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
+  priority: z.string().optional(),
+  urgency: z.string().optional(),
+  impact: z.string().optional(),
+  status: z.string().optional(),
   category: z.string().optional(),
   subcategory: z.string().optional(),
   callerId: z.string().min(1, "Caller is required"),
-  callerType: z.enum(["customer", "user"]),
+  callerType: z.string().optional(),
   beneficiaryId: z.string().optional(),
-  beneficiaryType: z.enum(["customer", "user"]),
+  beneficiaryType: z.string().optional(),
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
-  contactType: z.enum(["email", "phone", "chat", "portal"]),
+  contactType: z.string().optional(),
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
@@ -71,7 +71,7 @@ const ticketFormSchema = z.object({
   closeToPublish: z.boolean().default(false),
 });
 
-type TicketFormData = z.infer<typeof ticketFormSchema>;
+type TicketFormData = z.infer<typeof baseTicketFormSchema>;
 
 export default function TicketEdit() {
   const { id } = useParams<{ id: string }>();
@@ -85,8 +85,8 @@ export default function TicketEdit() {
   const [isTicketHistoryModalOpen, setIsTicketHistoryModalOpen] = useState(false);
   const [isApprovalRequestModalOpen, setIsApprovalRequestModalOpen] = useState(false);
   
-  // Initialize metadata system with defaults
-  const { initializeDefaults, isInitializing } = useTicketMetadata();
+  // Use metadata system
+  const { isLoading: metadataLoading } = useTicketMetadata();
 
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({
@@ -121,7 +121,7 @@ export default function TicketEdit() {
 
   // Form setup
   const form = useForm<TicketFormData>({
-    resolver: zodResolver(ticketFormSchema),
+    resolver: zodResolver(baseTicketFormSchema),
     defaultValues: {
       subject: "",
       description: "",
@@ -606,19 +606,14 @@ export default function TicketEdit() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Tipo de Chamado:</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Solicitação" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="solicitacao">Solicitação</SelectItem>
-                                    <SelectItem value="incidente">Incidente</SelectItem>
-                                    <SelectItem value="problema">Problema</SelectItem>
-                                    <SelectItem value="mudanca">Mudança</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="callType"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Solicitação"
+                                  />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
