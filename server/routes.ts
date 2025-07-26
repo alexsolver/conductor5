@@ -1558,7 +1558,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Ticket Metadata API Routes
+  // Debug endpoint to check table existence
+  app.get('/api/ticket-metadata/debug', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID required' });
+      }
+
+      try {
+        const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+        
+        // Try simple select to check if tables exist
+        const configTest = await tenantDb.select().from(ticketFieldConfigurations).limit(1);
+        const optionsTest = await tenantDb.select().from(ticketFieldOptions).limit(1);
+        
+        res.json({ 
+          success: true, 
+          message: 'Tables accessible',
+          tenantId: tenantId,
+          configRows: configTest.length,
+          optionsRows: optionsTest.length
+        });
+      } catch (tableError) {
+        res.json({ 
+          success: false, 
+          error: tableError.message,
+          tenantId: tenantId,
+          details: 'Tables may not exist in tenant schema'
+        });
+      }
+    } catch (error) {
+      console.error('Debug error:', error);
+      res.status(500).json({ error: 'Debug failed', details: error.message });
+    }
+  });
+
+  // Ticket Metadata API Routes using direct SQL
   app.get("/api/ticket-metadata/field-configurations", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
@@ -1567,15 +1603,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const fieldConfigs = await tenantDb.select()
-        .from(ticketFieldConfigurations)
-        .where(and(
-          eq(ticketFieldConfigurations.tenantId, tenantId),
-          eq(ticketFieldConfigurations.isActive, true)
-        ))
-        .orderBy(ticketFieldConfigurations.displayOrder);
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await tenantDb.execute(`
+        SELECT * FROM "${tenantSchema}".ticket_field_configurations 
+        WHERE tenant_id = '${tenantId}' AND is_active = true 
+        ORDER BY sort_order
+      `);
 
-      res.json({ success: true, data: fieldConfigs });
+      res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error fetching field configurations:', error);
       res.status(500).json({ error: 'Failed to fetch field configurations' });
@@ -1589,23 +1625,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Tenant ID required' });
       }
 
+      const fieldName = req.query.fieldName as string;
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const fieldOptions = await tenantDb.select()
-        .from(ticketFieldOptions)
-        .where(and(
-          eq(ticketFieldOptions.tenantId, tenantId),
-          eq(ticketFieldOptions.isActive, true)
-        ))
-        .orderBy(ticketFieldOptions.fieldName, ticketFieldOptions.sortOrder);
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      let query = `
+        SELECT * FROM "${tenantSchema}".ticket_field_options 
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+      `;
+      
+      if (fieldName) {
+        query += ` AND fieldName = '${fieldName}'`;
+      }
+      
+      query += ` ORDER BY sort_order`;
+      
+      const result = await tenantDb.execute(query);
 
-      res.json({ success: true, data: fieldOptions });
+      res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error fetching field options:', error);
       res.status(500).json({ error: 'Failed to fetch field options' });
     }
   });
 
-  // Temporary route to initialize ticket metadata
+  // Initialize ticket metadata endpoint - criar dados de exemplo
   app.post("/api/admin/initialize-ticket-metadata", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
@@ -1613,7 +1657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Tenant ID required' });
       }
 
-      const { db: tenantDb } = await db.getTenantDb(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       
       // Clear existing data
       await tenantDb.delete(ticketFieldConfigurations).where(eq(ticketFieldConfigurations.tenantId, tenantId));
@@ -1622,114 +1666,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Field configurations
       const fieldConfigs = [
-        { fieldName: 'priority', label: 'Prioridade', fieldType: 'select', isRequired: true, isSystem: true, displayOrder: 1 },
-        { fieldName: 'urgency', label: 'Urgência', fieldType: 'select', isRequired: true, isSystem: true, displayOrder: 2 },
-        { fieldName: 'impact', label: 'Impacto', fieldType: 'select', isRequired: true, isSystem: true, displayOrder: 3 },
-        { fieldName: 'status', label: 'Status', fieldType: 'select', isRequired: true, isSystem: true, displayOrder: 4 },
-        { fieldName: 'environment', label: 'Ambiente', fieldType: 'select', isRequired: false, isSystem: false, displayOrder: 5 },
-        { fieldName: 'groupField', label: 'Grupo', fieldType: 'select', isRequired: false, isSystem: false, displayOrder: 6 },
-        { fieldName: 'publicationPriority', label: 'Prioridade da Publicação', fieldType: 'select', isRequired: false, isSystem: false, displayOrder: 7 }
+        { tenantId, fieldName: 'priority', displayName: 'Prioridade', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 1 },
+        { tenantId, fieldName: 'urgency', displayName: 'Urgência', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 2 },
+        { tenantId, fieldName: 'impact', displayName: 'Impacto', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 3 },
+        { tenantId, fieldName: 'status', displayName: 'Status', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 4 },
+        { tenantId, fieldName: 'environment', displayName: 'Ambiente', fieldType: 'select', isRequired: false, isSystemField: false, sortOrder: 5 },
+        { tenantId, fieldName: 'category', displayName: 'Categoria', fieldType: 'select', isRequired: false, isSystemField: false, sortOrder: 6 }
       ];
 
       // Insert field configurations
-      for (const config of fieldConfigs) {
-        await tenantDb.insert(ticketFieldConfigurations).values({
-          tenantId,
-          fieldName: config.fieldName,
-          label: config.label,
-          fieldType: config.fieldType,
-          isRequired: config.isRequired,
-          isSystem: config.isSystem,
-          displayOrder: config.displayOrder,
-          isActive: true
-        });
-      }
+      await tenantDb.insert(ticketFieldConfigurations).values(fieldConfigs);
 
       // Field options
       const fieldOptions = [
-        // Priority
-        { fieldName: 'priority', optionValue: 'low', optionLabel: 'Baixa', bgColor: 'bg-green-100', textColor: 'text-green-800', sortOrder: 1 },
-        { fieldName: 'priority', optionValue: 'medium', optionLabel: 'Média', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', sortOrder: 2 },
-        { fieldName: 'priority', optionValue: 'high', optionLabel: 'Alta', bgColor: 'bg-orange-100', textColor: 'text-orange-800', sortOrder: 3 },
-        { fieldName: 'priority', optionValue: 'critical', optionLabel: 'Crítica', bgColor: 'bg-red-100', textColor: 'text-red-800', sortOrder: 4 },
-        // Urgency
-        { fieldName: 'urgency', optionValue: 'low', optionLabel: 'Baixa', bgColor: 'bg-green-100', textColor: 'text-green-800', sortOrder: 1 },
-        { fieldName: 'urgency', optionValue: 'medium', optionLabel: 'Média', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', sortOrder: 2 },
-        { fieldName: 'urgency', optionValue: 'high', optionLabel: 'Alta', bgColor: 'bg-orange-100', textColor: 'text-orange-800', sortOrder: 3 },
-        { fieldName: 'urgency', optionValue: 'critical', optionLabel: 'Crítica', bgColor: 'bg-red-100', textColor: 'text-red-800', sortOrder: 4 },
-        // Impact
-        { fieldName: 'impact', optionValue: 'low', optionLabel: 'Baixo', bgColor: 'bg-green-100', textColor: 'text-green-800', sortOrder: 1 },
-        { fieldName: 'impact', optionValue: 'medium', optionLabel: 'Médio', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', sortOrder: 2 },
-        { fieldName: 'impact', optionValue: 'high', optionLabel: 'Alto', bgColor: 'bg-orange-100', textColor: 'text-orange-800', sortOrder: 3 },
-        { fieldName: 'impact', optionValue: 'critical', optionLabel: 'Crítico', bgColor: 'bg-red-100', textColor: 'text-red-800', sortOrder: 4 },
-        // Status
-        { fieldName: 'status', optionValue: 'open', optionLabel: 'Aberto', bgColor: 'bg-blue-100', textColor: 'text-blue-800', sortOrder: 1 },
-        { fieldName: 'status', optionValue: 'in_progress', optionLabel: 'Em Progresso', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', sortOrder: 2 },
-        { fieldName: 'status', optionValue: 'pending', optionLabel: 'Pendente', bgColor: 'bg-gray-100', textColor: 'text-gray-800', sortOrder: 3 },
-        { fieldName: 'status', optionValue: 'resolved', optionLabel: 'Resolvido', bgColor: 'bg-green-100', textColor: 'text-green-800', sortOrder: 4 },
-        { fieldName: 'status', optionValue: 'closed', optionLabel: 'Fechado', bgColor: 'bg-gray-100', textColor: 'text-gray-800', sortOrder: 5 },
-        // Environment
-        { fieldName: 'environment', optionValue: 'lansolver', optionLabel: 'LANSOLVER', bgColor: 'bg-purple-100', textColor: 'text-purple-800', sortOrder: 1 },
-        { fieldName: 'environment', optionValue: 'production', optionLabel: 'PRODUÇÃO', bgColor: 'bg-red-100', textColor: 'text-red-800', sortOrder: 2 },
-        { fieldName: 'environment', optionValue: 'development', optionLabel: 'DESENVOLVIMENTO', bgColor: 'bg-blue-100', textColor: 'text-blue-800', sortOrder: 3 },
-        { fieldName: 'environment', optionValue: 'staging', optionLabel: 'HOMOLOGAÇÃO', bgColor: 'bg-orange-100', textColor: 'text-orange-800', sortOrder: 4 },
-        // Group Field
-        { fieldName: 'groupField', optionValue: 'infraestrutura', optionLabel: 'Infraestrutura', bgColor: 'bg-blue-100', textColor: 'text-blue-800', sortOrder: 1 },
-        { fieldName: 'groupField', optionValue: 'desenvolvimento', optionLabel: 'Desenvolvimento', bgColor: 'bg-green-100', textColor: 'text-green-800', sortOrder: 2 },
-        { fieldName: 'groupField', optionValue: 'suporte', optionLabel: 'Suporte', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', sortOrder: 3 },
-        { fieldName: 'groupField', optionValue: 'qualidade', optionLabel: 'Qualidade', bgColor: 'bg-purple-100', textColor: 'text-purple-800', sortOrder: 4 },
-        // Publication Priority
-        { fieldName: 'publicationPriority', optionValue: '1-baixa', optionLabel: '1 - Baixa - até 7 dias', bgColor: 'bg-green-100', textColor: 'text-green-800', sortOrder: 1 },
-        { fieldName: 'publicationPriority', optionValue: '2-normal', optionLabel: '2 - Normal - até 3 dias', bgColor: 'bg-blue-100', textColor: 'text-blue-800', sortOrder: 2 },
-        { fieldName: 'publicationPriority', optionValue: '3-alta', optionLabel: '3 - Alta - até 1 dia', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', sortOrder: 3 },
-        { fieldName: 'publicationPriority', optionValue: '4-critica', optionLabel: '4 - Crítico - até 30 minutos', bgColor: 'bg-orange-100', textColor: 'text-orange-800', sortOrder: 4 },
-        { fieldName: 'publicationPriority', optionValue: '5-emergencial', optionLabel: '5 - Emergencial - imediato', bgColor: 'bg-red-100', textColor: 'text-red-800', sortOrder: 5 }
+        // Priority options
+        { tenantId, optionValue: 'low', displayLabel: 'Baixa', colorHex: '#10B981', sortOrder: 1 },
+        { tenantId, optionValue: 'medium', displayLabel: 'Média', colorHex: '#F59E0B', sortOrder: 2, isDefault: true },
+        { tenantId, optionValue: 'high', displayLabel: 'Alta', colorHex: '#F97316', sortOrder: 3 },
+        { tenantId, optionValue: 'critical', displayLabel: 'Crítica', colorHex: '#EF4444', sortOrder: 4 },
+        
+        // Status options
+        { tenantId, optionValue: 'open', displayLabel: 'Aberto', colorHex: '#2563EB', sortOrder: 1, isDefault: true },
+        { tenantId, optionValue: 'in_progress', displayLabel: 'Em Andamento', colorHex: '#F59E0B', sortOrder: 2 },
+        { tenantId, optionValue: 'resolved', displayLabel: 'Resolvido', colorHex: '#10B981', sortOrder: 3 },
+        { tenantId, optionValue: 'closed', displayLabel: 'Fechado', colorHex: '#6B7280', sortOrder: 4 }
       ];
 
       // Insert field options
-      for (const option of fieldOptions) {
-        await tenantDb.insert(ticketFieldOptions).values({
-          tenantId,
-          fieldName: option.fieldName,
-          optionValue: option.optionValue,
-          optionLabel: option.optionLabel,
-          bgColor: option.bgColor,
-          textColor: option.textColor,
-          sortOrder: option.sortOrder,
-          isActive: true
-        });
-      }
-
-      // Default configurations
-      const defaultConfigs = [
-        { fieldName: 'priority', defaultValue: 'medium' },
-        { fieldName: 'urgency', defaultValue: 'medium' },
-        { fieldName: 'impact', defaultValue: 'medium' },
-        { fieldName: 'status', defaultValue: 'open' },
-        { fieldName: 'environment', defaultValue: 'production' },
-        { fieldName: 'groupField', defaultValue: 'suporte' },
-        { fieldName: 'publicationPriority', defaultValue: '2-normal' }
-      ];
-
-      for (const config of defaultConfigs) {
-        await tenantDb.insert(ticketDefaultConfigurations).values({
-          tenantId,
-          fieldName: config.fieldName,
-          defaultValue: config.defaultValue,
-          isActive: true
-        });
-      }
+      await tenantDb.insert(ticketFieldOptions).values(fieldOptions);
 
       res.json({ 
         success: true, 
         message: 'Ticket metadata initialized successfully',
         counts: {
           fieldConfigurations: fieldConfigs.length,
-          fieldOptions: fieldOptions.length,
-          defaultConfigurations: defaultConfigs.length
+          fieldOptions: fieldOptions.length
         }
       });
-
     } catch (error) {
       console.error('Error initializing ticket metadata:', error);
       res.status(500).json({ error: 'Failed to initialize ticket metadata' });

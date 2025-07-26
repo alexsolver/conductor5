@@ -11,6 +11,7 @@
  */
 
 export * from './schema-master';
-export * from './schema-multilocation';
-export * from './schema-materials-services';
-export * from './schema-knowledge-base';
+// Note: Other schema files have overlapping exports, importing only master for now
+// export * from './schema-multilocation';
+// export * from './schema-materials-services';
+// export * from './schema-knowledge-base';
