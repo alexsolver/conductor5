@@ -38,6 +38,7 @@ const ticketFormSchema = z.object({
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "critical"]),
   impact: z.enum(["low", "medium", "high", "critical"]),
+  urgency: z.enum(["low", "medium", "high", "critical"]),
   status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
   category: z.string().optional(),
   subcategory: z.string().optional(),
@@ -681,8 +682,8 @@ export default function TicketDetails() {
             <div className="flex items-center justify-between mb-4">
               <span className="font-medium">Ticket #{ticket.ticketNumber}</span>
               <div className="flex gap-2">
-                <DynamicBadge fieldName="priority" value={ticket.priority} />
-                <DynamicBadge fieldName="status" value={ticket.status} />
+                <DynamicBadge fieldName="priority" value={ticket.priority}>{ticket.priority}</DynamicBadge>
+                <DynamicBadge fieldName="status" value={ticket.status}>{ticket.status}</DynamicBadge>
               </div>
             </div>
 
@@ -913,7 +914,69 @@ export default function TicketDetails() {
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prioridade</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="priority"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione a prioridade"
+                          disabled={!isEditMode}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="impact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Impacto</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="impact"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione o impacto"
+                          disabled={!isEditMode}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="urgency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Urgência</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="urgency"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione a urgência"
+                          disabled={!isEditMode}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <FormField
                   control={form.control}
                   name="status"
