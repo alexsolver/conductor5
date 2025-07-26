@@ -81,6 +81,28 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 **🎯 CRITICAL RUNTIME ERROR RESOLVED:**
 
+✅ **SELECTITEM BUG FIXED:**
+- Fixed critical "SelectItem must have a value prop that is not an empty string" runtime error
+- Corrected empty value="" to valid "unspecified" and "unassigned" values
+- Updated display logic to properly handle the new values
+- Added conditional rendering for empty state detection
+
+✅ **ASSIGNMENT FIELDS VALIDATION:**
+- Solicitante field: value="" → value="unspecified" 
+- Atribuído a field: value="" → value="unassigned"
+- Display logic updated to show "Não especificado" and "Não atribuído" correctly
+- Form integration maintains proper functionality with valid values
+
+✅ **USER EXPERIENCE PRESERVED:**
+- Dropdown selections still show appropriate placeholder text
+- Empty state handling maintains same visual behavior
+- All assignment functionality working without errors
+- Clean SelectItem implementation following React Select best practices
+
+### January 26, 2025 - MEDIALIBRARY RUNTIME ERROR FIXED ✅ API DATA STRUCTURE PARSING CORRECTED
+
+**🎯 CRITICAL RUNTIME ERROR RESOLVED:**
+
 ✅ **MEDIALIBRARY BUG FIXED:**
 - Fixed critical "mediaFiles.map is not a function" runtime error
 - Corrected API response parsing from {"success": true, "data": [...]} format

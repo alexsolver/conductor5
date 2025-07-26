@@ -1182,7 +1182,7 @@ export default function TicketDetails() {
                     <SelectValue placeholder="Selecione o solicitante" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Não especificado</SelectItem>
+                    <SelectItem value="unspecified">Não especificado</SelectItem>
                     {customers?.customers?.map((customer: any) => (
                       <SelectItem key={customer.id} value={customer.id}>
                         {customer.name}
@@ -1192,7 +1192,8 @@ export default function TicketDetails() {
                 </Select>
               ) : (
                 <div className="text-sm text-gray-700">
-                  {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
+                  {ticket.callerId === 'unspecified' || !ticket.callerId ? 'Não especificado' : 
+                   customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 'Não especificado'}
                 </div>
               )}
             </div>
@@ -1209,7 +1210,7 @@ export default function TicketDetails() {
                     <SelectValue placeholder="Selecione o responsável" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Não atribuído</SelectItem>
+                    <SelectItem value="unassigned">Não atribuído</SelectItem>
                     {users?.users?.map((user: any) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
@@ -1219,7 +1220,8 @@ export default function TicketDetails() {
                 </Select>
               ) : (
                 <div className="text-sm text-gray-700">
-                  {users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
+                  {ticket.assignedToId === 'unassigned' || !ticket.assignedToId ? 'Não atribuído' : 
+                   users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
                 </div>
               )}
             </div>
