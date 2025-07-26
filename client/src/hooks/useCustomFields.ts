@@ -36,8 +36,13 @@ export function useCustomFields({ ticketId, entityType = 'ticket', entityId }: U
 
   // Update fields when data is loaded
   useEffect(() => {
-    if (savedFields?.fields) {
+    if (savedFields?.fields && Array.isArray(savedFields.fields)) {
       setFields(savedFields.fields);
+    } else if (savedFields?.data && Array.isArray(savedFields.data)) {
+      setFields(savedFields.data);
+    } else {
+      // Initialize with empty array if no fields found
+      setFields([]);
     }
   }, [savedFields]);
 

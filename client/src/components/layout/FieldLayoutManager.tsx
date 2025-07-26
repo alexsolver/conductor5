@@ -36,7 +36,7 @@ export default function FieldLayoutManager({
   const { toast } = useToast();
 
   const {
-    fields,
+    fields: rawFields,
     isLoading,
     addField,
     updateField,
@@ -48,6 +48,9 @@ export default function FieldLayoutManager({
     validateFields,
     isSaving
   } = useCustomFields({ ticketId, entityType, entityId });
+
+  // Ensure fields is always an array
+  const fields = Array.isArray(rawFields) ? rawFields : [];
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
