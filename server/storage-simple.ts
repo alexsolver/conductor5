@@ -1871,12 +1871,14 @@ export class DatabaseStorage implements IStorage {
 
       const projectId = randomUUID();
       const now = new Date().toISOString();
+      
+      logInfo('Creating project with data:', { projectData });
 
       const result = await tenantDb.execute(`
         INSERT INTO "${schemaName}".projects (
           id, tenant_id, name, description, status, priority, budget, 
           estimated_hours, start_date, end_date, manager_id, client_id, 
-          team_member_ids, tags, custom_fields, created_at, updated_at
+          team_member_ids, tags, custom_fields, created_at, updated_at, created_by, updated_by
         ) VALUES (
           '${projectId}', '${validatedTenantId}', '${projectData.name}', 
           '${projectData.description || ''}', '${projectData.status || 'planning'}', 
@@ -1889,7 +1891,7 @@ export class DatabaseStorage implements IStorage {
           NULL, 
           NULL, 
           NULL, 
-          '${now}', '${now}'
+          '${now}', '${now}', '${projectData.createdBy}', '${projectData.createdBy}'
         ) RETURNING *
       `);
 

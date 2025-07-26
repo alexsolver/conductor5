@@ -2269,7 +2269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
-      const project = await unifiedStorage.createProject(tenantId, req.body);
+      const projectData = { ...req.body, createdBy: req.user?.id };
+      const project = await unifiedStorage.createProject(tenantId, projectData);
       res.status(201).json({ success: true, data: project });
     } catch (error) {
       console.error('Error creating project:', error);
