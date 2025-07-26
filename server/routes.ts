@@ -37,7 +37,7 @@ import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
 import { materialsServicesRoutes } from './modules/materials-services/routes';
-// import knowledgeBaseRoutes from './modules/knowledge-base/routes';
+import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
 
 
@@ -805,8 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/materials-services', materialsServicesRoutes);
 
   // Knowledge Base Management routes - Base de Conhecimento  
-  //<previous_generation>
-  // app.use('/api/knowledge-base', knowledgeBaseRoutes);
+  app.use('/api/knowledge-base', knowledgeBaseRoutes);
 
   // Knowledge Base Routes - Direct Implementation
   app.get('/api/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
