@@ -11,7 +11,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
   Heading1, Heading2, Heading3, Undo, Redo, Strikethrough, AlertTriangle,
-  Mail
+  Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
+import InternalActionModal from "@/components/tickets/InternalActionModal";
 
 // Form schema
 const ticketFormSchema = z.object({
@@ -418,52 +419,7 @@ export default function TicketDetails() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Internal Actions
-  const handleInternalAction = async (action: string) => {
-    try {
-      const response = await apiRequest("POST", `/api/tickets/${id}/internal-actions`, {
-        action,
-        ticketId: id,
-        timestamp: new Date().toISOString()
-      });
-      
-      toast({
-        title: "Ação executada",
-        description: `${action} foi executada com sucesso.`,
-      });
-    } catch (error) {
-      console.error('Internal action failed:', error);
-      toast({
-        title: "Erro na ação",
-        description: `Falha ao executar ${action}. Tente novamente.`,
-        variant: "destructive",
-      });
-    }
-  };
 
-  // External Actions  
-  const handleExternalAction = async (action: string, platform: string) => {
-    try {
-      const response = await apiRequest("POST", `/api/tickets/${id}/external-actions`, {
-        action,
-        platform,
-        ticketId: id,
-        timestamp: new Date().toISOString()
-      });
-      
-      toast({
-        title: "Integração acionada",
-        description: `${action} no ${platform} foi executada.`,
-      });
-    } catch (error) {
-      console.error('External action failed:', error);
-      toast({
-        title: "Erro na integração",
-        description: `Falha na integração com ${platform}. Tente novamente.`,
-        variant: "destructive",
-      });
-    }
-  };
 
   // Form setup
   const form = useForm<TicketFormData>({
@@ -1484,15 +1440,148 @@ export default function TicketDetails() {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">📜 Histórico</h2>
-              <Badge variant="outline" className="text-xs">
-                {relatedTickets.length} ticket(s) relacionado(s)
-              </Badge>
+              <h2 className="text-xl font-semibold">📜 Histórico Completo</h2>
+              <div className="flex gap-2">
+                <Button
+                  variant={historyViewMode === 'simple' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setHistoryViewMode('simple')}
+                >
+                  Simples
+                </Button>
+                <Button
+                  variant={historyViewMode === 'advanced' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setHistoryViewMode('advanced')}
+                >
+                  Detalhado
+                </Button>
+              </div>
+            </div>
+
+            {/* Timeline de Mudanças */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Timeline de Eventos
+              </h3>
+              
+              <div className="space-y-3 border-l-2 border-gray-200 pl-4">
+                {/* Criação do Ticket */}
+                <div className="relative">
+                  <div className="absolute -left-6 w-3 h-3 bg-green-500 rounded-full"></div>
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <PlusCircle className="h-4 w-4 text-green-600" />
+                        <span className="font-medium text-sm">Ticket Criado</span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString('pt-BR') : 'N/A'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Ticket #{ticket.ticketNumber} criado por {ticket.createdByName || 'Sistema'}
+                    </p>
+                  </Card>
+                </div>
+
+                {/* Status Atual */}
+                <div className="relative">
+                  <div className="absolute -left-6 w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium text-sm">Status Atual</span>
+                      </div>
+                      <Badge variant="outline">
+                        {ticket.status === 'open' ? 'Aberto' :
+                         ticket.status === 'in_progress' ? 'Em Progresso' :
+                         ticket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Prioridade: {ticket.priority === 'high' ? 'Alta' :
+                                  ticket.priority === 'medium' ? 'Média' : 'Baixa'}
+                    </p>
+                  </Card>
+                </div>
+
+                {/* Interações Recentes */}
+                {communications.length > 0 && (
+                  <div className="relative">
+                    <div className="absolute -left-6 w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <Card className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-orange-600" />
+                          <span className="font-medium text-sm">Última Comunicação</span>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {communications[0]?.timestamp ? new Date(communications[0].timestamp).toLocaleString('pt-BR') : 'N/A'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {communications[0]?.type === 'internal' ? 'Nota interna' : 'Mensagem'} adicionada
+                      </p>
+                    </Card>
+                  </div>
+                )}
+
+                {historyViewMode === 'advanced' && (
+                  <>
+                    {/* Anexos */}
+                    {attachments.length > 0 && (
+                      <div className="relative">
+                        <div className="absolute -left-6 w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <Card className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Paperclip className="h-4 w-4 text-purple-600" />
+                              <span className="font-medium text-sm">Anexos</span>
+                            </div>
+                            <Badge variant="outline">{attachments.length} arquivo(s)</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {attachments.length} anexo(s) adicionado(s) ao ticket
+                          </p>
+                        </Card>
+                      </div>
+                    )}
+
+                    {/* Notas */}
+                    {notes.length > 0 && (
+                      <div className="relative">
+                        <div className="absolute -left-6 w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <Card className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-yellow-600" />
+                              <span className="font-medium text-sm">Notas</span>
+                            </div>
+                            <Badge variant="outline">{notes.length} nota(s)</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {notes.length} nota(s) adicionada(s) pela equipe
+                          </p>
+                        </Card>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Related Tickets */}
             <div className="space-y-4">
-              <h3 className="font-medium text-gray-700">Tickets Relacionados</h3>
+              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+                <Link className="h-4 w-4" />
+                Tickets Relacionados
+                <Badge variant="outline" className="text-xs">
+                  {relatedTickets.length}
+                </Badge>
+              </h3>
               {relatedTickets.map((relTicket: any) => (
                 <Card key={relTicket.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center justify-between">
@@ -1547,40 +1636,45 @@ export default function TicketDetails() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
+              <Button 
+                onClick={() => setShowInternalActionModal(true)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Ação
+              </Button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col"
-                onClick={() => handleInternalAction("Configurar SLA")}
-              >
-                <Settings className="h-6 w-6 mb-2" />
-                Configurar SLA
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col"
-                onClick={() => handleInternalAction("Reatribuir Ticket")}
-              >
-                <Users className="h-6 w-6 mb-2" />
-                Reassign
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col"
-                onClick={() => handleInternalAction("Agendar Ação")}
-              >
-                <Clock className="h-6 w-6 mb-2" />
-                Agendar
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col"
-                onClick={() => handleInternalAction("Escalar Ticket")}
-              >
-                <AlertTriangle className="h-6 w-6 mb-2" />
-                Escalar
-              </Button>
+            
+            <div className="space-y-4">
+              {internalActions.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">Nenhuma ação interna registrada</p>
+                  <p className="text-xs text-gray-400">Use o botão "Nova Ação" para começar</p>
+                </div>
+              ) : (
+                internalActions.map((action) => (
+                  <Card key={action.id} className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <User className="w-4 h-4 text-gray-600" />
+                            <span className="font-medium text-sm">{action.createdByName}</span>
+                            <Badge variant={action.isPublic ? 'default' : 'secondary'}>
+                              {action.isPublic ? 'Público' : 'Privado'}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {new Date(action.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 whitespace-pre-wrap">{action.content}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         );
@@ -1613,22 +1707,172 @@ export default function TicketDetails() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
+              <Badge variant="outline" className="text-xs">
+                Últimas 24h
+              </Badge>
             </div>
-            <div className="space-y-3">
-              <div className="p-3 border rounded-lg">
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Há 2 minutos</span>
-                </div>
-                <p className="text-sm text-gray-600">Ticket visualizado por Admin User</p>
+
+            {/* Atividade Recente */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Atividades Recentes
+              </h3>
+              
+              <div className="space-y-3">
+                {/* Visualização do Ticket */}
+                <Card className="p-4 border-l-4 border-l-green-400">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Eye className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Ticket Visualizado</p>
+                        <p className="text-xs text-gray-500">por você há 2 minutos</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400">Agora</span>
+                  </div>
+                </Card>
+
+                {/* Última Comunicação */}
+                {communications.length > 0 && (
+                  <Card className="p-4 border-l-4 border-l-blue-400">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-full">
+                          <MessageSquare className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Nova Comunicação</p>
+                          <p className="text-xs text-gray-500">
+                            {communications[0]?.type === 'internal' ? 'Nota interna' : 'Mensagem'} adicionada
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {communications[0]?.timestamp ? 
+                          new Date(communications[0].timestamp).toLocaleTimeString('pt-BR') : 
+                          '1h atrás'
+                        }
+                      </span>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Anexos Adicionados */}
+                {attachments.length > 0 && (
+                  <Card className="p-4 border-l-4 border-l-purple-400">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-100 rounded-full">
+                          <Paperclip className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Anexo Adicionado</p>
+                          <p className="text-xs text-gray-500">
+                            {attachments[attachments.length - 1]?.originalName}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400">2h atrás</span>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Atualização de Status */}
+                <Card className="p-4 border-l-4 border-l-orange-400">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-orange-100 rounded-full">
+                        <RefreshCw className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Status Atualizado</p>
+                        <p className="text-xs text-gray-500">
+                          Status alterado para "{ticket.status === 'open' ? 'Aberto' :
+                                                  ticket.status === 'in_progress' ? 'Em Progresso' :
+                                                  ticket.status === 'resolved' ? 'Resolvido' : 'Fechado'}"
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400">3h atrás</span>
+                  </div>
+                </Card>
               </div>
-              <div className="p-3 border rounded-lg">
-                <div className="flex items-center gap-2 mb-1">
-                  <MessageSquare className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">Há 1 hora</span>
-                </div>
-                <p className="text-sm text-gray-600">Nova mensagem adicionada</p>
+            </div>
+
+            {/* Histórico de Interações com o Solicitante */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Histórico com {ticket.customerName || 'Cliente'}
+              </h3>
+              
+              <div className="grid gap-3">
+                {latestInteractions.slice(0, 3).map((interaction) => (
+                  <Card key={interaction.id} className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <Badge 
+                          variant={interaction.status === 'resolved' ? 'default' : 
+                                  interaction.status === 'closed' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {interaction.status === 'resolved' ? 'Resolvido' :
+                           interaction.status === 'closed' ? 'Fechado' : 'Aberto'}
+                        </Badge>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{interaction.ticketNumber}</p>
+                          <p className="text-sm text-gray-700 mt-1">{interaction.subject}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {interaction.resolvedAt 
+                              ? `Resolvido em ${interaction.resolvedAt.toLocaleDateString('pt-BR')}`
+                              : `Criado em ${interaction.createdAt.toLocaleDateString('pt-BR')}`
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant={interaction.priority === 'high' ? 'destructive' : 
+                                interaction.priority === 'medium' ? 'default' : 'outline'}
+                        className="text-xs"
+                      >
+                        {interaction.priority === 'high' ? 'Alta' :
+                         interaction.priority === 'medium' ? 'Média' : 'Baixa'}
+                      </Badge>
+                    </div>
+                  </Card>
+                ))}
               </div>
+
+              {latestInteractions.length === 0 && (
+                <div className="text-center py-8">
+                  <Clock className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">Nenhuma interação anterior encontrada</p>
+                  <p className="text-xs text-gray-400">Este é o primeiro contato com este cliente</p>
+                </div>
+              )}
+            </div>
+
+            {/* Resumo de Atividade */}
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="p-3 text-center">
+                <MessageSquare className="h-6 w-6 mx-auto text-blue-500 mb-2" />
+                <p className="text-sm font-medium">{communications.length}</p>
+                <p className="text-xs text-gray-500">Mensagens</p>
+              </Card>
+              <Card className="p-3 text-center">
+                <Paperclip className="h-6 w-6 mx-auto text-purple-500 mb-2" />
+                <p className="text-sm font-medium">{attachments.length}</p>
+                <p className="text-xs text-gray-500">Anexos</p>
+              </Card>
+              <Card className="p-3 text-center">
+                <FileText className="h-6 w-6 mx-auto text-yellow-500 mb-2" />
+                <p className="text-sm font-medium">{notes.length}</p>
+                <p className="text-xs text-gray-500">Notas</p>
+              </Card>
             </div>
           </div>
         );
@@ -2289,6 +2533,13 @@ export default function TicketDetails() {
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
         currentTicket={ticket}
+      />
+
+      {/* Internal Action Modal */}
+      <InternalActionModal 
+        ticketId={id || ''} 
+        isOpen={showInternalActionModal} 
+        onClose={() => setShowInternalActionModal(false)} 
       />
     </div>
   );
