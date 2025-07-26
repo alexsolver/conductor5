@@ -8,7 +8,7 @@ import {
   ArrowLeft, Edit, Save, X, Trash2, Eye, ChevronRight, ChevronLeft,
   Paperclip, FileText, MessageSquare, History, Settings,
   User, Users, Tag, AlertCircle, FileIcon, Upload, Plus, Send,
-  Clock, Download, ExternalLink, Filter, MoreVertical, Trash
+  Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
+import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 
 // Form schema
 const ticketFormSchema = z.object({
@@ -140,6 +141,7 @@ export default function TicketDetails() {
   const [agentPassword, setAgentPassword] = useState("");
   const [newTag, setNewTag] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
 
   // Basic information - consolidated into single tab
   const basicTabs = [
@@ -1272,6 +1274,19 @@ export default function TicketDetails() {
                     Cancelar
                   </Button>
                   <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      console.log("🔗 Botão Vincular clicado!");
+                      setIsLinkingModalOpen(true);
+                    }}
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                    style={{ backgroundColor: '#dbeafe', borderColor: '#93c5fd', color: '#1d4ed8' }}
+                  >
+                    <Link2 className="h-4 w-4 mr-2" />
+                    Vincular
+                  </Button>
+                  <Button 
                     variant="default" 
                     size="sm" 
                     onClick={form.handleSubmit(onSubmit)}
@@ -1588,6 +1603,13 @@ export default function TicketDetails() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* TicketLinkingModal */}
+      <TicketLinkingModal
+        isOpen={isLinkingModalOpen}
+        onClose={() => setIsLinkingModalOpen(false)}
+        currentTicket={ticket}
+      />
     </div>
   );
 
