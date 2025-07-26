@@ -2446,7 +2446,8 @@ export default function TicketDetails() {
                       </div>
                     </div>
                   </DialogContent>
-                </Dialog              </div>
+                </Dialog>
+              </div>
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Nome:</span>
