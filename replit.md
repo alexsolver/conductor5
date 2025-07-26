@@ -42,11 +42,17 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 - Botões de ação dinâmicos (adicionar/remover opções)
 
 ✅ **INTEGRAÇÃO FRONTEND-BACKEND COMPLETA:**
-- Queries integradas: /api/customers e /api/ticket-metadata-hierarchical/customer/:id/configuration
+- Queries integradas: /api/customers/companies e /api/ticket-metadata-hierarchical/customer/:id/configuration
 - Mutation para criação: POST /api/ticket-metadata-hierarchical/customer/:id/configuration
 - Auto-refresh e invalidação de cache após mudanças
 - Toast notifications para feedback do usuário
 - Estado de loading durante operações
+
+✅ **BUG EMPRESAS CLIENTES CORRIGIDO:**
+- Problema identificado: query usava /api/customers em vez de /api/customers/companies
+- Correção aplicada: query alterada para API correta de empresas
+- Invalidação de cache melhorada para atualizar lista após criação
+- Sistema agora exibe empresas salvas corretamente no dropdown
 
 ### January 26, 2025 - HIERARCHICAL TICKET METADATA SYSTEM COMPLETED ✅ CUSTOMER-SPECIFIC CONFIGURATIONS FULLY OPERATIONAL
 

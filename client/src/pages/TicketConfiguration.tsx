@@ -216,13 +216,16 @@ export default function TicketConfiguration() {
   });
 
   // Queries for hierarchical configurations
-  const { data: customers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['/api/customers'],
+  const { data: customersData, isLoading: customersLoading } = useQuery({
+    queryKey: ['/api/customers/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers');
+      const response = await apiRequest('GET', '/api/customers/companies');
       return response.json();
     }
   });
+
+  // Extract customers from the response structure
+  const customers = customersData?.success ? customersData.data : (customersData || []);
 
   const { data: hierarchicalConfig, isLoading: hierarchicalLoading } = useQuery({
     queryKey: ['/api/ticket-metadata-hierarchical/customer', selectedCustomer, 'configuration'],
@@ -275,10 +278,10 @@ export default function TicketConfiguration() {
   });
 
   const createPriorityMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/ticket-config/priorities', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/ticket-config/priorities', data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/priorities'] });
       setIsDialogOpen(false);
@@ -294,7 +297,9 @@ export default function TicketConfiguration() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both the hierarchical config and customers list
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-metadata-hierarchical/customer', selectedCustomer, 'configuration'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       setIsHierarchicalDialogOpen(false);
       hierarchicalForm.reset();
       toast({ title: "Configuração hierárquica criada com sucesso" });
