@@ -113,6 +113,14 @@ export default function TicketsTable() {
   const [selectedViewId, setSelectedViewId] = useState("default");
   const [isNewViewDialogOpen, setIsNewViewDialogOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
+  
+  // Estados para criação de visualização
+  const [newViewName, setNewViewName] = useState("");
+  const [newViewDescription, setNewViewDescription] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState([
+    "number", "subject", "customer", "category", "status", "priority", "created"
+  ]);
+  const [isPublicView, setIsPublicView] = useState(false);
   const itemsPerPage = 20;
   
   const { toast } = useToast();
@@ -150,7 +158,7 @@ export default function TicketsTable() {
   });
 
   // Fetch ticket views from backend
-  const { data: ticketViewsData } = useQuery({
+  const { data: ticketViewsData, refetch: refetchViews } = useQuery({
     queryKey: ["/api/ticket-views"],
     retry: 3,
   });
@@ -159,7 +167,62 @@ export default function TicketsTable() {
   const pagination = ticketsData?.pagination || { total: 0, totalPages: 0 };
   // Legacy customers array removed
   const users = usersData?.users || [];
-  const ticketViews = ticketViewsData?.views || [];
+  const ticketViews = ticketViewsData?.data || [];
+
+  // Mutation para criar nova visualização
+  const createViewMutation = useMutation({
+    mutationFn: async (viewData: any) => {
+      return apiRequest('POST', '/api/ticket-views', viewData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Visualização criada",
+        description: "Nova visualização criada com sucesso"
+      });
+      refetchViews();
+      setIsNewViewDialogOpen(false);
+      resetNewViewForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar visualização",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Reset form para nova visualização
+  const resetNewViewForm = () => {
+    setNewViewName("");
+    setNewViewDescription("");
+    setSelectedColumns(["number", "subject", "customer", "category", "status", "priority", "created"]);
+    setIsPublicView(false);
+  };
+
+  // Handle create new view
+  const handleCreateView = () => {
+    if (!newViewName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome da visualização é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const viewData = {
+      name: newViewName,
+      description: newViewDescription,
+      columns: selectedColumns,
+      filters: [],
+      sorting: [{ field: "created_at", direction: "desc" }],
+      isPublic: isPublicView,
+      isDefault: false
+    };
+
+    createViewMutation.mutate(viewData);
+  };
 
   // Debug logging
   console.log('TicketsTable - Data:', {
@@ -929,38 +992,77 @@ export default function TicketsTable() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nome da Visualização</label>
-              <Input placeholder="Ex: Meus Tickets Urgentes" className="mt-1" />
+              <label className="text-sm font-medium">Nome da Visualização *</label>
+              <Input 
+                placeholder="Ex: Meus Tickets Urgentes" 
+                className="mt-1"
+                value={newViewName}
+                onChange={(e) => setNewViewName(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Descrição</label>
-              <Input placeholder="Descrição opcional da visualização" className="mt-1" />
+              <Input 
+                placeholder="Descrição opcional da visualização" 
+                className="mt-1"
+                value={newViewDescription}
+                onChange={(e) => setNewViewDescription(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Colunas a Exibir</label>
               <div className="grid grid-cols-2 gap-2 mt-1">
-                {["Number", "Subject", "Customer", "Category", "Status", "Priority", "Impact", "Assigned To", "Created"].map((col) => (
-                  <label key={col} className="flex items-center space-x-2">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    <span className="text-sm">{col}</span>
+                {[
+                  { key: "number", label: "Number" },
+                  { key: "subject", label: "Subject" },
+                  { key: "customer", label: "Customer" },
+                  { key: "category", label: "Category" },
+                  { key: "status", label: "Status" },
+                  { key: "priority", label: "Priority" },
+                  { key: "impact", label: "Impact" },
+                  { key: "assigned_to", label: "Assigned To" },
+                  { key: "created", label: "Created" }
+                ].map((col) => (
+                  <label key={col.key} className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      checked={selectedColumns.includes(col.key)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedColumns([...selectedColumns, col.key]);
+                        } else {
+                          setSelectedColumns(selectedColumns.filter(c => c !== col.key));
+                        }
+                      }}
+                    />
+                    <span className="text-sm">{col.label}</span>
                   </label>
                 ))}
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <input type="checkbox" id="public" className="rounded" />
-              <label htmlFor="public" className="text-sm">Tornar visualização pública (visível para outros usuários)</label>
+              <input 
+                type="checkbox" 
+                id="public" 
+                className="rounded"
+                checked={isPublicView}
+                onChange={(e) => setIsPublicView(e.target.checked)}
+              />
+              <label htmlFor="public" className="text-sm">
+                Tornar visualização pública (visível para outros usuários)
+              </label>
             </div>
           </div>
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={() => setIsNewViewDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              // TODO: Implementar criação de visualização
-              setIsNewViewDialogOpen(false);
-            }}>
-              Criar Visualização
+            <Button 
+              onClick={handleCreateView}
+              disabled={createViewMutation.isPending}
+            >
+              {createViewMutation.isPending ? "Criando..." : "Criar Visualização"}
             </Button>
           </div>
         </DialogContent>
