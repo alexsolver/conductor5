@@ -453,8 +453,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Ticket configuration management routes
-  app.use('/api/ticket-config', ticketConfigRoutes);
+  // Ticket configuration management routes - COMMENTED OUT TO USE DIRECT ROUTES BELOW
+  // app.use('/api/ticket-config', ticketConfigRoutes);
 
   // User management routes
   app.use('/api/user-management', userManagementRoutes);
@@ -1619,6 +1619,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+
+  // ======================================== 
+  // TICKET CONFIGURATION ROUTES - CATEGORIES, STATUSES, PRIORITIES
+  // ========================================
+  
+  // Categories endpoints
+  app.get('/api/ticket-config/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      // Use schemaManager for tenant operations
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `SELECT * FROM "${schemaName}"."ticket_field_options" 
+         WHERE tenant_id = $1 AND fieldname = 'category' AND is_active = true
+         ORDER BY sort_order`,
+        [tenantId]
+      );
+
+      const categories = result.rows.map(row => ({
+        id: row.id,
+        name: row.display_label,
+        color: row.color_hex,
+        active: row.is_active,
+        order: row.sort_order
+      }));
+
+      res.json(categories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ message: 'Failed to fetch categories' });
+    }
+  });
+
+  app.post('/api/ticket-config/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { name, color = '#3b82f6' } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: 'Name is required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `INSERT INTO "${schemaName}"."ticket_field_options" 
+         (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
+         VALUES ($1, 'category', $2, $3, $4, 0, false, true)
+         RETURNING *`,
+        [tenantId, name.toLowerCase().replace(/\s+/g, '_'), name, color]
+      );
+
+      const category = {
+        id: result.rows[0].id,
+        name: result.rows[0].display_label,
+        color: result.rows[0].color_hex,
+        active: result.rows[0].is_active,
+        order: result.rows[0].sort_order
+      };
+
+      res.status(201).json(category);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      res.status(500).json({ message: 'Failed to create category' });
+    }
+  });
+
+  // Status endpoints
+  app.get('/api/ticket-config/statuses', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `SELECT * FROM "${schemaName}"."ticket_field_options" 
+         WHERE tenant_id = $1 AND fieldname = 'status' AND is_active = true
+         ORDER BY sort_order`,
+        [tenantId]
+      );
+
+      const statuses = result.rows.map(row => ({
+        id: row.id,
+        name: row.display_label,
+        type: row.option_value,
+        color: row.color_hex,
+        order: row.sort_order,
+        active: row.is_active
+      }));
+
+      res.json(statuses);
+    } catch (error) {
+      console.error('Error fetching statuses:', error);
+      res.status(500).json({ message: 'Failed to fetch statuses' });
+    }
+  });
+
+  app.post('/api/ticket-config/statuses', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { name, type = 'open', color = '#3b82f6', order = 0 } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: 'Name is required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `INSERT INTO "${schemaName}"."ticket_field_options" 
+         (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
+         VALUES ($1, 'status', $2, $3, $4, $5, false, true)
+         RETURNING *`,
+        [tenantId, type, name, color, order]
+      );
+
+      const status = {
+        id: result.rows[0].id,
+        name: result.rows[0].display_label,
+        type: result.rows[0].option_value,
+        color: result.rows[0].color_hex,
+        order: result.rows[0].sort_order,
+        active: result.rows[0].is_active
+      };
+
+      res.status(201).json(status);
+    } catch (error) {
+      console.error('Error creating status:', error);
+      res.status(500).json({ message: 'Failed to create status' });
+    }
+  });
+
+  // Priorities endpoints
+  app.get('/api/ticket-config/priorities', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `SELECT * FROM "${schemaName}"."ticket_field_options" 
+         WHERE tenant_id = $1 AND fieldname = 'priority' AND is_active = true
+         ORDER BY sort_order`,
+        [tenantId]
+      );
+
+      const priorities = result.rows.map(row => ({
+        id: row.id,
+        name: row.display_label,
+        level: parseInt(row.option_value) || 1,
+        slaHours: 24, // Default SLA
+        color: row.color_hex,
+        active: row.is_active
+      }));
+
+      res.json(priorities);
+    } catch (error) {
+      console.error('Error fetching priorities:', error);
+      res.status(500).json({ message: 'Failed to fetch priorities' });
+    }
+  });
+
+  app.post('/api/ticket-config/priorities', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { name, level = 1, slaHours = 24, color = '#3b82f6' } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: 'Name is required' });
+      }
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(
+        `INSERT INTO "${schemaName}"."ticket_field_options" 
+         (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
+         VALUES ($1, 'priority', $2, $3, $4, $5, false, true)
+         RETURNING *`,
+        [tenantId, level.toString(), name, color, level]
+      );
+
+      const priority = {
+        id: result.rows[0].id,
+        name: result.rows[0].display_label,
+        level: parseInt(result.rows[0].option_value),
+        slaHours: slaHours,
+        color: result.rows[0].color_hex,
+        active: result.rows[0].is_active
+      };
+
+      res.status(201).json(priority);
+    } catch (error) {
+      console.error('Error creating priority:', error);
+      res.status(500).json({ message: 'Failed to create priority' });
+    }
+  });
 
   // Customer companies direct route for testing
   app.get('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
