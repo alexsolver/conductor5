@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +19,9 @@ import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelec
 import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
 import TemplateAnalytics from '@/components/templates/TemplateAnalytics';
 import TemplateEditor from '@/components/templates/TemplateEditor';
+import { TemplateHierarchyManager } from '@/components/template-builder/hierarchy/TemplateHierarchyManager';
+import { ApprovalWorkflow } from '@/components/template-builder/workflow/ApprovalWorkflow';
+import { AuditTrail } from '@/components/template-builder/audit/AuditTrail';
 
 // Schema para validação do formulário
 const templateSchema = z.object({
@@ -71,7 +72,7 @@ export default function TicketTemplates() {
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [activeTab, setActiveTab] = useState('templates');
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -222,7 +223,7 @@ export default function TicketTemplates() {
 
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
-    
+
     // Parse custom fields if they exist
     try {
       const parsedCustomFields = template.custom_fields ? JSON.parse(template.custom_fields) : [];
@@ -230,7 +231,7 @@ export default function TicketTemplates() {
     } catch (e) {
       setCustomFields([]);
     }
-    
+
     form.reset({
       name: template.name,
       description: template.description,
@@ -467,7 +468,7 @@ export default function TicketTemplates() {
                       {getPriorityLabel(template.priority)}
                     </Badge>
                   </div>
-                  
+
                   <div className="text-sm text-muted-foreground space-y-1">
                     <p>Estimativa: {template.estimated_hours}h</p>
                     <p>Usado: {template.usage_count || 0} vezes</p>
@@ -529,7 +530,7 @@ export default function TicketTemplates() {
             onCompanyChange={setSelectedCompany}
             showStats={true}
           />
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Configurações Avançadas</CardTitle>
@@ -757,7 +758,7 @@ export default function TicketTemplates() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Descrição *</FormLabel>
-                    <FormControl>
+                  <FormControl>
                       <Textarea 
                         placeholder="Descreva quando este template deve ser usado..."
                         rows={3}
