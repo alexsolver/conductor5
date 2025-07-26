@@ -787,6 +787,82 @@ export const shiftSwapRequests = pgTable("shift_swap_requests", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========================================
+// TICKET METADATA CONFIGURATION SYSTEM
+// ========================================
+
+// Main table for field configurations (priority, status, category, etc.)
+export const ticketFieldConfigurations = pgTable("ticket_field_configurations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  fieldName: varchar("field_name", { length: 50 }).notNull(), // 'priority', 'status', 'category', 'location'
+  displayName: varchar("display_name", { length: 100 }).notNull(),
+  description: text("description"),
+  fieldType: varchar("field_type", { length: 30 }).notNull(), // 'select', 'multiselect', 'text'
+  isRequired: boolean("is_required").default(false),
+  isSystemField: boolean("is_system_field").default(false), // Essential system fields
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique("ticket_field_configs_tenant_field_unique").on(table.tenantId, table.fieldName),
+  index("ticket_field_configs_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("ticket_field_configs_tenant_type_idx").on(table.tenantId, table.fieldType),
+]);
+
+// Options for select fields (values for dropdowns)
+export const ticketFieldOptions = pgTable("ticket_field_options", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  fieldConfigId: uuid("field_config_id").references(() => ticketFieldConfigurations.id, { onDelete: "cascade" }),
+  optionValue: varchar("option_value", { length: 50 }).notNull(),
+  displayLabel: varchar("display_label", { length: 100 }).notNull(),
+  description: text("description"),
+  colorHex: varchar("color_hex", { length: 7 }), // #FF5733 for colored badges
+  iconName: varchar("icon_name", { length: 50 }), // lucide-react icon names
+  cssClasses: text("css_classes"), // Custom CSS classes
+  sortOrder: integer("sort_order").default(0),
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  slaHours: integer("sla_hours"), // For priorities
+  escalationRules: jsonb("escalation_rules"), // Escalation rules
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("ticket_field_options_tenant_config_value_unique").on(table.tenantId, table.fieldConfigId, table.optionValue),
+  index("ticket_field_options_tenant_config_idx").on(table.tenantId, table.fieldConfigId),
+  index("ticket_field_options_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Style configurations for colors and theming
+export const ticketStyleConfigurations = pgTable("ticket_style_configurations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  styleName: varchar("style_name", { length: 50 }).notNull(), // 'priority_colors', 'status_colors'
+  fieldName: varchar("field_name", { length: 50 }).notNull(),
+  styleMapping: jsonb("style_mapping").notNull(), // {"high": {"bg": "#FF5733", "text": "#FFFFFF"}}
+  darkModeMapping: jsonb("dark_mode_mapping"), // Colors for dark mode
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("ticket_style_configs_tenant_style_field_unique").on(table.tenantId, table.styleName, table.fieldName),
+  index("ticket_style_configs_tenant_field_idx").on(table.tenantId, table.fieldName),
+]);
+
+// Default configurations per tenant
+export const ticketDefaultConfigurations = pgTable("ticket_default_configurations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  fieldName: varchar("field_name", { length: 50 }).notNull(),
+  defaultValue: varchar("default_value", { length: 100 }).notNull(),
+  applyToNewTickets: boolean("apply_to_new_tickets").default(true),
+  applyToImportedTickets: boolean("apply_to_imported_tickets").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("ticket_default_configs_tenant_field_unique").on(table.tenantId, table.fieldName),
+  index("ticket_default_configs_tenant_idx").on(table.tenantId),
+]);
+
 // ===========================
 // NOTIFICATIONS SYSTEM TABLES
 // ===========================
@@ -871,6 +947,12 @@ export const insertMarketLocalizationSchema = createInsertSchema(marketLocalizat
 export const insertFieldAliasMappingSchema = createInsertSchema(fieldAliasMapping);
 export const insertLocalizationContextSchema = createInsertSchema(localizationContext);
 export const insertHolidaySchema = createInsertSchema(holidays);
+
+// Ticket metadata schemas
+export const insertTicketFieldConfigurationSchema = createInsertSchema(ticketFieldConfigurations);
+export const insertTicketFieldOptionSchema = createInsertSchema(ticketFieldOptions);
+export const insertTicketStyleConfigurationSchema = createInsertSchema(ticketStyleConfigurations);
+export const insertTicketDefaultConfigurationSchema = createInsertSchema(ticketDefaultConfigurations);
 
 // ========================================
 // TYPE EXPORTS

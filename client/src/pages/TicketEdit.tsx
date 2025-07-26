@@ -25,6 +25,9 @@ import InternalActionModal from "@/components/tickets/InternalActionModal";
 import EmailHistoryModal from "@/components/tickets/EmailHistoryModal";
 import TicketHistoryModal from "@/components/tickets/TicketHistoryModal";
 import ApprovalRequestModal from "@/components/tickets/ApprovalRequestModal";
+import { DynamicSelect } from "@/components/DynamicSelect";
+import { DynamicBadge } from "@/components/DynamicBadge";
+import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 
 // Form schema - Updated to match database field names exactly
 const ticketFormSchema = z.object({
@@ -81,6 +84,9 @@ export default function TicketEdit() {
   const [isEmailHistoryModalOpen, setIsEmailHistoryModalOpen] = useState(false);
   const [isTicketHistoryModalOpen, setIsTicketHistoryModalOpen] = useState(false);
   const [isApprovalRequestModalOpen, setIsApprovalRequestModalOpen] = useState(false);
+  
+  // Initialize metadata system with defaults
+  const { initializeDefaults, isInitializing } = useTicketMetadata();
 
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({
@@ -430,19 +436,13 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Prioridade</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="low">Baixa</SelectItem>
-                                  <SelectItem value="medium">Média</SelectItem>
-                                  <SelectItem value="high">Alta</SelectItem>
-                                  <SelectItem value="critical">Crítica</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="priority"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -454,19 +454,13 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Urgência</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="low">Baixa</SelectItem>
-                                  <SelectItem value="medium">Média</SelectItem>
-                                  <SelectItem value="high">Alta</SelectItem>
-                                  <SelectItem value="critical">Crítica</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="urgency"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -478,19 +472,13 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Impacto</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="low">Baixo</SelectItem>
-                                  <SelectItem value="medium">Médio</SelectItem>
-                                  <SelectItem value="high">Alto</SelectItem>
-                                  <SelectItem value="critical">Crítico</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="impact"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -503,20 +491,13 @@ export default function TicketEdit() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Status</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o status" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="open">Aberto</SelectItem>
-                                <SelectItem value="in_progress">Em Progresso</SelectItem>
-                                <SelectItem value="pending">Pendente</SelectItem>
-                                <SelectItem value="resolved">Resolvido</SelectItem>
-                                <SelectItem value="closed">Fechado</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="status"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -534,19 +515,13 @@ export default function TicketEdit() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ambiente:</FormLabel>
-                                <Select>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="LANSOLVER" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="lansolver">LANSOLVER</SelectItem>
-                                    <SelectItem value="production">PRODUÇÃO</SelectItem>
-                                    <SelectItem value="development">DESENVOLVIMENTO</SelectItem>
-                                    <SelectItem value="staging">HOMOLOGAÇÃO</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="environment"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                  />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -711,19 +686,13 @@ export default function TicketEdit() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Grupo:</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Infraestrutura" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="infraestrutura">Infraestrutura</SelectItem>
-                                    <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                                    <SelectItem value="suporte">Suporte</SelectItem>
-                                    <SelectItem value="qualidade">Qualidade</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="groupField"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                  />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -885,20 +854,13 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Prioridade da publicação:</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="4 - Crítico - até 30 minutos" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="1-baixa">1 - Baixa - até 7 dias</SelectItem>
-                                  <SelectItem value="2-normal">2 - Normal - até 3 dias</SelectItem>
-                                  <SelectItem value="3-alta">3 - Alta - até 1 dia</SelectItem>
-                                  <SelectItem value="4-critica">4 - Crítico - até 30 minutos</SelectItem>
-                                  <SelectItem value="5-emergencial">5 - Emergencial - imediato</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="publicationPriority"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}

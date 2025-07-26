@@ -155,6 +155,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // /api/customers route removed - use /api/clientes instead
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
+
+  // Ticket metadata configuration routes
+  const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController');
+  const metadataController = new TicketMetadataController();
+
+  // Field configurations
+  app.get('/api/tickets/metadata/field-configurations', jwtAuth, metadataController.getFieldConfigurations.bind(metadataController));
+  app.get('/api/tickets/metadata/field-configurations/:fieldName', jwtAuth, metadataController.getFieldConfiguration.bind(metadataController));
+  app.post('/api/tickets/metadata/field-configurations', jwtAuth, metadataController.createFieldConfiguration.bind(metadataController));
+  app.put('/api/tickets/metadata/field-configurations/:fieldName', jwtAuth, metadataController.updateFieldConfiguration.bind(metadataController));
+
+  // Field options
+  app.get('/api/tickets/metadata/field-options/:fieldName', jwtAuth, metadataController.getFieldOptions.bind(metadataController));
+  app.post('/api/tickets/metadata/field-options/:fieldName', jwtAuth, metadataController.createFieldOption.bind(metadataController));
+  app.put('/api/tickets/metadata/field-options/:optionId', jwtAuth, metadataController.updateFieldOption.bind(metadataController));
+  app.delete('/api/tickets/metadata/field-options/:optionId', jwtAuth, metadataController.deleteFieldOption.bind(metadataController));
+
+  // Style configurations
+  app.get('/api/tickets/metadata/style-configurations', jwtAuth, metadataController.getStyleConfigurations.bind(metadataController));
+  app.get('/api/tickets/metadata/style-configurations/:fieldName', jwtAuth, metadataController.getStyleConfiguration.bind(metadataController));
+  app.post('/api/tickets/metadata/style-configurations', jwtAuth, metadataController.createStyleConfiguration.bind(metadataController));
+  app.put('/api/tickets/metadata/style-configurations/:fieldName', jwtAuth, metadataController.updateStyleConfiguration.bind(metadataController));
+
+  // Default configurations
+  app.get('/api/tickets/metadata/default-configurations', jwtAuth, metadataController.getDefaultConfigurations.bind(metadataController));
+  app.put('/api/tickets/metadata/default-configurations/:fieldName', jwtAuth, metadataController.updateDefaultConfiguration.bind(metadataController));
+
+  // Utility endpoints
+  app.post('/api/tickets/metadata/initialize-defaults', jwtAuth, metadataController.initializeDefaults.bind(metadataController));
+  app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, metadataController.generateDynamicSchema.bind(metadataController));
+
   // app.use('/api/knowledge-base', knowledgeBaseRouter);
   app.use('/api/people', peopleRouter);
   app.use('/api/integrity', integrityRoutes);
