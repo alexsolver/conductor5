@@ -126,10 +126,13 @@ export default function Projects() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        // SAFE: Validate array response
-        const safeProjects = Array.isArray(data) ? data : Array.isArray(data.projects) ? data.projects : [];
+        const result = await response.json();
+        // CORRECT: Handle API response structure {"success": true, "data": [...]}
+        const safeProjects = Array.isArray(result?.data) ? result.data : 
+                           Array.isArray(result) ? result : 
+                           Array.isArray(result?.projects) ? result.projects : [];
         setProjects(safeProjects);
+        console.log('✅ Projects loaded:', safeProjects.length, 'projects');
       } else {
         setProjects([]); // SAFE: Default empty array on error
       }
@@ -148,8 +151,11 @@ export default function Projects() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setStats(data);
+        const result = await response.json();
+        // CORRECT: Handle API response structure {"success": true, "data": {...}}
+        const statsData = result?.data || result;
+        setStats(statsData);
+        console.log('✅ Stats loaded:', statsData);
       }
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
