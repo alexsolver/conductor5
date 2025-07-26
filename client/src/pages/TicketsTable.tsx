@@ -17,6 +17,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { DynamicSelect } from "@/components/DynamicSelect";
+import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
@@ -306,21 +308,14 @@ export default function TicketsTable() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="hardware">Hardware</SelectItem>
-                      <SelectItem value="software">Software</SelectItem>
-                      <SelectItem value="network">Network</SelectItem>
-                      <SelectItem value="security">Security</SelectItem>
-                      <SelectItem value="access">Access Request</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <DynamicSelect
+                      fieldName="category"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select category"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -353,19 +348,14 @@ export default function TicketsTable() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Priority *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <DynamicSelect
+                      fieldName="priority"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select priority"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -377,18 +367,14 @@ export default function TicketsTable() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Impact</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select impact" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <DynamicSelect
+                      fieldName="impact"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select impact"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -400,18 +386,14 @@ export default function TicketsTable() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Urgency</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select urgency" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <DynamicSelect
+                      fieldName="urgency"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select urgency"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -727,30 +709,20 @@ export default function TicketsTable() {
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
+            <DynamicSelect
+              fieldName="status"
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+              placeholder="Filter by status"
+              showAllOption={true}
+            />
+            <DynamicSelect
+              fieldName="priority"
+              value={priorityFilter}
+              onValueChange={setPriorityFilter}
+              placeholder="Filter by priority"
+              showAllOption={true}
+            />
             <Button variant="outline" onClick={() => {
               setSearchTerm("");
               setStatusFilter("all");
@@ -839,14 +811,10 @@ export default function TicketsTable() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor((ticket as any).state || ticket.status)}>
-                        {((ticket as any).state || ticket.status).replace('_', ' ')}
-                      </Badge>
+                      <DynamicBadge fieldName="status" value={((ticket as any).state || ticket.status).replace('_', ' ')} />
                     </TableCell>
                     <TableCell>
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority}
-                      </Badge>
+                      <DynamicBadge fieldName="priority" value={ticket.priority} />
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">

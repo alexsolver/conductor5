@@ -536,19 +536,14 @@ export default function TicketEdit() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Template:</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Publicação - Infra" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="publicacao-infra">Publicação - Infra</SelectItem>
-                                    <SelectItem value="manutencao">Manutenção</SelectItem>
-                                    <SelectItem value="incidente">Incidente</SelectItem>
-                                    <SelectItem value="requisicao">Requisição</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="templateName"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Publicação - Infra"
+                                  />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -563,18 +558,14 @@ export default function TicketEdit() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Template Alternativo:</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Publicação - Infra" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="publicacao-infra">Publicação - Infra</SelectItem>
-                                    <SelectItem value="manutencao">Manutenção</SelectItem>
-                                    <SelectItem value="incidente">Incidente</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="templateAlternative"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Publicação - Infra"
+                                  />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -873,18 +864,14 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Responsável:</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Tiago Canossa de Abreu Silva" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="tiago-canossa">Tiago Canossa de Abreu Silva</SelectItem>
-                                  <SelectItem value="giovanna-jovina">Giovanna Jovina</SelectItem>
-                                  <SelectItem value="admin">Administrador</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="responsibleTeam"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  placeholder="Tiago Canossa de Abreu Silva"
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -897,19 +884,14 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Infraestrutura:</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Infraestrutura" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="infraestrutura">Infraestrutura</SelectItem>
-                                  <SelectItem value="aplicacao">Aplicação</SelectItem>
-                                  <SelectItem value="banco-dados">Banco de Dados</SelectItem>
-                                  <SelectItem value="rede">Rede</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="infrastructure"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  placeholder="Infraestrutura"
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -922,19 +904,14 @@ export default function TicketEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Ambiente a ser publicado:</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Produção" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="producao">Produção</SelectItem>
-                                  <SelectItem value="homologacao">Homologação</SelectItem>
-                                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                                  <SelectItem value="staging">Staging</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <DynamicSelect
+                                  fieldName="environmentPublication"
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  placeholder="Produção"
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1008,19 +985,14 @@ export default function TicketEdit() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Tipo de Contato</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Como o ticket foi criado" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="phone">Telefone</SelectItem>
-                                <SelectItem value="chat">Chat</SelectItem>
-                                <SelectItem value="portal">Portal</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="contactType"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Como o ticket foi criado"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

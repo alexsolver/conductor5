@@ -8,7 +8,7 @@ import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRou
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
-import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema } from "@shared/schema-master";
+import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations } from "@shared/schema-master";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
@@ -39,6 +39,7 @@ import contractRoutes from './routes/contractRoutes';
 import { materialsServicesRoutes } from './modules/materials-services/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
+import ticketMetadataRoutes from './routes/ticketMetadata.js';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1562,13 +1563,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const fieldConfigs = await tenantDb.query.ticketFieldConfigurations.findMany({
-        where: (table, { eq, and }) => and(
-          eq(table.tenantId, tenantId),
-          eq(table.isActive, true)
-        ),
-        orderBy: (table, { asc }) => asc(table.displayOrder)
-      });
+      const fieldConfigs = await tenantDb.select()
+        .from(ticketFieldConfigurations)
+        .where(and(
+          eq(ticketFieldConfigurations.tenantId, tenantId),
+          eq(ticketFieldConfigurations.isActive, true)
+        ))
+        .orderBy(ticketFieldConfigurations.displayOrder);
 
       res.json({ success: true, data: fieldConfigs });
     } catch (error) {
@@ -1585,13 +1586,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const fieldOptions = await tenantDb.query.ticketFieldOptions.findMany({
-        where: (table, { eq, and }) => and(
-          eq(table.tenantId, tenantId),
-          eq(table.isActive, true)
-        ),
-        orderBy: (table, { asc }) => [asc(table.fieldName), asc(table.sortOrder)]
-      });
+      const fieldOptions = await tenantDb.select()
+        .from(ticketFieldOptions)
+        .where(and(
+          eq(ticketFieldOptions.tenantId, tenantId),
+          eq(ticketFieldOptions.isActive, true)
+        ))
+        .orderBy(ticketFieldOptions.fieldName, ticketFieldOptions.sortOrder);
 
       res.json({ success: true, data: fieldOptions });
     } catch (error) {
@@ -1737,6 +1738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
+  app.use('/api/ticket-metadata', ticketMetadataRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

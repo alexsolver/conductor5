@@ -25,6 +25,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { DynamicSelect } from "@/components/DynamicSelect";
+import { DynamicBadge } from "@/components/DynamicBadge";
+import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 
 // Form schema
 const ticketFormSchema = z.object({
@@ -574,12 +577,8 @@ export default function TicketDetails() {
             <div className="flex items-center justify-between mb-4">
               <span className="font-medium">Ticket #{ticket.ticketNumber}</span>
               <div className="flex gap-2">
-                <Badge className={getPriorityColor(ticket.priority)}>
-                  {ticket.priority}
-                </Badge>
-                <Badge className={getStatusColor(ticket.status)}>
-                  {ticket.status}
-                </Badge>
+                <DynamicBadge fieldName="priority" value={ticket.priority} />
+                <DynamicBadge fieldName="status" value={ticket.status} />
               </div>
             </div>
 
@@ -796,20 +795,15 @@ export default function TicketDetails() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a categoria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="hardware">Hardware</SelectItem>
-                        <SelectItem value="software">Software</SelectItem>
-                        <SelectItem value="network">Rede</SelectItem>
-                        <SelectItem value="access">Acesso</SelectItem>
-                        <SelectItem value="not_specified">Não especificada</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <DynamicSelect
+                        fieldName="category" 
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Selecione a categoria"
+                        disabled={!isEditMode}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -827,20 +821,15 @@ export default function TicketDetails() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="open">Aberto</SelectItem>
-                          <SelectItem value="in_progress">Em Progresso</SelectItem>
-                          <SelectItem value="pending">Pendente</SelectItem>
-                          <SelectItem value="resolved">Resolvido</SelectItem>
-                          <SelectItem value="closed">Fechado</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="status"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione o status"
+                          disabled={!isEditMode}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -856,20 +845,15 @@ export default function TicketDetails() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Localização</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a localização" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="matriz">Matriz</SelectItem>
-                          <SelectItem value="filial1">Filial 1</SelectItem>
-                          <SelectItem value="filial2">Filial 2</SelectItem>
-                          <SelectItem value="remoto">Remoto</SelectItem>
-                          <SelectItem value="not_specified">Não especificado</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="location"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione a localização"
+                          disabled={!isEditMode}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

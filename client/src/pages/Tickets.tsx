@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
+import { DynamicSelect } from "@/components/DynamicSelect";
+import { DynamicBadge } from "@/components/DynamicBadge";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
@@ -231,19 +233,14 @@ export default function Tickets() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Priority</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select priority" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="low">Low</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-                              <SelectItem value="high">High</SelectItem>
-                              <SelectItem value="urgent">Urgent</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <DynamicSelect
+                              fieldName="priority"
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Select priority"
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -309,12 +306,8 @@ export default function Tickets() {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       #{ticket.id} - {ticket.subject}
                     </h3>
-                    <Badge className={getPriorityColor(ticket.priority)}>
-                      {ticket.priority}
-                    </Badge>
-                    <Badge className={getStatusColor(ticket.status)}>
-                      {ticket.status.replace('_', ' ')}
-                    </Badge>
+                    <DynamicBadge fieldName="priority" value={ticket.priority} />
+                    <DynamicBadge fieldName="status" value={ticket.status.replace('_', ' ')} />
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     {ticket.description?.substring(0, 150)}...
