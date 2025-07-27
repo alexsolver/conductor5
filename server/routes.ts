@@ -2140,11 +2140,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create new membership
+      // Create new membership - using only existing columns
       const membership = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.customer_company_memberships 
-        (customer_id, company_id, role, is_primary, is_active, joined_at, added_by)
-        VALUES (${customerId}, ${companyId}, ${role}, ${isPrimary}, true, NOW(), ${req.user.id})
+        (tenant_id, customer_id, company_id, role, is_active, start_date, created_at, updated_at)
+        VALUES (${tenantId}, ${customerId}, ${companyId}, ${role}, true, NOW(), NOW(), NOW())
         RETURNING *
       `);
 

@@ -160,22 +160,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     const { data: availableCompaniesData, refetch: refetchAvailableCompanies, error: availableCompaniesError } = useQuery({
       queryKey: ['/api/customers/companies'],
       queryFn: async () => {
-        try {
-          console.log('🔍 Fetching available companies...');
-          const response = await apiRequest('GET', '/api/customers/companies');
-          console.log('📡 Raw response:', response);
-          console.log('🔗 Response status:', response.status);
-          console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
-          
-          const data = await response.json();
-          console.log('📦 Parsed data:', data);
-          console.log('📊 Data type:', typeof data, 'Is array:', Array.isArray(data));
-          
-          return data;
-        } catch (error) {
-          console.error('❌ Query error:', error);
-          throw error;
-        }
+        const response = await apiRequest('GET', '/api/customers/companies');
+        return response.json();
       },
       enabled: isOpen, // Only fetch when the modal is open
       staleTime: 0, // Always fetch fresh data
@@ -186,13 +172,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     // Parse available companies - API returns direct array
     const availableCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
-    
-    console.log('Available companies processing:', {
-      raw: availableCompaniesData,
-      isArray: Array.isArray(availableCompaniesData),
-      count: availableCompanies.length,
-      sample: availableCompanies[0] || null
-    });
     
     if (availableCompaniesError) {
       console.error('Available companies error:', availableCompaniesError);
@@ -214,15 +193,15 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     });
 
   useEffect(() => {
-    // API returns direct array or empty array
-    const companies = Array.isArray(customerCompaniesData) ? customerCompaniesData : [];
-    
-    console.log('Customer companies processing:', {
-      raw: customerCompaniesData,
-      isArray: Array.isArray(customerCompaniesData),
-      count: companies.length,
-      sample: companies[0] || null
-    });
+    // Handle both direct array and wrapped response formats
+    let companies = [];
+    if (Array.isArray(customerCompaniesData)) {
+      companies = customerCompaniesData;
+    } else if (customerCompaniesData?.success && Array.isArray(customerCompaniesData.data)) {
+      companies = customerCompaniesData.data;
+    } else if (customerCompaniesData?.data && Array.isArray(customerCompaniesData.data)) {
+      companies = customerCompaniesData.data;
+    }
     
     setCustomerCompanies(companies);
   }, [customerCompaniesData, customer?.id]);
