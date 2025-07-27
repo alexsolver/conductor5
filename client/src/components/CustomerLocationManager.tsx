@@ -300,27 +300,27 @@ export function CustomerLocationManager({
                                 Principal
                               </Badge>
                             )}
-                            <Badge variant="outline" className={getLocationTypeColor(customerLocation.location.type)}>
-                              {customerLocation.location.type}
+                            <Badge variant="outline" className={getLocationTypeColor(customerLocation.location?.type || 'other')}>
+                              {customerLocation.location?.type || 'Não especificado'}
                             </Badge>
-                            <Badge variant="outline" className={getStatusColor(customerLocation.location.status)}>
-                              {customerLocation.location.status}
+                            <Badge variant="outline" className={getStatusColor(customerLocation.location?.status || 'active')}>
+                              {customerLocation.location?.status || 'Ativo'}
                             </Badge>
                           </div>
 
                           <div className="text-sm text-gray-600">
                             <div className="flex items-center gap-1">
                               <Navigation className="h-4 w-4" />
-                              {customerLocation.location.address}
-                              {customerLocation.location.number && `, ${customerLocation.location.number}`}
-                              {customerLocation.location.neighborhood && `, ${customerLocation.location.neighborhood}`}
+                              {customerLocation.location?.address || 'Endereço não especificado'}
+                              {customerLocation.location?.number && `, ${customerLocation.location.number}`}
+                              {customerLocation.location?.neighborhood && `, ${customerLocation.location.neighborhood}`}
                             </div>
                             <div className="mt-1">
-                              {customerLocation.location.city}, {customerLocation.location.state} - {customerLocation.location.zipCode}
+                              {customerLocation.location?.city || 'Cidade'}, {customerLocation.location?.state || 'Estado'} - {customerLocation.location?.zipCode || 'CEP'}
                             </div>
                           </div>
 
-                          {(customerLocation.location.latitude && customerLocation.location.longitude) && (
+                          {(customerLocation.location?.latitude && customerLocation.location?.longitude) && (
                             <div className="text-xs text-gray-500">
                               Coordenadas: {parseFloat(customerLocation.location.latitude).toFixed(6)}, {parseFloat(customerLocation.location.longitude).toFixed(6)}
                             </div>

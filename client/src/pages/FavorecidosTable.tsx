@@ -626,6 +626,9 @@ export default function FavorecidosTable() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Novo Favorecido</DialogTitle>
+              <DialogDescription>
+                Preencha as informações do novo favorecido. Campos marcados com * são obrigatórios.
+              </DialogDescription>
             </DialogHeader>
             <FavorecidoForm />
           </DialogContent>
