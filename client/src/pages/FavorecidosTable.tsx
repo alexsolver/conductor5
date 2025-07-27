@@ -40,6 +40,8 @@ import {
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { CustomerLocationManager } from "@/components/CustomerLocationManager";
+import { LocationModal } from "@/components/LocationModal";
 
 // Schema for favorecido creation/editing
 const favorecidoSchema = z.object({
@@ -90,6 +92,7 @@ export default function FavorecidosTable() {
   // Location management states
   const [isLocationManagerOpen, setIsLocationManagerOpen] = useState(false);
   const [selectedFavorecidoIdForLocations, setSelectedFavorecidoIdForLocations] = useState<string | null>(null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   
   // TODOS OS HOOKS NO INÍCIO DO COMPONENTE PARA RESPEITAR REGRAS DO REACT
   const { toast } = useToast();
@@ -296,10 +299,11 @@ export default function FavorecidosTable() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
             <TabsTrigger value="contact">Contato</TabsTrigger>
             <TabsTrigger value="additional">Informações Adicionais</TabsTrigger>
+            <TabsTrigger value="locations">Locais</TabsTrigger>
           </TabsList>
           
           <TabsContent value="basic" className="space-y-4 mt-6">
@@ -490,6 +494,54 @@ export default function FavorecidosTable() {
               )}
             />
           </TabsContent>
+          
+          <TabsContent value="locations" className="space-y-4 mt-6">
+            <div className="text-center py-8">
+              <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">
+                Gerenciar Localizações
+              </h3>
+              <p className="text-gray-500 mb-6">
+                Associe este favorecido a uma ou mais localizações do sistema.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (!editingFavorecido?.id) {
+                      toast({
+                        title: "Salve o favorecido primeiro",
+                        description: "É necessário salvar o favorecido antes de gerenciar localizações.",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    setSelectedFavorecidoIdForLocations(editingFavorecido.id);
+                    setIsLocationManagerOpen(true);
+                  }}
+                  disabled={!editingFavorecido?.id}
+                  className="flex items-center gap-2"
+                >
+                  <MapPin className="h-4 w-4" />
+                  Gerenciar Localizações
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsLocationModalOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nova Localização
+                </Button>
+              </div>
+              {!editingFavorecido?.id && (
+                <p className="text-sm text-amber-600 mt-4">
+                  💡 Salve o favorecido primeiro para gerenciar localizações
+                </p>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
@@ -664,6 +716,15 @@ export default function FavorecidosTable() {
                           Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem 
+                          onClick={() => {
+                            setSelectedFavorecidoIdForLocations(favorecido.id);
+                            setIsLocationManagerOpen(true);
+                          }}
+                        >
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Gerenciar Locais
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
                           onClick={() => deleteFavorecidoMutation.mutate(favorecido.id)}
                           className="text-red-600"
                         >
@@ -741,6 +802,32 @@ export default function FavorecidosTable() {
           <FavorecidoForm />
         </DialogContent>
       </Dialog>
+
+      {/* Location Manager Modal */}
+      {selectedFavorecidoIdForLocations && (
+        <CustomerLocationManager
+          customerId={selectedFavorecidoIdForLocations}
+          isOpen={isLocationManagerOpen}
+          onClose={() => {
+            setIsLocationManagerOpen(false);
+            setSelectedFavorecidoIdForLocations(null);
+          }}
+          onAddNewLocation={() => {
+            setIsLocationManagerOpen(false);
+            setIsLocationModalOpen(true);
+          }}
+        />
+      )}
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          // Invalidate locations query to refresh data
+          queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
+        }}
+      />
     </div>
   );
 }
