@@ -1,7 +1,7 @@
 // NEW LOCATIONS MODULE - Frontend Interface
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2, Star, Tag, Heart } from "lucide-react";
+import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2, Star, Tag, Heart, Settings, Upload, TreePine } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,8 @@ export default function Locations() {
   const [favoritesFilter, setFavoritesFilter] = useState<boolean>(false);
   const [tagFilter, setTagFilter] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -51,10 +53,12 @@ export default function Locations() {
       favorites: favoritesFilter,
       tag: tagFilter 
     }],
-    queryFn: () => apiRequest("GET", "/api/locations", null, {
+    queryFn: () => apiRequest("GET", "/api/locations", {
       search: searchTerm,
       locationType: locationTypeFilter,
-      status: statusFilter
+      status: statusFilter,
+      favorites: favoritesFilter,
+      tag: tagFilter
     })
   });
 
@@ -178,6 +182,11 @@ export default function Locations() {
     const filesize = file.size;
     
     addAttachmentMutation.mutate({ id: locationId, filename, filepath, filesize });
+  };
+
+  const handleManageLocation = (location: any) => {
+    setSelectedLocation(location);
+    setIsManageDialogOpen(true);
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -359,6 +368,108 @@ export default function Locations() {
             </Form>
           </DialogContent>
         </Dialog>
+
+        {/* Sprint 2 - Location Management Dialog */}
+        <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Gerenciar Local: {selectedLocation?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Tags Management */}
+              <div>
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Tags
+                </h3>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedLocation?.tags?.map((tag: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="gap-1">
+                      {tag}
+                      <button
+                        onClick={() => {/* Remove tag */}}
+                        className="text-xs hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  )) || <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>}
+                </div>
+                <div className="flex gap-2">
+                  <Input placeholder="Nova tag..." className="flex-1" />
+                  <Button size="sm">Adicionar</Button>
+                </div>
+              </div>
+
+              {/* Attachments Management */}
+              <div>
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Anexos
+                </h3>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    Arraste arquivos aqui ou clique para selecionar
+                  </p>
+                  <input type="file" multiple className="hidden" />
+                </div>
+                {selectedLocation?.attachments && selectedLocation.attachments.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {selectedLocation.attachments.map((attachment: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="text-sm">{attachment.filename}</span>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Hierarchy Management */}
+              <div>
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <TreePine className="h-4 w-4" />
+                  Hierarquia
+                </h3>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-sm text-gray-600">Local pai:</label>
+                    <Select value={selectedLocation?.parent_location_id || "none"}>
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder="Selecionar local pai" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum (nível raiz)</SelectItem>
+                        {/* Populate with other locations */}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {selectedLocation?.children && selectedLocation.children.length > 0 && (
+                    <div>
+                      <label className="text-sm text-gray-600">Locais filhos:</label>
+                      <div className="mt-1 space-y-1">
+                        {selectedLocation.children.map((child: any, index: number) => (
+                          <div key={index} className="text-sm p-2 bg-gray-50 rounded">
+                            {child.name}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setIsManageDialogOpen(false)}>
+                Fechar
+              </Button>
+              <Button>Salvar Alterações</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Statistics Cards */}
@@ -504,12 +615,30 @@ export default function Locations() {
                   <TableRow key={location.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
+                        {location.is_favorite && (
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        )}
                         {getLocationTypeIcon(location.location_type)}
                         <div>
                           <div className="font-medium">{location.name}</div>
                           {location.description && (
                             <div className="text-sm text-muted-foreground truncate max-w-[200px]">
                               {location.description}
+                            </div>
+                          )}
+                          {/* Sprint 2 - Display tags */}
+                          {location.tags && location.tags.length > 0 && (
+                            <div className="flex gap-1 mt-1">
+                              {location.tags.slice(0, 2).map((tag: string, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {location.tags.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{location.tags.length - 2}
+                                </Badge>
+                              )}
                             </div>
                           )}
                         </div>
@@ -548,10 +677,19 @@ export default function Locations() {
                           onClick={() => handleToggleFavorite(location.id)}
                           className={location.is_favorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-500 hover:text-yellow-500"}
                           disabled={toggleFavoriteMutation.isPending}
+                          title={location.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                         >
                           <Star className={`h-4 w-4 ${location.is_favorite ? 'fill-current' : ''}`} />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleManageLocation(location)}
+                          title="Gerenciar local (tags, anexos, hierarquia)"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" title="Editar local">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
