@@ -72,17 +72,17 @@ export default function CustomerCompanies() {
 
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/customer-companies'],
     staleTime: 5 * 60 * 1000,
   });
 
-  const companies = companiesData?.data || [];
+  const companies = companiesData || [];
 
   // Mutation para criar company
   const createCompanyMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/customers/companies', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
@@ -104,7 +104,7 @@ export default function CustomerCompanies() {
     mutationFn: ({ id, data }: { id: string; data: any }) => 
       apiRequest('PUT', `/api/customers/companies/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
       setIsEditDialogOpen(false);
       setSelectedCompany(null);
       editForm.reset();
