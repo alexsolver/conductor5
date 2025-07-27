@@ -66,13 +66,13 @@ const customerSchema = z.object({
 }).refine((data) => {
   // Validação condicional baseada no tipo de cliente
   if (data.customerType === 'PF') {
-    return data.firstName && data.lastName && data.cpf;
+    return data.firstName && data.lastName;
   } else if (data.customerType === 'PJ') {
     return data.companyName && data.cnpj;
   }
   return true;
 }, {
-  message: "Campos obrigatórios: PF precisa de Nome, Sobrenome e CPF; PJ precisa de Razão Social e CNPJ",
+  message: "Campos obrigatórios: PF precisa de Nome e Sobrenome; PJ precisa de Razão Social e CNPJ",
   path: ["customerType"]
 });
 
@@ -588,7 +588,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         name="cpf"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>CPF *</FormLabel>
+                            <FormLabel>CPF</FormLabel>
                             <FormControl>
                               <Input placeholder="000.000.000-00" {...field} />
                             </FormControl>
