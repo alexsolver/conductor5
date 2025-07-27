@@ -48,6 +48,8 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
     const total = allFavorecidos.length;
     const totalPages = Math.ceil(total / limit);
 
+    console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${user.tenantId}`);
+
     res.json({
       favorecidos,
       pagination: {

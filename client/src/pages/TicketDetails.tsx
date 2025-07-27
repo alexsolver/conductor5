@@ -634,27 +634,32 @@ export default function TicketDetails() {
         content: newNote,
         ticketId: id
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
 
-      setNotes(prev => [...prev, result]);
-      setNewNote("");
+      if (result.success) {
+        setNotes(prev => [...prev, result.data]);
+        setNewNote("");
 
-      toast({
-        title: "Nota adicionada",
-        description: "A nota foi salva com sucesso.",
-      });
+        toast({
+          title: "Nota adicionada",
+          description: "A nota foi salva com sucesso.",
+        });
+      } else {
+        throw new Error(result.message || "Failed to add note");
+      }
     } catch (error) {
       console.error('Failed to add note:', error);
-      // Fallback to local state
-      const note = {
-        id: Date.now(),
-        content: newNote,
-        createdAt: new Date(),
-        createdBy: "Usuário Atual"
-      };
-
-      setNotes(prev => [...prev, note]);
-      setNewNote("");
+      
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar nota. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 

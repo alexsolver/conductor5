@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -90,12 +90,12 @@ export default function FavorecidosTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  
+
   // Location management states
   const [isLocationManagerOpen, setIsLocationManagerOpen] = useState(false);
   const [selectedFavorecidoIdForLocations, setSelectedFavorecidoIdForLocations] = useState<string | null>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  
+
   // TODOS OS HOOKS NO INÍCIO DO COMPONENTE PARA RESPEITAR REGRAS DO REACT
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -110,7 +110,7 @@ export default function FavorecidosTable() {
         limit: itemsPerPage.toString(),
       });
       if (searchTerm) params.append('search', searchTerm);
-      
+
       const response = await fetch(`/api/favorecidos?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -118,12 +118,12 @@ export default function FavorecidosTable() {
         },
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         console.error(`Favorecidos fetch failed: ${response.status}`, await response.text());
         throw new Error(`Failed to fetch favorecidos: ${response.status}`);
       }
-      
+
       return response.json();
     },
     retry: 3,
@@ -285,7 +285,7 @@ export default function FavorecidosTable() {
   const endIndex = startIndex + itemsPerPage;
   const currentFavorecidos = filteredFavorecidos.slice(startIndex, endIndex);
 
-  
+
 
   // Early return for loading state - AFTER ALL HOOKS
   if (isLoading) {
@@ -307,7 +307,7 @@ export default function FavorecidosTable() {
             <TabsTrigger value="additional">Informações Adicionais</TabsTrigger>
             <TabsTrigger value="locations">Locais</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="basic" className="space-y-4 mt-6">
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -323,7 +323,7 @@ export default function FavorecidosTable() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="lastName"
@@ -367,7 +367,7 @@ export default function FavorecidosTable() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="customerCode"
@@ -397,7 +397,7 @@ export default function FavorecidosTable() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="cpfCnpj"
@@ -413,7 +413,7 @@ export default function FavorecidosTable() {
               />
             </div>
           </TabsContent>
-          
+
           <TabsContent value="contact" className="space-y-4 mt-6">
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -429,7 +429,7 @@ export default function FavorecidosTable() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="cellPhone"
@@ -473,7 +473,7 @@ export default function FavorecidosTable() {
               )}
             />
           </TabsContent>
-          
+
           <TabsContent value="additional" className="space-y-4 mt-6">
             <FormField
               control={form.control}
@@ -496,7 +496,7 @@ export default function FavorecidosTable() {
               )}
             />
           </TabsContent>
-          
+
           <TabsContent value="locations" className="space-y-4 mt-6">
             <div className="text-center py-8">
               <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -581,7 +581,7 @@ export default function FavorecidosTable() {
             Gerencie favorecidos externos, parceiros e fornecedores
           </p>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
