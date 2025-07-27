@@ -934,7 +934,8 @@ export default function TicketsTable() {
             />
 
             <FormField
-              control={form.control            name="assignedToId"
+              control={form.control}
+              name="assignedToId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Assign to Agent</FormLabel>
