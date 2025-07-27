@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -117,21 +118,20 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     });
 
     // Fetch customer companies
-    const { refetch: refetchCustomerCompanies } = useQuery({
+    const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
       queryFn: () => apiRequest(`/api/customers/${customer?.id}/companies`, { method: 'GET' }),
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
-      onSuccess: (data: any) => {
-        setCustomerCompanies(data);
-      },
     });
 
-
   useEffect(() => {
-    if (isOpen && customer?.id) {
-      refetchCustomerCompanies();
+    if (customerCompaniesData) {
+      setCustomerCompanies(customerCompaniesData);
     }
-  }, [isOpen, customer?.id, refetchCustomerCompanies]);
+  }, [customerCompaniesData]);
+
+
+  
 
   const onSubmit = (data: CustomerFormData) => {
     mutation.mutate(data);
