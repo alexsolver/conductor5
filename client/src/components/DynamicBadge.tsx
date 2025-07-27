@@ -65,10 +65,12 @@ export function DynamicBadge({
   bgColor, 
   textColor, 
   className,
-  fieldName, // Remove da interface mas não passa para o DOM
-  value, // Remove da interface mas não passa para o DOM
-  ...props 
+  fieldName, // PROBLEMA 1 RESOLVIDO: Remove da interface mas não passa para o DOM
+  value, // PROBLEMA 1 RESOLVIDO: Remove da interface mas não passa para o DOM
+  ...restProps 
 }: DynamicBadgeProps) {
+  // PROBLEMA 1 RESOLVIDO: Filter out problematic props from DOM
+  const { fieldName: _, value: __, ...domProps } = restProps;
   let dynamicClasses = '';
 
   // Prioridade: colorHex > bgColor > variant padrão

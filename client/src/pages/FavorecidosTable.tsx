@@ -46,14 +46,15 @@ const favorecidoSchema = z.object({
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
-  phone: z.string().optional(),
-  company: z.string().optional(),
+  birthDate: z.string().optional(),
+  rg: z.string().optional(),
   cpfCnpj: z.string().optional(),
-  contactType: z.string().default("external"),
-  relationship: z.string().optional(),
-  preferredContactMethod: z.string().default("email"),
-  notes: z.string().optional(),
   isActive: z.boolean().default(true),
+  customerCode: z.string().optional(),
+  phone: z.string().optional(),
+  cellPhone: z.string().optional(),
+  contactPerson: z.string().optional(),
+  contactPhone: z.string().optional(),
 });
 
 type FavorecidoFormData = z.infer<typeof favorecidoSchema>;
@@ -64,14 +65,15 @@ interface Favorecido {
   lastName: string;
   fullName: string;
   email: string;
-  phone?: string;
-  company?: string;
+  birthDate?: string;
+  rg?: string;
   cpfCnpj?: string;
-  contactType: string;
-  relationship?: string;
-  preferredContactMethod: string;
-  notes?: string;
   isActive: boolean;
+  customerCode?: string;
+  phone?: string;
+  cellPhone?: string;
+  contactPerson?: string;
+  contactPhone?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -147,14 +149,15 @@ export default function FavorecidosTable() {
       firstName: "",
       lastName: "",
       email: "",
-      phone: "",
-      company: "",
+      birthDate: "",
+      rg: "",
       cpfCnpj: "",
-      contactType: "external",
-      relationship: "",
-      preferredContactMethod: "email",
-      notes: "",
       isActive: true,
+      customerCode: "",
+      phone: "",
+      cellPhone: "",
+      contactPerson: "",
+      contactPhone: "",
     },
   });
 
@@ -240,14 +243,15 @@ export default function FavorecidosTable() {
       firstName: favorecido.firstName || "",
       lastName: favorecido.lastName || "",
       email: favorecido.email || "",
-      phone: favorecido.phone || "",
-      company: favorecido.company || "",
+      birthDate: favorecido.birthDate || "",
+      rg: favorecido.rg || "",
       cpfCnpj: favorecido.cpfCnpj || "",
-      contactType: favorecido.contactType || "external",
-      relationship: favorecido.relationship || "",
-      preferredContactMethod: favorecido.preferredContactMethod || "email",
-      notes: favorecido.notes || "",
       isActive: favorecido.isActive ?? true,
+      customerCode: favorecido.customerCode || "",
+      phone: favorecido.phone || "",
+      cellPhone: favorecido.cellPhone || "",
+      contactPerson: favorecido.contactPerson || "",
+      contactPhone: favorecido.contactPhone || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -276,35 +280,7 @@ export default function FavorecidosTable() {
   const endIndex = startIndex + itemsPerPage;
   const currentFavorecidos = filteredFavorecidos.slice(startIndex, endIndex);
 
-  const getContactMethodBadge = (method: string) => {
-    const methodMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      email: { label: "Email", variant: "default" },
-      phone: { label: "Telefone", variant: "secondary" },
-      sms: { label: "SMS", variant: "outline" },
-      whatsapp: { label: "WhatsApp", variant: "default" },
-    };
-    
-    const config = methodMap[method] || { label: method, variant: "outline" as const };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const getContactTypeBadge = (type: string) => {
-    const typeMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: any }> = {
-      external: { label: "Externo", variant: "outline", icon: User },
-      partner: { label: "Parceiro", variant: "secondary", icon: Shield },
-      supplier: { label: "Fornecedor", variant: "default", icon: Building },
-    };
-    
-    const config = typeMap[type] || { label: type, variant: "outline" as const, icon: User };
-    const IconComponent = config.icon;
-    
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <IconComponent className="h-3 w-3" />
-        {config.label}
-      </Badge>
-    );
-  };
+  
 
   // Early return for loading state - AFTER ALL HOOKS
   if (isLoading) {
@@ -357,15 +333,59 @@ export default function FavorecidosTable() {
               />
             </div>
 
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="email@exemplo.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="company"
+                name="birthDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Empresa</FormLabel>
+                    <FormLabel>Data de Nascimento</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome da empresa" {...field} />
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="customerCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código do Cliente</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Código do cliente" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="rg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>RG</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Registro Geral" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -386,52 +406,59 @@ export default function FavorecidosTable() {
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="contactType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tipo de Contato</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="external">Externo</SelectItem>
-                      <SelectItem value="partner">Parceiro</SelectItem>
-                      <SelectItem value="supplier">Fornecedor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </TabsContent>
           
           <TabsContent value="contact" className="space-y-4 mt-6">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="(11) 9999-9999" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="cellPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Celular</FormLabel>
+                    <FormControl>
+                      <Input placeholder="(11) 99999-9999" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
-              name="email"
+              name="contactPerson"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email *</FormLabel>
+                  <FormLabel>Contato</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="email@exemplo.com" {...field} />
+                    <Input placeholder="Nome da pessoa de contato" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
-              name="phone"
+              name="contactPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone</FormLabel>
+                  <FormLabel>Telefone de Contato</FormLabel>
                   <FormControl>
                     <Input placeholder="(11) 99999-9999" {...field} />
                   </FormControl>
@@ -439,47 +466,9 @@ export default function FavorecidosTable() {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="preferredContactMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Método Preferido de Contato</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o método" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="phone">Telefone</SelectItem>
-                      <SelectItem value="sms">SMS</SelectItem>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </TabsContent>
           
           <TabsContent value="additional" className="space-y-4 mt-6">
-            <FormField
-              control={form.control}
-              name="relationship"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Relacionamento</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Descreva o relacionamento" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
             <FormField
               control={form.control}
               name="isActive"
@@ -497,24 +486,6 @@ export default function FavorecidosTable() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Observações adicionais sobre o favorecido..."
-                      className="min-h-[120px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -603,9 +574,9 @@ export default function FavorecidosTable() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Empresa</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Contato Preferido</TableHead>
+                <TableHead>Código Cliente</TableHead>
+                <TableHead>CPF/CNPJ</TableHead>
+                <TableHead>Telefones</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -636,17 +607,38 @@ export default function FavorecidosTable() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {favorecido.company ? (
-                      <div className="flex items-center gap-1">
-                        <Building className="h-3 w-3 text-muted-foreground" />
-                        {favorecido.company}
-                      </div>
+                    {favorecido.customerCode ? (
+                      <Badge variant="secondary">{favorecido.customerCode}</Badge>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell>{getContactTypeBadge(favorecido.contactType)}</TableCell>
-                  <TableCell>{getContactMethodBadge(favorecido.preferredContactMethod)}</TableCell>
+                  <TableCell>
+                    {favorecido.cpfCnpj ? (
+                      <span className="font-mono text-sm">{favorecido.cpfCnpj}</span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {favorecido.phone && (
+                        <div className="text-sm flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {favorecido.phone}
+                        </div>
+                      )}
+                      {favorecido.cellPhone && (
+                        <div className="text-sm flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {favorecido.cellPhone}
+                        </div>
+                      )}
+                      {!favorecido.phone && !favorecido.cellPhone && (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={favorecido.isActive ? "default" : "secondary"}>
                       {favorecido.isActive ? (

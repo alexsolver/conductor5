@@ -494,11 +494,10 @@ export class DatabaseStorage implements IStorage {
       if (ticketData.beneficiaryId !== undefined) updateFields.push(`beneficiary_id = ${ticketData.beneficiaryId ? `'${ticketData.beneficiaryId}'` : 'NULL'}`);
       if (ticketData.assignedToId !== undefined) updateFields.push(`assigned_to_id = ${ticketData.assignedToId ? `'${ticketData.assignedToId}'` : 'NULL'}`);
       if (ticketData.location !== undefined) updateFields.push(`location = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
-      if (ticketData.locationId !== undefined) updateFields.push(`location = ${ticketData.locationId ? `'${ticketData.locationId}'` : 'NULL'}`);
       if (ticketData.category !== undefined) updateFields.push(`category = '${ticketData.category || ''}'`);
       if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
       if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
-      
+
       // Add support for new fields that were missing
       if (ticketData.businessImpact !== undefined) updateFields.push(`business_impact = '${ticketData.businessImpact || ''}'`);
       if (ticketData.symptoms !== undefined) updateFields.push(`symptoms = '${ticketData.symptoms || ''}'`);
@@ -507,7 +506,7 @@ export class DatabaseStorage implements IStorage {
       if (ticketData.beneficiaryType !== undefined) updateFields.push(`beneficiary_type = '${ticketData.beneficiaryType || 'customer'}'`);
       if (ticketData.contactType !== undefined) updateFields.push(`contact_type = '${ticketData.contactType || 'email'}'`);
       if (ticketData.assignmentGroup !== undefined) updateFields.push(`assignment_group = '${ticketData.assignmentGroup || ''}'`);
-      
+
       // Always update timestamp
       updateFields.push(`updated_at = NOW()`);
 
@@ -704,36 +703,94 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+  async getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const { limit = 50, offset = 0, search } = options;
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      let baseQuery = sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.external_contacts
-        WHERE tenant_id = ${validatedTenantId} AND type = 'favorecido'
+      let query = sql`
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          CONCAT(first_name, ' ', last_name) as full_name,
+          email,
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
+          customer_code,
+          phone,
+          cell_phone,
+          contact_person,
+          contact_phone,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE tenant_id = ${validatedTenantId}
       `;
 
-      if (search) {
-        baseQuery = sql`${baseQuery} AND (
-          name ILIKE ${'%' + search + '%'} OR 
-          email ILIKE ${'%' + search + '%'}
+      if (options?.search) {
+        query = sql`${query} AND (
+          first_name ILIKE ${`%${options.search}%`} OR 
+          last_name ILIKE ${`%${options.search}%`} OR 
+          email ILIKE ${`%${options.search}%`} OR
+          customer_code ILIKE ${`%${options.search}%`}
         )`;
       }
 
-      const finalQuery = sql`${baseQuery} 
-        ORDER BY created_at DESC 
-        LIMIT ${limit} 
-        OFFSET ${offset}
-      `;
+      query = sql`${query} ORDER BY created_at DESC`;
 
-      const result = await tenantDb.execute(finalQuery);
+      if (options?.limit) {
+        query = sql`${query} LIMIT ${options.limit}`;
+        if (options.offset) {
+          query = sql`${query} OFFSET ${options.offset}`;
+        }
+      }
+
+      const result = await tenantDb.execute(query);
       return result.rows || [];
     } catch (error) {
       logError('Error fetching favorecidos', error, { tenantId, options });
-      return [];
+      throw error;
+    }
+  }
+
+  async getFavorecido(id: string, tenantId: string): Promise<any | null> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          CONCAT(first_name, ' ', last_name) as full_name,
+          email,
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
+          customer_code,
+          phone,
+          cell_phone,
+          contact_person,
+          contact_phone,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
+      `);
+
+      return result.rows?.[0] || null;
+    } catch (error) {
+      logError('Error fetching favorecido', error, { id, tenantId });
+      throw error;
     }
   }
 
@@ -1526,6 +1583,7 @@ export class DatabaseStorage implements IStorage {
             t.priority,
             t.number,
             t.parent_ticket_id as "parentTicketId",
+```text
             NULL::uuid as "rootTicketId",
             0 as "hierarchyLevel"
           FROM ${sql.identifier(schemaName)}.tickets t
@@ -1843,13 +1901,13 @@ export class DatabaseStorage implements IStorage {
 
       const limit = options?.limit || 50;
       const offset = options?.offset || 0;
-      
+
       let whereClause = `WHERE p.tenant_id = '${validatedTenantId}' AND p.is_active = true`;
-      
+
       if (options?.search) {
         whereClause += ` AND (p.name ILIKE '%${options.search}%' OR p.description ILIKE '%${options.search}%')`;
       }
-      
+
       if (options?.status) {
         whereClause += ` AND p.status = '${options.status}'`;
       }
@@ -1905,7 +1963,7 @@ export class DatabaseStorage implements IStorage {
 
       const projectId = randomUUID();
       const now = new Date().toISOString();
-      
+
       logInfo('Creating project with data:', { projectData });
 
       const result = await tenantDb.execute(`
@@ -1942,9 +2000,9 @@ export class DatabaseStorage implements IStorage {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
-      
+
       const now = new Date().toISOString();
-      
+
       const result = await tenantDb.execute(`
         UPDATE "${schemaName}".projects SET
           name = '${projectData.name}',
@@ -2048,9 +2106,9 @@ export class DatabaseStorage implements IStorage {
 
       const limit = options?.limit || 50;
       const offset = options?.offset || 0;
-      
+
       let whereClause = `WHERE pa.tenant_id = '${validatedTenantId}' AND pa.is_active = true`;
-      
+
       if (projectId) {
         whereClause += ` AND pa.project_id = '${projectId}'`;
       }
@@ -2116,7 +2174,7 @@ export class DatabaseStorage implements IStorage {
       if (newAction) {
         try {
           const ticketId = await this.createTicketFromProjectAction(validatedTenantId, newAction, schemaName, tenantDb);
-          
+
           // Update project action with related ticket ID
           if (ticketId) {
             await tenantDb.execute(`
@@ -2124,7 +2182,7 @@ export class DatabaseStorage implements IStorage {
               SET related_ticket_id = '${ticketId}', updated_at = '${new Date().toISOString()}'
               WHERE id = '${actionId}' AND tenant_id = '${validatedTenantId}'
             `);
-            
+
             newAction.related_ticket_id = ticketId;
             logInfo('Project action created with auto-generated ticket', { 
               tenantId: validatedTenantId, 
@@ -2183,7 +2241,7 @@ export class DatabaseStorage implements IStorage {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
-      
+
       const now = new Date().toISOString();
 
       const result = await tenantDb.execute(`
@@ -2222,7 +2280,7 @@ export class DatabaseStorage implements IStorage {
               updated_at = '${now}'
             WHERE id = '${updatedAction.related_ticket_id}' AND tenant_id = '${validatedTenantId}'
           `);
-          
+
           logInfo('Related ticket automatically updated', { 
             tenantId: validatedTenantId, 
             actionId, 
@@ -2272,7 +2330,7 @@ export class DatabaseStorage implements IStorage {
 
       // Create new ticket from project action
       const ticketId = await this.createTicketFromProjectAction(validatedTenantId, action, schemaName, tenantDb);
-      
+
       if (ticketId) {
         // Update project action with ticket reference
         await tenantDb.execute(`
@@ -2292,7 +2350,7 @@ export class DatabaseStorage implements IStorage {
           actionId, 
           ticketId 
         });
-        
+
         return ticketResult.rows?.[0];
       }
 
