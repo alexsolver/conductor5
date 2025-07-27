@@ -53,29 +53,29 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [customerCompanies, setCustomerCompanies] = useState([]);
+  const [customerCompanies, setCustomerCompanies] = useState<any[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
 
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
-      firstName: customer?.firstName || "",
-      lastName: customer?.lastName || "",
-      email: customer?.email || "",
-      phone: customer?.phone || "",
-      company: customer?.company || "",
-      verified: customer?.verified || false,
-      active: customer?.active ?? true,
-      suspended: customer?.suspended || false,
-      timezone: customer?.timezone || "America/Sao_Paulo",
-      locale: customer?.locale || "pt-BR",
-      language: customer?.language || "pt",
-      externalId: customer?.externalId || "",
-      role: customer?.role || "",
-      notes: customer?.notes || "",
-      avatar: customer?.avatar || "",
-      signature: customer?.signature || "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      company: "",
+      verified: false,
+      active: true,
+      suspended: false,
+      timezone: "America/Sao_Paulo",
+      locale: "pt-BR",
+      language: "pt",
+      externalId: "",
+      role: "",
+      notes: "",
+      avatar: "",
+      signature: "",
     }
   });
 
@@ -138,6 +138,50 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       setCustomerCompanies(companies);
     }
   }, [customerCompaniesData]);
+
+  // Reset form when customer data changes
+  useEffect(() => {
+    if (customer && isOpen) {
+      form.reset({
+        firstName: customer.firstName || customer.first_name || "",
+        lastName: customer.lastName || customer.last_name || "",
+        email: customer.email || "",
+        phone: customer.phone || "",
+        company: customer.company || "",
+        verified: customer.verified || false,
+        active: customer.active ?? true,
+        suspended: customer.suspended || false,
+        timezone: customer.timezone || "America/Sao_Paulo",
+        locale: customer.locale || "pt-BR",
+        language: customer.language || "pt",
+        externalId: customer.externalId || customer.external_id || "",
+        role: customer.role || "",
+        notes: customer.notes || "",
+        avatar: customer.avatar || "",
+        signature: customer.signature || "",
+      });
+    } else if (!customer && isOpen) {
+      // Reset to empty form for new customer
+      form.reset({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        company: "",
+        verified: false,
+        active: true,
+        suspended: false,
+        timezone: "America/Sao_Paulo",
+        locale: "pt-BR",
+        language: "pt",
+        externalId: "",
+        role: "",
+        notes: "",
+        avatar: "",
+        signature: "",
+      });
+    }
+  }, [customer, isOpen, form]);
 
 
 
@@ -531,29 +575,35 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
                           {/* Lista de empresas associadas */}
                           <div className="mt-2 space-y-2">
-                            {customerCompanies.map((membership: any) => (
-                              <div key={membership.membership_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">
-                                    {membership.display_name || membership.company_name}
-                                  </span>
-                                  <Badge variant={membership.is_primary ? "default" : "secondary"}>
-                                    {membership.role}
-                                  </Badge>
-                                  {membership.is_primary && (
-                                    <Badge variant="outline">Principal</Badge>
-                                  )}
+                            {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
+                              customerCompanies.map((membership: any) => (
+                                <div key={`membership-${membership.membership_id || membership.id}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">
+                                      {membership.display_name || membership.company_name}
+                                    </span>
+                                    <Badge variant={membership.is_primary ? "default" : "secondary"}>
+                                      {membership.role}
+                                    </Badge>
+                                    {membership.is_primary && (
+                                      <Badge variant="outline">Principal</Badge>
+                                    )}
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleRemoveCompany(membership.company_id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
                                 </div>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleRemoveCompany(membership.company_id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
+                              ))
+                            ) : (
+                              <div className="text-sm text-gray-500 p-2">
+                                Nenhuma empresa associada
                               </div>
-                            ))}
+                            )}
                           </div>
                         </FormItem>
 
@@ -573,15 +623,19 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       <SelectValue placeholder="Selecionar empresa" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {availableCompanies
+                                      {Array.isArray(availableCompanies) ? availableCompanies
                                         .filter((company: any) =>
-                                          !customerCompanies.some((cm: any) => cm.company_id === company.id)
+                                          !Array.isArray(customerCompanies) || !customerCompanies.some((cm: any) => cm.company_id === company.id)
                                         )
                                         .map((company: any) => (
-                                          <SelectItem key={company.id} value={String(company.id)}>
+                                          <SelectItem key={`company-${company.id}`} value={String(company.id)}>
                                             {company.displayName || company.name}
                                           </SelectItem>
-                                        ))}
+                                        )) : (
+                                          <SelectItem value="no-companies" disabled>
+                                            Nenhuma empresa disponível
+                                          </SelectItem>
+                                        )}
                                     </SelectContent>
                                   </Select>
                                 </FormControl>
