@@ -810,8 +810,9 @@ export default function TicketDetails() {
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
       
-      // Location e contact
-      location: data.location,
+      // CORRIGIDO: Location mapping adequado
+      location_id: data.locationId,        // Para referência FK
+      location: data.location,             // Para texto livre
       contact_type: data.contactType,
       
       // Business fields
@@ -828,13 +829,13 @@ export default function TicketDetails() {
       followers: data.followers || [],
       tags: data.tags || [],
       
-      // Company relationship
-      customer_company_id: data.customerCompanyId,
+      // CORRIGIDO: Company relationship - usar customer_id não customer_company_id
+      customer_id: data.customerCompanyId,
       
       // Environment
       environment: data.environment,
       
-      // Linking - PROBLEMA 6 resolvido
+      // Linking
       link_ticket_number: data.linkTicketNumber,
       link_type: data.linkType,
       link_comment: data.linkComment,

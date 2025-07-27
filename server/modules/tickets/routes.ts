@@ -655,6 +655,70 @@ ticketsRouter.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) 
   }
 });
 
+// Create ticket note - IMPLEMENTAÇÃO REAL
+ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const { content, noteType = 'general', isInternal = false, isPublic = true } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Validate input
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ message: "Note content is required" });
+    }
+
+    // Insert note into database
+    const insertQuery = `
+      INSERT INTO "${schemaName}".ticket_notes 
+      (id, ticket_id, tenant_id, content, note_type, is_internal, is_public, created_by, created_at, updated_at, is_active)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), true)
+      RETURNING id, content, note_type, is_internal, is_public, created_by, created_at
+    `;
+
+    const result = await pool.query(insertQuery, [
+      id,                    // ticket_id
+      tenantId,             // tenant_id  
+      content.trim(),       // content
+      noteType,             // note_type
+      isInternal,           // is_internal
+      isPublic,             // is_public
+      req.user.id           // created_by
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(500).json({ message: "Failed to create note" });
+    }
+
+    const newNote = result.rows[0];
+
+    // Get user name for response
+    const userQuery = `SELECT first_name || ' ' || last_name as author_name FROM public.users WHERE id = $1`;
+    const userResult = await pool.query(userQuery, [req.user.id]);
+    
+    newNote.author_name = userResult.rows[0]?.author_name || 'Unknown User';
+
+    res.status(201).json({
+      success: true,
+      data: newNote,
+      message: "Note created successfully"
+    });
+
+  } catch (error) {
+    console.error("Error creating note:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to create note",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
 // Get ticket history
 ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {

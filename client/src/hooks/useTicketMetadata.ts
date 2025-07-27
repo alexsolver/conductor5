@@ -31,22 +31,26 @@ interface APIResponse<T> {
   data: T;
 }
 
-export function useTicketMetadata() {
-  // Field configurations query
-  const { data: fieldConfigs, isLoading: isLoadingConfigs } = useQuery<APIResponse<FieldConfiguration[]>>({
+export const useTicketMetadata = () => {
+  const { data: fieldConfigurations, isLoading: configLoading } = useQuery({
     queryKey: ['/api/ticket-metadata/field-configurations'],
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes - increased cache time
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+    retry: 1,
+    refetchOnWindowFocus: false, // Prevent unnecessary refetching
+    refetchOnMount: false,
   });
 
-  // Field options query
-  const { data: fieldOptions, isLoading: isLoadingOptions } = useQuery<APIResponse<FieldOption[]>>({
+  const { data: fieldOptions, isLoading: optionsLoading } = useQuery({
     queryKey: ['/api/ticket-metadata/field-options'],
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes - increased cache time
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+    retry: 1,
+    refetchOnWindowFocus: false, // Prevent unnecessary refetching
+    refetchOnMount: false,
   });
 
-  const isLoading = isLoadingConfigs || isLoadingOptions;
+  const isLoading = configLoading || optionsLoading;
 
   const getFieldOptions = (fieldName: string): FieldOption[] => {
     if (!fieldOptions?.success) return [];
@@ -59,8 +63,8 @@ export function useTicketMetadata() {
   };
 
   const getFieldConfiguration = (fieldName: string): FieldConfiguration | undefined => {
-    if (!fieldConfigs?.success) return undefined;
-    return fieldConfigs.data.find((config: FieldConfiguration) => config.fieldName === fieldName);
+    if (!fieldConfigurations?.success) return undefined;
+    return fieldConfigurations.data.find((config: FieldConfiguration) => config.fieldName === fieldName);
   };
 
   const generateDynamicSchema = () => {
@@ -75,7 +79,7 @@ export function useTicketMetadata() {
     getFieldConfiguration,
     generateDynamicSchema,
     isLoading,
-    fieldConfigurations: fieldConfigs?.data || [],
+    fieldConfigurations: fieldConfigurations?.data || [],
     fieldOptions: fieldOptions?.data || []
   };
 }
