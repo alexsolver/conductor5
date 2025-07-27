@@ -289,8 +289,9 @@ export default function TicketsTable() {
     retry: 3,
   });
 
-  const tickets = ticketsData?.tickets || [];
-  const pagination = ticketsData?.pagination || { total: 0, totalPages: 0 };
+  // 🚨 CORREÇÃO CRÍTICA: API retorna {success: true, data: {tickets: []}}
+  const tickets = ticketsData?.data?.tickets || [];
+  const pagination = ticketsData?.data?.pagination || { total: 0, totalPages: 0 };
   // Legacy customers array removed
   const users = usersData?.users || [];
   const ticketViews = ticketViewsData?.data || [];
@@ -646,6 +647,9 @@ export default function TicketsTable() {
     ticketsError,
     isLoading,
     ticketsCount: tickets.length,
+    rawTicketsData: ticketsData,
+    ticketsStructure: ticketsData ? Object.keys(ticketsData) : 'null',
+    actualTickets: tickets,
     customersCount: 0, // Legacy system removed
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
