@@ -1,0 +1,32 @@
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+Available companies data format not recognized: undefined
+Customer companies data updated: 
+Object {raw: {…}, processed: Array(8), count: 8, sampleItem: {…}, allCompanyIds: Array(8)}
+Available companies for selection: 
+Object {availableCompanies: Array(8), isArray: true, length: 8, customerCompanies: Array(8), associatedIds: Array(8)}
+Filtered companies: 
+Object {total: 8, associated: 8, available: 0, unassociatedCompanies: Array(0)}
+Removing company association: 
+Object {customerId: "5d5064dd-1575-4b78-92f1-6ea91244b2e1", companyId: "94d86436-9a38-49f9-b6b6-6e9e1e9a3ac4", url: "/api/customers/5d5064dd-1575-4b78-92f1-6ea91244b2e1/companies/94d86436-9a38-49f9-b6b6-6e9e1e9a3ac4"}
+Delete response: 
+Object {success: true, message: "Customer removed from company"}
+Available companies for selection: 
+Object {availableCompanies: Array(8), isArray: true, length: 8, customerCompanies: Array(8), associatedIds: Array(8)}
+Filtered companies: 
+Object {total: 8, associated: 8, available: 0, unassociatedCompanies: Array(0)}
+Available companies for selection: 
+Object {availableCompanies: Array(8), isArray: true, length: 8, customerCompanies: Array(8), associatedIds: Array(8)}
+Filtered companies: 
+Object {total: 8, associated: 8, available: 0, unassociatedCompanies: Array(0)}
+Available companies for selection: 
+Object {availableCompanies: Array(8), isArray: true, length: 8, customerCompanies: Array(8), associatedIds: Array(8)}
+Filtered companies: 
+Object {total: 8, associated: 8, available: 0, unassociatedCompanies: Array(0)}
+Available companies for selection: 
+Object {availableCompanies: Array(8), isArray: true, length: 8, customerCompanies: Array(8), associatedIds: Array(8)}
+Filtered companies: 
+Object {total: 8, associated: 8, available: 0, unassociatedCompanies: Array(0)}
+Available companies for selection: 
+Object {availableCompanies: Array(8), isArray: true, length: 8, customerCompanies: Array(8), associatedIds: Array(8)}
+Filtered companies: 
+Object {total: 8, associated: 8, available: 0, unassociatedCompanies: Array(0)}
