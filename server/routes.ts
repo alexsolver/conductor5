@@ -162,7 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // app.use('/api/customers', customersRouter); // Temporarily disabled due to schema issues
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
-  
+
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
   app.use('/api/tickets', ticketRelationshipsRouter.default);
@@ -232,9 +232,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant context required' });
       }
 
-      const { pool } = await import('./db');
-      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
       const result = await pool.query(
         `SELECT * FROM "${schemaName}"."customer_companies" WHERE tenant_id = $1 ORDER BY name`,
         [req.user.tenantId]
@@ -252,13 +253,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: row.updated_at
       }));
 
-      res.json({
-        success: true,
-        data: companies
-      });
+      res.json(companies);
     } catch (error) {
       console.error('Error fetching customer companies:', error);
-      res.status(500).json({ message: 'Failed to fetch customer companies' });
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch customer companies' 
+      });
     }
   });
 
@@ -269,14 +270,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, displayName, description, size, subscriptionTier } = req.body;
-      
+
       if (!name) {
         return res.status(400).json({ message: 'Name is required' });
       }
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."customer_companies" 
          (tenant_id, name, display_name, description, size, subscription_tier, created_by)
@@ -487,9 +488,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Field resolution routes
     app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
     app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
-    
+
     // Category Hierarchy Routes (Categoria → Subcategoria → Ação)
-    
+
     // Categories (Nível 1)
     app.get('/api/ticket-hierarchy/categories', jwtAuth, categoryHierarchyController.getCategories.bind(categoryHierarchyController));
     app.post('/api/ticket-hierarchy/categories', jwtAuth, categoryHierarchyController.createCategory.bind(categoryHierarchyController));
@@ -513,11 +514,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     console.log('✅ Hierarchical ticket metadata routes registered');
     console.log('✅ Category hierarchy routes registered');
-    
+
     // ========================================
     // TICKET TEMPLATES ROUTES
     // ========================================
-    
+
     // Simplified routes (show all public templates)
     app.get('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, customerCompanyId: 'all' };
@@ -535,7 +536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.params = { ...req.params, customerCompanyId: 'all' };
       return await ticketTemplateController.getTemplateCategories(req, res);
     });
-    
+
     // Templates por empresa cliente
     app.get('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
     app.post('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
@@ -688,6 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           validationRules: market.validation_rules,
           legalFields: market.legal_field_mappings
         }
+```tool_code
       });
     } catch (error) {
       console.error('Error fetching market config:', error);
@@ -819,7 +821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const location = await unifiedStorage.createLocation ? 
         await unifiedStorage.createLocation(tenantId, req.body) : 
         { id: Date.now(), ...req.body, tenantId, createdAt: new Date().toISOString() };
-      
+
       res.status(201).json({ 
         success: true, 
         data: location,
@@ -1515,7 +1517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
@@ -1608,7 +1610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = req.user?.tenantId;
       const { q, category, type } = req.query;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
@@ -1761,7 +1763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ======================================== 
   // TICKET CONFIGURATION ROUTES - CATEGORIES, STATUSES, PRIORITIES
   // ========================================
-  
+
   // Categories endpoints
   app.get('/api/ticket-config/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -1773,7 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use schemaManager for tenant operations
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `SELECT * FROM "${schemaName}"."ticket_field_options" 
          WHERE tenant_id = $1 AND fieldname = 'category' AND is_active = true
@@ -1810,7 +1812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."ticket_field_options" 
          (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
@@ -1844,7 +1846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `SELECT * FROM "${schemaName}"."ticket_field_options" 
          WHERE tenant_id = $1 AND fieldname = 'status' AND is_active = true
@@ -1882,7 +1884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."ticket_field_options" 
          (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
@@ -1917,7 +1919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `SELECT * FROM "${schemaName}"."ticket_field_options" 
          WHERE tenant_id = $1 AND fieldname = 'priority' AND is_active = true
@@ -1955,7 +1957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."ticket_field_options" 
          (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
@@ -1981,34 +1983,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer companies direct route for testing
-  app.get('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
-      // Direct database query using Drizzle
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const companies = await tenantDb
-        .select()
-        .from(customerCompanies)
-        .where(eq(customerCompanies.tenantId, tenantId))
-        .orderBy(customerCompanies.name);
-
-      res.json({
-        success: true,
-        data: companies
-      });
-    } catch (error) {
-      console.error('Error fetching customer companies:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies' 
-      });
-    }
-  });
-
   // Customer companies POST route for testing
   app.post('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -2018,7 +1992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, displayName, description, size, subscriptionTier } = req.body;
-      
+
       // Direct database insert using Drizzle
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const [company] = await tenantDb
@@ -2076,7 +2050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -2118,7 +2092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { customerId } = req.params;
       const { companyId, role = 'member', isPrimary = false } = req.body;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -2165,7 +2139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { customerId, companyId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -2202,11 +2176,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-        
+
         // Try simple select to check if tables exist
         const configTest = await tenantDb.select().from(ticketFieldConfigurations).limit(1);
         const optionsTest = await tenantDb.select().from(ticketFieldOptions).limit(1);
-        
+
         res.json({ 
           success: true, 
           message: 'Tables accessible',
@@ -2238,7 +2212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await tenantDb.execute(`
         SELECT * FROM "${tenantSchema}".ticket_field_configurations 
         WHERE tenant_id = '${tenantId}' AND is_active = true 
@@ -2274,18 +2248,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fieldName = req.query.fieldName as string;
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       let query = `
         SELECT * FROM "${tenantSchema}".ticket_field_options 
         WHERE tenant_id = '${tenantId}' AND is_active = true
       `;
-      
+
       if (fieldName) {
         query += ` AND fieldname = '${fieldName}'`;
       }
-      
+
       query += ` ORDER BY sort_order`;
-      
+
       const result = await tenantDb.execute(query);
 
       // Return only the rows array with mapped field names
@@ -2316,7 +2290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      
+
       // Clear existing data
       await tenantDb.delete(ticketFieldConfigurations).where(eq(ticketFieldConfigurations.tenantId, tenantId));
       await tenantDb.delete(ticketFieldOptions).where(eq(ticketFieldOptions.tenantId, tenantId));
@@ -2340,7 +2314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { tenantId, optionValue: 'medium', displayLabel: 'Média', colorHex: '#F59E0B', sortOrder: 2, isDefault: true },
         { tenantId, optionValue: 'high', displayLabel: 'Alta', colorHex: '#F97316', sortOrder: 3 },
         { tenantId, optionValue: 'critical', displayLabel: 'Crítica', colorHex: '#EF4444', sortOrder: 4 },
-        
+
         // Status options
         { tenantId, optionValue: 'open', displayLabel: 'Aberto', colorHex: '#2563EB', sortOrder: 1, isDefault: true },
         { tenantId, optionValue: 'in_progress', displayLabel: 'Em Andamento', colorHex: '#F59E0B', sortOrder: 2 },
@@ -2584,7 +2558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create project action with automatic ticket creation
       const action = await unifiedStorage.createProjectAction(tenantId, req.body);
-      
+
       res.status(201).json({ 
         success: true, 
         data: action,
@@ -2676,7 +2650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const { pool } = await import('./db');
-      
+
       const query = `
         SELECT 
           th.id,
@@ -2730,22 +2704,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Listar visualizações disponíveis para o usuário
   app.get('/api/ticket-views', jwtAuth, ticketViewsController.getViews.bind(ticketViewsController));
-  
+
   // Buscar visualização específica
   app.get('/api/ticket-views/:id', jwtAuth, ticketViewsController.getViewById.bind(ticketViewsController));
-  
+
   // Criar nova visualização
   app.post('/api/ticket-views', jwtAuth, ticketViewsController.createView.bind(ticketViewsController));
-  
+
   // Atualizar visualização existente
   app.put('/api/ticket-views/:id', jwtAuth, ticketViewsController.updateView.bind(ticketViewsController));
-  
+
   // Deletar visualização
   app.delete('/api/ticket-views/:id', jwtAuth, ticketViewsController.deleteView.bind(ticketViewsController));
-  
+
   // Definir visualização ativa para o usuário
   app.post('/api/ticket-views/:id/set-active', jwtAuth, ticketViewsController.setActiveView.bind(ticketViewsController));
-  
+
   // Preferências do usuário
   app.get('/api/ticket-views/user/preferences', jwtAuth, ticketViewsController.getUserPreferences.bind(ticketViewsController));
   app.put('/api/ticket-views/user/settings', jwtAuth, ticketViewsController.updatePersonalSettings.bind(ticketViewsController));

@@ -55,7 +55,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
   const [customerCompanies, setCustomerCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
-  const [selectedRole, setSelectedRole] = useState('member');
+  
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
@@ -160,13 +160,12 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     try {
       const response = await apiRequest('POST', `/api/clientes/${customer.id}/companies`, {
         companyId: selectedCompanyId,
-        role: selectedRole,
+        role: 'member',
         isPrimary: customerCompanies.length === 0 // First company is primary
       });
 
       await refetchCustomerCompanies();
       setSelectedCompanyId('');
-      setSelectedRole('member');
     } catch (error) {
       console.error('Error adding company:', error);
     }
@@ -568,13 +567,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                             control={form.control}
                             name="company"
                             render={({ field }) => (
-                              <FormItem className="w-full">
+                              <FormItem className="flex-1">
                                 <FormControl>
                                   <Select onValueChange={(value) => {
                                     field.onChange(value);
                                     setSelectedCompanyId(value);
                                   }} defaultValue={field.value}>
-                                    <SelectTrigger className="flex-1">
+                                    <SelectTrigger>
                                       <SelectValue placeholder="Selecionar empresa" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -594,19 +593,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               </FormItem>
                             )}
                           />
-
-
-                          <Select value={selectedRole} onValueChange={setSelectedRole}>
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="member">Membro</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="owner">Proprietário</SelectItem>
-                              <SelectItem value="contact">Contato</SelectItem>
-                            </SelectContent>
-                          </Select>
 
                           <Button
                             type="button"
