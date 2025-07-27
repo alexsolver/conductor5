@@ -277,11 +277,39 @@ ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest,
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // Placeholder - return empty array for now
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        ta.id,
+        ta.filename,
+        ta.original_filename,
+        ta.file_size,
+        ta.mime_type,
+        ta.file_path,
+        ta.description,
+        ta.uploaded_by,
+        ta.created_at,
+        u.first_name || ' ' || u.last_name as uploaded_by_name
+      FROM "${schemaName}".ticket_attachments ta
+      LEFT JOIN public.users u ON ta.uploaded_by = u.id
+      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
+      ORDER BY ta.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
   } catch (error) {
     console.error("Error fetching attachments:", error);
-    res.status(500).json({ message: "Failed to fetch attachments" });
+    res.status(500).json({ success: false, message: "Failed to fetch attachments" });
   }
 });
 
@@ -322,11 +350,46 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // Placeholder - return empty array for now
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tact.id,
+        tact.action_type as "actionType",
+        tact.type,
+        tact.content,
+        tact.description,
+        tact.status,
+        tact.time_spent,
+        tact.start_time,
+        tact.end_time,
+        tact.agent_id,
+        tact.linked_items,
+        tact.has_file,
+        tact.contact_method,
+        tact.vendor,
+        tact.is_public,
+        tact.created_at,
+        u.first_name || ' ' || u.last_name as agent_name
+      FROM "${schemaName}".ticket_actions tact
+      LEFT JOIN public.users u ON tact.agent_id = u.id
+      WHERE tact.ticket_id = $1 AND tact.tenant_id = $2 AND tact.is_active = true
+      ORDER BY tact.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
   } catch (error) {
     console.error("Error fetching actions:", error);
-    res.status(500).json({ message: "Failed to fetch actions" });
+    res.status(500).json({ success: false, message: "Failed to fetch actions" });
   }
 });
 
@@ -363,18 +426,95 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
   }
 });
 
-// Get ticket emails
+// Get ticket communications
+ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tc.id,
+        tc.channel,
+        tc.direction,
+        tc.from_contact as "from",
+        tc.to_contact as "to", 
+        tc.subject,
+        tc.content,
+        tc.message_id,
+        tc.thread_id,
+        tc.attachments,
+        tc.metadata,
+        tc.is_read,
+        tc.created_at as timestamp,
+        tc.updated_at
+      FROM "${schemaName}".ticket_communications tc
+      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND tc.is_active = true
+      ORDER BY tc.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error("Error fetching communications:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch communications" });
+  }
+});
+
+// Get ticket emails (alias for communications)
 ticketsRouter.get('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // Placeholder - return empty array for now
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tc.id,
+        tc.channel,
+        tc.direction,
+        tc.from_contact as "from",
+        tc.to_contact as "to", 
+        tc.subject,
+        tc.content,
+        tc.message_id,
+        tc.thread_id,
+        tc.attachments,
+        tc.metadata,
+        tc.is_read,
+        tc.created_at as timestamp,
+        tc.updated_at
+      FROM "${schemaName}".ticket_communications tc
+      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND tc.channel = 'email' AND tc.is_active = true
+      ORDER BY tc.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
   } catch (error) {
     console.error("Error fetching emails:", error);
-    res.status(500).json({ message: "Failed to fetch emails" });
+    res.status(500).json({ success: false, message: "Failed to fetch emails" });
   }
 });
 
@@ -397,6 +537,48 @@ ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ message: "Failed to send email" });
+  }
+});
+
+// Get ticket notes
+ticketsRouter.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tn.id,
+        tn.content,
+        tn.note_type,
+        tn.is_internal,
+        tn.is_public,
+        tn.created_by,
+        tn.created_at,
+        tn.updated_at,
+        u.first_name || ' ' || u.last_name as author_name
+      FROM "${schemaName}".ticket_notes tn
+      LEFT JOIN public.users u ON tn.created_by = u.id
+      WHERE tn.ticket_id = $1 AND tn.tenant_id = $2 AND tn.is_active = true
+      ORDER BY tn.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch notes" });
   }
 });
 

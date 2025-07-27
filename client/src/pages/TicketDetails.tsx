@@ -429,28 +429,111 @@ export default function TicketDetails() {
     enabled: !!id,
   });
 
+  // Fetch ticket communications from API
+  const { data: ticketCommunications } = useQuery({
+    queryKey: ["/api/tickets", id, "communications"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/tickets/${id}/communications`);
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
+  // Fetch ticket notes from API
+  const { data: ticketNotes } = useQuery({
+    queryKey: ["/api/tickets", id, "notes"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/tickets/${id}/notes`);
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
+  // Fetch ticket attachments from API
+  const { data: ticketAttachments } = useQuery({
+    queryKey: ["/api/tickets", id, "attachments"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
+  // Fetch ticket actions from API
+  const { data: ticketActions } = useQuery({
+    queryKey: ["/api/tickets", id, "actions"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/tickets/${id}/actions`);
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
   // Use company-specific customers if available, otherwise fall back to all customers
   const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
 
-  // Initialize data from ticket relationships
+  // Initialize data from API responses - NO MORE HARDCODED DATA
   useEffect(() => {
+    // Set communications from API
+    if (ticketCommunications?.success && ticketCommunications?.data) {
+      setCommunications(ticketCommunications.data);
+    } else if (ticketRelationships?.communications) {
+      setCommunications(ticketRelationships.communications);
+    } else {
+      setCommunications([]);
+    }
+
+    // Set attachments from API
+    if (ticketAttachments?.success && ticketAttachments?.data) {
+      setAttachments(ticketAttachments.data);
+    } else if (ticketRelationships?.attachments) {
+      setAttachments(ticketRelationships.attachments);
+    } else {
+      setAttachments([]);
+    }
+
+    // Set notes from API
+    if (ticketNotes?.success && ticketNotes?.data) {
+      setNotes(ticketNotes.data);
+    } else if (ticketRelationships?.notes) {
+      setNotes(ticketRelationships.notes);
+    } else {
+      setNotes([]);
+    }
+
+    // Set actions from API
+    if (ticketActions?.success && ticketActions?.data) {
+      const actions = ticketActions.data;
+      const internal = actions.filter((a: any) => a.type === 'internal' || a.actionType === 'internal');
+      const external = actions.filter((a: any) => a.type === 'external' || a.actionType === 'external');
+      setInternalActions(internal);
+      setExternalActions(external);
+    } else {
+      setInternalActions([]);
+      setExternalActions([]);
+    }
+
+    // Set related data from relationships
     if (ticketRelationships) {
-      setAttachments(ticketRelationships.attachments || []);
-      setNotes(ticketRelationships.notes || []);
-      setCommunications(ticketRelationships.communications || []);
       setRelatedTickets(ticketRelationships.related_tickets || []);
       setLatestInteractions(ticketRelationships.latest_interactions || []);
-      setFollowers(ticket?.followers || []);
-      setTags(ticket?.tags || []);
     }
-  }, [ticketRelationships, ticket]);
+
+    // Set ticket-specific data
+    if (ticket) {
+      setFollowers(ticket.followers || []);
+      setTags(ticket.tags || []);
+    }
+  }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, ticketRelationships, ticket]);
 
   // Initialize real history data from API
   useEffect(() => {
     if (ticketHistoryData?.success && ticketHistoryData?.data) {
       setHistory(ticketHistoryData.data);
+    } else {
+      setHistory([]);
     }
   }, [ticketHistoryData]);
 
@@ -596,194 +679,11 @@ export default function TicketDetails() {
         setFollowers(ticket.followers);
       }
 
-      // Simulate communication data
-      setCommunications([
-        {
-          id: 1,
-          type: "email",
-          channel: "Email",
-          from: "cliente@empresa.com",
-          to: "suporte@conductor.com",
-          subject: "Problema no sistema",
-          content: "Estou enfrentando dificuldades para acessar o sistema. Poderia me ajudar?",
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          status: "received"
-        },
-        {
-          id: 2,
-          type: "whatsapp",
-          channel: "WhatsApp",
-          from: "Suporte Conductor",
-          to: "Cliente",
-          content: "Oi! Recebemos seu email sobre o problema de acesso. Vamos verificar isso para você.",
-          timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
-          status: "sent"
-        },
-        {
-          id: 3,
-          type: "call",
-          channel: "Telefone",
-          from: "Suporte Conductor",
-          to: "Cliente",
-          content: "Ligação de 15 minutos para diagnóstico do problema",
-          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-          status: "completed"
-        }
-      ]);
+      // Communications data now handled by API integration above
 
-      // Simulate history data
-      setHistory([
-        {
-          id: 1,
-          action: "Ticket criado",
-          user: "Sistema",
-          timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-          type: "system",
-          details: "Ticket aberto automaticamente via email",
-          changes: {
-            status: { from: null, to: "open" },
-            priority: { from: null, to: "medium" }
-          }
-        },
-        {
-          id: 2,
-          action: "Atribuído ao agente",
-          user: "João Silva",
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          type: "human",
-          details: "Ticket atribuído para análise técnica"
-        },
-        {
-          id: 3,
-          action: "Status alterado",
-          user: "Maria Santos",
-          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-          type: "human",
-          details: "Mudança de status para em progresso",
-          changes: {
-            status: { from: "open", to: "in_progress" }
-          }
-        }
-      ]);
+      // History data now handled by API integration above
 
-      // Simulate internal actions data
-      setInternalActions([
-        {
-          id: "ACT-2025-001",
-          type: "investigation",
-          agent: "João Silva",
-          group: "Suporte Técnico",
-          status: "completed",
-          description: "Investigação completa do problema de conectividade com análise de logs do sistema",
-          timeSpent: "3.5",
-          startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toLocaleString('pt-BR'),
-          endTime: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toLocaleString('pt-BR'),
-          linkedItems: "Ticket #456, Log #789",
-          hasFile: true
-        },
-        {
-          id: "ACT-2025-002",
-          type: "repair",
-          agent: "Maria Santos",
-          group: "Infraestrutura",
-          status: "in-progress",
-          description: "Reparo da configuração de rede e reinstalação de drivers",
-          timeSpent: "2.0",
-          startTime: new Date(Date.now() - 1 * 60 * 60 * 1000).toLocaleString('pt-BR'),
-          linkedItems: "Equipamento #123",
-          hasFile: false
-        }
-      ]);
-
-      // Simulate external actions data
-      setExternalActions([
-        {
-          id: "EXT-2025-001",
-          type: "vendor_contact",
-          agent: "Pedro Costa",
-          vendor: "Microsoft Support",
-          status: "completed",
-          description: "Contato com suporte da Microsoft para resolução de problema de licenciamento",
-          timeSpent: "1.5",
-          startTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toLocaleString('pt-BR'),
-          endTime: new Date(Date.now() - 3 * 60 * 60 * 1000).toLocaleString('pt-BR'),
-          linkedItems: "Licença #MS-456",
-          hasFile: true,
-          contactMethod: "phone"
-        },
-        {
-          id: "EXT-2025-002",
-          type: "customer_followup",
-          agent: "Ana Silva",
-          vendor: "Cliente Externo",
-          status: "pending",
-          description: "Follow-up com cliente sobre validação da solução implementada",
-          timeSpent: "0.5",
-          startTime: new Date(Date.now() - 30 * 60 * 1000).toLocaleString('pt-BR'),
-          linkedItems: "Email #789",
-          hasFile: false,
-          contactMethod: "email"
-        }
-      ]);
-
-      // Simulate latest interactions from the same requester
-      setLatestInteractions([
-        {
-          id: "ticket-001",
-          ticketNumber: "TKT-2025-001",
-          subject: "Problema de acesso ao sistema de RH",
-          status: "resolved",
-          priority: "medium",
-          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 dias atrás
-          resolvedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 dias atrás
-          category: "Acesso",
-          description: "Usuário relatou dificuldades para acessar o portal de RH para consultar holerites"
-        },
-        {
-          id: "ticket-002",
-          ticketNumber: "TKT-2025-015",
-          subject: "Solicitação de novo equipamento",
-          status: "closed",
-          priority: "low",
-          createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 dias atrás
-          resolvedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 dias atrás
-          category: "Equipamento",
-          description: "Solicitação de novo monitor para workstation"
-        },
-        {
-          id: "ticket-003",
-          ticketNumber: "TKT-2024-234",
-          subject: "Erro na impressora da sala 301",
-          status: "closed",
-          priority: "high",
-          createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 dias atrás
-          resolvedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000), // 18 dias atrás
-          category: "Hardware",
-          description: "Impressora apresentando falhas recorrentes de papel atolado"
-        },
-        {
-          id: "ticket-004",
-          ticketNumber: "TKT-2024-198",
-          subject: "Dúvida sobre procedimento de backup",
-          status: "closed",
-          priority: "low",
-          createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000), // 35 dias atrás
-          resolvedAt: new Date(Date.now() - 33 * 24 * 60 * 60 * 1000), // 33 dias atrás
-          category: "Procedimento",
-          description: "Solicitação de esclarecimento sobre processo de backup de arquivos importantes"
-        },
-        {
-          id: "ticket-005",
-          ticketNumber: "TKT-2024-156",
-          subject: "Instalação de software específico",
-          status: "closed",
-          priority: "medium",
-          createdAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000), // 50 dias atrás
-          resolvedAt: new Date(Date.now() - 47 * 24 * 60 * 60 * 1000), // 47 dias atrás
-          category: "Software",
-          description: "Necessidade de instalação do Adobe Creative Suite para projeto específico"
-        }
-      ]);
+      // Internal actions, external actions, and latest interactions now handled by API integration above
     }
   }, [ticket, form]);
 
