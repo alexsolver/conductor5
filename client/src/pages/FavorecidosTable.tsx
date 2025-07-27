@@ -673,7 +673,9 @@ export default function FavorecidosTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentFavorecidos.map((favorecido: any) => (
+              {currentFavorecidos.map((favorecido: any) => {
+                console.log('Favorecido data:', favorecido);
+                return (
                 <TableRow 
                   key={favorecido.id}
                   className={lastUpdatedId === favorecido.id ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : ""}
@@ -777,7 +779,8 @@ export default function FavorecidosTable() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
 
