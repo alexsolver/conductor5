@@ -88,7 +88,7 @@ export class LocationsNewRepository {
   async createLocal(tenantId: string, data: NewLocal) {
     const [local] = await this.db
       .insert(locais)
-      .values({ ...data, tenantId })
+      .values({ ...data, tenantId, nome: data.nome })
       .returning();
     return local;
   }

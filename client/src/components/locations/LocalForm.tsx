@@ -339,10 +339,23 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
             </div>
 
             <div>
-              <Label htmlFor="descricao">Descrição *</Label>
+              <Label htmlFor="nome">Nome *</Label>
+              <Input
+                id="nome"
+                placeholder="Nome do local"
+                {...form.register('nome')}
+                className="mt-1"
+              />
+              {form.formState.errors.nome && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.nome.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="descricao">Descrição</Label>
               <Textarea
                 id="descricao"
-                placeholder="Descrição do local"
+                placeholder="Descrição do local (opcional)"
                 {...form.register('descricao')}
                 className="mt-1"
               />

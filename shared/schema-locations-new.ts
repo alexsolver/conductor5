@@ -15,7 +15,8 @@ export const locais = pgTable('locais', {
 
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
-  descricao: text('descricao').notNull(),
+  nome: varchar('nome', { length: 200 }).notNull(),
+  descricao: text('descricao'),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
   tipoClienteFavorecido: varchar('tipo_cliente_favorecido', { length: 20 }), // 'cliente' ou 'favorecido'
   tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users (workspace admin team member)
@@ -189,7 +190,8 @@ export const agrupamentos = pgTable('agrupamentos', {
 
 // Zod validation schemas
 export const localSchema = createInsertSchema(locais, {
-  descricao: z.string().min(1, "Descrição é obrigatória"),
+  nome: z.string().min(1, "Nome é obrigatório").max(200),
+  descricao: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   cep: z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido").optional(),
   ddd: z.string().optional(),
