@@ -834,106 +834,7 @@ export default function TicketDetails() {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prioridade *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a prioridade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="critical">Crítica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
-                            {tags.length > 0 ? (
-                              tags.map((tag, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {tag}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-4 w-4 p-0 ml-1"
-                                    onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                                  >
-                                    <X className="h-2 w-2" />
-                                  </Button>
-                                </Badge>
-                              ))
-                            ) : (
-                              <div className="text-sm text-gray-500">Nenhuma tag</div>
-                            )}
-                          </div>
-                          <div className="flex gap-1">
-                            <Input
-                              type="text"
-                              placeholder="Nova tag"
-                              className="h-7 text-xs"
-                              value={newTag}
-                              onChange={(e) => setNewTag(e.target.value)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
-                                  setTags([...tags, newTag.trim()]);
-                                  setNewTag('');
-                                }
-                              }}
-                            />
-                            <Button
-                              size="sm"
-                              className="h-7 text-xs"
-                              onClick={() => {
-                                if (newTag.trim() && !tags.includes(newTag.trim())) {
-                                  setTags([...tags, newTag.trim()]);
-                                  setNewTag('');
-                                }
-                              }}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap gap-1">
-                          {tags.length > 0 ? (
-                            tags.map((tag, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))
-                          ) : (
-                            <div className="text-sm text-gray-500">Nenhuma tag</div>
-                          )}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -941,7 +842,6 @@ export default function TicketDetails() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status *</FormLabel>
                     <FormControl>
                       <DynamicSelect
                         fieldName="status"
