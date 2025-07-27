@@ -161,6 +161,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       queryKey: ['/api/customers/companies'],
       queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
       enabled: isOpen, // Only fetch when the modal is open
+      staleTime: 0, // Always fetch fresh data
+      cacheTime: 0, // Don't cache data
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     });
 
     // Parse available companies with proper data extraction
@@ -195,6 +199,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       queryKey: [`/api/customers/${customer?.id}/companies`],
       queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`).then(res => res.json()),
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
+      staleTime: 0, // Always fetch fresh data
+      cacheTime: 0, // Don't cache data
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     });
 
   useEffect(() => {
@@ -223,12 +231,20 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
   }, [customerCompaniesData, customer?.id]);
 
-  // Force refresh data when customer changes
+  // Force refresh data when customer changes or modal opens
   useEffect(() => {
     if (customer?.id && isOpen) {
-      refetchCustomerCompanies();
+      // Clear cache and force fresh data
+      queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
+      queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
+      
+      // Force immediate refresh
+      setTimeout(() => {
+        refetchCustomerCompanies();
+        refetchAvailableCompanies();
+      }, 100);
     }
-  }, [customer?.id, isOpen, refetchCustomerCompanies]);
+  }, [customer?.id, isOpen, refetchCustomerCompanies, refetchAvailableCompanies, queryClient]);
 
   // Reset form when customer data changes
   useEffect(() => {
@@ -413,10 +429,9 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
 
     try {
-      console.log('Removing company association:', { 
+      console.log('Removing company:', { 
         customerId: customer.id, 
-        companyId,
-        url: `/api/customers/${customer.id}/companies/${companyId}`
+        companyId
       });
       
       // Fazer a requisição de exclusão
@@ -430,21 +445,41 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         throw new Error(result.message || 'Falha ao remover empresa');
       }
       
-      // Invalidar cache e recarregar dados
+      // Atualizar estado local imediatamente ANTES de refetch
+      setCustomerCompanies(prevCompanies => {
+        const filtered = prevCompanies.filter(company => 
+          (company.company_id || company.id) !== companyId
+        );
+        console.log('Updated local state:', { 
+          before: prevCompanies.length, 
+          after: filtered.length,
+          removedCompanyId: companyId
+        });
+        return filtered;
+      });
+      
+      // Invalidar TODAS as queries relacionadas com cache hard refresh
+      queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
+      queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       
-      // Aguardar pequeno delay e recarregar
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Force refresh imediato sem cache
+      await Promise.all([
+        queryClient.refetchQueries({ 
+          queryKey: [`/api/customers/${customer.id}/companies`],
+          type: 'active'
+        }),
+        queryClient.refetchQueries({ 
+          queryKey: ['/api/customers/companies'],
+          type: 'active'
+        })
+      ]);
+      
+      // Delay adicional e refetch manual
+      await new Promise(resolve => setTimeout(resolve, 300));
       await refetchCustomerCompanies();
       await refetchAvailableCompanies();
-      
-      // Atualizar estado local imediatamente
-      setCustomerCompanies(prevCompanies => 
-        prevCompanies.filter(company => 
-          (company.company_id || company.id) !== companyId
-        )
-      );
       
       toast({
         title: "Sucesso",
