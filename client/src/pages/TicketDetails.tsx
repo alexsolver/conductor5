@@ -1702,7 +1702,7 @@ export default function TicketDetails() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unspecified">Não especificado</SelectItem>
-                    {companiesData?.data?.map((company: any) => (
+                    {(Array.isArray(companiesData) ? companiesData : companiesData?.data || []).map((company: any) => (
                       <SelectItem key={company.id} value={company.id}>
                         {company.name}
                       </SelectItem>
@@ -1713,19 +1713,19 @@ export default function TicketDetails() {
                 <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
                      onClick={() => setIsCompanyDetailsOpen(true)}>
                   <span className="font-medium text-blue-900 underline decoration-dotted">
-                    {companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.name || 
+                    {(Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.name || 
                      ticket.customerCompany?.name || ticket.company || 'Não especificado'}
                   </span>
                 </div>
               )}
-              {(ticket.customerCompany?.industry || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry) && (
+              {(ticket.customerCompany?.industry || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry) && (
                 <div className="text-xs text-blue-600 mt-1">
-                  🏷️ Setor: {ticket.customerCompany?.industry || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry}
+                  🏷️ Setor: {ticket.customerCompany?.industry || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry}
                 </div>
               )}
-              {(ticket.customerCompany?.cnpj || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj) && (
+              {(ticket.customerCompany?.cnpj || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj) && (
                 <div className="text-xs text-blue-600">
-                  📄 CNPJ: {ticket.customerCompany?.cnpj || companiesData?.data?.find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj}
+                  📄 CNPJ: {ticket.customerCompany?.cnpj || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj}
                 </div>
               )}
             </div>
