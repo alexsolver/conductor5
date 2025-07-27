@@ -165,13 +165,24 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     // Parse available companies with proper data extraction
     const availableCompanies = (() => {
+      // Handle null/undefined data
+      if (!availableCompaniesData) {
+        console.log('Available companies data is null/undefined');
+        return [];
+      }
+      
+      // Handle direct array format
       if (Array.isArray(availableCompaniesData)) {
         return availableCompaniesData;
       }
-      if (availableCompaniesData?.data && Array.isArray(availableCompaniesData.data)) {
+      
+      // Handle {success: true, data: [...]} format
+      if (availableCompaniesData?.success && Array.isArray(availableCompaniesData.data)) {
         return availableCompaniesData.data;
       }
-      if (availableCompaniesData?.success && Array.isArray(availableCompaniesData.data)) {
+      
+      // Handle {data: [...]} format
+      if (availableCompaniesData?.data && Array.isArray(availableCompaniesData.data)) {
         return availableCompaniesData.data;
       }
       
@@ -211,6 +222,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       setCustomerCompanies([]);
     }
   }, [customerCompaniesData, customer?.id]);
+
+  // Force refresh data when customer changes
+  useEffect(() => {
+    if (customer?.id && isOpen) {
+      refetchCustomerCompanies();
+    }
+  }, [customer?.id, isOpen, refetchCustomerCompanies]);
 
   // Reset form when customer data changes
   useEffect(() => {
@@ -412,8 +430,21 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         throw new Error(result.message || 'Falha ao remover empresa');
       }
       
-      // Recarregar os dados das empresas do cliente imediatamente
+      // Invalidar cache e recarregar dados
+      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      
+      // Aguardar pequeno delay e recarregar
+      await new Promise(resolve => setTimeout(resolve, 200));
       await refetchCustomerCompanies();
+      await refetchAvailableCompanies();
+      
+      // Atualizar estado local imediatamente
+      setCustomerCompanies(prevCompanies => 
+        prevCompanies.filter(company => 
+          (company.company_id || company.id) !== companyId
+        )
+      );
       
       toast({
         title: "Sucesso",
