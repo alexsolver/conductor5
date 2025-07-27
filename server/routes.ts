@@ -2029,12 +2029,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      // Import and usethe customer companies controller
-      const { getCustomerCompanyController } = await import('./modules/customers/infrastructure/setup/CustomerDependencySetup');
-      const controller = getCustomerCompanyController();
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Call the existing controller method
-      await controller.getCompanies(req as any, res as any);
+      // Get all customer companies
+      const companies = await tenantDb.execute(sql`
+        SELECT 
+          cc.id,
+          cc.name,
+          cc.display_name,
+          cc.cnpj,
+          cc.industry,
+          cc.website,
+          cc.phone,
+          cc.email,
+          cc.address,
+          cc.city,
+          cc.state,
+          cc.country,
+          cc.size,
+          cc.subscription_tier,
+          cc.status,
+          cc.created_at,
+          cc.updated_at
+        FROM ${sql.identifier(schemaName, 'customer_companies')} cc
+        WHERE cc.is_active = true
+        ORDER BY cc.name
+      `);
+
+      // Return the format expected by the frontend
+      res.json(companies.rows);
     } catch (error) {
       console.error('Error fetching customer companies via compatibility route:', error);
       res.status(500).json({ 
