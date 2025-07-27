@@ -110,25 +110,21 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   });
 
     // Fetch available companies
-    const { data: availableCompanies = [], refetch: refetchAvailableCompanies } = useQuery(
-      ['/api/companies'],
-      () => apiRequest('/api/companies', { method: 'GET' }),
-      {
-        enabled: isOpen, // Only fetch when the modal is open
-      }
-    );
+    const { data: availableCompanies = [], refetch: refetchAvailableCompanies } = useQuery({
+      queryKey: ['/api/companies'],
+      queryFn: () => apiRequest('/api/companies', { method: 'GET' }),
+      enabled: isOpen, // Only fetch when the modal is open
+    });
 
     // Fetch customer companies
-    const { refetch: refetchCustomerCompanies } = useQuery(
-      [`/api/customers/${customer?.id}/companies`],
-      () => apiRequest(`/api/customers/${customer?.id}/companies`, { method: 'GET' }),
-      {
-        enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
-        onSuccess: (data: any) => {
-          setCustomerCompanies(data);
-        },
-      }
-    );
+    const { refetch: refetchCustomerCompanies } = useQuery({
+      queryKey: [`/api/customers/${customer?.id}/companies`],
+      queryFn: () => apiRequest(`/api/customers/${customer?.id}/companies`, { method: 'GET' }),
+      enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
+      onSuccess: (data: any) => {
+        setCustomerCompanies(data);
+      },
+    });
 
 
   useEffect(() => {
