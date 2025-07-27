@@ -305,7 +305,7 @@ export default function TicketDetails() {
   // Fetch customers when company is selected
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
-      const companyId = ticket?.customerCompanyId || ticket?.company;
+      const companyId = ticket?.customer_id || ticket?.customerCompanyId || ticket?.company;
       if (!companyId || companyId === 'unspecified') {
         setSelectedCompanyCustomers([]);
         return;
@@ -333,7 +333,7 @@ export default function TicketDetails() {
     if (ticket) {
       fetchCompanyCustomers();
     }
-  }, [ticket?.customerCompanyId, ticket?.company]);
+  }, [ticket?.customer_id, ticket?.customerCompanyId, ticket?.company]);
 
   // Handle company change and reset customers
   const handleCompanyChange = async (newCompanyId: string) => {
@@ -570,18 +570,19 @@ export default function TicketDetails() {
         status: ticket.status || "open",
         category: ticket.category || "",
         subcategory: ticket.subcategory || "",
-        callerId: ticket.callerId || "",
-        callerType: ticket.callerType || "customer",
-        beneficiaryId: ticket.beneficiaryId || "",
-        beneficiaryType: ticket.beneficiaryType || "customer",
-        assignedToId: ticket.assignedToId || "",
-        assignmentGroup: ticket.assignmentGroup || "",
-        location: ticket.location || "",
-        contactType: ticket.contactType || "email",
-        businessImpact: ticket.businessImpact || "",
+        callerId: ticket.caller_id || ticket.customer_id || "",
+        callerType: ticket.caller_type || "customer",
+        beneficiaryId: ticket.beneficiary_id || "",
+        beneficiaryType: ticket.beneficiary_type || "customer",
+        assignedToId: ticket.assigned_to_id || "",
+        assignmentGroup: ticket.assignment_group || "",
+        location: ticket.location_id || ticket.location || "",
+        contactType: ticket.contact_type || "email",
+        businessImpact: ticket.business_impact || "",
         symptoms: ticket.symptoms || "",
         workaround: ticket.workaround || "",
         followers: ticket.followers || [],
+        customerCompanyId: ticket.customer_id || "",
       });
 
       // Initialize followers from ticket data
