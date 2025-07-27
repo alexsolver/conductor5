@@ -276,33 +276,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Fetching customers for company ${companyId} in tenant ${tenantId}`);
 
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // First check if the company exists
-      const companyCheck = await pool.query(
-        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1`,
-        [companyId]
-      );
-
-      if (companyCheck.rows.length === 0) {
-        console.log(`Company ${companyId} not found`);
-        return res.json({
-          success: true,
-          customers: []
-        });
-      }
-
+      // Simplified query to get customers associated with the company
       const result = await pool.query(
-        `
-        SELECT DISTINCT 
+        `SELECT DISTINCT 
           c.id,
           c.first_name,
           c.last_name,
           c.email,
           c.phone,
-          c.cpf,
           c.created_at,
           c.updated_at,
           ccm.role
@@ -311,9 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ON c.id = ccm.customer_id
         WHERE ccm.company_id = $1 
           AND ccm.is_active = true
-          AND c.is_active = true
-        ORDER BY c.first_name, c.last_name
-        `,
+        ORDER BY c.first_name, c.last_name`,
         [companyId]
       );
 
@@ -328,7 +310,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fullName: `${row.first_name} ${row.last_name}`,
         email: row.email,
         phone: row.phone,
-        cpf: row.cpf,
         role: row.role,
         createdAt: row.created_at,
         updatedAt: row.updated_at
@@ -2185,8 +2166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM ${sql.identifier(schemaName)}.customer_company_memberships ccm
         INNER JOIN ${sql.identifier(schemaName)}.customer_companies cc ON ccm.company_id = cc.id
         WHERE ccm.customer_id = ${customerId} 
-          AND ccm.is_active = true 
-          AND cc.is_active = true
+          AND ccm.is_active = true
         ORDER BY cc.name
       `);
 
