@@ -1765,7 +1765,7 @@ export default function TicketDetails() {
               {isEditMode ? (
                 <Select 
                   onValueChange={handleCompanyChange}
-                  defaultValue={ticket.customerCompanyId || ticket.company || ''}
+                  value={ticket.customer_id || ticket.customerCompanyId || ticket.company || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Selecione a empresa cliente" />
@@ -1824,7 +1824,7 @@ export default function TicketDetails() {
                 {isEditMode ? (
                   <Select 
                     onValueChange={(value) => form.setValue('callerId', value)} 
-                    defaultValue={ticket.callerId || ''}
+                    value={ticket.caller_id || ticket.callerId || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Selecione o cliente" />
