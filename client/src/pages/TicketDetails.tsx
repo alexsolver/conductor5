@@ -1563,7 +1563,7 @@ export default function TicketDetails() {
                   <h3 className="font-semibold text-blue-900">{ticket.customerName || 'Cliente'}</h3>
                   <p className="text-sm text-blue-700">{ticket.customerEmail || ticket.contactEmail}</p>
                   <p className="text-xs text-blue-600 mt-1">
-                    Cliente desde: Janeiro 2022 • Total de tickets: 8
+                    Cliente desde: {ticketRelationships?.customer_since || 'Data não disponível'} • Total de tickets: {ticketRelationships?.total_tickets || 0}
                   </p>
                 </div>
               </div>
@@ -1648,63 +1648,55 @@ export default function TicketDetails() {
               </div>
             </div>
 
-            {/* PROBLEMA 4 RESOLVIDO: Estatísticas reais do cliente */}
+            {/* PROBLEMA 4 RESOLVIDO: Estatísticas reais do cliente vindas da API */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 text-center">
                 <div className="p-2 bg-blue-100 rounded-full w-fit mx-auto mb-2">
                   <MessageSquare className="h-5 w-5 text-blue-600" />
                 </div>
-                <p className="text-lg font-semibold">8</p>
+                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.total_tickets || 0}</p>
                 <p className="text-xs text-gray-500">Total Tickets</p>
               </Card>
               <Card className="p-4 text-center">
                 <div className="p-2 bg-green-100 rounded-full w-fit mx-auto mb-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
-                <p className="text-lg font-semibold">7</p>
+                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.resolved_tickets || 0}</p>
                 <p className="text-xs text-gray-500">Resolvidos</p>
               </Card>
               <Card className="p-4 text-center">
                 <div className="p-2 bg-yellow-100 rounded-full w-fit mx-auto mb-2">
                   <Clock className="h-5 w-5 text-yellow-600" />
                 </div>
-                <p className="text-lg font-semibold">2h 15min</p>
+                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.avg_resolution_time || 'N/A'}</p>
                 <p className="text-xs text-gray-500">Tempo Médio</p>
               </Card>
               <Card className="p-4 text-center">
                 <div className="p-2 bg-purple-100 rounded-full w-fit mx-auto mb-2">
                   <Star className="h-5 w-5 text-purple-600" />
                 </div>
-                <p className="text-lg font-semibold">4.8</p>
+                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.satisfaction_rating || 'N/A'}</p>
                 <p className="text-xs text-gray-500">Satisfação</p>
               </Card>
             </div>
 
-            {/* Padrões de Comportamento */}
-            <Card className="p-4">
-              <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Insights do Cliente
-              </h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Cliente experiente com alta taxa de resolução (87.5%)</span>
+            {/* Padrões de Comportamento - dados reais da API */}
+            {ticketRelationships?.customer_insights && (
+              <Card className="p-4">
+                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Insights do Cliente
+                </h4>
+                <div className="space-y-2 text-sm">
+                  {ticketRelationships.customer_insights.map((insight: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${['bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'][idx % 4]}`}></div>
+                      <span>{insight.description}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Preferencialmente abre tickets via email (75%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span>Horário mais comum: Manhã (9h-11h)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span>Categoria mais frequente: Dúvidas técnicas</span>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            )}
           </div>
         );
 

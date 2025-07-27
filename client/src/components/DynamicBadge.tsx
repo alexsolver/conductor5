@@ -70,7 +70,7 @@ export function DynamicBadge({
   ...restProps 
 }: DynamicBadgeProps) {
   // PROBLEMA 1 RESOLVIDO: Filter out problematic props from DOM
-  const { fieldName: _, value: __, ...domProps } = restProps;
+  const { fieldName: _fieldName, value: _value, ...domProps } = restProps;
   let dynamicClasses = '';
 
   // Prioridade: colorHex > bgColor > variant padrão
@@ -83,9 +83,6 @@ export function DynamicBadge({
   // Se temos classes dinâmicas, usar variant outline para não conflitar
   const finalVariant = dynamicClasses ? 'outline' : variant;
 
-  // Filter out fieldName and value to prevent DOM warnings  
-  const { fieldName: _, value: __, ...cleanProps } = props as any;
-
   return (
     <Badge 
       variant={finalVariant as any}
@@ -94,7 +91,7 @@ export function DynamicBadge({
         'font-medium text-xs px-2 py-1 rounded-md',
         className
       )}
-      {...cleanProps}
+      {...domProps}
     >
       {children}
     </Badge>

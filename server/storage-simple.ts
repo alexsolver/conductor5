@@ -1583,7 +1583,6 @@ export class DatabaseStorage implements IStorage {
             t.priority,
             t.number,
             t.parent_ticket_id as "parentTicketId",
-```text
             NULL::uuid as "rootTicketId",
             0 as "hierarchyLevel"
           FROM ${sql.identifier(schemaName)}.tickets t
