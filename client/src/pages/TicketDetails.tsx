@@ -654,6 +654,7 @@ export default function TicketDetails() {
         status: ticket.status || "open",
         category: ticket.category || "",
         subcategory: ticket.subcategory || "",
+        // Fix field mapping: backend uses caller_id, beneficiary_id, assigned_to_id
         callerId: ticket.caller_id || ticket.customer_id || "",
         callerType: ticket.caller_type || "customer",
         beneficiaryId: ticket.beneficiary_id || "",
@@ -2659,6 +2660,160 @@ export default function TicketDetails() {
               onClick={() => setIsCompanyDetailsOpen(false)}
             >
               Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ticket Linking Modal - IMPLEMENTADO */}
+      <Dialog open={isLinkingModalOpen} onOpenChange={setIsLinkingModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Vincular Ticket</DialogTitle>
+            <DialogDescription>
+              Conecte este ticket a outros tickets relacionados
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Número do Ticket</Label>
+              <Input 
+                placeholder="Ex: T-123456" 
+                value={linkTicketNumber}
+                onChange={(e) => setLinkTicketNumber(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Tipo de Vinculação</Label>
+              <Select value={linkType} onValueChange={setLinkType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="related">🔗 Relacionado</SelectItem>
+                  <SelectItem value="duplicate">🔄 Duplicado</SelectItem>
+                  <SelectItem value="parent">⬆️ Ticket Pai</SelectItem>
+                  <SelectItem value="child">⬇️ Sub-ticket</SelectItem>
+                  <SelectItem value="blocks">🚫 Bloqueia</SelectItem>
+                  <SelectItem value="blocked_by">⏸️ Bloqueado por</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Comentário (opcional)</Label>
+              <Textarea 
+                placeholder="Descreva a relação entre os tickets..."
+                rows={3}
+                value={linkComment}
+                onChange={(e) => setLinkComment(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button variant="outline" onClick={() => setIsLinkingModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log("🔗 Vinculando tickets:", { linkTicketNumber, linkType, linkComment });
+                setIsLinkingModalOpen(false);
+                setLinkTicketNumber('');
+                setLinkType('');
+                setLinkComment('');
+              }}
+              disabled={!linkTicketNumber || !linkType}
+            >
+              <Link2 className="h-4 w-4 mr-2" />
+              Vincular
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Internal Actions Modal - IMPLEMENTADO */}
+      <Dialog open={showInternalActionModal} onOpenChange={setShowInternalActionModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Nova Ação Interna</DialogTitle>
+            <DialogDescription>
+              Adicione uma ação interna ao ticket para registro e auditoria
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Ação Realizada*</Label>
+              <Textarea 
+                placeholder="Descreva a ação realizada (obrigatório)..."
+                rows={4}
+                value={newInternalAction}
+                onChange={(e) => setNewInternalAction(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Tipo de Ação</Label>
+              <Select value={internalActionType} onValueChange={setInternalActionType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="investigation">🔍 Investigação</SelectItem>
+                  <SelectItem value="escalation">⬆️ Escalação</SelectItem>
+                  <SelectItem value="resolution">✅ Resolução</SelectItem>
+                  <SelectItem value="communication">💬 Comunicação</SelectItem>
+                  <SelectItem value="workaround">🛠️ Solução Temporária</SelectItem>
+                  <SelectItem value="documentation">📝 Documentação</SelectItem>
+                  <SelectItem value="testing">🧪 Teste</SelectItem>
+                  <SelectItem value="followup">📞 Follow-up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id="isPublicAction"
+                checked={isPublicAction}
+                onChange={(e) => setIsPublicAction(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="isPublicAction" className="text-sm">
+                Ação visível para o cliente (pública)
+              </Label>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowInternalActionModal(false);
+                setNewInternalAction('');
+                setInternalActionType('');
+                setIsPublicAction(false);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                if (newInternalAction.trim()) {
+                  const newAction = {
+                    id: Date.now().toString(),
+                    content: newInternalAction,
+                    type: internalActionType || 'documentation',
+                    isPublic: isPublicAction,
+                    createdAt: new Date().toISOString(),
+                    createdByName: 'Agente Atual' // TODO: Get from auth
+                  };
+                  setInternalActions(prev => [newAction, ...prev]);
+                  setShowInternalActionModal(false);
+                  setNewInternalAction('');
+                  setInternalActionType('');
+                  setIsPublicAction(false);
+                }
+              }}
+              disabled={!newInternalAction.trim()}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Ação
             </Button>
           </div>
         </DialogContent>

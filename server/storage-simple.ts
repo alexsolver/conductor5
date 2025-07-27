@@ -498,6 +498,15 @@ export class DatabaseStorage implements IStorage {
       if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
       if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
       
+      // Add support for new fields that were missing
+      if (ticketData.businessImpact !== undefined) updateFields.push(`business_impact = '${ticketData.businessImpact || ''}'`);
+      if (ticketData.symptoms !== undefined) updateFields.push(`symptoms = '${ticketData.symptoms || ''}'`);
+      if (ticketData.workaround !== undefined) updateFields.push(`workaround = '${ticketData.workaround || ''}'`);
+      if (ticketData.callerType !== undefined) updateFields.push(`caller_type = '${ticketData.callerType || 'customer'}'`);
+      if (ticketData.beneficiaryType !== undefined) updateFields.push(`beneficiary_type = '${ticketData.beneficiaryType || 'customer'}'`);
+      if (ticketData.contactType !== undefined) updateFields.push(`contact_type = '${ticketData.contactType || 'email'}'`);
+      if (ticketData.assignmentGroup !== undefined) updateFields.push(`assignment_group = '${ticketData.assignmentGroup || ''}'`);
+      
       // Always update timestamp
       updateFields.push(`updated_at = NOW()`);
 
@@ -808,12 +817,14 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.external_contacts
-        (name, email, phone, document, type, tenant_id, created_at, updated_at)
+        (name, first_name, last_name, email, phone, document, type, tenant_id, created_at, updated_at)
         VALUES (
-          ${data.name},
+          ${data.firstName + ' ' + (data.lastName || '')},
+          ${data.firstName},
+          ${data.lastName || null},
           ${data.email || null},
           ${data.phone || null},
-          ${data.document || null},
+          ${data.cpfCnpj || null},
           'favorecido',
           ${validatedTenantId},
           NOW(),
