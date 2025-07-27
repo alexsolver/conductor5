@@ -689,7 +689,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           validationRules: market.validation_rules,
           legalFields: market.legal_field_mappings
         }
-```tool_code
       });
     } catch (error) {
       console.error('Error fetching market config:', error);
