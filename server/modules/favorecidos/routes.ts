@@ -35,7 +35,7 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     const { page, limit, search } = getFavorecidosSchema.parse(req.query);
-    
+
     const offset = (page - 1) * limit;
     const favorecidos = await storage.getFavorecidos(user.tenantId, {
       limit,
@@ -74,9 +74,9 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     const { id } = favorecidoIdSchema.parse(req.params);
-    
+
     const favorecido = await storage.getFavorecido(id, user.tenantId);
-    
+
     if (!favorecido) {
       return res.status(404).json({ 
         success: false,
@@ -100,9 +100,9 @@ router.post("/", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     const favorecidoData: InsertFavorecido = req.body;
-    
+
     const favorecido = await storage.createFavorecido(user.tenantId, favorecidoData);
-    
+
     res.status(201).json({ 
       success: true,
       favorecido,
@@ -125,13 +125,13 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
     if (!user) {
       return res.status(401).json({ success: false, message: "Authentication required" });
     }
-    
+
     const { id } = favorecidoIdSchema.parse(req.params);
     const updateData: Partial<InsertFavorecido> = req.body;
-    
+
     console.log('Update favorecido params:', { tenantId: user.tenantId, favorecidoId: id, updateData });
     const favorecido = await storage.updateFavorecido(user.tenantId, id, updateData);
-    
+
     if (!favorecido) {
       return res.status(404).json({ 
         success: false,
@@ -161,11 +161,11 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
     if (!user) {
       return res.status(401).json({ success: false, message: "Authentication required" });
     }
-    
+
     const { id } = favorecidoIdSchema.parse(req.params);
-    
+
     const deleted = await storage.deleteFavorecido(user.tenantId, id);
-    
+
     if (!deleted) {
       return res.status(404).json({ 
         success: false,
@@ -223,12 +223,12 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
   try {
     const { user } = req;
     const { id } = favorecidoIdSchema.parse(req.params);
-    
+
     const addLocationSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format"),
       isPrimary: z.boolean().optional().default(false)
     });
-    
+
     const { locationId, isPrimary } = addLocationSchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
@@ -317,11 +317,11 @@ router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedReques
       locationId: z.string().uuid("Invalid location ID format")
     });
     const { locationId } = locationIdSchema.parse(req.params);
-    
+
     const updatePrimarySchema = z.object({
       isPrimary: z.boolean()
     });
-    
+
     const { isPrimary } = updatePrimarySchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
