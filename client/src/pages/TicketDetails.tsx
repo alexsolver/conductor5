@@ -36,61 +36,8 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 
 
-// PROBLEMA 6 RESOLVIDO: Schema Zod limpo e expandido com TODOS os campos necessários
-const ticketFormSchema = z.object({
-  // Core required fields
-  subject: z.string().min(1, "Subject is required"),
-  description: z.string().optional(),
-
-  // Classification fields with proper validation
-  priority: z.enum(["low", "medium", "high", "critical"]),
-  status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
-  category: z.string().optional(),
-  subcategory: z.string().optional(),
-  impact: z.enum(["low", "medium", "high", "critical"]).optional(),
-  urgency: z.enum(["low", "medium", "high", "critical"]).optional(),
-
-  // Assignment fields with validation
-  callerId: z.string().min(1, "Caller is required"),
-  callerType: z.enum(["customer", "user"]),
-  beneficiaryId: z.string().optional(),
-  beneficiaryType: z.enum(["customer", "user"]),
-  assignedToId: z.string().optional(),
-  assignmentGroup: z.string().optional(),
-
-  // Location and contact
-  location: z.string().optional(),
-  contactType: z.enum(["email", "phone", "chat", "portal"]).optional(),
-
-  // Extended fields for business context
-  businessImpact: z.string().optional(),
-  symptoms: z.string().optional(),
-  workaround: z.string().optional(),
-  resolution: z.string().optional(),
-
-  // Collections
-  followers: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
-
-  // Company relationship
-  customerCompanyId: z.string().optional(),
-
-  // Template and environment fields
-  environment: z.string().optional(),
-  templateName: z.string().optional(),
-  templateAlternative: z.string().optional(),
-
-  // Linking fields
-  linkTicketNumber: z.string().optional(),
-  linkType: z.string().optional(),
-  linkComment: z.string().optional(),
-
-  // Time tracking
-  estimatedHours: z.number().optional(),
-  actualHours: z.number().optional(),
-});
-
-type TicketFormData = z.infer<typeof ticketFormSchema>;
+// 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
+import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
 
 // Rich Text Editor Component
 function RichTextEditor({ value, onChange, disabled = false }: { value: string, onChange: (value: string) => void, disabled?: boolean }) {
