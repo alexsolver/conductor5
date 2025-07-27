@@ -2029,14 +2029,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const { db: tenantDb, schema } = await schemaManager.getTenantDb(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Get all customer companies using schema reference
-      const companies = await tenantDb
-        .select()
-        .from(schema.customerCompanies)
-        .where(eq(schema.customerCompanies.isActive, true))
-        .orderBy(asc(schema.customerCompanies.name));
+      // Get all customer companies using direct SQL
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          id,
+          name,
+          display_name,
+          cnpj,
+          industry,
+          website,
+          phone,
+          email,
+          address,
+          city,
+          state,
+          country,
+          size,
+          subscription_tier,
+          status,
+          is_active,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(schemaName)}.customer_companies
+        WHERE is_active = true
+        ORDER BY name
+      `);
+      
+      const companies = result.rows;
 
       // Return the format expected by the frontend
       res.json(companies);
