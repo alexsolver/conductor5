@@ -1,7 +1,7 @@
 // LOCATIONS NEW CONTROLLER - Support for 7 Record Types
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../../middleware/auth";
-import { LocationsNewRepository } from "./LocationsNewRepository";
+import { LocationsNewRepository } from "./LocationsNewRepository-fixed";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { z } from "zod";
 import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrechoSchema, areaSchema, agrupamentoSchema } from "../../../shared/schema-locations-new";
@@ -9,8 +9,26 @@ import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrecho
 export class LocationsNewController {
   private repository: LocationsNewRepository;
 
-  constructor(db: any) {
-    this.repository = new LocationsNewRepository(db);
+  constructor(pool: any) {
+    this.repository = new LocationsNewRepository(pool);
+  }
+
+  // Get statistics by type
+  async getStatsByType(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", 401);
+      }
+
+      const { recordType } = req.params;
+      const stats = await this.repository.getStatsByType(tenantId, recordType as string);
+
+      return sendSuccess(res, stats, `${recordType} statistics retrieved successfully`);
+    } catch (error) {
+      console.error('Error fetching stats by type:', error);
+      return sendError(res, "Failed to fetch statistics", 500);
+    }
   }
 
   // Get records by type

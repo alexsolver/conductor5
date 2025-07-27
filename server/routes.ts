@@ -914,8 +914,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // New locations module with 7 record types
-  app.use('/api/locations', locationsNewRoutes);
+  // New locations module with 7 record types  
+  app.use('/api/locations-new', locationsNewRoutes);
 
   // Ticket Templates routes are now integrated directly above
   // Auth routes already mounted above, removing duplicate

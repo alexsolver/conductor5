@@ -83,24 +83,22 @@ export default function LocationsNew() {
 
   // Fetch data based on record type
   const { data: recordsData, isLoading } = useQuery({
-    queryKey: [`/api/locations/${activeRecordType}`, { search: searchTerm, status: statusFilter }],
+    queryKey: [`/api/locations-new/${activeRecordType}`, { search: searchTerm, status: statusFilter }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter !== 'all') params.append('status', statusFilter);
 
-      const url = `/api/locations/${activeRecordType}${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await apiRequest("GET", url);
-      return response.json();
+      const url = `/api/locations-new/${activeRecordType}${params.toString() ? `?${params.toString()}` : ''}`;
+      return apiRequest("GET", url);
     }
   });
 
   // Statistics for current record type
   const { data: statsData } = useQuery({
-    queryKey: [`/api/locations/${activeRecordType}/stats`],
+    queryKey: [`/api/locations-new/${activeRecordType}/stats`],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/locations/${activeRecordType}/stats`);
-      return response.json();
+      return apiRequest("GET", `/api/locations-new/${activeRecordType}/stats`);
     }
   });
 
@@ -110,12 +108,11 @@ export default function LocationsNew() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/locations/${activeRecordType}`, data);
-      return response.json();
+      return apiRequest("POST", `/api/locations-new/${activeRecordType}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/locations/${activeRecordType}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/locations/${activeRecordType}/stats`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
       setIsCreateDialogOpen(false);
       toast({
         title: "Sucesso",

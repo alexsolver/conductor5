@@ -233,30 +233,30 @@ export const regiaoSchema = createInsertSchema(regioes, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
   latitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Latitude inválida").optional(),
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const rotaDinamicaSchema = createInsertSchema(rotasDinamicas, {
   nomeRota: z.string().min(1, "Nome da rota é obrigatório").max(100),
   idRota: z.string().min(1, "ID da rota é obrigatório").max(100),
   previsaoDias: z.number().min(1).max(30, "Deve ser entre 1 e 30 dias"),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const trechoSchema = createInsertSchema(trechos).omit({ 
-  id: true, createdAt: true, updatedAt: true 
+  id: true, createdAt: true, updatedAt: true, tenantId: true 
 });
 
 export const rotaTrechoSchema = createInsertSchema(rotasTrecho, {
   idRota: z.string().min(1, "ID da rota é obrigatório").max(100),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const areaSchema = createInsertSchema(areas, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
   corMapa: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor deve ser um hex válido"),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const agrupamentoSchema = createInsertSchema(agrupamentos, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 // TypeScript types
 export type Local = typeof locais.$inferSelect;

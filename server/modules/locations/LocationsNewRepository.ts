@@ -14,83 +14,118 @@ export class LocationsNewRepository {
 
   // Get records by type with filtering
   async getRecordsByType(tenantId: string, recordType: string, filters?: { search?: string; status?: string }) {
-    const tableMap: { [key: string]: any } = {
-      'local': locais,
-      'regiao': regioes,
-      'rota-dinamica': rotasDinamicas,
-      'trecho': trechos,
-      'rota-trecho': rotasTrecho,
-      'area': areas,
-      'agrupamento': agrupamentos
+    const tableNames: { [key: string]: string } = {
+      'local': 'locais',
+      'regiao': 'regioes',
+      'rota-dinamica': 'rotas_dinamicas',
+      'trecho': 'trechos',
+      'rota-trecho': 'rotas_trecho',
+      'area': 'areas',
+      'agrupamento': 'agrupamentos'
     };
 
-    const table = tableMap[recordType];
-    if (!table) {
+    const tableName = tableNames[recordType];
+    if (!tableName) {
       throw new Error(`Invalid record type: ${recordType}`);
     }
 
-    let query = this.db.select().from(table).where(eq(table.tenantId, tenantId));
+    // Use raw SQL with tenant schema
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    let query = `SELECT * FROM "${schemaName}"."${tableName}" WHERE tenant_id = $1`;
+    const params = [tenantId];
 
     if (filters?.search) {
-      // Add search logic based on record type
-      if (recordType === 'local') {
-        query = query.where(
-          and(
-            eq(table.tenantId, tenantId),
-            ilike(table.descricao, `%${filters.search}%`)
-          )
-        );
-      }
+      query += ` AND (nome ILIKE $${params.length + 1} OR descricao ILIKE $${params.length + 1})`;
+      params.push(`%${filters.search}%`);
     }
 
     if (filters?.status) {
-      query = query.where(
-        and(
-          eq(table.tenantId, tenantId),
-          eq(table.ativo, filters.status === 'active')
-        )
-      );
+      query += ` AND ativo = $${params.length + 1}`;
+      params.push(filters.status === 'active');
     }
 
-    return await query.orderBy(desc(table.createdAt));
+    query += ` ORDER BY created_at DESC`;
+
+    try {
+      const result = await this.db.execute(sql.raw(query, params));
+      return result || [];
+    } catch (error) {
+      console.error(`Error fetching ${recordType} records:`, error);
+      return [];
+    }
   }
 
   // Get statistics by record type
   async getStatsByType(tenantId: string, recordType: string) {
-    const tableMap: { [key: string]: any } = {
-      'local': locais,
-      'regiao': regioes,
-      'rota-dinamica': rotasDinamicas,
-      'trecho': trechos,
-      'rota-trecho': rotasTrecho,
-      'area': areas,
-      'agrupamento': agrupamentos
+    const tableNames: { [key: string]: string } = {
+      'local': 'locais',
+      'regiao': 'regioes',
+      'rota-dinamica': 'rotas_dinamicas',
+      'trecho': 'trechos',
+      'rota-trecho': 'rotas_trecho',
+      'area': 'areas',
+      'agrupamento': 'agrupamentos'
     };
 
-    const table = tableMap[recordType];
-    if (!table) {
+    const tableName = tableNames[recordType];
+    if (!tableName) {
       throw new Error(`Invalid record type: ${recordType}`);
     }
 
-    const stats = await this.db
-      .select({
-        total: sql<number>`count(*)`,
-        active: sql<number>`count(*) filter (where ${table.ativo} = true)`,
-        inactive: sql<number>`count(*) filter (where ${table.ativo} = false)`
-      })
-      .from(table)
-      .where(eq(table.tenantId, tenantId));
+    // Use raw SQL with tenant schema
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE ativo = true) as active,
+        COUNT(*) FILTER (WHERE ativo = false) as inactive
+      FROM "${schemaName}"."${tableName}" 
+      WHERE tenant_id = $1
+    `;
 
-    return stats[0] || { total: 0, active: 0, inactive: 0 };
+    const result = await this.db.execute(sql`${sql.raw(query)}`, [tenantId]);
+    const stats = result[0] || { total: 0, active: 0, inactive: 0 };
+    
+    return {
+      total: parseInt(stats.total) || 0,
+      active: parseInt(stats.active) || 0,
+      inactive: parseInt(stats.inactive) || 0
+    };
   }
 
   // CRUD Operations for Local
   async createLocal(tenantId: string, data: NewLocal) {
-    const [local] = await this.db
-      .insert(locais)
-      .values({ ...data, tenantId, nome: data.nome })
-      .returning();
-    return local;
+    try {
+      // Use raw SQL for tenant-specific schema
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const query = `
+        INSERT INTO "${schemaName}"."locais" (
+          tenant_id, ativo, nome, descricao, codigo_integracao, 
+          tipo_cliente_favorecido, tecnico_principal_id, email, ddd, telefone,
+          cep, pais, estado, municipio, bairro, tipo_logradouro, logradouro, 
+          numero, complemento, latitude, longitude, geo_coordenadas,
+          fuso_horario, feriados_incluidos, indisponibilidades
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+          $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+          $21, $22, $23, $24, $25
+        ) RETURNING *
+      `;
+
+      const values = [
+        tenantId, data.ativo, data.nome, data.descricao, data.codigoIntegracao,
+        data.tipoClienteFavorecido, data.tecnicoPrincipalId, data.email, data.ddd, data.telefone,
+        data.cep, data.pais, data.estado, data.municipio, data.bairro, data.tipoLogradouro, data.logradouro,
+        data.numero, data.complemento, data.latitude, data.longitude, data.geoCoordenadas,
+        data.fusoHorario, data.feriadosIncluidos, data.indisponibilidades
+      ];
+
+      const result = await this.db.execute(sql`${sql.raw(query)}`, values);
+      return result[0];
+    } catch (error) {
+      console.error('Error creating local:', error);
+      throw error;
+    }
   }
 
   async createRegiao(tenantId: string, data: NewRegiao) {

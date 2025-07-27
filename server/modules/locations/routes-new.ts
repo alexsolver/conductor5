@@ -1,7 +1,7 @@
 // LOCATIONS NEW ROUTES - API routes for 7 record types
 import { Router, Request, Response, NextFunction } from "express";
 import { LocationsNewController } from './LocationsNewController';
-import { LocationsNewRepository } from './LocationsNewRepository';
+import { LocationsNewRepository } from './LocationsNewRepository-fixed';
 import { getTenantDb } from '../../db-tenant';
 import { DatabaseStorage } from "../../storage-simple";
 import { jwtAuth } from "../../middleware/jwtAuth";
@@ -19,7 +19,7 @@ interface AuthenticatedRequest extends Request {
 // Apply JWT authentication to all routes FIRST
 router.use(jwtAuth);
 
-// Middleware to get tenant database (after authentication)
+// Middleware to get tenant database pool (after authentication)
 router.use('*', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.user?.tenantId;
@@ -27,7 +27,9 @@ router.use('*', async (req: AuthenticatedRequest, res: Response, next: NextFunct
       return res.status(401).json({ success: false, message: 'Não foi possível identificar o tenant. Faça login novamente.' });
     }
 
-    req.tenantDb = await getTenantDb(tenantId);
+    // Get the database pool directly for SQL queries
+    const { schemaManager } = await import('../../db');
+    req.tenantDb = schemaManager.getPool();
     next();
   } catch (error) {
     console.error('Error getting tenant database:', error);
@@ -38,16 +40,16 @@ router.use('*', async (req: AuthenticatedRequest, res: Response, next: NextFunct
 // Controller factory function
 const getController = (req: AuthenticatedRequest) => new LocationsNewController(req.tenantDb);
 
+// Get statistics by type FIRST to avoid UUID conflict  
+router.get('/:recordType/stats', async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.getStatsByType(req, res);
+});
+
 // Get records by type
 router.get('/:recordType', async (req: AuthenticatedRequest, res: Response) => {
   const controller = getController(req);
   return controller.getRecordsByType(req, res);
-});
-
-// Get statistics by type  
-router.get('/:recordType/stats', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
-  return controller.getStatsByType(req, res);
 });
 
 // CEP lookup
