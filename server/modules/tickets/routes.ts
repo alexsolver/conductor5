@@ -261,8 +261,8 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
     const ticketId = req.params.id;
     const { assignedToId } = req.body;
 
-    const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, { 
-      assigned_to_id: assignedToId,
+    const updatedTicket = await storageSimple.updateTicket(ticketId, req.user.tenantId, { 
+      assignedToId,
       status: 'in_progress'
     });
 

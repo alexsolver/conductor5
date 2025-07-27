@@ -940,7 +940,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFavorecido(tenantId: string, id: string, data: any): Promise<any> {
+  async updateFavorecido(id: string, tenantId: string, data: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -975,12 +975,12 @@ export class DatabaseStorage implements IStorage {
 
       return favorecido;
     } catch (error) {
-      logError('Error updating favorecido', error, { tenantId, id, data });
+      logError('Error updating favorecido', error, { id, tenantId, data });
       throw error;
     }
   }
 
-  async deleteFavorecido(tenantId: string, id: string): Promise<boolean> {
+  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -998,7 +998,7 @@ export class DatabaseStorage implements IStorage {
 
       return deleted;
     } catch (error) {
-      logError('Error deleting favorecido', error, { tenantId, id });
+      logError('Error deleting favorecido', error, { id, tenantId });
       throw error;
     }
   }

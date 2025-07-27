@@ -272,8 +272,6 @@ export default function TicketsTable() {
       const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
       return response.json();
     },
-    staleTime: 30000, // 30 segundos para reduzir re-fetch
-    refetchOnWindowFocus: false,
     retry: 3,
   });
 
@@ -1736,7 +1734,7 @@ export default function TicketsTable() {
                         )}
                       />
 
-
+                      
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1759,7 +1757,7 @@ export default function TicketsTable() {
                         )}
                       />
 
-
+                      
                     </div>
                   </div>
 
@@ -1891,7 +1889,7 @@ export default function TicketsTable() {
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-)}
+                    )}
                   />
 
                   <FormField

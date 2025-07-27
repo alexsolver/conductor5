@@ -199,24 +199,15 @@ export default function FavorecidosTable() {
       const response = await apiRequest("PUT", `/api/favorecidos/${id}`, updateData);
       return response.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       console.log('Update mutation success:', data);
       toast({
         title: "Sucesso",
         description: "Favorecido atualizado com sucesso",
       });
-      
-      // Invalidação mais agressiva de cache
-      await queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/favorecidos"] });
-      await refetch(); // Force refetch
-      
-      // Aguarda um pouco para garantir que o cache foi limpo
-      setTimeout(() => {
-        queryClient.removeQueries({ queryKey: ["/api/favorecidos"] });
-        refetch();
-      }, 100);
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
+      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"] });
+      refetch(); // Force refetch
       setIsEditDialogOpen(false);
       setEditingFavorecido(null);
     },
