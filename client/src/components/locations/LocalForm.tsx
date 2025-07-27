@@ -704,7 +704,10 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog de Feriados */}
       <Dialog open={showHolidaysDialog} onOpenChange={setShowHolidaysDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="feriados-dialog-description">
+          <div id="feriados-dialog-description" className="sr-only">
+            Seleção de feriados municipais, estaduais e federais para configuração do local
+          </div>
           <DialogHeader>
             <DialogTitle>Selecionar Feriados</DialogTitle>
           </DialogHeader>
@@ -744,7 +747,10 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog de Indisponibilidades */}
       <Dialog open={showIndisponibilidadesDialog} onOpenChange={setShowIndisponibilidadesDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="indisponibilidades-dialog-description">
+          <div id="indisponibilidades-dialog-description" className="sr-only">
+            Gerenciamento de períodos de indisponibilidade do local com data de início, fim e observações
+          </div>
           <DialogHeader>
             <DialogTitle>Gerenciar Indisponibilidades</DialogTitle>
           </DialogHeader>
@@ -826,7 +832,10 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog do Mapa */}
       <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh]" aria-describedby="mapa-dialog-description">
+          <div id="mapa-dialog-description" className="sr-only">
+            Mapa interativo para seleção e validação de coordenadas geográficas do local
+          </div>
           <DialogHeader>
             <DialogTitle>Validação de Coordenadas</DialogTitle>
           </DialogHeader>
@@ -861,8 +870,27 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
             <Button variant="outline" onClick={() => setShowMapDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => setShowMapDialog(false)}>
-              Confirmar Localização
+            <Button onClick={() => {
+              // Salvar as coordenadas selecionadas
+              const lat = parseFloat(form.watch('latitude')) || mapCenter[0];
+              const lng = parseFloat(form.watch('longitude')) || mapCenter[1];
+              
+              form.setValue('geoCoordenadas', {
+                latitude: lat,
+                longitude: lng,
+                endereco: `${form.watch('logradouro') || ''}, ${form.watch('numero') || ''}, ${form.watch('bairro') || ''}, ${form.watch('municipio') || ''}, ${form.watch('estado') || ''}`.replace(/^,+|,+$/g, '').replace(/,+/g, ', '),
+                validado: true,
+                fonte: 'manual'
+              });
+              
+              setShowMapDialog(false);
+              
+              toast({
+                title: "Localização confirmada",
+                description: `Coordenadas salvas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
+              });
+            }}>
+              Confirmar e Salvar Localização
             </Button>
           </div>
         </DialogContent>

@@ -9,8 +9,8 @@ import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrecho
 export class LocationsNewController {
   private repository: LocationsNewRepository;
 
-  constructor(repository: LocationsNewRepository) {
-    this.repository = repository;
+  constructor(db: any) {
+    this.repository = new LocationsNewRepository(db);
   }
 
   // Get records by type

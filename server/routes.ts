@@ -2398,8 +2398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize ticket metadata endpoint - criar dados de exemplo
   app.post("/api/admin/initialize-ticket-metadata", jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
+    try {      const tenantId = req.user?.tenantId;
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID required' });
       }

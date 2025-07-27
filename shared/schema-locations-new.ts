@@ -193,7 +193,7 @@ export const localSchema = createInsertSchema(locais, {
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   cep: z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido").optional(),
   ddd: z.string().min(2).max(3).optional(),
-  telefone: z.string().min(8).max(15).optional(),
+  telefone: z.string().optional(), // Removido min/max para não ser obrigatório
   latitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Latitude inválida").optional(),
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
   tipoLogradouro: z.enum(['Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo']).optional(),
