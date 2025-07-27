@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Route } from "lucide-react";
-import { rotaTrechoSchema, type NewRotaTrecho } from "../../shared/schema-locations-new";
+import { rotaTrechoSchema, type NewRotaTrecho } from "@/../../shared/schema-locations-new";
 
 interface RotaTrechoFormProps {
   onSubmit: (data: NewRotaTrecho) => void;
@@ -16,7 +16,7 @@ interface RotaTrechoFormProps {
   isLoading?: boolean;
 }
 
-export function RotaTrechoForm({ onSubmit, onCancel, isLoading = false }: RotaTrechoFormProps) {
+export default function RotaTrechoForm({ onSubmit, onCancel, isLoading = false }: RotaTrechoFormProps) {
   const form = useForm<NewRotaTrecho>({
     resolver: zodResolver(rotaTrechoSchema),
     defaultValues: {

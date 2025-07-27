@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Layers } from "lucide-react";
-import { agrupamentoSchema, type NewAgrupamento } from "../../shared/schema-locations-new";
+import { agrupamentoSchema, type NewAgrupamento } from "@/../../shared/schema-locations-new";
 
 interface AgrupamentoFormProps {
   onSubmit: (data: NewAgrupamento) => void;
@@ -17,7 +17,7 @@ interface AgrupamentoFormProps {
   isLoading?: boolean;
 }
 
-export function AgrupamentoForm({ onSubmit, onCancel, isLoading = false }: AgrupamentoFormProps) {
+export default function AgrupamentoForm({ onSubmit, onCancel, isLoading = false }: AgrupamentoFormProps) {
   const form = useForm<NewAgrupamento>({
     resolver: zodResolver(agrupamentoSchema),
     defaultValues: {

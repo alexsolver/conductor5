@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Map, Palette } from "lucide-react";
-import { areaSchema, type NewArea } from "../../shared/schema-locations-new";
+import { areaSchema, type NewArea } from "@/../../shared/schema-locations-new";
 
 interface AreaFormProps {
   onSubmit: (data: NewArea) => void;
@@ -18,7 +18,7 @@ interface AreaFormProps {
   isLoading?: boolean;
 }
 
-export function AreaForm({ onSubmit, onCancel, isLoading = false }: AreaFormProps) {
+export default function AreaForm({ onSubmit, onCancel, isLoading = false }: AreaFormProps) {
   const form = useForm<NewArea>({
     resolver: zodResolver(areaSchema),
     defaultValues: {

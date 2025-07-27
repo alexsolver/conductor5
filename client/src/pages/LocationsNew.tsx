@@ -9,8 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+
+// Import form components
+import LocalForm from "@/components/locations/LocalForm";
+import RegiaoForm from "@/components/locations/RegiaoForm";
+import RotaDinamicaForm from "@/components/locations/RotaDinamicaForm";
+import TrechoForm from "@/components/locations/TrechoForm";
+import RotaTrechoForm from "@/components/locations/RotaTrechoForm";
+import AreaForm from "@/components/locations/AreaForm";
+import AgrupamentoForm from "@/components/locations/AgrupamentoForm";
 
 // Record type configurations
 const RECORD_TYPES = {
@@ -91,6 +101,63 @@ export default function LocationsNew() {
 
   // Get current record configuration
   const currentType = RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES];
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", `/api/locations/${activeRecordType}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/locations/${activeRecordType}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations/${activeRecordType}/stats`] });
+      setIsCreateDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: `${currentType.label} criado com sucesso!`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: `Erro ao criar ${currentType.label.toLowerCase()}: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle form submission
+  const handleCreateSubmit = (data: any) => {
+    createMutation.mutate(data);
+  };
+
+  // Get form component based on active record type
+  const getFormComponent = () => {
+    const commonProps = {
+      onSubmit: handleCreateSubmit,
+      isSubmitting: createMutation.isPending,
+      onCancel: () => setIsCreateDialogOpen(false)
+    };
+
+    switch (activeRecordType) {
+      case 'local':
+        return <LocalForm {...commonProps} />;
+      case 'regiao':
+        return <RegiaoForm {...commonProps} />;
+      case 'rota_dinamica':
+        return <RotaDinamicaForm {...commonProps} />;
+      case 'trecho':
+        return <TrechoForm {...commonProps} />;
+      case 'rota_trecho':
+        return <RotaTrechoForm {...commonProps} />;
+      case 'area':
+        return <AreaForm {...commonProps} />;
+      case 'agrupamento':
+        return <AgrupamentoForm {...commonProps} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -357,6 +424,19 @@ export default function LocationsNew() {
           )}
         </CardContent>
       </Card>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <currentType.icon className="h-5 w-5" />
+              Criar Novo {currentType.label}
+            </DialogTitle>
+          </DialogHeader>
+          {getFormComponent()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

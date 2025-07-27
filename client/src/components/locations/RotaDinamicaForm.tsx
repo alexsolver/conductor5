@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Route, Users, Calendar } from "lucide-react";
-import { rotaDinamicaSchema, type NewRotaDinamica } from "../../shared/schema-locations-new";
+import { rotaDinamicaSchema, type NewRotaDinamica } from "@/../../shared/schema-locations-new";
 
 interface RotaDinamicaFormProps {
   onSubmit: (data: NewRotaDinamica) => void;
@@ -16,7 +16,7 @@ interface RotaDinamicaFormProps {
   isLoading?: boolean;
 }
 
-export function RotaDinamicaForm({ onSubmit, onCancel, isLoading = false }: RotaDinamicaFormProps) {
+export default function RotaDinamicaForm({ onSubmit, onCancel, isLoading = false }: RotaDinamicaFormProps) {
   const form = useForm<NewRotaDinamica>({
     resolver: zodResolver(rotaDinamicaSchema),
     defaultValues: {

@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Users, Building, Globe } from "lucide-react";
-import { regiaoSchema, type NewRegiao } from "../../shared/schema-locations-new";
+import { regiaoSchema, type NewRegiao } from "@/../../shared/schema-locations-new";
 
 interface RegiaoFormProps {
   onSubmit: (data: NewRegiao) => void;
@@ -17,7 +17,7 @@ interface RegiaoFormProps {
   isLoading?: boolean;
 }
 
-export function RegiaoForm({ onSubmit, onCancel, isLoading = false }: RegiaoFormProps) {
+export default function RegiaoForm({ onSubmit, onCancel, isLoading = false }: RegiaoFormProps) {
   const form = useForm<NewRegiao>({
     resolver: zodResolver(regiaoSchema),
     defaultValues: {

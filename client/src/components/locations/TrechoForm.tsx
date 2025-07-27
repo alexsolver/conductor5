@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight } from "lucide-react";
-import { trechoSchema, type NewTrecho } from "../../shared/schema-locations-new";
+import { trechoSchema, type NewTrecho } from "@/../../shared/schema-locations-new";
 
 interface TrechoFormProps {
   onSubmit: (data: NewTrecho) => void;
@@ -16,7 +16,7 @@ interface TrechoFormProps {
   isLoading?: boolean;
 }
 
-export function TrechoForm({ onSubmit, onCancel, isLoading = false }: TrechoFormProps) {
+export default function TrechoForm({ onSubmit, onCancel, isLoading = false }: TrechoFormProps) {
   const form = useForm<NewTrecho>({
     resolver: zodResolver(trechoSchema),
     defaultValues: {

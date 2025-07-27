@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Phone, Home, Globe, Clock } from "lucide-react";
-import { localSchema, type NewLocal } from "../../shared/schema-locations-new";
+import { localSchema, type NewLocal } from "@/../../shared/schema-locations-new";
 
 interface LocalFormProps {
   onSubmit: (data: NewLocal) => void;
@@ -19,7 +19,7 @@ interface LocalFormProps {
   initialData?: Partial<NewLocal>;
 }
 
-export function LocalForm({ onSubmit, onCancel, initialData }: LocalFormProps) {
+export default function LocalForm({ onSubmit, onCancel, initialData }: LocalFormProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [isLoadingCoords, setIsLoadingCoords] = useState(false);
   
