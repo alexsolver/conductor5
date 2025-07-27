@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { validateCpfCnpj, validateRG, formatCpfCnpj, applyCpfCnpjMask } from "../../../shared/validators/brazilian-documents";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -49,8 +50,8 @@ const favorecidoSchema = z.object({
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
   birthDate: z.string().optional(),
-  rg: z.string().optional(),
-  cpfCnpj: z.string().optional(),
+  rg: z.string().optional().refine(validateRG, "RG inválido"),
+  cpfCnpj: z.string().optional().refine(validateCpfCnpj, "CPF/CNPJ inválido"),
   isActive: z.boolean().default(true),
   customerCode: z.string().optional(),
   phone: z.string().optional(),

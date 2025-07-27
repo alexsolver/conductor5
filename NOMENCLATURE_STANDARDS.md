@@ -1,299 +1,169 @@
-# NOMENCLATURE STANDARDS GUIDE
-**Established: July 21, 2025**
+# 📝 PADRÕES DE NOMENCLATURA - CONDUCTOR PLATFORM
 
-## Overview
-This document defines the nomenclature standards for the Conductor platform, addressing the coexistence of Portuguese and English naming conventions in a Brazilian business context.
+## 🇧🇷 PADRÃO HÍBRIDO BRASILEIRO-INTERNACIONAL ADOTADO
 
-## 🎯 Core Principles
-
-### 1. **Business Context First**
-- Brazilian legal terms (CPF, CNPJ, RG) remain in Portuguese for accuracy
-- International business terms (email, phone) use English for global compatibility
-- Table names reflect target audience (favorecidos = Brazilian context, customers = international)
-
-### 2. **Consistency Within Scope**
-- Database fields: Always snake_case (`created_at`, `tenant_id`)
-- TypeScript schema: Always camelCase (`createdAt`, `tenantId`)
-- API endpoints: kebab-case URLs (`/api/customer-companies`)
-- Components: PascalCase (`CustomerCompanies.tsx`)
-
-### 3. **Functional Distinction**
-- `favorecidos`: Brazilian entities with CPF/CNPJ (Portuguese context)
-- `customers`: International entities with standard fields (English context)
-- Both can coexist serving different business needs
-
-## 📋 Detailed Standards
-
-### Database Naming Conventions
-
-#### ✅ CORRECT Patterns:
-```sql
--- Table names: snake_case
-CREATE TABLE customer_companies (...);
-CREATE TABLE user_skills (...);
-CREATE TABLE project_actions (...);
-
--- Field names: snake_case
-tenant_id UUID NOT NULL
-created_at TIMESTAMP DEFAULT NOW()
-is_active BOOLEAN DEFAULT true
-```
-
-#### ❌ AVOID:
-```sql
--- Mixed case in database
-CREATE TABLE customerCompanies (...);
-CREATE TABLE UserSkills (...);
-
--- Inconsistent field naming
-createdAt TIMESTAMP  -- Should be created_at
-tenantID UUID        -- Should be tenant_id
-```
-
-### TypeScript Schema Conventions
-
-#### ✅ CORRECT Patterns:
+### **CAMPOS LEGAIS BRASILEIROS** (Português)
 ```typescript
-// Schema definitions: camelCase
-export const customerCompanies = pgTable("customer_companies", {
-  tenantId: uuid("tenant_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  isActive: boolean("is_active").default(true)
-});
-
-// Types: camelCase
-type CustomerCompany = typeof customerCompanies.$inferSelect;
+// Documentos legais brasileiros - mantidos em português
+cpf: varchar("cpf", { length: 14 })           // CPF padrão brasileiro
+cnpj: varchar("cnpj", { length: 18 })         // CNPJ padrão brasileiro  
+rg: varchar("rg", { length: 20 })             // RG regional brasileiro
+pis: varchar("pis", { length: 20 })           // PIS federal brasileiro
+ctps: varchar("ctps", { length: 50 })         // Carteira de Trabalho
 ```
 
-### API Naming Conventions
+**JUSTIFICATIVA**: Terminologia legal obrigatória, reconhecida pela Receita Federal
 
-#### ✅ CORRECT Patterns:
+### **CAMPOS DE NEGÓCIO** (Inglês Internacional)
 ```typescript
-// URL endpoints: kebab-case
-GET /api/customer-companies
-POST /api/user-skills
-PUT /api/project-actions/:id
-
-// JSON response: camelCase
-{
-  "customerCompanies": [...],
-  "totalCount": 42,
-  "isActive": true
-}
-```
-
-### Component Naming Conventions
-
-#### ✅ CORRECT Patterns:
-```typescript
-// File names: PascalCase
-CustomerCompanies.tsx
-UserSkills.tsx
-ProjectActions.tsx
-
-// Component names: PascalCase
-export function CustomerCompanies() { ... }
-export function UserSkillsManager() { ... }
-```
-
-## 🇧🇷 Brazilian-Specific Fields
-
-### Legal Requirements (Keep Portuguese)
-```typescript
-// ✅ CORRECT - Legal accuracy required
-cpf: varchar("cpf", { length: 14 })        // Brazilian tax ID
-cnpj: varchar("cnpj", { length: 18 })      // Brazilian company ID  
-rg: varchar("rg", { length: 20 })          // Brazilian identity document
-
-// ✅ CORRECT - Business context
-favorecidos: "Beneficiaries/Recipients in Brazilian business context"
-```
-
-### International Fields (Use English)
-```typescript
-// ✅ CORRECT - Global compatibility
+// Campos de negócio - padrão internacional
+firstName: varchar("first_name", { length: 100 })
+lastName: varchar("last_name", { length: 100 })
 email: varchar("email", { length: 255 })
 phone: varchar("phone", { length: 20 })
+address: text("address")
+city: varchar("city", { length: 100 })
+```
+
+**JUSTIFICATIVA**: Compatibilidade internacional, integração com sistemas externos
+
+### **CAMPOS DE SISTEMA** (Inglês Técnico)
+```typescript
+// Campos de sistema - sempre inglês
+id: uuid("id").primaryKey()
+tenantId: uuid("tenant_id")
+isActive: boolean("is_active")
+createdAt: timestamp("created_at")
+updatedAt: timestamp("updated_at")
+```
+
+**JUSTIFICATIVA**: Convenções universais de desenvolvimento
+
+## 📞 SISTEMA DUAL DE TELEFONES
+
+### **PADRÃO DEFINIDO**
+```typescript
+phone: varchar("phone", { length: 20 })          // Telefone fixo/comercial
+cellPhone: varchar("cell_phone", { length: 20 }) // Celular/WhatsApp
+```
+
+### **CASOS DE USO**
+- **phone**: Telefone fixo, comercial, recepção, contato principal
+- **cellPhone**: Celular pessoal, WhatsApp, SMS, contato móvel urgente
+
+### **APLICAÇÃO POR ENTIDADE**
+| Entidade | Phone (Fixo) | CellPhone (Móvel) |
+|----------|--------------|-------------------|
+| Users | Ramal/Fixo | Celular pessoal |
+| Customers | Comercial | WhatsApp |
+| Favorecidos | Principal | Contato móvel |
+| Suppliers | Empresa | Contato direto |
+
+## 🏢 PADRÕES DE NOME POR ENTIDADE
+
+### **PESSOAS FÍSICAS** (firstName + lastName)
+```typescript
+// Aplicado em: users, favorecidos, contacts
 firstName: varchar("first_name", { length: 100 })
 lastName: varchar("last_name", { length: 100 })
 ```
 
-
-
-### Brazilian Legal Field Requirements
-
-**Context**: favorecidos table serves Brazilian market with specific legal compliance needs:
-
-**Required Brazilian Legal Fields**:
-- `cpf`: Cadastro de Pessoa Física (Individual taxpayer ID)
-- `cnpj`: Cadastro Nacional da Pessoa Jurídica (Company taxpayer ID)  
-- `rg`: Registro Geral (Identity document)
-
-**Business Justification**:
-1. **Legal Compliance**: Required for Brazilian tax and identity verification
-2. **Payment Processing**: Needed for PIX transfers and bank operations
-3. **Contract Management**: Required for formal business agreements
-
-**Coexistence Strategy**:
-- Brazilian legal fields: Keep Portuguese terms (cpf, cnpj, rg)
-- International fields: Use English terms (name, email, phone)
-- This hybrid approach serves both local compliance and international development
-
-### Entity vs Individual Field Patterns
-
-**Business Rule**: Different naming patterns serve different entity types:
-
-1. **Individual Entities (customers, users)**:
-   - Use structured naming: `firstName` + `lastName`
-   - Supports formal addressing and international formats
-   - Example: customers table for individual requesters
-
-2. **Business Entities (favorecidos)**:
-   - Use single `name` field for business/company names
-   - Accommodates company names that don't split naturally
-   - Example: "Tech Solutions LTDA", "João Silva & Associados"
-
-**Implementation**:
+### **PESSOAS JURÍDICAS** (name + tradeName)
 ```typescript
-// ✅ Individual entities
-customers: {
-  firstName: varchar("first_name", { length: 255 }),
-  lastName: varchar("last_name", { length: 255 })
-}
-
-// ✅ Business entities  
-favorecidos: {
-  name: varchar("name", { length: 255 })  // Company/business name
-}
+// Aplicado em: customers, suppliers, companies
+name: varchar("name", { length: 255 })           // Razão social
+tradeName: varchar("trade_name", { length: 255 }) // Nome fantasia
 ```
 
-**Justification**: Brazilian business context often involves both individual customers and business entities as favorecidos (beneficiaries), requiring different field structures.
-
-## 🔧 Inconsistency Resolution Guidelines
-
-### 1. **Field Name Conflicts**
-
-**Problem**: `favorecidos.name` vs `customers.firstName/lastName`
-
-**Current Inconsistency**:
+### **ENTIDADES ABSTRATAS** (name único)
 ```typescript
-// favorecidos table (entities/companies)
-name: varchar("name", { length: 255 })           // Single field
-
-// customers table (individuals) 
-firstName: varchar("first_name", { length: 255 })
-lastName: varchar("last_name", { length: 255 })   // Split fields
+// Aplicado em: projects, tickets, assets, locations
+name: varchar("name", { length: 255 })
+// OU
+title: varchar("title", { length: 255 }) // Para documentos
 ```
 
-**Resolution Options**:
-- **Option A**: Standardize on `firstName/lastName` everywhere
-- **Option B**: Use `name` for entities, `firstName/lastName` for people
-- **Recommended**: Option B - business entities use `name`, individuals use `firstName/lastName`
+## 🏷️ STATUS DEFAULTS POR CONTEXTO
 
-**Business Justification**: favorecidos often represents companies/entities that have a single business name, while customers are individuals requiring structured name fields.
-
-### 2. **Phone Field Redundancy**
-
-**Problem**: `phone` and `cellPhone` in same table
-
-**Current Inconsistency**:
+### **FLUXO DE ATENDIMENTO**
 ```typescript
-// favorecidos table - REDUNDANT
-phone: varchar("phone", { length: 20 })           // Purpose unclear
-cellPhone: varchar("cell_phone", { length: 20 })  // Mobile specific
-// Both fields serve similar purpose without clear distinction
+tickets.status: "open"          // Pronto para atendimento
+tickets.priority: "medium"      // Prioridade padrão
 ```
 
-**Resolution Options**:
+### **FLUXO DE PROJETO** 
 ```typescript
-// ✅ PREFERRED - Clear distinction
-landlinePhone: varchar("landline_phone", { length: 20 })
-mobilePhone: varchar("mobile_phone", { length: 20 })
-
-// ✅ ALTERNATIVE - Primary/secondary
-primaryPhone: varchar("primary_phone", { length: 20 })
-secondaryPhone: varchar("secondary_phone", { length: 20 })
+projects.status: "planning"     // Fase inicial de planejamento
+projectActions.status: "pending" // Aguardando execução
 ```
 
-**Impact**: Eliminates confusion about which phone field to use and ensures data consistency.
-
-### 3. **Table Language Mixing**
-
-**Current State**: 
-- 1 Portuguese table: `favorecidos`
-- 12+ English tables: `customers`, `tickets`, etc.
-
-**Recommendation**: **KEEP AS-IS**
-- `favorecidos` serves Brazilian market specifically
-- English tables serve international/general use
-- Both patterns have business justification
-
-## 📊 Implementation Checklist
-
-### For New Development:
-- [ ] Database fields use snake_case
-- [ ] TypeScript schema uses camelCase  
-- [ ] API endpoints use kebab-case URLs
-- [ ] Components use PascalCase
-- [ ] Brazilian legal fields keep Portuguese names
-- [ ] International business fields use English
-
-### For Existing Code:
-- [ ] Document business justification for mixed languages
-- [ ] Resolve field naming conflicts (name vs firstName/lastName)
-- [ ] Clarify phone field purposes (landline vs mobile)
-- [ ] Maintain consistency within each table/module
-
-## 🎯 Business Impact Assessment
-
-### Risk Level: **LOW** 🟢
-- Inconsistencies don't break functionality
-- Mixed languages serve legitimate business purposes
-- Primary impact is on developer experience and maintenance
-
-### Benefits of Standardization:
-1. **Developer Productivity**: Predictable naming patterns
-2. **Code Maintainability**: Consistent conventions across codebase
-3. **International Compatibility**: English for global features
-4. **Legal Compliance**: Portuguese for Brazilian requirements
-
-## 📚 Examples
-
-### Complete Table Example:
+### **ESTADO BINÁRIO**
 ```typescript
-// Brazilian-specific table
-export const favorecidos = pgTable("favorecidos", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  
-  // Business entity info (Portuguese context)
-  name: varchar("name", { length: 255 }).notNull(),           // Entity name
-  tradeName: varchar("trade_name", { length: 255 }),         // Nome fantasia
-  
-  // Brazilian legal fields (keep Portuguese)
-  cpf: varchar("cpf", { length: 14 }),                       // Individual tax ID
-  cnpj: varchar("cnpj", { length: 18 }),                     // Company tax ID
-  rg: varchar("rg", { length: 20 }),                         // Identity document
-  
-  // International contact fields (English)
-  email: varchar("email", { length: 255 }),
-  primaryPhone: varchar("primary_phone", { length: 20 }),
-  secondaryPhone: varchar("secondary_phone", { length: 20 }),
-  
-  // Standard system fields (English)
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
+users.isActive: true           // Ativo por padrão
+favorecidos.isActive: true     // Ativo por padrão
+customers.isActive: true       // Ativo por padrão
 ```
 
-## 🔄 Future Considerations
+### **FLUXO FINANCEIRO**
+```typescript
+contracts.status: "draft"      // Rascunho inicial
+invoices.status: "pending"     // Aguardando pagamento
+```
 
-1. **Internationalization (i18n)**: Consider translatable display names while keeping database fields consistent
-2. **API Documentation**: Document field purposes clearly for mixed-language APIs
-3. **Migration Strategy**: Plan for potential future standardization if business requirements change
+## 🌐 CÓDIGOS DE INTEGRAÇÃO
+
+### **PADRÃO UNIFICADO**
+```typescript
+// Todos os sistemas usam integration_code
+integrationCode: varchar("integration_code", { length: 100 })
+```
+
+### **APLICAÇÃO**
+- **ERP Integration**: Código único para sincronização
+- **Customer Code**: Identificação externa do cliente
+- **Employee Code**: Código de funcionário RH
+- **Asset Code**: Código patrimonial
+
+## 🇧🇷 CAMPOS REGIONAIS BRASILEIROS
+
+### **ENDEREÇO BRASILEIRO**
+```typescript
+cep: varchar("cep", { length: 10 })               // CEP brasileiro
+state: varchar("state", { length: 2 })            // UF (2 caracteres)
+country: varchar("country").default("Brasil")     // País padrão
+neighborhood: varchar("neighborhood", { length: 100 }) // Bairro
+```
+
+### **DADOS RH BRASILEIROS**
+```typescript
+cargo: varchar("cargo", { length: 100 })          // Cargo brasileiro
+admissionDate: date("admission_date")             // Data de admissão
+costCenter: varchar("cost_center", { length: 100 }) // Centro de custo
+```
+
+## 📋 APLICAÇÃO DOS PADRÕES
+
+### ✅ **ENTIDADES CONFORMES**
+- ✅ users: firstName/lastName + campos RH brasileiros
+- ✅ favorecidos: firstName/lastName + cpf/cnpj/rg
+- ✅ customers: name/tradeName + integrationCode
+- ✅ locations: name + address brasileiro
+
+### 🔄 **ENTIDADES EM MIGRAÇÃO**
+- tickets: status defaults padronizados
+- projects: status defaults alinhados
+- contracts: nomenclatura revisada
+
+## 🎯 BENEFÍCIOS DO PADRÃO HÍBRIDO
+
+1. **🇧🇷 Compliance Legal**: Campos brasileiros conforme legislação
+2. **🌐 Integração Global**: Campos de negócio em inglês
+3. **🔧 Manutenibilidade**: Padrões técnicos consistentes
+4. **📊 Relatórios**: Terminologia familiar aos usuários brasileiros
+5. **🚀 Escalabilidade**: Preparado para expansão internacional
 
 ---
 
-**Last Updated**: July 21, 2025  
-**Next Review**: Quarterly or when expanding to new markets
+**APROVADO**: Padrão Híbrido Brasileiro-Internacional v1.0
+**DATA**: Janeiro 2025
+**APLICAÇÃO**: Todas as novas entidades devem seguir estes padrões
