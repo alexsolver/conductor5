@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -74,7 +73,7 @@ const FUSOS_HORARIO = [
 export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFormProps) {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  
+
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [holidays, setHolidays] = useState<HolidaysByType>({
@@ -127,7 +126,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     }
   };
 
-  
+
 
   const buscarEnderecoPorCep = async () => {
     const cep = form.getValues('cep');
@@ -144,16 +143,16 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     try {
       const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
       const data: AddressData = await response.json();
-      
+
       if (data.cep) {
         form.setValue('logradouro', data.logradouro);
         form.setValue('bairro', data.bairro);
         form.setValue('municipio', data.localidade);
         form.setValue('estado', data.uf);
-        
+
         // Buscar coordenadas do endereço
         await buscarCoordenadas(data);
-        
+
         toast({
           title: "Endereço encontrado",
           description: "Dados preenchidos automaticamente"
@@ -178,21 +177,21 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
   const buscarCoordenadas = async (addressData: AddressData) => {
     const endereco = `${addressData.logradouro}, ${addressData.bairro}, ${addressData.localidade}, ${addressData.uf}, Brasil`;
-    
+
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`
       );
       const data = await response.json();
-      
+
       if (data && data[0]) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
-        
+
         form.setValue('latitude', lat.toString());
         form.setValue('longitude', lon.toString());
         setMapCenter([lat, lon]);
-        
+
         form.setValue('geoCoordenadas', {
           latitude: lat,
           longitude: lon,
@@ -209,7 +208,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
   const buscarFeriados = async () => {
     const municipio = form.getValues('municipio');
     const estado = form.getValues('estado');
-    
+
     if (!municipio || !estado) {
       toast({
         title: "Dados incompletos",
@@ -222,16 +221,16 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     setLoadingHolidays(true);
     try {
       const currentYear = new Date().getFullYear();
-      
+
       // Call actual API endpoint
       const response = await fetch(`/api/locations/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`);
-      
+
       if (!response.ok) {
         throw new Error('Falha ao buscar feriados');
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         setHolidays(result.data);
         setSelectedHolidays(result.data); // Initialize selected holidays
@@ -239,7 +238,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       } else {
         throw new Error(result.message || 'Dados de feriados não encontrados');
       }
-      
+
     } catch (error) {
       console.error('Error fetching holidays:', error);
       toast({
@@ -292,48 +291,36 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     });
   };
 
-  const handleSubmit = (data: NewLocal) => {
-    console.log('Form data being submitted:', data);
-    
-    // Get tenantId from multiple possible sources
+  const handleSubmit = (data: any) => {
+    // Get user data from localStorage or auth context
+    const userDataStr = localStorage.getItem('user');
     let tenantId = null;
-    
-    try {
-      // Try to get from localStorage user object
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      tenantId = user.tenantId;
-      
-      // If not found, try from token payload
-      if (!tenantId) {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          tenantId = payload.tenantId;
-        }
+
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        tenantId = userData.tenantId;
+      } catch (e) {
+        console.error('Error parsing user data:', e);
       }
-    } catch (error) {
-      console.error('Error parsing auth data:', error);
     }
-    
+
     if (!tenantId) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Não foi possível identificar o tenant. Faça login novamente.",
-        variant: "destructive"
-      });
+      console.error('No tenant ID found');
       return;
     }
-    
-    // Set tenantId in form data before calling onSubmit
-    const finalData = {
+
+    const formDataWithTenant = {
       ...data,
-      tenantId,
-      feriadosIncluidos: selectedHolidays,
-      indisponibilidades
+      tenantId
     };
-    
-    console.log('Final data being submitted:', finalData);
-    onSubmit(finalData);
+
+    console.log('Form data being submitted:', formDataWithTenant);
+    try {
+      onSubmit(formDataWithTenant);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
   };
 
   return (
@@ -706,7 +693,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
                 <Calendar className="h-4 w-4 mr-2" />
                 {loadingHolidays ? 'Buscando...' : 'Buscar Feriados'}
               </Button>
-              
+
               {Object.values(selectedHolidays).some(arr => arr.some(h => h.incluir)) && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <p className="text-sm text-blue-700">
@@ -726,7 +713,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
                 <Plus className="h-4 w-4 mr-2" />
                 Gerenciar Indisponibilidades
               </Button>
-              
+
               {indisponibilidades.length > 0 && (
                 <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
                   <p className="text-sm text-orange-700">
@@ -854,7 +841,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
                 </div>
               </div>
             ))}
-            
+
             <Button
               type="button"
               variant="outline"
@@ -913,7 +900,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
               // Salvar as coordenadas selecionadas
               const lat = parseFloat(form.watch('latitude')) || mapCenter[0];
               const lng = parseFloat(form.watch('longitude')) || mapCenter[1];
-              
+
               form.setValue('geoCoordenadas', {
                 latitude: lat,
                 longitude: lng,
@@ -921,9 +908,9 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
                 validado: true,
                 fonte: 'manual'
               });
-              
+
               setShowMapDialog(false);
-              
+
               toast({
                 title: "Localização confirmada",
                 description: `Coordenadas salvas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
