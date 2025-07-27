@@ -295,9 +295,25 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
   const handleSubmit = (data: NewLocal) => {
     console.log('Form data being submitted:', data);
     
-    // Get tenantId from auth context or user data
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const tenantId = user.tenantId;
+    // Get tenantId from multiple possible sources
+    let tenantId = null;
+    
+    try {
+      // Try to get from localStorage user object
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      tenantId = user.tenantId;
+      
+      // If not found, try from token payload
+      if (!tenantId) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          tenantId = payload.tenantId;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing auth data:', error);
+    }
     
     if (!tenantId) {
       toast({
