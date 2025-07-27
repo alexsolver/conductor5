@@ -17,7 +17,6 @@ interface Cliente {
   email?: string;
   phone?: string;
   document?: string;
-  company?: string;
   created_at: string;
   updated_at: string;
 }

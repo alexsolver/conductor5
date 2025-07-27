@@ -7,7 +7,6 @@ export class Customer {
     public readonly firstName: string | null = null,
     public readonly lastName: string | null = null,
     public readonly phone: string | null = null,
-    public readonly company: string | null = null,
     public readonly tags: string[] = [],
     public readonly metadata: Record<string, unknown> = {},
     // Professional fields
@@ -50,10 +49,6 @@ export class Customer {
     return this.tags.includes(tag);
   }
 
-  isFromCompany(company: string): boolean {
-    return this.company?.toLowerCase() === company.toLowerCase();
-  }
-
   // Status management
   canBeSuspended(): boolean {
     return this.active && !this.suspended;
@@ -70,7 +65,6 @@ export class Customer {
     firstName?: string | null;
     lastName?: string | null;
     phone?: string | null;
-    company?: string | null;
     tags?: string[];
     metadata?: Record<string, any>;
     verified?: boolean;
@@ -101,7 +95,6 @@ export class Customer {
       props.firstName,
       props.lastName,
       props.phone,
-      props.company,
       props.tags || [],
       props.metadata || {},
       props.verified || false,
@@ -126,7 +119,6 @@ export class Customer {
     firstName?: string | null;
     lastName?: string | null;
     phone?: string | null;
-    company?: string | null;
     timezone?: string;
     locale?: string;
     language?: string;
@@ -138,7 +130,6 @@ export class Customer {
       changes.firstName !== undefined ? changes.firstName : this.firstName,
       changes.lastName !== undefined ? changes.lastName : this.lastName,
       changes.phone !== undefined ? changes.phone : this.phone,
-      changes.company !== undefined ? changes.company : this.company,
       this.tags,
       this.metadata,
       this.verified,
@@ -172,7 +163,6 @@ export class Customer {
       this.firstName,
       this.lastName,
       this.phone,
-      this.company,
       this.tags,
       metadata,
       this.verified,
@@ -204,7 +194,6 @@ export class Customer {
       this.firstName,
       this.lastName,
       this.phone,
-      this.company,
       this.tags,
       this.metadata,
       this.verified,

@@ -55,7 +55,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
   const [customerCompanies, setCustomerCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
-  
+
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
@@ -131,7 +131,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   }, [customerCompaniesData]);
 
 
-  
+
 
   const onSubmit = (data: CustomerFormData) => {
     mutation.mutate(data);
@@ -277,19 +277,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <FormLabel>Telefone</FormLabel>
                           <FormControl>
                             <Input placeholder="(11) 99999-9999" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="company"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Empresa</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Nome da empresa" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
