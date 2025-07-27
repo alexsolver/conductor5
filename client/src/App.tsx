@@ -60,7 +60,7 @@ import Timecard from "./pages/Timecard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
 import LocationsImplementationControl from "./pages/LocationsImplementationControl";
-import Locations from "./pages/Locations";
+import LocationsNew from "./pages/LocationsNew";
 import HolidayCalendar from "./pages/HolidayCalendar";
 import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
@@ -72,7 +72,7 @@ import { StockManagement } from "./pages/StockManagement";
 import { SupplierManagement } from "./pages/SupplierManagement";
 import { ServicesManagement } from "./pages/ServicesManagement";
 import AssetManagement from "./pages/AssetManagement";
-import LPUManagement from "./pages/LPUManagement";
+import LpuManagement from "./pages/LpuManagement";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import NotificationManagement from './pages/NotificationManagement';
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
@@ -123,7 +123,7 @@ function AppRouter() {
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/technical-skills" component={TechnicalSkills} />
         {/* Removed: external-contacts route - functionality eliminated */}
-        <Route path="/locations" component={Locations} />
+        <Route path="/locations" component={LocationsNew} />
         <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/roadmap" component={Roadmap} />
@@ -139,7 +139,6 @@ function AppRouter() {
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
-        <Route path="/locations" component={Locations} />
         <Route path="/locations-implementation-control" component={LocationsImplementationControl} />
         {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />

@@ -19,7 +19,7 @@ import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
-// import locationRoutes from './routes/locationRoutes'; // Temporarily removed
+import locationsNewRoutes from './modules/locations/routes-new';
 import ticketRelationshipsRoutes from './routes/ticketRelationships';
 // import { omniBridgeRoutes } from './modules/omni-bridge/routes'; // Temporarily removed
 import saasAdminRoutes from './modules/saas-admin/routes';
@@ -914,7 +914,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // app.use('/api/locations', locationRoutes); // Temporarily removed
+  // New locations module with 7 record types
+  app.use('/api/locations', locationsNewRoutes);
 
   // Ticket Templates routes are now integrated directly above
   // Auth routes already mounted above, removing duplicate
