@@ -94,6 +94,10 @@ export function CustomerLocationManager({
   // Remove location mutation
   const removeLocationMutation = useMutation({
     mutationFn: async (locationId: string) => {
+      console.log('DELETE mutation called with locationId:', locationId);
+      if (!locationId) {
+        throw new Error('LocationId is required');
+      }
       return apiRequest(`/api/customers/${customerId}/locations/${locationId}`, {
         method: 'DELETE'
       });
@@ -157,6 +161,15 @@ export function CustomerLocationManager({
   };
 
   const handleRemoveLocation = (locationId: string) => {
+    console.log('Removing location:', locationId);
+    if (!locationId) {
+      toast({
+        title: "Erro",
+        description: "ID da localização não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
     removeLocationMutation.mutate(locationId);
   };
 
