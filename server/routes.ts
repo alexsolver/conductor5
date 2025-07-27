@@ -2071,6 +2071,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get customer companies for a specific customer
+  app.get('/api/customers/:customerId/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const tenantDb = getTenantDb(tenantId);
+      const schemaName = getSchemaName(tenantId);
+
+      // Get companies associated with this customer
+      const memberships = await tenantDb.execute(sql`
+        SELECT 
+          ccm.id as membership_id,
+          ccm.role,
+          ccm.is_primary,
+          cc.id as company_id,
+          cc.name as company_name,
+          cc.display_name
+        FROM ${sql.identifier(schemaName, 'customer_company_memberships')} ccm
+        JOIN ${sql.identifier(schemaName, 'customer_companies')} cc ON ccm.company_id = cc.id
+        WHERE ccm.customer_id = ${customerId}
+        AND ccm.is_active = true
+      `);
+
+      res.json({
+        success: true,
+        data: memberships.rows
+      });
+    } catch (error) {
+      console.error('Error fetching customer companies:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch customer companies' 
+      });
+    }
+  });
+
+  // Add customer to company
+  app.post('/api/customers/:customerId/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId } = req.params;
+      const { companyId, role = 'member', isPrimary = false } = req.body;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const tenantDb = getTenantDb(tenantId);
+      const schemaName = getSchemaName(tenantId);
+
+      // Check if membership already exists
+      const existing = await tenantDb.execute(sql`
+        SELECT id FROM ${sql.identifier(schemaName, 'customer_company_memberships')}
+        WHERE customer_id = ${customerId} AND company_id = ${companyId}
+      `);
+
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Customer is already associated with this company' 
+        });
+      }
+
+      // Create new membership
+      const membership = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'customer_company_memberships')} 
+        (customer_id, company_id, role, is_primary, is_active, joined_at, added_by)
+        VALUES (${customerId}, ${companyId}, ${role}, ${isPrimary}, true, NOW(), ${req.user.id})
+        RETURNING *
+      `);
+
+      res.status(201).json({
+        success: true,
+        data: membership.rows[0]
+      });
+    } catch (error) {
+      console.error('Error adding customer to company:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to add customer to company' 
+      });
+    }
+  });
+
+  // Remove customer from company
+  app.delete('/api/customers/:customerId/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId, companyId } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const tenantDb = getTenantDb(tenantId);
+      const schemaName = getSchemaName(tenantId);
+
+      await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName, 'customer_company_memberships')}
+        SET is_active = false, left_at = NOW()
+        WHERE customer_id = ${customerId} AND company_id = ${companyId}
+      `);
+
+      res.json({
+        success: true,
+        message: 'Customer removed from company'
+      });
+    } catch (error) {
+      console.error('Error removing customer from company:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to remove customer from company' 
+      });
+    }
+  });
+
   // Debug endpoint to check table existence
   app.get('/api/ticket-metadata/debug', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {

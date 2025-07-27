@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Plus, User, Globe, Star } from 'lucide-react';
+import { MapPin, Plus, User, Globe, Star, Building, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +51,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const [showLocationModal, setShowLocationModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const [customerCompanies, setCustomerCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [selectedRole, setSelectedRole] = useState('member');
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
@@ -105,6 +109,34 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
   });
 
+    // Fetch available companies
+    const { data: availableCompanies = [], refetch: refetchAvailableCompanies } = useQuery(
+      ['/api/companies'],
+      () => apiRequest('/api/companies', { method: 'GET' }),
+      {
+        enabled: isOpen, // Only fetch when the modal is open
+      }
+    );
+
+    // Fetch customer companies
+    const { refetch: refetchCustomerCompanies } = useQuery(
+      [`/api/customers/${customer?.id}/companies`],
+      () => apiRequest(`/api/customers/${customer?.id}/companies`, { method: 'GET' }),
+      {
+        enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
+        onSuccess: (data: any) => {
+          setCustomerCompanies(data);
+        },
+      }
+    );
+
+
+  useEffect(() => {
+    if (isOpen && customer?.id) {
+      refetchCustomerCompanies();
+    }
+  }, [isOpen, customer?.id, refetchCustomerCompanies]);
+
   const onSubmit = (data: CustomerFormData) => {
     mutation.mutate(data);
   };
@@ -125,6 +157,50 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     setShowLocationManager(false);
     setShowLocationModal(true);
   };
+
+  const handleAddCompany = async () => {
+    if (!selectedCompanyId || !customer?.id) return;
+
+    try {
+      const response = await apiRequest(`/api/clientes/${customer.id}/companies`, {
+        method: 'POST',
+        body: JSON.stringify({
+          companyId: selectedCompanyId,
+          role: selectedRole,
+          isPrimary: customerCompanies.length === 0 // First company is primary
+        })
+      });
+
+      if (response.ok) {
+        await refetchCustomerCompanies();
+        setSelectedCompanyId('');
+        setSelectedRole('member');
+      } else {
+        console.error('Failed to add company');
+      }
+    } catch (error) {
+      console.error('Error adding company:', error);
+    }
+  };
+
+  const handleRemoveCompany = async (companyId: string) => {
+    if (!customer?.id) return;
+
+    try {
+      const response = await apiRequest(`/api/clientes/${customer.id}/companies/${companyId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await refetchCustomerCompanies();
+      } else {
+        console.error('Failed to remove company');
+      }
+    } catch (error) {
+      console.error('Error removing company:', error);
+    }
+  };
+
 
   return (
     <>
@@ -159,6 +235,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
                       Locais
+                    </TabsTrigger>
+                     <TabsTrigger value="companies" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                      <Building className="h-3 w-3 lg:h-4 lg:w-4" />
+                      Empresas
                     </TabsTrigger>
                   </div>
                 </TabsList>
@@ -461,6 +541,103 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     )}
                   </div>
                 </TabsContent>
+
+                 <TabsContent value="companies" className="space-y-4">
+                    {/* Empresas associadas */}
+                    {customer?.id && (
+                      <div className="space-y-4">
+                        <FormItem>
+                          <FormLabel className="text-base font-semibold flex items-center gap-2">
+                            <Building className="h-4 w-4" />
+                            Empresas
+                          </FormLabel>
+
+                          {/* Lista de empresas associadas */}
+                          <div className="mt-2 space-y-2">
+                            {customerCompanies.map((membership: any) => (
+                              <div key={membership.membership_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">
+                                    {membership.display_name || membership.company_name}
+                                  </span>
+                                  <Badge variant={membership.is_primary ? "default" : "secondary"}>
+                                    {membership.role}
+                                  </Badge>
+                                  {membership.is_primary && (
+                                    <Badge variant="outline">Principal</Badge>
+                                  )}
+                                </div>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleRemoveCompany(membership.company_id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </FormItem>
+
+                        {/* Adicionar nova empresa */}
+                        <div className="mt-3 flex gap-2">
+                          <FormField
+                            control={form.control}
+                            name="company"
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                                <FormControl>
+                                  <Select onValueChange={(value) => {
+                                    field.onChange(value);
+                                    setSelectedCompanyId(value);
+                                  }} defaultValue={field.value}>
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Selecionar empresa" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {availableCompanies
+                                        .filter((company: any) =>
+                                          !customerCompanies.some((cm: any) => cm.company_id === company.id)
+                                        )
+                                        .map((company: any) => (
+                                          <SelectItem key={company.id} value={String(company.id)}>
+                                            {company.displayName || company.name}
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+
+                          <Select value={selectedRole} onValueChange={setSelectedRole}>
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="member">Membro</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="owner">Proprietário</SelectItem>
+                              <SelectItem value="contact">Contato</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleAddCompany}
+                            disabled={!selectedCompanyId}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
               </Tabs>
 
               <div className="flex justify-end gap-3 pt-6 border-t">
