@@ -835,7 +835,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = ``tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.customers
