@@ -1,0 +1,148 @@
+1 - a importacao de KML é para alguns tipos de registro que especificarei abaixo, portanto remova da pagina principal.
+2 - A Configuração de Horários de Funcionamento é múltipla, opcional, e pode ter múltipla seleção de locais
+3 - Segmente no cadastro os tipos de registros e consolide os campos de cadastros, inclua os faltantes e elimine os desnecessários, conforme tipos abaixo:
+
+Local
+
+Identificação
+• Ativo (sim/não)
+• Descrição
+• Código de Integração
+• Cliente ou Favorecido
+• Técnico Principal
+
+Contato
+• E-mail
+• DDD
+• Telefone
+
+Endereço
+• CEP (deve ter botão para buscar endereço pelo cep)
+• País
+• Estado
+• Município
+• Bairro
+• Tipo de Logradouro
+• Logradouro
+• Número
+• Complemento
+
+Georreferenciamento
+• Geo Coordenadas (busca a geo coordenada pelo endereco e mostra no mapa para validação precisa)
+
+Tempo e Disponibilidade
+• Fuso Horário
+• Horário de Funcionamento
+• Intervalos de Funcionamento
+• Feriados: (botão de busca de feriados municipais, estaduais e federais automaticamente para que o usuário possa selecionar quais incluirá)
+• Indisponibilidades (Data início/fim + observação)
+
+ 
+
+Região
+
+identificação
+• Ativo (SIM/NÃO)
+• Nome (obrigatório)
+• Descrição
+• Código de integração
+
+Relacionamentos
+• Cliente vinculados (Integracao FK multi-seleção)
+• Técnico principal (Integracao FK membros da equipe)
+• Grupos vinculados (multi-seleção FK Grupos de usuários em gestão de equipe)
+• Locais de atendimento vinculados (multi-seleção)
+
+Geolocalização
+• Geocoordenada (latitude, longitude)
+• CEPs abrangidos ou próximos
+
+Endereço Base
+• CEP
+• País
+• Estado
+• Município
+• Bairro
+• Tipo de Logradouro (rua, avenida, etc.)
+• Logradouro
+• Número
+• Complemento
+
+ 
+Rota Dinâmica
+
+Identificação
+• Ativo (sim/não)
+• Nome da Rota (obrigatório, até 100 caracteres)
+• ID da Rota (obrigatório, até 100 caracteres)
+
+Relacionamentos
+• Cliente vinculados (Integracao FK multi-seleção)
+• Regiões atendidas (multi-seleção)
+
+Planejamento da Rota
+• Dias da semana da rota (Dom, Seg, Ter, Qua, Qui, Sex, Sáb – seleção múltipla)
+• Previsão de dias da rota dinâmica (valor inteiro de 1 a 30)
+
+
+
+ 
+Trecho
+
+Identificação
+• Ativo (sim/não)
+• Código de integração
+• Local A (seleção de local único)
+• Local B (seleção de local único)
+
+ 
+Rota de Trecho
+
+Identificação
+• Ativo (SIM/NÃO)
+• ID da Rota
+
+Definição do Trecho (adição de múltiplos trechos)
+• Local A – Origem (seleção de um local cadastrado)
+• Local B - Destino (seleção de um local cadastrado)
+
+Adição de Multiplos Registros 
+Tabela de exibição:
+
+•	DE (O primeiro trecho é obrigatório iniciar do Local A)
+•	TRECHO (nome ou código do trecho intermediário)
+•	PARA – Trecho de destino (Se for o último trecho, é obrigatório terminar no Local B)
+•	AÇÃO – Botão/ação para adicionar ou remover trecho
+
+Operação
+•	Possibilidade de cadastrar múltiplos trechos sequenciais para compor a rota (grid ou lista)
+•	Cada linha do grid: DE | TRECHO | PARA | AÇÃO (Editar/Excluir)
+
+ 
+Área
+
+Identificação
+•	Ativo (SIM/NÃO)
+•	Nome (obrigatório)
+•	Descrição
+•	Código de Integração (código único para integração com outros sistemas)
+
+Classificação (deve ter o mapa integrado e mostrar no maoa as alterações em tempo real)
+•	Tipo de Área (para cada tipo de área, dev peritir escolher a cor que será representada no mapa)
+- Faixa CEP (permite cadastro de várias faixas de CEP e também agrupá-las)
+- Shape (permite importar arquivos de shape ou exibe ferramentas diversas para desenhar o próprio shape no mapa e salvar)
+- Coordenadas (permite inserir múltiplas coordenadas através de clique no mapa ou pesquisa de endereço Map API e também ordenar os pontos em polígonos (necessários, pelo menos 3 pontos de coordenadas)
+- Raio (permite criar o raio a partir de uma coordenada única no mapa e definir a metragem do raio)
+- Linha (permite desenhar a própria linha de fora livre no mapa)
+- Importar área (permite importar área através de arquivos shape ou kml)
+
+
+ 
+Agrupamento
+
+Identificação
+•	Ativo (SIM/NÃO)
+•	Nome (obrigatório)
+•	Descrição
+•	Código de Integração (código único para integração com outros sistemas)
+•	Seleção (Seleção múltiplas Áreas)
