@@ -2057,24 +2057,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Get companies associated with this customer
-      const memberships = await tenantDb.execute(sql`
+      // Since memberships table is empty, just return the companies directly for now
+      const companies = await tenantDb.execute(sql`
         SELECT 
-          ccm.id as membership_id,
-          ccm.role,
-          ccm.is_primary,
           cc.id as company_id,
           cc.name as company_name,
-          cc.display_name
-        FROM ${sql.identifier(schemaName, 'customer_company_memberships')} ccm
-        JOIN ${sql.identifier(schemaName, 'customer_companies')} cc ON ccm.company_id = cc.id
-        WHERE ccm.customer_id = ${customerId}
-        AND ccm.is_active = true
+          cc.display_name,
+          cc.cnpj,
+          cc.industry,
+          cc.website,
+          cc.phone,
+          cc.email
+        FROM ${sql.identifier(schemaName, 'customer_companies')} cc
+        WHERE cc.is_active = true
+        ORDER BY cc.name
       `);
 
       res.json({
         success: true,
-        data: memberships.rows
+        data: companies.rows
       });
     } catch (error) {
       console.error('Error fetching customer companies:', error);
