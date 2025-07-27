@@ -50,8 +50,8 @@ const favorecidoSchema = z.object({
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
   birthDate: z.string().optional(),
-  rg: z.string().optional().refine(validateRG, "RG inválido"),
-  cpfCnpj: z.string().optional().refine(validateCpfCnpj, "CPF/CNPJ inválido"),
+  rg: z.string().optional().refine((val) => !val || validateRG(val), "RG inválido"),
+  cpfCnpj: z.string().optional().refine((val) => !val || validateCpfCnpj(val), "CPF/CNPJ inválido"),
   isActive: z.boolean().default(true),
   customerCode: z.string().optional(),
   phone: z.string().optional(),
@@ -104,7 +104,7 @@ export default function FavorecidosTable() {
   const { data: favorecidosData, isLoading, refetch } = useQuery({
     queryKey: ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache (renamed from cacheTime in TanStack Query v5)
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
@@ -201,13 +201,18 @@ export default function FavorecidosTable() {
     },
     onSuccess: (data) => {
       console.log('Update mutation success:', data);
+      
+      // CRITICAL FIX: Force a complete cache reset and refetch
+      queryClient.removeQueries({ queryKey: ["/api/favorecidos"] });
+      queryClient.invalidateQueries();
+      setTimeout(() => {
+        refetch();
+      }, 100);
+      
       toast({
         title: "Sucesso",
         description: "Favorecido atualizado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
-      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"] });
-      refetch(); // Force refetch
       setIsEditDialogOpen(false);
       setEditingFavorecido(null);
     },
