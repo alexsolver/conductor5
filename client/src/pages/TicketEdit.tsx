@@ -437,42 +437,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
-                      <FormField
-                        control={form.control}
-                        name="priority"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Prioridade</FormLabel>
-                            <FormControl>
-                              <DynamicSelect
-                                fieldName="priority"
-                                value={field.value}
-                                onValueChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Status</FormLabel>
-                            <FormControl>
-                              <DynamicSelect
-                                fieldName="status"
-                                value={field.value}
-                                onValueChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </TabsContent>
 
                     {/* Tab 2: Template/Environment */}
@@ -1021,7 +985,9 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-                    </Tabs                    {/* Tab 4: Technical Details */}
+                    </TabsContent>
+
+                    {/* Tab 4: Technical Details */}
                     <TabsContent value="details" className="space-y-4">
                       <FormField
                         control={form.control}
