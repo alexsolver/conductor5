@@ -168,6 +168,8 @@ export default function FavorecidosTable() {
       contactPerson: "",
       contactPhone: "",
     },
+    mode: "onChange",
+    shouldFocusError: false,
   });
 
   // Create favorecido mutation
@@ -204,15 +206,15 @@ export default function FavorecidosTable() {
     onSuccess: (updatedData) => {
       console.log('Update mutation success:', updatedData);
       
-      // IMMEDIATE STATE UPDATE: Update local data immediately
-      queryClient.setQueryData(
-        ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
+      // FORÇA ATUALIZAÇÃO IMEDIATA: Atualiza cache de TODAS as queries
+      queryClient.setQueriesData(
+        { queryKey: ["/api/favorecidos"] },
         (oldData: any) => {
           if (!oldData?.favorecidos) return oldData;
           
           const updatedFavorecidos = oldData.favorecidos.map((fav: any) => 
             fav.id === updatedData.favorecido.id 
-              ? { ...fav, ...updatedData.favorecido }
+              ? { ...fav, ...updatedData.favorecido, fullName: updatedData.favorecido.fullName }
               : fav
           );
           
@@ -220,15 +222,19 @@ export default function FavorecidosTable() {
         }
       );
       
-      // SECONDARY: Invalidate and refetch for consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
+      // FORÇA REFETCH COMPLETO
+      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
+      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"] });
       
       toast({
         title: "Sucesso",
         description: "Favorecido atualizado com sucesso",
       });
+      
+      // RESET COMPLETO DO ESTADO
       setIsEditDialogOpen(false);
       setEditingFavorecido(null);
+      form.reset();
     },
     onError: (error: Error) => {
       toast({
@@ -660,7 +666,7 @@ export default function FavorecidosTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentFavorecidos.map((favorecido) => (
+              {currentFavorecidos.map((favorecido: any) => (
                 <TableRow key={favorecido.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
