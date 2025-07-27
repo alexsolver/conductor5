@@ -14,8 +14,10 @@ export class LocationsRepository {
     locationType?: string;
     status?: string;
     search?: string;
+    favorites?: boolean;
+    tag?: string;
   } = {}): Promise<{ locations: Location[]; total: number }> {
-    const { page = 1, limit = 50, locationType, status, search } = options;
+    const { page = 1, limit = 50, locationType, status, search, favorites, tag } = options;
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE tenant_id = $1';
@@ -37,6 +39,17 @@ export class LocationsRepository {
     if (search) {
       whereClause += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
       params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    // Sprint 2 - Enhanced Filters
+    if (favorites === true) {
+      whereClause += ` AND is_favorite = true`;
+    }
+
+    if (tag) {
+      whereClause += ` AND $${paramIndex} = ANY(tags)`;
+      params.push(tag);
       paramIndex++;
     }
 

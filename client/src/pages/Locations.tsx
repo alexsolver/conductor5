@@ -34,8 +34,8 @@ type LocationFormData = z.infer<typeof locationFormSchema>;
 
 export default function Locations() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [locationTypeFilter, setLocationTypeFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [locationTypeFilter, setLocationTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [favoritesFilter, setFavoritesFilter] = useState<boolean>(false);
   const [tagFilter, setTagFilter] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -530,43 +530,85 @@ export default function Locations() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <div className="space-y-4">
+            {/* Basic Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar locais..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Tipo de local" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="point">Pontos</SelectItem>
+                  <SelectItem value="segment">Segmentos</SelectItem>
+                  <SelectItem value="area">Áreas</SelectItem>
+                  <SelectItem value="region">Regiões</SelectItem>
+                  <SelectItem value="route">Rotas</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                  <SelectItem value="maintenance">Manutenção</SelectItem>
+                  <SelectItem value="restricted">Restrito</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sprint 2 - Advanced Filters */}
+            <div className="flex flex-wrap gap-4 p-3 bg-gray-50 rounded-md">
+              <div className="text-sm font-medium text-gray-600 flex items-center">
+                Filtros Avançados:
+              </div>
+              <Button
+                variant={favoritesFilter ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFavoritesFilter(!favoritesFilter)}
+              >
+                <Star className={`h-4 w-4 mr-2 ${favoritesFilter ? 'fill-current' : ''}`} />
+                {favoritesFilter ? 'Apenas Favoritos' : 'Mostrar Favoritos'}
+              </Button>
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar locais..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  placeholder="Filtrar por tag..."
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="w-48 h-8"
                 />
               </div>
+              {(searchTerm || locationTypeFilter !== "all" || statusFilter !== "all" || favoritesFilter || tagFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setLocationTypeFilter("all");
+                    setStatusFilter("all");
+                    setFavoritesFilter(false);
+                    setTagFilter("");
+                  }}
+                >
+                  Limpar Filtros
+                </Button>
+              )}
             </div>
-            <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Tipo de local" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="point">Pontos</SelectItem>
-                <SelectItem value="segment">Segmentos</SelectItem>
-                <SelectItem value="area">Áreas</SelectItem>
-                <SelectItem value="region">Regiões</SelectItem>
-                <SelectItem value="route">Rotas</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="inactive">Inativo</SelectItem>
-                <SelectItem value="maintenance">Manutenção</SelectItem>
-                <SelectItem value="restricted">Restrito</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>

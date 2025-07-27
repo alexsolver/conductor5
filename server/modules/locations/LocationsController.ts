@@ -27,7 +27,9 @@ export class LocationsController {
         limit = 50,
         locationType,
         status,
-        search
+        search,
+        favorites,
+        tag
       } = req.query;
 
       const options = {
@@ -35,7 +37,9 @@ export class LocationsController {
         limit: Number(limit),
         locationType: locationType as string,
         status: status as string,
-        search: search as string
+        search: search as string,
+        favorites: favorites === 'true',
+        tag: tag as string
       };
 
       const result = await this.repository.getAllLocations(tenantId, options);
@@ -240,6 +244,29 @@ export class LocationsController {
 
     } catch (error) {
       return sendError(res, error as any, "Failed to remove attachment", 500);
+    }
+  }
+
+  // Toggle favorite status (Sprint 2)
+  async toggleFavorite(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      
+      const location = await this.repository.toggleFavorite(id, tenantId);
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Favorite status toggled successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to toggle favorite", 500);
     }
   }
 
