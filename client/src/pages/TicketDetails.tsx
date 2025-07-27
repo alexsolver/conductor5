@@ -855,29 +855,7 @@ export default function TicketDetails() {
               )}
             />
 
-            {/* Categoria */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">CATEGORIA</h3>
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <FormControl>
-                      <DynamicSelect
-                        fieldName="category" 
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Selecione a categoria"
-                        disabled={!isEditMode}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            
 
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
