@@ -2716,60 +2716,13 @@ export default function TicketDetails() {
 
           
 
-            
-              
-                Fechar
-              
-            
-          
-        
-      
-
-      {/* Ticket Linking Modal - Substituído por componente específico */}
-        
-            
-              
-                Vincular Ticket
-              
-              Conecte este ticket a outros tickets relacionados
-            
-          
-          
-            
-              Número do Ticket
-              
-                
-              
-            
-            
-              Tipo de Vinculação
-              
-                
-                  
-                    Selecione o tipo
-                  
-                  
-                    Relacionado
-                  
-                  <SelectItem value="duplicado">
-                    Duplicado
-                  </SelectItem>
-                  <SelectItem value="ticket_pai">
-                    ⬆️ Ticket Pai
-                  </SelectItem>
-                  <SelectItem value="sub_ticket">
-                    ⬇️ Sub-ticket
-                  </SelectItem>
-                  <SelectItem value="bloqueia">
-                    🚫 Bloqueia
-                  </SelectItem>
-                  <SelectItem value="bloqueado_por">
-                    ⏸️ Bloqueado por
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </FormItem>
-          </div>
+              <DialogFooter>
+                <Button variant="outline">
+                  Fechar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </div>
