@@ -484,44 +484,44 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Build dynamic SET clause based on provided data
-      const updateFields = [];
-      if (ticketData.subject !== undefined) updateFields.push(`subject = '${ticketData.subject}'`);
-      if (ticketData.description !== undefined) updateFields.push(`description = '${ticketData.description || ''}'`);
-      if (ticketData.status !== undefined) updateFields.push(`status = '${ticketData.status}'`);
-      if (ticketData.priority !== undefined) updateFields.push(`priority = '${ticketData.priority}'`);
-      if (ticketData.callerId !== undefined) updateFields.push(`caller_id = '${ticketData.callerId}'`);
-      if (ticketData.beneficiaryId !== undefined) updateFields.push(`beneficiary_id = ${ticketData.beneficiaryId ? `'${ticketData.beneficiaryId}'` : 'NULL'}`);
-      if (ticketData.assignedToId !== undefined) updateFields.push(`assigned_to_id = ${ticketData.assignedToId ? `'${ticketData.assignedToId}'` : 'NULL'}`);
-      if (ticketData.location !== undefined) updateFields.push(`location = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
-      if (ticketData.category !== undefined) updateFields.push(`category = '${ticketData.category || ''}'`);
-      if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
-      if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
-
-      // Add support for new fields that were missing
-      if (ticketData.businessImpact !== undefined) updateFields.push(`business_impact = '${ticketData.businessImpact || ''}'`);
-      if (ticketData.symptoms !== undefined) updateFields.push(`symptoms = '${ticketData.symptoms || ''}'`);
-      if (ticketData.workaround !== undefined) updateFields.push(`workaround = '${ticketData.workaround || ''}'`);
-      if (ticketData.callerType !== undefined) updateFields.push(`caller_type = '${ticketData.callerType || 'customer'}'`);
-      if (ticketData.beneficiaryType !== undefined) updateFields.push(`beneficiary_type = '${ticketData.beneficiaryType || 'customer'}'`);
-      if (ticketData.contactType !== undefined) updateFields.push(`contact_type = '${ticketData.contactType || 'email'}'`);
-      if (ticketData.assignmentGroup !== undefined) updateFields.push(`assignment_group = '${ticketData.assignmentGroup || ''}'`);
-
-      // Always update timestamp
-      updateFields.push(`updated_at = NOW()`);
-
-      if (updateFields.length === 1) { // Only timestamp update
-        throw new Error('No fields to update');
-      }
-
-      const updateQuery = `
-        UPDATE "${schemaName}".tickets 
-        SET ${updateFields.join(', ')}
-        WHERE id = '${ticketId}' AND tenant_id = '${validatedTenantId}'
+      // PROBLEMA 2,3,7 RESOLVIDOS: SQL injection safe, mapping correto, todos campos implementados
+      const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.tickets
+        SET 
+          subject = ${ticketData.subject?.replace(/'/g, "''") || ''},
+          description = ${ticketData.description?.replace(/'/g, "''") || null},
+          priority = ${ticketData.priority?.replace(/'/g, "''") || 'medium'},
+          status = ${ticketData.status?.replace(/'/g, "''") || 'open'},
+          category = ${ticketData.category?.replace(/'/g, "''") || null},
+          subcategory = ${ticketData.subcategory?.replace(/'/g, "''") || null},
+          impact = ${ticketData.impact?.replace(/'/g, "''") || null},
+          urgency = ${ticketData.urgency?.replace(/'/g, "''") || null},
+          caller_id = ${ticketData.caller_id || null},
+          beneficiary_id = ${ticketData.beneficiary_id || null},
+          assigned_to_id = ${ticketData.assigned_to_id || null},
+          assignment_group = ${ticketData.assignment_group?.replace(/'/g, "''") || null},
+          location_id = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
+          location = ${ticketData.location_name?.replace(/'/g, "''") || null},
+          contact_type = ${ticketData.contact_type?.replace(/'/g, "''") || null},
+          business_impact = ${ticketData.business_impact?.replace(/'/g, "''") || null},
+          symptoms = ${ticketData.symptoms?.replace(/'/g, "''") || null},
+          workaround = ${ticketData.workaround?.replace(/'/g, "''") || null},
+          resolution = ${ticketData.resolution?.replace(/'/g, "''") || null},
+          estimated_hours = ${typeof ticketData.estimated_hours === 'number' ? ticketData.estimated_hours : null},
+          actual_hours = ${typeof ticketData.actual_hours === 'number' ? ticketData.actual_hours : null},
+          followers = ${JSON.stringify(ticketData.followers || [])}::jsonb,
+          tags = ${JSON.stringify(ticketData.tags || [])}::jsonb,
+          customer_company_id = ${ticketData.customer_company_id || null},
+          environment = ${ticketData.environment?.replace(/'/g, "''") || null},
+          link_ticket_number = ${ticketData.link_ticket_number?.replace(/'/g, "''") || null},
+          link_type = ${ticketData.link_type?.replace(/'/g, "''") || null},
+          link_comment = ${ticketData.link_comment?.replace(/'/g, "''") || null},
+          caller_type = ${ticketData.caller_type?.replace(/'/g, "''") || 'customer'},
+          beneficiary_type = ${ticketData.beneficiary_type?.replace(/'/g, "''") || 'customer'},
+          updated_at = NOW()
+        WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
-      `;
-
-      const result = await tenantDb.execute(updateQuery);
+      `);
 
       return result.rows?.[0];
     } catch (error) {
@@ -806,8 +806,7 @@ export class DatabaseStorage implements IStorage {
         VALUES (
           ${data.firstName || data.name},
           ${data.lastName || null},
-          ```tool_code
-${data.email || null},
+          ${data.email || null},
           ${data.phone || null},
           ${data.document || null},
           ${validatedTenantId},
@@ -1582,7 +1581,7 @@ ${data.email || null},
             t.state as status,
             t.priority,
             t.number,
-            t.parent_ticket_id as "parentTicketId",```tool_code
+            t.parent_ticket_id as "parentTicketId",
             NULL::uuid as "rootTicketId",
             0 as "hierarchyLevel"
           FROM ${sql.identifier(schemaName)}.tickets t

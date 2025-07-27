@@ -1485,15 +1485,33 @@ export default function TicketDetails() {
               <h2 className="text-xl font-semibold">🔗 Ações Externas</h2>
             </div>
             <div className="grid grid-cols-1 gap-4">
-              <Button variant="outline" className="h-16 justify-start">
+              <Button 
+                variant="outline" 
+                className="h-16 justify-start" 
+                onClick={() => window.open(`https://servicenow.company.com/ticket/${ticket.id}`, '_blank')}
+              >
                 <ExternalLink className="h-5 w-5 mr-3" />
                 Abrir no ServiceNow
               </Button>
-              <Button variant="outline" className="h-16 justify-start">
+              <Button 
+                variant="outline" 
+                className="h-16 justify-start"
+                onClick={() => {
+                  const slackUrl = `https://slack.com/channels/support/messages/new?text=Ticket ${ticket.number}: ${ticket.subject}`;
+                  window.open(slackUrl, '_blank');
+                }}
+              >
                 <MessageSquare className="h-5 w-5 mr-3" />
                 Criar thread no Slack
               </Button>
-              <Button variant="outline" className="h-16 justify-start">
+              <Button 
+                variant="outline" 
+                className="h-16 justify-start"
+                onClick={() => {
+                  const emailBody = `Assunto: ${ticket.subject}%0D%0ADescrição: ${ticket.description || ''}%0D%0ATicket: ${ticket.number}`;
+                  window.location.href = `mailto:${ticket.customerEmail || ticket.contactEmail}?subject=Ticket ${ticket.number}&body=${emailBody}`;
+                }}
+              >
                 <Mail className="h-5 w-5 mr-3" />
                 Enviar por email
               </Button>

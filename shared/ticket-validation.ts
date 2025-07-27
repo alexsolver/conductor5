@@ -1,0 +1,189 @@
+// PROBLEMA 10 RESOLVIDO: Schema Zod completo para validação de tickets
+import { z } from 'zod';
+
+// Enums para validação mais restrita
+export const TicketStatusEnum = z.enum(['open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
+export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent', 'critical']);
+export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
+export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high', 'urgent']);
+export const TicketCategoryEnum = z.enum(['support', 'incident', 'request', 'change', 'problem', 'maintenance']);
+export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
+export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
+export const LinkTypeEnum = z.enum(['relates_to', 'blocks', 'blocked_by', 'duplicates', 'caused_by']);
+
+// Schema base para ticket com todos os campos obrigatórios marcados
+export const ticketFormSchema = z.object({
+  // Campos obrigatórios
+  subject: z.string()
+    .min(3, "Assunto deve ter pelo menos 3 caracteres")
+    .max(255, "Assunto não pode exceder 255 caracteres"),
+  
+  // Campos opcionais mas validados
+  description: z.string()
+    .max(4000, "Descrição não pode exceder 4000 caracteres")
+    .optional(),
+  
+  // Enums com validação
+  status: TicketStatusEnum.default('open'),
+  priority: TicketPriorityEnum.default('medium'),
+  impact: TicketImpactEnum.optional(),
+  urgency: TicketUrgencyEnum.optional(),
+  category: TicketCategoryEnum.optional(),
+  
+  // Subcategoria dependente da categoria
+  subcategory: z.string().max(100).optional(),
+  
+  // Campos de pessoa com validação UUID
+  callerId: z.string().uuid("ID do solicitante deve ser um UUID válido").optional(),
+  callerType: CallerTypeEnum.default('customer'),
+  beneficiaryId: z.string().uuid("ID do beneficiário deve ser um UUID válido").optional(),
+  beneficiaryType: CallerTypeEnum.default('customer'),
+  assignedToId: z.string().uuid("ID do responsável deve ser um UUID válido").optional(),
+  
+  // Campo de localização (pode ser UUID ou texto)
+  location: z.union([
+    z.string().uuid("Localização deve ser um UUID válido"),
+    z.literal("unspecified")
+  ]).optional(),
+  
+  // Grupo de atribuição
+  assignmentGroup: z.string().max(100).optional(),
+  
+  // Contato
+  contactType: ContactTypeEnum.default('email'),
+  
+  // Campos de negócio
+  businessImpact: z.string().max(500).optional(),
+  symptoms: z.string().max(1000).optional(),
+  workaround: z.string().max(1000).optional(),
+  resolution: z.string().max(2000).optional(),
+  
+  // Horas estimadas/reais
+  estimatedHours: z.number()
+    .min(0, "Horas estimadas devem ser positivas")
+    .max(999, "Horas estimadas não podem exceder 999")
+    .optional(),
+  actualHours: z.number()
+    .min(0, "Horas reais devem ser positivas")
+    .max(999, "Horas reais não podem exceder 999")
+    .optional(),
+  
+  // Arrays JSON
+  followers: z.array(z.string().uuid()).default([]),
+  tags: z.array(z.string().max(50)).default([]),
+  
+  // Relacionamento com empresa cliente
+  customerCompanyId: z.string().uuid("ID da empresa deve ser um UUID válido").optional(),
+  
+  // Ambiente
+  environment: z.string().max(100).optional(),
+  
+  // Campos de linking
+  linkTicketNumber: z.string().max(50).optional(),
+  linkType: LinkTypeEnum.optional(),
+  linkComment: z.string().max(500).optional(),
+})
+.refine((data) => {
+  // Validação condicional: se linkTicketNumber existe, linkType é obrigatório
+  if (data.linkTicketNumber && !data.linkType) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Tipo de link é obrigatório quando número do ticket relacionado é fornecido",
+  path: ["linkType"]
+})
+.refine((data) => {
+  // Validação condicional: impact e urgency devem existir juntos para calcular prioridade
+  if ((data.impact && !data.urgency) || (!data.impact && data.urgency)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Impacto e urgência devem ser definidos juntos",
+  path: ["impact", "urgency"]
+});
+
+// Schema para criação de ticket sem refine (não suporta omit/partial)
+const baseTicketSchema = z.object({
+  subject: z.string()
+    .min(3, "Assunto deve ter pelo menos 3 caracteres")
+    .max(255, "Assunto não pode exceder 255 caracteres"),
+  description: z.string()
+    .max(4000, "Descrição não pode exceder 4000 caracteres")
+    .optional(),
+  status: TicketStatusEnum.default('open'),
+  priority: TicketPriorityEnum.default('medium'),
+  impact: TicketImpactEnum.optional(),
+  urgency: TicketUrgencyEnum.optional(),
+  category: TicketCategoryEnum.optional(),
+  subcategory: z.string().max(100).optional(),
+  callerId: z.string().uuid().optional(),
+  callerType: CallerTypeEnum.default('customer'),
+  beneficiaryId: z.string().uuid().optional(),
+  beneficiaryType: CallerTypeEnum.default('customer'),
+  assignedToId: z.string().uuid().optional(),
+  location: z.union([
+    z.string().uuid(),
+    z.literal("unspecified")
+  ]).optional(),
+  assignmentGroup: z.string().max(100).optional(),
+  contactType: ContactTypeEnum.default('email'),
+  businessImpact: z.string().max(500).optional(),
+  symptoms: z.string().max(1000).optional(),
+  workaround: z.string().max(1000).optional(),
+  resolution: z.string().max(2000).optional(),
+  estimatedHours: z.number().min(0).max(999).optional(),
+  actualHours: z.number().min(0).max(999).optional(),
+  followers: z.array(z.string().uuid()).default([]),
+  tags: z.array(z.string().max(50)).default([]),
+  customerCompanyId: z.string().uuid().optional(),
+  environment: z.string().max(100).optional(),
+  linkTicketNumber: z.string().max(50).optional(),
+  linkType: LinkTypeEnum.optional(),
+  linkComment: z.string().max(500).optional(),
+});
+
+// Schema para criação de ticket
+export const createTicketSchema = baseTicketSchema.extend({
+  customerId: z.string().uuid("ID do cliente é obrigatório")
+});
+
+// Schema para atualização de ticket (todos os campos opcionais)
+export const updateTicketSchema = baseTicketSchema.partial();
+
+// Tipos TypeScript derivados dos schemas
+export type TicketFormData = z.infer<typeof ticketFormSchema>;
+export type CreateTicketData = z.infer<typeof createTicketSchema>;
+export type UpdateTicketData = z.infer<typeof updateTicketSchema>;
+
+// Schema para validação de filtros na tabela
+export const ticketFiltersSchema = z.object({
+  status: z.union([TicketStatusEnum, z.literal("all")]).default("all"),
+  priority: z.union([TicketPriorityEnum, z.literal("all")]).default("all"),
+  category: z.union([TicketCategoryEnum, z.literal("all")]).default("all"),
+  assignedToId: z.string().uuid().optional(),
+  customerCompanyId: z.string().uuid().optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  search: z.string().max(255).optional()
+});
+
+export type TicketFiltersData = z.infer<typeof ticketFiltersSchema>;
+
+// Helper functions para validação
+export const validateTicketForm = (data: unknown) => {
+  return ticketFormSchema.safeParse(data);
+};
+
+export const validateCreateTicket = (data: unknown) => {
+  return createTicketSchema.safeParse(data);
+};
+
+export const validateUpdateTicket = (data: unknown) => {
+  return updateTicketSchema.safeParse(data);
+};
+
+export const validateTicketFilters = (data: unknown) => {
+  return ticketFiltersSchema.safeParse(data);
+};

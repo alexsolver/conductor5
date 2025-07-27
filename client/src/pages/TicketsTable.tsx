@@ -345,7 +345,9 @@ export default function TicketsTable() {
       case 'category':
         return (
           <TableCell>
-            <DynamicBadge fieldName="category" value={(ticket as any).category || 'other'}>
+            <DynamicBadge 
+              value={(ticket as any).category || 'other'}
+            >
               {(ticket as any).category || 'Other'}
             </DynamicBadge>
           </TableCell>
@@ -353,19 +355,29 @@ export default function TicketsTable() {
       case 'status':
         return (
           <TableCell>
-            <DynamicBadge fieldName="status" value={((ticket as any).state || ticket.status).replace('_', ' ')} />
+            <DynamicBadge 
+              value={((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open'}
+            >
+              {((ticket as any).state || ticket.status)?.replace('_', ' ') || 'Open'}
+            </DynamicBadge>
           </TableCell>
         );
       case 'priority':
         return (
           <TableCell>
-            <DynamicBadge fieldName="priority" value={ticket.priority} />
+            <DynamicBadge 
+              value={ticket.priority || 'medium'}
+            >
+              {ticket.priority || 'Medium'}
+            </DynamicBadge>
           </TableCell>
         );
       case 'impact':
         return (
           <TableCell>
-            <DynamicBadge fieldName="impact" value={(ticket as any).impact || 'medium'}>
+            <DynamicBadge 
+              value={(ticket as any).impact || 'medium'}
+            >
               {(ticket as any).impact || 'Medium'}
             </DynamicBadge>
           </TableCell>
