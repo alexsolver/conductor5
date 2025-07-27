@@ -484,40 +484,33 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // PROBLEMA 2,3,7 RESOLVIDOS: SQL injection safe, mapping correto, todos campos implementados
+      // PROBLEMA 2,3,7 RESOLVIDOS: Campos reais do banco, mapping correto, SQL injection safe
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
         SET 
-          subject = ${ticketData.subject?.replace(/'/g, "''") || ''},
-          description = ${ticketData.description?.replace(/'/g, "''") || null},
-          priority = ${ticketData.priority?.replace(/'/g, "''") || 'medium'},
-          status = ${ticketData.status?.replace(/'/g, "''") || 'open'},
-          category = ${ticketData.category?.replace(/'/g, "''") || null},
-          subcategory = ${ticketData.subcategory?.replace(/'/g, "''") || null},
-          impact = ${ticketData.impact?.replace(/'/g, "''") || null},
-          urgency = ${ticketData.urgency?.replace(/'/g, "''") || null},
+          subject = ${ticketData.subject || ''},
+          description = ${ticketData.description || null},
+          priority = ${ticketData.priority || 'medium'},
+          state = ${ticketData.status || 'open'},
+          category = ${ticketData.category || null},
+          subcategory = ${ticketData.subcategory || null},
+          impact = ${ticketData.impact || null},
+          urgency = ${ticketData.urgency || null},
           caller_id = ${ticketData.caller_id || null},
           beneficiary_id = ${ticketData.beneficiary_id || null},
           assigned_to_id = ${ticketData.assigned_to_id || null},
-          assignment_group = ${ticketData.assignment_group?.replace(/'/g, "''") || null},
+          assignment_group = ${ticketData.assignment_group || null},
           location_id = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
-          location = ${ticketData.location_name?.replace(/'/g, "''") || null},
-          contact_type = ${ticketData.contact_type?.replace(/'/g, "''") || null},
-          business_impact = ${ticketData.business_impact?.replace(/'/g, "''") || null},
-          symptoms = ${ticketData.symptoms?.replace(/'/g, "''") || null},
-          workaround = ${ticketData.workaround?.replace(/'/g, "''") || null},
-          resolution = ${ticketData.resolution?.replace(/'/g, "''") || null},
-          estimated_hours = ${typeof ticketData.estimated_hours === 'number' ? ticketData.estimated_hours : null},
-          actual_hours = ${typeof ticketData.actual_hours === 'number' ? ticketData.actual_hours : null},
+          location = ${ticketData.location_name || null},
+          contact_type = ${ticketData.contact_type || null},
+          business_impact = ${ticketData.business_impact || null},
+          symptoms = ${ticketData.symptoms || null},
+          workaround = ${ticketData.workaround || null},
+          resolution_notes = ${ticketData.resolution || null},
+          environment = ${ticketData.environment || null},
+          caller_type = ${ticketData.caller_type || 'customer'},
+          beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
           followers = ${JSON.stringify(ticketData.followers || [])}::jsonb,
-          tags = ${JSON.stringify(ticketData.tags || [])}::jsonb,
-          customer_company_id = ${ticketData.customer_company_id || null},
-          environment = ${ticketData.environment?.replace(/'/g, "''") || null},
-          link_ticket_number = ${ticketData.link_ticket_number?.replace(/'/g, "''") || null},
-          link_type = ${ticketData.link_type?.replace(/'/g, "''") || null},
-          link_comment = ${ticketData.link_comment?.replace(/'/g, "''") || null},
-          caller_type = ${ticketData.caller_type?.replace(/'/g, "''") || 'customer'},
-          beneficiary_type = ${ticketData.beneficiary_type?.replace(/'/g, "''") || 'customer'},
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
