@@ -6,6 +6,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { AlertCircle, Loader2 } from "lucide-react";
+import { filterDOMProps } from "@/utils/propFiltering";
 
 interface DynamicSelectProps {
   fieldName: string;
@@ -15,17 +16,23 @@ interface DynamicSelectProps {
   className?: string;
   disabled?: boolean;
   showAllOption?: boolean;
+  [key: string]: any; // Para props adicionais que serão filtradas
 }
 
-export function DynamicSelect({ 
-  fieldName, 
-  value, 
-  onValueChange, 
-  placeholder, 
-  className,
-  disabled = false,
-  showAllOption = false
-}: DynamicSelectProps) {
+export function DynamicSelect(props: DynamicSelectProps) {
+  const { 
+    fieldName, 
+    value, 
+    onValueChange, 
+    placeholder, 
+    className,
+    disabled = false,
+    showAllOption = false,
+    ...restProps
+  } = props;
+  
+  // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
+  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onValueChange', 'showAllOption']);
   const { getFieldOptions, isLoading } = useTicketMetadata();
   
   const options = getFieldOptions(fieldName);
