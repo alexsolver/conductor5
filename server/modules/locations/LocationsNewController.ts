@@ -40,6 +40,129 @@ export class LocationsNewController {
     }
   }
 
+  // CEP lookup service
+  async lookupCep(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { cep } = req.params;
+      
+      if (!cep || cep.length < 8) {
+        return sendError(res, "CEP inválido", 400);
+      }
+
+      const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
+      const data = await response.json();
+      
+      if (data.erro) {
+        return sendError(res, "CEP não encontrado", 404);
+      }
+
+      return sendSuccess(res, data, "CEP encontrado com sucesso");
+    } catch (error) {
+      console.error('Error looking up CEP:', error);
+      return sendError(res, "Erro ao buscar CEP", 500);
+    }
+  }
+
+  // Holidays lookup service
+  async lookupHolidays(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { municipio, estado, ano } = req.query;
+      
+      if (!municipio || !estado) {
+        return sendError(res, "Município e estado são obrigatórios", 400);
+      }
+
+      const currentYear = ano ? parseInt(ano as string) : new Date().getFullYear();
+      
+      // Mock holiday data - replace with actual API integration
+      const holidays = {
+        federais: [
+          { data: `${currentYear}-01-01`, nome: 'Confraternização Universal', incluir: false },
+          { data: `${currentYear}-04-21`, nome: 'Tiradentes', incluir: false },
+          { data: `${currentYear}-05-01`, nome: 'Dia do Trabalhador', incluir: false },
+          { data: `${currentYear}-09-07`, nome: 'Independência do Brasil', incluir: false },
+          { data: `${currentYear}-10-12`, nome: 'Nossa Senhora Aparecida', incluir: false },
+          { data: `${currentYear}-11-02`, nome: 'Finados', incluir: false },
+          { data: `${currentYear}-11-15`, nome: 'Proclamação da República', incluir: false },
+          { data: `${currentYear}-12-25`, nome: 'Natal', incluir: false }
+        ],
+        estaduais: this.getEstadualHolidays(estado as string, currentYear),
+        municipais: this.getMunicipalHolidays(municipio as string, estado as string, currentYear)
+      };
+
+      return sendSuccess(res, holidays, "Feriados encontrados com sucesso");
+    } catch (error) {
+      console.error('Error looking up holidays:', error);
+      return sendError(res, "Erro ao buscar feriados", 500);
+    }
+  }
+
+  // Geocoding service
+  async geocodeAddress(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { address } = req.body;
+      
+      if (!address) {
+        return sendError(res, "Endereço é obrigatório", 400);
+      }
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+      );
+      const data = await response.json();
+      
+      if (data && data[0]) {
+        const result = {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon),
+          displayName: data[0].display_name,
+          boundingBox: data[0].boundingbox
+        };
+        
+        return sendSuccess(res, result, "Coordenadas encontradas com sucesso");
+      }
+      
+      return sendError(res, "Endereço não encontrado", 404);
+    } catch (error) {
+      console.error('Error geocoding address:', error);
+      return sendError(res, "Erro ao buscar coordenadas", 500);
+    }
+  }
+
+  private getEstadualHolidays(estado: string, ano: number) {
+    const estadualHolidays: { [key: string]: any[] } = {
+      'RJ': [
+        { data: `${ano}-04-23`, nome: 'São Jorge', incluir: false },
+        { data: `${ano}-06-29`, nome: 'São Pedro', incluir: false }
+      ],
+      'SP': [
+        { data: `${ano}-02-13`, nome: 'Carnaval', incluir: false },
+        { data: `${ano}-07-09`, nome: 'Revolução Constitucionalista', incluir: false }
+      ],
+      'MG': [
+        { data: `${ano}-04-21`, nome: 'Data Magna do Estado', incluir: false }
+      ]
+    };
+
+    return estadualHolidays[estado] || [];
+  }
+
+  private getMunicipalHolidays(municipio: string, estado: string, ano: number) {
+    const municipalHolidays: { [key: string]: any[] } = {
+      'Rio de Janeiro': [
+        { data: `${ano}-01-20`, nome: 'São Sebastião', incluir: false }
+      ],
+      'São Paulo': [
+        { data: `${ano}-01-25`, nome: 'Aniversário da Cidade', incluir: false }
+      ],
+      'Belo Horizonte': [
+        { data: `${ano}-12-12`, nome: 'Nossa Senhora da Conceição', incluir: false }
+      ]
+    };
+
+    return municipalHolidays[municipio] || [];
+  }
+
   // Get statistics by record type
   async getStatsByType(req: AuthenticatedRequest, res: Response) {
     try {

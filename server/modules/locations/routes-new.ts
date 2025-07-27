@@ -35,5 +35,6 @@ router.delete('/:recordType/:id', controller.deleteRecord.bind(controller));
 // Utility services
 router.get('/services/cep/:cep', controller.lookupCep.bind(controller));
 router.get('/services/holidays', controller.lookupHolidays.bind(controller));
+router.post('/services/geocode', controller.geocodeAddress.bind(controller));
 
 export default router;

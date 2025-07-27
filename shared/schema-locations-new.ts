@@ -8,7 +8,7 @@ export type LocationStatus = 'active' | 'inactive' | 'maintenance';
 export type AreaType = 'faixa_cep' | 'shape' | 'coordenadas' | 'raio' | 'linha' | 'importar_area';
 export type LogradouroType = 'rua' | 'avenida' | 'travessa' | 'alameda' | 'rodovia' | 'estrada';
 
-// 1. LOCAL - Complete address and geolocation system
+// 1. LOCAL - Complete address and geolocation system per user requirements
 export const locais = pgTable('locais', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
@@ -18,7 +18,7 @@ export const locais = pgTable('locais', {
   descricao: text('descricao').notNull(),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
   clienteFavorecidoId: uuid('cliente_favorecido_id'), // FK to customers/favorecidos
-  tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users
+  tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users (workspace admin team member)
   
   // Contato
   email: varchar('email', { length: 255 }),
@@ -39,15 +39,13 @@ export const locais = pgTable('locais', {
   // Georreferenciamento
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
+  geoCoordenadas: jsonb('geo_coordenadas'), // Complete geo data with validation info
   
   // Tempo e Disponibilidade
   fusoHorario: varchar('fuso_horario', { length: 50 }).default('America/Sao_Paulo'),
-  horarioFuncionamento: jsonb('horario_funcionamento'), // Weekly schedule
-  intervalosFuncionamento: jsonb('intervalos_funcionamento'), // Break times
-  feriadosIncluidos: jsonb('feriados_incluidos'), // Selected holidays
-  indisponibilidades: jsonb('indisponibilidades'), // Unavailable periods
+  feriadosIncluidos: jsonb('feriados_incluidos'), // Selected holidays (municipal, estadual, federal)
+  indisponibilidades: jsonb('indisponibilidades'), // Unavailable periods (data início/fim + observação)
   
-  status: varchar('status', { length: 20 }).notNull().default('active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -194,9 +192,38 @@ export const localSchema = createInsertSchema(locais, {
   descricao: z.string().min(1, "Descrição é obrigatória"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   cep: z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido").optional(),
+  ddd: z.string().min(2).max(3).optional(),
+  telefone: z.string().min(8).max(15).optional(),
   latitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Latitude inválida").optional(),
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
+  tipoLogradouro: z.enum(['Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo']).optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Schema for holidays selection
+export const feriadosSelectionSchema = z.object({
+  municipais: z.array(z.object({
+    data: z.string(),
+    nome: z.string(),
+    incluir: z.boolean()
+  })).optional(),
+  estaduais: z.array(z.object({
+    data: z.string(),
+    nome: z.string(),
+    incluir: z.boolean()
+  })).optional(),
+  federais: z.array(z.object({
+    data: z.string(),
+    nome: z.string(),
+    incluir: z.boolean()
+  })).optional()
+}).optional();
+
+// Schema for unavailability periods
+export const indisponibilidadesSchema = z.array(z.object({
+  dataInicio: z.string(),
+  dataFim: z.string(),
+  observacao: z.string()
+})).optional();
 
 export const regiaoSchema = createInsertSchema(regioes, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
