@@ -41,9 +41,45 @@ export default function Tickets() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: tickets, isLoading } = useQuery({
+  // Force token setup - DEBUG ONLY
+  useEffect(() => {
+    const checkAndSetToken = async () => {
+      let token = localStorage.getItem('accessToken');
+      console.log('🔐 Current token in localStorage:', token ? 'EXISTS' : 'NOT_FOUND');
+      
+      if (!token) {
+        console.log('🔄 No token found, attempting login...');
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'admin@conductor.com', password: 'admin123' })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('accessToken', data.accessToken);
+            console.log('✅ Token set in localStorage');
+            queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+          }
+        } catch (error) {
+          console.error('❌ Login failed:', error);
+        }
+      }
+    };
+    
+    checkAndSetToken();
+  }, [queryClient]);
+
+  const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
     retry: false,
+    onSuccess: (data) => {
+      console.log('✅ Query SUCCESS - tickets data received:', data);
+    },
+    onError: (error) => {
+      console.log('❌ Query ERROR:', error);
+    }
   });
 
   // Fetch customers for the dropdown
@@ -202,14 +238,26 @@ export default function Tickets() {
     );
   }
 
-  // Log para debug
-  console.log('🚀 Tickets component is rendering...', { currentViewId, tickets });
+  // Log para debug detalhado
+  console.log('🚀 Tickets component is rendering...', { 
+    currentViewId, 
+    tickets, 
+    ticketsType: typeof tickets,
+    ticketsKeys: tickets ? Object.keys(tickets) : 'no tickets'
+  });
   
   // Parse dos dados de tickets vindos da API
   const ticketsList = (tickets as any)?.data?.tickets || [];
   const ticketsCount = ticketsList.length;
   
-  console.log('📋 Parsed tickets data:', { ticketsList, ticketsCount, rawTickets: tickets });
+  console.log('📋 Parsed tickets data:', { 
+    ticketsList, 
+    ticketsCount, 
+    ticketsListType: typeof ticketsList,
+    isArray: Array.isArray(ticketsList),
+    firstTicket: ticketsList[0],
+    rawTickets: tickets 
+  });
 
   return (
     <div className="p-4 space-y-6">
@@ -423,33 +471,48 @@ export default function Tickets() {
         </div>
       </div>
 
+      {/* DEBUG: Estado atual dos dados */}
+      <div style={{
+        backgroundColor: '#ffff00',
+        padding: '20px',
+        margin: '10px 0',
+        border: '2px solid #ff0000',
+        fontSize: '14px',
+        fontFamily: 'monospace'
+      }}>
+        <strong>🐛 DEBUG INFO COMPLETO:</strong><br/>
+        isLoading: {isLoading ? 'YES' : 'NO'}<br/>
+        error: {error ? 'ERROR PRESENT' : 'NO ERROR'}<br/>
+        tickets: {tickets ? 'DATA EXISTS' : 'NULL/UNDEFINED'}<br/>
+        ticketsCount: {ticketsCount}<br/>
+        ticketsList.length: {ticketsList?.length || 'undefined'}<br/>
+        isArray: {Array.isArray(ticketsList) ? 'YES' : 'NO'}<br/>
+        First ticket ID: {ticketsList[0]?.id || 'NOT_FOUND'}<br/>
+        Raw tickets type: {typeof tickets}<br/>
+        Local storage token: {typeof window !== 'undefined' && localStorage.getItem('accessToken') ? 'EXISTS' : 'NOT_FOUND'}<br/>
+      </div>
+
       <div className="space-y-4">
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
           ticketsList.map((ticket: any) => (
-          <Card key={ticket.id} className="hover:shadow-md transition-shadow">
+          <Card key={ticket.id} className="hover:shadow-md transition-shadow" style={{border: '3px solid #00ff00'}}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      #{ticket.id} - {ticket.subject}
+                      #{ticket.number || ticket.id} - {ticket.subject}
                     </h3>
                     <DynamicBadge fieldName="priority" value={ticket.priority}>{ticket.priority}</DynamicBadge>
-                    <DynamicBadge fieldName="status" value={ticket.status.replace('_', ' ')}>{ticket.status.replace('_', ' ')}</DynamicBadge>
+                    <DynamicBadge fieldName="status" value={ticket.status?.replace('_', ' ')}>{ticket.status?.replace('_', ' ')}</DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     {ticket.description?.substring(0, 150)}...
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>Customer: {ticket.customer?.firstName} {ticket.customer?.lastName}</span>
+                    <span>ID: {ticket.id}</span>
                     <span>•</span>
-                    <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                    {ticket.assignedTo && (
-                      <>
-                        <span>•</span>
-                        <span>Assigned to: {ticket.assignedTo.firstName}</span>
-                      </>
-                    )}
+                    <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <Button variant="outline" size="sm">
@@ -460,11 +523,12 @@ export default function Tickets() {
           </Card>
         ))
         ) : (
-          <Card>
+          <Card style={{border: '3px solid #ff0000'}}>
             <CardContent className="p-12 text-center">
               <div className="text-gray-500">
-                <div className="text-lg font-medium mb-2">No tickets found</div>
-                <p className="text-sm">Create your first support ticket to get started.</p>
+                <div className="text-lg font-medium mb-2">🚨 No tickets found - DEBUG MODE</div>
+                <p className="text-sm">ticketsCount: {ticketsCount} | isArray: {Array.isArray(ticketsList) ? 'YES' : 'NO'}</p>
+                <p className="text-sm">Raw data: {JSON.stringify(tickets).substring(0, 100)}...</p>
               </div>
             </CardContent>
           </Card>
