@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Phone, Home, Globe, Clock, Search, Calendar, Plus, Trash2, Map, Users } from "lucide-react";
@@ -305,8 +305,25 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       }
     }
 
+    // Try alternative storage locations
     if (!tenantId) {
-      console.error('No tenant ID found');
+      const authDataStr = localStorage.getItem('authData');
+      if (authDataStr) {
+        try {
+          const authData = JSON.parse(authDataStr);
+          tenantId = authData.tenantId || authData.user?.tenantId;
+        } catch (e) {
+          console.error('Error parsing auth data:', e);
+        }
+      }
+    }
+
+    if (!tenantId) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Não foi possível identificar o tenant. Faça login novamente.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -320,6 +337,11 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       onSubmit(formDataWithTenant);
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar o local. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -737,12 +759,12 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog de Feriados */}
       <Dialog open={showHolidaysDialog} onOpenChange={setShowHolidaysDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="feriados-dialog-description">
-          <div id="feriados-dialog-description" className="sr-only">
-            Seleção de feriados municipais, estaduais e federais para configuração do local
-          </div>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Selecionar Feriados</DialogTitle>
+            <DialogDescription>
+              Selecione os feriados municipais, estaduais e federais que devem ser considerados para este local
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
             {Object.entries(holidays).map(([type, holidayList]) => (
@@ -780,12 +802,12 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog de Indisponibilidades */}
       <Dialog open={showIndisponibilidadesDialog} onOpenChange={setShowIndisponibilidadesDialog}>
-        <DialogContent className="max-w-2xl" aria-describedby="indisponibilidades-dialog-description">
-          <div id="indisponibilidades-dialog-description" className="sr-only">
-            Gerenciamento de períodos de indisponibilidade do local com data de início, fim e observações
-          </div>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Gerenciar Indisponibilidades</DialogTitle>
+            <DialogDescription>
+              Configure períodos de indisponibilidade do local com data de início, fim e observações
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {indisponibilidades.map((item, index) => (
@@ -865,12 +887,12 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog do Mapa */}
       <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh]" aria-describedby="mapa-dialog-description">
-          <div id="mapa-dialog-description" className="sr-only">
-            Mapa interativo para seleção e validação de coordenadas geográficas do local
-          </div>
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Validação de Coordenadas</DialogTitle>
+            <DialogDescription>
+              Use o mapa interativo para selecionar e validar as coordenadas geográficas do local
+            </DialogDescription>
           </DialogHeader>
           <div className="h-96">
             <LeafletMapSelector
