@@ -129,7 +129,17 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       const companies = Array.isArray(customerCompaniesData) 
         ? customerCompaniesData 
         : customerCompaniesData?.data || [];
+      
+      console.log('Customer companies data updated:', {
+        raw: customerCompaniesData,
+        processed: companies,
+        count: companies.length
+      });
+      
       setCustomerCompanies(companies);
+    } else {
+      console.log('No customer companies data received');
+      setCustomerCompanies([]);
     }
   }, [customerCompaniesData]);
 
@@ -202,13 +212,22 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   };
 
   const handleAddCompany = async () => {
-    if (!selectedCompanyId || !customer?.id) return;
+    if (!selectedCompanyId || !customer?.id) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma empresa e certifique-se de que o cliente está salvo",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
+      console.log('Adding company:', { customerId: customer.id, companyId: selectedCompanyId });
+      
       const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
         companyId: selectedCompanyId,
         role: 'member',
-        isPrimary: customerCompanies.length === 0 // First company is primary
+        isPrimary: Array.isArray(customerCompanies) ? customerCompanies.length === 0 : true
       });
 
       await refetchCustomerCompanies();
@@ -218,31 +237,49 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         title: "Sucesso",
         description: "Empresa adicionada com sucesso!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding company:', error);
       toast({
         title: "Erro",
-        description: "Erro ao adicionar empresa",
+        description: error?.message || "Erro ao adicionar empresa",
         variant: "destructive"
       });
     }
   };
 
   const handleRemoveCompany = async (companyId: string) => {
-    if (!customer?.id) return;
+    if (!customer?.id) {
+      toast({
+        title: "Erro",
+        description: "Cliente não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!companyId) {
+      toast({
+        title: "Erro",
+        description: "ID da empresa não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
+      console.log('Removing company:', { customerId: customer.id, companyId });
+      
       await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
       await refetchCustomerCompanies();
       toast({
         title: "Sucesso",
         description: "Empresa removida com sucesso!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing company:', error);
       toast({
         title: "Erro",
-        description: "Erro ao remover empresa",
+        description: error?.message || "Erro ao remover empresa",
         variant: "destructive"
       });
     }
@@ -589,29 +626,37 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           {/* Lista de empresas associadas */}
                           <div className="mt-2 space-y-2">
                             {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
-                              customerCompanies.map((membership: any, index: number) => (
-                                <div key={`membership-${membership.membership_id || membership.id || membership.company_id || index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">
-                                      {membership.display_name || membership.company_name}
-                                    </span>
-                                    <Badge variant={membership.is_primary ? "default" : "secondary"}>
-                                      {membership.role}
-                                    </Badge>
-                                    {membership.is_primary && (
-                                      <Badge variant="outline">Principal</Badge>
-                                    )}
+                              customerCompanies.map((membership: any, index: number) => {
+                                // Garantir um ID único para cada item
+                                const uniqueKey = membership.membership_id || membership.id || membership.company_id || `membership-${index}`;
+                                const companyId = membership.company_id || membership.id;
+                                
+                                return (
+                                  <div key={uniqueKey} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">
+                                        {membership.display_name || membership.company_name || membership.name || 'Empresa sem nome'}
+                                      </span>
+                                      <Badge variant={membership.is_primary ? "default" : "secondary"}>
+                                        {membership.role || 'member'}
+                                      </Badge>
+                                      {membership.is_primary && (
+                                        <Badge variant="outline">Principal</Badge>
+                                      )}
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveCompany(companyId)}
+                                      disabled={!companyId}
+                                      title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
                                   </div>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleRemoveCompany(membership.company_id)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              ))
+                                );
+                              })
                             ) : (
                               <div className="text-sm text-gray-500 p-2">
                                 Nenhuma empresa associada
@@ -636,19 +681,26 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       <SelectValue placeholder="Selecionar empresa" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {Array.isArray(availableCompanies) ? availableCompanies
-                                        .filter((company: any) =>
-                                          !Array.isArray(customerCompanies) || !customerCompanies.some((cm: any) => cm.company_id === company.id)
-                                        )
-                                        .map((company: any) => (
-                                          <SelectItem key={`company-${company.id}`} value={String(company.id)}>
-                                            {company.displayName || company.name}
-                                          </SelectItem>
-                                        )) : (
-                                          <SelectItem value="no-companies" disabled>
-                                            Nenhuma empresa disponível
-                                          </SelectItem>
-                                        )}
+                                      {Array.isArray(availableCompanies) && availableCompanies.length > 0 ? (
+                                        availableCompanies
+                                          .filter((company: any) => {
+                                            const companyId = company.id;
+                                            // Filtrar empresas já associadas
+                                            return !Array.isArray(customerCompanies) || 
+                                              !customerCompanies.some((cm: any) => 
+                                                (cm.company_id || cm.id) === companyId
+                                              );
+                                          })
+                                          .map((company: any) => (
+                                            <SelectItem key={`company-${company.id}`} value={String(company.id)}>
+                                              {company.displayName || company.name || `Empresa ${company.id}`}
+                                            </SelectItem>
+                                          ))
+                                      ) : (
+                                        <SelectItem value="no-companies" disabled>
+                                          {Array.isArray(availableCompanies) ? "Todas as empresas já foram associadas" : "Nenhuma empresa disponível"}
+                                        </SelectItem>
+                                      )}
                                     </SelectContent>
                                   </Select>
                                 </FormControl>
