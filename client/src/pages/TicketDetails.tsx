@@ -2723,8 +2723,9 @@ export default function TicketDetails() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
+    </div>
     </div>
   );
 }
