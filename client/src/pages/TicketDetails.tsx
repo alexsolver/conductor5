@@ -836,62 +836,24 @@ export default function TicketDetails() {
 
             
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <DynamicSelect
-                        fieldName="status"
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Selecione o status"
-                        disabled={!isEditMode}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input 
-                          {...field} 
-                          placeholder="Digite as tags separadas por vírgula"
-                          onChange={(e) => {
-                            const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-                            field.onChange(tags);
-                            setTags(tags);
-                          }}
-                          value={Array.isArray(field.value) ? field.value.join(', ') : field.value}
-                        />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded min-h-[40px] flex flex-wrap gap-1">
-                          {(Array.isArray(field.value) ? field.value : []).map((tag: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {(!field.value || field.value.length === 0) && (
-                            <span className="text-gray-500 text-sm">Nenhuma tag</span>
-                          )}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <DynamicSelect
+                      fieldName="status"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Selecione o status"
+                      disabled={!isEditMode}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Categoria */}
             <div className="border-t pt-4 mt-6">
