@@ -105,6 +105,8 @@ export default function FavorecidosTable() {
     queryKey: ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache (renamed from cacheTime in TanStack Query v5)
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
@@ -179,7 +181,7 @@ export default function FavorecidosTable() {
         title: "Sucesso",
         description: "Favorecido criado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
       setIsCreateDialogOpen(false);
       form.reset();
     },
@@ -202,12 +204,13 @@ export default function FavorecidosTable() {
     onSuccess: (data) => {
       console.log('Update mutation success:', data);
       
-      // CRITICAL FIX: Force a complete cache reset and refetch
-      queryClient.removeQueries({ queryKey: ["/api/favorecidos"] });
-      queryClient.invalidateQueries();
-      setTimeout(() => {
-        refetch();
-      }, 100);
+      // CRITICAL FIX: Complete cache invalidation and immediate refetch
+      queryClient.removeQueries({ queryKey: ["/api/favorecidos"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
+      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"], exact: false });
+      
+      // IMMEDIATE REFETCH: Force refetch without delay
+      refetch();
       
       toast({
         title: "Sucesso",
@@ -236,7 +239,7 @@ export default function FavorecidosTable() {
         title: "Sucesso",
         description: "Favorecido excluído com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
     },
     onError: (error: Error) => {
       toast({
