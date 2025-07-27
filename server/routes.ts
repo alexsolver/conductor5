@@ -25,7 +25,7 @@ import ticketRelationshipsRoutes from './routes/ticketRelationships';
 import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
-import multilocationRoutes from './routes/multilocation';
+// Removed old multilocation routes - replaced with new locations module
 import geolocationRoutes from './routes/geolocation';
 import holidayRoutes from './routes/HolidayController';
 // import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
@@ -453,9 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const localizationRoutes = await import('./routes/localization');
   app.use('/api/localization', localizationRoutes.default);
 
-  // Import and mount multilocation routes (enterprise international support)
-  const multilocationRoutes = await import('./routes/multilocation');
-  app.use('/api/multilocation', multilocationRoutes.default);
+  // Removed multilocation routes - replaced with new locations module
 
   // Import and mount tenant provisioning routes
   const tenantProvisioningRoutes = await import('./routes/tenant-provisioning');
@@ -816,8 +814,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Global multilocation routes  
-  // app.use('/api/multilocation', multilocationRoutes); // Temporarily disabled due to module export issue
+  // Register new locations module routes
+  try {
+    const { locationsRouter } = await import('./modules/locations/routes');
+    app.use('/api/locations', locationsRouter);
+  } catch (error) {
+    console.warn('Locations module not available:', error);
+  }
 
   // Removed duplicate OmniBridge routes - now defined earlier before middleware
 

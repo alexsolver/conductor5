@@ -16,7 +16,7 @@ import TicketsTable from "./pages/TicketsTable";
 import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
 import FavorecidosTable from "./pages/FavorecidosTable";
-import Locations from "./pages/Locations";
+// Locations import moved below to avoid duplication
 import KnowledgeBase from './pages/KnowledgeBase';
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
@@ -59,7 +59,8 @@ import OmniBridge from "./pages/OmniBridge";
 import Timecard from "./pages/Timecard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
-import MultilocationAdmin from "./pages/MultilocationAdmin";
+import LocationsImplementationControl from "./pages/LocationsImplementationControl";
+import Locations from "./pages/Locations";
 import HolidayCalendar from "./pages/HolidayCalendar";
 import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
@@ -138,7 +139,8 @@ function AppRouter() {
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
-        <Route path="/tenant-admin/multilocation" component={MultilocationAdmin} />
+        <Route path="/locations" component={Locations} />
+        <Route path="/locations-implementation-control" component={LocationsImplementationControl} />
         {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />

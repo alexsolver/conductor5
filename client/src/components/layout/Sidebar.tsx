@@ -86,6 +86,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Locais", href: "/locations", icon: MapPin },
+  { name: "Controle de Implementação", href: "/locations-implementation-control", icon: Target },
   {
     name: "Materiais e Serviços",
     icon: Package,

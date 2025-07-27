@@ -13,10 +13,13 @@ export default function Dashboard() {
     retry: false,
   });
 
-  const { data: activity } = useQuery({
+  const { data: activityResponse } = useQuery({
     queryKey: ["/api/dashboard/activity"],
     retry: false,
   });
+
+  // Extract activity data from standardResponse format
+  const activity = activityResponse?.data || [];
 
   if (isLoading) {
     return (
