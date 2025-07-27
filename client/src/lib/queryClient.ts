@@ -49,24 +49,35 @@ export async function apiRequest(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  let res = await fetch(url, {
+  const fetchOptions: RequestInit = {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
-  });
+  };
+
+  // Only add body for methods that support it
+  if (method !== 'GET' && method !== 'HEAD' && data) {
+    fetchOptions.body = JSON.stringify(data);
+  }
+
+  let res = await fetch(url, fetchOptions);
 
   // If unauthorized, try to refresh token and retry
   if (res.status === 401 && token) {
     const newToken = await refreshAccessToken();
     if (newToken) {
       headers["Authorization"] = `Bearer ${newToken}`;
-      res = await fetch(url, {
+      const retryOptions: RequestInit = {
         method,
         headers,
-        body: data ? JSON.stringify(data) : undefined,
         credentials: "include",
-      });
+      };
+
+      if (method !== 'GET' && method !== 'HEAD' && data) {
+        retryOptions.body = JSON.stringify(data);
+      }
+
+      res = await fetch(url, retryOptions);
     }
   }
 

@@ -55,18 +55,27 @@ export default function Locations() {
       favorites: favoritesFilter,
       tag: tagFilter 
     }],
-    queryFn: () => apiRequest("GET", "/api/locations", {
-      search: searchTerm,
-      locationType: locationTypeFilter,
-      status: statusFilter,
-      favorites: favoritesFilter,
-      tag: tagFilter
-    })
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (locationTypeFilter !== 'all') params.append('locationType', locationTypeFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (favoritesFilter) params.append('favorites', 'true');
+      if (tagFilter) params.append('tag', tagFilter);
+      
+      const url = `/api/locations${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await apiRequest("GET", url);
+      return response.json();
+    }
   });
 
   // Fetch location statistics
   const { data: statsData } = useQuery({
-    queryKey: ["/api/locations/stats"]
+    queryKey: ["/api/locations/stats"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/locations/stats");
+      return response.json();
+    }
   });
 
   // Create location form
@@ -210,6 +219,7 @@ export default function Locations() {
     }
   };
 
+  // Process API responses - data should already be parsed by queryClient
   const locations = locationsData?.data?.locations || [];
   const stats = statsData?.data || {};
 
