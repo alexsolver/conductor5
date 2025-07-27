@@ -867,15 +867,23 @@ export default function TicketDetails() {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prioridade</FormLabel>
+                      <FormLabel>Prioridade *</FormLabel>
                       <FormControl>
-                        <DynamicSelect
-                          fieldName="priority"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione a prioridade"
-                          disabled={!isEditMode}
-                        />
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="priority"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Selecione a prioridade"
+                            disabled={!isEditMode}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge fieldName="priority" value={field.value}>
+                              {field.value}
+                            </DynamicBadge>
+                          </div>
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -887,15 +895,23 @@ export default function TicketDetails() {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>Status *</FormLabel>
                       <FormControl>
-                        <DynamicSelect
-                          fieldName="status"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione o status"
-                          disabled={!isEditMode}
-                        />
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="status"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Selecione o status"
+                            disabled={!isEditMode}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge fieldName="status" value={field.value}>
+                              {field.value}
+                            </DynamicBadge>
+                          </div>
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
