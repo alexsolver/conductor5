@@ -876,14 +876,13 @@ ${data.email || null},
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.external_contacts
-        (name, first_name, last_name, email, phone, document, type, tenant_id, created_at, updated_at)
+        (name, first_name, last_name, email, phone, type, tenant_id, created_at, updated_at)
         VALUES (
           ${data.firstName + ' ' + (data.lastName || '')},
           ${data.firstName},
           ${data.lastName || null},
           ${data.email || null},
           ${data.phone || null},
-          ${data.cpfCnpj || null},
           'favorecido',
           ${validatedTenantId},
           NOW(),
