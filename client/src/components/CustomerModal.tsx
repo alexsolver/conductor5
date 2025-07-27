@@ -82,15 +82,9 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const mutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
-        return apiRequest(`/api/clientes/${customer.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify(data)
-        });
+        return apiRequest('PATCH', `/api/clientes/${customer.id}`, data);
       } else {
-        return apiRequest('/api/clientes', {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
+        return apiRequest('POST', '/api/clientes', data);
       }
     },
     onSuccess: () => {
@@ -113,7 +107,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch available companies
     const { data: availableCompaniesData, refetch: refetchAvailableCompanies } = useQuery({
       queryKey: ['/api/customers/companies'],
-      queryFn: () => apiRequest('/api/customers/companies').then(res => res.json()),
+      queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
       enabled: isOpen, // Only fetch when the modal is open
     });
 
@@ -125,7 +119,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
-      queryFn: () => apiRequest(`/api/customers/${customer?.id}/companies`).then(res => res.json()),
+      queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`).then(res => res.json()),
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
     });
 
@@ -211,13 +205,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!selectedCompanyId || !customer?.id) return;
 
     try {
-      const response = await apiRequest(`/api/customers/${customer.id}/companies`, {
-        method: 'POST',
-        body: JSON.stringify({
-          companyId: selectedCompanyId,
-          role: 'member',
-          isPrimary: customerCompanies.length === 0 // First company is primary
-        })
+      const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
+        companyId: selectedCompanyId,
+        role: 'member',
+        isPrimary: customerCompanies.length === 0 // First company is primary
       });
 
       await refetchCustomerCompanies();
@@ -241,9 +232,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!customer?.id) return;
 
     try {
-      await apiRequest(`/api/customers/${customer.id}/companies/${companyId}`, {
-        method: 'DELETE'
-      });
+      await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
       await refetchCustomerCompanies();
       toast({
         title: "Sucesso",
