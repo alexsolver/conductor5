@@ -301,9 +301,4 @@ export const feriadosSchema = z.object({
   })).optional()
 }).optional();
 
-// Indisponibilidades schema
-export const indisponibilidadesSchema = z.array(z.object({
-  dataInicio: z.string(),
-  dataFim: z.string(),
-  observacao: z.string()
-})).optional();
+// Indisponibilidades schema (already defined above, removing duplicate)
