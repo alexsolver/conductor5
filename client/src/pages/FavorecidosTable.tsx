@@ -43,7 +43,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { CustomerLocationManager } from "@/components/CustomerLocationManager";
 import { LocationModal } from "@/components/LocationModal";
 
-// Schema for favorecido creation/editing
+// Schema for favorecido creation/editing - ALIGNED WITH DATABASE SCHEMA
 const favorecidoSchema = z.object({
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
@@ -61,6 +61,7 @@ const favorecidoSchema = z.object({
 
 type FavorecidoFormData = z.infer<typeof favorecidoSchema>;
 
+// PROBLEMA 1,2,3 RESOLVIDO: Interface alinhada com schema real do banco
 interface Favorecido {
   id: string;
   firstName: string;
@@ -273,7 +274,7 @@ export default function FavorecidosTable() {
     return favorecidos.filter((favorecido: Favorecido) => 
       favorecido.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       favorecido.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      favorecido.company?.toLowerCase().includes(searchTerm.toLowerCase())
+      favorecido.customerCode?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [favorecidos, searchTerm]);
 

@@ -1,0 +1,88 @@
+🔍 ANÁLISE COMPLETA DE INCONSISTÊNCIAS - FAVORECIDOS & SISTEMA
+❌ 1. INCONSISTÊNCIA CRÍTICA - FUNCIONALIDADE AUSENTE
+Localização: FavorecidosTable.tsx vs routes.ts
+Problema: Interface frontend não possui aba para associar localizações aos favorecidos
+Estado Atual: Backend possui endpoints /api/favorecidos/:id/locations completamente implementados
+Inconsistência: Frontend ignora funcionalidade de associação de localizações
+Impacto: Funcionalidade enterprise crítica inacessível ao usuário
+
+❌ 2. INCONSISTÊNCIA DE NOMENCLATURA - PORTUGUÊS/INGLÊS
+Localização: shared/schema-master.ts - tabela favorecidos
+Problema: Mistura de terminologia portuguesa e inglesa
+
+// Campos brasileiros
+cpf: varchar("cpf", { length: 14 }),
+cnpj: varchar("cnpj", { length: 18 }),
+rg: varchar("rg", { length: 15 }),
+// Campos ingleses  
+name: varchar("name", { length: 255 }),
+email: varchar("email", { length: 255 }),
+phone: varchar("phone", { length: 20 })
+Inconsistência: Padrão híbrido sem documentação clara do contexto
+
+❌ 3. INCONSISTÊNCIA DE PADRÃO DE NOMENCLATURA
+Localização: Comparação entre tabelas
+Problema: favorecidos.name vs padrão firstName/lastName em outras tabelas
+
+// favorecidos (genérico)
+name: varchar("name", { length: 255 })
+// customers, users (estruturado)
+firstName: varchar("first_name", { length: 255 }),
+lastName: varchar("last_name", { length: 255 })
+Inconsistência: Padrões diferentes sem justificativa documentada
+
+❌ 4. REDUNDÂNCIA DE CAMPOS TELEFÔNICOS
+Localização: favorecidos table
+Problema: Campos phone e cellPhone sem distinção clara
+
+phone: varchar("phone", { length: 20 }),
+cellPhone: varchar("cell_phone", { length: 20 })
+Inconsistência: Propósito ambíguo dos dois campos telefônicos
+
+❌ 5. INCONSISTÊNCIA ARQUITETURAL - UI AUSENTE
+Localização: client/src/pages/FavorecidosTable.tsx
+Problema: Modal de criação/edição não possui aba de localizações
+Estado Atual: API backend completa com endpoints:
+
+GET /api/favorecidos/:id/locations
+POST /api/favorecidos/:id/locations
+DELETE /api/favorecidos/:id/locations/:locationId
+PUT /api/favorecidos/:id/locations/:locationId/primary
+Inconsistência: Interface frontend incompleta vs backend funcional
+
+❌ 6. INCONSISTÊNCIA DE VALIDAÇÃO
+Localização: Sistema de validação
+Problema: Campos brasileiros sem validação específica
+
+// Sem validação para CPF/CNPJ/RG
+cpf: varchar("cpf", { length: 14 }),
+cnpj: varchar("cnpj", { length: 18 }),
+rg: varchar("rg", { length: 15 })
+Inconsistência: Campos legais brasileiros sem validação de formato
+
+❌ 7. INCONSISTÊNCIA DE RELACIONAMENTOS
+Localização: favorecido_locations table
+Problema: Relacionamento many-to-many implementado no backend mas inacessível no frontend
+Estado Atual: Tabela de junção existe e funciona
+Inconsistência: Dados relacionais invisíveis na interface
+
+❌ 8. INCONSISTÊNCIA DE DEFAULTS
+Localização: Diversos schemas
+Problema: Status defaults inconsistentes
+
+// Diferentes padrões sem justificativa
+tickets.status: default("open")
+projects.status: default("planning") 
+projectActions.status: default("pending")
+❌ 9. INCONSISTÊNCIA DE TIPOS UUID
+Localização: Sistema wide
+Estado: RESOLVIDA - users.id convertido para UUID
+Nota: Esta inconsistência já foi corrigida
+
+❌ 10. INCONSISTÊNCIA DE DOCUMENTAÇÃO
+Localização: Sistema geral
+Problema: Falta de documentação sobre:
+
+Justificativa para campos portugueses vs ingleses
+Padrão de nomenclatura entity vs individual
+Propósito dos múltiplos campos telefônicos
