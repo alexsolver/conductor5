@@ -1,0 +1,85 @@
+Analisando todo o módulo frontend de tickets, identifiquei várias falhas críticas e campos não devidamente configurados:
+
+🚨 FALHAS CRÍTICAS IDENTIFICADAS
+1. ERRO DE PROP REACT - DynamicBadge
+Problema: Warning React sobre prop fieldName sendo passada para elemento DOM
+Arquivo: client/src/components/DynamicBadge.tsx
+Erro: fieldName prop está sendo passada diretamente para o componente Badge/div
+Status: CRÍTICO - Causando warnings no console
+2. INCONSISTÊNCIA DE SCHEMA - location_id vs location
+Problema: Backend tentando usar location_id mas tabela possui apenas location
+Erro no Log: column "location_id" of relation "tickets" does not exist
+Impacto: Falha completa ao salvar tickets
+Status: CRÍTICO - Bloqueando funcionalidade
+3. CAMPOS FRONTEND NÃO MAPEADOS CORRETAMENTE
+TicketDetails.tsx:
+callerId vs caller_id (inconsistência)
+beneficiaryId vs beneficiary_id (inconsistência)
+assignedToId vs assigned_to_id (inconsistência)
+customerCompanyId vs customer_id (mapeamento confuso)
+TicketsTable.tsx:
+Usando fieldName prop que causa warning React
+Badges de prioridade/status com props incorretas
+4. DADOS HARDCODED EM TicketDetails.tsx
+Comunicações: Array simulado hardcoded (linhas ~850-880)
+Histórico: Dados fake (linhas ~890-920)
+Ações Internas: Mock data (linhas ~930-970)
+Ações Externas: Dados simulados (linhas ~980-1020)
+Últimas Interações: Hardcoded (linhas ~1030-1100)
+5. PROBLEMAS DE INTEGRAÇÃO COM BACKEND
+APIs não consumidas corretamente:
+/api/tickets/${id}/notes - Criação de notas com fallback local
+/api/ticket-history/ - Dados reais do backend ignorados em favor de mock
+/api/tickets/${id}/attachments - Sistema de anexos simulado
+Campos do formulário não sincronizados:
+symptoms - Campo existe no form mas não há validação backend
+workaround - Mesmo problema
+businessImpact - Campo frontend sem contrapartida backend
+contactType - Não validado no backend
+6. PROBLEMAS DE ESTADO E VALIDAÇÃO
+TicketDetails.tsx:
+selectedCompanyCustomers estado local não sincronizado com mudanças
+Validação Zod incompleta para novos campos
+Reset do form não limpa todos os estados locais
+Followers e tags mantidos apenas no estado local
+TicketsTable.tsx:
+Filtros não persistem entre navegações
+Ordenação não funciona em alguns campos
+Paginação não sincronizada com backend
+7. CAMPOS DE INTERFACE SEM BACKEND
+Campos que existem no frontend mas não têm suporte backend completo:
+location (problema do location_id)
+favorecidoId (não validado)
+assignmentGroup (campo fantasma)
+businessImpact (sem validação)
+symptoms (sem persistência adequada)
+workaround (sem validação)
+8. PROBLEMAS DE UX/UI
+TicketDetails.tsx:
+Modal de senha para dados sensíveis não funcional
+Tabs de navegação com conteúdo hardcoded
+Sistema de anexos não integrado com backend real
+Preview de templates não funcional
+TicketsTable.tsx:
+Filtros avançados não implementados completamente
+Bulk actions não funcionais
+Export não implementado
+9. PROBLEMAS DE PERFORMANCE
+Queries desnecessárias:
+Re-fetch constante de customers/companies na mudança de empresa
+Queries redundantes para metadados
+Estados locais não otimizados
+Logs mostram:
+TicketDetails: Company changed, fetching customers for: [ID]
+TicketDetails: Fetching customers for company: [ID]
+Chamadas repetidas desnecessárias.
+
+10. PROBLEMAS DE VALIDAÇÃO E TIPOS
+TypeScript:
+Interfaces não atualizadas para novos campos
+Tipos opcionais onde deveriam ser obrigatórios
+Mapeamento incorreto entre frontend/backend types
+Zod Schema:
+ticketFormSchema incompleto para todos os campos
+Validações condicionais não implementadas
+Campos obrigatórios não marcados corretamente
