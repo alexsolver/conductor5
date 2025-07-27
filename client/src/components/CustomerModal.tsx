@@ -113,14 +113,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch available companies
     const { data: availableCompanies = [], refetch: refetchAvailableCompanies } = useQuery({
       queryKey: ['/api/companies'],
-      queryFn: () => apiRequest('/api/companies', { method: 'GET' }),
+      queryFn: () => apiRequest('GET', '/api/companies').then(res => res.json()),
       enabled: isOpen, // Only fetch when the modal is open
     });
 
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
-      queryFn: () => apiRequest(`/api/customers/${customer?.id}/companies`, { method: 'GET' }),
+      queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`).then(res => res.json()),
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
     });
 
@@ -158,22 +158,15 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!selectedCompanyId || !customer?.id) return;
 
     try {
-      const response = await apiRequest(`/api/clientes/${customer.id}/companies`, {
-        method: 'POST',
-        body: JSON.stringify({
-          companyId: selectedCompanyId,
-          role: selectedRole,
-          isPrimary: customerCompanies.length === 0 // First company is primary
-        })
+      const response = await apiRequest('POST', `/api/clientes/${customer.id}/companies`, {
+        companyId: selectedCompanyId,
+        role: selectedRole,
+        isPrimary: customerCompanies.length === 0 // First company is primary
       });
 
-      if (response.ok) {
-        await refetchCustomerCompanies();
-        setSelectedCompanyId('');
-        setSelectedRole('member');
-      } else {
-        console.error('Failed to add company');
-      }
+      await refetchCustomerCompanies();
+      setSelectedCompanyId('');
+      setSelectedRole('member');
     } catch (error) {
       console.error('Error adding company:', error);
     }
@@ -183,15 +176,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!customer?.id) return;
 
     try {
-      const response = await apiRequest(`/api/clientes/${customer.id}/companies/${companyId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        await refetchCustomerCompanies();
-      } else {
-        console.error('Failed to remove company');
-      }
+      await apiRequest('DELETE', `/api/clientes/${customer.id}/companies/${companyId}`);
+      await refetchCustomerCompanies();
     } catch (error) {
       console.error('Error removing company:', error);
     }
