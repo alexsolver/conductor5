@@ -20,10 +20,37 @@ import { LocationModal } from './LocationModal';
 import { DynamicCustomFields } from '@/components/DynamicCustomFields';
 
 const customerSchema = z.object({
-  firstName: z.string().min(1, 'Nome é obrigatório'),
-  lastName: z.string().min(1, 'Sobrenome é obrigatório'),
+  // Tipo e status
+  customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
+  status: z.enum(['Ativo', 'Inativo']).default('Ativo'),
+  
+  // Informações básicas
   email: z.string().email('Email inválido'),
+  description: z.string().optional(),
+  internalCode: z.string().optional(),
+  
+  // Dados pessoa física
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  cpf: z.string().optional(),
+  
+  // Dados pessoa jurídica
+  companyName: z.string().optional(),
+  cnpj: z.string().optional(),
+  
+  // Contatos
+  contactPerson: z.string().optional(),
+  responsible: z.string().optional(),
   phone: z.string().optional(),
+  mobilePhone: z.string().optional(),
+  
+  // Hierarquia
+  position: z.string().optional(),
+  supervisor: z.string().optional(),
+  coordinator: z.string().optional(),
+  manager: z.string().optional(),
+  
+  // Campos técnicos (mantidos)
   company: z.string().optional(),
   verified: z.boolean().default(false),
   active: z.boolean().default(true),
@@ -36,6 +63,17 @@ const customerSchema = z.object({
   notes: z.string().optional(),
   avatar: z.string().optional(),
   signature: z.string().optional(),
+}).refine((data) => {
+  // Validação condicional baseada no tipo de cliente
+  if (data.customerType === 'PF') {
+    return data.firstName && data.lastName && data.cpf;
+  } else if (data.customerType === 'PJ') {
+    return data.companyName && data.cnpj;
+  }
+  return true;
+}, {
+  message: "Campos obrigatórios: PF precisa de Nome, Sobrenome e CPF; PJ precisa de Razão Social e CNPJ",
+  path: ["customerType"]
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
@@ -60,10 +98,24 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
+      customerType: "PF",
+      status: "Ativo",
+      email: "",
+      description: "",
+      internalCode: "",
       firstName: "",
       lastName: "",
-      email: "",
+      cpf: "",
+      companyName: "",
+      cnpj: "",
+      contactPerson: "",
+      responsible: "",
       phone: "",
+      mobilePhone: "",
+      position: "",
+      supervisor: "",
+      coordinator: "",
+      manager: "",
       company: "",
       verified: false,
       active: true,
@@ -147,10 +199,24 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   useEffect(() => {
     if (customer && isOpen) {
       form.reset({
+        customerType: customer.customerType || customer.customer_type || "PF",
+        status: customer.status || "Ativo",
+        email: customer.email || "",
+        description: customer.description || "",
+        internalCode: customer.internalCode || customer.internal_code || "",
         firstName: customer.firstName || customer.first_name || "",
         lastName: customer.lastName || customer.last_name || "",
-        email: customer.email || "",
+        cpf: customer.cpf || "",
+        companyName: customer.companyName || customer.company_name || "",
+        cnpj: customer.cnpj || "",
+        contactPerson: customer.contactPerson || customer.contact_person || "",
+        responsible: customer.responsible || "",
         phone: customer.phone || "",
+        mobilePhone: customer.mobilePhone || customer.mobile_phone || "",
+        position: customer.position || "",
+        supervisor: customer.supervisor || "",
+        coordinator: customer.coordinator || "",
+        manager: customer.manager || "",
         company: customer.company || "",
         verified: customer.verified || false,
         active: customer.active ?? true,
@@ -167,10 +233,24 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     } else if (!customer && isOpen) {
       // Reset to empty form for new customer
       form.reset({
+        customerType: "PF",
+        status: "Ativo",
+        email: "",
+        description: "",
+        internalCode: "",
         firstName: "",
         lastName: "",
-        email: "",
+        cpf: "",
+        companyName: "",
+        cnpj: "",
+        contactPerson: "",
+        responsible: "",
         phone: "",
+        mobilePhone: "",
+        position: "",
+        supervisor: "",
+        coordinator: "",
+        manager: "",
         company: "",
         verified: false,
         active: true,
@@ -301,68 +381,160 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <Tabs defaultValue="basic" className="w-full">
+              <Tabs defaultValue="dados-basicos" className="w-full">
                 <TabsList className="w-full h-auto p-1">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full">
-                    <TabsTrigger value="basic" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                    <TabsTrigger value="dados-basicos" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <User className="h-3 w-3 lg:h-4 lg:w-4" />
-                      Básico
+                      Dados Básicos
                     </TabsTrigger>
-                    <TabsTrigger value="status" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                    <TabsTrigger value="hierarquia" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <Star className="h-3 w-3 lg:h-4 lg:w-4" />
-                      Status
+                      Hierarquia
                     </TabsTrigger>
-                    <TabsTrigger value="localization" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                      <Globe className="h-3 w-3 lg:h-4 lg:w-4" />
-                      Localização
-                    </TabsTrigger>
-                    <TabsTrigger value="locations" className="flex items-center gap-2 text-xs lg:text-sm p-2">
-                      <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
-                      Locais
-                    </TabsTrigger>
-                     <TabsTrigger value="companies" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                    <TabsTrigger value="empresas" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <Building className="h-3 w-3 lg:h-4 lg:w-4" />
                       Empresas
+                    </TabsTrigger>
+                    <TabsTrigger value="locais" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                      <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
+                      Locais
                     </TabsTrigger>
                   </div>
                 </TabsList>
 
-                <TabsContent value="basic" className="space-y-4">
+                <TabsContent value="dados-basicos" className="space-y-4">
+                  {/* Tipo de Cliente e Status */}
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="firstName"
+                      name="customerType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Nome do cliente" {...field} />
-                          </FormControl>
+                          <FormLabel>Tipo de Cliente *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
+                              <SelectItem value="PJ">Pessoa Jurídica (PJ)</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="lastName"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Sobrenome</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Sobrenome do cliente" {...field} />
-                          </FormControl>
+                          <FormLabel>Status</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Ativo">Ativo</SelectItem>
+                              <SelectItem value="Inativo">Inativo</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
 
+                  {/* Campos condicionais baseados no tipo */}
+                  {form.watch('customerType') === 'PF' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Nome do cliente" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Sobrenome *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Sobrenome do cliente" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="cpf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CPF *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="000.000.000-00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+
+                  {form.watch('customerType') === 'PJ' && (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="companyName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Razão Social *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nome da empresa" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="cnpj"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CNPJ *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="00.000.000/0000-00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+
+                  {/* Campos comuns */}
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Email *</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="email@exemplo.com" {...field} />
                         </FormControl>
@@ -374,81 +546,27 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="phone"
+                      name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefone</FormLabel>
+                          <FormLabel>Descrição</FormLabel>
                           <FormControl>
-                            <Input placeholder="(11) 99999-9999" {...field} />
+                            <Input placeholder="Descrição do cliente" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="status" className="space-y-4">
-                  <div className="grid grid-cols-3 gap-6">
                     <FormField
                       control={form.control}
-                      name="verified"
+                      name="internalCode"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Verificado</FormLabel>
-                            <div className="text-sm text-muted-foreground">
-                              Cliente tem email verificado
-                            </div>
-                          </div>
+                        <FormItem>
+                          <FormLabel>Código Interno</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
+                            <Input placeholder="Código interno" {...field} />
                           </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="active"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Ativo</FormLabel>
-                            <div className="text-sm text-muted-foreground">
-                              Cliente está ativo no sistema
-                            </div>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="suspended"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Suspenso</FormLabel>
-                            <div className="text-sm text-muted-foreground">
-                              Cliente temporariamente suspenso
-                            </div>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -457,12 +575,12 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="externalId"
+                      name="contactPerson"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>ID Externo</FormLabel>
+                          <FormLabel>Pessoa de Contato</FormLabel>
                           <FormControl>
-                            <Input placeholder="ID de sistema externo" {...field} />
+                            <Input placeholder="Nome da pessoa de contato" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -470,12 +588,98 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                     <FormField
                       control={form.control}
-                      name="role"
+                      name="responsible"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Responsável</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do responsável" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(11) 3333-3333" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="mobilePhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Celular</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(11) 99999-9999" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="position"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Função</FormLabel>
                           <FormControl>
-                            <Input placeholder="Função do cliente" {...field} />
+                            <Input placeholder="Cargo/Função" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="hierarquia" className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="supervisor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Supervisor</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do supervisor" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="coordinator"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Coordenador</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do coordenador" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="manager"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gerente</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do gerente" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -483,92 +687,117 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Observações sobre o cliente..."
-                            className="resize-none"
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-medium mb-4">Configurações Técnicas</h3>
+                    
+                    <div className="grid grid-cols-3 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="verified"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Verificado</FormLabel>
+                              <div className="text-sm text-muted-foreground">
+                                Cliente tem email verificado
+                              </div>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
 
-                <TabsContent value="localization" className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="active"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Ativo</FormLabel>
+                              <div className="text-sm text-muted-foreground">
+                                Cliente está ativo no sistema
+                              </div>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="suspended"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Suspenso</FormLabel>
+                              <div className="text-sm text-muted-foreground">
+                                Cliente temporariamente suspenso
+                              </div>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <FormField
+                        control={form.control}
+                        name="externalId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ID Externo</FormLabel>
+                            <FormControl>
+                              <Input placeholder="ID de sistema externo" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Papel no Sistema</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Role do cliente" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={form.control}
-                      name="timezone"
+                      name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Fuso Horário</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o fuso horário" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="America/Sao_Paulo">São Paulo (GMT-3)</SelectItem>
-                              <SelectItem value="America/New_York">Nova York (GMT-5)</SelectItem>
-                              <SelectItem value="Europe/London">Londres (GMT+0)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="language"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Idioma</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o idioma" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="pt">Português</SelectItem>
-                              <SelectItem value="en">Inglês</SelectItem>
-                              <SelectItem value="es">Espanhol</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="locale"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Localização</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a localização" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="pt-BR">Brasil</SelectItem>
-                              <SelectItem value="en-US">Estados Unidos</SelectItem>
-                              <SelectItem value="es-ES">Espanha</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Observações</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Observações sobre o cliente..."
+                              className="resize-none"
+                              rows={3}
+                              {...field}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -576,7 +805,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   </div>
                 </TabsContent>
 
-                <TabsContent value="locations" className="space-y-4">
+                <TabsContent value="locais" className="space-y-4">
                   <div className="text-center py-8">
                     <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-600 mb-2">
@@ -613,7 +842,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   </div>
                 </TabsContent>
 
-                 <TabsContent value="companies" className="space-y-4">
+                 <TabsContent value="empresas" className="space-y-4">
                     {/* Empresas associadas */}
                     {customer?.id && (
                       <div className="space-y-4">
