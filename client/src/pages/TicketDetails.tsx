@@ -812,51 +812,6 @@ export default function TicketDetails() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição *</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <RichTextEditor 
-                        value={field.value || ''}
-                        onChange={field.onChange}
-                        disabled={false}
-                      />
-                    ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <DynamicSelect
-                      fieldName="status"
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Selecione o status"
-                      disabled={!isEditMode}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            
-
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
@@ -919,6 +874,28 @@ export default function TicketDetails() {
                 />
               </div>
             </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição *</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <RichTextEditor 
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        disabled={false}
+                      />
+                    ) : (
+                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Sintomas */}
             <div className="border-t pt-4 mt-6">

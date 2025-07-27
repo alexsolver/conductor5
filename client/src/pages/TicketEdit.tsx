@@ -420,6 +420,50 @@ export default function TicketEdit() {
                         )}
                       />
 
+                      {/* Classificação */}
+                      <div className="border-t pt-4 mt-6">
+                        <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="priority"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Prioridade *</FormLabel>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="priority"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Selecione a prioridade"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Status *</FormLabel>
+                                <FormControl>
+                                  <DynamicSelect
+                                    fieldName="status"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Selecione o status"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
                       <FormField
                         control={form.control}
                         name="description"
