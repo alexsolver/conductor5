@@ -17,7 +17,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerLocationManager } from './CustomerLocationManager';
 import { LocationModal } from './LocationModal';
-import { DynamicCustomFields } from '@/components/DynamicCustomFields';
+import DynamicCustomFields from '@/components/DynamicCustomFields';
 
 const customerSchema = z.object({
   // Tipo e status
@@ -159,10 +159,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch available companies
     const { data: availableCompaniesData, refetch: refetchAvailableCompanies } = useQuery({
       queryKey: ['/api/customers/companies'],
-      queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
+      queryFn: () => apiRequest('GET', '/api/customers/companies'),
       enabled: isOpen, // Only fetch when the modal is open
       staleTime: 0, // Always fetch fresh data
-      cacheTime: 0, // Don't cache data
+      gcTime: 0, // Don't cache data
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
@@ -181,13 +181,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       }
       
       // Handle {success: true, data: [...]} format
-      if (availableCompaniesData?.success && Array.isArray(availableCompaniesData.data)) {
-        return availableCompaniesData.data;
+      if ((availableCompaniesData as any)?.success && Array.isArray((availableCompaniesData as any).data)) {
+        return (availableCompaniesData as any).data;
       }
       
       // Handle {data: [...]} format
-      if (availableCompaniesData?.data && Array.isArray(availableCompaniesData.data)) {
-        return availableCompaniesData.data;
+      if ((availableCompaniesData as any)?.data && Array.isArray((availableCompaniesData as any).data)) {
+        return (availableCompaniesData as any).data;
       }
       
       console.warn('Available companies data format not recognized:', availableCompaniesData);
@@ -197,10 +197,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
-      queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`).then(res => res.json()),
+      queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`),
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
       staleTime: 0, // Always fetch fresh data
-      cacheTime: 0, // Don't cache data
+      gcTime: 0, // Don't cache data
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
@@ -210,7 +210,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       // Handle both formats: direct array or {success: true, data: [...]}
       const companies = Array.isArray(customerCompaniesData) 
         ? customerCompaniesData 
-        : customerCompaniesData?.data || [];
+        : (customerCompaniesData as any)?.data || [];
       
       console.log('Customer companies data updated:', {
         raw: customerCompaniesData,
@@ -435,17 +435,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       });
       
       // Fazer a requisição de exclusão
-      const response = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
-      
-      // Verificar se a resposta foi bem-sucedida
-      const result = await response.json();
+      const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
       console.log('Delete response:', result);
       
-      if (result.success === false) {
-        throw new Error(result.message || 'Falha ao remover empresa');
+      if (result && (result as any).success === false) {
+        throw new Error((result as any).message || 'Falha ao remover empresa');
       }
       
-      // Atualizar estado local imediatamente ANTES de refetch
+      // Atualizar estado local imediatamente
       setCustomerCompanies(prevCompanies => {
         const filtered = prevCompanies.filter(company => 
           (company.company_id || company.id) !== companyId
@@ -458,26 +455,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         return filtered;
       });
       
-      // Invalidar TODAS as queries relacionadas com cache hard refresh
-      queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
-      queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
+      // Invalidar cache e fazer refetch simples
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       
-      // Force refresh imediato sem cache
-      await Promise.all([
-        queryClient.refetchQueries({ 
-          queryKey: [`/api/customers/${customer.id}/companies`],
-          type: 'active'
-        }),
-        queryClient.refetchQueries({ 
-          queryKey: ['/api/customers/companies'],
-          type: 'active'
-        })
-      ]);
+      // Aguardar um pouco para o backend processar
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Delay adicional e refetch manual
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Refetch simples
       await refetchCustomerCompanies();
       await refetchAvailableCompanies();
       
