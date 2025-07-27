@@ -940,7 +940,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFavorecido(id: string, tenantId: string, data: any): Promise<any> {
+  async updateFavorecido(tenantId: string, id: string, data: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -980,7 +980,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
+  async deleteFavorecido(tenantId: string, id: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
