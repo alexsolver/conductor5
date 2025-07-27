@@ -202,10 +202,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 
-  // === CLIENTES ROUTES ===
-  app.get("/api/clientes", async (req, res) => {
+  // === CLIENTES ROUTES - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth ===
+  app.get("/api/clientes", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e"; // Default tenant for testing
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
       const search = req.query.search as string || "";
@@ -374,9 +378,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/clientes", async (req, res) => {
+  app.post("/api/clientes", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
       const cliente = await unifiedStorage.createCliente(tenantId, req.body);
 
       res.status(201).json({ 
@@ -390,11 +398,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/clientes/:id", async (req, res) => {
+  app.put("/api/clientes/:id", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
-      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
 
+      const { id } = req.params;
       const updated = await unifiedStorage.updateCliente(tenantId, id, req.body);
 
       if (!updated) {
@@ -412,11 +423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/clientes/:id", async (req, res) => {
+  app.delete("/api/clientes/:id", jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = "3f99462f-3621-4b1b-bea8-782acc50d62e";
-      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
 
+      const { id } = req.params;
       const deleted = await unifiedStorage.deleteCliente(tenantId, id);
 
       if (!deleted) {
