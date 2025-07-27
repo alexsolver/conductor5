@@ -122,10 +122,15 @@ router.post("/", async (req: AuthenticatedRequest, res: Response) => {
 router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+    
     const { id } = favorecidoIdSchema.parse(req.params);
     const updateData: Partial<InsertFavorecido> = req.body;
     
-    const favorecido = await storage.updateFavorecido(id, user.tenantId, updateData);
+    console.log('Update favorecido params:', { tenantId: user.tenantId, favorecidoId: id, updateData });
+    const favorecido = await storage.updateFavorecido(user.tenantId, id, updateData);
     
     if (!favorecido) {
       return res.status(404).json({ 
@@ -153,9 +158,13 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
 router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+    
     const { id } = favorecidoIdSchema.parse(req.params);
     
-    const deleted = await storage.deleteFavorecido(id, user.tenantId);
+    const deleted = await storage.deleteFavorecido(user.tenantId, id);
     
     if (!deleted) {
       return res.status(404).json({ 
