@@ -893,7 +893,7 @@ export default function TicketDetails() {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prioridade *</FormLabel>
+                                            <FormLabel>Prioridade *</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
@@ -2389,8 +2389,7 @@ export default function TicketDetails() {
                         <div className="flex justify-between">
                           <span className="text-gray-600">CPF/CNPJ:</span>
                           <span className="font-medium">{agentPassword.length > 0 ? (ticket.favorecido?.cpf || 'Não informado') : '•••••••••••••••'}</span>
-                        </div>
-                      </div>
+                        </div>                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>
