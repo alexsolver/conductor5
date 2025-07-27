@@ -2054,8 +2054,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const tenantDb = getTenantDb(tenantId);
-      const schemaName = getSchemaName(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
 
       // Get companies associated with this customer
       const memberships = await tenantDb.execute(sql`
@@ -2096,8 +2096,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const tenantDb = getTenantDb(tenantId);
-      const schemaName = getSchemaName(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
 
       // Check if membership already exists
       const existing = await tenantDb.execute(sql`
@@ -2143,8 +2143,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const tenantDb = getTenantDb(tenantId);
-      const schemaName = getSchemaName(tenantId);
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
 
       await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName, 'customer_company_memberships')}
