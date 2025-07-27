@@ -681,7 +681,7 @@ export default function FavorecidosTable() {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                        {favorecido.firstName?.[0]?.toUpperCase() || "?"}
+                        {(favorecido.firstName || favorecido.fullName?.split(' ')[0] || "?")?.[0]?.toUpperCase()}
                       </div>
                       <div>
                         <div className="font-medium">{favorecido.fullName}</div>
