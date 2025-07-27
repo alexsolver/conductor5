@@ -975,7 +975,7 @@ export class DatabaseStorage implements IStorage {
 
       return favorecido;
     } catch (error) {
-      logError('Error updating favorecido', error, { id, tenantId, data });
+      logError('Error updating favorecido', error, { tenantId, id, data });
       throw error;
     }
   }
@@ -998,7 +998,7 @@ export class DatabaseStorage implements IStorage {
 
       return deleted;
     } catch (error) {
-      logError('Error deleting favorecido', error, { id, tenantId });
+      logError('Error deleting favorecido', error, { tenantId, id });
       throw error;
     }
   }
