@@ -1,7 +1,7 @@
 // NEW LOCATIONS MODULE - Frontend Interface
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2, Star, Tag, Heart, Settings, Upload, TreePine } from "lucide-react";
+import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2, Star, Tag, Heart, Settings, Upload, TreePine, FileText, Clock, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,8 @@ export default function Locations() {
   const [tagFilter, setTagFilter] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -219,14 +221,39 @@ export default function Locations() {
           <h1 className="text-2xl font-bold text-gray-900">Módulo de Locais</h1>
           <p className="text-gray-600">Sistema geoespacial completo para gestão de localizações</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Local
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
+        <div className="flex gap-2">
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Importar KML/GeoJSON
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+          
+          <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Clock className="h-4 w-4 mr-2" />
+                Configurar Horários
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Local
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Create Location Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Criar Novo Local</DialogTitle>
               <DialogDescription>
@@ -470,7 +497,134 @@ export default function Locations() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+
+      {/* Import KML/GeoJSON Dialog */}
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Importar Dados Geoespaciais</DialogTitle>
+            <DialogDescription>
+              Carregue arquivos KML ou GeoJSON para criar múltiplos locais automaticamente
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 mb-2">
+                Arraste arquivos aqui ou clique para selecionar
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                Formatos aceitos: .kml, .geojson, .json
+              </p>
+              <input 
+                type="file" 
+                accept=".kml,.geojson,.json"
+                multiple 
+                className="hidden" 
+                id="geo-files"
+              />
+              <Button variant="outline" onClick={() => document.getElementById('geo-files')?.click()}>
+                <FileText className="h-4 w-4 mr-2" />
+                Selecionar Arquivos
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-medium">Opções de Importação</h4>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked />
+                  <span className="text-sm">Preservar coordenadas originais</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked />
+                  <span className="text-sm">Criar hierarquia automática</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-sm">Sobrescrever locais existentes</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button>
+              <Download className="h-4 w-4 mr-2" />
+              Importar Locais
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Configuration Dialog */}
+      <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Configuração de Horários de Funcionamento</DialogTitle>
+            <DialogDescription>
+              Configure horários padrão para todos os locais ou específicos por tipo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Aplicar configuração para:</label>
+              <Select defaultValue="all">
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os locais</SelectItem>
+                  <SelectItem value="point">Apenas Pontos</SelectItem>
+                  <SelectItem value="area">Apenas Áreas</SelectItem>
+                  <SelectItem value="route">Apenas Rotas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium">Horários da Semana</h4>
+              {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, index) => (
+                <div key={day} className="flex items-center gap-3">
+                  <div className="w-16 text-sm">{day}</div>
+                  <input type="checkbox" defaultChecked={index < 5} />
+                  <Input placeholder="08:00" className="w-20 h-8" />
+                  <span className="text-sm text-gray-500">às</span>
+                  <Input placeholder="17:00" className="w-20 h-8" />
+                  <Input placeholder="12:00-13:00" className="w-24 h-8" title="Intervalo (opcional)" />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium">Configurações Especiais</h4>
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" />
+                <span className="text-sm">Horário de verão automático</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" />
+                <span className="text-sm">Fechar automaticamente em feriados</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" />
+                <span className="text-sm">Notificar mudanças de horário</span>
+              </label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button>
+              <Clock className="h-4 w-4 mr-2" />
+              Salvar Configuração
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
