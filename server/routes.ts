@@ -2176,7 +2176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.customer_company_memberships
-        SET is_active = false, left_at = NOW()
+        SET is_active = false
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
 

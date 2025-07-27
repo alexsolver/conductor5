@@ -63,6 +63,7 @@ interface TicketTemplate {
   usage_count: number;
   created_at: string;
   updated_at: string;
+  custom_fields?: string;
 }
 
 export default function TicketTemplates() {

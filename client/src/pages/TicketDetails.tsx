@@ -58,6 +58,7 @@ const ticketFormSchema = z.object({
   workaround: z.string().optional(),
   followers: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  customerCompanyId: z.string().optional(),
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;

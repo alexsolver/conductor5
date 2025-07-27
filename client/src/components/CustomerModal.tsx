@@ -111,11 +111,16 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   });
 
     // Fetch available companies
-    const { data: availableCompanies = [], refetch: refetchAvailableCompanies } = useQuery({
-      queryKey: ['/api/companies'],
-      queryFn: () => apiRequest('GET', '/api/companies').then(res => res.json()),
+    const { data: availableCompaniesData, refetch: refetchAvailableCompanies } = useQuery({
+      queryKey: ['/api/customers/companies'],
+      queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
       enabled: isOpen, // Only fetch when the modal is open
     });
+
+    // Parse available companies with proper data extraction
+    const availableCompanies = Array.isArray(availableCompaniesData) 
+      ? availableCompaniesData 
+      : availableCompaniesData?.data || [];
 
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
@@ -126,7 +131,11 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
   useEffect(() => {
     if (customerCompaniesData) {
-      setCustomerCompanies(customerCompaniesData);
+      // Handle both formats: direct array or {success: true, data: [...]}
+      const companies = Array.isArray(customerCompaniesData) 
+        ? customerCompaniesData 
+        : customerCompaniesData?.data || [];
+      setCustomerCompanies(companies);
     }
   }, [customerCompaniesData]);
 
@@ -158,7 +167,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!selectedCompanyId || !customer?.id) return;
 
     try {
-      const response = await apiRequest('POST', `/api/clientes/${customer.id}/companies`, {
+      const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
         companyId: selectedCompanyId,
         role: 'member',
         isPrimary: customerCompanies.length === 0 // First company is primary
@@ -175,7 +184,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!customer?.id) return;
 
     try {
-      await apiRequest('DELETE', `/api/clientes/${customer.id}/companies/${companyId}`);
+      await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
       await refetchCustomerCompanies();
     } catch (error) {
       console.error('Error removing company:', error);
