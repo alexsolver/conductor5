@@ -164,9 +164,20 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     });
 
     // Parse available companies with proper data extraction
-    const availableCompanies = Array.isArray(availableCompaniesData) 
-      ? availableCompaniesData 
-      : availableCompaniesData?.data || [];
+    const availableCompanies = (() => {
+      if (Array.isArray(availableCompaniesData)) {
+        return availableCompaniesData;
+      }
+      if (availableCompaniesData?.data && Array.isArray(availableCompaniesData.data)) {
+        return availableCompaniesData.data;
+      }
+      if (availableCompaniesData?.success && Array.isArray(availableCompaniesData.data)) {
+        return availableCompaniesData.data;
+      }
+      
+      console.warn('Available companies data format not recognized:', availableCompaniesData);
+      return [];
+    })();
 
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
@@ -292,17 +303,44 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   };
 
   const handleAddCompany = async () => {
-    if (!selectedCompanyId || !customer?.id) {
+    // Validações melhoradas
+    if (!customer?.id) {
       toast({
         title: "Erro",
-        description: "Selecione uma empresa e certifique-se de que o cliente está salvo",
+        description: "É necessário salvar o cliente antes de associar empresas",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated') {
+      toast({
+        title: "Erro",
+        description: "Selecione uma empresa válida para associar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificar se a empresa já está associada
+    const isAlreadyAssociated = Array.isArray(customerCompanies) && 
+      customerCompanies.some((cm: any) => (cm.company_id || cm.id) === selectedCompanyId);
+
+    if (isAlreadyAssociated) {
+      toast({
+        title: "Erro",
+        description: "Esta empresa já está associada ao cliente",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      console.log('Adding company:', { customerId: customer.id, companyId: selectedCompanyId });
+      console.log('Adding company:', { 
+        customerId: customer.id, 
+        companyId: selectedCompanyId,
+        currentAssociations: customerCompanies?.length || 0
+      });
       
       const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
         companyId: selectedCompanyId,
@@ -310,18 +348,22 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         isPrimary: Array.isArray(customerCompanies) ? customerCompanies.length === 0 : true
       });
 
-      await refetchCustomerCompanies();
+      // Limpar seleção antes de atualizar dados
       setSelectedCompanyId('');
-      form.setValue('company', ''); // Clear form field
+      form.setValue('company', '');
+      
+      // Atualizar dados
+      await refetchCustomerCompanies();
+      
       toast({
         title: "Sucesso",
-        description: "Empresa adicionada com sucesso!",
+        description: "Empresa associada com sucesso!",
       });
     } catch (error: any) {
       console.error('Error adding company:', error);
       toast({
         title: "Erro",
-        description: error?.message || "Erro ao adicionar empresa",
+        description: error?.message || "Erro ao associar empresa",
         variant: "destructive"
       });
     }
@@ -849,19 +891,22 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         <FormItem>
                           <FormLabel className="text-base font-semibold flex items-center gap-2">
                             <Building className="h-4 w-4" />
-                            Empresas
+                            Empresas Associadas
                           </FormLabel>
 
                           {/* Lista de empresas associadas */}
                           <div className="mt-2 space-y-2">
                             {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
                               customerCompanies.map((membership: any, index: number) => {
-                                // Garantir um ID único para cada item
-                                const uniqueKey = membership.membership_id || membership.id || membership.company_id || `membership-${index}`;
+                                // Garantir um ID único para cada item usando múltiplas fallbacks
+                                const uniqueKey = membership.membership_id || 
+                                                 membership.id || 
+                                                 membership.company_id || 
+                                                 `membership-${customer.id}-${index}`;
                                 const companyId = membership.company_id || membership.id;
                                 
                                 return (
-                                  <div key={uniqueKey} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                  <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                       <span className="font-medium">
                                         {membership.display_name || membership.company_name || membership.name || 'Empresa sem nome'}
@@ -887,7 +932,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 );
                               })
                             ) : (
-                              <div className="text-sm text-gray-500 p-2">
+                              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border">
                                 Nenhuma empresa associada
                               </div>
                             )}
@@ -895,58 +940,110 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         </FormItem>
 
                         {/* Adicionar nova empresa */}
-                        <div className="mt-3 flex gap-2">
-                          <FormField
-                            control={form.control}
-                            name="company"
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormControl>
-                                  <Select onValueChange={(value) => {
-                                    field.onChange(value);
-                                    setSelectedCompanyId(value);
-                                  }} defaultValue={field.value}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecionar empresa" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.isArray(availableCompanies) && availableCompanies.length > 0 ? (
-                                        availableCompanies
-                                          .filter((company: any) => {
-                                            const companyId = company.id;
-                                            // Filtrar empresas já associadas
-                                            return !Array.isArray(customerCompanies) || 
-                                              !customerCompanies.some((cm: any) => 
-                                                (cm.company_id || cm.id) === companyId
-                                              );
-                                          })
-                                          .map((company: any) => (
-                                            <SelectItem key={`company-${company.id}`} value={String(company.id)}>
-                                              {company.displayName || company.name || `Empresa ${company.id}`}
-                                            </SelectItem>
-                                          ))
-                                      ) : (
-                                        <SelectItem value="no-companies" disabled>
-                                          {Array.isArray(availableCompanies) ? "Todas as empresas já foram associadas" : "Nenhuma empresa disponível"}
-                                        </SelectItem>
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                        <div className="mt-4 space-y-2">
+                          <FormLabel className="text-sm font-medium">Adicionar Empresa</FormLabel>
+                          <div className="flex gap-2">
+                            <FormField
+                              control={form.control}
+                              name="company"
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormControl>
+                                    <Select 
+                                      onValueChange={(value) => {
+                                        field.onChange(value);
+                                        setSelectedCompanyId(value);
+                                      }} 
+                                      value={field.value}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecionar empresa para associar" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {(() => {
+                                          // Debug: verificar dados disponíveis
+                                          console.log('Available companies for selection:', {
+                                            availableCompanies: availableCompanies,
+                                            isArray: Array.isArray(availableCompanies),
+                                            length: Array.isArray(availableCompanies) ? availableCompanies.length : 'N/A',
+                                            customerCompanies: customerCompanies,
+                                            associatedIds: Array.isArray(customerCompanies) ? customerCompanies.map((cm: any) => cm.company_id || cm.id) : []
+                                          });
 
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleAddCompany}
-                            disabled={!selectedCompanyId}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                                          if (!Array.isArray(availableCompanies) || availableCompanies.length === 0) {
+                                            return (
+                                              <SelectItem value="no-companies" disabled>
+                                                Nenhuma empresa disponível no sistema
+                                              </SelectItem>
+                                            );
+                                          }
+
+                                          // Filtrar empresas já associadas
+                                          const associatedCompanyIds = Array.isArray(customerCompanies) 
+                                            ? customerCompanies.map((cm: any) => cm.company_id || cm.id)
+                                            : [];
+
+                                          const unassociatedCompanies = availableCompanies.filter((company: any) => {
+                                            return !associatedCompanyIds.includes(company.id);
+                                          });
+
+                                          console.log('Filtered companies:', {
+                                            total: availableCompanies.length,
+                                            associated: associatedCompanyIds.length,
+                                            available: unassociatedCompanies.length,
+                                            unassociatedCompanies: unassociatedCompanies
+                                          });
+
+                                          if (unassociatedCompanies.length === 0) {
+                                            return (
+                                              <SelectItem value="all-associated" disabled>
+                                                Todas as empresas já foram associadas
+                                              </SelectItem>
+                                            );
+                                          }
+
+                                          return unassociatedCompanies.map((company: any) => (
+                                            <SelectItem key={`available-company-${company.id}`} value={String(company.id)}>
+                                              {company.displayName || company.display_name || company.name || `Empresa ${company.id}`}
+                                              {company.cnpj && ` (${company.cnpj})`}
+                                            </SelectItem>
+                                          ));
+                                        })()}
+                                      </SelectContent>
+                                    </Select>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleAddCompany}
+                              disabled={!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated'}
+                              title={!selectedCompanyId ? "Selecione uma empresa primeiro" : "Associar empresa"}
+                            >
+                              <Plus className="h-4 w-4" />
+                              Associar
+                            </Button>
+                          </div>
                         </div>
+                      </div>
+                    )}
+
+                    {!customer?.id && (
+                      <div className="text-center py-8">
+                        <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-600 mb-2">
+                          Gerenciar Empresas
+                        </h3>
+                        <p className="text-gray-500 mb-4">
+                          Associe este cliente a empresas do sistema após salvá-lo.
+                        </p>
+                        <p className="text-sm text-amber-600">
+                          💡 Salve o cliente primeiro para gerenciar empresas
+                        </p>
                       </div>
                     )}
                   </TabsContent>
