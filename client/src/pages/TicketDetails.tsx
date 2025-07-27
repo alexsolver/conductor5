@@ -36,7 +36,7 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 
 
-// Form schema
+// PROBLEMA 6 RESOLVIDO: Schema Zod expandido com todos os campos
 const ticketFormSchema = z.object({
   // Core required fields
   subject: z.string().min(1, "Subject is required"),
@@ -47,6 +47,8 @@ const ticketFormSchema = z.object({
   status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
   category: z.string().optional(),
   subcategory: z.string().optional(),
+  impact: z.enum(["low", "medium", "high", "critical"]).optional(),
+  urgency: z.enum(["low", "medium", "high", "critical"]).optional(),
   
   // Assignment fields with validation
   callerId: z.string().min(1, "Caller is required"),
@@ -58,7 +60,7 @@ const ticketFormSchema = z.object({
   
   // Location and contact
   location: z.string().optional(),
-  contactType: z.enum(["email", "phone", "chat", "portal"]),
+  contactType: z.enum(["email", "phone", "chat", "portal"]).optional(),
   
   // Extended fields for business context
   businessImpact: z.string().optional(),
@@ -72,13 +74,29 @@ const ticketFormSchema = z.object({
   // Company relationship
   customerCompanyId: z.string().optional(),
   
-  // Impact and urgency fields
-  impact: z.string().optional(),
-  urgency: z.string().optional(),
-  
-  // Additional metadata fields
+  // PROBLEMA 6: Campos faltantes adicionados
   environment: z.string().optional(),
   templateName: z.string().optional(),
+  templateAlternative: z.string().optional(),
+  callerNameResponsible: z.string().optional(),
+  callType: z.string().optional(),
+  callUrl: z.string().optional(),
+  environmentError: z.string().optional(),
+  callNumber: z.string().optional(),
+  groupField: z.string().optional(),
+  serviceVersion: z.string().optional(),
+  summary: z.string().optional(),
+  publicationPriority: z.string().optional(),
+  responsibleTeam: z.string().optional(),
+  infrastructure: z.string().optional(),
+  environmentPublication: z.string().optional(),
+  closeToPublish: z.boolean().optional(),
+  
+  // Link fields
+  linkTicketNumber: z.string().optional(),
+  linkDescription: z.string().optional(),
+  
+  // Additional metadata fields
   estimatedHours: z.number().optional(),
   
   // SLA and timeline fields
@@ -683,7 +701,7 @@ export default function TicketDetails() {
     },
   });
 
-  // Reset form when ticket data changes
+  // PROBLEMA 6 RESOLVIDO: Reset form completo com todos os campos
   useEffect(() => {
     if (ticket) {
       form.reset({
@@ -693,6 +711,8 @@ export default function TicketDetails() {
         status: ticket.status || "open",
         category: ticket.category || "",
         subcategory: ticket.subcategory || "",
+        impact: ticket.impact || "medium",
+        urgency: ticket.urgency || "medium",
         // Fix field mapping: backend uses caller_id, beneficiary_id, assigned_to_id
         callerId: ticket.caller_id || ticket.customer_id || "",
         callerType: ticket.caller_type || "customer",
@@ -707,6 +727,25 @@ export default function TicketDetails() {
         workaround: ticket.workaround || "",
         followers: ticket.followers || [],
         customerCompanyId: ticket.customer_id || "",
+        // PROBLEMA 6: Incluir todos os campos template/environment
+        environment: ticket.environment || "",
+        templateName: ticket.template_name || "",
+        templateAlternative: ticket.template_alternative || "",
+        callerNameResponsible: ticket.caller_name_responsible || "",
+        callType: ticket.call_type || "",
+        callUrl: ticket.call_url || "",
+        environmentError: ticket.environment_error || "",
+        callNumber: ticket.call_number || "",
+        groupField: ticket.group_field || "",
+        serviceVersion: ticket.service_version || "",
+        summary: ticket.summary || "",
+        publicationPriority: ticket.publication_priority || "",
+        responsibleTeam: ticket.responsible_team || "",
+        infrastructure: ticket.infrastructure || "",
+        environmentPublication: ticket.environment_publication || "",
+        closeToPublish: ticket.close_to_publish || false,
+        linkTicketNumber: "",
+        linkDescription: "",
       });
       
       // Update local states to sync with ticket data
@@ -774,7 +813,7 @@ export default function TicketDetails() {
   });
 
   const onSubmit = (data: TicketFormData) => {
-    // Mapear corretamente os campos frontend para backend
+    // PROBLEMA 3 RESOLUÇÃO: Mapear corretamente os campos frontend para backend
     const mappedData = {
       ...data,
       // Mapear callerId → caller_id
@@ -785,15 +824,29 @@ export default function TicketDetails() {
       assigned_to_id: data.assignedToId,
       // Mapear customerCompanyId → customer_id
       customer_id: data.customerCompanyId,
-      // Mapear location para locationId se necessário
-      locationId: data.location,
+      // PROBLEMA 2 RESOLVIDO: location não location_id
+      location: data.location,
       // Mapear campos específicos
       caller_type: data.callerType,
       beneficiary_type: data.beneficiaryType,
       contact_type: data.contactType,
       assignment_group: data.assignmentGroup,
       business_impact: data.businessImpact,
-      // Remover campos frontend que não existem no backend
+      // PROBLEMA 6: Mapear todos os novos campos para backend
+      template_name: data.templateName,
+      template_alternative: data.templateAlternative,
+      caller_name_responsible: data.callerNameResponsible,
+      call_type: data.callType,
+      call_url: data.callUrl,
+      environment_error: data.environmentError,
+      call_number: data.callNumber,
+      group_field: data.groupField,
+      service_version: data.serviceVersion,
+      publication_priority: data.publicationPriority,
+      responsible_team: data.responsibleTeam,
+      environment_publication: data.environmentPublication,
+      close_to_publish: data.closeToPublish,
+      // Remover campos frontend que causam erro no backend
       callerId: undefined,
       beneficiaryId: undefined,
       assignedToId: undefined,
@@ -1526,98 +1579,52 @@ export default function TicketDetails() {
                   </div>
                 </Card>
 
-                {/* Tickets Anteriores */}
-                <Card className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        RESOLVIDO
-                      </Badge>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">#T-2024-087</p>
-                        <p className="text-sm text-gray-700 mt-1">Erro de login no portal do cliente</p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Criado em 15/01/2025 • Resolvido em 2h 30min
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs">Acesso</Badge>
-                          <span className="text-xs text-gray-500">Responsável: Ana Silva</span>
+                {/* PROBLEMA 4 RESOLVIDO: Conectar dados reais de tickets relacionados */}
+                {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ? 
+                  ticketRelationships.related_tickets.map((relatedTicket: any) => (
+                    <Card key={relatedTicket.id} className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <Badge variant="secondary" className={`${relatedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' : 
+                                                                    relatedTicket.status === 'closed' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-blue-100 text-blue-700'}`}>
+                            {relatedTicket.status === 'resolved' ? 'RESOLVIDO' :
+                             relatedTicket.status === 'closed' ? 'FECHADO' : 'ATIVO'}
+                          </Badge>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">#{relatedTicket.ticket_number || relatedTicket.id?.slice(0, 8)}</p>
+                            <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || 'Ticket relacionado'}</p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Criado em {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
+                              {relatedTicket.resolved_at && ` • Resolvido em ${new Date(relatedTicket.resolved_at).toLocaleDateString('pt-BR')}`}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline" className="text-xs">{relatedTicket.category || 'Geral'}</Badge>
+                              <span className="text-xs text-gray-500">
+                                {relatedTicket.assigned_to_name && `Responsável: ${relatedTicket.assigned_to_name}`}
+                              </span>
+                            </div>
+                          </div>
                         </div>
+                        <Badge 
+                          variant={relatedTicket.priority === 'high' ? 'destructive' : 
+                                  relatedTicket.priority === 'medium' ? 'default' : 'outline'}
+                          className="text-xs"
+                        >
+                          {relatedTicket.priority === 'high' ? 'Alta' :
+                           relatedTicket.priority === 'medium' ? 'Média' : 'Baixa'}
+                        </Badge>
                       </div>
-                    </div>
-                    <Badge variant="default" className="text-xs">Média</Badge>
-                  </div>
-                </Card>
-
-                <Card className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        RESOLVIDO
-                      </Badge>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">#T-2024-045</p>
-                        <p className="text-sm text-gray-700 mt-1">Dúvida sobre funcionalidade de relatórios</p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Criado em 08/01/2025 • Resolvido em 45min
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs">Dúvida</Badge>
-                          <span className="text-xs text-gray-500">Responsável: João Santos</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs">Baixa</Badge>
-                  </div>
-                </Card>
-
-                <Card className="p-4 border-l-4 border-l-yellow-500 hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
-                        FECHADO
-                      </Badge>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">#T-2023-298</p>
-                        <p className="text-sm text-gray-700 mt-1">Solicitação de nova funcionalidade</p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Criado em 28/12/2023 • Implementado em versão 2.1
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs">Feature Request</Badge>
-                          <span className="text-xs text-gray-500">Responsável: Equipe Desenvolvimento</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Badge variant="default" className="text-xs">Média</Badge>
-                  </div>
-                </Card>
-
-                <Card className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        RESOLVIDO
-                      </Badge>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">#T-2023-276</p>
-                        <p className="text-sm text-gray-700 mt-1">Problema na sincronização de dados</p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Criado em 20/12/2023 • Resolvido em 4h 15min
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs">Técnico</Badge>
-                          <span className="text-xs text-gray-500">Responsável: Pedro Lima</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Badge variant="destructive" className="text-xs">Alta</Badge>
-                  </div>
-                </Card>
+                    </Card>
+                  )) :
+                  <Card className="p-4 text-center text-gray-500">
+                    <p>Nenhum ticket relacionado encontrado</p>
+                  </Card>
+                }
               </div>
             </div>
 
-            {/* Estatísticas do Cliente */}
+            {/* PROBLEMA 4 RESOLVIDO: Estatísticas reais do cliente */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 text-center">
                 <div className="p-2 bg-blue-100 rounded-full w-fit mx-auto mb-2">

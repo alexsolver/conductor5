@@ -54,8 +54,8 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
     },
   });
 
-  // Fetch internal actions
-  const { data: actions = [], isLoading } = useQuery({
+  // Fetch internal actions - PROBLEMA 1 RESOLVED: Fix actions.map is not a function
+  const { data: actionsResponse, isLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "actions"],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions`);
@@ -63,6 +63,9 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
     },
     enabled: isOpen,
   });
+  
+  // Extract data from response to avoid "actions.map is not a function" error
+  const actions = actionsResponse?.success ? actionsResponse.data : [];
 
   // Create internal action mutation
   const createActionMutation = useMutation({
