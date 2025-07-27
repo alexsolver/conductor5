@@ -2095,7 +2095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cc.website,
           cc.phone,
           cc.email
-        FROM ${sql.identifier(schemaName, 'customer_companies')} cc
+        FROM ${sql.identifier(schemaName)}.customer_companies cc
         WHERE cc.is_active = true
         ORDER BY cc.name
       `);
@@ -2129,7 +2129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if membership already exists
       const existing = await tenantDb.execute(sql`
-        SELECT id FROM ${sql.identifier(schemaName, 'customer_company_memberships')}
+        SELECT id FROM ${sql.identifier(schemaName)}.customer_company_memberships
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
 
@@ -2142,7 +2142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create new membership
       const membership = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName, 'customer_company_memberships')} 
+        INSERT INTO ${sql.identifier(schemaName)}.customer_company_memberships 
         (customer_id, company_id, role, is_primary, is_active, joined_at, added_by)
         VALUES (${customerId}, ${companyId}, ${role}, ${isPrimary}, true, NOW(), ${req.user.id})
         RETURNING *
@@ -2175,7 +2175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName, 'customer_company_memberships')}
+        UPDATE ${sql.identifier(schemaName)}.customer_company_memberships
         SET is_active = false, left_at = NOW()
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
