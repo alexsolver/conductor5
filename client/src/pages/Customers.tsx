@@ -16,11 +16,11 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   
   const { data: customersData, isLoading } = useQuery({
-    queryKey: ["/api/customers"],
+    queryKey: ["/api/clientes"],
     retry: false,
   });
 
-  const customers = customersData?.customers || [];
+  const customers = customersData?.data || [];
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
