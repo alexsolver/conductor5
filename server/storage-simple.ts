@@ -866,24 +866,56 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      // ✅ CORREÇÃO CRÍTICA: Inserindo na tabela correta (favorecidos)
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.external_contacts
-        (name, first_name, last_name, email, phone, type, tenant_id, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.favorecidos
+        (
+          id,
+          tenant_id,
+          first_name, 
+          last_name, 
+          email, 
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
+          customer_code,
+          phone, 
+          cell_phone,
+          contact_person,
+          contact_phone,
+          created_at, 
+          updated_at
+        )
         VALUES (
-          ${data.firstName + ' ' + (data.lastName || '')},
+          gen_random_uuid(),
+          ${validatedTenantId},
           ${data.firstName},
           ${data.lastName || null},
           ${data.email || null},
+          ${data.birthDate || null},
+          ${data.rg || null},
+          ${data.cpfCnpj || null},
+          ${data.isActive !== undefined ? data.isActive : true},
+          ${data.customerCode || null},
           ${data.phone || null},
-          'favorecido',
-          ${validatedTenantId},
+          ${data.cellPhone || null},
+          ${data.contactPerson || null},
+          ${data.contactPhone || null},
           NOW(),
           NOW()
         )
         RETURNING *
       `);
 
-      return result.rows?.[0];
+      const favorecido = result.rows?.[0];
+      
+      // Adicionar fullName computed field para compatibilidade frontend
+      if (favorecido) {
+        favorecido.fullName = `${favorecido.first_name} ${favorecido.last_name || ''}`.trim();
+      }
+
+      return favorecido;
     } catch (error) {
       logError('Error creating favorecido', error, { tenantId, data });
       throw error;

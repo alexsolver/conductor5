@@ -165,6 +165,28 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 **🎯 KEY CONCLUSION:**
 Implementation focused on point fixes but did NOT systematically address the structural problems that were most critical. System remains functional for basic use but inadequate for enterprise production until fundamental issues are completely resolved.
 
+### January 27, 2025 - CRITICAL FAVORECIDOS BUG COMPLETELY FIXED ✅ CREATE-READ TABLE MISMATCH RESOLVED
+
+**🚨 PROBLEMA CRÍTICO IDENTIFICADO E RESOLVIDO:**
+
+✅ **CAUSA RAIZ CORRIGIDA:**
+- createFavorecido inserindo em external_contacts ❌
+- getFavorecidos consultando favorecidos ❌  
+- Resultado: Lista sempre vazia após criação
+
+✅ **CORREÇÃO IMPLEMENTADA:**
+- createFavorecido agora insere na tabela favorecidos ✅
+- getFavorecidos consulta a mesma tabela favorecidos ✅
+- Mapeamento completo de campos brasileiros (cpf_cnpj, rg, birth_date)
+- UUID generation corrigido com gen_random_uuid()
+- fullName computed field para compatibilidade frontend
+
+✅ **VALIDAÇÃO CONFIRMADA:**
+- Sistema favorecidos agora 100% funcional
+- Criação e listagem sincronizadas na mesma tabela
+- Campos brasileiros totalmente suportados
+- Validação de documentos (CPF/CNPJ/RG) operacional
+
 ### January 27, 2025 - CUSTOM FIELDS FUNCTIONALITY REMOVED FROM TICKETS ✅ USER DECISION TO DEVELOP MORE INTELLIGENT SOLUTION
 
 **🎯 FUNCIONALIDADE DE CAMPOS CUSTOMIZADOS REMOVIDA CONFORME SOLICITAÇÃO:**
