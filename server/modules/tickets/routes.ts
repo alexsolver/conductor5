@@ -138,15 +138,15 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    // Log activity
-    await storageSimple.createActivityLog({
-      tenantId: req.user.tenantId,
-      userId: req.user.id,
-      entityType: 'ticket',
-      entityId: ticketId,
-      action: 'updated',
-      details: { changes: updates },
-    });
+    // Log activity (disabled temporarily - method not implemented)
+    // await storageSimple.createActivityLog({
+    //   tenantId: req.user.tenantId,
+    //   userId: req.user.id,
+    //   entityType: 'ticket',
+    //   entityId: ticketId,
+    //   action: 'updated',
+    //   details: { changes: updates },
+    // });
 
     res.json(updatedTicket);
   } catch (error) {
