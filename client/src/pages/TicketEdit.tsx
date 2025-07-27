@@ -91,37 +91,6 @@ export default function TicketEdit() {
   // Use metadata system
   const { isLoading: metadataLoading } = useTicketMetadata();
 
-  // Filter customers based on selected company
-  useEffect(() => {
-    if (!selectedCompanyId) {
-      setFilteredCustomers(customers);
-      return;
-    }
-
-    // Filter customers by company association
-    const fetchCustomersForCompany = async () => {
-      try {
-        console.log('TicketEdit: Fetching customers for company:', selectedCompanyId);
-        const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
-        const data = await response.json();
-        
-        console.log('TicketEdit: Company customers response:', data);
-        
-        if (data.success && data.customers) {
-          setFilteredCustomers(data.customers);
-        } else {
-          console.warn('TicketEdit: No customers found for company, using all customers');
-          setFilteredCustomers(customers);
-        }
-      } catch (error) {
-        console.error('Error fetching customers for company:', error);
-        setFilteredCustomers(customers);
-      }
-    };
-
-    fetchCustomersForCompany();
-  }, [selectedCompanyId, customers]);
-
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["/api/tickets", id],
@@ -153,6 +122,37 @@ export default function TicketEdit() {
   // Ensure customers is always an array
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   const companies = Array.isArray(companiesData) ? companiesData : [];
+
+  // Filter customers based on selected company
+  useEffect(() => {
+    if (!selectedCompanyId) {
+      setFilteredCustomers(customers);
+      return;
+    }
+
+    // Filter customers by company association
+    const fetchCustomersForCompany = async () => {
+      try {
+        console.log('TicketEdit: Fetching customers for company:', selectedCompanyId);
+        const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
+        const data = await response.json();
+        
+        console.log('TicketEdit: Company customers response:', data);
+        
+        if (data.success && data.customers) {
+          setFilteredCustomers(data.customers);
+        } else {
+          console.warn('TicketEdit: No customers found for company, using all customers');
+          setFilteredCustomers(customers);
+        }
+      } catch (error) {
+        console.error('Error fetching customers for company:', error);
+        setFilteredCustomers(customers);
+      }
+    };
+
+    fetchCustomersForCompany();
+  }, [selectedCompanyId, customers]);
 
   // Fetch users for assignment
   const { data: users = [] } = useQuery({

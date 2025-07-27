@@ -51,7 +51,10 @@ export function DynamicSelect({
   }
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled} className={className}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+      <SelectTrigger className={className}>
+        <SelectValue placeholder={placeholder || "Selecionar..."} />
+      </SelectTrigger>
       <SelectContent>
         {showAllOption && (
           <SelectItem value="all">
