@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -201,16 +201,27 @@ export default function FavorecidosTable() {
       const response = await apiRequest("PUT", `/api/favorecidos/${id}`, updateData);
       return response.json();
     },
-    onSuccess: (data) => {
-      console.log('Update mutation success:', data);
+    onSuccess: (updatedData) => {
+      console.log('Update mutation success:', updatedData);
       
-      // CRITICAL FIX: Complete cache invalidation and immediate refetch
-      queryClient.removeQueries({ queryKey: ["/api/favorecidos"], exact: false });
+      // IMMEDIATE STATE UPDATE: Update local data immediately
+      queryClient.setQueryData(
+        ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
+        (oldData: any) => {
+          if (!oldData?.favorecidos) return oldData;
+          
+          const updatedFavorecidos = oldData.favorecidos.map((fav: any) => 
+            fav.id === updatedData.favorecido.id 
+              ? { ...fav, ...updatedData.favorecido }
+              : fav
+          );
+          
+          return { ...oldData, favorecidos: updatedFavorecidos };
+        }
+      );
+      
+      // SECONDARY: Invalidate and refetch for consistency
       queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
-      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"], exact: false });
-      
-      // IMMEDIATE REFETCH: Force refetch without delay
-      refetch();
       
       toast({
         title: "Sucesso",
@@ -813,6 +824,9 @@ export default function FavorecidosTable() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Favorecido</DialogTitle>
+            <DialogDescription>
+              Edite as informações do favorecido. Campos marcados com * são obrigatórios.
+            </DialogDescription>
           </DialogHeader>
           <FavorecidoForm />
         </DialogContent>
