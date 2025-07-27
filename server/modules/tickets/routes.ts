@@ -3,6 +3,7 @@ import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { storageSimple } from "../../storage-simple";
 import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/schema";
+import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { z } from "zod";
 
 const ticketsRouter = Router();
@@ -34,7 +35,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       tickets = tickets.filter(ticket => ticket.assignedToId === assignedTo);
     }
 
-    res.json({
+    return sendSuccess(res, {
       tickets,
       pagination: {
         page,
@@ -42,11 +43,11 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
         total: tickets.length
       },
       filters: { status, priority, assignedTo }
-    });
+    }, "Tickets retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
-    res.status(500).json({ message: "Failed to fetch tickets" });
+    return sendError(res, error, "Failed to fetch tickets", 500);
   }
 });
 
@@ -59,14 +60,14 @@ ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const ticket = await storageSimple.getTicketById(req.user.tenantId, req.params.id);
     if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
+      return sendError(res, "Ticket not found", "Ticket not found", 404);
     }
 
-    res.json(ticket);
+    return sendSuccess(res, ticket, "Ticket retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Error fetching ticket', error, { ticketId: req.params.id, tenantId: req.user?.tenantId });
-    res.status(500).json({ message: "Failed to fetch ticket" });
+    return sendError(res, error, "Failed to fetch ticket", 500);
   }
 });
 
@@ -110,14 +111,14 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       details: { subject: ticket.subject, priority: ticket.priority },
     });
 
-    res.status(201).json(ticket);
+    return sendSuccess(res, ticket, "Ticket created successfully", 201);
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Error creating ticket', error, { tenantId: req.user?.tenantId });
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid ticket data", errors: error.errors });
+      return sendValidationError(res, error.errors.map(e => `${e.path.join('.')}: ${e.message}`), "Invalid ticket data");
     }
-    res.status(500).json({ message: "Failed to create ticket" });
+    return sendError(res, error, "Failed to create ticket", 500);
   }
 });
 

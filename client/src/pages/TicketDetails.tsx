@@ -717,22 +717,22 @@ export default function TicketDetails() {
         linkComment: ticket.link_comment || "",
         estimatedHours: ticket.estimated_hours || 0,
         actualHours: ticket.actual_hours || 0,
-        // PROBLEMA 6 RESOLVIDO: Fix field mapping backend uses caller_id, beneficiary_id, assigned_to_id
-        callerId: ticket.caller_id || ticket.customer_id || "",
+        // CORRIGIDO: Field mapping consistente backend snake_case → frontend camelCase  
+        callerId: ticket.caller_id || "",
         callerType: ticket.caller_type || "customer",
         beneficiaryId: ticket.beneficiary_id || "",
-        beneficiaryType: ticket.beneficiary_type || "customer",
+        beneficiaryType: ticket.beneficiary_type || "customer", 
         assignedToId: ticket.assigned_to_id || "",
         assignmentGroup: ticket.assignment_group || "",
         location: ticket.location || "",
         contactType: ticket.contact_type || "email",
         followers: ticket.followers || [],
-        customerCompanyId: ticket.customer_id || "",
+        customerCompanyId: ticket.customer_company_id || "",
       });
 
       // Update local states to sync with ticket data
-      if (ticket.customer_id) {
-        setSelectedCompany(ticket.customer_id);
+      if (ticket.customer_company_id) {
+        setSelectedCompany(ticket.customer_company_id);
       }
 
       // Initialize followers from ticket data
@@ -815,9 +815,8 @@ export default function TicketDetails() {
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
 
-      // CORRIGIDO: Location mapping adequado
-      location_id: data.locationId,        // Para referência FK
-      location: data.location,             // Para texto livre
+      // CORRIGIDO: Location mapping adequado - usar apenas location (campo texto)
+      location: data.location,             // Para texto livre apenas
       contact_type: data.contactType,
 
       // Business fields
@@ -834,8 +833,8 @@ export default function TicketDetails() {
       followers: data.followers || [],
       tags: data.tags || [],
 
-      // CORRIGIDO: Company relationship - usar customer_id não customer_company_id
-      customer_id: data.customerCompanyId,
+      // CORRIGIDO: Company relationship - mapeamento consistente
+      customer_company_id: data.customerCompanyId,
 
       // Environment
       environment: data.environment,
