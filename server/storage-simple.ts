@@ -484,17 +484,35 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName), "tickets"} 
-        SET 
-          subject = ${ticketData.subject},
-          description = ${ticketData.description || null},
-          status = ${ticketData.status || 'open'},
-          priority = ${ticketData.priority || 'medium'},
-          updated_at = NOW()
-        WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
+      // Build dynamic SET clause based on provided data
+      const updateFields = [];
+      if (ticketData.subject !== undefined) updateFields.push(`subject = '${ticketData.subject}'`);
+      if (ticketData.description !== undefined) updateFields.push(`description = '${ticketData.description || ''}'`);
+      if (ticketData.status !== undefined) updateFields.push(`status = '${ticketData.status}'`);
+      if (ticketData.priority !== undefined) updateFields.push(`priority = '${ticketData.priority}'`);
+      if (ticketData.callerId !== undefined) updateFields.push(`caller_id = '${ticketData.callerId}'`);
+      if (ticketData.beneficiaryId !== undefined) updateFields.push(`beneficiary_id = '${ticketData.beneficiaryId || null}'`);
+      if (ticketData.assignedToId !== undefined) updateFields.push(`assigned_to_id = ${ticketData.assignedToId ? `'${ticketData.assignedToId}'` : 'NULL'}`);
+      if (ticketData.location !== undefined) updateFields.push(`location_id = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
+      if (ticketData.category !== undefined) updateFields.push(`category = '${ticketData.category || ''}'`);
+      if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
+      if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_company_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
+      
+      // Always update timestamp
+      updateFields.push(`updated_at = NOW()`);
+
+      if (updateFields.length === 1) { // Only timestamp update
+        throw new Error('No fields to update');
+      }
+
+      const updateQuery = `
+        UPDATE "${schemaName}".tickets 
+        SET ${updateFields.join(', ')}
+        WHERE id = '${ticketId}' AND tenant_id = '${validatedTenantId}'
         RETURNING *
-      `);
+      `;
+
+      const result = await tenantDb.execute(updateQuery);
 
       return result.rows?.[0];
     } catch (error) {

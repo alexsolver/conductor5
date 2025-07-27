@@ -131,7 +131,8 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const ticketId = req.params.id;
     const updates = req.body;
 
-    const updatedTicket = await storageSimple.updateTicket(ticketId, req.user.tenantId, updates);
+    // CRITICAL FIX: Pass parameters in correct order (tenantId, ticketId, updates)
+    const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, updates);
     
     if (!updatedTicket) {
       return res.status(404).json({ message: "Ticket not found" });
