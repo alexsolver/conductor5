@@ -301,6 +301,7 @@ export default function TicketDetails() {
 
   // Fetch customers for selected company
   const [selectedCompanyCustomers, setSelectedCompanyCustomers] = useState<any[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
   
   // Fetch customers when company is selected
   useEffect(() => {
@@ -576,7 +577,7 @@ export default function TicketDetails() {
         beneficiaryType: ticket.beneficiary_type || "customer",
         assignedToId: ticket.assigned_to_id || "",
         assignmentGroup: ticket.assignment_group || "",
-        location: ticket.location_id || ticket.location || "",
+        location: ticket.location || "",
         contactType: ticket.contact_type || "email",
         businessImpact: ticket.business_impact || "",
         symptoms: ticket.symptoms || "",
@@ -584,6 +585,11 @@ export default function TicketDetails() {
         followers: ticket.followers || [],
         customerCompanyId: ticket.customer_id || "",
       });
+      
+      // Update local states to sync with ticket data
+      if (ticket.customer_id) {
+        setSelectedCompany(ticket.customer_id);
+      }
 
       // Initialize followers from ticket data
       if (ticket.followers && Array.isArray(ticket.followers)) {
@@ -1878,7 +1884,7 @@ export default function TicketDetails() {
                 {isEditMode ? (
                   <Select 
                     onValueChange={(value) => form.setValue('favorecidoId', value)} 
-                    defaultValue={ticket.favorecidoId || ''}
+                    value={ticket.favorecidoId || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Selecione o favorecido" />
@@ -1938,7 +1944,7 @@ export default function TicketDetails() {
                 {isEditMode ? (
                   <Select 
                     onValueChange={(value) => form.setValue('location', value)} 
-                    defaultValue={ticket.location || ''}
+                    value={ticket.location || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Selecione o local" />
@@ -1979,7 +1985,7 @@ export default function TicketDetails() {
               {isEditMode ? (
                 <Select 
                   onValueChange={(value) => form.setValue('assignedToId', value)} 
-                  defaultValue={ticket.assignedToId || ''}
+                  value={ticket.assigned_to_id || ticket.assignedToId || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Selecione o responsável" />

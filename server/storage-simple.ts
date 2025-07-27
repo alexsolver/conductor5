@@ -493,7 +493,7 @@ export class DatabaseStorage implements IStorage {
       if (ticketData.callerId !== undefined) updateFields.push(`caller_id = '${ticketData.callerId}'`);
       if (ticketData.beneficiaryId !== undefined) updateFields.push(`beneficiary_id = ${ticketData.beneficiaryId ? `'${ticketData.beneficiaryId}'` : 'NULL'}`);
       if (ticketData.assignedToId !== undefined) updateFields.push(`assigned_to_id = ${ticketData.assignedToId ? `'${ticketData.assignedToId}'` : 'NULL'}`);
-      if (ticketData.location !== undefined) updateFields.push(`location_id = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
+      if (ticketData.location !== undefined) updateFields.push(`location = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
       if (ticketData.category !== undefined) updateFields.push(`category = '${ticketData.category || ''}'`);
       if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
       if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
