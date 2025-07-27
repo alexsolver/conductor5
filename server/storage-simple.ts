@@ -940,8 +940,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFavorecido(id: string, tenantId: string, data: any): Promise<any> {
+  async updateFavorecido(tenantId: string, id: string, data: any): Promise<any> {
     try {
+      console.log('UPDATE DEBUG:', { tenantId, id, data });
+      
+      // CRITICAL FIX: Validate that tenantId looks like UUID and id looks like UUID
+      if (!tenantId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+        throw new Error(`Invalid tenantId format: ${tenantId}`);
+      }
+      if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+        throw new Error(`Invalid favorecido ID format: ${id}`);
+      }
+      
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
@@ -975,12 +985,21 @@ export class DatabaseStorage implements IStorage {
 
       return favorecido;
     } catch (error) {
-      logError('Error updating favorecido', error, { id, tenantId, data });
+      logError('Error updating favorecido', error, { 
+        id, 
+        tenantId, 
+        data,
+        context: {
+          id: tenantId, // This shows that parameters are swapped in error context
+          tenantId: id, // This confirms the parameter swap issue
+          data
+        }
+      });
       throw error;
     }
   }
 
-  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
+  async deleteFavorecido(tenantId: string, id: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);

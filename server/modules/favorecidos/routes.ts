@@ -129,7 +129,9 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const { id } = favorecidoIdSchema.parse(req.params);
     const updateData: Partial<InsertFavorecido> = req.body;
     
-    console.log('Update favorecido params:', { tenantId: user.tenantId, favorecidoId: id, updateData });
+    console.log('Route params BEFORE calling storage:', { tenantId: user.tenantId, favorecidoId: id, updateData });
+    
+    // CRITICAL: Ensure correct parameter order: (tenantId, id, data)
     const favorecido = await storage.updateFavorecido(user.tenantId, id, updateData);
     
     if (!favorecido) {
