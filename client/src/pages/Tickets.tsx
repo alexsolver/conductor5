@@ -243,20 +243,40 @@ export default function Tickets() {
     currentViewId, 
     tickets, 
     ticketsType: typeof tickets,
-    ticketsKeys: tickets ? Object.keys(tickets) : 'no tickets'
+    ticketsKeys: tickets ? Object.keys(tickets) : 'no tickets',
+    fullTicketsObject: JSON.stringify(tickets, null, 2)
   });
   
-  // Parse dos dados de tickets vindos da API
-  const ticketsList = (tickets as any)?.data?.tickets || [];
-  const ticketsCount = ticketsList.length;
+  // Parse dos dados de tickets vindos da API - TESTANDO MÚLTIPLAS ESTRUTURAS
+  let ticketsList = [];
+  let ticketsCount = 0;
   
-  console.log('📋 Parsed tickets data:', { 
+  // Testar diferentes estruturas possíveis
+  if (tickets?.data?.tickets) {
+    ticketsList = tickets.data.tickets;
+    console.log('🔍 Found tickets in: tickets.data.tickets');
+  } else if (tickets?.tickets) {
+    ticketsList = tickets.tickets;
+    console.log('🔍 Found tickets in: tickets.tickets');
+  } else if (Array.isArray(tickets)) {
+    ticketsList = tickets;
+    console.log('🔍 Found tickets as: direct array');
+  } else if (tickets?.data && Array.isArray(tickets.data)) {
+    ticketsList = tickets.data;
+    console.log('🔍 Found tickets in: tickets.data (array)');
+  } else {
+    console.log('🚨 NO TICKETS FOUND - Raw data:', tickets);
+  }
+  
+  ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
+  
+  console.log('📋 Final parsed tickets data:', { 
     ticketsList, 
     ticketsCount, 
     ticketsListType: typeof ticketsList,
     isArray: Array.isArray(ticketsList),
     firstTicket: ticketsList[0],
-    rawTickets: tickets 
+    rawTicketsStringified: JSON.stringify(tickets).substring(0, 200) + '...'
   });
 
   return (
@@ -490,6 +510,7 @@ export default function Tickets() {
         First ticket ID: {ticketsList[0]?.id || 'NOT_FOUND'}<br/>
         Raw tickets type: {typeof tickets}<br/>
         Local storage token: {typeof window !== 'undefined' && localStorage.getItem('accessToken') ? 'EXISTS' : 'NOT_FOUND'}<br/>
+        API Response Structure: {tickets ? JSON.stringify(tickets).substring(0, 100) + '...' : 'NO_DATA'}<br/>
       </div>
 
       <div className="space-y-4">
