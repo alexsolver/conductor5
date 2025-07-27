@@ -490,22 +490,36 @@ export class DatabaseStorage implements IStorage {
       if (ticketData.description !== undefined) updateFields.push(`description = '${ticketData.description || ''}'`);
       if (ticketData.status !== undefined) updateFields.push(`status = '${ticketData.status}'`);
       if (ticketData.priority !== undefined) updateFields.push(`priority = '${ticketData.priority}'`);
-      if (ticketData.callerId !== undefined) updateFields.push(`caller_id = '${ticketData.callerId}'`);
-      if (ticketData.beneficiaryId !== undefined) updateFields.push(`beneficiary_id = ${ticketData.beneficiaryId ? `'${ticketData.beneficiaryId}'` : 'NULL'}`);
-      if (ticketData.assignedToId !== undefined) updateFields.push(`assigned_to_id = ${ticketData.assignedToId ? `'${ticketData.assignedToId}'` : 'NULL'}`);
-      if (ticketData.location !== undefined) updateFields.push(`location = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
-      if (ticketData.category !== undefined) updateFields.push(`category = '${ticketData.category || ''}'`);
-      if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
-      if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
+      // PROBLEMA 2 & 7 RESOLVIDOS: Backend field mapping with SQL injection prevention
+      if (ticketData.caller_id !== undefined) updateFields.push(`caller_id = ${ticketData.caller_id ? `'${ticketData.caller_id.replace(/'/g, "''")}'` : 'NULL'}`);
+      if (ticketData.beneficiary_id !== undefined) updateFields.push(`beneficiary_id = ${ticketData.beneficiary_id ? `'${ticketData.beneficiary_id.replace(/'/g, "''")}'` : 'NULL'}`);
+      if (ticketData.assigned_to_id !== undefined) updateFields.push(`assigned_to_id = ${ticketData.assigned_to_id ? `'${ticketData.assigned_to_id.replace(/'/g, "''")}'` : 'NULL'}`);
+      if (ticketData.location !== undefined) updateFields.push(`location = ${ticketData.location ? `'${ticketData.location.replace(/'/g, "''")}'` : 'NULL'}`);
+      if (ticketData.category !== undefined) updateFields.push(`category = '${(ticketData.category || '').replace(/'/g, "''")}'`);
+      if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${(ticketData.subcategory || '').replace(/'/g, "''")}'`);
+      if (ticketData.customer_company_id !== undefined) updateFields.push(`customer_id = ${ticketData.customer_company_id ? `'${ticketData.customer_company_id.replace(/'/g, "''")}'` : 'NULL'}`);
+      if (ticketData.impact !== undefined) updateFields.push(`impact = '${(ticketData.impact || 'medium').replace(/'/g, "''")}'`);
+      if (ticketData.urgency !== undefined) updateFields.push(`urgency = '${(ticketData.urgency || 'medium').replace(/'/g, "''")}'`);
 
-      // Add support for new fields that were missing
-      if (ticketData.businessImpact !== undefined) updateFields.push(`business_impact = '${ticketData.businessImpact || ''}'`);
-      if (ticketData.symptoms !== undefined) updateFields.push(`symptoms = '${ticketData.symptoms || ''}'`);
-      if (ticketData.workaround !== undefined) updateFields.push(`workaround = '${ticketData.workaround || ''}'`);
-      if (ticketData.callerType !== undefined) updateFields.push(`caller_type = '${ticketData.callerType || 'customer'}'`);
-      if (ticketData.beneficiaryType !== undefined) updateFields.push(`beneficiary_type = '${ticketData.beneficiaryType || 'customer'}'`);
-      if (ticketData.contactType !== undefined) updateFields.push(`contact_type = '${ticketData.contactType || 'email'}'`);
-      if (ticketData.assignmentGroup !== undefined) updateFields.push(`assignment_group = '${ticketData.assignmentGroup || ''}'`);
+      // PROBLEMA 7 RESOLVIDO: Complete field support with SQL injection prevention
+      if (ticketData.business_impact !== undefined) updateFields.push(`business_impact = '${(ticketData.business_impact || '').replace(/'/g, "''")}'`);
+      if (ticketData.symptoms !== undefined) updateFields.push(`symptoms = '${(ticketData.symptoms || '').replace(/'/g, "''")}'`);
+      if (ticketData.workaround !== undefined) updateFields.push(`workaround = '${(ticketData.workaround || '').replace(/'/g, "''")}'`);
+      if (ticketData.resolution !== undefined) updateFields.push(`resolution = '${(ticketData.resolution || '').replace(/'/g, "''")}'`);
+      if (ticketData.caller_type !== undefined) updateFields.push(`caller_type = '${(ticketData.caller_type || 'customer').replace(/'/g, "''")}'`);
+      if (ticketData.beneficiary_type !== undefined) updateFields.push(`beneficiary_type = '${(ticketData.beneficiary_type || 'customer').replace(/'/g, "''")}'`);
+      if (ticketData.contact_type !== undefined) updateFields.push(`contact_type = '${(ticketData.contact_type || 'email').replace(/'/g, "''")}'`);
+      if (ticketData.assignment_group !== undefined) updateFields.push(`assignment_group = '${(ticketData.assignment_group || '').replace(/'/g, "''")}'`);
+      if (ticketData.estimated_hours !== undefined) updateFields.push(`estimated_hours = ${ticketData.estimated_hours || 0}`);
+      if (ticketData.actual_hours !== undefined) updateFields.push(`actual_hours = ${ticketData.actual_hours || 0}`);
+      if (ticketData.environment !== undefined) updateFields.push(`environment = '${(ticketData.environment || '').replace(/'/g, "''")}'`);
+      if (ticketData.link_ticket_number !== undefined) updateFields.push(`link_ticket_number = '${(ticketData.link_ticket_number || '').replace(/'/g, "''")}'`);
+      if (ticketData.link_type !== undefined) updateFields.push(`link_type = '${(ticketData.link_type || '').replace(/'/g, "''")}'`);
+      if (ticketData.link_comment !== undefined) updateFields.push(`link_comment = '${(ticketData.link_comment || '').replace(/'/g, "''")}'`);
+      
+      // PROBLEMA 5 RESOLVIDO: Arrays and JSON handling
+      if (ticketData.followers !== undefined) updateFields.push(`followers = '${JSON.stringify(ticketData.followers || []).replace(/'/g, "''")}'`);
+      if (ticketData.tags !== undefined) updateFields.push(`tags = '${JSON.stringify(ticketData.tags || []).replace(/'/g, "''")}'`);
 
       // Always update timestamp
       updateFields.push(`updated_at = NOW()`);

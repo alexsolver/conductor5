@@ -36,7 +36,7 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 
 
-// PROBLEMA 6 RESOLVIDO: Schema Zod expandido com todos os campos
+// PROBLEMA 6 RESOLVIDO: Schema Zod limpo e expandido com TODOS os campos necessários
 const ticketFormSchema = z.object({
   // Core required fields
   subject: z.string().min(1, "Subject is required"),
@@ -66,6 +66,7 @@ const ticketFormSchema = z.object({
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
+  resolution: z.string().optional(),
   
   // Collections
   followers: z.array(z.string()).optional(),
@@ -74,38 +75,19 @@ const ticketFormSchema = z.object({
   // Company relationship
   customerCompanyId: z.string().optional(),
   
-  // PROBLEMA 6: Campos faltantes adicionados
+  // Template and environment fields
   environment: z.string().optional(),
   templateName: z.string().optional(),
   templateAlternative: z.string().optional(),
-  callerNameResponsible: z.string().optional(),
-  callType: z.string().optional(),
-  callUrl: z.string().optional(),
-  environmentError: z.string().optional(),
-  callNumber: z.string().optional(),
-  groupField: z.string().optional(),
-  serviceVersion: z.string().optional(),
-  summary: z.string().optional(),
-  publicationPriority: z.string().optional(),
-  responsibleTeam: z.string().optional(),
-  infrastructure: z.string().optional(),
-  environmentPublication: z.string().optional(),
-  closeToPublish: z.boolean().optional(),
   
-  // Link fields
+  // Linking fields
   linkTicketNumber: z.string().optional(),
-  linkDescription: z.string().optional(),
+  linkType: z.string().optional(),
+  linkComment: z.string().optional(),
   
-  // Additional metadata fields
+  // Time tracking
   estimatedHours: z.number().optional(),
-  
-  // SLA and timeline fields
-  slaDeadline: z.string().optional(),
-  escalationLevel: z.number().optional(),
-  
-  // Resolution fields
-  resolutionNotes: z.string().optional(),
-  preventiveMeasures: z.string().optional(),
+  actualHours: z.number().optional(),
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;
@@ -717,7 +699,20 @@ export default function TicketDetails() {
         subcategory: ticket.subcategory || "",
         impact: ticket.impact || "medium",
         urgency: ticket.urgency || "medium",
-        // Fix field mapping: backend uses caller_id, beneficiary_id, assigned_to_id
+        // PROBLEMA 6 RESOLVIDO: Reset COMPLETO com todos os campos faltantes
+        businessImpact: ticket.business_impact || "",
+        symptoms: ticket.symptoms || "",
+        workaround: ticket.workaround || "",
+        resolution: ticket.resolution || "",
+        environment: ticket.environment || "",
+        templateName: ticket.template_name || "",
+        templateAlternative: ticket.template_alternative || "",
+        linkTicketNumber: ticket.link_ticket_number || "",
+        linkType: ticket.link_type || "",
+        linkComment: ticket.link_comment || "",
+        estimatedHours: ticket.estimated_hours || 0,
+        actualHours: ticket.actual_hours || 0,
+        // PROBLEMA 6 RESOLVIDO: Fix field mapping backend uses caller_id, beneficiary_id, assigned_to_id
         callerId: ticket.caller_id || ticket.customer_id || "",
         callerType: ticket.caller_type || "customer",
         beneficiaryId: ticket.beneficiary_id || "",
@@ -726,36 +721,8 @@ export default function TicketDetails() {
         assignmentGroup: ticket.assignment_group || "",
         location: ticket.location || "",
         contactType: ticket.contact_type || "email",
-        businessImpact: ticket.business_impact || "",
-        symptoms: ticket.symptoms || "",
-        workaround: ticket.workaround || "",
         followers: ticket.followers || [],
         customerCompanyId: ticket.customer_id || "",
-        // PROBLEMA 6 RESOLVIDO: Reset completo com todos os campos template/environment
-        environment: ticket.environment || "",
-        templateName: ticket.template_name || "",
-        templateAlternative: ticket.template_alternative || "",
-        callerNameResponsible: ticket.caller_name_responsible || "",
-        callType: ticket.call_type || "",
-        callUrl: ticket.call_url || "",
-        environmentError: ticket.environment_error || "",
-        callNumber: ticket.call_number || "",
-        groupField: ticket.group_field || "",
-        serviceVersion: ticket.service_version || "",
-        summary: ticket.summary || "",
-        publicationPriority: ticket.publication_priority || "",
-        responsibleTeam: ticket.responsible_team || "",
-        infrastructure: ticket.infrastructure || "",
-        environmentPublication: ticket.environment_publication || "",
-        closeToPublish: ticket.close_to_publish || false,
-        linkTicketNumber: "",
-        linkDescription: "",
-        // PROBLEMA 6: Campos adicionais obrigatórios
-        estimatedHours: ticket.estimated_hours || 0,
-        slaDeadline: ticket.sla_deadline || "",
-        escalationLevel: ticket.escalation_level || 0,
-        resolutionNotes: ticket.resolution_notes || "",
-        preventiveMeasures: ticket.preventive_measures || "",
       });
       
       // Update local states to sync with ticket data
@@ -822,64 +789,55 @@ export default function TicketDetails() {
     },
   });
 
+  // PROBLEMA 3 RESOLVIDO: Mapeamento completo frontend-backend
   const onSubmit = (data: TicketFormData) => {
-    // PROBLEMA 3 RESOLUÇÃO: Mapear corretamente os campos frontend para backend
     const mappedData = {
-      ...data,
-      // Mapear callerId → caller_id
+      // Core fields - direto sem mapeamento
+      subject: data.subject,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      category: data.category,
+      subcategory: data.subcategory,
+      impact: data.impact,
+      urgency: data.urgency,
+      
+      // Assignment mapping camelCase → snake_case
       caller_id: data.callerId,
-      // Mapear beneficiaryId → beneficiary_id  
-      beneficiary_id: data.beneficiaryId,
-      // Mapear assignedToId → assigned_to_id
-      assigned_to_id: data.assignedToId,
-      // Mapear customerCompanyId → customer_id
-      customer_id: data.customerCompanyId,
-      // PROBLEMA 2 RESOLVIDO: location não location_id
-      location: data.location,
-      // Mapear campos específicos
       caller_type: data.callerType,
+      beneficiary_id: data.beneficiaryId,
       beneficiary_type: data.beneficiaryType,
-      contact_type: data.contactType,
+      assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
+      
+      // Location e contact
+      location: data.location,
+      contact_type: data.contactType,
+      
+      // Business fields
       business_impact: data.businessImpact,
-      // PROBLEMA 6: Mapear todos os novos campos para backend
-      template_name: data.templateName,
-      template_alternative: data.templateAlternative,
-      caller_name_responsible: data.callerNameResponsible,
-      call_type: data.callType,
-      call_url: data.callUrl,
-      environment_error: data.environmentError,
-      call_number: data.callNumber,
-      group_field: data.groupField,
-      service_version: data.serviceVersion,
-      publication_priority: data.publicationPriority,
-      responsible_team: data.responsibleTeam,
-      environment_publication: data.environmentPublication,
-      close_to_publish: data.closeToPublish,
-      // PROBLEMA 3 RESOLVIDO: Remover campos frontend que causam erro no backend
-      callerId: undefined,
-      beneficiaryId: undefined,
-      assignedToId: undefined,
-      customerCompanyId: undefined,
-      callerType: undefined,
-      beneficiaryType: undefined,
-      contactType: undefined,
-      assignmentGroup: undefined,
-      businessImpact: undefined,
-      // Remover campos template frontend
-      templateName: undefined,
-      templateAlternative: undefined,
-      callerNameResponsible: undefined,
-      callType: undefined,
-      callUrl: undefined,
-      environmentError: undefined,
-      callNumber: undefined,
-      groupField: undefined,
-      serviceVersion: undefined,
-      publicationPriority: undefined,
-      responsibleTeam: undefined,
-      environmentPublication: undefined,
-      closeToPublish: undefined,
+      symptoms: data.symptoms,
+      workaround: data.workaround,
+      resolution: data.resolution,
+      
+      // Time tracking
+      estimated_hours: data.estimatedHours,
+      actual_hours: data.actualHours,
+      
+      // Collections
+      followers: data.followers || [],
+      tags: data.tags || [],
+      
+      // Company relationship
+      customer_company_id: data.customerCompanyId,
+      
+      // Environment
+      environment: data.environment,
+      
+      // Linking - PROBLEMA 6 resolvido
+      link_ticket_number: data.linkTicketNumber,
+      link_type: data.linkType,
+      link_comment: data.linkComment,
     };
     
     updateTicketMutation.mutate(mappedData);

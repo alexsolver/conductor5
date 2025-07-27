@@ -65,12 +65,13 @@ export function DynamicBadge({
   bgColor, 
   textColor, 
   className,
-  fieldName, // PROBLEMA 1 RESOLVIDO: Remove da interface mas não passa para o DOM
-  value, // PROBLEMA 1 RESOLVIDO: Remove da interface mas não passa para o DOM
+  // PROBLEMA 1 RESOLVIDO: Accept but don't pass to DOM to prevent React warnings
+  fieldName,
+  value,
   ...restProps 
 }: DynamicBadgeProps) {
-  // PROBLEMA 1 RESOLVIDO: Filter out problematic props from DOM
-  const { fieldName: _fieldName, value: _value, ...domProps } = restProps;
+  // PROBLEMA 1 RESOLVIDO: Explicitly filter out non-DOM props to prevent React warnings
+  const { fieldName: _fieldName, value: _value, ...cleanProps } = restProps;
   let dynamicClasses = '';
 
   // Prioridade: colorHex > bgColor > variant padrão
@@ -91,7 +92,7 @@ export function DynamicBadge({
         'font-medium text-xs px-2 py-1 rounded-md',
         className
       )}
-      {...domProps}
+      {...cleanProps} // PROBLEMA 1 RESOLVIDO: Use cleaned props without fieldName/value
     >
       {children}
     </Badge>
