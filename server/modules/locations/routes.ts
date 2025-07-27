@@ -39,5 +39,9 @@ router.post('/groups', controller.createAreaGroup.bind(controller));
 router.post('/:id/favorite', controller.toggleFavorite.bind(controller));
 router.post('/:id/tags', controller.addTag.bind(controller));
 router.delete('/:id/tags', controller.removeTag.bind(controller));
+router.post('/:id/attachments', controller.addAttachment.bind(controller));
+router.delete('/:id/attachments', controller.removeAttachment.bind(controller));
+router.get('/:id/hierarchy', controller.getLocationHierarchy.bind(controller));
+router.put('/:id/parent', controller.setParentLocation.bind(controller));
 
 export { router as locationsRouter };

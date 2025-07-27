@@ -165,10 +165,10 @@ export default function LocationsImplementationControl() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">70%</div>
-            <Progress value={70} className="mt-2" />
+            <div className="text-2xl font-bold">85%</div>
+            <Progress value={85} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-2">
-              Sprint 2: Tags e Favoritos implementados
+              Sprint 2 concluída - funcionalidades avançadas
             </p>
           </CardContent>
         </Card>

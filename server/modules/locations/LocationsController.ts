@@ -187,6 +187,104 @@ export class LocationsController {
     }
   }
 
+  // Add attachment to location (Sprint 2)
+  async addAttachment(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const { filename, filepath, filesize } = req.body;
+
+      if (!filename || !filepath || !filesize) {
+        return sendError(res, "Filename, filepath and filesize are required", "Missing attachment data", 400);
+      }
+
+      const location = await this.repository.addAttachment(id, tenantId, filename, filepath, Number(filesize));
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Attachment added successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to add attachment", 500);
+    }
+  }
+
+  // Remove attachment from location (Sprint 2)
+  async removeAttachment(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const { filename } = req.body;
+
+      if (!filename) {
+        return sendError(res, "Filename is required", "Filename is required", 400);
+      }
+
+      const location = await this.repository.removeAttachment(id, tenantId, filename);
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Attachment removed successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to remove attachment", 500);
+    }
+  }
+
+  // Get location hierarchy (Sprint 2)
+  async getLocationHierarchy(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const hierarchy = await this.repository.getLocationHierarchy(id, tenantId);
+
+      return sendSuccess(res, hierarchy, "Location hierarchy retrieved successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to retrieve hierarchy", 500);
+    }
+  }
+
+  // Set parent location (Sprint 2) 
+  async setParentLocation(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const { parentLocationId } = req.body;
+
+      const location = await this.repository.setParentLocation(id, tenantId, parentLocationId);
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Parent location updated successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to set parent location", 500);
+    }
+  }
+
   // Update location
   async updateLocation(req: AuthenticatedRequest, res: Response) {
     try {

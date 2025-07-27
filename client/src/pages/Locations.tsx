@@ -36,13 +36,21 @@ export default function Locations() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTypeFilter, setLocationTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [favoritesFilter, setFavoritesFilter] = useState<boolean>(false);
+  const [tagFilter, setTagFilter] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch locations data
+  // Fetch locations data with Sprint 2 filters
   const { data: locationsData, isLoading } = useQuery({
-    queryKey: ["/api/locations", { search: searchTerm, locationType: locationTypeFilter, status: statusFilter }],
+    queryKey: ["/api/locations", { 
+      search: searchTerm, 
+      locationType: locationTypeFilter, 
+      status: statusFilter,
+      favorites: favoritesFilter,
+      tag: tagFilter 
+    }],
     queryFn: () => apiRequest("GET", "/api/locations", null, {
       search: searchTerm,
       locationType: locationTypeFilter,
@@ -141,6 +149,35 @@ export default function Locations() {
 
   const handleToggleFavorite = (locationId: string) => {
     toggleFavoriteMutation.mutate(locationId);
+  };
+
+  // Sprint 2 - File attachments
+  const addAttachmentMutation = useMutation({
+    mutationFn: ({ id, filename, filepath, filesize }: { id: string; filename: string; filepath: string; filesize: number }) => 
+      apiRequest('POST', `/api/locations/${id}/attachments`, { filename, filepath, filesize }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      toast({
+        title: "Anexo adicionado",
+        description: "Arquivo foi anexado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao anexar arquivo",
+        description: error?.message || "Não foi possível anexar o arquivo.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFileUpload = (locationId: string, file: File) => {
+    // Simulate file upload - in real implementation would upload to storage service
+    const filename = file.name;
+    const filepath = `/uploads/locations/${locationId}/${filename}`;
+    const filesize = file.size;
+    
+    addAttachmentMutation.mutate({ id: locationId, filename, filepath, filesize });
   };
 
   const getStatusBadgeVariant = (status: string) => {

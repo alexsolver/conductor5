@@ -422,4 +422,98 @@ export class LocationsRepository {
     const result = await this.pool.query(query, [id, tenantId, filename]);
     return result.rows[0] || null;
   }
+
+  // Sprint 2 Methods - Location Hierarchy
+  async setParentLocation(id: string, tenantId: string, parentLocationId: string | null): Promise<Location | null> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Prevent circular references
+    if (parentLocationId) {
+      const circularCheck = await this.checkCircularReference(id, parentLocationId, tenantId);
+      if (circularCheck) {
+        throw new Error("Circular reference detected in location hierarchy");
+      }
+    }
+
+    const query = `
+      UPDATE ${schemaName}.locations 
+      SET parent_location_id = $3,
+          updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [id, tenantId, parentLocationId]);
+    return result.rows[0] || null;
+  }
+
+  async getLocationHierarchy(id: string, tenantId: string): Promise<any> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Get children
+    const childrenQuery = `
+      WITH RECURSIVE location_tree AS (
+        SELECT id, name, parent_location_id, 0 as level
+        FROM ${schemaName}.locations 
+        WHERE parent_location_id = $1 AND tenant_id = $2
+        
+        UNION ALL
+        
+        SELECT l.id, l.name, l.parent_location_id, lt.level + 1
+        FROM ${schemaName}.locations l
+        INNER JOIN location_tree lt ON l.parent_location_id = lt.id
+        WHERE l.tenant_id = $2
+      )
+      SELECT * FROM location_tree ORDER BY level, name
+    `;
+
+    // Get parents
+    const parentsQuery = `
+      WITH RECURSIVE parent_tree AS (
+        SELECT id, name, parent_location_id, 0 as level
+        FROM ${schemaName}.locations 
+        WHERE id = $1 AND tenant_id = $2
+        
+        UNION ALL
+        
+        SELECT l.id, l.name, l.parent_location_id, pt.level - 1
+        FROM ${schemaName}.locations l
+        INNER JOIN parent_tree pt ON l.id = pt.parent_location_id
+        WHERE l.tenant_id = $2
+      )
+      SELECT * FROM parent_tree WHERE level < 0 ORDER BY level DESC
+    `;
+
+    const [childrenResult, parentsResult] = await Promise.all([
+      this.pool.query(childrenQuery, [id, tenantId]),
+      this.pool.query(parentsQuery, [id, tenantId])
+    ]);
+
+    return {
+      children: childrenResult.rows,
+      parents: parentsResult.rows
+    };
+  }
+
+  private async checkCircularReference(locationId: string, potentialParentId: string, tenantId: string): Promise<boolean> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    const query = `
+      WITH RECURSIVE parent_check AS (
+        SELECT id, parent_location_id
+        FROM ${schemaName}.locations 
+        WHERE id = $1 AND tenant_id = $3
+        
+        UNION ALL
+        
+        SELECT l.id, l.parent_location_id
+        FROM ${schemaName}.locations l
+        INNER JOIN parent_check pc ON l.id = pc.parent_location_id
+        WHERE l.tenant_id = $3
+      )
+      SELECT COUNT(*) as count FROM parent_check WHERE id = $2
+    `;
+
+    const result = await this.pool.query(query, [potentialParentId, locationId, tenantId]);
+    return parseInt(result.rows[0].count) > 0;
+  }
 }
