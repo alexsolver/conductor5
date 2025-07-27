@@ -2084,7 +2084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Since memberships table is empty, just return the companies directly for now
+      // Get companies associated with this specific customer through memberships
       const companies = await tenantDb.execute(sql`
         SELECT 
           cc.id as company_id,
@@ -2094,9 +2094,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cc.industry,
           cc.website,
           cc.phone,
-          cc.email
-        FROM ${sql.identifier(schemaName)}.customer_companies cc
-        WHERE cc.is_active = true
+          cc.email,
+          ccm.role,
+          ccm.department,
+          ccm.start_date
+        FROM ${sql.identifier(schemaName)}.customer_company_memberships ccm
+        INNER JOIN ${sql.identifier(schemaName)}.customer_companies cc ON ccm.company_id = cc.id
+        WHERE ccm.customer_id = ${customerId} 
+          AND ccm.is_active = true 
+          AND cc.is_active = true
         ORDER BY cc.name
       `);
 
