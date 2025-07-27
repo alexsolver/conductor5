@@ -221,32 +221,27 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
     setLoadingHolidays(true);
     try {
-      // Mock holiday data - replace with actual API call
       const currentYear = new Date().getFullYear();
-      const mockHolidays: HolidaysByType = {
-        federais: [
-          { data: `${currentYear}-01-01`, nome: 'Confraternização Universal', incluir: false },
-          { data: `${currentYear}-04-21`, nome: 'Tiradentes', incluir: false },
-          { data: `${currentYear}-09-07`, nome: 'Independência do Brasil', incluir: false },
-          { data: `${currentYear}-10-12`, nome: 'Nossa Senhora Aparecida', incluir: false },
-          { data: `${currentYear}-11-02`, nome: 'Finados', incluir: false },
-          { data: `${currentYear}-11-15`, nome: 'Proclamação da República', incluir: false },
-          { data: `${currentYear}-12-25`, nome: 'Natal', incluir: false }
-        ],
-        estaduais: [
-          { data: `${currentYear}-04-23`, nome: 'São Jorge (RJ)', incluir: false },
-          { data: `${currentYear}-06-29`, nome: 'São Pedro (RJ)', incluir: false }
-        ],
-        municipais: [
-          { data: `${currentYear}-01-20`, nome: 'São Sebastião (RJ)', incluir: false },
-          { data: `${currentYear}-04-22`, nome: 'Descobrimento do Brasil (Porto Seguro)', incluir: false }
-        ]
-      };
       
-      setHolidays(mockHolidays);
-      setShowHolidaysDialog(true);
+      // Call actual API endpoint
+      const response = await fetch(`/api/locations/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`);
+      
+      if (!response.ok) {
+        throw new Error('Falha ao buscar feriados');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setHolidays(result.data);
+        setSelectedHolidays(result.data); // Initialize selected holidays
+        setShowHolidaysDialog(true);
+      } else {
+        throw new Error(result.message || 'Dados de feriados não encontrados');
+      }
       
     } catch (error) {
+      console.error('Error fetching holidays:', error);
       toast({
         title: "Erro ao buscar feriados",
         description: "Tente novamente mais tarde",
@@ -298,11 +293,13 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
   };
 
   const handleSubmit = (data: NewLocal) => {
+    console.log('Form data being submitted:', data);
     const finalData = {
       ...data,
       feriadosIncluidos: selectedHolidays,
       indisponibilidades
     };
+    console.log('Final data being submitted:', finalData);
     onSubmit(finalData);
   };
 
@@ -427,7 +424,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
                 <Label htmlFor="ddd">DDD</Label>
                 <Input
                   id="ddd"
-                  placeholder="11"
+                  placeholder="11 (opcional)"
                   maxLength={3}
                   {...form.register('ddd')}
                   className="mt-1"
@@ -437,7 +434,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
                 <Label htmlFor="telefone">Telefone</Label>
                 <Input
                   id="telefone"
-                  placeholder="99999-9999"
+                  placeholder="99999-9999 (opcional)"
                   {...form.register('telefone')}
                   className="mt-1"
                 />
@@ -696,7 +693,20 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
         </Card>
 
         <div className="flex justify-end space-x-4">
-          <Button type="submit" disabled={isLoading}>
+          <Button 
+            type="submit" 
+            disabled={isLoading}
+            onClick={(e) => {
+              console.log('Submit button clicked');
+              // Force form validation and submission
+              form.handleSubmit((data) => {
+                console.log('Form validation passed, submitting:', data);
+                handleSubmit(data);
+              }, (errors) => {
+                console.log('Form validation errors:', errors);
+              })(e);
+            }}
+          >
             {isLoading ? 'Salvando...' : 'Salvar Local'}
           </Button>
         </div>
@@ -855,13 +865,6 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
               onLocationSelect={(lat, lng) => {
                 form.setValue('latitude', lat.toString());
                 form.setValue('longitude', lng.toString());
-                form.setValue('geoCoordenadas', {
-                  latitude: lat,
-                  longitude: lng,
-                  endereco: `${form.watch('logradouro')}, ${form.watch('numero')}, ${form.watch('bairro')}, ${form.watch('municipio')}, ${form.watch('estado')}`,
-                  validado: true,
-                  fonte: 'manual'
-                });
                 setMapCenter([lat, lng]);
               }}
             />

@@ -12,19 +12,19 @@ export type LogradouroType = 'rua' | 'avenida' | 'travessa' | 'alameda' | 'rodov
 export const locais = pgTable('locais', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   descricao: text('descricao').notNull(),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
   tipoClienteFavorecido: varchar('tipo_cliente_favorecido', { length: 20 }), // 'cliente' ou 'favorecido'
   tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users (workspace admin team member)
-  
+
   // Contato
   email: varchar('email', { length: 255 }),
   ddd: varchar('ddd', { length: 3 }),
   telefone: varchar('telefone', { length: 15 }),
-  
+
   // Endereço
   cep: varchar('cep', { length: 9 }),
   pais: varchar('pais', { length: 100 }).default('Brasil'),
@@ -35,17 +35,17 @@ export const locais = pgTable('locais', {
   logradouro: varchar('logradouro', { length: 255 }),
   numero: varchar('numero', { length: 20 }),
   complemento: varchar('complemento', { length: 100 }),
-  
+
   // Georreferenciamento
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
   geoCoordenadas: jsonb('geo_coordenadas'), // Complete geo data with validation info
-  
+
   // Tempo e Disponibilidade
   fusoHorario: varchar('fuso_horario', { length: 50 }).default('America/Sao_Paulo'),
   feriadosIncluidos: jsonb('feriados_incluidos'), // Selected holidays (municipal, estadual, federal)
   indisponibilidades: jsonb('indisponibilidades'), // Unavailable periods (data início/fim + observação)
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -54,24 +54,24 @@ export const locais = pgTable('locais', {
 export const regioes = pgTable('regioes', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   nome: varchar('nome', { length: 200 }).notNull(),
   descricao: text('descricao'),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
-  
+
   // Relacionamentos
   clientesVinculados: jsonb('clientes_vinculados'), // Array of customer IDs
   tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users
   gruposVinculados: jsonb('grupos_vinculados'), // Array of user group IDs
   locaisAtendimento: jsonb('locais_atendimento'), // Array of location IDs
-  
+
   // Geolocalização
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
   cepsAbrangidos: jsonb('ceps_abrangidos'), // Array of CEP ranges
-  
+
   // Endereço Base
   cep: varchar('cep', { length: 9 }),
   pais: varchar('pais', { length: 100 }).default('Brasil'),
@@ -82,7 +82,7 @@ export const regioes = pgTable('regioes', {
   logradouro: varchar('logradouro', { length: 255 }),
   numero: varchar('numero', { length: 20 }),
   complemento: varchar('complemento', { length: 100 }),
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -91,20 +91,20 @@ export const regioes = pgTable('regioes', {
 export const rotasDinamicas = pgTable('rotas_dinamicas', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   nomeRota: varchar('nome_rota', { length: 100 }).notNull(),
   idRota: varchar('id_rota', { length: 100 }).notNull(),
-  
+
   // Relacionamentos
   clientesVinculados: jsonb('clientes_vinculados'), // Array of customer IDs
   regioesAtendidas: jsonb('regioes_atendidas'), // Array of region IDs
-  
+
   // Planejamento da Rota
   diasSemana: jsonb('dias_semana'), // Array of weekdays
   previsaoDias: integer('previsao_dias').notNull(), // 1-30 days
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -113,13 +113,13 @@ export const rotasDinamicas = pgTable('rotas_dinamicas', {
 export const trechos = pgTable('trechos', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
   localAId: uuid('local_a_id').notNull(), // FK to locais
   localBId: uuid('local_b_id').notNull(), // FK to locais
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -128,11 +128,11 @@ export const trechos = pgTable('trechos', {
 export const rotasTrecho = pgTable('rotas_trecho', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   idRota: varchar('id_rota', { length: 100 }).notNull(),
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -142,12 +142,12 @@ export const trechosRota = pgTable('trechos_rota', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   rotaTrechoId: uuid('rota_trecho_id').notNull().references(() => rotasTrecho.id, { onDelete: 'cascade' }),
-  
+
   ordem: integer('ordem').notNull(), // Sequence order
   localOrigemId: uuid('local_origem_id').notNull(), // FK to locais
   nometrecho: varchar('nome_trecho', { length: 200 }),
   localDestinoId: uuid('local_destino_id').notNull(), // FK to locais
-  
+
   createdAt: timestamp('created_at').defaultNow()
 });
 
@@ -155,18 +155,18 @@ export const trechosRota = pgTable('trechos_rota', {
 export const areas = pgTable('areas', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   nome: varchar('nome', { length: 200 }).notNull(),
   descricao: text('descricao'),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
-  
+
   // Classificação
   tipoArea: varchar('tipo_area', { length: 50 }).notNull(),
   corMapa: varchar('cor_mapa', { length: 7 }).default('#3B82F6'), // Hex color
   dadosGeograficos: jsonb('dados_geograficos'), // GeoJSON or coordinates
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -175,14 +175,14 @@ export const areas = pgTable('areas', {
 export const agrupamentos = pgTable('agrupamentos', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   // Identificação
   ativo: boolean('ativo').notNull().default(true),
   nome: varchar('nome', { length: 200 }).notNull(),
   descricao: text('descricao'),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
   areasVinculadas: jsonb('areas_vinculadas'), // Array of area IDs
-  
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -192,7 +192,7 @@ export const localSchema = createInsertSchema(locais, {
   descricao: z.string().min(1, "Descrição é obrigatória"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   cep: z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido").optional(),
-  ddd: z.string().min(2).max(3).optional(),
+  ddd: z.string().optional(),
   telefone: z.string().optional(), // Removido min/max para não ser obrigatório
   latitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Latitude inválida").optional(),
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
