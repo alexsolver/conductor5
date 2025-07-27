@@ -223,10 +223,8 @@ export default function FavorecidosTable() {
         return { ...oldData, favorecidos: updatedFavorecidos };
       });
       
-      // 2. INVALIDA APÓS DELAY para garantir que os dados permaneçam atualizados
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
-      }, 2000); // 2 segundos de delay para evitar conflito
+      // REMOVIDO invalidateQueries para evitar refresh que desfaz a atualização
+      // Os dados atualizados já estão no cache e permanecerão lá
       
       // MARCA O ID ATUALIZADO para indicação visual
       setLastUpdatedId(updatedData.favorecido.id);
