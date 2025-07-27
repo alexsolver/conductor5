@@ -1536,7 +1536,7 @@ export default function TicketDetails() {
             </div>
 
             {/* Informações do Solicitante */}
-            <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-blue-100 rounded-full">
                   <User className="h-6 w-6 text-blue-600" />
@@ -2534,366 +2534,335 @@ export default function TicketDetails() {
 
       {/* Company Details Modal */}
       <Dialog open={isCompanyDetailsOpen} onOpenChange={setIsCompanyDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-blue-600" />
-              Detalhes da Empresa Cliente
-            </DialogTitle>
-            <DialogDescription>
-              Informações completas e gestão da empresa vinculada ao ticket
-            </DialogDescription>
-          </DialogHeader>
+        
+              
+                
+                  Detalhes da Empresa Cliente
+                
+                Informações completas e gestão da empresa vinculada ao ticket
+              
 
-          <div className="space-y-6">
-            {/* Informações Básicas */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
+          
+
+            
+              
+                
+                  
                   Informações Básicas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Nome da Empresa</Label>
-                    <p className="text-lg font-semibold text-gray-900">
+                
+              
+              
+                
+                  
+                    Nome da Empresa
+                    
                       {ticket?.customerCompany?.name || ticket?.company || 'Empresa Não Especificada'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    CNPJ
+                    
                       {ticket?.customerCompany?.cnpj || 'Não informado'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Setor</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Setor
+                    
                       {ticket?.customerCompany?.industry || 'Não especificado'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Porte</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Porte
+                    
                       {ticket?.customerCompany?.size || 'Não especificado'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    
+                  
+                
+              
+            
 
-            {/* Contatos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <User className="h-4 w-4" />
+            
+              
+                
+                  
                   Contatos Principais
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-600">Email Principal</Label>
-                    <p className="text-sm text-gray-900">
+                
+              
+              
+                
+                  
+                    Email Principal
+                    
                       {ticket?.customerCompany?.email || 'contato@empresa.com'}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-600">Telefone</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Telefone
+                    
                       {ticket?.customerCompany?.phone || '(11) 1234-5678'}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-600">Responsável Técnico</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Responsável Técnico
+                    
                       {ticket?.customerCompany?.techContact || 'Não designado'}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-600">Gerente de Conta</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Gerente de Conta
+                    
                       {ticket?.customerCompany?.accountManager || 'Não designado'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    
+                  
+                
+              
+            
 
-            {/* Endereço */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
+            
+              
+                
+                  
                   Endereço
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2">
-                    <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
-                    <p className="text-sm text-gray-900">
+                
+              
+              
+                
+                  
+                    Logradouro
+                    
                       {ticket?.customerCompany?.address || 'Endereço não informado'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">CEP</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    CEP
+                    
                       {ticket?.customerCompany?.zipCode || '00000-000'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Cidade</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Cidade
+                    
                       {ticket?.customerCompany?.city || 'Não informado'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Estado</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    Estado
+                    
                       {ticket?.customerCompany?.state || 'SP'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">País</Label>
-                    <p className="text-sm text-gray-900">
+                    
+                  
+                  
+                    País
+                    
                       {ticket?.customerCompany?.country || 'Brasil'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    
+                  
+                
+              
+            
 
-            {/* Estatísticas e Histórico */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
+            
+              
+                
+                  
                   Estatísticas de Suporte
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">12</p>
-                    <p className="text-xs text-gray-600">Total de Tickets</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">9</p>
-                    <p className="text-xs text-gray-600">Resolvidos</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-orange-600">2h 15min</p>
-                    <p className="text-xs text-gray-600">Tempo Médio</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">4.8/5</p>
-                    <p className="text-xs text-gray-600">Satisfação</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                
+              
+              
+                
+                  12
+                  Total de Tickets
+                
+                
+                  9
+                  Resolvidos
+                
+                
+                  2h 15min
+                  Tempo Médio
+                
+                
+                  4.8/5
+                  Satisfação
+                
+              
+            
 
-            {/* Ações Rápidas */}
-            <div className="flex flex-wrap gap-3">
-              <Button 
-                onClick={() => navigate("/customers")}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Gerenciar Clientes
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => navigate("/contracts")}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Ver Contratos
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => navigate("/tickets?company=" + (ticket?.customerCompany?.id || ''))}
-              >
-                <Ticket className="h-4 w-4 mr-2" />
-                Todos os Tickets
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => window.open(`mailto:${ticket?.customerCompany?.email}`, '_blank')}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Enviar Email
-              </Button>
-            </div>
-          </div>
+            
+              
+                
+                  
+                    
+                      Gerenciar Clientes
+                    
+                  
+                  
+                    
+                      Ver Contratos
+                    
+                  
+                  
+                    
+                      Todos os Tickets
+                    
+                  
+                  
+                    
+                      Enviar Email
+                    
+                  
+                
+              
+            
 
-          <div className="flex justify-end pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsCompanyDetailsOpen(false)}
-            >
-              Fechar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          
+
+            
+              
+                Fechar
+              
+            
+          
+        
+      
 
       {/* Ticket Linking Modal - IMPLEMENTADO */}
       <Dialog open={isLinkingModalOpen} onOpenChange={setIsLinkingModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Vincular Ticket</DialogTitle>
-            <DialogDescription>
+        
+            
+              
+                Vincular Ticket
+              
               Conecte este ticket a outros tickets relacionados
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Número do Ticket</Label>
-              <Input 
-                placeholder="Ex: T-123456" 
-                value={linkTicketNumber}
-                onChange={(e) => setLinkTicketNumber(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Tipo de Vinculação</Label>
-              <Select value={linkType} onValueChange={setLinkType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="related">🔗 Relacionado</SelectItem>
-                  <SelectItem value="duplicate">🔄 Duplicado</SelectItem>
-                  <SelectItem value="parent">⬆️ Ticket Pai</SelectItem>
-                  <SelectItem value="child">⬇️ Sub-ticket</SelectItem>
-                  <SelectItem value="blocks">🚫 Bloqueia</SelectItem>
-                  <SelectItem value="blocked_by">⏸️ Bloqueado por</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Comentário (opcional)</Label>
-              <Textarea 
-                placeholder="Descreva a relação entre os tickets..."
-                rows={3}
-                value={linkComment}
-                onChange={(e) => setLinkComment(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 justify-end mt-4">
-            <Button variant="outline" onClick={() => setIsLinkingModalOpen(false)}>
+            
+          
+          
+            
+              Número do Ticket
+              
+                
+              
+            
+            
+              Tipo de Vinculação
+              
+                
+                  
+                    Selecione o tipo
+                  
+                  
+                    Relacionado
+                  
+                  
+                    Duplicado
+                  
+                  
+                    ⬆️ Ticket Pai
+                  
+                  
+                    ⬇️ Sub-ticket
+                  
+                  
+                    🚫 Bloqueia
+                  
+                  
+                    ⏸️ Bloqueado por
+                  
+                
+              
+            
+            
+              Comentário (opcional)
+              
+                
+              
+            
+          
+          
+            
               Cancelar
-            </Button>
-            <Button 
-              onClick={() => {
-                console.log("🔗 Vinculando tickets:", { linkTicketNumber, linkType, linkComment });
-                setIsLinkingModalOpen(false);
-                setLinkTicketNumber('');
-                setLinkType('');
-                setLinkComment('');
-              }}
-              disabled={!linkTicketNumber || !linkType}
-            >
-              <Link2 className="h-4 w-4 mr-2" />
-              Vincular
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              
+                
+                  
+                    
+                      
+                    
+                    Vincular
+                  
+                
+              
+            
+          
+        
+      
 
       {/* Internal Actions Modal - IMPLEMENTADO */}
       <Dialog open={showInternalActionModal} onOpenChange={setShowInternalActionModal}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Nova Ação Interna</DialogTitle>
-            <DialogDescription>
+        
+            
+              
+                Nova Ação Interna
+              
               Adicione uma ação interna ao ticket para registro e auditoria
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Ação Realizada*</Label>
-              <Textarea 
-                placeholder="Descreva a ação realizada (obrigatório)..."
-                rows={4}
-                value={newInternalAction}
-                onChange={(e) => setNewInternalAction(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Tipo de Ação</Label>
-              <Select value={internalActionType} onValueChange={setInternalActionType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="investigation">🔍 Investigação</SelectItem>
-                  <SelectItem value="escalation">⬆️ Escalação</SelectItem>
-                  <SelectItem value="resolution">✅ Resolução</SelectItem>
-                  <SelectItem value="communication">💬 Comunicação</SelectItem>
-                  <SelectItem value="workaround">🛠️ Solução Temporária</SelectItem>
-                  <SelectItem value="documentation">📝 Documentação</SelectItem>
-                  <SelectItem value="testing">🧪 Teste</SelectItem>
-                  <SelectItem value="followup">📞 Follow-up</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                id="isPublicAction"
-                checked={isPublicAction}
-                onChange={(e) => setIsPublicAction(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <Label htmlFor="isPublicAction" className="text-sm">
+            
+          
+          
+            
+              Ação Realizada*
+              
+                
+              
+            
+            
+              Tipo de Ação
+              
+                
+                  
+                    Selecione o tipo
+                  
+                  
+                    🔍 Investigação
+                  
+                  
+                    ⬆️ Escalação
+                  
+                  
+                    ✅ Resolução
+                  
+                  
+                    💬 Comunicação
+                  
+                  
+                    🛠️ Solução Temporária
+                  
+                  
+                    📝 Documentação
+                  
+                  
+                    🧪 Teste
+                  
+                  
+                    📞 Follow-up
+                  
+                
+              
+            
+            
+              
+                
+                  
+                
                 Ação visível para o cliente (pública)
-              </Label>
-            </div>
-          </div>
-          <div className="flex gap-2 justify-end mt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowInternalActionModal(false);
-                setNewInternalAction('');
-                setInternalActionType('');
-                setIsPublicAction(false);
-              }}
-            >
+              
+            
+          
+          
+            
               Cancelar
-            </Button>
-            <Button 
-              onClick={() => {
-                if (newInternalAction.trim()) {
-                  const newAction = {
-                    id: Date.now().toString(),
-                    content: newInternalAction,
-                    type: internalActionType || 'documentation',
-                    isPublic: isPublicAction,
-                    createdAt: new Date().toISOString(),
-                    createdByName: 'Agente Atual' // TODO: Get from auth
-                  };
-                  setInternalActions(prev => [newAction, ...prev]);
-                  setShowInternalActionModal(false);
-                  setNewInternalAction('');
-                  setInternalActionType('');
-                  setIsPublicAction(false);
-                }
-              }}
-              disabled={!newInternalAction.trim()}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Ação
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-    </div>
-  );
-}
+              
+                
+                  
+                    
+                      
+                    
+                    Adicionar Ação
