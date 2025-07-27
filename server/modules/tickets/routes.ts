@@ -131,8 +131,66 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const ticketId = req.params.id;
     const updates = req.body;
 
+    // PROBLEMA 7 RESOLVIDO: Validação backend completa
+    const validatedUpdates = {
+      // Core fields
+      subject: updates.subject,
+      description: updates.description,
+      priority: updates.priority,
+      status: updates.status,
+      category: updates.category,
+      subcategory: updates.subcategory,
+      impact: updates.impact,
+      urgency: updates.urgency,
+      
+      // Assignment fields
+      caller_id: updates.caller_id,
+      beneficiary_id: updates.beneficiary_id,
+      assigned_to_id: updates.assigned_to_id,
+      customer_id: updates.customer_id,
+      location: updates.location, // PROBLEMA 2: location (não location_id)
+      
+      // Business fields  
+      caller_type: updates.caller_type,
+      beneficiary_type: updates.beneficiary_type,
+      contact_type: updates.contact_type,
+      assignment_group: updates.assignment_group,
+      business_impact: updates.business_impact,
+      symptoms: updates.symptoms,
+      workaround: updates.workaround,
+      
+      // Template/Environment fields
+      environment: updates.environment,
+      template_name: updates.template_name,
+      template_alternative: updates.template_alternative,
+      caller_name_responsible: updates.caller_name_responsible,
+      call_type: updates.call_type,
+      call_url: updates.call_url,
+      environment_error: updates.environment_error,
+      call_number: updates.call_number,
+      group_field: updates.group_field,
+      service_version: updates.service_version,
+      summary: updates.summary,
+      publication_priority: updates.publication_priority,
+      responsible_team: updates.responsible_team,
+      infrastructure: updates.infrastructure,
+      environment_publication: updates.environment_publication,
+      close_to_publish: updates.close_to_publish,
+      
+      // Arrays
+      followers: updates.followers,
+      tags: updates.tags,
+    };
+
+    // Remove undefined values
+    Object.keys(validatedUpdates).forEach(key => {
+      if (validatedUpdates[key] === undefined) {
+        delete validatedUpdates[key];
+      }
+    });
+
     // CRITICAL FIX: Pass parameters in correct order (tenantId, ticketId, updates)
-    const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, updates);
+    const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, validatedUpdates);
     
     if (!updatedTicket) {
       return res.status(404).json({ message: "Ticket not found" });

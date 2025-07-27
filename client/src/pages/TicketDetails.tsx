@@ -360,30 +360,32 @@ export default function TicketDetails() {
   const [selectedCompanyCustomers, setSelectedCompanyCustomers] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   
-  // Fetch customers when company is selected
+  // PROBLEMA 9 RESOLVIDO: Otimizar fetch de customers - sem logs redundantes
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
       const companyId = ticket?.customer_id || ticket?.customerCompanyId || ticket?.company;
-      if (!companyId || companyId === 'unspecified') {
-        setSelectedCompanyCustomers([]);
+      
+      // Skip if no company or same as current
+      if (!companyId || companyId === 'unspecified' || companyId === selectedCompany) {
+        if (!companyId || companyId === 'unspecified') {
+          setSelectedCompanyCustomers([]);
+        }
         return;
       }
 
+      setSelectedCompany(companyId);
+
       try {
-        console.log('TicketDetails: Fetching customers for company:', companyId);
         const response = await apiRequest("GET", `/api/companies/${companyId}/customers`);
         const data = await response.json();
-        
-        console.log('TicketDetails: Company customers response:', data);
         
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
         } else {
-          console.warn('TicketDetails: No customers found for company');
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error('TicketDetails: Error fetching customers for company:', error);
+        console.error('Error fetching customers:', error);
         setSelectedCompanyCustomers([]);
       }
     };
@@ -391,21 +393,23 @@ export default function TicketDetails() {
     if (ticket) {
       fetchCompanyCustomers();
     }
-  }, [ticket?.customer_id, ticket?.customerCompanyId, ticket?.company]);
+  }, [ticket?.customer_id, ticket?.customerCompanyId, ticket?.company, selectedCompany]);
 
-  // Handle company change and reset customers
+  // PROBLEMA 9 RESOLVIDO: Handle company change otimizado
   const handleCompanyChange = async (newCompanyId: string) => {
-    // Update form value
+    // Only proceed if company actually changed
+    if (newCompanyId === selectedCompany) return;
+    
+    setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
     
-    // Reset customer selections
+    // Reset customer selections only when changing company
     form.setValue('callerId', '');
     form.setValue('beneficiaryId', '');
     
-    // Fetch new customers for selected company
+    // Fetch new customers only if valid company selected
     if (newCompanyId && newCompanyId !== 'unspecified') {
       try {
-        console.log('TicketDetails: Company changed, fetching customers for:', newCompanyId);
         const response = await apiRequest("GET", `/api/companies/${newCompanyId}/customers`);
         const data = await response.json();
         
@@ -415,7 +419,7 @@ export default function TicketDetails() {
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error('TicketDetails: Error fetching customers after company change:', error);
+        console.error('Error fetching customers:', error);
         setSelectedCompanyCustomers([]);
       }
     } else {
@@ -727,7 +731,7 @@ export default function TicketDetails() {
         workaround: ticket.workaround || "",
         followers: ticket.followers || [],
         customerCompanyId: ticket.customer_id || "",
-        // PROBLEMA 6: Incluir todos os campos template/environment
+        // PROBLEMA 6 RESOLVIDO: Reset completo com todos os campos template/environment
         environment: ticket.environment || "",
         templateName: ticket.template_name || "",
         templateAlternative: ticket.template_alternative || "",
@@ -746,6 +750,12 @@ export default function TicketDetails() {
         closeToPublish: ticket.close_to_publish || false,
         linkTicketNumber: "",
         linkDescription: "",
+        // PROBLEMA 6: Campos adicionais obrigatórios
+        estimatedHours: ticket.estimated_hours || 0,
+        slaDeadline: ticket.sla_deadline || "",
+        escalationLevel: ticket.escalation_level || 0,
+        resolutionNotes: ticket.resolution_notes || "",
+        preventiveMeasures: ticket.preventive_measures || "",
       });
       
       // Update local states to sync with ticket data
@@ -846,7 +856,7 @@ export default function TicketDetails() {
       responsible_team: data.responsibleTeam,
       environment_publication: data.environmentPublication,
       close_to_publish: data.closeToPublish,
-      // Remover campos frontend que causam erro no backend
+      // PROBLEMA 3 RESOLVIDO: Remover campos frontend que causam erro no backend
       callerId: undefined,
       beneficiaryId: undefined,
       assignedToId: undefined,
@@ -856,6 +866,20 @@ export default function TicketDetails() {
       contactType: undefined,
       assignmentGroup: undefined,
       businessImpact: undefined,
+      // Remover campos template frontend
+      templateName: undefined,
+      templateAlternative: undefined,
+      callerNameResponsible: undefined,
+      callType: undefined,
+      callUrl: undefined,
+      environmentError: undefined,
+      callNumber: undefined,
+      groupField: undefined,
+      serviceVersion: undefined,
+      publicationPriority: undefined,
+      responsibleTeam: undefined,
+      environmentPublication: undefined,
+      closeToPublish: undefined,
     };
     
     updateTicketMutation.mutate(mappedData);
