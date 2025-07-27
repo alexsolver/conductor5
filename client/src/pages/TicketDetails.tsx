@@ -841,7 +841,7 @@ export default function TicketDetails() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Prioridade *</FormLabel>
-                    <Select onValueChange{field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione a prioridade" />
