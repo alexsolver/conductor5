@@ -23,6 +23,7 @@ import { TicketViewSelector } from "@/components/TicketViewSelector";
 // Schema for ticket creation
 const createTicketSchema = z.object({
   customerId: z.string().min(1, "Customer is required"),
+  companyId: z.string().optional(),
   subject: z.string().min(1, "Subject is required"),
   description: z.string().min(1, "Description is required"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
@@ -51,6 +52,12 @@ export default function Tickets() {
     retry: false,
   });
 
+  // Fetch companies for filtering
+  const { data: companiesData } = useQuery({
+    queryKey: ["/api/customers/companies"],
+    retry: false,
+  });
+
   // Fetch users for assignment
   const { data: usersData } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
@@ -58,6 +65,7 @@ export default function Tickets() {
   });
 
   const customers = (customersData as any)?.customers || [];
+  const companies = Array.isArray(companiesData) ? companiesData : [];
   const users = (usersData as any)?.users || [];
 
   // Form setup
@@ -65,6 +73,7 @@ export default function Tickets() {
     resolver: zodResolver(createTicketSchema),
     defaultValues: {
       customerId: "",
+      companyId: "",
       subject: "",
       description: "",
       priority: "medium",
@@ -72,6 +81,42 @@ export default function Tickets() {
       tags: [],
     },
   });
+
+  // Watch for company selection to filter customers
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+
+  // Filter customers based on selected company
+  useEffect(() => {
+    if (!selectedCompanyId || !customers.length) {
+      setFilteredCustomers(customers);
+      return;
+    }
+
+    // Fetch customers for the selected company
+    const fetchCustomersForCompany = async () => {
+      try {
+        const response = await fetch(`/api/companies/${selectedCompanyId}/customers`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setFilteredCustomers(data.customers || []);
+        } else {
+          // Fallback: filter existing customers if API doesn't exist
+          setFilteredCustomers(customers);
+        }
+      } catch (error) {
+        console.error('Error fetching customers for company:', error);
+        setFilteredCustomers(customers);
+      }
+    };
+
+    fetchCustomersForCompany();
+  }, [selectedCompanyId, customers]);
 
   // Create ticket mutation
   const createTicketMutation = useMutation({
@@ -103,7 +148,11 @@ export default function Tickets() {
   });
 
   const onSubmit = (data: CreateTicketFormData) => {
-    createTicketMutation.mutate(data);
+    const submitData = {
+      ...data,
+      companyId: selectedCompanyId || undefined
+    };
+    createTicketMutation.mutate(submitData);
   };
 
   // Função para trocar visualização ativa
@@ -177,22 +226,45 @@ export default function Tickets() {
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Company Selection */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Empresa
+                    </label>
+                    <select
+                      value={selectedCompanyId}
+                      onChange={(e) => {
+                        setSelectedCompanyId(e.target.value);
+                        // Reset customer selection when company changes
+                        form.setValue("customerId", "");
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="">Todas as empresas</option>
+                      {companies.map((company: any) => (
+                        <option key={company.id} value={company.id}>
+                          {company.company_name || company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="customerId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Customer</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Cliente</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a customer" />
+                              <SelectValue placeholder="Selecione um cliente" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {customers.map((customer: any) => (
+                            {filteredCustomers.map((customer: any) => (
                               <SelectItem key={customer.id} value={customer.id}>
-                                {customer.fullName} ({customer.email})
+                                {customer.fullName || `${customer.first_name} ${customer.last_name}`} ({customer.email})
                               </SelectItem>
                             ))}
                           </SelectContent>

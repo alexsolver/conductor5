@@ -83,9 +83,35 @@ export default function TicketEdit() {
   const [isEmailHistoryModalOpen, setIsEmailHistoryModalOpen] = useState(false);
   const [isTicketHistoryModalOpen, setIsTicketHistoryModalOpen] = useState(false);
   const [isApprovalRequestModalOpen, setIsApprovalRequestModalOpen] = useState(false);
+  
+  // Company filtering state
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
 
   // Use metadata system
   const { isLoading: metadataLoading } = useTicketMetadata();
+
+  // Filter customers based on selected company
+  useEffect(() => {
+    if (!selectedCompanyId || !customers.length) {
+      setFilteredCustomers(customers);
+      return;
+    }
+
+    // Filter customers by company association
+    const fetchCustomersForCompany = async () => {
+      try {
+        const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
+        const data = await response.json();
+        setFilteredCustomers(data.customers || []);
+      } catch (error) {
+        console.error('Error fetching customers for company:', error);
+        setFilteredCustomers(customers);
+      }
+    };
+
+    fetchCustomersForCompany();
+  }, [selectedCompanyId, customers]);
 
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({
@@ -106,8 +132,18 @@ export default function TicketEdit() {
     },
   });
 
+  // Fetch companies for filtering
+  const { data: companiesData } = useQuery({
+    queryKey: ["/api/customers/companies"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers/companies");
+      return response.json();
+    },
+  });
+
   // Ensure customers is always an array
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+  const companies = Array.isArray(companiesData) ? companiesData : [];
 
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
@@ -706,6 +742,30 @@ export default function TicketEdit() {
 
                     {/* Tab 3: Assignment */}
                     <TabsContent value="assignment" className="space-y-4">
+                      {/* Company Selection */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Empresa
+                        </label>
+                        <select
+                          value={selectedCompanyId}
+                          onChange={(e) => {
+                            setSelectedCompanyId(e.target.value);
+                            // Reset customer selections when company changes
+                            form.setValue("callerId", "");
+                            form.setValue("beneficiaryId", "");
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="">Todas as empresas</option>
+                          {companies.map((company: any) => (
+                            <option key={company.id} value={company.id}>
+                              {company.company_name || company.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
                       <FormField
                         control={form.control}
                         name="callerId"
@@ -719,7 +779,7 @@ export default function TicketEdit() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {customers.map((customer: any) => (
+                                {filteredCustomers.map((customer: any) => (
                                   <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
@@ -745,7 +805,7 @@ export default function TicketEdit() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="none">Nenhum</SelectItem>
-                                {customers.map((customer: any) => (
+                                {filteredCustomers.map((customer: any) => (
                                   <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>

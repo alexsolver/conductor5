@@ -226,10 +226,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // === CUSTOMER COMPANIES ROUTES ===
-  app.get("/api/customers/companies", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  // Get all companies
+  app.get('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
-        return res.status(401).json({ message: 'Tenant context required' });
+        return res.status(401).json({ message: 'Tenant required' });
       }
 
       const { schemaManager } = await import('./db');
@@ -259,6 +260,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch customer companies' 
+      });
+    }
+  });
+
+  // Get customers by company
+  app.get('/api/companies/:companyId/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      const result = await pool.query(
+        `
+        SELECT DISTINCT 
+          c.id,
+          c.first_name,
+          c.last_name,
+          c.email,
+          c.phone,
+          c.cpf,
+          c.created_at,
+          c.updated_at
+        FROM "${schemaName}"."customers" c
+        INNER JOIN "${schemaName}"."customer_company_memberships" ccm
+          ON c.id = ccm.customer_id
+        WHERE ccm.company_id = $1 
+          AND ccm.is_active = true
+          AND c.is_active = true
+        ORDER BY c.first_name, c.last_name
+        `,
+        [companyId]
+      );
+
+      const customers = result.rows.map(row => ({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        cpf: row.cpf,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      res.json({
+        success: true,
+        customers: customers
+      });
+    } catch (error) {
+      console.error('Error fetching customers by company:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch customers for company' 
       });
     }
   });
@@ -2057,7 +2118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE is_active = true
         ORDER BY name
       `);
-      
+
       const companies = result.rows;
 
       // Return the format expected by the frontend
