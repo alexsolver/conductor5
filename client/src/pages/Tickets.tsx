@@ -204,12 +204,18 @@ export default function Tickets() {
 
   // Log para debug
   console.log('🚀 Tickets component is rendering...', { currentViewId, tickets });
+  
+  // Parse dos dados de tickets vindos da API
+  const ticketsList = (tickets as any)?.data?.tickets || [];
+  const ticketsCount = ticketsList.length;
+  
+  console.log('📋 Parsed tickets data:', { ticketsList, ticketsCount, rawTickets: tickets });
 
   return (
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets ({ticketsCount})</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
         </div>
         <div className="flex space-x-2">
@@ -418,7 +424,8 @@ export default function Tickets() {
       </div>
 
       <div className="space-y-4">
-        {(tickets as any)?.tickets?.map((ticket: any) => (
+        {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
+          ticketsList.map((ticket: any) => (
           <Card key={ticket.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -451,7 +458,8 @@ export default function Tickets() {
               </div>
             </CardContent>
           </Card>
-        )) || (
+        ))
+        ) : (
           <Card>
             <CardContent className="p-12 text-center">
               <div className="text-gray-500">
