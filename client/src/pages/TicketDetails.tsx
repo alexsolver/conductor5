@@ -299,6 +299,42 @@ export default function TicketDetails() {
     },
   });
 
+  // Fetch customers for selected company
+  const [selectedCompanyCustomers, setSelectedCompanyCustomers] = useState<any[]>([]);
+  
+  // Fetch customers when company is selected
+  useEffect(() => {
+    const fetchCompanyCustomers = async () => {
+      const companyId = ticket?.customerCompanyId || ticket?.company;
+      if (!companyId || companyId === 'unspecified') {
+        setSelectedCompanyCustomers([]);
+        return;
+      }
+
+      try {
+        console.log('Fetching customers for company:', companyId);
+        const response = await apiRequest("GET", `/api/companies/${companyId}/customers`);
+        const data = await response.json();
+        
+        console.log('Company customers response:', data);
+        
+        if (data.success && data.customers) {
+          setSelectedCompanyCustomers(data.customers);
+        } else {
+          console.warn('No customers found for company');
+          setSelectedCompanyCustomers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching customers for company:', error);
+        setSelectedCompanyCustomers([]);
+      }
+    };
+
+    if (ticket) {
+      fetchCompanyCustomers();
+    }
+  }, [ticket?.customerCompanyId, ticket?.company]);
+
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -363,6 +399,9 @@ export default function TicketDetails() {
   });
 
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+  
+  // Use company-specific customers if available, otherwise fall back to all customers
+  const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
 
   // Initialize data from ticket relationships
   useEffect(() => {
@@ -1761,9 +1800,9 @@ export default function TicketDetails() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {customers?.customers?.map((customer: any) => (
+                      {availableCustomers.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
+                          {customer.fullName || customer.name || `${customer.firstName} ${customer.lastName}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1772,14 +1811,16 @@ export default function TicketDetails() {
                   <div className="text-sm text-purple-900 font-medium cursor-pointer hover:text-purple-700 transition-colors"
                        onClick={() => console.log('Open customer details')}>
                     <span className="underline decoration-dotted">
-                      {customers?.customers?.find((c: any) => c.id === ticket.callerId)?.name || 
+                      {availableCustomers.find((c: any) => c.id === ticket.callerId)?.fullName || 
+                       availableCustomers.find((c: any) => c.id === ticket.callerId)?.name ||
+                       `${availableCustomers.find((c: any) => c.id === ticket.callerId)?.firstName || ''} ${availableCustomers.find((c: any) => c.id === ticket.callerId)?.lastName || ''}`.trim() || 
                        ticket.callerId === 'unspecified' || !ticket.callerId ? 'Não especificado' : 'Cliente não encontrado'}
                     </span>
                   </div>
                 )}
-                {customers?.customers?.find((c: any) => c.id === ticket.callerId) && (
+                {availableCustomers.find((c: any) => c.id === ticket.callerId) && (
                   <div className="text-xs text-purple-600">
-                    📧 {customers.customers.find((c: any) => c.id === ticket.callerId)?.email || 'Email não informado'}
+                    📧 {availableCustomers.find((c: any) => c.id === ticket.callerId)?.email || 'Email não informado'}
                   </div>
                 )}
               </div>
