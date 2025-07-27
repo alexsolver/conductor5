@@ -794,24 +794,6 @@ export default function TicketDetails() {
         return (
           <div className="space-y-4">
 
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assunto *</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Input {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
@@ -874,6 +856,24 @@ export default function TicketDetails() {
                 />
               </div>
             </div>
+
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assunto *</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Input {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

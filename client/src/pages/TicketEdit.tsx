@@ -406,20 +406,6 @@ export default function TicketEdit() {
 
                     {/* Tab 1: Basic Information */}
                     <TabsContent value="basic" className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="subject"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Assunto</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Descreva o problema brevemente" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
                       {/* Classificação */}
                       <div className="border-t pt-4 mt-6">
                         <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
@@ -463,6 +449,20 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
+
+                      <FormField
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Assunto</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Descreva o problema brevemente" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       <FormField
                         control={form.control}
