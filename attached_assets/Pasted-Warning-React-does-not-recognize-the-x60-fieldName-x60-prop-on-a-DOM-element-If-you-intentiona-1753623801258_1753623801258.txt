@@ -1,0 +1,40 @@
+Warning: React does not recognize the &#x60;fieldName&#x60; prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase &#x60;fieldname&#x60; instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+    at div
+    at Badge (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/badge.tsx:35:18)
+    at DynamicBadge (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/DynamicBadge.tsx:69:3)
+    at td
+    at _c13 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/table.tsx:152:13)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketsTable.tsx:382:38
+    at tr
+    at _c9 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/table.tsx:102:12)
+    at tbody
+    at _c5 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/table.tsx:55:12)
+    at table
+    at div
+    at _c (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/table.tsx:20:11)
+    at div
+    at div
+    at _c9 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at TicketsTable (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketsTable.tsx:286:55)
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=e8bcd616:191:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=e8bcd616:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=U6ehWbs5khP2sqAWJg9lK:88:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fe479dcc:38:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=6e54b8c9:64:5)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=b58e2307:2805:3)
+    at App
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, customersCount: 0, usersCount: 0, …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, customersCount: 0, usersCount: 4, …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, customersCount: 0, usersCount: 4, …}
+TicketDetails: Company changed, fetching customers for: 503389ff-7616-48e0-8759-c6b98faf5608

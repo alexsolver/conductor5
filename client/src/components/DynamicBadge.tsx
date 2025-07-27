@@ -65,6 +65,8 @@ export function DynamicBadge({
   className, 
   ...props 
 }: DynamicBadgeProps) {
+  // Remove props que não devem ser passadas para o DOM
+  const { fieldName, ...badgeProps } = props as any;
   let dynamicClasses = '';
 
   // Prioridade: colorHex > bgColor > variant padrão
@@ -85,7 +87,7 @@ export function DynamicBadge({
         'font-medium text-xs px-2 py-1 rounded-md',
         className
       )}
-      {...props}
+      {...badgeProps}
     >
       {children}
     </Badge>

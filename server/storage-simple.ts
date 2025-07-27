@@ -496,7 +496,7 @@ export class DatabaseStorage implements IStorage {
       if (ticketData.location !== undefined) updateFields.push(`location_id = ${ticketData.location ? `'${ticketData.location}'` : 'NULL'}`);
       if (ticketData.category !== undefined) updateFields.push(`category = '${ticketData.category || ''}'`);
       if (ticketData.subcategory !== undefined) updateFields.push(`subcategory = '${ticketData.subcategory || ''}'`);
-      if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_company_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
+      if (ticketData.customerCompanyId !== undefined) updateFields.push(`customer_id = ${ticketData.customerCompanyId ? `'${ticketData.customerCompanyId}'` : 'NULL'}`);
       
       // Always update timestamp
       updateFields.push(`updated_at = NOW()`);
