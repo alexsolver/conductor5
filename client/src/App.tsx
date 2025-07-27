@@ -173,7 +173,7 @@ function AppRouter() {
         <Route path="/supplier-management" component={SupplierManagement} />
         <Route path="/services-management" component={ServicesManagement} />
         <Route path="/asset-management" component={AssetManagement} />
-        <Route path="/lpu-management" component={LPUManagement} />
+        {/* <Route path="/lpu-management" component={LPUManagement} /> */}
         <Route path="/compliance-management" component={ComplianceManagement} />
         <Route path="/notifications" component={NotificationManagement} />
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
