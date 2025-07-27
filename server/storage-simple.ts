@@ -762,7 +762,15 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(query);
       console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
-      return result.rows || [];
+      
+      // Adicionar fullName computed field para compatibilidade frontend em TODOS os registros
+      const favorecidos = (result.rows || []).map(favorecido => {
+        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
+        return favorecido;
+      });
+      
+      console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
+      return favorecidos;
     } catch (error) {
       console.error('Error fetching favorecidos:', error);
       return []; // Return empty array instead of throwing
@@ -798,7 +806,14 @@ export class DatabaseStorage implements IStorage {
         WHERE id = ${id} AND tenant_id = ${validatedTenantId}
       `);
 
-      return result.rows?.[0] || null;
+      const favorecido = result.rows?.[0] || null;
+      
+      // Adicionar fullName computed field para compatibilidade frontend
+      if (favorecido) {
+        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
+      }
+
+      return favorecido;
     } catch (error) {
       logError('Error fetching favorecido', error, { id, tenantId });
       throw error;

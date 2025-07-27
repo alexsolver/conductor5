@@ -673,9 +673,7 @@ export default function FavorecidosTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentFavorecidos.map((favorecido: any) => {
-                console.log('Favorecido data:', favorecido);
-                return (
+              {currentFavorecidos.map((favorecido: any) => (
                 <TableRow 
                   key={favorecido.id}
                   className={lastUpdatedId === favorecido.id ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : ""}
@@ -683,10 +681,12 @@ export default function FavorecidosTable() {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                        {(favorecido.firstName || favorecido.fullName?.split(' ')[0] || "?")?.[0]?.toUpperCase()}
+                        {(favorecido.first_name || favorecido.firstName || favorecido.fullName?.split(' ')[0] || favorecido.full_name?.split(' ')[0] || "?")?.[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium">{favorecido.fullName}</div>
+                        <div className="font-medium">
+                          {favorecido.fullName || favorecido.full_name || `${favorecido.first_name || favorecido.firstName || ''} ${favorecido.last_name || favorecido.lastName || ''}`.trim()}
+                        </div>
                         {favorecido.phone && (
                           <div className="text-sm text-muted-foreground flex items-center gap-1">
                             <Phone className="h-3 w-3" />
@@ -779,8 +779,7 @@ export default function FavorecidosTable() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-                );
-              })}
+              ))}
             </TableBody>
           </Table>
 
