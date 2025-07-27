@@ -196,15 +196,21 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       console.log('Customer companies data updated:', {
         raw: customerCompaniesData,
         processed: companies,
-        count: companies.length
+        count: companies.length,
+        sampleItem: companies[0] || null,
+        allCompanyIds: companies.map((c: any) => ({ 
+          company_id: c.company_id, 
+          id: c.id, 
+          name: c.company_name || c.display_name || c.name 
+        }))
       });
       
       setCustomerCompanies(companies);
     } else {
-      console.log('No customer companies data received');
+      console.log('No customer companies data received for customer:', customer?.id);
       setCustomerCompanies([]);
     }
-  }, [customerCompaniesData]);
+  }, [customerCompaniesData, customer?.id]);
 
   // Reset form when customer data changes
   useEffect(() => {
@@ -379,29 +385,48 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       return;
     }
 
-    if (!companyId) {
+    if (!companyId || companyId === 'undefined' || companyId === 'null') {
       toast({
         title: "Erro",
-        description: "ID da empresa não encontrado",
+        description: "ID da empresa não encontrado ou inválido",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      console.log('Removing company:', { customerId: customer.id, companyId });
+      console.log('Removing company association:', { 
+        customerId: customer.id, 
+        companyId,
+        url: `/api/customers/${customer.id}/companies/${companyId}`
+      });
       
-      await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
+      const response = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
+      
+      console.log('Delete response:', response);
+      
+      // Aguardar um pouco antes de recarregar os dados
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Recarregar os dados das empresas do cliente
       await refetchCustomerCompanies();
+      
       toast({
         title: "Sucesso",
         description: "Empresa removida com sucesso!",
       });
     } catch (error: any) {
-      console.error('Error removing company:', error);
+      console.error('Error removing company association:', {
+        error,
+        customerId: customer.id,
+        companyId,
+        errorMessage: error?.message,
+        errorResponse: error?.response
+      });
+      
       toast({
         title: "Erro",
-        description: error?.message || "Erro ao remover empresa",
+        description: error?.message || error?.response?.data?.message || "Erro ao remover empresa",
         variant: "destructive"
       });
     }
@@ -898,18 +923,23 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <div className="mt-2 space-y-2">
                             {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
                               customerCompanies.map((membership: any, index: number) => {
-                                // Garantir um ID único para cada item usando múltiplas fallbacks
-                                const uniqueKey = membership.membership_id || 
-                                                 membership.id || 
-                                                 membership.company_id || 
-                                                 `membership-${customer.id}-${index}`;
+                                // Determinar o ID correto da empresa para exclusão
                                 const companyId = membership.company_id || membership.id;
+                                // Criar chave única mais robusta
+                                const uniqueKey = `company-${companyId || index}-${membership.membership_id || 'mem'}`;
+                                
+                                console.log('Company membership item:', {
+                                  membership,
+                                  companyId,
+                                  uniqueKey,
+                                  index
+                                });
                                 
                                 return (
                                   <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                       <span className="font-medium">
-                                        {membership.display_name || membership.company_name || membership.name || 'Empresa sem nome'}
+                                        {membership.display_name || membership.company_name || membership.name || `Empresa ${companyId || index + 1}`}
                                       </span>
                                       <Badge variant={membership.is_primary ? "default" : "secondary"}>
                                         {membership.role || 'member'}
@@ -922,7 +952,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       type="button"
                                       size="sm"
                                       variant="ghost"
-                                      onClick={() => handleRemoveCompany(companyId)}
+                                      onClick={() => {
+                                        console.log('Attempting to remove company:', { companyId, membership });
+                                        handleRemoveCompany(companyId);
+                                      }}
                                       disabled={!companyId}
                                       title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"}
                                     >

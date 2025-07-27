@@ -326,29 +326,89 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
+      console.error('Delete company association: Missing tenant context');
       return res.status(401).json({ message: 'Tenant context required' });
     }
 
     const customerId = req.params.customerId;
     const companyId = req.params.companyId;
     
+    console.log('Attempting to delete company association:', {
+      customerId,
+      companyId,
+      tenantId: req.user.tenantId,
+      userId: req.user.id
+    });
+
+    if (!customerId || !companyId) {
+      console.error('Delete company association: Missing required parameters');
+      return res.status(400).json({ message: 'Customer ID and Company ID are required' });
+    }
+    
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
     
-    const result = await pool.query(
-      `DELETE FROM "${schemaName}"."customer_company_memberships" 
-       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
-      [customerId, companyId, req.user.tenantId]
-    );
+    // First, check if the membership exists
+    const checkQuery = `
+      SELECT * FROM "${schemaName}"."customer_company_memberships" 
+      WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
+    `;
+    
+    const checkResult = await pool.query(checkQuery, [customerId, companyId, req.user.tenantId]);
+    
+    console.log('Membership check result:', {
+      found: checkResult.rows.length > 0,
+      membership: checkResult.rows[0] || null
+    });
+
+    if (checkResult.rows.length === 0) {
+      console.warn('Membership not found for deletion:', { customerId, companyId });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Membership not found',
+        details: { customerId, companyId }
+      });
+    }
+    
+    // Delete the membership
+    const deleteQuery = `
+      DELETE FROM "${schemaName}"."customer_company_memberships" 
+      WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
+    `;
+    
+    const result = await pool.query(deleteQuery, [customerId, companyId, req.user.tenantId]);
+
+    console.log('Delete operation result:', {
+      rowCount: result.rowCount,
+      success: result.rowCount > 0
+    });
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Membership not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Membership not found or already deleted' 
+      });
     }
 
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error removing customer from company:', error);
-    res.status(500).json({ message: 'Failed to remove customer from company' });
+    res.json({ 
+      success: true,
+      message: 'Company association removed successfully',
+      deletedCount: result.rowCount
+    });
+  } catch (error: any) {
+    console.error('Error removing customer from company:', {
+      error: error.message,
+      stack: error.stack,
+      customerId: req.params.customerId,
+      companyId: req.params.companyId,
+      tenantId: req.user?.tenantId
+    });
+    
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to remove customer from company',
+      error: error.message
+    });
   }
 });
