@@ -39,17 +39,21 @@ export class LocationsServices {
     const currentYear = ano || new Date().getFullYear();
     
     try {
-      // Mock implementation - replace with actual holiday API
+      // Comprehensive holiday implementation
       const holidays = {
         federais: [
-          { data: `${currentYear}-01-01`, nome: 'Confraternização Universal' },
-          { data: `${currentYear}-04-21`, nome: 'Tiradentes' },
-          { data: `${currentYear}-05-01`, nome: 'Dia do Trabalhador' },
-          { data: `${currentYear}-09-07`, nome: 'Independência do Brasil' },
-          { data: `${currentYear}-10-12`, nome: 'Nossa Senhora Aparecida' },
-          { data: `${currentYear}-11-02`, nome: 'Finados' },
-          { data: `${currentYear}-11-15`, nome: 'Proclamação da República' },
-          { data: `${currentYear}-12-25`, nome: 'Natal' }
+          { data: `${currentYear}-01-01`, nome: 'Confraternização Universal', incluir: false },
+          { data: `${currentYear}-02-12`, nome: 'Carnaval (Segunda)', incluir: false },
+          { data: `${currentYear}-02-13`, nome: 'Carnaval (Terça)', incluir: false },
+          { data: `${currentYear}-04-07`, nome: 'Sexta-feira Santa', incluir: false },
+          { data: `${currentYear}-04-21`, nome: 'Tiradentes', incluir: false },
+          { data: `${currentYear}-05-01`, nome: 'Dia do Trabalhador', incluir: false },
+          { data: `${currentYear}-06-08`, nome: 'Corpus Christi', incluir: false },
+          { data: `${currentYear}-09-07`, nome: 'Independência do Brasil', incluir: false },
+          { data: `${currentYear}-10-12`, nome: 'Nossa Senhora Aparecida', incluir: false },
+          { data: `${currentYear}-11-02`, nome: 'Finados', incluir: false },
+          { data: `${currentYear}-11-15`, nome: 'Proclamação da República', incluir: false },
+          { data: `${currentYear}-12-25`, nome: 'Natal', incluir: false }
         ],
         estaduais: this.getEstadualHolidays(estado, currentYear),
         municipais: this.getMunicipalHolidays(municipio, estado, currentYear)

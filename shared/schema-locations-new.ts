@@ -17,7 +17,7 @@ export const locais = pgTable('locais', {
   ativo: boolean('ativo').notNull().default(true),
   descricao: text('descricao').notNull(),
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
-  clienteFavorecidoId: uuid('cliente_favorecido_id'), // FK to customers/favorecidos
+  tipoClienteFavorecido: varchar('tipo_cliente_favorecido', { length: 20 }), // 'cliente' ou 'favorecido'
   tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users (workspace admin team member)
   
   // Contato
@@ -197,6 +197,7 @@ export const localSchema = createInsertSchema(locais, {
   latitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Latitude inválida").optional(),
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
   tipoLogradouro: z.enum(['Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo']).optional(),
+  tipoClienteFavorecido: z.enum(['cliente', 'favorecido']).optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Schema for holidays selection

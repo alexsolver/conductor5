@@ -44,14 +44,14 @@ export class LocationsNewController {
   async lookupCep(req: AuthenticatedRequest, res: Response) {
     try {
       const { cep } = req.params;
-      
+
       if (!cep || cep.length < 8) {
         return sendError(res, "CEP inválido", 400);
       }
 
       const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
       const data = await response.json();
-      
+
       if (data.erro) {
         return sendError(res, "CEP não encontrado", 404);
       }
@@ -67,13 +67,13 @@ export class LocationsNewController {
   async lookupHolidays(req: AuthenticatedRequest, res: Response) {
     try {
       const { municipio, estado, ano } = req.query;
-      
+
       if (!municipio || !estado) {
         return sendError(res, "Município e estado são obrigatórios", 400);
       }
 
       const currentYear = ano ? parseInt(ano as string) : new Date().getFullYear();
-      
+
       // Mock holiday data - replace with actual API integration
       const holidays = {
         federais: [
@@ -86,8 +86,8 @@ export class LocationsNewController {
           { data: `${currentYear}-11-15`, nome: 'Proclamação da República', incluir: false },
           { data: `${currentYear}-12-25`, nome: 'Natal', incluir: false }
         ],
-        estaduais: this.getEstadualHolidays(estado as string, currentYear),
-        municipais: this.getMunicipalHolidays(municipio as string, estado as string, currentYear)
+        estaduais: LocationsNewController.getEstadualHolidays(estado as string, currentYear),
+        municipais: LocationsNewController.getMunicipalHolidays(municipio as string, estado as string, currentYear)
       };
 
       return sendSuccess(res, holidays, "Feriados encontrados com sucesso");
@@ -101,7 +101,7 @@ export class LocationsNewController {
   async geocodeAddress(req: AuthenticatedRequest, res: Response) {
     try {
       const { address } = req.body;
-      
+
       if (!address) {
         return sendError(res, "Endereço é obrigatório", 400);
       }
@@ -110,7 +110,7 @@ export class LocationsNewController {
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
       );
       const data = await response.json();
-      
+
       if (data && data[0]) {
         const result = {
           latitude: parseFloat(data[0].lat),
@@ -118,10 +118,10 @@ export class LocationsNewController {
           displayName: data[0].display_name,
           boundingBox: data[0].boundingbox
         };
-        
+
         return sendSuccess(res, result, "Coordenadas encontradas com sucesso");
       }
-      
+
       return sendError(res, "Endereço não encontrado", 404);
     } catch (error) {
       console.error('Error geocoding address:', error);
@@ -129,38 +129,97 @@ export class LocationsNewController {
     }
   }
 
-  private getEstadualHolidays(estado: string, ano: number) {
-    const estadualHolidays: { [key: string]: any[] } = {
-      'RJ': [
-        { data: `${ano}-04-23`, nome: 'São Jorge', incluir: false },
-        { data: `${ano}-06-29`, nome: 'São Pedro', incluir: false }
-      ],
+  private static getEstadualHolidays(estado: string, ano: number) {
+    // Feriados estaduais por estado brasileiro
+    const estadualHolidays: any = {
       'SP': [
-        { data: `${ano}-02-13`, nome: 'Carnaval', incluir: false },
         { data: `${ano}-07-09`, nome: 'Revolução Constitucionalista', incluir: false }
       ],
+      'RJ': [
+        { data: `${ano}-04-23`, nome: 'São Jorge', incluir: false },
+        { data: `${ano}-06-29`, nome: 'São Pedro', incluir: false },
+        { data: `${ano}-11-20`, nome: 'Zumbi dos Palmares', incluir: false }
+      ],
       'MG': [
-        { data: `${ano}-04-21`, nome: 'Data Magna do Estado', incluir: false }
+        { data: `${ano}-04-21`, nome: 'Tiradentes (Estadual MG)', incluir: false }
+      ],
+      'RS': [
+        { data: `${ano}-09-20`, nome: 'Revolução Farroupilha', incluir: false }
+      ],
+      'CE': [
+        { data: `${ano}-03-25`, nome: 'Data Magna do Ceará', incluir: false }
+      ],
+      'BA': [
+        { data: `${ano}-07-02`, nome: 'Independência da Bahia', incluir: false }
+      ],
+      'PR': [
+        { data: `${ano}-12-19`, nome: 'Emancipação do Paraná', incluir: false }
+      ],
+      'SC': [
+        { data: `${ano}-08-11`, nome: 'Criação da Comarca de São José', incluir: false }
+      ],
+      'GO': [
+        { data: `${ano}-10-24`, nome: 'Pedra Fundamental de Goiânia', incluir: false }
+      ],
+      'MT': [
+        { data: `${ano}-11-20`, nome: 'Zumbi dos Palmares (MT)', incluir: false }
+      ],
+      'MS': [
+        { data: `${ano}-10-11`, nome: 'Criação do Estado', incluir: false }
+      ],
+      'PE': [
+        { data: `${ano}-06-24`, nome: 'São João', incluir: false }
+      ],
+      'AL': [
+        { data: `${ano}-06-24`, nome: 'São João (AL)', incluir: false }
+      ],
+      'SE': [
+        { data: `${ano}-07-08`, nome: 'Emancipação de Sergipe', incluir: false }
       ]
     };
 
-    return estadualHolidays[estado] || [];
+    return estadualHolidays[estado.toUpperCase()] || [];
   }
 
-  private getMunicipalHolidays(municipio: string, estado: string, ano: number) {
-    const municipalHolidays: { [key: string]: any[] } = {
-      'Rio de Janeiro': [
-        { data: `${ano}-01-20`, nome: 'São Sebastião', incluir: false }
+  private static getMunicipalHolidays(municipio: string, estado: string, ano: number) {
+    // Feriados municipais das principais cidades
+    const municipalHolidays: any = {
+      'São Paulo_SP': [
+        { data: `${ano}-01-25`, nome: 'Aniversário de São Paulo', incluir: false }
       ],
-      'São Paulo': [
-        { data: `${ano}-01-25`, nome: 'Aniversário da Cidade', incluir: false }
+      'Rio de Janeiro_RJ': [
+        { data: `${ano}-01-20`, nome: 'São Sebastião', incluir: false },
+        { data: `${ano}-04-22`, nome: 'Descobrimento do Brasil', incluir: false }
       ],
-      'Belo Horizonte': [
-        { data: `${ano}-12-12`, nome: 'Nossa Senhora da Conceição', incluir: false }
+      'Belo Horizonte_MG': [
+        { data: `${ano}-12-08`, nome: 'Nossa Senhora da Conceição', incluir: false }
+      ],
+      'Salvador_BA': [
+        { data: `${ano}-01-06`, nome: 'Epifania', incluir: false }
+      ],
+      'Brasília_DF': [
+        { data: `${ano}-04-21`, nome: 'Fundação de Brasília', incluir: false },
+        { data: `${ano}-11-30`, nome: 'Dia do Evangélico', incluir: false }
+      ],
+      'Curitiba_PR': [
+        { data: `${ano}-03-29`, nome: 'Fundação de Curitiba', incluir: false }
+      ],
+      'Recife_PE': [
+        { data: `${ano}-03-12`, nome: 'Fundação do Recife', incluir: false }
+      ],
+      'Porto Alegre_RS': [
+        { data: `${ano}-03-26`, nome: 'Fundação de Porto Alegre', incluir: false }
+      ],
+      'Manaus_AM': [
+        { data: `${ano}-10-24`, nome: 'Fundação de Manaus', incluir: false }
+      ],
+      'Fortaleza_CE': [
+        { data: `${ano}-04-13`, nome: 'Fundação de Fortaleza', incluir: false }
       ]
     };
 
-    return municipalHolidays[municipio] || [];
+    const key = `${municipio}_${estado.toUpperCase()}`;
+    return municipalHolidays[key] || [];
   }
 
   // Get statistics by record type
@@ -373,10 +432,10 @@ export class LocationsNewController {
   async lookupCep(req: AuthenticatedRequest, res: Response) {
     try {
       const { cep } = req.params;
-      
+
       const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
       const data = await response.json();
-      
+
       if (data.erro) {
         return sendError(res, "CEP not found", 404);
       }
@@ -399,7 +458,7 @@ export class LocationsNewController {
   async lookupHolidays(req: AuthenticatedRequest, res: Response) {
     try {
       const { municipio, estado, ano } = req.query;
-      
+
       // This would integrate with a holidays API service
       // For now, returning mock data structure
       const holidays = {

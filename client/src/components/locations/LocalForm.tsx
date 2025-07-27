@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Phone, Home, Globe, Clock, Search, Calendar, Plus, Trash2, Map, Users } from "lucide-react";
 import { localSchema, type NewLocal } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
+import { LeafletMapSelector } from "@/components/LeafletMapSelector";
 
 interface LocalFormProps {
   onSubmit: (data: NewLocal) => void;
@@ -30,11 +31,7 @@ interface TeamMember {
   role: string;
 }
 
-interface CustomerFavorecido {
-  id: string;
-  nome: string;
-  type: 'customer' | 'favorecido';
-}
+
 
 interface Holiday {
   data: string;
@@ -77,7 +74,7 @@ const FUSOS_HORARIO = [
 export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFormProps) {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [customersFavorecidos, setCustomersFavorecidos] = useState<CustomerFavorecido[]>([]);
+  
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [holidays, setHolidays] = useState<HolidaysByType>({
@@ -106,10 +103,9 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     }
   });
 
-  // Load team members and customers/favorecidos on mount
+  // Load team members on mount
   useEffect(() => {
     loadTeamMembers();
-    loadCustomersFavorecidos();
     if (initialData?.feriadosIncluidos) {
       setSelectedHolidays(initialData.feriadosIncluidos as HolidaysByType);
     }
@@ -131,18 +127,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     }
   };
 
-  const loadCustomersFavorecidos = async () => {
-    try {
-      // Mock data - replace with actual API call
-      setCustomersFavorecidos([
-        { id: '1', nome: 'Cliente ABC Ltda', type: 'customer' },
-        { id: '2', nome: 'Favorecido XYZ', type: 'favorecido' },
-        { id: '3', nome: 'Empresa DEF S.A.', type: 'customer' }
-      ]);
-    } catch (error) {
-      console.error('Error loading customers/favorecidos:', error);
-    }
-  };
+  
 
   const buscarEnderecoPorCep = async () => {
     const cep = form.getValues('cep');
@@ -365,25 +350,27 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
             </div>
 
             <div>
-              <Label htmlFor="clienteFavorecidoId">Cliente ou Favorecido</Label>
+              <Label htmlFor="tipoClienteFavorecido">Cliente ou Favorecido</Label>
               <Select 
-                value={form.watch('clienteFavorecidoId') || ''} 
-                onValueChange={(value) => form.setValue('clienteFavorecidoId', value)}
+                value={form.watch('tipoClienteFavorecido') || ''} 
+                onValueChange={(value) => form.setValue('tipoClienteFavorecido', value)}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecione cliente ou favorecido" />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customersFavorecidos.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={item.type === 'customer' ? 'default' : 'secondary'}>
-                          {item.type === 'customer' ? 'Cliente' : 'Favorecido'}
-                        </Badge>
-                        {item.nome}
-                      </div>
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="cliente">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default">Cliente</Badge>
+                      Cliente
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="favorecido">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">Favorecido</Badge>
+                      Favorecido
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -839,20 +826,43 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
       {/* Dialog do Mapa */}
       <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Validação de Coordenadas</DialogTitle>
           </DialogHeader>
-          <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">
-              Mapa interativo será implementado aqui
-              <br />
-              Coordenadas: {form.watch('latitude')}, {form.watch('longitude')}
-            </p>
+          <div className="h-96">
+            <LeafletMapSelector
+              initialLat={parseFloat(form.watch('latitude')) || mapCenter[0]}
+              initialLng={parseFloat(form.watch('longitude')) || mapCenter[1]}
+              addressData={{
+                address: form.watch('logradouro'),
+                number: form.watch('numero'),
+                neighborhood: form.watch('bairro'),
+                city: form.watch('municipio'),
+                state: form.watch('estado'),
+                zipCode: form.watch('cep'),
+                country: form.watch('pais')
+              }}
+              onLocationSelect={(lat, lng) => {
+                form.setValue('latitude', lat.toString());
+                form.setValue('longitude', lng.toString());
+                form.setValue('geoCoordenadas', {
+                  latitude: lat,
+                  longitude: lng,
+                  endereco: `${form.watch('logradouro')}, ${form.watch('numero')}, ${form.watch('bairro')}, ${form.watch('municipio')}, ${form.watch('estado')}`,
+                  validado: true,
+                  fonte: 'manual'
+                });
+                setMapCenter([lat, lng]);
+              }}
+            />
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowMapDialog(false)}>
+              Cancelar
+            </Button>
             <Button onClick={() => setShowMapDialog(false)}>
-              Fechar
+              Confirmar Localização
             </Button>
           </div>
         </DialogContent>
