@@ -54,8 +54,6 @@ export interface IStorage {
   getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
   createSolicitante(tenantId: string, data: any): Promise<any>;
   createFavorecido(tenantId: string, data: any): Promise<any>;
-  updateFavorecido(tenantId: string, favorecidoId: string, data: any): Promise<any>;
-  deleteFavorecido(tenantId: string, favorecidoId: string): Promise<boolean>;
 
   // Ticket Templates Management
   getTicketTemplates(tenantId: string, options?: { limit?: number; offset?: number; search?: string; category?: string }): Promise<any[]>;
@@ -487,6 +485,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       // PROBLEMA 2,3,7 RESOLVIDOS: Campos reais do banco, mapping correto, SQL injection safe
+      // CORREÇÃO CRÍTICA: Usar location ao invés de location_id baseado no schema real
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
         SET 
@@ -494,6 +493,7 @@ export class DatabaseStorage implements IStorage {
           description = ${ticketData.description || null},
           priority = ${ticketData.priority || 'medium'},
           state = ${ticketData.status || 'open'},
+          status = ${ticketData.status || 'open'},
           category = ${ticketData.category || null},
           subcategory = ${ticketData.subcategory || null},
           impact = ${ticketData.impact || null},
@@ -502,8 +502,7 @@ export class DatabaseStorage implements IStorage {
           beneficiary_id = ${ticketData.beneficiary_id || null},
           assigned_to_id = ${ticketData.assigned_to_id || null},
           assignment_group = ${ticketData.assignment_group || null},
-          location_id = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
-          location = ${ticketData.location_name || null},
+          location = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
           contact_type = ${ticketData.contact_type || null},
           business_impact = ${ticketData.business_impact || null},
           symptoms = ${ticketData.symptoms || null},
@@ -512,7 +511,9 @@ export class DatabaseStorage implements IStorage {
           environment = ${ticketData.environment || null},
           caller_type = ${ticketData.caller_type || 'customer'},
           beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
+          customer_id = ${ticketData.customer_id || null},
           followers = ${JSON.stringify(ticketData.followers || [])}::jsonb,
+          tags = ${JSON.stringify(ticketData.tags || [])}::jsonb,
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
@@ -939,7 +940,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFavorecido(tenantId: string, favorecidoId: string, data: any): Promise<any> {
+  async updateFavorecido(id: string, tenantId: string, data: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -961,7 +962,7 @@ export class DatabaseStorage implements IStorage {
           contact_person = ${data.contactPerson || null},
           contact_phone = ${data.contactPhone || null},
           updated_at = NOW()
-        WHERE id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
         RETURNING *
       `);
 
@@ -974,12 +975,12 @@ export class DatabaseStorage implements IStorage {
 
       return favorecido;
     } catch (error) {
-      logError('Error updating favorecido', error, { tenantId, favorecidoId, data });
+      logError('Error updating favorecido', error, { id, tenantId, data });
       throw error;
     }
   }
 
-  async deleteFavorecido(tenantId: string, favorecidoId: string): Promise<boolean> {
+  async deleteFavorecido(id: string, tenantId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -987,12 +988,17 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.favorecidos
-        WHERE id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
       `);
 
-      return Number(result.rowCount || 0) > 0;
+      const deleted = Number(result.rowCount || 0) > 0;
+      if (deleted) {
+        logInfo('Favorecido deleted successfully', { tenantId: validatedTenantId, favorecidoId: id });
+      }
+
+      return deleted;
     } catch (error) {
-      logError('Error deleting favorecido', error, { tenantId, favorecidoId });
+      logError('Error deleting favorecido', error, { id, tenantId });
       throw error;
     }
   }
@@ -1984,6 +1990,143 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logError('Error counting clientes', error, { tenantId });
       return 0;
+    }
+  }
+
+  async getFavorecidoLocations(favorecidoId: string, tenantId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          fl.id,
+          fl.favorecido_id,
+          fl.location_id,
+          fl.is_primary,
+          fl.created_at,
+          l.name as location_name,
+          l.address as location_address,
+          l.city as location_city,
+          l.state as location_state
+        FROM ${sql.identifier(schemaName)}.favorecido_locations fl
+        JOIN ${sql.identifier(schemaName)}.locations l ON fl.location_id = l.id
+        WHERE fl.favorecido_id = ${favorecidoId} AND fl.tenant_id = ${validatedTenantId}
+        ORDER BY fl.is_primary DESC, fl.created_at ASC
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching favorecido locations', error, { favorecidoId, tenantId });
+      return [];
+    }
+  }
+
+  async addFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean = false): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // If setting as primary, first unset other primary locations
+      if (isPrimary) {
+        await tenantDb.execute(sql`
+          UPDATE ${sql.identifier(schemaName)}.favorecido_locations
+          SET is_primary = false
+          WHERE favorecido_id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+        `);
+      }
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.favorecido_locations
+        (id, tenant_id, favorecido_id, location_id, is_primary, created_at, updated_at)
+        VALUES (
+          gen_random_uuid(),
+          ${validatedTenantId},
+          ${favorecidoId},
+          ${locationId},
+          ${isPrimary},
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error adding favorecido location', error, { favorecidoId, locationId, tenantId });
+      throw error;
+    }
+  }
+
+  async removeFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.favorecido_locations
+        WHERE favorecido_id = ${favorecidoId} 
+        AND location_id = ${locationId} 
+        AND tenant_id = ${validatedTenantId}
+      `);
+
+      return Number(result.rowCount || 0) > 0;
+    } catch (error) {
+      logError('Error removing favorecido location', error, { favorecidoId, locationId, tenantId });
+      throw error;
+    }
+  }
+
+  async updateFavorecidoLocationPrimary(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // If setting as primary, first unset other primary locations
+      if (isPrimary) {
+        await tenantDb.execute(sql`
+          UPDATE ${sql.identifier(schemaName)}.favorecido_locations
+          SET is_primary = false
+          WHERE favorecido_id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+        `);
+      }
+
+      const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.favorecido_locations
+        SET is_primary = ${isPrimary}, updated_at = NOW()
+        WHERE favorecido_id = ${favorecidoId} 
+        AND location_id = ${locationId} 
+        AND tenant_id = ${validatedTenantId}
+      `);
+
+      return Number(result.rowCount || 0) > 0;
+    } catch (error) {
+      logError('Error updating favorecido location primary status', error, { favorecidoId, locationId, tenantId });
+      throw error;
+    }
+  }
+
+  async getLocation(locationId: string, tenantId: string): Promise<any | null> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT *
+        FROM ${sql.identifier(schemaName)}.locations
+        WHERE id = ${locationId} AND tenant_id = ${validatedTenantId}
+        LIMIT 1
+      `);
+
+      return result.rows?.[0] || null;
+    } catch (error) {
+      logError('Error fetching location', error, { locationId, tenantId });
+      return null;
     }
   }
 

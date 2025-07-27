@@ -99,7 +99,7 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     });
 
     const ticket = await storageSimple.createTicket(ticketData);
-    
+
     // Log activity
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
@@ -142,14 +142,14 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       subcategory: updates.subcategory,
       impact: updates.impact,
       urgency: updates.urgency,
-      
+
       // Assignment fields
       caller_id: updates.caller_id,
       beneficiary_id: updates.beneficiary_id,
       assigned_to_id: updates.assigned_to_id,
       customer_id: updates.customer_id,
-      location: updates.location, // PROBLEMA 2: location (não location_id)
-      
+      location: updates.location, // CORREÇÃO: location correto baseado no schema
+
       // Business fields  
       caller_type: updates.caller_type,
       beneficiary_type: updates.beneficiary_type,
@@ -158,7 +158,7 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       business_impact: updates.business_impact,
       symptoms: updates.symptoms,
       workaround: updates.workaround,
-      
+
       // Template/Environment fields
       environment: updates.environment,
       template_name: updates.template_name,
@@ -176,7 +176,7 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       infrastructure: updates.infrastructure,
       environment_publication: updates.environment_publication,
       close_to_publish: updates.close_to_publish,
-      
+
       // Arrays
       followers: updates.followers,
       tags: updates.tags,
@@ -191,7 +191,7 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // CRITICAL FIX: Pass parameters in correct order (tenantId, ticketId, updates)
     const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, validatedUpdates);
-    
+
     if (!updatedTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -229,7 +229,7 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
     });
 
     const message = await storageSimple.createTicketMessage(messageData);
-    
+
     // Log activity
     await storageSimple.createActivityLog({
       tenantId: req.user.tenantId,
@@ -265,7 +265,7 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
       assignedToId,
       status: 'in_progress'
     });
-    
+
     if (!updatedTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -295,7 +295,7 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
     }
 
     const ticketId = req.params.id;
-    
+
     // First check if ticket exists
     const existingTicket = await storageSimple.getTicket(ticketId, req.user.tenantId);
     if (!existingTicket) {
@@ -304,7 +304,7 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
 
     // Mark as deleted by updating status
     const success = await storageSimple.updateTicket(ticketId, req.user.tenantId, { status: 'deleted' });
-    
+
     if (!success) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -700,7 +700,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
     // Get user name for response
     const userQuery = `SELECT first_name || ' ' || last_name as author_name FROM public.users WHERE id = $1`;
     const userResult = await pool.query(userQuery, [req.user.id]);
-    
+
     newNote.author_name = userResult.rows[0]?.author_name || 'Unknown User';
 
     res.status(201).json({

@@ -41,7 +41,7 @@ const ticketFormSchema = z.object({
   // Core required fields
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
-  
+
   // Classification fields with proper validation
   priority: z.enum(["low", "medium", "high", "critical"]),
   status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
@@ -49,7 +49,7 @@ const ticketFormSchema = z.object({
   subcategory: z.string().optional(),
   impact: z.enum(["low", "medium", "high", "critical"]).optional(),
   urgency: z.enum(["low", "medium", "high", "critical"]).optional(),
-  
+
   // Assignment fields with validation
   callerId: z.string().min(1, "Caller is required"),
   callerType: z.enum(["customer", "user"]),
@@ -57,34 +57,34 @@ const ticketFormSchema = z.object({
   beneficiaryType: z.enum(["customer", "user"]),
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
-  
+
   // Location and contact
   location: z.string().optional(),
   contactType: z.enum(["email", "phone", "chat", "portal"]).optional(),
-  
+
   // Extended fields for business context
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
   resolution: z.string().optional(),
-  
+
   // Collections
   followers: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
-  
+
   // Company relationship
   customerCompanyId: z.string().optional(),
-  
+
   // Template and environment fields
   environment: z.string().optional(),
   templateName: z.string().optional(),
   templateAlternative: z.string().optional(),
-  
+
   // Linking fields
   linkTicketNumber: z.string().optional(),
   linkType: z.string().optional(),
   linkComment: z.string().optional(),
-  
+
   // Time tracking
   estimatedHours: z.number().optional(),
   actualHours: z.number().optional(),
@@ -341,12 +341,12 @@ export default function TicketDetails() {
   // Fetch customers for selected company
   const [selectedCompanyCustomers, setSelectedCompanyCustomers] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
-  
+
   // PROBLEMA 9 RESOLVIDO: Otimizar fetch de customers - sem logs redundantes
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
       const companyId = ticket?.customer_id || ticket?.customerCompanyId || ticket?.company;
-      
+
       // Skip if no company or same as current
       if (!companyId || companyId === 'unspecified' || companyId === selectedCompany) {
         if (!companyId || companyId === 'unspecified') {
@@ -360,7 +360,7 @@ export default function TicketDetails() {
       try {
         const response = await apiRequest("GET", `/api/companies/${companyId}/customers`);
         const data = await response.json();
-        
+
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
         } else {
@@ -381,20 +381,20 @@ export default function TicketDetails() {
   const handleCompanyChange = async (newCompanyId: string) => {
     // Only proceed if company actually changed
     if (newCompanyId === selectedCompany) return;
-    
+
     setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
-    
+
     // Reset customer selections only when changing company
     form.setValue('callerId', '');
     form.setValue('beneficiaryId', '');
-    
+
     // Fetch new customers only if valid company selected
     if (newCompanyId && newCompanyId !== 'unspecified') {
       try {
         const response = await apiRequest("GET", `/api/companies/${newCompanyId}/customers`);
         const data = await response.json();
-        
+
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
         } else {
@@ -513,7 +513,7 @@ export default function TicketDetails() {
   });
 
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-  
+
   // Use company-specific customers if available, otherwise fall back to all customers
   const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
 
@@ -634,11 +634,11 @@ export default function TicketDetails() {
         content: newNote,
         ticketId: id
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
 
       if (result.success) {
@@ -654,7 +654,7 @@ export default function TicketDetails() {
       }
     } catch (error) {
       console.error('Failed to add note:', error);
-      
+
       toast({
         title: "Erro",
         description: "Erro ao adicionar nota. Tente novamente.",
@@ -729,7 +729,7 @@ export default function TicketDetails() {
         followers: ticket.followers || [],
         customerCompanyId: ticket.customer_id || "",
       });
-      
+
       // Update local states to sync with ticket data
       if (ticket.customer_id) {
         setSelectedCompany(ticket.customer_id);
@@ -806,7 +806,7 @@ export default function TicketDetails() {
       subcategory: data.subcategory,
       impact: data.impact,
       urgency: data.urgency,
-      
+
       // Assignment mapping camelCase → snake_case
       caller_id: data.callerId,
       caller_type: data.callerType,
@@ -814,38 +814,38 @@ export default function TicketDetails() {
       beneficiary_type: data.beneficiaryType,
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
-      
+
       // CORRIGIDO: Location mapping adequado
       location_id: data.locationId,        // Para referência FK
       location: data.location,             // Para texto livre
       contact_type: data.contactType,
-      
+
       // Business fields
       business_impact: data.businessImpact,
       symptoms: data.symptoms,
       workaround: data.workaround,
       resolution: data.resolution,
-      
+
       // Time tracking
       estimated_hours: data.estimatedHours,
       actual_hours: data.actualHours,
-      
+
       // Collections
       followers: data.followers || [],
       tags: data.tags || [],
-      
+
       // CORRIGIDO: Company relationship - usar customer_id não customer_company_id
       customer_id: data.customerCompanyId,
-      
+
       // Environment
       environment: data.environment,
-      
+
       // Linking
       link_ticket_number: data.linkTicketNumber,
       link_type: data.linkType,
       link_comment: data.linkComment,
     };
-    
+
     updateTicketMutation.mutate(mappedData);
   };
 
@@ -900,12 +900,11 @@ export default function TicketDetails() {
                             fieldName="priority"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione a prioridade"
-                            disabled={!isEditMode}
+                            placeholder="Selecione a prioridade                            disabled={!isEditMode}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge fieldName="priority" value={field.value}>
+                            <DynamicBadge value={field.value}>
                               {field.value}
                             </DynamicBadge>
                           </div>
@@ -933,7 +932,7 @@ export default function TicketDetails() {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge fieldName="status" value={field.value}>
+                            <DynamicBadge value={field.value}>
                               {field.value}
                             </DynamicBadge>
                           </div>
@@ -1030,7 +1029,7 @@ export default function TicketDetails() {
               />
             </div>
 
-            
+
 
 
           </div>
@@ -2159,10 +2158,10 @@ export default function TicketDetails() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <DynamicBadge fieldName="priority" value={ticket.priority}>
+                    <DynamicBadge value={ticket.priority}>
                       {ticket.priority}
                     </DynamicBadge>
-                    <DynamicBadge fieldName="status" value={ticket.status}>
+                    <DynamicBadge value={ticket.status}>
                       {ticket.status}
                     </DynamicBadge>
                   </div>
