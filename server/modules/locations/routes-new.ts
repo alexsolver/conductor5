@@ -59,7 +59,7 @@ router.get('/services/cep/:cep', async (req: AuthenticatedRequest, res: Response
 });
 
 // Holidays lookup
-router.get('/services/holidays', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/holidays', async (req: AuthenticatedRequest, res: Response) => {
   const controller = getController(req);
   return controller.lookupHolidays(req, res);
 });
