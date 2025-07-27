@@ -1436,38 +1436,46 @@ export default function TicketDetails() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">🔗 Ações Externas</h2>
+              <Badge variant="outline" className="text-xs">
+                {externalActions.length} ações disponíveis
+              </Badge>
             </div>
-            <div className="grid grid-cols-1 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-16 justify-start" 
-                onClick={() => window.open(`https://servicenow.company.com/ticket/${ticket.id}`, '_blank')}
-              >
-                <ExternalLink className="h-5 w-5 mr-3" />
-                Abrir no ServiceNow
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-16 justify-start"
-                onClick={() => {
-                  const slackUrl = `https://slack.com/channels/support/messages/new?text=Ticket ${ticket.number}: ${ticket.subject}`;
-                  window.open(slackUrl, '_blank');
-                }}
-              >
-                <MessageSquare className="h-5 w-5 mr-3" />
-                Criar thread no Slack
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-16 justify-start"
-                onClick={() => {
-                  const emailBody = `Assunto: ${ticket.subject}%0D%0ADescrição: ${ticket.description || ''}%0D%0ATicket: ${ticket.number}`;
-                  window.location.href = `mailto:${ticket.customerEmail || ticket.contactEmail}?subject=Ticket ${ticket.number}&body=${emailBody}`;
-                }}
-              >
-                <Mail className="h-5 w-5 mr-3" />
-                Enviar por email
-              </Button>
+            
+            {/* 🚨 CORREÇÃO: Dados reais da API eliminando botões hardcoded */}
+            <div className="space-y-4">
+              {externalActions.length === 0 ? (
+                <Card className="p-8 text-center border-2 border-dashed border-gray-300">
+                  <ExternalLink className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhuma ação externa configurada</h3>
+                  <p className="text-gray-500 mb-4">
+                    Configure integrações externas no módulo de administração para automatizar ações
+                  </p>
+                </Card>
+              ) : (
+                externalActions.map((action: any) => (
+                  <Card key={action.id} className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <ExternalLink className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{action.title || action.action_type}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{action.description || action.summary}</p>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-xs text-gray-500">
+                              {action.created_at ? new Date(action.created_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {action.status || 'pendente'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         );
@@ -2194,14 +2202,19 @@ export default function TicketDetails() {
           {/* Campos Especiais - Nova ordem */}
           <button
             onClick={() => setActiveTab("communications")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
               activeTab === "communications" 
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'hover:bg-gray-50'
             }`}
           >
-            <MessageSquare className="h-4 w-4" />
-            <span className="text-sm font-medium">Comunicação</span>
+            <div className="flex items-center gap-3">
+              <MessageSquare className="h-4 w-4" />
+              <span className="text-sm font-medium">Comunicação</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-600">
+              {communications.length}
+            </Badge>
           </button>
 
           <button
@@ -2230,26 +2243,36 @@ export default function TicketDetails() {
 
           <button
             onClick={() => setActiveTab("internal-actions")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
               activeTab === "internal-actions" 
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'hover:bg-gray-50'
             }`}
           >
-            <Settings className="h-4 w-4" />
-            <span className="text-sm font-medium">Ações Internas</span>
+            <div className="flex items-center gap-3">
+              <Settings className="h-4 w-4" />
+              <span className="text-sm font-medium">Ações Internas</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600">
+              {internalActions.length}
+            </Badge>
           </button>
 
           <button
             onClick={() => setActiveTab("external-actions")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
               activeTab === "external-actions" 
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'hover:bg-gray-50'
             }`}
           >
-            <ExternalLink className="h-4 w-4" />
-            <span className="text-sm font-medium">Ações Externas</span>
+            <div className="flex items-center gap-3">
+              <ExternalLink className="h-4 w-4" />
+              <span className="text-sm font-medium">Ações Externas</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
+              {externalActions.length}
+            </Badge>
           </button>
 
           <button
