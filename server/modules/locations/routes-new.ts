@@ -2,7 +2,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { LocationsNewController } from './LocationsNewController';
 import { LocationsNewRepository } from './LocationsNewRepository';
-import { getTenantDb } from '../../utils/schemaInitializer';
+import { getTenantDb } from '../../db-tenant';
 import { DatabaseStorage } from "../../storage-simple";
 import { jwtAuth } from "../../middleware/jwtAuth";
 
