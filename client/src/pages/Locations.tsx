@@ -376,7 +376,7 @@ export default function Locations() {
                 <SelectValue placeholder="Tipo de local" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os tipos</SelectItem>
+                <SelectItem value="all">Todos os tipos</SelectItem>
                 <SelectItem value="point">Pontos</SelectItem>
                 <SelectItem value="segment">Segmentos</SelectItem>
                 <SelectItem value="area">Áreas</SelectItem>
@@ -389,7 +389,7 @@ export default function Locations() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
                 <SelectItem value="inactive">Inativo</SelectItem>
                 <SelectItem value="maintenance">Manutenção</SelectItem>
