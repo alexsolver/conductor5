@@ -84,12 +84,25 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   // Load member data into form when member changes
   useEffect(() => {
     if (member) {
+      console.log('EditMemberDialog - Member data received:', member);
+      
+      // Handle different member data structures
       const memberGroupIds = Array.isArray(member.groupIds) ? member.groupIds : [];
       setSelectedGroups(memberGroupIds);
 
+      // Parse name into firstName and lastName if it comes as a single name field
+      let firstName = member.firstName || "";
+      let lastName = member.lastName || "";
+      
+      if (!firstName && !lastName && member.name) {
+        const nameParts = member.name.split(' ');
+        firstName = nameParts[0] || "";
+        lastName = nameParts.slice(1).join(' ') || "";
+      }
+
       form.reset({
-        firstName: member.firstName || "",
-        lastName: member.lastName || "",
+        firstName,
+        lastName,
         email: member.email || "",
         phone: member.phone || "",
         cellPhone: member.cellPhone || "",
@@ -99,11 +112,13 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         state: member.state || "",
         city: member.city || "",
         streetAddress: member.streetAddress || "",
-        employeeCode: member.employeeCode || "",
-        cargo: member.cargo || "",
+        employeeCode: member.employeeCode || member.id?.slice(-8) || "",
+        cargo: member.cargo || member.position || "",
         pis: member.pis || "",
         admissionDate: member.admissionDate ? new Date(member.admissionDate) : undefined,
       });
+      
+      console.log('EditMemberDialog - Form values after reset:', form.getValues());
     }
   }, [member, form]);
 
@@ -122,6 +137,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   // Update member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: EditMemberFormData) => {
+      if (!member?.id) {
+        throw new Error('ID do membro não encontrado');
+      }
+      console.log('EditMemberDialog - Updating member with data:', data);
       return apiRequest('PUT', `/api/team-management/members/${member.id}`, data);
     },
     onSuccess: () => {

@@ -184,6 +184,7 @@ export default function TeamManagement() {
 
   // Handle edit member
   const handleEditMember = (member: any) => {
+    console.log('TeamManagement - Opening edit dialog with member:', member);
     setEditingMember(member);
     setShowEditDialog(true);
   };
