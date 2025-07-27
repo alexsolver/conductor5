@@ -816,7 +816,8 @@ export default function TicketDetails() {
       assignment_group: data.assignmentGroup,
 
       // CORREÇÃO PROBLEMA 3: Location field consistency - usar apenas location (campo texto)
-      location: data.location || data.locationId,  // Converte locationId → location se necessário
+      // 🚨 CORREÇÃO: location é campo texto, não locationId (FK inexistente)
+      location: data.location || '',  // Campo texto livre conforme schema do banco
       contact_type: data.contactType,
 
       // Business fields

@@ -18,13 +18,17 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   beneficiaryId: 'beneficiary_id', 
   assignedToId: 'assigned_to_id',
   customerCompanyId: 'customer_id',
-  locationId: 'location_id',
+  // 🚨 CORREÇÃO CRÍTICA: location é campo texto, não FK
+  location: 'location', // Campo texto livre, não location_id
   // Campos adicionais
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   deletedAt: 'deleted_at',
   tenantId: 'tenant_id',
-  customerId: 'customer_id'
+  customerId: 'customer_id',
+  shortDescription: 'short_description',
+  businessImpact: 'business_impact',
+  contactType: 'contact_type'
 };
 
 export const BACKEND_TO_FRONTEND_MAPPING: Record<string, string> = Object.fromEntries(

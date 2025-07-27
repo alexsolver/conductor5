@@ -130,12 +130,15 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
     
-    // CORREÇÃO CRÍTICA 3: Resolver inconsistência do campo location
-    // Definindo location como texto livre (não FK) conforme schema atual
+    // CORREÇÃO CRÍTICA 3: Campo location é texto livre, não FK
+    // Manter consistência com schema do banco
     if (frontendUpdates.locationId) {
-      backendUpdates.location = frontendUpdates.locationId; // Converter para texto
-      delete backendUpdates.location_id; // Remover FK inexistente
+      backendUpdates.location = frontendUpdates.locationId;
+      delete backendUpdates.location_id; // FK não existe no schema
     }
+    
+    // Garantir que location_id nunca seja enviado ao banco
+    delete backendUpdates.location_id;
 
     // Remove undefined values
     Object.keys(backendUpdates).forEach(key => {
