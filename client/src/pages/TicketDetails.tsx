@@ -2751,98 +2751,27 @@ export default function TicketDetails() {
                   
                     Relacionado
                   
-                  
+                  <SelectItem value="duplicado">
                     Duplicado
-                  
-                  
-                    ⬆️ Ticket Pai
-                  
-                  
-                    ⬇️ Sub-ticket
-                  
-                  
-                    🚫 Bloqueia
-                  
-                  
-                    ⏸️ Bloqueado por
-                  
-                
-              
-            
-            
-              Comentário (opcional)
-              
-                
-              
-            
-          
-          
-            
-              Cancelar
-              
-                
-                  
-                    
-                      
-                    
-                    Vincular
-                  
-                
-              
-            
-          
-        
-      
-
-      {/* Internal Actions Modal - Substituído por componente específico */}
-        
-            
-              
-                Nova Ação Interna
-              
-              Adicione uma ação interna ao ticket para registro e auditoria
-            
-          
-          
-            
-              Ação Realizada*
-              
-                
-              
-            
-            
-              Tipo de Ação
-              
-                
-                  
-                    Selecione o tipo
-                  
-                  
-                    🔍 Investigação
-                  
-                  
-                    ⬆️ Escalação
-                  
-                  
-                    ✅ Resolução
-                  
-                  
-                    💬 Comunicação
-                  
-                  
-                    🛠️ Solução Temporária
-                  
-                    📝 Documentação
                   </SelectItem>
-                  <SelectItem value="teste">
-                    🧪 Teste
+                  <SelectItem value="ticket_pai">
+                    ⬆️ Ticket Pai
+                  </SelectItem>
+                  <SelectItem value="sub_ticket">
+                    ⬇️ Sub-ticket
+                  </SelectItem>
+                  <SelectItem value="bloqueia">
+                    🚫 Bloqueia
+                  </SelectItem>
+                  <SelectItem value="bloqueado_por">
+                    ⏸️ Bloqueado por
                   </SelectItem>
                 </SelectContent>
               </Select>
             </FormItem>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
