@@ -401,14 +401,18 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         url: `/api/customers/${customer.id}/companies/${companyId}`
       });
       
+      // Fazer a requisição de exclusão
       const response = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
       
-      console.log('Delete response:', response);
+      // Verificar se a resposta foi bem-sucedida
+      const result = await response.json();
+      console.log('Delete response:', result);
       
-      // Aguardar um pouco antes de recarregar os dados
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (result.success === false) {
+        throw new Error(result.message || 'Falha ao remover empresa');
+      }
       
-      // Recarregar os dados das empresas do cliente
+      // Recarregar os dados das empresas do cliente imediatamente
       await refetchCustomerCompanies();
       
       toast({
@@ -426,7 +430,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       
       toast({
         title: "Erro",
-        description: error?.message || error?.response?.data?.message || "Erro ao remover empresa",
+        description: error?.message || "Erro ao remover empresa",
         variant: "destructive"
       });
     }
@@ -923,17 +927,11 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <div className="mt-2 space-y-2">
                             {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
                               customerCompanies.map((membership: any, index: number) => {
-                                // Determinar o ID correto da empresa para exclusão
+                                // Garantir ID único e válido para cada empresa
                                 const companyId = membership.company_id || membership.id;
-                                // Criar chave única mais robusta
-                                const uniqueKey = `company-${companyId || index}-${membership.membership_id || 'mem'}`;
-                                
-                                console.log('Company membership item:', {
-                                  membership,
-                                  companyId,
-                                  uniqueKey,
-                                  index
-                                });
+                                const membershipId = membership.membership_id || membership.id || index;
+                                // Chave única garantida usando múltiplos identificadores
+                                const uniqueKey = `membership-${membershipId}-${companyId}-${index}`;
                                 
                                 return (
                                   <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
@@ -952,10 +950,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       type="button"
                                       size="sm"
                                       variant="ghost"
-                                      onClick={() => {
-                                        console.log('Attempting to remove company:', { companyId, membership });
-                                        handleRemoveCompany(companyId);
-                                      }}
+                                      onClick={() => handleRemoveCompany(companyId)}
                                       disabled={!companyId}
                                       title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"}
                                     >
