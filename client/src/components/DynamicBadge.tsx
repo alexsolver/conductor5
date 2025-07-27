@@ -81,6 +81,9 @@ export function DynamicBadge({
   // Se temos classes dinâmicas, usar variant outline para não conflitar
   const finalVariant = dynamicClasses ? 'outline' : variant;
 
+  // Filter out fieldName and value to prevent DOM warnings  
+  const { fieldName: _, value: __, ...cleanProps } = props as any;
+
   return (
     <Badge 
       variant={finalVariant as any}
@@ -89,7 +92,7 @@ export function DynamicBadge({
         'font-medium text-xs px-2 py-1 rounded-md',
         className
       )}
-      {...props}
+      {...cleanProps}
     >
       {children}
     </Badge>

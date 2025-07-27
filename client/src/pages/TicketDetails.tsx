@@ -38,27 +38,56 @@ import InternalActionModal from "@/components/tickets/InternalActionModal";
 
 // Form schema
 const ticketFormSchema = z.object({
+  // Core required fields
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
+  
+  // Classification fields with proper validation
   priority: z.enum(["low", "medium", "high", "critical"]),
   status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
   category: z.string().optional(),
   subcategory: z.string().optional(),
+  
+  // Assignment fields with validation
   callerId: z.string().min(1, "Caller is required"),
   callerType: z.enum(["customer", "user"]),
-  favorecidoId: z.string().optional(),
   beneficiaryId: z.string().optional(),
   beneficiaryType: z.enum(["customer", "user"]),
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
+  
+  // Location and contact
   location: z.string().optional(),
   contactType: z.enum(["email", "phone", "chat", "portal"]),
+  
+  // Extended fields for business context
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
+  
+  // Collections
   followers: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  
+  // Company relationship
   customerCompanyId: z.string().optional(),
+  
+  // Impact and urgency fields
+  impact: z.string().optional(),
+  urgency: z.string().optional(),
+  
+  // Additional metadata fields
+  environment: z.string().optional(),
+  templateName: z.string().optional(),
+  estimatedHours: z.number().optional(),
+  
+  // SLA and timeline fields
+  slaDeadline: z.string().optional(),
+  escalationLevel: z.number().optional(),
+  
+  // Resolution fields
+  resolutionNotes: z.string().optional(),
+  preventiveMeasures: z.string().optional(),
 });
 
 type TicketFormData = z.infer<typeof ticketFormSchema>;
@@ -745,7 +774,38 @@ export default function TicketDetails() {
   });
 
   const onSubmit = (data: TicketFormData) => {
-    updateTicketMutation.mutate(data);
+    // Mapear corretamente os campos frontend para backend
+    const mappedData = {
+      ...data,
+      // Mapear callerId → caller_id
+      caller_id: data.callerId,
+      // Mapear beneficiaryId → beneficiary_id  
+      beneficiary_id: data.beneficiaryId,
+      // Mapear assignedToId → assigned_to_id
+      assigned_to_id: data.assignedToId,
+      // Mapear customerCompanyId → customer_id
+      customer_id: data.customerCompanyId,
+      // Mapear location para locationId se necessário
+      locationId: data.location,
+      // Mapear campos específicos
+      caller_type: data.callerType,
+      beneficiary_type: data.beneficiaryType,
+      contact_type: data.contactType,
+      assignment_group: data.assignmentGroup,
+      business_impact: data.businessImpact,
+      // Remover campos frontend que não existem no backend
+      callerId: undefined,
+      beneficiaryId: undefined,
+      assignedToId: undefined,
+      customerCompanyId: undefined,
+      callerType: undefined,
+      beneficiaryType: undefined,
+      contactType: undefined,
+      assignmentGroup: undefined,
+      businessImpact: undefined,
+    };
+    
+    updateTicketMutation.mutate(mappedData);
   };
 
   const handleDelete = () => {

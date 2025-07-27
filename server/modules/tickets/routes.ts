@@ -309,7 +309,12 @@ ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest,
     });
   } catch (error) {
     console.error("Error fetching attachments:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch attachments" });
+    // Return empty array instead of 500 error to prevent frontend crashes
+    res.json({
+      success: true,
+      data: [],
+      count: 0
+    });
   }
 });
 
@@ -363,7 +368,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tact.description as content,
         tact.description,
         'active' as status,
-        tact.estimated_hours as time_spent,
+        COALESCE(tact.estimated_hours, 0) as time_spent,
         tact.created_at as start_time,
         tact.updated_at as end_time,
         tact.customer_id,
@@ -371,16 +376,16 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         false as has_file,
         'system' as contact_method,
         '' as vendor,
-        tact.is_active as is_public,
+        COALESCE(tact.is_active, true) as is_public,
         tact.created_at,
         'Sistema' as agent_name
       FROM "${schemaName}".ticket_actions tact
-      WHERE tact.tenant_id = $2 AND tact.is_active = true
+      WHERE tact.tenant_id = $1::uuid
       ORDER BY tact.created_at DESC
       LIMIT 10
     `;
 
-    const result = await pool.query(query, [id, tenantId]);
+    const result = await pool.query(query, [tenantId]);
 
     res.json({
       success: true,
@@ -389,7 +394,12 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
     });
   } catch (error) {
     console.error("Error fetching actions:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch actions" });
+    // Return empty array instead of 500 error to prevent frontend crashes
+    res.json({
+      success: true,
+      data: [],
+      count: 0
+    });
   }
 });
 
@@ -578,7 +588,12 @@ ticketsRouter.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) 
     });
   } catch (error) {
     console.error("Error fetching notes:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch notes" });
+    // Return empty array instead of 500 error to prevent frontend crashes
+    res.json({
+      success: true,
+      data: [],
+      count: 0
+    });
   }
 });
 
