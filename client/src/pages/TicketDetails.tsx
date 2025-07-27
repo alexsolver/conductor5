@@ -2532,192 +2532,185 @@ export default function TicketDetails() {
         onClose={() => setShowInternalActionModal(false)} 
       />
 
-      {/* Company Details Modal - Removido por causar problemas de compilação */}
-        
-              
-                
+      {/* Company Details Modal */}
+          <Dialog open={isCompanyDetailsOpen} onOpenChange={setIsCompanyDetailsOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
                   Detalhes da Empresa Cliente
-                
-                Informações completas e gestão da empresa vinculada ao ticket
-              
+                </DialogTitle>
+                <DialogDescription>
+                  Informações completas e gestão da empresa vinculada ao ticket
+                </DialogDescription>
+              </DialogHeader>
 
-          
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">
+                      Informações Básicas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-500">Nome da Empresa</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.name || ticket?.company || 'Empresa Não Especificada'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">CNPJ</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.cnpj || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Setor</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.industry || 'Não especificado'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Porte</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.size || 'Não especificado'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            
-              
-                
-                  
-                  Informações Básicas
-                
-              
-              
-                
-                  
-                    Nome da Empresa
-                    
-                      {ticket?.customerCompany?.name || ticket?.company || 'Empresa Não Especificada'}
-                    
-                  
-                  
-                    CNPJ
-                    
-                      {ticket?.customerCompany?.cnpj || 'Não informado'}
-                    
-                  
-                  
-                    Setor
-                    
-                      {ticket?.customerCompany?.industry || 'Não especificado'}
-                    
-                  
-                  
-                    Porte
-                    
-                      {ticket?.customerCompany?.size || 'Não especificado'}
-                    
-                  
-                
-              
-            
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">
+                      Contatos Principais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-500">Email Principal</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.email || 'contato@empresa.com'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Telefone</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.phone || '(11) 1234-5678'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Responsável Técnico</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.techContact || 'Não designado'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Gerente de Conta</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.accountManager || 'Não designado'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            
-              
-                
-                  
-                  Contatos Principais
-                
-              
-              
-                
-                  
-                    Email Principal
-                    
-                      {ticket?.customerCompany?.email || 'contato@empresa.com'}
-                    
-                  
-                  
-                    Telefone
-                    
-                      {ticket?.customerCompany?.phone || '(11) 1234-5678'}
-                    
-                  
-                  
-                    Responsável Técnico
-                    
-                      {ticket?.customerCompany?.techContact || 'Não designado'}
-                    
-                  
-                  
-                    Gerente de Conta
-                    
-                      {ticket?.customerCompany?.accountManager || 'Não designado'}
-                    
-                  
-                
-              
-            
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">
+                      Endereço
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-500">Logradouro</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.address || 'Endereço não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">CEP</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.zipCode || '00000-000'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Cidade</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.city || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Estado</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.state || 'SP'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">País</Label>
+                        <p className="font-medium">
+                          {ticket?.customerCompany?.country || 'Brasil'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            
-              
-                
-                  
-                  Endereço
-                
-              
-              
-                
-                  
-                    Logradouro
-                    
-                      {ticket?.customerCompany?.address || 'Endereço não informado'}
-                    
-                  
-                  
-                    CEP
-                    
-                      {ticket?.customerCompany?.zipCode || '00000-000'}
-                    
-                  
-                  
-                    Cidade
-                    
-                      {ticket?.customerCompany?.city || 'Não informado'}
-                    
-                  
-                  
-                    Estado
-                    
-                      {ticket?.customerCompany?.state || 'SP'}
-                    
-                  
-                  
-                    País
-                    
-                      {ticket?.customerCompany?.country || 'Brasil'}
-                    
-                  
-                
-              
-            
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">
+                      Estatísticas de Suporte
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">12</p>
+                        <p className="text-xs text-gray-500">Total de Tickets</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">9</p>
+                        <p className="text-xs text-gray-500">Resolvidos</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">2h 15min</p>
+                        <p className="text-xs text-gray-500">Tempo Médio</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">4.8/5</p>
+                        <p className="text-xs text-gray-500">Satisfação</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            
-              
-                
-                  
-                  Estatísticas de Suporte
-                
-              
-              
-                
-                  12
-                  Total de Tickets
-                
-                
-                  9
-                  Resolvidos
-                
-                
-                  2h 15min
-                  Tempo Médio
-                
-                
-                  4.8/5
-                  Satisfação
-                
-              
-            
-
-            
-              
-                
-                  
-                    
+                <div className="col-span-full">
+                  <div className="flex gap-2 justify-center">
+                    <Button variant="outline">
+                      <User className="h-4 w-4 mr-2" />
                       Gerenciar Clientes
-                    
-                  
-                  
-                    
+                    </Button>
+                    <Button variant="outline">
+                      <FileText className="h-4 w-4 mr-2" />
                       Ver Contratos
-                    
-                  
-                  
-                    
+                    </Button>
+                    <Button variant="outline">
+                      <Ticket className="h-4 w-4 mr-2" />
                       Todos os Tickets
-                    
-                  
-                  
-                    
+                    </Button>
+                    <Button variant="outline">
+                      <Mail className="h-4 w-4 mr-2" />
                       Enviar Email
-                    
-                  
-                
-              
-            
-
-          
+                    </Button>
+                  </div>
+                </div>
+              </div>
 
               <DialogFooter>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => setIsCompanyDetailsOpen(false)}>
                   Fechar
                 </Button>
               </DialogFooter>
@@ -2725,7 +2718,6 @@ export default function TicketDetails() {
           </Dialog>
         </div>
       </div>
-    </div>
     </div>
   );
 }
