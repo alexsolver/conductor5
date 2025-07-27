@@ -274,9 +274,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
+      console.log(`Fetching customers for company ${companyId} in tenant ${tenantId}`);
+
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      // First check if the company exists
+      const companyCheck = await pool.query(
+        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1`,
+        [companyId]
+      );
+
+      if (companyCheck.rows.length === 0) {
+        console.log(`Company ${companyId} not found`);
+        return res.json({
+          success: true,
+          customers: []
+        });
+      }
 
       const result = await pool.query(
         `
@@ -288,7 +304,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.phone,
           c.cpf,
           c.created_at,
-          c.updated_at
+          c.updated_at,
+          ccm.role
         FROM "${schemaName}"."customers" c
         INNER JOIN "${schemaName}"."customer_company_memberships" ccm
           ON c.id = ccm.customer_id
@@ -300,13 +317,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         [companyId]
       );
 
+      console.log(`Found ${result.rows.length} customers for company ${companyId}`);
+
       const customers = result.rows.map(row => ({
         id: row.id,
+        first_name: row.first_name,
+        last_name: row.last_name,
         firstName: row.first_name,
         lastName: row.last_name,
+        fullName: `${row.first_name} ${row.last_name}`,
         email: row.email,
         phone: row.phone,
         cpf: row.cpf,
+        role: row.role,
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));

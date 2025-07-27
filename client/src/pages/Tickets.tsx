@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -88,7 +88,7 @@ export default function Tickets() {
 
   // Filter customers based on selected company
   useEffect(() => {
-    if (!selectedCompanyId || !customers.length) {
+    if (!selectedCompanyId) {
       setFilteredCustomers(customers);
       return;
     }
@@ -96,21 +96,21 @@ export default function Tickets() {
     // Fetch customers for the selected company
     const fetchCustomersForCompany = async () => {
       try {
-        const response = await fetch(`/api/companies/${selectedCompanyId}/customers`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        console.log('Fetching customers for company:', selectedCompanyId);
+        const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
+        const data = await response.json();
         
-        if (response.ok) {
-          const data = await response.json();
-          setFilteredCustomers(data.customers || []);
+        console.log('Company customers response:', data);
+        
+        if (data.success && data.customers) {
+          setFilteredCustomers(data.customers);
         } else {
-          // Fallback: filter existing customers if API doesn't exist
+          console.warn('No customers found for company, using all customers');
           setFilteredCustomers(customers);
         }
       } catch (error) {
         console.error('Error fetching customers for company:', error);
+        // Fallback: use all customers if API fails
         setFilteredCustomers(customers);
       }
     };

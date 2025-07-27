@@ -93,7 +93,7 @@ export default function TicketEdit() {
 
   // Filter customers based on selected company
   useEffect(() => {
-    if (!selectedCompanyId || !customers.length) {
+    if (!selectedCompanyId) {
       setFilteredCustomers(customers);
       return;
     }
@@ -101,9 +101,18 @@ export default function TicketEdit() {
     // Filter customers by company association
     const fetchCustomersForCompany = async () => {
       try {
+        console.log('TicketEdit: Fetching customers for company:', selectedCompanyId);
         const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
         const data = await response.json();
-        setFilteredCustomers(data.customers || []);
+        
+        console.log('TicketEdit: Company customers response:', data);
+        
+        if (data.success && data.customers) {
+          setFilteredCustomers(data.customers);
+        } else {
+          console.warn('TicketEdit: No customers found for company, using all customers');
+          setFilteredCustomers(customers);
+        }
       } catch (error) {
         console.error('Error fetching customers for company:', error);
         setFilteredCustomers(customers);
