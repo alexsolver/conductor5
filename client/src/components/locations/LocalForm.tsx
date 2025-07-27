@@ -294,8 +294,23 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
   const handleSubmit = (data: NewLocal) => {
     console.log('Form data being submitted:', data);
+    
+    // Get tenantId from auth context or user data
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const tenantId = user.tenantId;
+    
+    if (!tenantId) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Não foi possível identificar o tenant. Faça login novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const finalData = {
       ...data,
+      tenantId,
       feriadosIncluidos: selectedHolidays,
       indisponibilidades
     };

@@ -69,12 +69,17 @@ const RECORD_TYPES = {
 };
 
 export default function LocationsNew() {
+  const { toast } = useToast();
   const [activeRecordType, setActiveRecordType] = useState<string>("local");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const refetch = () => {
+    // TODO: Implement data refetching logic
+    console.log('Data refetch triggered');
+  };
 
   // Fetch data based on record type
   const { data: recordsData, isLoading } = useQuery({
@@ -83,7 +88,7 @@ export default function LocationsNew() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter !== 'all') params.append('status', statusFilter);
-      
+
       const url = `/api/locations/${activeRecordType}${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await apiRequest("GET", url);
       return response.json();
@@ -141,7 +146,48 @@ export default function LocationsNew() {
 
     switch (activeRecordType) {
       case 'local':
-        return <LocalForm {...commonProps} />;
+        return (
+          <LocalForm
+                onSubmit={async (data) => {
+                  console.log('Local form submitted:', data);
+                  try {
+                    const response = await fetch('/api/locations/local', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                      },
+                      body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                      throw new Error('Falha ao criar local');
+                    }
+
+                    const result = await response.json();
+                    console.log('Local created successfully:', result);
+
+                    // Show success message and refresh data
+                    toast({
+                      title: "Local criado com sucesso",
+                      description: "O local foi adicionado ao sistema"
+                    });
+
+                    // Refresh the data
+                    refetch();
+
+                  } catch (error) {
+                    console.error('Error creating local:', error);
+                    toast({
+                      title: "Erro ao criar local",
+                      description: "Ocorreu um erro ao salvar o local. Tente novamente.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                isLoading={false}
+              />
+        );
       case 'regiao':
         return <RegiaoForm {...commonProps} />;
       case 'rota_dinamica':
@@ -182,7 +228,7 @@ export default function LocationsNew() {
         {Object.entries(RECORD_TYPES).map(([key, config]) => {
           const Icon = config.icon;
           const isActive = activeRecordType === key;
-          
+
           return (
             <Button
               key={key}
@@ -273,7 +319,7 @@ export default function LocationsNew() {
             />
           </div>
         </div>
-        
+
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Status" />
@@ -292,7 +338,7 @@ export default function LocationsNew() {
             <Clock className="mr-2 h-4 w-4" />
             Horários
           </Button>
-          
+
           {/* KML Import button only for specific types */}
           {['area', 'regiao'].includes(activeRecordType) && (
             <Button variant="outline" size="sm">
@@ -343,7 +389,7 @@ export default function LocationsNew() {
                         )}
                       </div>
                     </TableCell>
-                    
+
                     {activeRecordType === 'local' && (
                       <TableCell>
                         {record.logradouro && (
@@ -355,7 +401,7 @@ export default function LocationsNew() {
                         )}
                       </TableCell>
                     )}
-                    
+
                     {['local', 'regiao'].includes(activeRecordType) && (
                       <TableCell>
                         {record.latitude && record.longitude ? (
@@ -372,7 +418,7 @@ export default function LocationsNew() {
                         )}
                       </TableCell>
                     )}
-                    
+
                     <TableCell>
                       <Badge 
                         variant={record.ativo === false ? "destructive" : 
@@ -382,7 +428,7 @@ export default function LocationsNew() {
                          record.status === 'maintenance' ? 'Manutenção' : 'Ativo'}
                       </Badge>
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {currentType.sections.map((section) => (
@@ -392,7 +438,7 @@ export default function LocationsNew() {
                         ))}
                       </div>
                     </TableCell>
-                    
+
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="sm">
@@ -402,7 +448,7 @@ export default function LocationsNew() {
                     </TableCell>
                   </TableRow>
                 ))}
-                
+
                 {(!recordsData?.data || recordsData.data.length === 0) && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
