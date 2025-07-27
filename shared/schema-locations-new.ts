@@ -200,6 +200,7 @@ export const localSchema = createInsertSchema(locais, {
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
   tipoLogradouro: z.enum(['Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo']).optional(),
   tipoClienteFavorecido: z.enum(['cliente', 'favorecido']).optional(),
+  tenantId: z.string().uuid().optional(), // Add tenantId as optional since it's filled automatically
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Schema for holidays selection

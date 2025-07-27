@@ -308,12 +308,14 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       return;
     }
     
+    // Set tenantId in form data before calling onSubmit
     const finalData = {
       ...data,
       tenantId,
       feriadosIncluidos: selectedHolidays,
       indisponibilidades
     };
+    
     console.log('Final data being submitted:', finalData);
     onSubmit(finalData);
   };
@@ -724,16 +726,6 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
           <Button 
             type="submit" 
             disabled={isLoading}
-            onClick={(e) => {
-              console.log('Submit button clicked');
-              // Force form validation and submission
-              form.handleSubmit((data) => {
-                console.log('Form validation passed, submitting:', data);
-                handleSubmit(data);
-              }, (errors) => {
-                console.log('Form validation errors:', errors);
-              })(e);
-            }}
           >
             {isLoading ? 'Salvando...' : 'Salvar Local'}
           </Button>
