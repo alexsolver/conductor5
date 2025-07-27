@@ -157,9 +157,26 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   });
 
     // Fetch available companies
-    const { data: availableCompaniesData, refetch: refetchAvailableCompanies } = useQuery({
+    const { data: availableCompaniesData, refetch: refetchAvailableCompanies, error: availableCompaniesError } = useQuery({
       queryKey: ['/api/customers/companies'],
-      queryFn: () => apiRequest('GET', '/api/customers/companies'),
+      queryFn: async () => {
+        try {
+          console.log('🔍 Fetching available companies...');
+          const response = await apiRequest('GET', '/api/customers/companies');
+          console.log('📡 Raw response:', response);
+          console.log('🔗 Response status:', response.status);
+          console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
+          
+          const data = await response.json();
+          console.log('📦 Parsed data:', data);
+          console.log('📊 Data type:', typeof data, 'Is array:', Array.isArray(data));
+          
+          return data;
+        } catch (error) {
+          console.error('❌ Query error:', error);
+          throw error;
+        }
+      },
       enabled: isOpen, // Only fetch when the modal is open
       staleTime: 0, // Always fetch fresh data
       gcTime: 0, // Don't cache data
@@ -167,37 +184,28 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       refetchOnMount: true,
     });
 
-    // Parse available companies with proper data extraction
-    const availableCompanies = (() => {
-      // Handle null/undefined data
-      if (!availableCompaniesData) {
-        console.log('Available companies data is null/undefined');
-        return [];
-      }
-      
-      // Handle direct array format
-      if (Array.isArray(availableCompaniesData)) {
-        return availableCompaniesData;
-      }
-      
-      // Handle {success: true, data: [...]} format
-      if ((availableCompaniesData as any)?.success && Array.isArray((availableCompaniesData as any).data)) {
-        return (availableCompaniesData as any).data;
-      }
-      
-      // Handle {data: [...]} format
-      if ((availableCompaniesData as any)?.data && Array.isArray((availableCompaniesData as any).data)) {
-        return (availableCompaniesData as any).data;
-      }
-      
-      console.warn('Available companies data format not recognized:', availableCompaniesData);
-      return [];
-    })();
+    // Parse available companies - API returns direct array
+    const availableCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
+    
+    console.log('Available companies processing:', {
+      raw: availableCompaniesData,
+      isArray: Array.isArray(availableCompaniesData),
+      count: availableCompanies.length,
+      sample: availableCompanies[0] || null
+    });
+    
+    if (availableCompaniesError) {
+      console.error('Available companies error:', availableCompaniesError);
+    }
 
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
-      queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`),
+      queryFn: async () => {
+        if (!customer?.id) return [];
+        const response = await apiRequest('GET', `/api/customers/${customer.id}/companies`);
+        return response.json();
+      },
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
       staleTime: 0, // Always fetch fresh data
       gcTime: 0, // Don't cache data
@@ -206,29 +214,17 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     });
 
   useEffect(() => {
-    if (customerCompaniesData) {
-      // Handle both formats: direct array or {success: true, data: [...]}
-      const companies = Array.isArray(customerCompaniesData) 
-        ? customerCompaniesData 
-        : (customerCompaniesData as any)?.data || [];
-      
-      console.log('Customer companies data updated:', {
-        raw: customerCompaniesData,
-        processed: companies,
-        count: companies.length,
-        sampleItem: companies[0] || null,
-        allCompanyIds: companies.map((c: any) => ({ 
-          company_id: c.company_id, 
-          id: c.id, 
-          name: c.company_name || c.display_name || c.name 
-        }))
-      });
-      
-      setCustomerCompanies(companies);
-    } else {
-      console.log('No customer companies data received for customer:', customer?.id);
-      setCustomerCompanies([]);
-    }
+    // API returns direct array or empty array
+    const companies = Array.isArray(customerCompaniesData) ? customerCompaniesData : [];
+    
+    console.log('Customer companies processing:', {
+      raw: customerCompaniesData,
+      isArray: Array.isArray(customerCompaniesData),
+      count: companies.length,
+      sample: companies[0] || null
+    });
+    
+    setCustomerCompanies(companies);
   }, [customerCompaniesData, customer?.id]);
 
   // Force refresh data when customer changes or modal opens
