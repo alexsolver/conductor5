@@ -223,7 +223,8 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       const currentYear = new Date().getFullYear();
 
       // Call actual API endpoint using apiRequest for authentication
-      const result = await apiRequest('GET', `/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`);
+      const response = await apiRequest('GET', `/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`);
+      const result = await response.json();
 
       if (result.success && result.data) {
         setHolidays(result.data);
