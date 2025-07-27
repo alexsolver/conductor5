@@ -9,6 +9,8 @@ interface DynamicBadgeProps {
   bgColor?: string;
   textColor?: string;
   className?: string;
+  fieldName?: string; // Aceita mas não passa para o DOM
+  value?: string; // Aceita mas não passa para o DOM
 }
 
 // Função para converter hex em classe CSS com bom contraste
@@ -62,11 +64,11 @@ export function DynamicBadge({
   colorHex, 
   bgColor, 
   textColor, 
-  className, 
+  className,
+  fieldName, // Remove da interface mas não passa para o DOM
+  value, // Remove da interface mas não passa para o DOM
   ...props 
 }: DynamicBadgeProps) {
-  // Remove props que não devem ser passadas para o DOM
-  const { fieldName, ...badgeProps } = props as any;
   let dynamicClasses = '';
 
   // Prioridade: colorHex > bgColor > variant padrão
@@ -87,7 +89,7 @@ export function DynamicBadge({
         'font-medium text-xs px-2 py-1 rounded-md',
         className
       )}
-      {...badgeProps}
+      {...props}
     >
       {children}
     </Badge>

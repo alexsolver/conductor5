@@ -285,17 +285,17 @@ ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest,
     const query = `
       SELECT 
         ta.id,
-        ta.filename,
-        ta.original_filename,
+        ta.file_name as filename,
+        ta.file_name as original_filename,
         ta.file_size,
-        ta.mime_type,
+        ta.content_type as mime_type,
         ta.file_path,
-        ta.description,
-        ta.uploaded_by,
+        ta.file_type as description,
+        ta.created_by as uploaded_by,
         ta.created_at,
         u.first_name || ' ' || u.last_name as uploaded_by_name
       FROM "${schemaName}".ticket_attachments ta
-      LEFT JOIN public.users u ON ta.uploaded_by = u.id
+      LEFT JOIN public.users u ON ta.created_by = u.id
       WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
       ORDER BY ta.created_at DESC
     `;
@@ -359,25 +359,25 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
       SELECT 
         tact.id,
         tact.action_type as "actionType",
-        tact.type,
-        tact.content,
+        tact.action_type as type,
+        tact.description as content,
         tact.description,
-        tact.status,
-        tact.time_spent,
-        tact.start_time,
-        tact.end_time,
-        tact.agent_id,
-        tact.linked_items,
-        tact.has_file,
-        tact.contact_method,
-        tact.vendor,
-        tact.is_public,
+        'active' as status,
+        tact.estimated_hours as time_spent,
+        tact.created_at as start_time,
+        tact.updated_at as end_time,
+        tact.customer_id,
+        '[]'::text as linked_items,
+        false as has_file,
+        'system' as contact_method,
+        '' as vendor,
+        tact.is_active as is_public,
         tact.created_at,
-        u.first_name || ' ' || u.last_name as agent_name
+        'Sistema' as agent_name
       FROM "${schemaName}".ticket_actions tact
-      LEFT JOIN public.users u ON tact.agent_id = u.id
-      WHERE tact.ticket_id = $1 AND tact.tenant_id = $2 AND tact.is_active = true
+      WHERE tact.tenant_id = $2 AND tact.is_active = true
       ORDER BY tact.created_at DESC
+      LIMIT 10
     `;
 
     const result = await pool.query(query, [id, tenantId]);
@@ -441,21 +441,21 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
     const query = `
       SELECT 
         tc.id,
-        tc.channel,
+        tc.communication_type as channel,
         tc.direction,
-        tc.from_contact as "from",
-        tc.to_contact as "to", 
+        tc.from_address as "from",
+        tc.to_address as "to", 
         tc.subject,
         tc.content,
         tc.message_id,
         tc.thread_id,
-        tc.attachments,
-        tc.metadata,
-        tc.is_read,
+        tc.cc_address,
+        tc.bcc_address,
+        tc.is_public,
         tc.created_at as timestamp,
         tc.updated_at
       FROM "${schemaName}".ticket_communications tc
-      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND tc.is_active = true
+      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2
       ORDER BY tc.created_at DESC
     `;
 

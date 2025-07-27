@@ -265,6 +265,16 @@ export default function TicketDetails() {
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
   const [isCompanyDetailsOpen, setIsCompanyDetailsOpen] = useState(false);
 
+  // Estados para modal de vinculação
+  const [linkTicketNumber, setLinkTicketNumber] = useState('');
+  const [linkType, setLinkType] = useState('');
+  const [linkComment, setLinkComment] = useState('');
+
+  // Estados para modal de ação interna
+  const [newInternalAction, setNewInternalAction] = useState('');
+  const [internalActionType, setInternalActionType] = useState('');
+  const [isPublicAction, setIsPublicAction] = useState(false);
+
 
   // Basic information - consolidated into single tab
   const basicTabs = [
