@@ -113,7 +113,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch available companies
     const { data: availableCompaniesData, refetch: refetchAvailableCompanies } = useQuery({
       queryKey: ['/api/customers/companies'],
-      queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
+      queryFn: () => apiRequest('/api/customers/companies').then(res => res.json()),
       enabled: isOpen, // Only fetch when the modal is open
     });
 
@@ -125,7 +125,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Fetch customer companies
     const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
-      queryFn: () => apiRequest('GET', `/api/customers/${customer?.id}/companies`).then(res => res.json()),
+      queryFn: () => apiRequest(`/api/customers/${customer?.id}/companies`).then(res => res.json()),
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
     });
 
@@ -211,16 +211,29 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!selectedCompanyId || !customer?.id) return;
 
     try {
-      const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
-        companyId: selectedCompanyId,
-        role: 'member',
-        isPrimary: customerCompanies.length === 0 // First company is primary
+      const response = await apiRequest(`/api/customers/${customer.id}/companies`, {
+        method: 'POST',
+        body: JSON.stringify({
+          companyId: selectedCompanyId,
+          role: 'member',
+          isPrimary: customerCompanies.length === 0 // First company is primary
+        })
       });
 
       await refetchCustomerCompanies();
       setSelectedCompanyId('');
+      form.setValue('company', ''); // Clear form field
+      toast({
+        title: "Sucesso",
+        description: "Empresa adicionada com sucesso!",
+      });
     } catch (error) {
       console.error('Error adding company:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar empresa",
+        variant: "destructive"
+      });
     }
   };
 
@@ -228,10 +241,21 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (!customer?.id) return;
 
     try {
-      await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
+      await apiRequest(`/api/customers/${customer.id}/companies/${companyId}`, {
+        method: 'DELETE'
+      });
       await refetchCustomerCompanies();
+      toast({
+        title: "Sucesso",
+        description: "Empresa removida com sucesso!",
+      });
     } catch (error) {
       console.error('Error removing company:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover empresa",
+        variant: "destructive"
+      });
     }
   };
 
@@ -576,8 +600,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           {/* Lista de empresas associadas */}
                           <div className="mt-2 space-y-2">
                             {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
-                              customerCompanies.map((membership: any) => (
-                                <div key={`membership-${membership.membership_id || membership.id}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              customerCompanies.map((membership: any, index: number) => (
+                                <div key={`membership-${membership.membership_id || membership.id || membership.company_id || index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium">
                                       {membership.display_name || membership.company_name}
