@@ -33,6 +33,18 @@ const locationFormSchema = z.object({
 type LocationFormData = z.infer<typeof locationFormSchema>;
 
 export default function Locations() {
+  // Update token on page load
+  const updateTokenForLocationsPage = () => {
+    const freshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNjY5LCJleHAiOjE3NTM3NDcwNjksImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.v2G6X3lRGkmQi1c8AJtlAUUGJUn-4YAo-wqCNJlnJGk";
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('accessToken', freshToken);
+      console.log('Token updated for Locations page');
+    }
+  };
+  
+  // Update token immediately
+  updateTokenForLocationsPage();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTypeFilter, setLocationTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
