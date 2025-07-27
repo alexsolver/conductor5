@@ -54,6 +54,8 @@ export interface IStorage {
   getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
   createSolicitante(tenantId: string, data: any): Promise<any>;
   createFavorecido(tenantId: string, data: any): Promise<any>;
+  updateFavorecido(tenantId: string, favorecidoId: string, data: any): Promise<any>;
+  deleteFavorecido(tenantId: string, favorecidoId: string): Promise<boolean>;
 
   // Ticket Templates Management
   getTicketTemplates(tenantId: string, options?: { limit?: number; offset?: number; search?: string; category?: string }): Promise<any[]>;
@@ -933,6 +935,64 @@ export class DatabaseStorage implements IStorage {
       return favorecido;
     } catch (error) {
       logError('Error creating favorecido', error, { tenantId, data });
+      throw error;
+    }
+  }
+
+  async updateFavorecido(tenantId: string, favorecidoId: string, data: any): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.favorecidos
+        SET 
+          first_name = ${data.firstName},
+          last_name = ${data.lastName || null},
+          email = ${data.email || null},
+          birth_date = ${data.birthDate || null},
+          rg = ${data.rg || null},
+          cpf_cnpj = ${data.cpfCnpj || null},
+          is_active = ${data.isActive !== undefined ? data.isActive : true},
+          customer_code = ${data.customerCode || null},
+          phone = ${data.phone || null},
+          cell_phone = ${data.cellPhone || null},
+          contact_person = ${data.contactPerson || null},
+          contact_phone = ${data.contactPhone || null},
+          updated_at = NOW()
+        WHERE id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+        RETURNING *
+      `);
+
+      const favorecido = result.rows?.[0];
+
+      // Adicionar fullName computed field para compatibilidade frontend
+      if (favorecido) {
+        favorecido.fullName = `${favorecido.first_name} ${favorecido.last_name || ''}`.trim();
+      }
+
+      return favorecido;
+    } catch (error) {
+      logError('Error updating favorecido', error, { tenantId, favorecidoId, data });
+      throw error;
+    }
+  }
+
+  async deleteFavorecido(tenantId: string, favorecidoId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.favorecidos
+        WHERE id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+      `);
+
+      return Number(result.rowCount || 0) > 0;
+    } catch (error) {
+      logError('Error deleting favorecido', error, { tenantId, favorecidoId });
       throw error;
     }
   }

@@ -292,7 +292,7 @@ export function CustomerLocationManager({
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-3">
                             <h4 className="font-medium text-lg">
-                              {customerLocation.location.name}
+                              {customerLocation.location?.name || 'Local não especificado'}
                             </h4>
                             {customerLocation.isPrimary && (
                               <Badge variant="default" className="bg-yellow-100 text-yellow-800">
