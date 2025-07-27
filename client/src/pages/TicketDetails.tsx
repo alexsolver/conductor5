@@ -1882,7 +1882,7 @@ export default function TicketDetails() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {locationsData?.data?.map((location: any) => (
+                      {locationsData?.data?.locations?.map((location: any) => (
                         <SelectItem key={location.id} value={location.id}>
                           {location.name}
                         </SelectItem>
@@ -1893,15 +1893,15 @@ export default function TicketDetails() {
                   <div className="text-sm text-green-900 font-medium cursor-pointer hover:text-green-700 transition-colors"
                        onClick={() => console.log('Open location details')}>
                     <span className="underline decoration-dotted">
-                      {locationsData?.data?.find((l: any) => l.id === ticket.location)?.name || 
+                      {locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)?.name || 
                        ticket.location || 'Não especificado'}
                     </span>
                   </div>
                 )}
-                {(ticket.locationDetails || locationsData?.data?.find((l: any) => l.id === ticket.location)) && (
+                {(ticket.locationDetails || locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)) && (
                   <div className="text-xs text-green-600">
                     📍 {ticket.locationDetails?.address || 
-                        locationsData?.data?.find((l: any) => l.id === ticket.location)?.address || 
+                        locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)?.address || 
                         'Endereço não informado'}
                   </div>
                 )}
