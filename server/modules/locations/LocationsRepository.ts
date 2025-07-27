@@ -337,4 +337,89 @@ export class LocationsRepository {
   private camelToSnake(str: string): string {
     return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   }
+
+  // Sprint 2 Methods - Tags System
+  async addTag(id: string, tenantId: string, tag: string): Promise<Location | null> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      UPDATE ${schemaName}.locations 
+      SET tags = COALESCE(tags, ARRAY[]::TEXT[]) || ARRAY[$3]::TEXT[],
+          updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2 AND NOT ($3 = ANY(COALESCE(tags, ARRAY[]::TEXT[])))
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [id, tenantId, tag]);
+    return result.rows[0] || null;
+  }
+
+  async removeTag(id: string, tenantId: string, tag: string): Promise<Location | null> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      UPDATE ${schemaName}.locations 
+      SET tags = array_remove(COALESCE(tags, ARRAY[]::TEXT[]), $3),
+          updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [id, tenantId, tag]);
+    return result.rows[0] || null;
+  }
+
+  // Sprint 2 Methods - Favorites System
+  async toggleFavorite(id: string, tenantId: string): Promise<Location | null> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      UPDATE ${schemaName}.locations 
+      SET is_favorite = NOT COALESCE(is_favorite, false),
+          updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [id, tenantId]);
+    return result.rows[0] || null;
+  }
+
+  // Sprint 2 Methods - Attachments System
+  async addAttachment(id: string, tenantId: string, filename: string, filepath: string, filesize: number): Promise<Location | null> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const attachmentData = {
+      filename,
+      filepath,
+      filesize,
+      uploadedAt: new Date().toISOString()
+    };
+
+    const query = `
+      UPDATE ${schemaName}.locations 
+      SET attachments = jsonb_set(
+        COALESCE(attachments, '{}'::jsonb),
+        ARRAY[$3],
+        $4::jsonb
+      ),
+      updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING *
+    `;
+
+    const result = await this.pool.query(query, [
+      id, 
+      tenantId, 
+      filename, 
+      JSON.stringify(attachmentData)
+    ]);
+    return result.rows[0] || null;
+  }
+
+  async removeAttachment(id: string, tenantId: string, filename: string): Promise<Location | null> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      UPDATE ${schemaName}.locations 
+      SET attachments = attachments - $3,
+          updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [id, tenantId, filename]);
+    return result.rows[0] || null;
+  }
 }

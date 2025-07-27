@@ -35,4 +35,9 @@ router.post('/routes', controller.createRoute.bind(controller));
 router.get('/groups/all', controller.getAreaGroups.bind(controller));
 router.post('/groups', controller.createAreaGroup.bind(controller));
 
+// Sprint 2 Routes - Advanced Features
+router.post('/:id/favorite', controller.toggleFavorite.bind(controller));
+router.post('/:id/tags', controller.addTag.bind(controller));
+router.delete('/:id/tags', controller.removeTag.bind(controller));
+
 export { router as locationsRouter };

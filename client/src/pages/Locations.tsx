@@ -1,7 +1,7 @@
 // NEW LOCATIONS MODULE - Frontend Interface
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2, Star, Tag, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,6 +118,29 @@ export default function Locations() {
     if (window.confirm("Tem certeza que deseja excluir este local?")) {
       deleteLocationMutation.mutate(locationId);
     }
+  };
+
+  // Sprint 2 - Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('POST', `/api/locations/${id}/favorite`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      toast({
+        title: "Favorito atualizado",
+        description: "Status de favorito alterado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao favoritar",
+        description: error?.message || "Não foi possível alterar favorito.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleFavorite = (locationId: string) => {
+    toggleFavoriteMutation.mutate(locationId);
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -482,6 +505,15 @@ export default function Locations() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleToggleFavorite(location.id)}
+                          className={location.is_favorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-500 hover:text-yellow-500"}
+                          disabled={toggleFavoriteMutation.isPending}
+                        >
+                          <Star className={`h-4 w-4 ${location.is_favorite ? 'fill-current' : ''}`} />
+                        </Button>
                         <Button variant="ghost" size="sm">
                           <Edit className="h-4 w-4" />
                         </Button>

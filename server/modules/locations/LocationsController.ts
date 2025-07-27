@@ -77,7 +77,7 @@ export class LocationsController {
     }
   }
 
-  // Create new location
+  // Create new location (with Sprint 2 features)
   async createLocation(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
@@ -85,10 +85,17 @@ export class LocationsController {
         return sendError(res, "Tenant ID required", "Tenant ID required", 401);
       }
 
-      const validation = insertLocationSchema.safeParse({
+      // Add Sprint 2 fields to validation
+      const locationData = {
         ...req.body,
-        tenantId
-      });
+        tenantId,
+        tags: req.body.tags || [],
+        attachments: req.body.attachments || {},
+        parent_location_id: req.body.parent_location_id || null,
+        is_favorite: req.body.is_favorite || false
+      };
+
+      const validation = insertLocationSchema.safeParse(locationData);
 
       if (!validation.success) {
         return sendValidationError(res, validation.error.errors.map(e => e.message), "Invalid location data");
@@ -99,6 +106,84 @@ export class LocationsController {
 
     } catch (error) {
       return sendError(res, error as any, "Failed to create location", 500);
+    }
+  }
+
+  // Toggle favorite status (Sprint 2)
+  async toggleFavorite(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const location = await this.repository.toggleFavorite(id, tenantId);
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Location favorite status updated");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to update favorite status", 500);
+    }
+  }
+
+  // Add tag to location (Sprint 2)
+  async addTag(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const { tag } = req.body;
+
+      if (!tag || typeof tag !== 'string') {
+        return sendError(res, "Valid tag is required", "Valid tag is required", 400);
+      }
+
+      const location = await this.repository.addTag(id, tenantId, tag.trim());
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Tag added successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to add tag", 500);
+    }
+  }
+
+  // Remove tag from location (Sprint 2)
+  async removeTag(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", "Tenant ID required", 401);
+      }
+
+      const { id } = req.params;
+      const { tag } = req.body;
+
+      if (!tag || typeof tag !== 'string') {
+        return sendError(res, "Valid tag is required", "Valid tag is required", 400);
+      }
+
+      const location = await this.repository.removeTag(id, tenantId, tag.trim());
+
+      if (!location) {
+        return sendError(res, "Location not found", "Location not found", 404);
+      }
+
+      return sendSuccess(res, location, "Tag removed successfully");
+
+    } catch (error) {
+      return sendError(res, error as any, "Failed to remove tag", 500);
     }
   }
 
