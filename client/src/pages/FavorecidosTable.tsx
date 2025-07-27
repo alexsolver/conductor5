@@ -87,6 +87,7 @@ export default function FavorecidosTable() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingFavorecido, setEditingFavorecido] = useState<Favorecido | null>(null);
+  const [lastUpdatedId, setLastUpdatedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -100,13 +101,13 @@ export default function FavorecidosTable() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch favorecidos with pagination and search
+  // Fetch favorecidos with pagination and search - OTIMIZADO PARA EDIÇÃO
   const { data: favorecidosData, isLoading, refetch } = useQuery({
     queryKey: ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache (renamed from cacheTime in TanStack Query v5)
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 5000, // 5 segundos para evitar refetch imediato após edição
+    gcTime: 30000, // Cache por 30 segundos
+    refetchOnWindowFocus: false, // Evita refetch desnecessário
+    refetchOnMount: false, // Evita refetch ao remontar
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
@@ -206,29 +207,34 @@ export default function FavorecidosTable() {
     onSuccess: (updatedData) => {
       console.log('Update mutation success:', updatedData);
       
-      // FORÇA ATUALIZAÇÃO IMEDIATA: Atualiza cache de TODAS as queries
-      queryClient.setQueriesData(
-        { queryKey: ["/api/favorecidos"] },
-        (oldData: any) => {
-          if (!oldData?.favorecidos) return oldData;
-          
-          const updatedFavorecidos = oldData.favorecidos.map((fav: any) => 
-            fav.id === updatedData.favorecido.id 
-              ? { ...fav, ...updatedData.favorecido, fullName: updatedData.favorecido.fullName }
-              : fav
-          );
-          
-          return { ...oldData, favorecidos: updatedFavorecidos };
-        }
-      );
+      // SOLUÇÃO DEFINITIVA: Atualiza dados e evita conflitos de refetch
+      const currentQueryKey = ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }];
       
-      // FORÇA REFETCH COMPLETO
-      queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
-      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"] });
+      // 1. ATUALIZA IMEDIATAMENTE o cache atual
+      queryClient.setQueryData(currentQueryKey, (oldData: any) => {
+        if (!oldData?.favorecidos) return oldData;
+        
+        const updatedFavorecidos = oldData.favorecidos.map((fav: any) => 
+          fav.id === updatedData.favorecido.id 
+            ? { ...fav, ...updatedData.favorecido, fullName: updatedData.favorecido.fullName }
+            : fav
+        );
+        
+        return { ...oldData, favorecidos: updatedFavorecidos };
+      });
+      
+      // 2. INVALIDA APÓS DELAY para garantir que os dados permaneçam atualizados
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"], exact: false });
+      }, 2000); // 2 segundos de delay para evitar conflito
+      
+      // MARCA O ID ATUALIZADO para indicação visual
+      setLastUpdatedId(updatedData.favorecido.id);
+      setTimeout(() => setLastUpdatedId(null), 3000); // Remove após 3 segundos
       
       toast({
-        title: "Sucesso",
-        description: "Favorecido atualizado com sucesso",
+        title: "✅ Sucesso",
+        description: `Favorecido ${updatedData.favorecido.fullName} atualizado com sucesso`,
       });
       
       // RESET COMPLETO DO ESTADO
@@ -667,7 +673,10 @@ export default function FavorecidosTable() {
             </TableHeader>
             <TableBody>
               {currentFavorecidos.map((favorecido: any) => (
-                <TableRow key={favorecido.id}>
+                <TableRow 
+                  key={favorecido.id}
+                  className={lastUpdatedId === favorecido.id ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : ""}
+                >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-medium">
