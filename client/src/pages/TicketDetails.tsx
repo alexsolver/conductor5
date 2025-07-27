@@ -1007,23 +1007,19 @@ export default function TicketDetails() {
                   control={form.control}
                   name="location"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Localização</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a localização" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="matriz">Matriz</SelectItem>
-                          <SelectItem value="filial1">Filial 1</SelectItem>
-                          <SelectItem value="filial2">Filial 2</SelectItem>
-                          <SelectItem value="remoto">Remoto</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a localização" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="matriz">Matriz</SelectItem>
+                        <SelectItem value="filial1">Filial 1</SelectItem>
+                        <SelectItem value="filial2">Filial 2</SelectItem>
+                        <SelectItem value="remoto">Remoto</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 />
               </div>
