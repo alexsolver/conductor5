@@ -72,6 +72,7 @@ const baseNavigation: Array<{
   }>;
 }> = [
   { name: "Clientes", href: "/clientes", icon: Users },
+  { name: "Tickets", href: "/tickets", icon: Ticket },
   {
     name: "Controle de Jornadas",
     icon: Clock,

@@ -41,8 +41,6 @@ const ticketFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "critical"]),
-  impact: z.enum(["low", "medium", "high", "critical"]),
-  urgency: z.enum(["low", "medium", "high", "critical"]),
   status: z.enum(["open", "in_progress", "pending", "resolved", "closed"]),
   category: z.string().optional(),
   subcategory: z.string().optional(),
@@ -484,8 +482,6 @@ export default function TicketDetails() {
       subject: "",
       description: "",
       priority: "medium",
-      urgency: "medium",
-      impact: "medium",
       status: "open",
       callerId: "",
       callerType: "customer",
@@ -501,8 +497,6 @@ export default function TicketDetails() {
         subject: ticket.subject || "",
         description: ticket.description || "",
         priority: ticket.priority || "medium",
-        urgency: ticket.urgency || "medium",
-        impact: ticket.impact || "medium",
         status: ticket.status || "open",
         category: ticket.category || "",
         subcategory: ticket.subcategory || "",
@@ -847,7 +841,7 @@ export default function TicketDetails() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Prioridade *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                    <Select onValueChange{field.onChange} defaultValue={field.value} disabled={!isEditMode}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione a prioridade" />
@@ -2096,76 +2090,6 @@ export default function TicketDetails() {
 
           {/* Impacto, Urgência e Local Section */}
           <div className="mb-6 space-y-4">
-            {/* Impacto */}
-            <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-orange-800 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  IMPACTO
-                </h3>
-              </div>
-              <div className="space-y-2">
-                {isEditMode ? (
-                  <Select 
-                    onValueChange={(value) => form.setValue('impact', value)} 
-                    defaultValue={ticket.impact || ''}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o impacto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {impactOptions?.data?.map((option: any) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="text-sm text-orange-900 font-medium">
-                    {impactOptions?.data?.find((o: any) => o.value === ticket.impact)?.label || 
-                     ticket.impact || 'Não especificado'}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Urgência */}
-            <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-yellow-800 flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  URGÊNCIA
-                </h3>
-              </div>
-              <div className="space-y-2">
-                {isEditMode ? (
-                  <Select 
-                    onValueChange={(value) => form.setValue('urgency', value)} 
-                    defaultValue={ticket.urgency || ''}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione a urgência" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {urgencyOptions?.data?.map((option: any) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="text-sm text-yellow-900 font-medium">
-                    {urgencyOptions?.data?.find((o: any) => o.value === ticket.urgency)?.label || 
-                     ticket.urgency || 'Não especificado'}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Local */}
             <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -2491,8 +2415,7 @@ export default function TicketDetails() {
             </Form>
           </div>
         </div>
-      </div>
-
+      </div>      
       {/* Right Sidebar - Navigation Tabs */}
       <div className="w-80 bg-white border-l flex-shrink-0 h-full overflow-y-auto">
         <div className="p-4 border-b">
@@ -2812,7 +2735,7 @@ export default function TicketDetails() {
               Informações completas e gestão da empresa vinculada ao ticket
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             {/* Informações Básicas */}
             <Card>

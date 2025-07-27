@@ -2204,9 +2204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Field configurations
       const fieldConfigs = [
         { tenantId, fieldName: 'priority', displayName: 'Prioridade', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 1 },
-        { tenantId, fieldName: 'urgency', displayName: 'Urgência', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 2 },
-        { tenantId, fieldName: 'impact', displayName: 'Impacto', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 3 },
-        { tenantId, fieldName: 'status', displayName: 'Status', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 4 },
+        { tenantId, fieldName: 'status', displayName: 'Status', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 2 },
         { tenantId, fieldName: 'environment', displayName: 'Ambiente', fieldType: 'select', isRequired: false, isSystemField: false, sortOrder: 5 },
         { tenantId, fieldName: 'category', displayName: 'Categoria', fieldType: 'select', isRequired: false, isSystemField: false, sortOrder: 6 }
       ];

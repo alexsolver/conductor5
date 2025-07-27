@@ -36,7 +36,7 @@ const ticketSchema = z.object({
   impact: z.enum(["low", "medium", "high"]).optional(),
   urgency: z.enum(["low", "medium", "high"]).optional(),
   state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
-  
+
   // Assignment Fields - Enhanced for flexible person referencing
   callerId: z.string().min(1, "Solicitante é obrigatório"),
   callerType: z.enum(["user", "customer"]).default("customer"),
@@ -46,15 +46,15 @@ const ticketSchema = z.object({
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
-  
+
   // Communication Fields
   contactType: z.enum(["email", "phone", "self_service", "chat"]).optional(),
-  
+
   // Business Fields
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
-  
+
   // Legacy compatibility
   subject: z.string().min(1, "Subject is required"),
   status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
@@ -209,7 +209,7 @@ export default function TicketsTable() {
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
-  
+
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
   const [newViewDescription, setNewViewDescription] = useState("");
@@ -217,7 +217,7 @@ export default function TicketsTable() {
     "number", "subject", "customer", "category", "status", "priority", "created"
   ]);
   const [isPublicView, setIsPublicView] = useState(false);
-  
+
   // Estados para gerenciar visualizações
   const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
   const [editingView, setEditingView] = useState<any>(null);
@@ -248,7 +248,7 @@ export default function TicketsTable() {
     { id: "satisfaction", label: "Satisfação" }
   ];
   const itemsPerPage = 20;
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -261,14 +261,14 @@ export default function TicketsTable() {
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
       });
-      
+
       if (statusFilter !== "all") {
         params.append("status", statusFilter);
       }
       if (priorityFilter !== "all") {
         params.append("priority", priorityFilter);
       }
-      
+
       const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
       return response.json();
     },
@@ -728,7 +728,7 @@ export default function TicketsTable() {
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Basic Information</h3>
-          
+
           <FormField
             control={form.control}
             name="shortDescription"
@@ -800,7 +800,7 @@ export default function TicketsTable() {
         {/* Priority & Impact */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Priority & Impact</h3>
-          
+
           <div className="grid grid-cols-3 gap-4">
             <FormField
               control={form.control}
@@ -864,7 +864,7 @@ export default function TicketsTable() {
         {/* Assignment */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Assignment</h3>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -929,6 +929,8 @@ export default function TicketsTable() {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select agent" />
+```text
+
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1013,7 +1015,7 @@ export default function TicketsTable() {
         {/* Business Impact */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
-          
+
           <FormField
             control={form.control}
             name="businessImpact"
@@ -1133,7 +1135,7 @@ export default function TicketsTable() {
             <Plus className="h-4 w-4 mr-2" />
             Novo Ticket
           </Button>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -1326,7 +1328,7 @@ export default function TicketsTable() {
               </TableBody>
             </Table>
           </div>
-          
+
           {/* Pagination */}
           <div className="flex items-center justify-between space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">
@@ -1405,7 +1407,7 @@ export default function TicketsTable() {
                     </label>
                   ))}
                 </div>
-                
+
                 {/* Ordem das Colunas Selecionadas */}
                 {selectedColumns.length > 0 && (
                   <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
@@ -1677,15 +1679,15 @@ export default function TicketsTable() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
+
               {/* Layout principal idêntico ao TicketDetails - sem sidebar direita */}
               <div className="space-y-6">
-                
+
                 {/* Informações Básicas */}
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Informações Básicas</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="shortDescription"
@@ -1720,24 +1722,7 @@ export default function TicketsTable() {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="impact"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Impacto</FormLabel>
-                            <FormControl>
-                              <DynamicSelect
-                                fieldName="impact"
-                                value={field.value || "medium"}
-                                onValueChange={field.onChange}
-                                placeholder="Selecione o impacto"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1760,31 +1745,14 @@ export default function TicketsTable() {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="urgency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Urgência</FormLabel>
-                            <FormControl>
-                              <DynamicSelect
-                                fieldName="urgency"
-                                value={field.value || "medium"}
-                                onValueChange={field.onChange}
-                                placeholder="Selecione a urgência"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      
                     </div>
                   </div>
 
                   {/* Atribuição e Contato */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Atribuição e Contato</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="callerId"
@@ -1873,7 +1841,7 @@ export default function TicketsTable() {
                 {/* Descrição Detalhada */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Descrição Detalhada</h3>
-                  
+
                   <FormField
                     control={form.control}
                     name="description"

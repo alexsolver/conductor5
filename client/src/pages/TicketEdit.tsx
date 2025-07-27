@@ -35,8 +35,6 @@ const baseTicketFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
   priority: z.string().optional(),
-  urgency: z.string().optional(),
-  impact: z.string().optional(),
   status: z.string().optional(),
   category: z.string().optional(),
   subcategory: z.string().optional(),
@@ -127,8 +125,6 @@ export default function TicketEdit() {
       subject: "",
       description: "",
       priority: "medium",
-      urgency: "medium",
-      impact: "medium",
       status: "open",
       category: "",
       subcategory: "",
@@ -172,8 +168,6 @@ export default function TicketEdit() {
         subject: ticket.subject || ticket.short_description || "",
         description: ticket.description || "",
         priority: ticket.priority || "medium",
-        urgency: ticket.urgency || "medium",
-        impact: ticket.impact || "medium",
         status: ticket.status || ticket.state || "open",
         category: ticket.category || "",
         subcategory: ticket.subcategory || "",
@@ -261,8 +255,6 @@ export default function TicketEdit() {
       subject: data.subject,
       description: data.description,
       priority: data.priority,
-      urgency: data.urgency,
-      impact: data.impact,
       status: data.status,
       category: data.category,
       subcategory: data.subcategory,
@@ -446,61 +438,23 @@ export default function TicketEdit() {
                         )}
                       />
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="priority"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Prioridade</FormLabel>
-                              <FormControl>
-                                <DynamicSelect
-                                  fieldName="priority"
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="urgency"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Urgência</FormLabel>
-                              <FormControl>
-                                <DynamicSelect
-                                  fieldName="urgency"
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="impact"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Impacto</FormLabel>
-                              <FormControl>
-                                <DynamicSelect
-                                  fieldName="impact"
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="priority"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Prioridade</FormLabel>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="priority"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       <FormField
                         control={form.control}
