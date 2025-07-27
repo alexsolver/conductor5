@@ -14,7 +14,7 @@ type CustomerDbRow = typeof customers.$inferSelect;
 type CustomerDbInsert = typeof customers.$inferInsert;
 
 export class DrizzleCustomerRepository implements ICustomerRepository {
-  
+
   async findById(id: string, tenantId: string): Promise<Customer | null> {
     const result = await db
       .select()

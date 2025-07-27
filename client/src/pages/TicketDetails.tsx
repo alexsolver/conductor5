@@ -312,20 +312,20 @@ export default function TicketDetails() {
       }
 
       try {
-        console.log('Fetching customers for company:', companyId);
+        console.log('TicketDetails: Fetching customers for company:', companyId);
         const response = await apiRequest("GET", `/api/companies/${companyId}/customers`);
         const data = await response.json();
         
-        console.log('Company customers response:', data);
+        console.log('TicketDetails: Company customers response:', data);
         
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
         } else {
-          console.warn('No customers found for company');
+          console.warn('TicketDetails: No customers found for company');
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error('Error fetching customers for company:', error);
+        console.error('TicketDetails: Error fetching customers for company:', error);
         setSelectedCompanyCustomers([]);
       }
     };
@@ -334,6 +334,36 @@ export default function TicketDetails() {
       fetchCompanyCustomers();
     }
   }, [ticket?.customerCompanyId, ticket?.company]);
+
+  // Handle company change and reset customers
+  const handleCompanyChange = async (newCompanyId: string) => {
+    // Update form value
+    form.setValue('customerCompanyId', newCompanyId);
+    
+    // Reset customer selections
+    form.setValue('callerId', '');
+    form.setValue('beneficiaryId', '');
+    
+    // Fetch new customers for selected company
+    if (newCompanyId && newCompanyId !== 'unspecified') {
+      try {
+        console.log('TicketDetails: Company changed, fetching customers for:', newCompanyId);
+        const response = await apiRequest("GET", `/api/companies/${newCompanyId}/customers`);
+        const data = await response.json();
+        
+        if (data.success && data.customers) {
+          setSelectedCompanyCustomers(data.customers);
+        } else {
+          setSelectedCompanyCustomers([]);
+        }
+      } catch (error) {
+        console.error('TicketDetails: Error fetching customers after company change:', error);
+        setSelectedCompanyCustomers([]);
+      }
+    } else {
+      setSelectedCompanyCustomers([]);
+    }
+  };
 
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
@@ -1733,7 +1763,7 @@ export default function TicketDetails() {
             <div className="space-y-2">
               {isEditMode ? (
                 <Select 
-                  onValueChange={(value) => form.setValue('customerCompanyId', value)} 
+                  onValueChange={handleCompanyChange}
                   defaultValue={ticket.customerCompanyId || ticket.company || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">

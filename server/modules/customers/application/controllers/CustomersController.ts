@@ -45,7 +45,7 @@ export class CustomersController {
   constructor() {
     const customerRepository = new DrizzleCustomerRepository();
     const eventPublisher = new DomainEventPublisher();
-    
+
     this.createCustomerUseCase = new CreateCustomerUseCase(customerRepository, eventPublisher);
     this.getCustomersUseCase = new GetCustomersUseCase(customerRepository);
   }
@@ -117,11 +117,11 @@ export class CustomersController {
     } catch (error: unknown) {
       const { logError } = await import('../../../../utils/logger');
       logError("Error creating customer", error);
-      
+
       if (error instanceof Error && error.message === 'Customer with this email already exists') {
         return res.status(409).json({ message: error.message });
       }
-      
+
       res.status(500).json({ message: "Failed to create customer" });
     }
   }
@@ -198,6 +198,63 @@ export class CustomersController {
       const { logError } = await import('../../../../utils/logger');
       logError("Error deleting customer", error);
       res.status(500).json({ message: "Failed to delete customer" });
+    }
+  }
+
+  // GET /api/customers/companies - Get all customer companies
+  async getCustomerCompanies(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+
+      const result = await this.getCustomerCompaniesUseCase.execute({
+        tenantId
+      });
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
+
+      res.json(result.companies);
+    } catch (error) {
+      console.error('Error fetching customer companies:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // GET /api/companies/:companyId/customers - Get customers by company
+  async getCustomersByCompany(req: Request, res: Response) {
+    try {
+      const { companyId } = req.params;
+      const tenantId = req.user.tenantId;
+
+      if (!companyId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Company ID is required'
+        });
+      }
+
+      // Get customers associated with the company through customer_company_memberships
+      const customers = await this.customerRepository.findByCompany(tenantId, companyId);
+
+      res.json({
+        success: true,
+        customers: customers || [],
+        companyId,
+        count: customers?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching customers by company:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
     }
   }
 }

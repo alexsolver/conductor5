@@ -123,6 +123,16 @@ export default function TicketEdit() {
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   const companies = Array.isArray(companiesData) ? companiesData : [];
 
+  // Initialize company from ticket data
+  useEffect(() => {
+    if (ticket && !selectedCompanyId) {
+      const companyId = ticket.customerCompanyId || ticket.company;
+      if (companyId && companyId !== 'unspecified') {
+        setSelectedCompanyId(companyId);
+      }
+    }
+  }, [ticket, selectedCompanyId]);
+
   // Filter customers based on selected company
   useEffect(() => {
     if (!selectedCompanyId) {
@@ -315,6 +325,8 @@ export default function TicketEdit() {
       symptoms: data.symptoms,
       workaround: data.workaround,
       tags: data.tags,
+      // Company relationship
+      customer_company_id: selectedCompanyId || data.customerCompanyId,
       // Template/Environment fields
       environment: data.environment,
       template_name: data.templateName,
@@ -752,27 +764,36 @@ export default function TicketEdit() {
                     {/* Tab 3: Assignment */}
                     <TabsContent value="assignment" className="space-y-4">
                       {/* Company Selection */}
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Empresa
+                      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <label className="block text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Empresa Cliente
                         </label>
                         <select
                           value={selectedCompanyId}
                           onChange={(e) => {
-                            setSelectedCompanyId(e.target.value);
-                            // Reset customer selections when company changes
+                            const newCompanyId = e.target.value;
+                            setSelectedCompanyId(newCompanyId);
+                            // Update form and reset customer selections
+                            form.setValue("customerCompanyId", newCompanyId);
                             form.setValue("callerId", "");
                             form.setValue("beneficiaryId", "");
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         >
-                          <option value="">Todas as empresas</option>
+                          <option value="">Selecione uma empresa</option>
+                          <option value="unspecified">Não especificado</option>
                           {companies.map((company: any) => (
                             <option key={company.id} value={company.id}>
                               {company.company_name || company.name}
                             </option>
                           ))}
                         </select>
+                        {selectedCompanyId && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Clientes filtrados por esta empresa: {filteredCustomers.length}
+                          </p>
+                        )}
                       </div>
 
                       <FormField
