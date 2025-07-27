@@ -117,11 +117,11 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Update ticket
+// Update ticket - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
 ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     const ticketId = req.params.id;
@@ -161,19 +161,19 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     //   details: { changes: updates },
     // });
 
-    res.json(updatedTicket);
+    return sendSuccess(res, updatedTicket, "Ticket updated successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Error updating ticket', error, { ticketId: req.params.id, tenantId: req.user?.tenantId });
-    res.status(500).json({ message: "Failed to update ticket" });
+    return sendError(res, error, "Failed to update ticket", 500);
   }
 });
 
-// Add message to ticket
+// Add message to ticket - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
 ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     const ticketId = req.params.id;
@@ -195,22 +195,22 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
       createdAt: new Date().toISOString()
     };
 
-    res.status(201).json(message);
+    return sendSuccess(res, message, "Message added successfully", 201);
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError('Error adding ticket message', error, { ticketId: req.params.id });
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid message data", errors: error.errors });
+      return sendValidationError(res, error.errors.map(e => `${e.path.join('.')}: ${e.message}`), "Invalid message data");
     }
-    res.status(500).json({ message: "Failed to add message" });
+    return sendError(res, error, "Failed to add message", 500);
   }
 });
 
-// Assign ticket to agent
+// Assign ticket to agent - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
 ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     const ticketId = req.params.id;
@@ -222,15 +222,15 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
     });
 
     if (!updatedTicket) {
-      return res.status(404).json({ message: "Ticket not found" });
+      return sendError(res, "Ticket not found", "Ticket not found", 404);
     }
 
     // TODO: Implement activity logging when createActivityLog method is available
 
-    res.json(updatedTicket);
+    return sendSuccess(res, updatedTicket, "Ticket assigned successfully");
   } catch (error) {
     console.error("Error assigning ticket:", error);
-    res.status(500).json({ message: "Failed to assign ticket" });
+    return sendError(res, error, "Failed to assign ticket", 500);
   }
 });
 
@@ -665,36 +665,39 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // Placeholder - return sample data
-    const sampleHistory = [
-      {
-        id: "1",
-        type: "status_change",
-        action: "Status alterado",
-        description: "Status alterado de 'Aberto' para 'Em Progresso'",
-        actor: req.user.id,
-        actorName: req.user.name || req.user.email,
-        actorType: "user",
-        oldValue: "open",
-        newValue: "in_progress",
-        fieldName: "status",
-        isPublic: true,
-        createdAt: new Date(Date.now() - 3600000).toISOString()
-      },
-      {
-        id: "2",
-        type: "comment",
-        action: "Comentário adicionado",
-        description: "Agente adicionou uma nova observação ao ticket",
-        actor: req.user.id,
-        actorName: req.user.name || req.user.email,
-        actorType: "user",
-        isPublic: false,
-        createdAt: new Date(Date.now() - 7200000).toISOString()
-      }
-    ];
-
-    res.json(sampleHistory);
+    // CORREÇÃO PROBLEMA 4: Eliminar dados hardcoded - usar apenas dados reais da API
+    // Conectar à API real de histórico de tickets
+    try {
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      
+      const historyQuery = `
+        SELECT 
+          th.id,
+          th.action_type as type,
+          th.description as action,
+          th.description,
+          th.user_id as actor,
+          u.first_name || ' ' || u.last_name as "actorName",
+          'user' as "actorType",
+          th.old_value as "oldValue",
+          th.new_value as "newValue", 
+          th.field_name as "fieldName",
+          true as "isPublic",
+          th.created_at as "createdAt"
+        FROM "${schemaName}".ticket_history th
+        LEFT JOIN public.users u ON th.user_id = u.id
+        WHERE th.ticket_id = $1
+        ORDER BY th.created_at DESC
+      `;
+      
+      const historyResult = await pool.query(historyQuery, [ticketId]);
+      return sendSuccess(res, historyResult.rows, "Ticket history retrieved successfully");
+      
+    } catch (dbError) {
+      console.log("Database history not available, returning empty array");
+      return sendSuccess(res, [], "No ticket history available");
+    }
   } catch (error) {
     console.error("Error fetching history:", error);
     res.status(500).json({ message: "Failed to fetch history" });

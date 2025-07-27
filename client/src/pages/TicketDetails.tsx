@@ -815,8 +815,8 @@ export default function TicketDetails() {
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
 
-      // CORRIGIDO: Location mapping adequado - usar apenas location (campo texto)
-      location: data.location,             // Para texto livre apenas
+      // CORREÇÃO PROBLEMA 3: Location field consistency - usar apenas location (campo texto)
+      location: data.location || data.locationId,  // Converte locationId → location se necessário
       contact_type: data.contactType,
 
       // Business fields
