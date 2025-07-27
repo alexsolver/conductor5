@@ -9,7 +9,7 @@ import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, customerCompanies } from "@shared/schema-master";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, asc } from "drizzle-orm";
 import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
@@ -2029,36 +2029,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = schemaManager.getSchemaName(tenantId);
+      const { db: tenantDb, schema } = await schemaManager.getTenantDb(tenantId);
 
-      // Get all customer companies
-      const companies = await tenantDb.execute(sql`
-        SELECT 
-          cc.id,
-          cc.name,
-          cc.display_name,
-          cc.cnpj,
-          cc.industry,
-          cc.website,
-          cc.phone,
-          cc.email,
-          cc.address,
-          cc.city,
-          cc.state,
-          cc.country,
-          cc.size,
-          cc.subscription_tier,
-          cc.status,
-          cc.created_at,
-          cc.updated_at
-        FROM ${sql.identifier(schemaName, 'customer_companies')} cc
-        WHERE cc.is_active = true
-        ORDER BY cc.name
-      `);
+      // Get all customer companies using schema reference
+      const companies = await tenantDb
+        .select()
+        .from(schema.customerCompanies)
+        .where(eq(schema.customerCompanies.isActive, true))
+        .orderBy(asc(schema.customerCompanies.name));
 
       // Return the format expected by the frontend
-      res.json(companies.rows);
+      res.json(companies);
     } catch (error) {
       console.error('Error fetching customer companies via compatibility route:', error);
       res.status(500).json({ 
