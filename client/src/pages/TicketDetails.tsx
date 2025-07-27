@@ -900,7 +900,8 @@ export default function TicketDetails() {
                             fieldName="priority"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione a prioridade                            disabled={!isEditMode}
+                            placeholder="Selecione a prioridade"
+                            disabled={!isEditMode}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">

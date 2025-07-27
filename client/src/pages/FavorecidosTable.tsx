@@ -101,8 +101,10 @@ export default function FavorecidosTable() {
   const queryClient = useQueryClient();
 
   // Fetch favorecidos with pagination and search
-  const { data: favorecidosData, isLoading } = useQuery({
+  const { data: favorecidosData, isLoading, refetch } = useQuery({
     queryKey: ["/api/favorecidos", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
@@ -197,12 +199,15 @@ export default function FavorecidosTable() {
       const response = await apiRequest("PUT", `/api/favorecidos/${id}`, updateData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Update mutation success:', data);
       toast({
         title: "Sucesso",
         description: "Favorecido atualizado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/favorecidos"] });
+      queryClient.refetchQueries({ queryKey: ["/api/favorecidos"] });
+      refetch(); // Force refetch
       setIsEditDialogOpen(false);
       setEditingFavorecido(null);
     },
