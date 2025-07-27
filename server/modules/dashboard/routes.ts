@@ -2,6 +2,7 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { unifiedStorage } from "../../storage-master";
+import { sendSuccess, sendError } from "../../utils/standardResponse";
 
 const dashboardRouter = Router();
 
@@ -9,15 +10,15 @@ const dashboardRouter = Router();
 dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     const stats = await unifiedStorage.getDashboardStats(req.user.tenantId);
-    res.json(stats);
+    return sendSuccess(res, stats, "Dashboard stats retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
-    logError("Error fetching dashboard stats", error);
-    res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    logError("Error fetching dashboard stats", error as any);
+    return sendError(res, error as any, "Failed to fetch dashboard stats", 500);
   }
 });
 
@@ -25,16 +26,16 @@ dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) =>
 dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     const limit = parseInt(req.query.limit as string) || 20;
     const activity = await unifiedStorage.getRecentActivity ? await unifiedStorage.getRecentActivity(req.user.tenantId, limit) : [];
-    res.json(activity);
+    return sendSuccess(res, activity, "Dashboard activity retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
-    logError("Error fetching dashboard activity", error);
-    res.status(500).json({ message: "Failed to fetch activity" });
+    logError("Error fetching dashboard activity", error as any);
+    return sendError(res, error as any, "Failed to fetch activity", 500);
   }
 });
 
@@ -42,7 +43,7 @@ dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res)
 dashboardRouter.get('/metrics', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     // Additional dashboard metrics
@@ -61,11 +62,11 @@ dashboardRouter.get('/metrics', jwtAuth, async (req: AuthenticatedRequest, res) 
       }
     };
 
-    res.json(metrics);
+    return sendSuccess(res, metrics, "Dashboard metrics retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
-    logError("Error fetching dashboard metrics", error);
-    res.status(500).json({ message: "Failed to fetch metrics" });
+    logError("Error fetching dashboard metrics", error as any);
+    return sendError(res, error as any, "Failed to fetch metrics", 500);
   }
 });
 

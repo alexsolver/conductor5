@@ -5,6 +5,7 @@ import { GetCustomersUseCase, GetCustomersRequest } from "../usecases/GetCustome
 import { CustomerRepository } from "../../infrastructure/repositories/CustomerRepository";
 import { DomainEventPublisher } from "../../infrastructure/events/DomainEventPublisher";
 import { insertCustomerSchema } from "../../../shared/schema";
+import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 
 export class CustomerController {
   private createCustomerUseCase: CreateCustomerUseCase;
@@ -24,7 +25,7 @@ export class CustomerController {
       // Extract tenant context from authenticated user
       const user = req.user;
       if (!user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
+        sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
         return;
       }
 
@@ -42,11 +43,11 @@ export class CustomerController {
       const result = await this.getCustomersUseCase.execute(request);
 
       if (!result.success) {
-        res.status(500).json({ message: result.error });
+        sendError(res, result.error, result.error, 500);
         return;
       }
 
-      res.json({
+      sendSuccess(res, {
         customers: result.customers.map(customer => ({
           id: customer.id,
           email: customer.email,
@@ -67,12 +68,12 @@ export class CustomerController {
           limit: result.limit,
           totalPages: Math.ceil(result.total / result.limit)
         }
-      });
+      }, "Customers retrieved successfully");
 
     } catch (error) {
       const { logError } = await import('../../utils/logger');
-      logError("Error in getCustomers controller", error);
-      res.status(500).json({ message: "Failed to fetch customers" });
+      logError("Error in getCustomers controller", error as any);
+      sendError(res, error as any, "Failed to fetch customers", 500);
     }
   }
 
@@ -80,7 +81,7 @@ export class CustomerController {
     try {
       const user = req.user;
       if (!user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
+        sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
         return;
       }
 
@@ -90,11 +91,11 @@ export class CustomerController {
       const customer = await customerRepository.findById(customerId, user.tenantId);
       
       if (!customer) {
-        res.status(404).json({ message: "Customer not found" });
+        sendError(res, "Customer not found", "Customer not found", 404);
         return;
       }
 
-      res.json({
+      sendSuccess(res, {
         id: customer.id,
         email: customer.email,
         firstName: customer.firstName,
@@ -107,12 +108,12 @@ export class CustomerController {
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         tenantId: customer.tenantId
-      });
+      }, "Customer retrieved successfully");
 
     } catch (error) {
       const { logError } = await import('../../utils/logger');
-      logError("Error in getCustomer controller", error);
-      res.status(500).json({ message: "Failed to fetch customer" });
+      logError("Error in getCustomer controller", error as any);
+      sendError(res, error as any, "Failed to fetch customer", 500);
     }
   }
 
@@ -120,17 +121,14 @@ export class CustomerController {
     try {
       const user = req.user;
       if (!user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
+        sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
         return;
       }
 
       // Validate request body
       const validation = insertCustomerSchema.safeParse(req.body);
       if (!validation.success) {
-        res.status(400).json({ 
-          message: "Invalid customer data",
-          errors: validation.error.errors
-        });
+        sendValidationError(res, validation.error.errors.map(e => e.message), "Invalid customer data");
         return;
       }
 
@@ -151,12 +149,12 @@ export class CustomerController {
       const result = await this.createCustomerUseCase.execute(request);
 
       if (!result.success) {
-        res.status(400).json({ message: result.error });
+        sendError(res, result.error, result.error, 400);
         return;
       }
 
       const customer = result.customer;
-      res.status(201).json({
+      sendSuccess(res, {
         id: customer.id,
         email: customer.email,
         firstName: customer.firstName,
@@ -169,12 +167,12 @@ export class CustomerController {
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         tenantId: customer.tenantId
-      });
+      }, "Customer created successfully", 201);
 
     } catch (error) {
       const { logError } = await import('../../utils/logger');
-      logError("Error in createCustomer controller", error);
-      res.status(500).json({ message: "Failed to create customer" });
+      logError("Error in createCustomer controller", error as any);
+      sendError(res, error as any, "Failed to create customer", 500);
     }
   }
 }

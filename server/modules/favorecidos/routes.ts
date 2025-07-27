@@ -3,6 +3,7 @@ import { z } from "zod";
 import { storage } from "../../storage-simple";
 import { jwtAuth } from "../../middleware/jwtAuth";
 import { insertFavorecidoSchema, type InsertFavorecido } from "@shared/schema";
+import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 
 // Add type for authenticated request
 interface AuthenticatedRequest extends Request {
@@ -50,7 +51,7 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
 
     console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${user.tenantId}`);
 
-    res.json({
+    return sendSuccess(res, {
       favorecidos,
       pagination: {
         page,
@@ -58,14 +59,10 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
         total,
         totalPages,
       },
-    });
+    }, "Favorecidos retrieved successfully");
   } catch (error) {
     console.error("Error fetching favorecidos:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Failed to fetch favorecidos",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to fetch favorecidos", 500);
   }
 });
 
@@ -78,20 +75,13 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const favorecido = await storage.getFavorecido(id, user.tenantId);
     
     if (!favorecido) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Favorecido not found" 
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
-    res.json({ favorecido });
+    return sendSuccess(res, { favorecido }, "Favorecido retrieved successfully");
   } catch (error) {
     console.error("Error fetching favorecido:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Failed to fetch favorecido",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to fetch favorecido", 500);
   }
 });
 
@@ -103,18 +93,10 @@ router.post("/", async (req: AuthenticatedRequest, res: Response) => {
     
     const favorecido = await storage.createFavorecido(user.tenantId, favorecidoData);
     
-    res.status(201).json({ 
-      success: true,
-      favorecido,
-      message: "Favorecido created successfully"
-    });
+    return sendSuccess(res, { favorecido }, "Favorecido created successfully", 201);
   } catch (error) {
     console.error("Error creating favorecido:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Failed to create favorecido",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to create favorecido", 500);
   }
 });
 
@@ -123,7 +105,7 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     if (!user) {
-      return res.status(401).json({ success: false, message: "Authentication required" });
+      return sendError(res, "Authentication required", "Authentication required", 401);
     }
     
     const { id } = favorecidoIdSchema.parse(req.params);
@@ -135,24 +117,13 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const favorecido = await storage.updateFavorecido(user.tenantId, id, updateData);
     
     if (!favorecido) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Favorecido not found" 
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
-    res.json({ 
-      success: true,
-      favorecido,
-      message: "Favorecido updated successfully"
-    });
+    return sendSuccess(res, { favorecido }, "Favorecido updated successfully");
   } catch (error) {
     console.error("Error updating favorecido:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Failed to update favorecido",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to update favorecido", 500);
   }
 });
 
@@ -161,7 +132,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     if (!user) {
-      return res.status(401).json({ success: false, message: "Authentication required" });
+      return sendError(res, "Authentication required", "Authentication required", 401);
     }
     
     const { id } = favorecidoIdSchema.parse(req.params);
@@ -169,23 +140,13 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const deleted = await storage.deleteFavorecido(user.tenantId, id);
     
     if (!deleted) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Favorecido not found" 
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
-    res.json({ 
-      success: true,
-      message: "Favorecido deleted successfully"
-    });
+    return sendSuccess(res, null, "Favorecido deleted successfully");
   } catch (error) {
     console.error("Error deleting favorecido:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Failed to delete favorecido",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to delete favorecido", 500);
   }
 });
 
@@ -198,25 +159,15 @@ router.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) =>
     // Verify favorecido exists and belongs to tenant
     const favorecido = await storage.getFavorecido(id, user.tenantId);
     if (!favorecido) {
-      return res.status(404).json({
-        success: false,
-        message: "Favorecido not found"
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
     const locations = await storage.getFavorecidoLocations(id, user.tenantId);
 
-    res.json({
-      success: true,
-      locations
-    });
+    return sendSuccess(res, { locations }, "Favorecido locations retrieved successfully");
   } catch (error) {
     console.error("Error fetching favorecido locations:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch favorecido locations",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to fetch favorecido locations", 500);
   }
 });
 
@@ -236,35 +187,21 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
     // Verify favorecido exists and belongs to tenant
     const favorecido = await storage.getFavorecido(id, user.tenantId);
     if (!favorecido) {
-      return res.status(404).json({
-        success: false,
-        message: "Favorecido not found"
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
     // Verify location exists and belongs to tenant
     const location = await storage.getLocation(locationId, user.tenantId);
     if (!location) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found"
-      });
+      return sendError(res, "Location not found", "Location not found", 404);
     }
 
     const favorecidoLocation = await storage.addFavorecidoLocation(id, locationId, user.tenantId, isPrimary);
 
-    res.status(201).json({
-      success: true,
-      favorecidoLocation,
-      message: "Location added to favorecido successfully"
-    });
+    return sendSuccess(res, { favorecidoLocation }, "Location added to favorecido successfully", 201);
   } catch (error) {
     console.error("Error adding location to favorecido:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to add location to favorecido",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to add location to favorecido", 500);
   }
 });
 
@@ -281,32 +218,19 @@ router.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, re
     // Verify favorecido exists and belongs to tenant
     const favorecido = await storage.getFavorecido(id, user.tenantId);
     if (!favorecido) {
-      return res.status(404).json({
-        success: false,
-        message: "Favorecido not found"
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
     const success = await storage.removeFavorecidoLocation(id, locationId, user.tenantId);
 
     if (success) {
-      res.json({
-        success: true,
-        message: "Location removed from favorecido successfully"
-      });
+      return sendSuccess(res, null, "Location removed from favorecido successfully");
     } else {
-      res.status(404).json({
-        success: false,
-        message: "Location association not found"
-      });
+      return sendError(res, "Location association not found", "Location association not found", 404);
     }
   } catch (error) {
     console.error("Error removing location from favorecido:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to remove location from favorecido",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to remove location from favorecido", 500);
   }
 });
 
@@ -329,32 +253,19 @@ router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedReques
     // Verify favorecido exists and belongs to tenant
     const favorecido = await storage.getFavorecido(id, user.tenantId);
     if (!favorecido) {
-      return res.status(404).json({
-        success: false,
-        message: "Favorecido not found"
-      });
+      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
     const success = await storage.updateFavorecidoLocationPrimary(id, locationId, user.tenantId, isPrimary);
 
     if (success) {
-      res.json({
-        success: true,
-        message: "Location primary status updated successfully"
-      });
+      return sendSuccess(res, null, "Location primary status updated successfully");
     } else {
-      res.status(404).json({
-        success: false,
-        message: "Location association not found"
-      });
+      return sendError(res, "Location association not found", "Location association not found", 404);
     }
   } catch (error) {
     console.error("Error updating location primary status:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update location primary status",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    return sendError(res, error as any, "Failed to update location primary status", 500);
   }
 });
 

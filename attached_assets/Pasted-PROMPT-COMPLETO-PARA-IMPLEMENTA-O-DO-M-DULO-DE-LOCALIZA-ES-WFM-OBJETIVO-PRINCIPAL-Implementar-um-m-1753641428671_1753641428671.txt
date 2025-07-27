@@ -1,0 +1,241 @@
+PROMPT COMPLETO PARA IMPLEMENTAÇÃO DO MÓDULO DE LOCALIZAÇÕES WFM
+OBJETIVO PRINCIPAL
+Implementar um módulo de localizações completamente novo e independente, projetado especificamente para sistemas WFM (Workforce Management), que suporte múltiplos tipos de geometrias (pontos, trechos, áreas, regiões) e integre-se com todos os módulos do sistema.
+
+ARQUITETURA SISTEMÁTICA REQUERIDA
+1. EXCLUSÃO COMPLETA DO MÓDULO ATUAL
+Remover todas as referências ao módulo de locations existente
+Limpar tabelas locations dos schemas de tenant
+Remover rotas, controllers e componentes relacionados
+Preservar apenas dados essenciais através de backup
+2. NOVA ESTRUTURA DE DADOS GEOESPACIAIS
+// Schema principal de localizações
+locations: {
+  id: uuid (PK)
+  tenant_id: uuid (FK)
+  name: varchar(200)
+  description: text
+  location_type: enum('point', 'segment', 'area', 'region', 'route')
+  geometry_type: enum('point', 'linestring', 'polygon', 'multipolygon')
+  coordinates: jsonb // GeoJSON completo
+  address_data: jsonb // Endereço estruturado
+  business_hours: jsonb // Horários de funcionamento
+  access_requirements: jsonb // Requisitos de acesso para técnicos
+  sla_config: jsonb // Configurações de SLA
+  status: enum('active', 'inactive', 'maintenance', 'restricted')
+  created_at: timestamp
+  updated_at: timestamp
+}
+// Segmentos para infraestrutura linear
+location_segments: {
+  id: uuid (PK)
+  tenant_id: uuid (FK)
+  location_id: uuid (FK to locations)
+  segment_type: enum('fiber', 'cable', 'pipeline', 'rail', 'road')
+  start_coordinates: jsonb
+  end_coordinates: jsonb
+  path_coordinates: jsonb // Array de pontos do trajeto
+  length_meters: decimal
+  infrastructure_data: jsonb
+}
+// Áreas geográficas e regiões
+location_areas: {
+  id: uuid (PK)
+  tenant_id: uuid (FK)
+  location_id: uuid (FK to locations)
+  area_type: enum('service_zone', 'coverage_area', 'territory', 'district')
+  boundary_coordinates: jsonb // Polígono
+  area_size_km2: decimal
+  population_estimate: integer
+  service_level: enum('premium', 'standard', 'basic')
+}
+// Rotas dinâmicas
+location_routes: {
+  id: uuid (PK)
+  tenant_id: uuid (FK)
+  route_name: varchar(200)
+  route_type: enum('maintenance', 'installation', 'emergency', 'inspection')
+  route_coordinates: jsonb // Array ordenado de coordenadas
+  estimated_duration_minutes: integer
+  difficulty_level: enum('easy', 'medium', 'hard', 'extreme')
+  required_skills: jsonb // Array de skill IDs
+}
+// Agrupamentos de áreas
+area_groups: {
+  id: uuid (PK)
+  tenant_id: uuid (FK)
+  group_name: varchar(200)
+  group_type: enum('region', 'district', 'zone', 'territory')
+  parent_group_id: uuid (FK to area_groups) // Hierarquia
+  coordinates_center: jsonb
+  total_locations: integer
+}
+// Relacionamento locations com grupos
+location_area_memberships: {
+  location_id: uuid (FK to locations)
+  area_group_id: uuid (FK to area_groups)
+  tenant_id: uuid (FK)
+  membership_type: enum('primary', 'secondary', 'backup')
+}
+3. HORÁRIOS DE FUNCIONAMENTO AVANÇADOS
+business_hours_schema: {
+  default_hours: {
+    monday: { open: "08:00", close: "18:00", closed: false },
+    tuesday: { open: "08:00", close: "18:00", closed: false },
+    // ... outros dias
+  },
+  special_dates: [
+    { date: "2025-12-25", closed: true, reason: "Natal" },
+    { date: "2025-12-31", open: "08:00", close: "14:00", reason: "Véspera de Ano Novo" }
+  ],
+  seasonal_adjustments: [
+    { 
+      start_date: "2025-06-01", 
+      end_date: "2025-08-31", 
+      modified_hours: { monday: { open: "07:00", close: "17:00" } },
+      reason: "Horário de verão"
+    }
+  ]
+}
+4. CONFIGURAÇÕES DE ACESSO TÉCNICO
+access_requirements_schema: {
+  security_level: enum('public', 'restricted', 'high_security', 'military'),
+  authorization_required: boolean,
+  access_instructions: text,
+  emergency_contact: {
+    name: string,
+    phone: string,
+    email: string
+  },
+  equipment_required: string[], // ["safety_helmet", "identification", "tools"]
+  vehicle_restrictions: {
+    height_limit_cm: number,
+    weight_limit_kg: number,
+    access_type: enum('pedestrian', 'motorcycle', 'car', 'truck', 'specialized')
+  },
+  parking_available: boolean,
+  public_transport_access: string,
+  best_access_route: jsonb
+}
+5. SLA E OTIMIZAÇÃO DE ROTAS
+sla_config_schema: {
+  standard_response_time_minutes: number,
+  priority_response_time_minutes: number,
+  emergency_response_time_minutes: number,
+  max_travel_time_minutes: number,
+  preferred_technician_radius_km: number,
+  backup_technician_radius_km: number,
+  cost_per_km: decimal,
+  difficulty_multiplier: number
+}
+INTEGRAÇÃO COM MÓDULOS EXISTENTES
+1. FAVORECIDOS
+Manter relacionamento existente
+Adicionar suporte a múltiplas localizações por favorecido
+Permitir localização primária e secundárias
+2. TICKETS
+Substituir campo location simples por FK para locations
+Adicionar campos de coordenadas do atendimento
+Calcular distâncias automaticamente
+3. SCHEDULE MANAGEMENT
+Integrar com coordenadas para cálculo de rotas
+Otimizar agendamentos por proximidade
+Calcular tempo de deslocamento entre locais
+4. TECHNICAL SKILLS
+Associar técnicos a regiões de atuação
+Filtrar técnicos por proximidade e habilidades
+Criar matriz de competência por área
+5. ASSETS MANAGEMENT
+Associar ativos a localizações específicas
+Rastrear movimentação de equipamentos
+Gestão de inventário por local
+COMPONENTES FRONTEND REQUERIDOS
+1. Mapa Interativo Avançado
+<AdvancedLocationMap 
+  geometryTypes={['point', 'segment', 'area', 'route']}
+  onGeometryDraw={handleGeometryCreation}
+  layerControls={true}
+  measurementTools={true}
+  kmlImport={true}
+/>
+2. Editor de Geometrias
+Ferramentas de desenho para pontos, linhas e polígonos
+Importação de arquivos KML/GeoJSON
+Validação de geometrias
+Calculadora de distâncias e áreas
+3. Gerenciador de Horários
+<BusinessHoursManager 
+  defaultHours={businessHours}
+  specialDates={specialDates}
+  seasonalAdjustments={seasonalAdjustments}
+  onUpdate={handleHoursUpdate}
+/>
+4. Configurador de Acesso
+Interface para definir requisitos de acesso
+Upload de instruções específicas
+Configuração de contatos de emergência
+APIS E FUNCIONALIDADES
+1. Geolocalização e Rotas
+POST /api/locations/calculate-route
+POST /api/locations/find-nearest-technicians
+GET /api/locations/coverage-analysis
+POST /api/locations/import-kml
+2. Otimização WFM
+GET /api/locations/technician-optimization
+POST /api/locations/schedule-optimization
+GET /api/locations/sla-analysis
+POST /api/locations/route-planning
+3. Análise Geoespacial
+GET /api/locations/coverage-gaps
+POST /api/locations/service-area-analysis
+GET /api/locations/distance-matrix
+POST /api/locations/territory-planning
+METODOLOGIA DE IMPLEMENTAÇÃO
+FASE 1: Estrutura Base
+Criar novo schema de localizações
+Implementar migrations para exclusão segura do módulo antigo
+Desenvolver repositories com suporte geoespacial
+Criar controllers base
+FASE 2: Interface de Usuário
+Implementar mapa interativo com Leaflet
+Criar formulários de cadastro por tipo de geometria
+Desenvolver importador de KML/GeoJSON
+Interface de configuração de horários
+FASE 3: Integrações
+Atualizar módulo de favorecidos
+Integrar com sistema de tickets
+Conectar com schedule management
+Implementar otimizações de rota
+FASE 4: Funcionalidades Avançadas
+Sistema de agrupamentos hierárquicos
+Análises de cobertura
+Otimização automática de rotas
+Dashboard de métricas geoespaciais
+REQUISITOS TÉCNICOS ESPECÍFICOS
+1. Performance
+Índices geoespaciais otimizados
+Cache de cálculos de distância
+Lazy loading de geometrias complexas
+Compressão de dados GeoJSON
+2. Validação
+Geometrias válidas (não auto-interceptantes)
+Coordenadas dentro de limites geográficos
+Consistência de dados de endereço
+Validação de horários de funcionamento
+3. Segurança
+Controle de acesso por nível de localização
+Auditoria de modificações de coordenadas
+Proteção de dados sensíveis de localização
+Rate limiting para operações geoespaciais
+4. Escalabilidade
+Suporte a milhões de coordenadas
+Clustering de localizações próximas
+Paginação eficiente de resultados geoespaciais
+Otimização de queries complexas
+CRITÉRIOS DE SUCESSO
+Funcionalidade Completa: Suporte a todos os tipos de geometrias WFM
+Performance: Queries geoespaciais < 500ms
+Usabilidade: Interface intuitiva para operadores
+Integração: Conexão perfeita com todos os módulos
+Escalabilidade: Suporte a crescimento exponencial de dados
+Execute esta implementação seguindo rigorosamente a arquitetura proposta, garantindo que cada componente seja testado e integrado adequadamente ao ecossistema existente.
