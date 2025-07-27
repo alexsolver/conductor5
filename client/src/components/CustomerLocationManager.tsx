@@ -58,8 +58,8 @@ export function CustomerLocationManager({
     enabled: isOpen,
   });
 
-  const customerLocations: CustomerLocation[] = customerLocationsData?.locations || [];
-  const allLocations = allLocationsData?.locations || [];
+  const customerLocations: CustomerLocation[] = customerLocationsData?.data || [];
+  const allLocations = allLocationsData?.data || [];
   
   // Filter available locations (not already associated)
   const availableLocations = allLocations.filter(
@@ -69,10 +69,7 @@ export function CustomerLocationManager({
   // Add location mutation
   const addLocationMutation = useMutation({
     mutationFn: async ({ locationId, isPrimary }: { locationId: string; isPrimary: boolean }) => {
-      return apiRequest(`/api/customers/${customerId}/locations`, {
-        method: 'POST',
-        body: { locationId, isPrimary }
-      });
+      return apiRequest('POST', `/api/customers/${customerId}/locations`, { locationId, isPrimary });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
@@ -98,9 +95,7 @@ export function CustomerLocationManager({
       if (!locationId) {
         throw new Error('LocationId is required');
       }
-      return apiRequest(`/api/customers/${customerId}/locations/${locationId}`, {
-        method: 'DELETE'
-      });
+      return apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
@@ -122,13 +117,8 @@ export function CustomerLocationManager({
   const setPrimaryMutation = useMutation({
     mutationFn: async (locationId: string) => {
       // Remove current location and re-add as primary
-      await apiRequest(`/api/customers/${customerId}/locations/${locationId}`, {
-        method: 'DELETE'
-      });
-      return apiRequest(`/api/customers/${customerId}/locations`, {
-        method: 'POST',
-        body: { locationId, isPrimary: true }
-      });
+      await apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId}`);
+      return apiRequest('POST', `/api/customers/${customerId}/locations`, { locationId, isPrimary: true });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
