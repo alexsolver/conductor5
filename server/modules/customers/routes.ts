@@ -282,10 +282,25 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
 
     const companyId = req.params.companyId;
     
+    console.log('Fetching available customers for company:', companyId, 'tenant:', req.user.tenantId);
+    
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
     
+    // First check if the company exists
+    const companyCheck = await pool.query(
+      `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (companyCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Company not found' 
+      });
+    }
+
     // Get customers not associated with this company
     const result = await pool.query(
       `SELECT 
@@ -303,9 +318,13 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
          FROM "${schemaName}"."customer_company_memberships" ccm 
          WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
        )
-       ORDER BY c.first_name, c.last_name`,
+       ORDER BY 
+         CASE WHEN c.first_name IS NOT NULL THEN c.first_name ELSE c.company_name END,
+         c.last_name`,
       [req.user.tenantId, companyId]
     );
+
+    console.log(`Found ${result.rows.length} available customers`);
 
     const availableCustomers = result.rows.map(row => ({
       id: row.id,
@@ -314,18 +333,25 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       email: row.email,
       customerType: row.customer_type,
       companyName: row.company_name,
-      status: row.status
+      status: row.status || 'active'
     }));
 
     res.json({
       success: true,
       data: availableCustomers
     });
-  } catch (error) {
-    console.error('Error fetching available customers:', error);
+  } catch (error: any) {
+    console.error('Error fetching available customers:', {
+      error: error.message,
+      stack: error.stack,
+      companyId: req.params.companyId,
+      tenantId: req.user?.tenantId
+    });
+    
     res.status(500).json({ 
       success: false,
-      message: 'Failed to fetch available customers' 
+      message: 'Erro ao carregar clientes disponíveis',
+      error: error.message
     });
   }
 });

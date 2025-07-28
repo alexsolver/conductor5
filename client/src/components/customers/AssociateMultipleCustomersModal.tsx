@@ -70,22 +70,39 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/customers/companies/${company?.id}/available`, {
+      
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
+      }
+
+      if (!company?.id) {
+        throw new Error('ID da empresa não encontrado');
+      }
+
+      console.log('Fetching available customers for company:', company.id);
+
+      const response = await fetch(`/api/customers/companies/${company.id}/available`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
+      const data = await response.json();
+      console.log('Available customers response:', data);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch available customers');
+        throw new Error(data.message || `HTTP ${response.status}: Failed to fetch available customers`);
       }
 
-      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Response indicated failure');
+      }
+
       setCustomers(data.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching available customers:', error);
-      setError('Erro ao carregar clientes disponíveis');
+      setError(error.message || 'Erro ao carregar clientes disponíveis');
     } finally {
       setIsLoading(false);
     }
