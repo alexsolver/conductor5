@@ -727,7 +727,7 @@ function LocationsNewContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <currentType.icon className="h-5 w-5" />
-            {currentType.label}s ({recordsData?.data?.records?.length || recordsData?.data?.length || 0})
+            {activeRecordType === 'regiao' ? 'Regiões' : `${currentType.label}s`} ({recordsData?.data?.records?.length || recordsData?.data?.length || 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
