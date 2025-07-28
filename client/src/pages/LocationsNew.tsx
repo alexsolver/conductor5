@@ -1983,6 +1983,158 @@ function LocationsNewContent() {
                     </>
                   )}
 
+                  {/* Form for AGRUPAMENTO */}
+                  {activeRecordType === "agrupamento" && (
+                    <>
+                      {/* Seção: Identificação */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Users className="h-5 w-5 mr-2" />
+                          Identificação
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="ativo"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ativo</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="nome"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Nome do agrupamento" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="descricao"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Descrição</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="Descrição detalhada do agrupamento" rows={3} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="codigoIntegracao"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Código de Integração</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Código único para integração" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Seleção de Áreas */}
+                        <div className="space-y-3">
+                          <Label>Seleção de Áreas</Label>
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <Grid3X3 className="h-4 w-4 mr-2" />
+                                Áreas Disponíveis
+                              </h4>
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {[
+                                  { id: "area1", nome: "Zona Centro - São Paulo", tipo: "Faixa CEP", cor: "#3b82f6" },
+                                  { id: "area2", nome: "Região Norte - Guarulhos", tipo: "Coordenadas", cor: "#10b981" },
+                                  { id: "area3", nome: "Área Sul - Santo André", tipo: "Raio", cor: "#f59e0b" },
+                                  { id: "area4", nome: "Corredor Leste", tipo: "Linha", cor: "#ef4444" },
+                                  { id: "area5", nome: "Zona Industrial Oeste", tipo: "Shape", cor: "#8b5cf6" }
+                                ].map((area) => (
+                                  <div key={area.id} className="flex items-center space-x-3 p-2 border rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <Checkbox id={area.id} />
+                                    <div className="flex-1">
+                                      <div className="flex items-center space-x-2">
+                                        <span className="inline-block w-3 h-3 rounded" style={{backgroundColor: area.cor}}></span>
+                                        <span className="font-medium">{area.nome}</span>
+                                        <Badge variant="outline" className="text-xs">{area.tipo}</Badge>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <MapPin className="h-4 w-4 mr-2" />
+                                Adicionar Faixas CEP
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="CEP Inicial (ex: 01000-000)" />
+                                  <Input placeholder="CEP Final (ex: 01999-999)" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="Nome da faixa" />
+                                  <div className="flex items-center space-x-2">
+                                    <Input 
+                                      type="color" 
+                                      defaultValue="#3b82f6"
+                                      className="w-12 h-9 p-1 border rounded"
+                                    />
+                                    <span className="text-sm text-gray-600">Cor</span>
+                                  </div>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full">
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Adicionar Faixa CEP ao Agrupamento
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Lista de Áreas Selecionadas */}
+                            <div className="p-4 border rounded-lg">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <Grid3X3 className="h-4 w-4 mr-2" />
+                                Áreas Selecionadas (0)
+                              </h4>
+                              <div className="text-center py-4 text-gray-500">
+                                <Grid3X3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                <p>Nenhuma área selecionada</p>
+                                <p className="text-sm">Selecione áreas acima ou adicione faixas CEP para compor o agrupamento</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button 
                       type="button" 
