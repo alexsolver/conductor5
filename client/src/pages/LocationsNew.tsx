@@ -1,5 +1,5 @@
-// LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES
-import { useState, useCallback, useMemo, useEffect } from "react";
+// LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -298,7 +298,10 @@ function LocationsNewContent() {
       console.warn("Token not available, skipping data fetching.");
       return;
     }
-    queryClient.prefetchQuery(['locations-new', 'local'], () => fetchLocationsByType('local'));
+    queryClient.prefetchQuery({
+      queryKey: ['locations-new', 'local'],
+      queryFn: () => fetchLocationsByType('local')
+    });
   }, [queryClient, token]);
 
   // Example usage of API fetch function in a React Query
