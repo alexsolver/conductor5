@@ -924,3 +924,929 @@ export default function TicketDetails() {
                       <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
                     )}
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Resto dos campos do formulário */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="subcategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subcategoria</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Impacto e Urgência */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="impact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Impacto</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione o impacto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {impactOptions && impactOptions.map((option: any) => (
+                              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="urgency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Urgência</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione a urgência" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {urgencyOptions && urgencyOptions.map((option: any) => (
+                              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="businessImpact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Impacto no Negócio</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Textarea {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="symptoms"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sintomas</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Textarea {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workaround"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workaround</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Textarea {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="resolution"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Resolução</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Textarea {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="environment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ambiente</FormLabel>
+                  <FormControl>
+                    {isEditMode ? (
+                      <Textarea {...field} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="templateName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Template</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="templateAlternative"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Template Alternativo</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Linking Section */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                RELACIONAMENTO COM OUTROS TICKETS
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="linkTicketNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número do Ticket Linkado</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "N/A"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="linkType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Link</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "N/A"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="linkComment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Comentário do Link</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">
+                          {field.value || "N/A"}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Time Tracking */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                RASTREIO DE TEMPO
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="estimatedHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horas Estimadas</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input type="number" {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "0"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="actualHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horas Atuais</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input type="number" {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "0"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Customer and Company */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                CLIENTE E EMPRESA
+              </h3>
+
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="customerCompanyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Empresa do Cliente *</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              handleCompanyChange(value);
+                            }}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione a empresa" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.isArray(companiesData?.companies) &&
+                                companiesData.companies.map((company: any) => (
+                                  <SelectItem key={company.id} value={company.id}>
+                                    {company.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {
+                              companiesData?.companies?.find((c: any) => c.id === field.value)?.name || "N/A"
+                            }
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="callerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cliente *</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione o cliente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableCustomers &&
+                                availableCustomers.map((customer: any) => (
+                                  <SelectItem key={customer.id} value={customer.id}>
+                                    {customer.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {
+                              availableCustomers?.find((c: any) => c.id === field.value)?.name || "N/A"
+                            }
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Assignment */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                ATRIBUIÇÃO
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="assignedToId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Atribuído A</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione o usuário" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {users &&
+                                users.map((user: any) => (
+                                  <SelectItem key={user.id} value={user.id}>
+                                    {user.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {
+                              users?.find((u: any) => u.id === field.value)?.name || "N/A"
+                            }
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="assignmentGroup"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo de Atribuição</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "N/A"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Location */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                LOCALIZAÇÃO
+              </h3>
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Localização</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione a localização" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {locationsData &&
+                              locationsData.map((location: any) => (
+                                <SelectItem key={location.id} value={location.name}>
+                                  {location.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">
+                          {field.value || "N/A"}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Contact Type */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                TIPO DE CONTATO
+              </h3>
+
+              <FormField
+                control={form.control}
+                name="contactType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Contato</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione o tipo de contato" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="phone">Telefone</SelectItem>
+                            <SelectItem value="in_person">Pessoalmente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">
+                          {field.value || "N/A"}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        );
+
+      case "attachments":
+        return (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Anexos</h3>
+
+            {/* Drag and Drop Area */}
+            <div
+              className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <p>Arraste e solte arquivos aqui ou <span className="text-blue-500">clique para selecionar</span></p>
+            </div>
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) {
+                  handleFiles(e.target.files);
+                }
+              }}
+              ref={fileInputRef}
+            />
+
+            {/* Upload Progress (Simulated) */}
+            {uploadProgress > 0 && (
+              <div className="mt-4">
+                <p>Enviando... {uploadProgress}%</p>
+                <progress value={uploadProgress} max="100" className="w-full"></progress>
+              </div>
+            )}
+
+            {/* List of Attachments */}
+            <div className="mt-6">
+              {attachments.map(attachment => (
+                <div key={attachment.id} className="flex items-center justify-between py-2 border-b">
+                  <div>
+                    <FileIcon className="inline-block h-4 w-4 mr-2" />
+                    {attachment.name} ({formatFileSize(attachment.size)})
+                  </div>
+                  <div>
+                    <Button variant="ghost" size="sm" onClick={() => removeAttachment(attachment.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "notes":
+        return (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Notas</h3>
+
+            {/* New Note Input */}
+            <div className="mb-4">
+              <Textarea
+                placeholder="Adicionar nova nota..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+              />
+              <Button className="mt-2" onClick={addNote}>Adicionar Nota</Button>
+            </div>
+
+            {/* List of Notes */}
+            <div>
+              {notes.map(note => (
+                <Card key={note.id} className="mb-4">
+                  <CardHeader>
+                    <CardTitle>{new Date(note.createdAt).toLocaleString()}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{note.content}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "communications":
+        return (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Comunicação</h3>
+
+            {/* List of Communications */}
+            <div>
+              {communications.map(communication => (
+                <Card key={communication.id} className="mb-4">
+                  <CardHeader>
+                    <CardTitle>{new Date(communication.createdAt).toLocaleString()}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{communication.content}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "history":
+        return (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Histórico</h3>
+
+            {/* History View Mode Toggle */}
+            <div className="flex items-center justify-end mb-4">
+              <Label htmlFor="historyViewMode" className="mr-2">Modo de Visualização:</Label>
+              <Select value={historyViewMode} onValueChange={(value) => setHistoryViewMode(value as 'simple' | 'advanced')}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Selecione o modo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simple">Simples</SelectItem>
+                  <SelectItem value="advanced">Avançado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* List of History Items */}
+            <div>
+              {history.map(item => (
+                <Card key={item.id} className="mb-4">
+                  <CardHeader>
+                    <CardTitle>
+                      {new Date(item.createdAt).toLocaleString()} - {item.user}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {historyViewMode === 'simple' ? (
+                      <p>{item.action}</p>
+                    ) : (
+                      <>
+                        <p><strong>Ação:</strong> {item.action}</p>
+                        <p><strong>Detalhes:</strong> {item.details}</p>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "internal-actions":
+        return (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Ações Internas</h3>
+
+            {/* New Internal Action Input */}
+            <div className="mb-4">
+              <Textarea
+                placeholder="Adicionar nova ação interna..."
+                value={newInternalAction}
+                onChange={(e) => setNewInternalAction(e.target.value)}
+              />
+              <div className="flex items-center mt-2">
+                <Label htmlFor="internalActionType" className="mr-2">Tipo:</Label>
+                <Input
+                  type="text"
+                  id="internalActionType"
+                  placeholder="Tipo da ação"
+                  value={internalActionType}
+                  onChange={(e) => setInternalActionType(e.target.value)}
+                  className="mr-4"
+                />
+                <Label htmlFor="isPublicAction" className="mr-2">Pública:</Label>
+                <input
+                  type="checkbox"
+                  id="isPublicAction"
+                  checked={isPublicAction}
+                  onChange={(e) => setIsPublicAction(e.target.checked)}
+                  className="mr-4"
+                />
+                <Button className="ml-auto" onClick={() => {
+                  setInternalActions(prev => [...prev, {
+                    id: Date.now(),
+                    content: newInternalAction,
+                    type: internalActionType,
+                    isPublic: isPublicAction,
+                    createdAt: new Date().toISOString(),
+                    user: "Usuário Atual", // Implementar lógica para pegar o usuário atual
+                  }]);
+                  setNewInternalAction('');
+                  setInternalActionType('');
+                  setIsPublicAction(false);
+                }}>Adicionar Ação</Button>
+              </div>
+            </div>
+
+            {/* List of Internal Actions */}
+            <div>
+              {internalActions.map(action => (
+                <Card key={action.id} className="mb-4">
+                  <CardHeader>
+                    <CardTitle>
+                      {new Date(action.createdAt).toLocaleString()} - {action.user}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p><strong>Tipo:</strong> {action.type}</p>
+                    <p>{action.content}</p>
+                    <p><strong>Pública:</strong> {action.isPublic ? "Sim" : "Não"}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return <p>Selecione uma aba para visualizar o conteúdo.</p>;
+    }
+  }
+
+  return (
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-100 border-r p-4 flex flex-col">
+        <h2 className="text-lg font-semibold mb-4">Ticket #{id}</h2>
+
+        <TabsList className="flex-1">
+          <TabsTrigger value="informacoes">
+            <FileText className="mr-2 h-4 w-4" />
+            Informações
+          </TabsTrigger>
+          <TabsTrigger value="attachments">
+            <Paperclip className="mr-2 h-4 w-4" />
+            Anexos
+          </TabsTrigger>
+          <TabsTrigger value="notes">
+            <FileText className="mr-2 h-4 w-4" />
+            Notas
+          </TabsTrigger>
+          <TabsTrigger value="communications">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Comunicação
+          </TabsTrigger>
+          <TabsTrigger value="history">
+            <History className="mr-2 h-4 w-4" />
+            Histórico
+          </TabsTrigger>
+          <TabsTrigger value="internal-actions">
+            <Settings className="mr-2 h-4 w-4" />
+            Ações Internas
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Actions at the bottom of the sidebar */}
+        <div className="mt-auto space-y-2">
+          <Button variant="ghost" onClick={() => setIsLinkingModalOpen(true)}>
+            <Link2 className="h-4 w-4 mr-2" />
+            Relacionar Tickets
+          </Button>
+          <Button variant="destructive" onClick={handleDelete}>
+            <Trash className="h-4 w-4 mr-2" />
+            Excluir Ticket
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold">Detalhes do Ticket</h1>
+          <div>
+            {isEditMode ? (
+              <>
+                <Button variant="secondary" onClick={() => {
+                  form.reset({
+                    subject: ticket.subject || "",
+                    description: ticket.description || "",
+                    priority: ticket.priority || "medium",
+                    status: ticket.status || "open",
+                    category: ticket.category || "",
+                    subcategory: ticket.subcategory || "",
+                    impact: ticket.impact || "medium",
+                    urgency: ticket.urgency || "medium",
+                    // PROBLEMA 6 RESOLVIDO: Reset COMPLETO com todos os campos faltantes
+                    businessImpact: ticket.business_impact || "",
+                    symptoms: ticket.symptoms || "",
+                    workaround: ticket.workaround || "",
+                    resolution: ticket.resolution || "",
+                    environment: ticket.environment || "",
+                    templateName: ticket.template_name || "",
+                    templateAlternative: ticket.template_alternative || "",
+                    linkTicketNumber: ticket.link_ticket_number || "",
+                    linkType: ticket.link_type || "",
+                    linkComment: ticket.link_comment || "",
+                    estimatedHours: ticket.estimated_hours || 0,
+                    actualHours: ticket.actual_hours || 0,
+                    // CORRIGIDO: Field mapping consistente backend snake_case → frontend camelCase  
+                    callerId: ticket.caller_id || "",
+                    callerType: ticket.caller_type || "customer",
+                    beneficiaryId: ticket.beneficiary_id || "",
+                    beneficiaryType: ticket.beneficiary_type || "customer",
+                    assignedToId: ticket.assigned_to_id || "",
+                    assignmentGroup: ticket.assignment_group || "",
+                    location: ticket.location || "",
+                    contactType: ticket.contact_type || "email",
+                    followers: ticket.followers || [],
+                    customerCompanyId: ticket.customer_company_id || "",
+                  });
+                  setIsEditMode(false)
+                }}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button onClick={form.handleSubmit(onSubmit)}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setIsEditMode(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <Tabs defaultValue="informacoes" className="space-y-4">
+          <TabsContent value={activeTab}>
+            {renderTabContent()}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Ticket Linking Modal */}
+      <TicketLinkingModal
+        isOpen={isLinkingModalOpen}
+        onClose={() => setIsLinkingModalOpen(false)}
+        currentTicketId={id}
+        relatedTickets={relatedTickets}
+        setRelatedTickets={setRelatedTickets}
+      />
+    </div>
+  );
+}
