@@ -707,4 +707,165 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
   }
 });
 
+// === TICKET RELATIONSHIPS ENDPOINTS ===
+
+// Get ticket relationships
+ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tr.id,
+        tr.relationship_type as "relationshipType",
+        tr.description,
+        tr.created_at as "createdAt",
+        t.id as "targetTicket.id",
+        t.subject as "targetTicket.subject",
+        t.status as "targetTicket.status",
+        t.priority as "targetTicket.priority",
+        t.number as "targetTicket.number"
+      FROM "${schemaName}".ticket_relationships tr
+      JOIN "${schemaName}".tickets t ON tr.target_ticket_id = t.id
+      WHERE tr.source_ticket_id = $1 AND tr.tenant_id = $2 AND tr.is_active = true
+      ORDER BY tr.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    // Transform flat results to nested objects
+    const relationships = result.rows.map(row => ({
+      id: row.id,
+      relationshipType: row.relationshipType,
+      description: row.description,
+      createdAt: row.createdAt,
+      targetTicket: {
+        id: row['targetTicket.id'],
+        subject: row['targetTicket.subject'],
+        status: row['targetTicket.status'],
+        priority: row['targetTicket.priority'],
+        number: row['targetTicket.number']
+      }
+    }));
+
+    res.json(relationships);
+  } catch (error) {
+    console.error("Error fetching ticket relationships:", error);
+    res.status(500).json({ message: "Failed to fetch ticket relationships" });
+  }
+});
+
+// Create ticket relationship
+ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const { targetTicketId, relationshipType, description } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Validate required fields
+    if (!targetTicketId || !relationshipType) {
+      return res.status(400).json({ message: "Target ticket ID and relationship type are required" });
+    }
+
+    // Check if both tickets exist
+    const ticketCheck = await pool.query(
+      `SELECT id FROM "${schemaName}".tickets WHERE id IN ($1, $2) AND tenant_id = $3`,
+      [id, targetTicketId, tenantId]
+    );
+
+    if (ticketCheck.rows.length !== 2) {
+      return res.status(400).json({ message: "One or both tickets not found" });
+    }
+
+    // Check for duplicate relationships
+    const duplicateCheck = await pool.query(
+      `SELECT id FROM "${schemaName}".ticket_relationships 
+       WHERE source_ticket_id = $1 AND target_ticket_id = $2 AND relationship_type = $3 AND is_active = true`,
+      [id, targetTicketId, relationshipType]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      return res.status(400).json({ message: "Relationship already exists" });
+    }
+
+    // Create relationship
+    const insertQuery = `
+      INSERT INTO "${schemaName}".ticket_relationships 
+      (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at, updated_at, is_active)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW(), true)
+      RETURNING id, relationship_type, description, created_at
+    `;
+
+    const result = await pool.query(insertQuery, [
+      tenantId, id, targetTicketId, relationshipType, description || null, req.user.id
+    ]);
+
+    // Create reciprocal relationship for bidirectional types
+    const bidirectionalTypes = ['related', 'duplicate'];
+    if (bidirectionalTypes.includes(relationshipType)) {
+      await pool.query(insertQuery, [
+        tenantId, targetTicketId, id, relationshipType, description || null, req.user.id
+      ]);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: result.rows[0],
+      message: "Relationship created successfully"
+    });
+
+  } catch (error) {
+    console.error("Error creating ticket relationship:", error);
+    res.status(500).json({ message: "Failed to create ticket relationship" });
+  }
+});
+
+// Delete ticket relationship
+ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { relationshipId } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Soft delete the relationship
+    const result = await pool.query(
+      `UPDATE "${schemaName}".ticket_relationships 
+       SET is_active = false, updated_at = NOW() 
+       WHERE id = $1 AND tenant_id = $2`,
+      [relationshipId, tenantId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Relationship not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Relationship removed successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting ticket relationship:", error);
+    res.status(500).json({ message: "Failed to delete ticket relationship" });
+  }
+});
+
 export { ticketsRouter };
