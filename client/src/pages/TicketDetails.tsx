@@ -1,6 +1,3 @@
-The code is modified to display "Ação Interna" consistently for internal actions in the history tab.
-```
-```replit_final_file
 import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
