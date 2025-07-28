@@ -420,3 +420,5 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
     </div>
   );
 }
+
+export default SimpleMapWithButtons;

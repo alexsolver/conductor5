@@ -19,6 +19,7 @@ import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
+import { useLocation } from "wouter";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
@@ -40,6 +41,7 @@ export default function Tickets() {
   const [currentViewId, setCurrentViewId] = useState<string | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   // Force token setup - DEBUG ONLY
   useEffect(() => {
@@ -536,7 +538,11 @@ export default function Tickets() {
                     <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                >
                   View Details
                 </Button>
               </div>
