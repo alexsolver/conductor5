@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Map } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Map, Clock, Edit, Trash2, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,67 +255,546 @@ function LocationsNewContent() {
             <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Localizações</h1>
             <p className="text-muted-foreground">Sistema completo para gestão de 7 tipos de registros geográficos</p>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Novo {currentRecordType.label}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Criar Novo {currentRecordType.label}</DialogTitle>
-                <DialogDescription>
-                  Preencha os campos abaixo para criar um novo registro de {currentRecordType.label.toLowerCase()}.
-                </DialogDescription>
-              </DialogHeader>
+          <div className="flex space-x-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Gerenciar Horários
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center">
+                    <Clock className="h-5 w-5 mr-2" />
+                    Gerenciamento de Horários de Funcionamento
+                  </DialogTitle>
+                  <DialogDescription>
+                    Configure padrões de horários que podem ser associados a múltiplos locais, regiões e rotas.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Tabs defaultValue="padroes" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
+                    <TabsTrigger value="associacoes">Associações</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="padroes" className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Padrões Cadastrados</h3>
+                        <Button size="sm">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Novo Padrão
+                        </Button>
+                      </div>
+                      
+                      <div className="grid gap-4">
+                        {[
+                          { id: 1, nome: "Comercial Padrão", horario: "08:00-18:00", dias: "Seg-Sex", entidades: 15 },
+                          { id: 2, nome: "Shopping", horario: "10:00-22:00", dias: "Seg-Dom", entidades: 8 },
+                          { id: 3, nome: "Técnico de Campo", horario: "07:00-17:00", dias: "Seg-Sáb", entidades: 12 }
+                        ].map((padrao) => (
+                          <Card key={padrao.id}>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-semibold">{padrao.nome}</h4>
+                                  <p className="text-sm text-gray-600">
+                                    {padrao.horario} • {padrao.dias} • {padrao.entidades} entidades associadas
+                                  </p>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button variant="outline" size="sm">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="associacoes" className="space-y-4">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
+                      
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Selecionar Padrão de Horário</h4>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Escolha um padrão" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="comercial">Comercial Padrão</SelectItem>
+                              <SelectItem value="shopping">Shopping</SelectItem>
+                              <SelectItem value="tecnico">Técnico de Campo</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Aplicar a Entidades</h4>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {[
+                              { tipo: "Local", nome: "Matriz São Paulo", ativo: true },
+                              { tipo: "Local", nome: "Filial Campinas", ativo: false },
+                              { tipo: "Região", nome: "Grande SP", ativo: true },
+                              { tipo: "Rota", nome: "Rota ABC", ativo: false }
+                            ].map((entidade, index) => (
+                              <div key={index} className="flex items-center space-x-3">
+                                <Checkbox defaultChecked={entidade.ativo} />
+                                <Badge variant="outline" className="text-xs">
+                                  {entidade.tipo}
+                                </Badge>
+                                <span className="text-sm">{entidade.nome}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button className="w-full">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Aplicar Horários às Entidades Selecionadas
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo {currentRecordType.label}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Criar Novo {currentRecordType.label}</DialogTitle>
+                  <DialogDescription>
+                    Preencha os campos abaixo para criar um novo registro de {currentRecordType.label.toLowerCase()}.
+                  </DialogDescription>
+                </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Basic form fields - simplified for now */}
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* SEÇÃO 1: IDENTIFICAÇÃO */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Identificação</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="ativo"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ativo</FormLabel>
+                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="true">Sim</SelectItem>
+                                <SelectItem value="false">Não</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="nome"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Nome *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Digite o nome do local" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
                     <FormField
                       control={form.control}
-                      name="nome"
+                      name="descricao"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome *</FormLabel>
+                          <FormLabel>Descrição</FormLabel>
                           <FormControl>
-                            <Input placeholder="Digite o nome" {...field} />
+                            <Textarea placeholder="Descrição detalhada do local" rows={3} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="codigoIntegracao"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Código de Integração</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Código único do sistema" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="clienteFavorecido"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cliente ou Favorecido</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="cliente1">Cliente Principal</SelectItem>
+                                <SelectItem value="cliente2">Cliente Secundário</SelectItem>
+                                <SelectItem value="favorecido1">Favorecido A</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 2: CONTATO */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
+                      <MapPin className="h-5 w-5 text-green-500" />
+                      <h3 className="text-lg font-semibold">Contato</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>E-mail</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="contato@empresa.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="ddd"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>DDD</FormLabel>
+                            <FormControl>
+                              <Input placeholder="11" maxLength={3} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="telefone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Telefone</FormLabel>
+                            <FormControl>
+                              <Input placeholder="99999-9999" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 3: ENDEREÇO COM CEP LOOKUP */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
+                      <MapPin className="h-5 w-5 text-purple-500" />
+                      <h3 className="text-lg font-semibold">Endereço</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="cep"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CEP</FormLabel>
+                            <div className="flex space-x-2">
+                              <FormControl>
+                                <Input placeholder="00000-000" {...field} />
+                              </FormControl>
+                              <Button type="button" variant="outline" size="sm">
+                                Buscar
+                              </Button>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="pais"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>País</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="estado"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Estado</FormLabel>
+                            <FormControl>
+                              <Input placeholder="SP" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="municipio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Município</FormLabel>
+                            <FormControl>
+                              <Input placeholder="São Paulo" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="bairro"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bairro</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Centro" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="tipoLogradouro"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Logradouro</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="rua">Rua</SelectItem>
+                                <SelectItem value="avenida">Avenida</SelectItem>
+                                <SelectItem value="travessa">Travessa</SelectItem>
+                                <SelectItem value="alameda">Alameda</SelectItem>
+                                <SelectItem value="rodovia">Rodovia</SelectItem>
+                                <SelectItem value="estrada">Estrada</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="logradouro"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Logradouro</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nome da rua/avenida" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="numero"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número</FormLabel>
+                            <FormControl>
+                              <Input placeholder="123" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
                     <FormField
                       control={form.control}
-                      name="codigoIntegracao"
+                      name="complemento"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Código de Integração</FormLabel>
+                          <FormLabel>Complemento</FormLabel>
                           <FormControl>
-                            <Input placeholder="Código único" {...field} />
+                            <Input placeholder="Apto 101, Bloco A, etc." {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="descricao"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Descrição detalhada" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
-                  <div className="flex justify-end space-x-2">
+                  {/* SEÇÃO 4: GEOLOCALIZAÇÃO COM MAPA INTERATIVO */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
+                      <Map className="h-5 w-5 text-red-500" />
+                      <h3 className="text-lg font-semibold">Georreferenciamento</h3>
+                    </div>
+                    
+                    <Alert>
+                      <MapPin className="h-4 w-4" />
+                      <AlertDescription>
+                        As coordenadas serão preenchidas automaticamente com base no endereço. 
+                        Você pode clicar no mapa para ajustar a localização exata.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="latitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Latitude</FormLabel>
+                            <FormControl>
+                              <Input placeholder="-23.55052000" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="longitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Longitude</FormLabel>
+                            <FormControl>
+                              <Input placeholder="-46.63330800" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="flex justify-center">
+                      <Button type="button" variant="outline">
+                        <Map className="h-4 w-4 mr-2" />
+                        Abrir Mapa Interativo
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 5: TEMPO E DISPONIBILIDADE */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
+                      <Clock className="h-5 w-5 text-orange-500" />
+                      <h3 className="text-lg font-semibold">Tempo e Disponibilidade</h3>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="fusoHorario"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Fuso Horário</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
+                              <SelectItem value="America/Manaus">Manaus (GMT-4)</SelectItem>
+                              <SelectItem value="America/Rio_Branco">Acre (GMT-5)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Feriados</h4>
+                      <div className="flex space-x-2">
+                        <Button type="button" variant="outline" size="sm">
+                          Buscar Feriados Municipais
+                        </Button>
+                        <Button type="button" variant="outline" size="sm">
+                          Buscar Feriados Estaduais
+                        </Button>
+                        <Button type="button" variant="outline" size="sm">
+                          Buscar Feriados Federais
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -329,8 +808,9 @@ function LocationsNewContent() {
                   </div>
                 </form>
               </Form>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Stats cards */}
