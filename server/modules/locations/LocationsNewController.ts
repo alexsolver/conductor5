@@ -69,7 +69,7 @@ export class LocationsNewController {
 
       // Ensure records is always an array
       const safeRecords = Array.isArray(records) ? records : [];
-      
+
       // Enhanced response with consistent structure
       const response = {
         records: safeRecords,
@@ -90,7 +90,7 @@ export class LocationsNewController {
       return sendSuccess(res, response, `${recordType} records retrieved successfully`);
     } catch (error) {
       console.error('LocationsNewController.getRecordsByType - Error:', error);
-      
+
       // Graceful degradation - return empty result instead of 500 error
       const fallbackResponse = {
         records: [],
@@ -353,7 +353,7 @@ export class LocationsNewController {
 
       console.log('LocationsNewController.createLocal - Validation passed, creating local');
       const local = await this.repository.createLocal(tenantId, validation.data);
-      
+
       console.log('LocationsNewController.createLocal - Local created successfully with ID:', local?.id);
       return sendSuccess(res, local, "Local criado com sucesso", 201);
     } catch (error) {
@@ -433,7 +433,7 @@ export class LocationsNewController {
 
       console.log('LocationsNewController.createRotaDinamica - Validation passed, creating rota dinâmica');
       const rota = await this.repository.createRotaDinamica(tenantId, validation.data);
-      
+
       console.log('LocationsNewController.createRotaDinamica - Rota dinâmica created successfully with ID:', rota?.id);
       return sendSuccess(res, rota, "Rota dinâmica criada com sucesso", 201);
     } catch (error) {
@@ -496,7 +496,7 @@ export class LocationsNewController {
 
       console.log('LocationsNewController.createTrecho - Validation passed, creating trecho');
       const trecho = await this.repository.createTrecho(tenantId, validation.data);
-      
+
       console.log('LocationsNewController.createTrecho - Trecho created successfully with ID:', trecho?.id);
       return sendSuccess(res, trecho, "Trecho criado com sucesso", 201);
     } catch (error) {
@@ -547,7 +547,7 @@ export class LocationsNewController {
       // Import the schema for validation
       const { rotaTrechoComSegmentosSchema } = await import('../../../shared/schema-locations-new');
       const validation = rotaTrechoComSegmentosSchema.safeParse(requestData);
-      
+
       if (!validation.success) {
         console.error('LocationsNewController.createRotaTrecho - Validation failed:', {
           errors: validation.error.errors,
@@ -558,7 +558,7 @@ export class LocationsNewController {
 
       console.log('LocationsNewController.createRotaTrecho - Validation passed, creating rota de trecho');
       const rotaTrecho = await this.repository.createRotaTrecho(tenantId, validation.data);
-      
+
       console.log('LocationsNewController.createRotaTrecho - Rota de trecho created successfully with ID:', rotaTrecho?.id);
       return sendSuccess(res, rotaTrecho, "Rota de trecho criada com sucesso", 201);
     } catch (error) {
@@ -638,7 +638,7 @@ export class LocationsNewController {
 
       console.log('LocationsNewController.createArea - Validation passed, creating área');
       const area = await this.repository.createArea(tenantId, validation.data);
-      
+
       console.log('LocationsNewController.createArea - Área created successfully with ID:', area?.id);
       return sendSuccess(res, area, "Área criada com sucesso", 201);
     } catch (error) {
@@ -700,7 +700,7 @@ export class LocationsNewController {
 
       console.log('LocationsNewController.createAgrupamento - Validation passed, creating agrupamento');
       const agrupamento = await this.repository.createAgrupamento(tenantId, validation.data);
-      
+
       console.log('LocationsNewController.createAgrupamento - Agrupamento created successfully with ID:', agrupamento?.id);
       return sendSuccess(res, agrupamento, "Agrupamento criado com sucesso", 201);
     } catch (error) {

@@ -50,6 +50,29 @@ export class LocationsNewRepository {
     }
   }
 
+  // Create schema if it doesn't exist
+  private async createSchemaIfNotExists(schemaName: string): Promise<void> {
+    try {
+      await this.db.execute(sql.raw(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`));
+      console.log(`LocationsNewRepository - Schema ${schemaName} created successfully`);
+    } catch (error) {
+      console.error(`LocationsNewRepository - Error creating schema ${schemaName}:`, error);
+      throw error;
+    }
+  }
+
+  // Create table if it doesn't exist
+  private async createTableIfNotExists(schemaName: string, tableName: string): Promise<void> {
+    try {
+      // Call the migration function for this specific tenant
+      await this.db.execute(sql.raw(`SELECT create_locations_new_tables_for_tenant('${schemaName}')`));
+      console.log(`LocationsNewRepository - Tables created for schema ${schemaName}`);
+    } catch (error) {
+      console.error(`LocationsNewRepository - Error creating tables for ${schemaName}:`, error);
+      throw error;
+    }
+  }
+
   // Get records by type with real database queries
   async getRecordsByType(tenantId: string, recordType: string, filters?: { search?: string; status?: string }) {
     console.log(`LocationsNewRepository.getRecordsByType - Fetching ${recordType} for tenant: ${tenantId}`);
@@ -57,11 +80,11 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Validate schema exists
+      // Validate schema exists - create if not exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        console.warn(`LocationsNewRepository.getRecordsByType - Schema validation failed: ${schemaValidation.reason}`);
-        return this.getMockDataByType(recordType);
+        console.log(`LocationsNewRepository.getRecordsByType - Creating schema: ${schemaName}`);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
       // Map record types to table names
@@ -81,11 +104,11 @@ export class LocationsNewRepository {
         return [];
       }
 
-      // Validate table exists
+      // Validate table exists - create if not exists
       const tableValidation = await this.validateTable(schemaName, tableName);
       if (!tableValidation.isValid) {
-        console.warn(`LocationsNewRepository.getRecordsByType - Table validation failed: ${tableValidation.reason}`);
-        return this.getMockDataByType(recordType);
+        console.log(`LocationsNewRepository.getRecordsByType - Creating table: ${tableName}`);
+        await this.createTableIfNotExists(schemaName, tableName);
       }
 
       // Build base query
@@ -129,9 +152,8 @@ export class LocationsNewRepository {
       return result;
 
     } catch (error) {
-      console.error(`LocationsNewRepository.getRecordsByType - Error fetching ${recordType}:`, error);
-      // Return mock data as fallback
-      return this.getMockDataByType(recordType);
+      console.error(`LocationsNewRepository.getRecordsByType - Critical error fetching ${recordType}:`, error);
+      throw new Error(`Failed to fetch ${recordType} data: ${error.message}`);
     }
   }
 
@@ -140,10 +162,10 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Validate schema and table
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.getMockStats(recordType);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
       const tableMap: { [key: string]: string } = {
@@ -158,12 +180,13 @@ export class LocationsNewRepository {
 
       const tableName = tableMap[recordType];
       if (!tableName) {
-        return this.getMockStats(recordType);
+        return { total: 0, active: 0, inactive: 0 };
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, tableName);
       if (!tableValidation.isValid) {
-        return this.getMockStats(recordType);
+        await this.createTableIfNotExists(schemaName, tableName);
       }
 
       const query = `
@@ -186,23 +209,11 @@ export class LocationsNewRepository {
         };
       }
 
-      return this.getMockStats(recordType);
+      return { total: 0, active: 0, inactive: 0 };
     } catch (error) {
       console.error(`LocationsNewRepository.getStatsByType - Error fetching stats for ${recordType}:`, error);
-      return this.getMockStats(recordType);
+      throw new Error(`Failed to get stats for ${recordType}: ${error.message}`);
     }
-  }
-
-  private getMockStats(recordType: string) {
-    const mockData = this.getMockDataByType(recordType);
-    const total = mockData.length;
-    const active = mockData.filter(item => item.ativo !== false).length;
-    
-    return {
-      total,
-      active,
-      inactive: total - active
-    };
   }
 
   // CRUD Operations for Local
@@ -212,18 +223,16 @@ export class LocationsNewRepository {
       
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Validate schema exists
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        console.warn(`LocationsNewRepository.createLocal - Schema validation failed: ${schemaValidation.reason}`);
-        return this.createMockLocal(tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
-      // Check if locais table exists
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'locais');
       if (!tableValidation.isValid) {
-        console.warn(`LocationsNewRepository.createLocal - Table validation failed: ${tableValidation.reason}`);
-        return this.createMockLocal(tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'locais');
       }
 
       const query = `
@@ -274,23 +283,12 @@ export class LocationsNewRepository {
         console.log('LocationsNewRepository.createLocal - Successfully created local in database');
         return result[0];
       } else {
-        console.warn('LocationsNewRepository.createLocal - No result from database, returning mock');
-        return this.createMockLocal(tenantId, data);
+        throw new Error('Failed to create local - no result returned from database');
       }
     } catch (error) {
       console.error('LocationsNewRepository.createLocal - Error:', error);
-      return this.createMockLocal(tenantId, data);
+      throw new Error(`Failed to create local: ${error.message}`);
     }
-  }
-
-  private createMockLocal(tenantId: string, data: any) {
-    return {
-      id: `mock-local-${Date.now()}`,
-      tenantId,
-      ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
   }
 
   // Integration methods for region relationships
@@ -298,7 +296,7 @@ export class LocationsNewRepository {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
-      // Validate schema exists first
+      // Ensure schema exists
       const schemaExists = await this.db.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.schemata 
@@ -307,8 +305,7 @@ export class LocationsNewRepository {
       `);
 
       if (!schemaExists.rows?.[0]?.exists) {
-        console.warn(`Schema ${schemaName} does not exist, returning fallback data`);
-        return this.getMockClientes();
+        await this.createSchemaIfNotExists(schemaName);
       }
 
       // Check if customers table exists
@@ -320,8 +317,8 @@ export class LocationsNewRepository {
       `);
 
       if (!tableExists.rows?.[0]?.exists) {
-        console.warn(`Customers table does not exist in schema ${schemaName}, returning fallback data`);
-        return this.getMockClientes();
+        console.warn(`Customers table does not exist in schema ${schemaName}, returning empty array`);
+        return [];
       }
 
       const query = `
@@ -339,10 +336,6 @@ export class LocationsNewRepository {
       const result = await this.executeQuery(query, [tenantId]);
       console.log(`Successfully fetched ${result.length} clientes for tenant ${tenantId}`);
 
-      if (!result || result.length === 0) {
-        return this.getMockClientes();
-      }
-
       return result.map(row => ({
         id: row.id,
         nome: row.nome || row.email,
@@ -353,29 +346,8 @@ export class LocationsNewRepository {
       }));
     } catch (error) {
       console.error(`Database error fetching clientes for tenant ${tenantId}:`, error.message);
-      return this.getMockClientes();
+      throw new Error(`Failed to fetch clientes: ${error.message}`);
     }
-  }
-
-  private getMockClientes() {
-    return [
-      {
-        id: 'mock-client-1',
-        nome: 'Cliente Exemplo 1',
-        email: 'cliente1@exemplo.com',
-        telefone: '(11) 99999-9999',
-        ativo: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-client-2',
-        nome: 'Cliente Exemplo 2',
-        email: 'cliente2@exemplo.com',
-        telefone: '(11) 88888-8888',
-        ativo: true,
-        createdAt: new Date().toISOString()
-      }
-    ];
   }
 
   async getTecnicosEquipe(tenantId: string) {
@@ -392,8 +364,8 @@ export class LocationsNewRepository {
       `);
 
       if (!schemaExists.rows?.[0]?.exists) {
-        console.log(`LocationsNewRepository.getTecnicosEquipe - Schema ${schemaName} does not exist, returning mock data`);
-        return this.getMockTecnicos();
+        console.log(`LocationsNewRepository.getTecnicosEquipe - Schema ${schemaName} does not exist, returning empty array`);
+        return [];
       }
 
       // Check if users table exists
@@ -405,8 +377,8 @@ export class LocationsNewRepository {
       `);
 
       if (!tableExists.rows?.[0]?.exists) {
-        console.log('LocationsNewRepository.getTecnicosEquipe - Users table does not exist, returning mock data');
-        return this.getMockTecnicos();
+        console.log('LocationsNewRepository.getTecnicosEquipe - Users table does not exist, returning empty array');
+        return [];
       }
 
       const query = `
@@ -422,11 +394,6 @@ export class LocationsNewRepository {
 
       const result = await this.executeQuery(query, [tenantId]);
 
-      if (!result || result.length === 0) {
-        console.log(`LocationsNewRepository.getTecnicosEquipe - No users found for tenant ${tenantId}, returning mock data`);
-        return this.getMockTecnicos();
-      }
-
       console.log(`LocationsNewRepository.getTecnicosEquipe - Found ${result.length} users for tenant ${tenantId}`);
       return result.map(row => ({
         id: row.id,
@@ -438,29 +405,8 @@ export class LocationsNewRepository {
       }));
     } catch (error) {
       console.error('LocationsNewRepository.getTecnicosEquipe - Error:', error);
-      return this.getMockTecnicos();
+      throw new Error(`Failed to fetch técnicos: ${error.message}`);
     }
-  }
-
-  private getMockTecnicos() {
-    return [
-      {
-        id: 'mock-tech-1',
-        name: 'Técnico Principal',
-        email: 'tecnico1@empresa.com',
-        role: 'agent',
-        status: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-tech-2',
-        name: 'Supervisor Técnico',
-        email: 'supervisor@empresa.com',
-        role: 'workspaceAdmin',
-        status: true,
-        createdAt: new Date().toISOString()
-      }
-    ];
   }
 
   async getGruposEquipe(tenantId: string) {
@@ -687,118 +633,7 @@ export class LocationsNewRepository {
     ];
   }
 
-  // Centralized mock data provider (kept for fallback only)
-  private getMockDataByType(recordType: string): any[] {
-    const mockData: { [key: string]: any[] } = {
-      'local': [
-        {
-          id: 'mock-local-1',
-          nome: 'Local Exemplo SP',
-          descricao: 'Sede principal São Paulo',
-          ativo: true,
-          latitude: '-23.5505',
-          longitude: '-46.6333',
-          cep: '01310-100',
-          estado: 'SP',
-          municipio: 'São Paulo',
-          bairro: 'Centro',
-          logradouro: 'Avenida Paulista',
-          numero: '1000',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'mock-local-2',
-          nome: 'Local Exemplo RJ',
-          descricao: 'Filial Rio de Janeiro',
-          ativo: true,
-          latitude: '-22.9068',
-          longitude: '-43.1729',
-          cep: '20040-020',
-          estado: 'RJ',
-          municipio: 'Rio de Janeiro',
-          bairro: 'Centro',
-          logradouro: 'Avenida Rio Branco',
-          numero: '500',
-          createdAt: new Date().toISOString()
-        }
-      ],
-      'regiao': [
-        {
-          id: 'mock-regiao-1',
-          nome: 'Região Sudeste',
-          descricao: 'Cobertura região sudeste',
-          ativo: true,
-          latitude: '-23.5505',
-          longitude: '-46.6333',
-          createdAt: new Date().toISOString()
-        }
-      ],
-      'rota-dinamica': [
-        {
-          id: 'mock-rota-1',
-          nomeRota: 'Rota São Paulo',
-          idRota: 'SP-001',
-          ativo: true,
-          previsaoDias: 5,
-          createdAt: new Date().toISOString()
-        }
-      ],
-      'trecho': [
-        {
-          id: 'mock-trecho-1',
-          codigoIntegracao: 'TR-001',
-          ativo: true,
-          localAId: 'mock-local-1',
-          localBId: 'mock-local-2',
-          createdAt: new Date().toISOString()
-        }
-      ],
-      'rota-trecho': [
-        {
-          id: 'mock-rota-trecho-1',
-          idRota: 'RT-001',
-          ativo: true,
-          localAId: 'mock-local-1',
-          localBId: 'mock-local-2',
-          createdAt: new Date().toISOString(),
-          trechos: [
-            {
-              id: 'mock-trecho-rota-1',
-              ordem: 1,
-              localOrigemId: 'mock-local-1',
-              nomeTrecho: 'Trecho Principal',
-              localDestinoId: 'mock-local-2'
-            }
-          ]
-        }
-      ],
-      'area': [
-        {
-          id: 'mock-area-1',
-          nome: 'Área Central SP',
-          descricao: 'Área de cobertura centro SP',
-          ativo: true,
-          tipoArea: 'coverage_area',
-          corMapa: '#3B82F6',
-          createdAt: new Date().toISOString()
-        }
-      ],
-      'agrupamento': [
-        {
-          id: 'mock-agrupamento-1',
-          nome: 'Agrupamento Sudeste',
-          descricao: 'Agrupamento de áreas sudeste',
-          ativo: true,
-          codigoIntegracao: 'AGRUP_SUDESTE_001',
-          areasVinculadas: ['mock-area-1'],
-          totalAreas: 1,
-          createdAt: new Date().toISOString()
-        }
-      ]
-    };
-
-    return mockData[recordType] || [];
-  }
+  
 
   // Additional CRUD operations for other record types
   async createRegiao(tenantId: string, data: NewRegiao) {
