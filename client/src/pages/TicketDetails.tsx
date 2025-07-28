@@ -1297,15 +1297,46 @@ export default function TicketDetails() {
                         </p>
                         {historyViewMode === 'advanced' && (
                           <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                            <p>User: {historyItem.performed_by_name} | IP: {historyItem.ip_address || 'N/A'}</p>
-                            {historyItem.user_agent && (
-                              <p>User-Agent: {historyItem.user_agent}</p>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <div>
+                                <span className="text-gray-500">Usuário:</span>
+                                <span className="ml-1 font-medium">{historyItem.performed_by_name || 'Sistema'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">IP:</span>
+                                <span className="ml-1 font-medium text-blue-600">
+                                  {historyItem.ip_address || historyItem.metadata?.ip_address || 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+                            {(historyItem.user_agent || historyItem.metadata?.user_agent) && (
+                              <div className="mb-2">
+                                <span className="text-gray-500">User-Agent:</span>
+                                <p className="text-xs break-all mt-1 text-gray-700">
+                                  {historyItem.user_agent || historyItem.metadata?.user_agent}
+                                </p>
+                              </div>
                             )}
-                            {historyItem.session_id && (
-                              <p>Session: {historyItem.session_id}</p>
+                            {(historyItem.session_id || historyItem.metadata?.session_id) && (
+                              <div className="mb-2">
+                                <span className="text-gray-500">Session ID:</span>
+                                <span className="ml-1 font-mono text-xs">
+                                  {historyItem.session_id || historyItem.metadata?.session_id}
+                                </span>
+                              </div>
                             )}
-                            {historyItem.metadata && (
-                              <p>Metadata: {JSON.stringify(historyItem.metadata, null, 2)}</p>
+                            {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
+                              <div className="border-t pt-2 mt-2">
+                                <span className="text-gray-500">Metadados:</span>
+                                <details className="mt-1">
+                                  <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+                                    Ver detalhes técnicos
+                                  </summary>
+                                  <pre className="text-xs mt-2 p-2 bg-white border rounded overflow-x-auto">
+                                    {JSON.stringify(historyItem.metadata, null, 2)}
+                                  </pre>
+                                </details>
+                              </div>
                             )}
                           </div>
                         )}
