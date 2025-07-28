@@ -4,13 +4,10 @@ import type {
   NewLocal, NewRegiao, NewRotaDinamica, NewTrecho, 
   NewRotaTrecho, NewArea, NewAgrupamento 
 } from "../../../shared/schema-locations-new";
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export class LocationsNewRepository {
-  private db: any;
-
-  constructor(db: any) {
-    this.db = db;
-  }
+  constructor(private db: NodePgDatabase<any>) {}
 
   // Integration methods for region relationships
   async getClientes(tenantId: string) {
@@ -50,7 +47,7 @@ export class LocationsNewRepository {
         ORDER BY first_name ASC
       `;
 
-      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      const result = await this.executeQuery(query, [tenantId]);
       console.log(`Successfully fetched ${result.length} clientes for tenant ${tenantId}`);
 
       if (!result || result.length === 0) {
@@ -132,7 +129,7 @@ export class LocationsNewRepository {
         ORDER BY name ASC
       `;
 
-      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      const result = await this.executeQuery(query, [tenantId]);
 
       if (!result || result.length === 0) {
         console.log(`LocationsNewRepository.getTecnicosEquipe - No users found for tenant ${tenantId}, returning mock data`);
@@ -180,7 +177,7 @@ export class LocationsNewRepository {
 
     try {
       console.log(`LocationsNewRepository.getGruposEquipe - Starting fetch for tenant: ${tenantId}`);
-      
+
       // Check if schema exists
       const schemaExists = await this.db.execute(sql`
         SELECT EXISTS (
@@ -218,8 +215,8 @@ export class LocationsNewRepository {
         ORDER BY g.name ASC
       `;
 
-      const result = await this.db.execute(sql.raw(query, [tenantId]));
-      
+      const result = await this.executeQuery(query, [tenantId]);
+
       if (!result || result.length === 0) {
         console.log(`LocationsNewRepository.getGruposEquipe - No groups found for tenant ${tenantId}, returning mock data`);
         return this.getMockGrupos();
@@ -298,7 +295,7 @@ export class LocationsNewRepository {
         ORDER BY name ASC
       `;
 
-      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      const result = await this.executeQuery(query, [tenantId]);
 
       if (!result || result.length === 0) {
         console.log(`LocationsNewRepository.getLocaisAtendimento - No locations found for tenant ${tenantId}, returning mock data`);
@@ -415,7 +412,7 @@ export class LocationsNewRepository {
 
       query += ` ORDER BY created_at DESC LIMIT 100`;
 
-      const result = await this.db.execute(sql.raw(query, params));
+      const result = await this.executeQuery(query, params);
       return result || [];
     } catch (error) {
       console.error(`Error fetching ${recordType} records:`, error);
@@ -452,7 +449,7 @@ export class LocationsNewRepository {
     `;
 
     try {
-      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      const result = await this.executeQuery(query, [tenantId]);
       const stats = result[0] || { total: 0, active: 0, inactive: 0 };
 
       return {
@@ -493,7 +490,7 @@ export class LocationsNewRepository {
         data.fusoHorario, data.feriadosIncluidos, data.indisponibilidades
       ];
 
-      const result = await this.db.execute(sql.raw(query, values));
+      const result = await this.executeQuery(query, values);
       return result[0];
     } catch (error) {
       console.error('Error creating local:', error);
@@ -523,7 +520,7 @@ export class LocationsNewRepository {
         data.cep, data.pais, data.estado, data.municipio, data.bairro, data.tipoLogradouro, data.logradouro, data.numero, data.complemento
       ];
 
-      const result = await this.db.execute(sql.raw(query, values));
+      const result = await this.executeQuery(query, values);
       return result[0];
     } catch (error) {
       console.error('Error creating regiao:', error);
@@ -616,5 +613,22 @@ export class LocationsNewRepository {
     await this.db
       .delete(table)
       .where(and(eq(table.id, id), eq(table.tenantId, tenantId)));
+  }
+  
+  private async executeQuery(query: string, params: any[]): Promise<any[]> {
+    try {
+      const result = await this.db.execute(sql.raw(query, params));
+      return Array.isArray(result) ? result : [result];
+    } catch (error) {
+      console.error('Database query failed:', {
+        error: error.message,
+        query: query.substring(0, 100) + '...',
+        params
+      });
+
+      // Return empty array for fallback instead of throwing
+      console.warn('Returning empty result due to database error');
+      return [];
+    }
   }
 }

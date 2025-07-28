@@ -10,7 +10,7 @@ const updateTokenForTesting = () => {
   }
 };
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -375,6 +375,28 @@ function LocationsNewContent() {
     enabled: !!token,
     retry: 2,
     retryDelay: 1000
+  });
+
+  const { data: locaisAtendimento, isLoading: isLoadingLocais, error: locaisError } = useQuery({
+    queryKey: ["/api/locations-new/locais-atendimento"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/locations-new/locais-atendimento");
+        const data = await response.json();
+
+        if (!data.success && data.fallback) {
+          console.warn('Using fallback data due to database service unavailability');
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Failed to fetch locais de atendimento:', error);
+        throw error;
+      }
+    },
+    retry: 2,
+    staleTime: 30000,
+    refetchOnWindowFocus: false
   });
 
   // Enhanced error and loading states

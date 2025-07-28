@@ -39,105 +39,97 @@ router.use('*', async (req: LocationsRequest, res: Response, next: NextFunction)
   }
 });
 
+// Initialize controller with proper error handling
+let controller: LocationsNewController;
+try {
+  controller = new LocationsNewController();
+  console.log('✅ LocationsNewController initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize LocationsNewController:', error);
+  throw error;
+}
+
 // Controller factory function
-const getController = (req: LocationsRequest) => new LocationsNewController(req.tenantDb);
+const getController = (req: LocationsRequest) => controller;
 
 // Get statistics by type FIRST to avoid UUID conflict  
 router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.getStatsByType(req, res);
 });
 
 // Get records by type
 router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.getRecordsByType(req, res);
 });
 
 // CEP lookup
 router.get('/services/cep/:cep', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.lookupCep(req, res);
 });
 
 // Holidays lookup
 router.get('/holidays', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.lookupHolidays(req, res);
 });
 
 // Geocoding
 router.post('/services/geocode', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.geocodeAddress(req, res);
 });
 
 // Create operations
 router.post('/local', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createLocal(req, res);
 });
 
 router.post('/regiao', async (req: LocationsRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createRegiao(req, res);
 });
 
 router.post('/rota-dinamica', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createRotaDinamica(req, res);
 });
 
 router.post('/trecho', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createTrecho(req, res);
 });
 
 router.post('/rota-trecho', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createRotaTrecho(req, res);
 });
 
 router.post('/area', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createArea(req, res);
 });
 
 router.post('/agrupamento', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.createAgrupamento(req, res);
 });
 
 // Update operations
 router.put('/:recordType/:id', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.updateRecord(req, res);
 });
 
 // Delete operations
 router.delete('/:recordType/:id', async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.deleteRecord(req, res);
 });
 
 // CEP and geocoding services
 router.get("/services/cep/:cep", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.lookupCep(req, res);
 });
 router.post("/services/geocode", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.geocodeAddress(req, res);
 });
 router.get("/services/holidays", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
   return controller.lookupHolidays(req, res);
 });
 
   // Integration endpoints for region relationships
 router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const controller = getController(req);
     await controller.getClientes(req, res);
   } catch (error) {
     console.error('Error in clientes integration:', error);
@@ -147,7 +139,6 @@ router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Respo
 
 router.get("/integration/tecnicos", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const controller = getController(req);
     await controller.getTecnicosEquipe(req, res);
   } catch (error) {
     console.error('Error in tecnicos integration:', error);
@@ -157,7 +148,6 @@ router.get("/integration/tecnicos", async (req: AuthenticatedRequest, res: Respo
 
 router.get("/integration/grupos", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const controller = getController(req);
     await controller.getGruposEquipe(req, res);
   } catch (error) {
     console.error('Error in grupos integration:', error);
@@ -167,7 +157,6 @@ router.get("/integration/grupos", async (req: AuthenticatedRequest, res: Respons
 
 router.get("/integration/locais", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const controller = getController(req);
     await controller.getLocaisAtendimento(req, res);
   } catch (error) {
     console.error('Error in locais integration:', error);

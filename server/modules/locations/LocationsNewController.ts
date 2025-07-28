@@ -5,12 +5,13 @@ import { LocationsNewRepository } from "./LocationsNewRepository";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { z } from "zod";
 import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrechoSchema, areaSchema, agrupamentoSchema } from "../../../shared/schema-locations-new";
+import { db } from '../../db';
 
 export class LocationsNewController {
   private repository: LocationsNewRepository;
 
-  constructor(pool: any) {
-    this.repository = new LocationsNewRepository(pool);
+  constructor() {
+    this.repository = new LocationsNewRepository(db);
   }
 
   // Get statistics by type

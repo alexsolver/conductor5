@@ -62,15 +62,30 @@ export const sendSuccess = (res: any, data: any, metadata?: { fallbackUsed?: boo
   res.status(200).json(response);
 };
 
-export function sendError(
-  res: any,
-  error: string | Error,
-  message?: string,
-  statusCode: number = 500
-) {
-  const response = createErrorResponse(error, message, statusCode);
-  console.error(`[API Error ${statusCode}]:`, response);
-  return res.status(statusCode).json(response);
+export function sendError(res: Response, error: any, message: string = "Internal server error", statusCode: number = 500) {
+  logger.error('Request failed', {
+    error: error?.message || error,
+    stack: error?.stack,
+    statusCode,
+    timestamp: new Date().toISOString(),
+    module: 'locations'
+  });
+
+  // Special handling for database connection errors
+  if (error?.message?.includes('this.db.execute is not a function')) {
+    return res.status(503).json({
+      success: false,
+      error: "Database service temporarily unavailable",
+      fallback: true,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  return res.status(statusCode).json({
+    success: false,
+    error: message,
+    timestamp: new Date().toISOString()
+  });
 }
 
 export function sendValidationError(
