@@ -32,7 +32,7 @@ export function createErrorResponse(
   statusCode?: number
 ): StandardAPIResponse {
   const errorMessage = error instanceof Error ? error.message : error;
-  
+
   return {
     success: false,
     message: message || 'An error occurred',
@@ -42,15 +42,25 @@ export function createErrorResponse(
   };
 }
 
-export function sendSuccess<T = any>(
-  res: any,
-  data: T,
-  message?: string,
-  statusCode: number = 200
-) {
-  const response = createSuccessResponse(data, message);
-  return res.status(statusCode).json(response);
-}
+export const sendSuccess = (res: any, data: any, metadata?: { fallbackUsed?: boolean; message?: string }) => {
+  const response: any = {
+    success: true,
+    data,
+    timestamp: new Date().toISOString()
+  };
+
+  // Add metadata if provided
+  if (metadata) {
+    if (metadata.fallbackUsed) {
+      response.warning = 'Dados padrão utilizados devido a problemas de conectividade';
+    }
+    if (metadata.message) {
+      response.message = metadata.message;
+    }
+  }
+
+  res.status(200).json(response);
+};
 
 export function sendError(
   res: any,
@@ -74,7 +84,7 @@ export function sendValidationError(
     errors,
     timestamp: new Date().toISOString()
   };
-  
+
   console.error('[Validation Error]:', response);
   return res.status(400).json(response);
 }

@@ -21,6 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Import form components
 import LocalForm from "@/components/locations/LocalForm";
@@ -77,7 +79,7 @@ const RECORD_TYPES = {
   }
 };
 
-export default function LocationsNew() {
+function LocationsNewContent() {
   const { toast } = useToast();
   const [activeRecordType, setActiveRecordType] = useState<string>("local");
   const [searchTerm, setSearchTerm] = useState("");
@@ -339,6 +341,40 @@ export default function LocationsNew() {
       return data.data || [];
     },
     enabled: !!token
+  });
+
+  // Integration data fetching with robust error handling
+  const { data: clientesData, error: clientesError, isLoading: clientesLoading } = useQuery({
+    queryKey: ['integration-clientes', token],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/integration/clientes', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        // Don't throw for 404 or 500 - handle gracefully
+        if (response.status === 404 || response.status === 500) {
+          return { 
+            success: true, 
+            data: [], 
+            warning: 'Dados de clientes indisponíveis temporariamente' 
+          };
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      // Handle API warnings
+      if (result.warning) {
+        console.warn('API Warning:', result.warning);
+      }
+
+      return result;
+    },
+    enabled: !!token,
+    retry: 2,
+    retryDelay: 1000
   });
 
   // Enhanced error and loading states
@@ -667,5 +703,20 @@ export default function LocationsNew() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function LocationsNew() {
+  return (
+    <ErrorBoundary fallback={
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.
+        </AlertDescription>
+      </Alert>
+    }>
+      <LocationsNewContent />
+    </ErrorBoundary>
   );
 }

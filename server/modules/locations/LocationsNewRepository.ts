@@ -14,51 +14,49 @@ export class LocationsNewRepository {
 
   // Integration methods for region relationships
   async getClientes(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
     try {
-      console.log(`LocationsNewRepository.getClientes - Starting fetch for tenant: ${tenantId}`);
-      
-      // First check if customers table exists and has data
-      const checkQuery = `
+      // Validate schema exists first
+      const schemaExists = await this.db.execute(sql`
         SELECT EXISTS (
-          SELECT 1 FROM information_schema.tables 
-          WHERE table_name = 'customers'
-        ) as table_exists
-      `;
-      
-      const tableCheck = await this.db.execute(sql.raw(checkQuery));
-      
-      if (!tableCheck[0]?.table_exists) {
-        console.log('LocationsNewRepository.getClientes - Customers table does not exist, returning mock data');
-        return this.getMockClientes();
+          SELECT FROM information_schema.schemata 
+          WHERE schema_name = ${schemaName}
+        )
+      `);
+
+      if (!schemaExists.rows[0]?.exists) {
+        console.warn(`Schema ${schemaName} does not exist, returning empty results`);
+        return [];
       }
 
       const query = `
-        SELECT id, first_name as nome, email, phone as telefone, is_active as ativo, created_at
-        FROM customers
-        WHERE tenant_id = $1 AND is_active = true
+        SELECT id, first_name as nome, email, phone as telefone, status = 'active' as ativo, created_at
+        FROM "${schemaName}".customers
+        WHERE tenant_id = $1 AND status = 'active'
         ORDER BY first_name ASC
-        LIMIT 50
       `;
 
       const result = await this.db.execute(sql.raw(query, [tenantId]));
-      
-      if (!result || result.length === 0) {
-        console.log(`LocationsNewRepository.getClientes - No customers found for tenant ${tenantId}, returning mock data`);
-        return this.getMockClientes();
-      }
+      console.log(`Successfully fetched ${result.length} clientes for tenant ${tenantId}`);
 
-      console.log(`LocationsNewRepository.getClientes - Found ${result.length} customers for tenant ${tenantId}`);
       return result.map(row => ({
         id: row.id,
-        nome: row.nome || row.email,
+        nome: row.nome || row.first_name,
         email: row.email,
-        telefone: row.telefone || '',
+        telefone: row.telefone || row.phone,
         ativo: row.ativo,
         createdAt: row.created_at
       }));
     } catch (error) {
-      console.error('LocationsNewRepository.getClientes - Error:', error);
-      return this.getMockClientes();
+      console.error(`Database error fetching clientes for tenant ${tenantId}:`, {
+        error: error.message,
+        query: query.substring(0, 100) + '...',
+        tenantId
+      });
+
+      // Don't return empty array - let caller handle fallback
+      throw new Error(`Database query failed: ${error.message}`);
     }
   }
 
@@ -84,36 +82,36 @@ export class LocationsNewRepository {
   }
 
   async getTecnicosEquipe(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     try {
       console.log(`LocationsNewRepository.getTecnicosEquipe - Starting fetch for tenant: ${tenantId}`);
-      
+
       // Check if users table exists
       const checkQuery = `
         SELECT EXISTS (
           SELECT 1 FROM information_schema.tables 
-          WHERE table_name = 'users'
+          WHERE table_schema = '${schemaName}' AND table_name = 'users'
         ) as table_exists
       `;
-      
+
       const tableCheck = await this.db.execute(sql.raw(checkQuery));
-      
+
       if (!tableCheck[0]?.table_exists) {
         console.log('LocationsNewRepository.getTecnicosEquipe - Users table does not exist, returning mock data');
         return this.getMockTecnicos();
       }
 
       const query = `
-        SELECT id, first_name as nome, email, role as tipo_usuario, is_active as ativo, created_at
-        FROM users
+        SELECT id, name as nome, email, role as tipo_usuario, status = 'active' as ativo, created_at
+        FROM "${schemaName}".users
         WHERE tenant_id = $1 
           AND role IN ('agent', 'workspaceAdmin') 
-          AND is_active = true
-        ORDER BY first_name ASC
-        LIMIT 50
+          AND status = 'active'
+        ORDER BY name ASC
       `;
 
       const result = await this.db.execute(sql.raw(query, [tenantId]));
-      
+
       if (!result || result.length === 0) {
         console.log(`LocationsNewRepository.getTecnicosEquipe - No users found for tenant ${tenantId}, returning mock data`);
         return this.getMockTecnicos();
@@ -156,36 +154,60 @@ export class LocationsNewRepository {
   }
 
   async getGruposEquipe(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
     try {
       console.log(`LocationsNewRepository.getGruposEquipe - Starting fetch for tenant: ${tenantId}`);
-      
-      // Return mock data for groups since table may not exist yet
-      const mockGroups = [
-        {
-          id: 'grupo-manutencao',
-          name: 'Equipe de Manutenção',
-          description: 'Responsável por manutenção preventiva e corretiva',
-          memberCount: 5,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'grupo-instalacao',
-          name: 'Equipe de Instalação',
-          description: 'Responsável por novas instalações',
-          memberCount: 3,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'grupo-suporte',
-          name: 'Equipe de Suporte',
-          description: 'Suporte técnico especializado',
-          memberCount: 4,
-          createdAt: new Date().toISOString()
-        }
-      ];
-      
-      console.log(`LocationsNewRepository.getGruposEquipe - Returning ${mockGroups.length} mock groups for tenant ${tenantId}`);
-      return mockGroups;
+      // Check if groups table exists
+      const tableCheck = await this.db.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} 
+          AND table_name = 'user_groups'
+        )
+      `);
+
+      if (!tableCheck.rows[0]?.exists) {
+        console.log(`LocationsNewRepository.getGruposEquipe - Groups table does not exist in schema ${schemaName}, returning mock data`);
+        // Return mock groups if table doesn't exist
+        return [
+          {
+            id: 'group-1',
+            name: 'Equipe Técnica',
+            description: 'Grupo principal de técnicos',
+            memberCount: 5,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'group-2', 
+            name: 'Supervisão',
+            description: 'Grupo de supervisores',
+            memberCount: 2,
+            createdAt: new Date().toISOString()
+          }
+        ];
+      }
+
+      const query = `
+        SELECT g.id, g.name as nome, g.description as descricao, g.created_at,
+               COUNT(gm.user_id) as member_count
+        FROM "${schemaName}".user_groups g
+        LEFT JOIN "${schemaName}".user_group_memberships gm ON g.id = gm.group_id
+        WHERE g.tenant_id = $1 AND g.status = 'active'
+        GROUP BY g.id, g.name, g.description, g.created_at
+        ORDER BY g.name ASC
+      `;
+
+      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      console.log(`LocationsNewRepository.getGruposEquipe - Successfully fetched groups for tenant ${tenantId}`);
+
+      return result.map(row => ({
+        id: row.id,
+        name: row.nome,
+        description: row.descricao,
+        memberCount: row.member_count,
+        createdAt: row.created_at
+      }));
     } catch (error) {
       console.error('LocationsNewRepository.getGruposEquipe - Error:', error);
       return [];
@@ -193,37 +215,34 @@ export class LocationsNewRepository {
   }
 
   async getLocaisAtendimento(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     try {
       console.log(`LocationsNewRepository.getLocaisAtendimento - Starting fetch for tenant: ${tenantId}`);
-      
+
       // Check if locations table exists
       const checkQuery = `
         SELECT EXISTS (
           SELECT 1 FROM information_schema.tables 
-          WHERE table_name = 'locations'
+          WHERE table_schema = '${schemaName}' AND table_name = 'locations'
         ) as table_exists
       `;
-      
+
       const tableCheck = await this.db.execute(sql.raw(checkQuery));
-      
+
       if (!tableCheck[0]?.table_exists) {
         console.log('LocationsNewRepository.getLocaisAtendimento - Locations table does not exist, returning mock data');
         return this.getMockLocais();
       }
-
-      // First try to get from public locations table
       const query = `
-        SELECT id, name as nome, description as descricao, address_cep as cep, 
-               address_city as municipio, address_state as estado, 
-               is_active as ativo, created_at
-        FROM locations
-        WHERE tenant_id = $1 AND is_active = true
+        SELECT id, name as nome, description as descricao, postal_code as cep, 
+               city as municipio, state as estado, status = 'active' as ativo, created_at
+        FROM "${schemaName}".locations
+        WHERE tenant_id = $1 AND status = 'active'
         ORDER BY name ASC
-        LIMIT 50
       `;
 
       const result = await this.db.execute(sql.raw(query, [tenantId]));
-      
+
       if (result.length > 0) {
         console.log(`LocationsNewRepository.getLocaisAtendimento - Found ${result.length} locations for tenant ${tenantId}`);
         return result.map(row => ({
@@ -293,7 +312,7 @@ export class LocationsNewRepository {
 
     // Validate tenant schema exists
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     try {
       // Check if schema and table exist
       const schemaCheckQuery = `
@@ -302,9 +321,9 @@ export class LocationsNewRepository {
           WHERE schema_name = $1
         ) as schema_exists
       `;
-      
+
       const schemaCheck = await this.db.execute(sql.raw(schemaCheckQuery, [schemaName]));
-      
+
       if (!schemaCheck[0]?.schema_exists) {
         console.log(`Tenant schema ${schemaName} does not exist, returning empty array`);
         return [];
@@ -316,9 +335,9 @@ export class LocationsNewRepository {
           WHERE table_schema = $1 AND table_name = $2
         ) as table_exists
       `;
-      
+
       const tableCheck = await this.db.execute(sql.raw(tableCheckQuery, [schemaName, tableName]));
-      
+
       if (!tableCheck[0]?.table_exists) {
         console.log(`Table ${tableName} does not exist in schema ${schemaName}, returning empty array`);
         return [];
