@@ -810,7 +810,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // First try to get ticket history
+    // Get only ticket history - actions are already recorded in history when created
     const historyQuery = `
       SELECT 
         'history' as source,
@@ -832,52 +832,12 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       ORDER BY th.created_at DESC
     `;
 
-    // Get internal actions separately  
-    const actionsQuery = `
-      SELECT 
-        'action' as source,
-        ta.id,
-        ta.action_type,
-        COALESCE(ta.work_log, ta.description) as description,
-        ta.created_by as performed_by,
-        u2.first_name || ' ' || u2.last_name as performed_by_name,
-        null as old_value,
-        null as new_value,
-        null as field_name,
-        ta.created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        jsonb_build_object(
-          'work_log', ta.work_log,
-          'time_spent', ta.time_spent,
-          'estimated_hours', ta.estimated_hours,
-          'is_public', ta.is_public,
-          'action_type', ta.action_type
-        ) as metadata
-      FROM "${schemaName}".ticket_actions ta
-      LEFT JOIN public.users u2 ON ta.created_by = u2.id
-      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
-      ORDER BY ta.created_at DESC
-    `;
-
-    const [historyResult, actionsResult] = await Promise.all([
-      pool.query(historyQuery, [id, tenantId]),
-      pool.query(actionsQuery, [id, tenantId])
-    ]);
-
-    // Combine and sort results
-    const combinedResults = [
-      ...historyResult.rows,
-      ...actionsResult.rows
-    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-    const result = { rows: combinedResults };
+    const historyResult = await pool.query(historyQuery, [id, tenantId]);
 
     res.json({
       success: true,
-      data: result.rows,
-      count: result.rows.length
+      data: historyResult.rows,
+      count: historyResult.rows.length
     });
 
   } catch (error) {
