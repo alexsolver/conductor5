@@ -1,5 +1,3 @@
-
--- Create ticket relationships table for all tenant schemas
 DO $$
 DECLARE
     schema_name TEXT;
@@ -17,27 +15,24 @@ BEGIN
                 target_ticket_id UUID NOT NULL,
                 relationship_type VARCHAR(50) NOT NULL,
                 description TEXT,
-                created_by UUID,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                created_by_id UUID,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW(),
                 is_active BOOLEAN DEFAULT true,
-                
-                CONSTRAINT fk_ticket_relationships_source 
-                    FOREIGN KEY (source_ticket_id) REFERENCES "%I".tickets(id),
-                CONSTRAINT fk_ticket_relationships_target 
-                    FOREIGN KEY (target_ticket_id) REFERENCES "%I".tickets(id),
-                CONSTRAINT fk_ticket_relationships_tenant
-                    FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-                CONSTRAINT fk_ticket_relationships_created_by
-                    FOREIGN KEY (created_by) REFERENCES public.users(id)
+
+                CONSTRAINT fk_ticket_relationships_source FOREIGN KEY (source_ticket_id) REFERENCES "%I".tickets(id) ON DELETE CASCADE,
+                CONSTRAINT fk_ticket_relationships_target FOREIGN KEY (target_ticket_id) REFERENCES "%I".tickets(id) ON DELETE CASCADE,
+                CONSTRAINT fk_ticket_relationships_created_by FOREIGN KEY (created_by_id) REFERENCES public.users(id),
+
+                CONSTRAINT chk_no_self_reference CHECK (source_ticket_id != target_ticket_id),
+
+                CONSTRAINT uk_ticket_relationships UNIQUE (tenant_id, source_ticket_id, target_ticket_id, relationship_type)
             );
-            
-            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_source 
-                ON "%I".ticket_relationships(source_ticket_id, tenant_id);
-            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_target 
-                ON "%I".ticket_relationships(target_ticket_id, tenant_id);
-            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_type 
-                ON "%I".ticket_relationships(relationship_type, tenant_id);
+
+            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_source ON "%I".ticket_relationships(tenant_id, source_ticket_id);
+            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_target ON "%I".ticket_relationships(tenant_id, target_ticket_id); 
+            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_type ON "%I".ticket_relationships(relationship_type);
+            CREATE INDEX IF NOT EXISTS idx_ticket_relationships_active ON "%I".ticket_relationships(tenant_id, is_active);
         ', schema_name, schema_name, schema_name, schema_name, schema_name, schema_name);
     END LOOP;
 END $$;

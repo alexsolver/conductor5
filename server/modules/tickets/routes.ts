@@ -83,7 +83,7 @@ ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const urgentTickets = allTickets.filter(ticket => 
       ticket.priority === 'urgent' || ticket.priority === 'critical'
     );
-    
+
     return sendSuccess(res, urgentTickets, "Urgent tickets retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -129,14 +129,14 @@ ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
-    
+
     // CORREÇÃO CRÍTICA 3: Campo location é texto livre, não FK
     // Manter consistência com schema do banco
     if (frontendUpdates.locationId) {
       backendUpdates.location = frontendUpdates.locationId;
       delete backendUpdates.location_id; // FK não existe no schema
     }
-    
+
     // Garantir que location_id nunca seja enviado ao banco
     delete backendUpdates.location_id;
 
@@ -188,7 +188,7 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
 
     // CORREÇÃO LSP: Método createTicketMessage não existe no storage atual
     // const message = await storageSimple.createTicketMessage(messageData);
-    
+
     // Temporary placeholder until createTicketMessage is implemented
     const message = {
       id: `msg-${Date.now()}`,
@@ -673,7 +673,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     try {
       const { pool } = await import('../../db');
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       const historyQuery = `
         SELECT 
           th.id,
@@ -693,10 +693,10 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         WHERE th.ticket_id = $1
         ORDER BY th.created_at DESC
       `;
-      
+
       const historyResult = await pool.query(historyQuery, [ticketId]);
       return sendSuccess(res, historyResult.rows, "Ticket history retrieved successfully");
-      
+
     } catch (dbError) {
       console.log("Database history not available, returning empty array");
       return sendSuccess(res, [], "No ticket history available");
@@ -843,7 +843,7 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     const { relationshipId } = req.params;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const schemaName = `tenant_${tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Soft delete the relationship
     const result = await pool.query(

@@ -234,11 +234,11 @@ export const tickets = pgTable("tickets", {
   businessImpact: text("business_impact"),
   callerId: uuid("caller_id").references(() => customers.id),
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
-  beneficiaryId: uuid("beneficiary_id").references(() => customers.id),
+  beneficiaryId: uuid("beneficiary_id").references(() => favorecidos.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   assignedToId: uuid("assigned_to_id").references(() => users.id),
-  assignmentGroup: varchar("assignment_group", { length: 100 }),
-  location: varchar("location", { length: 100 }),
+  assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id),
+  locationId: uuid("location_id").references(() => locations.id),
   followerId: uuid("follower_id").references(() => users.id),
   followers: text("followers").array(),
   tags: text("tags").array(),
@@ -291,6 +291,26 @@ export const ticketMessages = pgTable("ticket_messages", {
   index("ticket_messages_tenant_sender_idx").on(table.tenantId, table.senderType),
   index("ticket_messages_tenant_time_idx").on(table.tenantId, table.createdAt),
   index("ticket_messages_ticket_time_idx").on(table.tenantId, table.ticketId, table.createdAt),
+]);
+
+// Ticket Relationships table - Para relacionamentos entre tickets
+export const ticketRelationships = pgTable("ticket_relationships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  sourceTicketId: uuid("source_ticket_id").references(() => tickets.id).notNull(),
+  targetTicketId: uuid("target_ticket_id").references(() => tickets.id).notNull(),
+  relationshipType: varchar("relationship_type", { length: 50 }).notNull(), // 'parent', 'child', 'related', 'blocks', 'blocked_by'
+  description: text("description"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("ticket_relationships_source_idx").on(table.tenantId, table.sourceTicketId),
+  index("ticket_relationships_target_idx").on(table.tenantId, table.targetTicketId),
+  index("ticket_relationships_type_idx").on(table.relationshipType),
+  index("ticket_relationships_active_idx").on(table.tenantId, table.isActive),
+  unique("ticket_relationships_unique").on(table.tenantId, table.sourceTicketId, table.targetTicketId, table.relationshipType),
 ]);
 
 // Activity Logs table - Critical indexes added, audit fields completed
@@ -1404,6 +1424,8 @@ export type ScheduleSettings = typeof scheduleSettings.$inferSelect;
 // Ticket Enhancement types
 export type InsertTicketAttachment = typeof ticketAttachments.$inferInsert;
 export type TicketAttachment = typeof ticketAttachments.$inferSelect;
+export type InsertTicketRelationship = typeof ticketRelationships.$inferInsert;
+export type TicketRelationship = typeof ticketRelationships.$inferSelect;
 export type InsertTicketNote = typeof ticketNotes.$inferInsert;
 export type TicketNote = typeof ticketNotes.$inferSelect;
 export type InsertTicketCommunication = typeof ticketCommunications.$inferInsert;
