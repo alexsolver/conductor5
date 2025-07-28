@@ -491,6 +491,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           ...data,
           tecnicoPrincipalId: data.tecnicoPrincipalId === "none" ? undefined : data.tecnicoPrincipalId
       };
+
       // Add the token to the data or pass it to onSubmit
       const response = await fetch('/api/locations-new/regiao', {
         method: 'POST',
@@ -519,10 +520,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             'Authorization': `Bearer ${freshToken}`,
             'Content-Type': 'application/json',
           },
-          const processedData = {
-              ...data,
-              tecnicoPrincipalId: data.tecnicoPrincipalId === "none" ? undefined : data.tecnicoPrincipalId
-          };
           body: JSON.stringify(processedData),
         });
 
