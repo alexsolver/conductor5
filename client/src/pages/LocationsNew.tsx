@@ -388,7 +388,7 @@ function LocationsNewContent() {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* RENDERIZAÇÃO CONDICIONAL BASEADA NO TIPO DE REGISTRO */}
-                  {currentRecordType.value === 'local' && (
+                  {activeRecordType === 'local' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
                       <div className="space-y-4">
@@ -800,7 +800,7 @@ function LocationsNewContent() {
                   )}
 
                   {/* MODAL REGIÃO */}
-                  {currentRecordType.value === 'regiao' && (
+                  {activeRecordType === 'regiao' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
                       <div className="space-y-4">
@@ -886,7 +886,7 @@ function LocationsNewContent() {
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
-                            name="clientesVinculados"
+                            name="nome"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Clientes Vinculados</FormLabel>
@@ -925,7 +925,7 @@ function LocationsNewContent() {
                   )}
 
                   {/* MODAL ROTA DINÂMICA */}
-                  {currentRecordType.value === 'rota-dinamica' && (
+                  {activeRecordType === 'rota-dinamica' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
                       <div className="space-y-4">
@@ -959,7 +959,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="nomeRota"
+                            name="nome"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Nome da Rota *</FormLabel>
@@ -973,7 +973,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="idRota"
+                            name="codigoIntegracao"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>ID da Rota *</FormLabel>
@@ -1005,7 +1005,7 @@ function LocationsNewContent() {
                         
                         <FormField
                           control={form.control}
-                          name="previsaoDias"
+                          name="descricao"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Previsão de Dias (1-30)</FormLabel>
@@ -1021,7 +1021,7 @@ function LocationsNewContent() {
                   )}
 
                   {/* MODAL TRECHO */}
-                  {currentRecordType.value === 'trecho' && (
+                  {activeRecordType === 'trecho' && (
                     <>
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
@@ -1070,7 +1070,7 @@ function LocationsNewContent() {
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
-                            name="localA"
+                            name="nome"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Local A (Origem)</FormLabel>
@@ -1092,7 +1092,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="localB"
+                            name="descricao"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Local B (Destino)</FormLabel>
@@ -1117,7 +1117,7 @@ function LocationsNewContent() {
                   )}
 
                   {/* MODAL ROTA DE TRECHO */}
-                  {currentRecordType.value === 'rota-trecho' && (
+                  {activeRecordType === 'rota-trecho' && (
                     <>
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
@@ -1150,7 +1150,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="idRota"
+                            name="codigoIntegracao"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>ID da Rota</FormLabel>
@@ -1180,7 +1180,7 @@ function LocationsNewContent() {
                   )}
 
                   {/* MODAL ÁREA */}
-                  {currentRecordType.value === 'area' && (
+                  {activeRecordType === 'area' && (
                     <>
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
@@ -1228,7 +1228,7 @@ function LocationsNewContent() {
                         
                         <FormField
                           control={form.control}
-                          name="tipoArea"
+                          name="nome"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Tipo de Área</FormLabel>
@@ -1265,7 +1265,7 @@ function LocationsNewContent() {
                   )}
 
                   {/* MODAL AGRUPAMENTO */}
-                  {currentRecordType.value === 'agrupamento' && (
+                  {activeRecordType === 'agrupamento' && (
                     <>
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
