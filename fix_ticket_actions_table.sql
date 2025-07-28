@@ -3,17 +3,17 @@
 DO $$ 
 DECLARE 
     tenant_record RECORD;
-    current_schema TEXT;
+    tenant_schema_name TEXT;
 BEGIN
     -- Loop through all tenant schemas
     FOR tenant_record IN 
-        SELECT schema_name FROM information_schema.schemata 
-        WHERE schema_name LIKE 'tenant_%'
+        SELECT s.schema_name FROM information_schema.schemata s
+        WHERE s.schema_name LIKE 'tenant_%'
     LOOP
-        current_schema := tenant_record.schema_name;
+        tenant_schema_name := tenant_record.schema_name;
         
         -- Drop existing table if it exists
-        EXECUTE format('DROP TABLE IF EXISTS "%s".ticket_actions CASCADE', current_schema);
+        EXECUTE format('DROP TABLE IF EXISTS "%s".ticket_actions CASCADE', tenant_schema_name);
         
         -- Create correct ticket_actions table
         EXECUTE format('
@@ -40,15 +40,15 @@ BEGIN
                     FOREIGN KEY (ticket_id) REFERENCES "%s".tickets(id) ON DELETE CASCADE,
                 CONSTRAINT fk_ticket_actions_user 
                     FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL
-            )', current_schema, current_schema);
+            )', tenant_schema_name, tenant_schema_name);
             
         -- Create indexes
         EXECUTE format('
             CREATE INDEX idx_ticket_actions_tenant_id ON "%s".ticket_actions(tenant_id);
             CREATE INDEX idx_ticket_actions_ticket_id ON "%s".ticket_actions(ticket_id);
             CREATE INDEX idx_ticket_actions_created_at ON "%s".ticket_actions(created_at);
-        ', current_schema, current_schema, current_schema);
+        ', tenant_schema_name, tenant_schema_name, tenant_schema_name);
         
-        RAISE NOTICE 'Fixed ticket_actions table for schema: %', current_schema;
+        RAISE NOTICE 'Fixed ticket_actions table for schema: %', tenant_schema_name;
     END LOOP;
 END $$;
