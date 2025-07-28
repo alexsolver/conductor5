@@ -36,8 +36,8 @@ export default function Clientes() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       
-      const response = await fetch(`/api/clientes?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch clientes');
+      const { apiRequest } = await import('../lib/queryClient');
+      const response = await apiRequest('GET', `/api/clientes?${params}`);
       return response.json();
     },
     retry: false,
