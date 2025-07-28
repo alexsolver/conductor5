@@ -287,6 +287,115 @@ export class LocationsNewRepository {
     return agrupamento;
   }
 
+  // Integration methods for region relationships
+  async getClientes(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT id, nome, email, telefone, ativo, created_at
+      FROM "${schemaName}".clientes
+      WHERE tenant_id = $1 AND ativo = true
+      ORDER BY nome ASC
+    `;
+
+    try {
+      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      return result.map(row => ({
+        id: row.id,
+        nome: row.nome,
+        email: row.email,
+        telefone: row.telefone,
+        ativo: row.ativo,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error('Error fetching clientes:', error);
+      return [];
+    }
+  }
+
+  async getTecnicosEquipe(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT id, nome, email, tipo_usuario, ativo, created_at
+      FROM "${schemaName}".usuarios
+      WHERE tenant_id = $1 
+        AND tipo_usuario IN ('agent', 'workspaceAdmin') 
+        AND ativo = true
+      ORDER BY nome ASC
+    `;
+
+    try {
+      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      return result.map(row => ({
+        id: row.id,
+        name: row.nome,
+        email: row.email,
+        role: row.tipo_usuario,
+        status: row.ativo,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error('Error fetching técnicos:', error);
+      return [];
+    }
+  }
+
+  async getGruposEquipe(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT g.id, g.nome, g.descricao, g.created_at,
+             COUNT(gm.usuario_id) as member_count
+      FROM "${schemaName}".grupos g
+      LEFT JOIN "${schemaName}".grupo_membros gm ON g.id = gm.grupo_id
+      WHERE g.tenant_id = $1 AND g.ativo = true
+      GROUP BY g.id, g.nome, g.descricao, g.created_at
+      ORDER BY g.nome ASC
+    `;
+
+    try {
+      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      return result.map(row => ({
+        id: row.id,
+        name: row.nome,
+        description: row.descricao,
+        memberCount: parseInt(row.member_count) || 0,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error('Error fetching grupos:', error);
+      return [];
+    }
+  }
+
+  async getLocaisAtendimento(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT id, nome, descricao, cep, municipio, estado, 
+             ativo, created_at
+      FROM "${schemaName}".locais
+      WHERE tenant_id = $1 AND ativo = true
+      ORDER BY nome ASC
+    `;
+
+    try {
+      const result = await this.db.execute(sql.raw(query, [tenantId]));
+      return result.map(row => ({
+        id: row.id,
+        name: row.nome,
+        description: row.descricao,
+        cep: row.cep,
+        municipio: row.municipio,
+        estado: row.estado,
+        active: row.ativo,
+        createdAt: row.created_at,
+        displayName: `${row.nome}${row.municipio ? ` - ${row.municipio}/${row.estado}` : ''}`
+      }));
+    } catch (error) {
+      console.error('Error fetching locais:', error);
+      return [];
+    }
+  }
+
   // Generic update and delete
   async updateRecord(tenantId: string, recordType: string, id: string, data: any) {
     const tableMap: { [key: string]: any } = {

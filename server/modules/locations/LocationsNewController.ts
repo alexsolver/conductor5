@@ -1,7 +1,7 @@
 // LOCATIONS NEW CONTROLLER - Support for 7 Record Types
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../../middleware/auth";
-import { LocationsNewRepository } from "./LocationsNewRepository-fixed";
+import { LocationsNewRepository } from "./LocationsNewRepository";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { z } from "zod";
 import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrechoSchema, areaSchema, agrupamentoSchema } from "../../../shared/schema-locations-new";
