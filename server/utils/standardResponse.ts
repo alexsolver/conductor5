@@ -42,24 +42,23 @@ export function createErrorResponse(
   };
 }
 
-export const sendSuccess = (res: any, data: any, metadata?: { fallbackUsed?: boolean; message?: string }) => {
-  const response: any = {
-    success: true,
-    data,
-    timestamp: new Date().toISOString()
-  };
-
-  // Add metadata if provided
-  if (metadata) {
-    if (metadata.fallbackUsed) {
-      response.warning = 'Dados padrão utilizados devido a problemas de conectividade';
-    }
-    if (metadata.message) {
-      response.message = metadata.message;
-    }
+export const sendSuccess = (res: any, data: any, message: string = 'Success', statusCode: number = 200) => {
+  // Ensure data structure consistency for arrays
+  let normalizedData = data;
+  if (data && typeof data === 'object' && data.records !== undefined) {
+    // Ensure records is always an array
+    normalizedData = {
+      ...data,
+      records: Array.isArray(data.records) ? data.records : []
+    };
   }
 
-  res.status(200).json(response);
+  res.status(statusCode).json({
+    success: true,
+    message,
+    data: normalizedData,
+    timestamp: new Date().toISOString()
+  });
 };
 
 export function sendError(res: Response, error: any, message: string = "Internal server error", statusCode: number = 500) {

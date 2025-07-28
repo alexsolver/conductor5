@@ -251,7 +251,7 @@ function LocationsNewContent() {
     }
   };
 
-  // Enhanced data queries with robust error handling
+  // Enhanced data queries with robust error handling and normalized response structure
   const { data: locaisData, isLoading: locaisLoading, error: locaisError } = useQuery({
     queryKey: ['/api/locations-new/local', token],
     queryFn: async () => {
@@ -281,29 +281,31 @@ function LocationsNewContent() {
 
         const data = await response.json();
 
-        // Handle both old and new response formats
+        // Normalize response structure to ensure consistent array format
+        let normalizedData = [];
         if (data.success && data.data) {
-          return data.data.records || data.data || [];
+          if (data.data.records && Array.isArray(data.data.records)) {
+            normalizedData = data.data.records;
+          } else if (Array.isArray(data.data)) {
+            normalizedData = data.data;
+          } else {
+            normalizedData = [];
+          }
+        } else if (Array.isArray(data)) {
+          normalizedData = data;
         }
 
-        return data.data || data || [];
+        return normalizedData;
       } catch (error) {
         console.error('Error fetching locais:', error);
-        // Return fallback data instead of throwing
-        return { 
-          records: [], 
-          metadata: { 
-            isFallback: true, 
-            error: error.message,
-            fallbackReason: 'Network or server error' 
-          }
-        };
+        // Return empty array for consistent structure
+        return [];
       }
     },
     enabled: !!token,
     retry: 2,
     retryDelay: 1000,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 30000,
     refetchOnWindowFocus: false
   });
 
@@ -494,15 +496,17 @@ function LocationsNewContent() {
   const currentData = getCurrentData();
 
   function getCurrentData() {
-    // Real data from API
+    // Ensure all data is properly structured as arrays
+    const safeArray = (data) => Array.isArray(data) ? data : [];
+    
     return {
-      locais: locaisData || [],
-      regioes: regioesData || [],
-      rotasDinamicas: rotasDinamicasData || [],
-      trechos: trechosData || [],
-      rotaTrechos: rotaTrechosData || [],
-      areas: areasData || [],
-      agrupamentos: agrupamentosData || [],
+      locais: safeArray(locaisData),
+      regioes: safeArray(regioesData),
+      rotasDinamicas: safeArray(rotasDinamicasData),
+      trechos: safeArray(trechosData),
+      rotaTrechos: safeArray(rotaTrechosData),
+      areas: safeArray(areasData),
+      agrupamentos: safeArray(agrupamentosData),
     };
   }
 
@@ -676,10 +680,34 @@ function LocationsNewContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                  {Array.isArray(currentData[activeRecordType + 's']) && currentData[activeRecordType + 's']?.map((record: any) => (
-                  <TableRow key={record.id}>
-                    <TableCell>
-                      <div>
+                {(() => {
+                  const dataKey = activeRecordType + 's';
+                  const records = currentData[dataKey];
+                  
+                  // Robust validation for array data
+                  if (!records || !Array.isArray(records) || records.length === 0) {
+                    return (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="flex flex-col items-center gap-2">
+                            <currentType.icon className="h-8 w-8 text-muted-foreground" />
+                            <p className="text-muted-foreground">
+                              Nenhum {currentType.label.toLowerCase()} encontrado
+                            </p>
+                            <Button onClick={() => setIsCreateDialogOpen(true)}>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Criar Primeiro {currentType.label}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                  
+                  return records.map((record: any) => (
+                    <TableRow key={record.id || Math.random()}>
+                      <TableCell>
+                        <div>
                         <div className="font-medium">
                           {record.nome || record.descricao || record.nomeRota || record.idRota}
                         </div>
@@ -748,24 +776,9 @@ function LocationsNewContent() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-
-                {(!currentData[activeRecordType + 's'] || currentData[activeRecordType + 's'].length === 0) && !isLoading && activeRecordType !== 'local' && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <currentType.icon className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">
-                          Nenhum {currentType.label.toLowerCase()} encontrado
-                        </p>
-                        <Button onClick={() => setIsCreateDialogOpen(true)}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Criar Primeiro {currentType.label}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
+                </TableRow>
+                  ));
+                })()}
               </TableBody>
             </Table>
           )}

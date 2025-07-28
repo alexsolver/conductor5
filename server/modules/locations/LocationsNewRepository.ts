@@ -41,12 +41,15 @@ export class LocationsNewRepository {
       }
 
       const query = `
-        SELECT id, first_name as nome, email, phone as telefone, 
+        SELECT id, 
+               COALESCE(first_name, name, email) as nome, 
+               email, 
+               COALESCE(phone, cell_phone, '') as telefone, 
                CASE WHEN active = true THEN true ELSE false END as ativo, 
                created_at
         FROM "${schemaName}".customers
         WHERE tenant_id = $1 AND active = true
-        ORDER BY first_name ASC
+        ORDER BY COALESCE(first_name, name, email) ASC
       `;
 
       const result = await this.executeQuery(query, [tenantId]);
@@ -292,13 +295,18 @@ export class LocationsNewRepository {
       }
 
       const query = `
-        SELECT id, name as nome, description as descricao, 
-               street_address as endereco_completo,
+        SELECT id, 
+               COALESCE(name, description, 'Local sem nome') as nome, 
+               COALESCE(description, '') as descricao, 
+               COALESCE(street_address, address, '') as endereco_completo,
+               COALESCE(cep, postal_code, '') as cep,
+               COALESCE(municipio, city, '') as municipio,
+               COALESCE(estado, state, '') as estado,
                CASE WHEN active = true THEN true ELSE false END as ativo, 
                created_at
         FROM "${schemaName}".locations
         WHERE tenant_id = $1 AND active = true
-        ORDER BY name ASC
+        ORDER BY COALESCE(name, description, 'Local sem nome') ASC
       `;
 
       const result = await this.executeQuery(query, [tenantId]);

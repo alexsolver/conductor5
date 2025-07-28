@@ -67,23 +67,26 @@ export class LocationsNewController {
         }
       );
 
-      // Enhanced response with metadata and data quality indicators
+      // Ensure records is always an array
+      const safeRecords = Array.isArray(records) ? records : [];
+      
+      // Enhanced response with consistent structure
       const response = {
-        records,
+        records: safeRecords,
         metadata: {
-          total: records.length,
+          total: safeRecords.length,
           recordType,
           tenantId,
           filters: { search, status },
-          isMockData: records.length > 0 && records[0]?.id?.startsWith('mock-'),
+          isMockData: safeRecords.length > 0 && safeRecords[0]?.id?.startsWith('mock-'),
           timestamp: new Date().toISOString(),
-          dataSource: records.length > 0 ? 'database' : 'mock',
+          dataSource: safeRecords.length > 0 ? 'database' : 'mock',
           schemaStatus: 'validated',
           queryStatus: 'success'
         }
       };
 
-      console.log(`LocationsNewController.getRecordsByType - Successfully retrieved ${records.length} ${recordType} records`);
+      console.log(`LocationsNewController.getRecordsByType - Successfully retrieved ${safeRecords.length} ${recordType} records`);
       return sendSuccess(res, response, `${recordType} records retrieved successfully`);
     } catch (error) {
       console.error('LocationsNewController.getRecordsByType - Error:', error);
