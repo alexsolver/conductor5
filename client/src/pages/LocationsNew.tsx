@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { localSchema } from "../../../shared/schema-locations-new";
@@ -1204,6 +1205,192 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Form for ROTA DINÂMICA */}
+                  {activeRecordType === "rota-dinamica" && (
+                    <>
+                      {/* Seção: Identificação */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Route className="h-5 w-5 mr-2" />
+                          Identificação
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="nomeRota"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome da Rota *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Nome da rota dinâmica" maxLength={100} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="ativo"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ativo</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="idRota"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>ID da Rota *</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Identificador único da rota" maxLength={100} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Seção: Relacionamentos */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Link className="h-5 w-5 mr-2" />
+                          Relacionamentos
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="clientesVinculados"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Clientes Vinculados</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecionar clientes" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="cliente1">Empresa ABC Ltda</SelectItem>
+                                    <SelectItem value="cliente2">Indústria XYZ S/A</SelectItem>
+                                    <SelectItem value="cliente3">Comércio 123 ME</SelectItem>
+                                    <SelectItem value="cliente4">Construtora DEF</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="regioesAtendidas"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Regiões Atendidas</FormLabel>
+                                <Select>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecionar regiões" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="regiao1">Região Centro</SelectItem>
+                                    <SelectItem value="regiao2">Região Norte</SelectItem>
+                                    <SelectItem value="regiao3">Região Sul</SelectItem>
+                                    <SelectItem value="regiao4">Região Leste</SelectItem>
+                                    <SelectItem value="regiao5">Região Oeste</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Seção: Planejamento da Rota */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <CalendarDays className="h-5 w-5 mr-2" />
+                          Planejamento da Rota
+                        </h3>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Dias da Semana da Rota</Label>
+                            <div className="grid grid-cols-7 gap-2">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="domingo" />
+                                <Label htmlFor="domingo" className="text-sm">Dom</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="segunda" />
+                                <Label htmlFor="segunda" className="text-sm">Seg</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="terca" />
+                                <Label htmlFor="terca" className="text-sm">Ter</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="quarta" />
+                                <Label htmlFor="quarta" className="text-sm">Qua</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="quinta" />
+                                <Label htmlFor="quinta" className="text-sm">Qui</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="sexta" />
+                                <Label htmlFor="sexta" className="text-sm">Sex</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id="sabado" />
+                                <Label htmlFor="sabado" className="text-sm">Sáb</Label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name="previsaoDias"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Previsão de Dias da Rota Dinâmica</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    {...field} 
+                                    type="number" 
+                                    min="1" 
+                                    max="30" 
+                                    placeholder="Valor entre 1 e 30 dias" 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
                     </>
                   )}
