@@ -10,7 +10,7 @@ const updateTokenForTesting = () => {
   }
 };
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -533,12 +533,24 @@ function LocationsNewContent() {
 
   // Enhanced data queries with robust error handling and normalized response structure
   const { data: locaisData, isLoading: locaisLoading, error: locaisError } = useQuery({
-    queryKey: ['/api/locations-new/local', token],
+    queryKey: ['/api/locations-new/local', { search: searchTerm, status: statusFilter }],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/locations-new/local', {
+        const currentToken = localStorage.getItem('accessToken') || token;
+        if (!currentToken) {
+          console.warn('No token available for locais query');
+          return [];
+        }
+
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (statusFilter !== 'all') params.append('status', statusFilter);
+        
+        const url = `/api/locations-new/local${params.toString() ? `?${params.toString()}` : ''}`;
+        
+        const response = await fetch(url, {
           headers: { 
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${currentToken}`,
             'Content-Type': 'application/json'
           }
         });
@@ -546,7 +558,8 @@ function LocationsNewContent() {
         if (!response.ok) {
           // Handle different error scenarios gracefully
           if (response.status === 401) {
-            throw new Error('Authentication required');
+            console.warn('Authentication required for locais');
+            return [];
           }
           if (response.status === 404) {
             console.warn('Locais endpoint not found, using fallback');
@@ -584,11 +597,12 @@ function LocationsNewContent() {
         return [];
       }
     },
-    enabled: !!token,
-    retry: 2,
-    retryDelay: 1000,
-    staleTime: 5000, // Reduced to refresh data more frequently
-    refetchOnWindowFocus: true // Enable refetch on focus
+    enabled: !!token && activeRecordType === 'local',
+    retry: 1,
+    retryDelay: 2000,
+    staleTime: 30000, // 30 seconds to prevent constant refresh
+    refetchOnWindowFocus: false, // Disable auto refetch on focus
+    refetchInterval: false // Disable automatic polling
   });
 
   const { data: regioesData } = useQuery({
@@ -781,15 +795,16 @@ function LocationsNewContent() {
 
     // Handle both direct arrays and nested data structures
     const consolidated = {
-      locais: Array.isArray(allData.locaisData) ? allData.locaisData : (allData.locaisData?.records || []),
-      regioes: Array.isArray(allData.regioesData) ? allData.regioesData : (allData.regioesData?.records || []),
-      rotasDinamicas: Array.isArray(allData.rotasDinamicasData) ? allData.rotasDinamicasData : (allData.rotasDinamicasData?.records || []),
-      trechos: Array.isArray(allData.trechosData) ? allData.trechosData : (allData.trechosData?.records || []),
-      rotasTrecho: Array.isArray(allData.rotasTrechoData) ? allData.rotasTrechoData : (allData.rotasTrechoData?.records || []),
-      areas: Array.isArray(allData.areasData) ? allData.areasData : (allData.areasData?.records || []),
-      agrupamentos: Array.isArray(allData.agrupamentosData) ? allData.agrupamentosData : (allData.agrupamentosData?.records || [])
+      locais: Array.isArray(allData.locaisData) ? allData.locaisData : (allData.locaisData?.data?.records || allData.locaisData?.records || []),
+      regioes: Array.isArray(allData.regioesData) ? allData.regioesData : (allData.regioesData?.data?.records || allData.regioesData?.records || []),
+      rotasDinamicas: Array.isArray(allData.rotasDinamicasData) ? allData.rotasDinamicasData : (allData.rotasDinamicasData?.data?.records || allData.rotasDinamicasData?.records || []),
+      trechos: Array.isArray(allData.trechosData) ? allData.trechosData : (allData.trechosData?.data?.records || allData.trechosData?.records || []),
+      rotasTrecho: Array.isArray(allData.rotasTrechoData) ? allData.rotasTrechoData : (allData.rotasTrechoData?.data?.records || allData.rotasTrechoData?.records || []),
+      areas: Array.isArray(allData.areasData) ? allData.areasData : (allData.areasData?.data?.records || allData.areasData?.records || []),
+      agrupamentos: Array.isArray(allData.agrupamentosData) ? allData.agrupamentosData : (allData.agrupamentosData?.data?.records || allData.agrupamentosData?.records || [])
     };
 
+    console.log('LocationsNew - Consolidated data:', consolidated);
     return consolidated;
   };
 
@@ -1155,19 +1170,34 @@ function LocationsNewContent() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  console.log(`Configurar ${activeRecordType}:`, record);
-                                  toast({
-                                    title: "Configurações",
-                                    description: `Configurações para ${currentType.label} serão implementadas em breve.`,
-                                  });
-                                }}
-                                title="Configurações"
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            console.log(`Configurar ${activeRecordType}:`, record);
+                            // TODO: Implementar modal de configuração específica
+                            toast({
+                              title: "Configurações",
+                              description: `Abrindo configurações para ${record.nome || record.nomeRota || record.idRota}`,
+                            });
+                          }}
+                          title={`Configurar ${record.nome || record.nomeRota || record.idRota}`}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            console.log(`Editar ${activeRecordType}:`, record);
+                            toast({
+                              title: "Editar",
+                              description: `Edição de ${currentType.label} será implementada em breve.`,
+                            });
+                          }}
+                          title={`Editar ${record.nome || record.nomeRota || record.idRota}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

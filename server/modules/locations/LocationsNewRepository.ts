@@ -373,9 +373,11 @@ export class LocationsNewRepository {
       // Check if we have any created locals in memory or storage
       const createdLocals = this.getCreatedLocals(tenantId);
       if (createdLocals.length > 0) {
-        // Merge created locals with mock data
-        records = [...records, ...createdLocals];
-        console.log(`LocationsNewRepository.getRecordsByType - Added ${createdLocals.length} created locals to response`);
+        // Merge created locals with mock data, ensuring no duplicates
+        const existingIds = new Set(records.map(r => r.id));
+        const newLocals = createdLocals.filter(local => !existingIds.has(local.id));
+        records = [...records, ...newLocals];
+        console.log(`LocationsNewRepository.getRecordsByType - Added ${newLocals.length} new created locals to response (${createdLocals.length} total created)`);
       }
     }
 
