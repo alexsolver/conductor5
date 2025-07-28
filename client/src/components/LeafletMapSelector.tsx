@@ -58,7 +58,7 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   return null;
 }
 
-export function LeafletMapSelector({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapSelectorProps) {
+export default function LeafletMapSelector({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapSelectorProps) {
   const [selectedLat, setSelectedLat] = useState(initialLat);
   const [selectedLng, setSelectedLng] = useState(initialLng);
   const [searchQuery, setSearchQuery] = useState('');
