@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,12 +80,35 @@ function LocationsNewContent() {
   const form = useForm({
     resolver: zodResolver(localSchema),
     defaultValues: {
+      // Identificação
       ativo: true,
       nome: "",
       descricao: "",
+      codigoIntegracao: "",
+      tipoClienteFavorecido: "",
+      
+      // Contato
       email: "",
-      cep: "",
+      ddd: "",
       telefone: "",
+      
+      // Endereço
+      cep: "",
+      pais: "Brasil",
+      estado: "",
+      municipio: "",
+      bairro: "",
+      tipoLogradouro: "",
+      logradouro: "",
+      numero: "",
+      complemento: "",
+      
+      // Georreferenciamento
+      latitude: "",
+      longitude: "",
+      
+      // Tempo
+      fusoHorario: "America/Sao_Paulo"
     }
   });
 
@@ -336,7 +359,7 @@ function LocationsNewContent() {
                 Novo {currentRecordType.label}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Criar {currentRecordType.label}</DialogTitle>
                 <DialogDescription>
@@ -345,52 +368,359 @@ function LocationsNewContent() {
               </DialogHeader>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Seção: Identificação */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <Building2 className="h-5 w-5 mr-2" />
+                      Identificação
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="nome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome *</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Nome do local" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="codigoIntegracao"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Código de Integração</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Código único" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={form.control}
-                      name="nome"
+                      name="descricao"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome *</FormLabel>
+                          <FormLabel>Descrição</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Textarea {...field} placeholder="Descrição detalhada do local" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="tipoClienteFavorecido"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="cliente">Cliente</SelectItem>
+                                <SelectItem value="favorecido">Favorecido</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="ativo"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="true">Ativo</SelectItem>
+                                <SelectItem value="false">Inativo</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seção: Contato */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <Phone className="h-5 w-5 mr-2" />
+                      Contato
+                    </h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} placeholder="email@exemplo.com" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="ddd"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>DDD</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="11" maxLength={3} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="telefone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Telefone</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="99999-9999" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seção: Endereço */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <MapIcon className="h-5 w-5 mr-2" />
+                      Endereço
+                    </h3>
+                    <div className="grid grid-cols-4 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="cep"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CEP</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="00000-000" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="estado"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Estado</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="São Paulo" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="municipio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Município</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="São Paulo" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="bairro"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bairro</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Centro" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="tipoLogradouro"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo Logradouro</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="rua">Rua</SelectItem>
+                                <SelectItem value="avenida">Avenida</SelectItem>
+                                <SelectItem value="travessa">Travessa</SelectItem>
+                                <SelectItem value="alameda">Alameda</SelectItem>
+                                <SelectItem value="rodovia">Rodovia</SelectItem>
+                                <SelectItem value="estrada">Estrada</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="logradouro"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Logradouro</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Nome da rua" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="numero"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="123" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="complemento"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Complemento</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Apto 45" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seção: Georreferenciamento */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <MapPin className="h-5 w-5 mr-2" />
+                      Georreferenciamento
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="latitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Latitude</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="-23.550520" step="0.00000001" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="longitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Longitude</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="-46.633309" step="0.00000001" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seção: Tempo */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <Clock className="h-5 w-5 mr-2" />
+                      Configurações de Tempo
+                    </h3>
                     <FormField
                       control={form.control}
-                      name="email"
+                      name="fusoHorario"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" {...field} />
-                          </FormControl>
+                          <FormLabel>Fuso Horário</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || "America/Sao_Paulo"}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="America/Sao_Paulo">America/São_Paulo (GMT-3)</SelectItem>
+                              <SelectItem value="America/Manaus">America/Manaus (GMT-4)</SelectItem>
+                              <SelectItem value="America/Rio_Branco">America/Rio_Branco (GMT-5)</SelectItem>
+                              <SelectItem value="America/Noronha">America/Noronha (GMT-2)</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="descricao"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -402,7 +732,7 @@ function LocationsNewContent() {
                       type="submit" 
                       disabled={createMutation.isPending}
                     >
-                      {createMutation.isPending ? "Criando..." : "Criar"}
+                      {createMutation.isPending ? "Criando..." : "Criar Local"}
                     </Button>
                   </div>
                 </form>
