@@ -570,21 +570,80 @@ export class LocationsNewController {
   // Create Área
   async createArea(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.createArea - Starting request');
+      console.log('LocationsNewController.createArea - Request body:', req.body);
+
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
       if (!tenantId) {
+        console.error('LocationsNewController.createArea - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
-      const validation = areaSchema.safeParse(req.body);
+      if (!userId) {
+        console.error('LocationsNewController.createArea - No user ID found');
+        return sendError(res, "User ID required", 401);
+      }
+
+      // Ensure request body exists
+      if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('LocationsNewController.createArea - Empty request body');
+        return sendError(res, "Dados da área são obrigatórios.", 400);
+      }
+
+      // Add tenant validation to request data
+      const requestData = {
+        ...req.body,
+        tenantId: tenantId
+      };
+
+      console.log('LocationsNewController.createArea - Data to validate:', {
+        hasNome: !!requestData.nome,
+        hasTipoArea: !!requestData.tipoArea,
+        tipoArea: requestData.tipoArea,
+        hasTenantId: !!requestData.tenantId
+      });
+
+      // Validação específica por tipo de área
+      const tipoArea = requestData.tipoArea;
+      if (tipoArea === 'coordenadas' && (!requestData.coordenadas || requestData.coordenadas.length < 3)) {
+        return sendError(res, "Polígono deve ter pelo menos 3 coordenadas", 400);
+      }
+
+      if (tipoArea === 'raio' && (!requestData.coordenadaCentral || !requestData.raioMetros)) {
+        return sendError(res, "Área do tipo raio deve ter coordenada central e raio em metros", 400);
+      }
+
+      if (tipoArea === 'faixa_cep' && (!requestData.faixasCep || requestData.faixasCep.length === 0)) {
+        return sendError(res, "Área de faixa CEP deve ter pelo menos uma faixa definida", 400);
+      }
+
+      if (tipoArea === 'linha' && (!requestData.linhaTrajetoria || requestData.linhaTrajetoria.length < 2)) {
+        return sendError(res, "Linha deve ter pelo menos 2 pontos", 400);
+      }
+
+      if (tipoArea === 'importar_area' && !requestData.arquivoOriginal) {
+        return sendError(res, "Tipo importar área deve ter um arquivo associado", 400);
+      }
+
+      const validation = areaSchema.safeParse(requestData);
       if (!validation.success) {
+        console.error('LocationsNewController.createArea - Validation failed:', {
+          errors: validation.error.errors,
+          receivedData: Object.keys(requestData)
+        });
         return sendValidationError(res, validation.error);
       }
 
+      console.log('LocationsNewController.createArea - Validation passed, creating área');
       const area = await this.repository.createArea(tenantId, validation.data);
-      return sendSuccess(res, area, "Área created successfully", 201);
+      
+      console.log('LocationsNewController.createArea - Área created successfully with ID:', area?.id);
+      return sendSuccess(res, area, "Área criada com sucesso", 201);
     } catch (error) {
-      console.error('Error creating área:', error);
-      return sendError(res, "Failed to create área", 500);
+      console.error('LocationsNewController.createArea - Error:', error);
+      return sendError(res, `Erro ao criar área: ${error.message}`, 500);
     }
   }
 

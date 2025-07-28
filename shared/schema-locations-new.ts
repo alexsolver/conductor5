@@ -168,9 +168,26 @@ export const areas = pgTable('areas', {
   codigoIntegracao: varchar('codigo_integracao', { length: 100 }),
 
   // Classificação
-  tipoArea: varchar('tipo_area', { length: 50 }).notNull(),
+  tipoArea: varchar('tipo_area', { length: 50 }).notNull(), // 'faixa_cep', 'shape', 'coordenadas', 'raio', 'linha', 'importar_area'
   corMapa: varchar('cor_mapa', { length: 7 }).default('#3B82F6'), // Hex color
-  dadosGeograficos: jsonb('dados_geograficos'), // GeoJSON or coordinates
+  
+  // Dados Geográficos específicos por tipo
+  dadosGeograficos: jsonb('dados_geograficos'), // Estrutura flexível para diferentes tipos de área
+  
+  // Campos específicos para cada tipo
+  faixasCep: jsonb('faixas_cep'), // Array de objetos {cepInicio, cepFim, grupo}
+  coordenadas: jsonb('coordenadas'), // Array de {lat, lng, ordem} para polígonos
+  coordenadaCentral: jsonb('coordenada_central'), // {lat, lng} para raio
+  raioMetros: integer('raio_metros'), // Raio em metros
+  linhaTrajetoria: jsonb('linha_trajetoria'), // Array de coordenadas para linha
+  
+  // Metadados de importação
+  arquivoOriginal: varchar('arquivo_original', { length: 255 }), // Nome do arquivo importado
+  tipoArquivo: varchar('tipo_arquivo', { length: 10 }), // 'kml', 'shape', 'geojson'
+  
+  // Validação e processamento
+  validacaoGeo: jsonb('validacao_geo'), // Status de validação geográfica
+  statusProcessamento: varchar('status_processamento', { length: 20 }).default('ativo'), // 'processando', 'ativo', 'erro'
 
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
@@ -308,7 +325,34 @@ export const rotaTrechoComSegmentosSchema = z.object({
 
 export const areaSchema = createInsertSchema(areas, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
+  descricao: z.string().optional(),
+  codigoIntegracao: z.string().optional(),
+  tipoArea: z.enum(['faixa_cep', 'shape', 'coordenadas', 'raio', 'linha', 'importar_area'], {
+    required_error: "Tipo de área é obrigatório"
+  }),
   corMapa: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor deve ser um hex válido"),
+  faixasCep: z.array(z.object({
+    cepInicio: z.string().regex(/^\d{5}-?\d{3}$/, "CEP início inválido"),
+    cepFim: z.string().regex(/^\d{5}-?\d{3}$/, "CEP fim inválido"),
+    grupo: z.string().optional()
+  })).optional(),
+  coordenadas: z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+    ordem: z.number().min(1)
+  })).min(3, "Polígono deve ter pelo menos 3 coordenadas").optional(),
+  coordenadaCentral: z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180)
+  }).optional(),
+  raioMetros: z.number().min(1).max(100000, "Raio deve ser entre 1m e 100km").optional(),
+  linhaTrajetoria: z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+    ordem: z.number().min(1)
+  })).min(2, "Linha deve ter pelo menos 2 pontos").optional(),
+  arquivoOriginal: z.string().optional(),
+  tipoArquivo: z.enum(['kml', 'shape', 'geojson']).optional()
 }).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const agrupamentoSchema = createInsertSchema(agrupamentos, {

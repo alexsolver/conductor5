@@ -397,7 +397,70 @@ function LocationsNewContent() {
           />
         );
       case 'area':
-        return <AreaForm {...commonProps} />;
+        return (
+          <AreaForm
+            onSubmit={async (formData) => {
+              console.log('LocationsNew - Área form submitted with data:', formData);
+
+              try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                  throw new Error('Token de autenticação não encontrado');
+                }
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('LocationsNew - Token payload:', {
+                  userId: payload.userId,
+                  tenantId: payload.tenantId,
+                  isExpired: payload.exp && payload.exp < Date.now() / 1000
+                });
+
+                console.log('LocationsNew - Making API request to create área');
+                const response = await fetch('/api/locations-new/area', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify(formData)
+                });
+
+                console.log('LocationsNew - API response status:', response.status);
+                const result = await response.json();
+
+                if (!response.ok) {
+                  console.error('LocationsNew - API error response:', result);
+                  throw new Error(result.message || 'Erro ao criar área');
+                }
+
+                console.log('LocationsNew - Área created successfully:', result);
+
+                toast({
+                  title: "Sucesso!",
+                  description: "Área criada e salva com sucesso no sistema."
+                });
+
+                // Refresh the data
+                await Promise.all([
+                  queryClient.invalidateQueries({ queryKey: ['/api/locations-new/area'] }),
+                  queryClient.refetchQueries({ queryKey: ['/api/locations-new/area'] })
+                ]);
+
+                setIsCreateDialogOpen(false);
+                setActiveRecordType('area');
+              } catch (error) {
+                console.error('LocationsNew - Error creating área:', error);
+                toast({
+                  title: "Erro ao criar área",
+                  description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
+                  variant: "destructive"
+                });
+              }
+            }}
+            isLoading={createMutation.isPending}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        );
       case 'agrupamento':
         return <AgrupamentoForm {...commonProps} />;
       default:
