@@ -832,8 +832,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         ta.ip_address,
         ta.user_agent,
         ta.session_id,
-        jsonb_build_object```text
-(
+        jsonb_build_object(
           'work_log', ta.work_log,
           'time_spent', ta.time_spent,
           'estimated_hours', ta.estimated_hours,
