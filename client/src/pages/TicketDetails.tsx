@@ -1276,7 +1276,8 @@ export default function TicketDetails() {
                               {historyItem.action_type === 'email_received' && 'Email Recebido'}
                               {historyItem.action_type === 'communication' && 'Comunicação'}
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
-                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added'].includes(historyItem.action_type) && 'Atividade'}
+                              {historyItem.action_type === 'internal_action' && 'Ação Interna'}
+                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
                               <Badge variant="secondary" className="text-xs">
