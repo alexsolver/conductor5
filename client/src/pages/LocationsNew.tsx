@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { localSchema } from "../../../shared/schema-locations-new";
@@ -73,6 +74,8 @@ function LocationsNewContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [trechos, setTrechos] = useState([]);
+  const [novoTrecho, setNovoTrecho] = useState({ de: "", trecho: "", para: "" });
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -1493,6 +1496,190 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Form for ROTA DE TRECHO */}
+                  {activeRecordType === "rota-trecho" && (
+                    <>
+                      {/* Seção: Identificação */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Building className="h-5 w-5 mr-2" />
+                          Identificação
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="ativo"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ativo</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="idRota"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>ID da Rota</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Identificador único da rota de trecho" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Seção: Definição do Trecho */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Route className="h-5 w-5 mr-2" />
+                          Definição do Trecho
+                        </h3>
+                        
+                        {/* Formulário para adicionar novo trecho */}
+                        <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="space-y-2">
+                              <Label>DE (Local de Origem)</Label>
+                              <Select onValueChange={(value) => setNovoTrecho(prev => ({ ...prev, de: value }))}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecionar origem" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="local1">Filial Centro - São Paulo/SP</SelectItem>
+                                  <SelectItem value="local2">Unidade Norte - Guarulhos/SP</SelectItem>
+                                  <SelectItem value="local3">Base Sul - Santo André/SP</SelectItem>
+                                  <SelectItem value="local4">Depósito Leste - Mogi das Cruzes/SP</SelectItem>
+                                  <SelectItem value="local5">Escritório Oeste - Osasco/SP</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>TRECHO (Nome/Código)</Label>
+                              <Input 
+                                placeholder="Nome ou código do trecho"
+                                value={novoTrecho.trecho}
+                                onChange={(e) => setNovoTrecho(prev => ({ ...prev, trecho: e.target.value }))}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>PARA (Local de Destino)</Label>
+                              <Select onValueChange={(value) => setNovoTrecho(prev => ({ ...prev, para: value }))}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecionar destino" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="local1">Filial Centro - São Paulo/SP</SelectItem>
+                                  <SelectItem value="local2">Unidade Norte - Guarulhos/SP</SelectItem>
+                                  <SelectItem value="local3">Base Sul - Santo André/SP</SelectItem>
+                                  <SelectItem value="local4">Depósito Leste - Mogi das Cruzes/SP</SelectItem>
+                                  <SelectItem value="local5">Escritório Oeste - Osasco/SP</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <Button 
+                            type="button" 
+                            onClick={() => {
+                              if (novoTrecho.de && novoTrecho.trecho && novoTrecho.para) {
+                                setTrechos(prev => [...prev, { ...novoTrecho, id: Date.now() }]);
+                                setNovoTrecho({ de: "", trecho: "", para: "" });
+                              }
+                            }}
+                            className="w-full"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar Trecho
+                          </Button>
+                        </div>
+
+                        {/* Tabela de Trechos Adicionados */}
+                        {trechos.length > 0 && (
+                          <div className="border rounded-lg">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>DE</TableHead>
+                                  <TableHead>TRECHO</TableHead>
+                                  <TableHead>PARA</TableHead>
+                                  <TableHead className="w-[100px]">AÇÃO</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {trechos.map((trecho, index) => (
+                                  <TableRow key={trecho.id}>
+                                    <TableCell className="font-medium">
+                                      {trecho.de === "local1" && "Filial Centro"}
+                                      {trecho.de === "local2" && "Unidade Norte"}
+                                      {trecho.de === "local3" && "Base Sul"}
+                                      {trecho.de === "local4" && "Depósito Leste"}
+                                      {trecho.de === "local5" && "Escritório Oeste"}
+                                    </TableCell>
+                                    <TableCell>{trecho.trecho}</TableCell>
+                                    <TableCell>
+                                      {trecho.para === "local1" && "Filial Centro"}
+                                      {trecho.para === "local2" && "Unidade Norte"}
+                                      {trecho.para === "local3" && "Base Sul"}
+                                      {trecho.para === "local4" && "Depósito Leste"}
+                                      {trecho.para === "local5" && "Escritório Oeste"}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex space-x-2">
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          onClick={() => {
+                                            // Lógica para editar trecho
+                                            console.log("Editar trecho:", trecho);
+                                          }}
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          onClick={() => {
+                                            setTrechos(prev => prev.filter(t => t.id !== trecho.id));
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+
+                        {trechos.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            Nenhum trecho adicionado. Use o formulário acima para adicionar trechos sequenciais.
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
