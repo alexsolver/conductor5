@@ -1726,33 +1726,33 @@ export default function TicketDetails() {
   }
 
   return (
-    <div className="flex h-screen">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-screen">
       {/* Sidebar */}
       <div className="w-64 bg-gray-100 border-r p-4 flex flex-col">
         <h2 className="text-lg font-semibold mb-4">Ticket #{id}</h2>
 
-        <TabsList className="flex-1">
-          <TabsTrigger value="informacoes">
+        <TabsList className="flex flex-col h-auto space-y-1 bg-transparent p-0">
+          <TabsTrigger value="informacoes" className="w-full justify-start">
             <FileText className="mr-2 h-4 w-4" />
             Informações
           </TabsTrigger>
-          <TabsTrigger value="attachments">
+          <TabsTrigger value="attachments" className="w-full justify-start">
             <Paperclip className="mr-2 h-4 w-4" />
             Anexos
           </TabsTrigger>
-          <TabsTrigger value="notes">
+          <TabsTrigger value="notes" className="w-full justify-start">
             <FileText className="mr-2 h-4 w-4" />
             Notas
           </TabsTrigger>
-          <TabsTrigger value="communications">
+          <TabsTrigger value="communications" className="w-full justify-start">
             <MessageSquare className="mr-2 h-4 w-4" />
             Comunicação
           </TabsTrigger>
-          <TabsTrigger value="history">
+          <TabsTrigger value="history" className="w-full justify-start">
             <History className="mr-2 h-4 w-4" />
             Histórico
           </TabsTrigger>
-          <TabsTrigger value="internal-actions">
+          <TabsTrigger value="internal-actions" className="w-full justify-start">
             <Settings className="mr-2 h-4 w-4" />
             Ações Internas
           </TabsTrigger>
@@ -1832,11 +1832,26 @@ export default function TicketDetails() {
           </div>
         </div>
 
-        <Tabs defaultValue="informacoes" className="space-y-4">
-          <TabsContent value={activeTab}>
+        <div className="space-y-4">
+          <TabsContent value="informacoes">
             {renderTabContent()}
           </TabsContent>
-        </Tabs>
+          <TabsContent value="attachments">
+            {renderTabContent()}
+          </TabsContent>
+          <TabsContent value="notes">
+            {renderTabContent()}
+          </TabsContent>
+          <TabsContent value="communications">
+            {renderTabContent()}
+          </TabsContent>
+          <TabsContent value="history">
+            {renderTabContent()}
+          </TabsContent>
+          <TabsContent value="internal-actions">
+            {renderTabContent()}
+          </TabsContent>
+        </div>
       </div>
 
       {/* Ticket Linking Modal */}
@@ -1847,6 +1862,6 @@ export default function TicketDetails() {
         relatedTickets={relatedTickets}
         setRelatedTickets={setRelatedTickets}
       />
-    </div>
+    </Tabs>
   );
 }
