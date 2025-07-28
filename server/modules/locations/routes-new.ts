@@ -123,4 +123,36 @@ router.delete('/:recordType/:id', async (req: AuthenticatedRequest, res: Respons
   return controller.deleteRecord(req, res);
 });
 
+// CEP and geocoding services
+router.get("/services/cep/:cep", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.lookupCep(req, res);
+});
+router.post("/services/geocode", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.geocodeAddress(req, res);
+});
+router.get("/services/holidays", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.lookupHolidays(req, res);
+});
+
+  // Integration endpoints for region relationships
+router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.getClientes(req, res);
+});
+router.get("/integration/tecnicos", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.getTecnicosEquipe(req, res);
+});
+router.get("/integration/grupos", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.getGruposEquipe(req, res);
+});
+router.get("/integration/locais", async (req: AuthenticatedRequest, res: Response) => {
+  const controller = getController(req);
+  return controller.getLocaisAtendimento(req, res);
+});
+
 export default router;

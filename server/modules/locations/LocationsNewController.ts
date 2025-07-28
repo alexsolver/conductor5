@@ -505,4 +505,65 @@ export class LocationsNewController {
       return sendError(res, "Failed to lookup holidays", 500);
     }
   }
+
+  // Integration endpoints for region relationships
+  async getClientes(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", 401);
+      }
+
+      const clientes = await this.repository.getClientes(tenantId);
+      return sendSuccess(res, clientes, "Clientes retrieved successfully");
+    } catch (error) {
+      console.error('Error fetching clientes:', error);
+      return sendError(res, "Failed to fetch clientes", 500);
+    }
+  }
+
+  async getTecnicosEquipe(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", 401);
+      }
+
+      const tecnicos = await this.repository.getTecnicosEquipe(tenantId);
+      return sendSuccess(res, tecnicos, "Técnicos retrieved successfully");
+    } catch (error) {
+      console.error('Error fetching técnicos:', error);
+      return sendError(res, "Failed to fetch técnicos", 500);
+    }
+  }
+
+  async getGruposEquipe(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", 401);
+      }
+
+      const grupos = await this.repository.getGruposEquipe(tenantId);
+      return sendSuccess(res, grupos, "Grupos retrieved successfully");
+    } catch (error) {
+      console.error('Error fetching grupos:', error);
+      return sendError(res, "Failed to fetch grupos", 500);
+    }
+  }
+
+  async getLocaisAtendimento(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return sendError(res, "Tenant ID required", 401);
+      }
+
+      const locais = await this.repository.getLocaisAtendimento(tenantId);
+      return sendSuccess(res, locais, "Locais retrieved successfully");
+    } catch (error) {
+      console.error('Error fetching locais:', error);
+      return sendError(res, "Failed to fetch locais", 500);
+    }
+  }
 }

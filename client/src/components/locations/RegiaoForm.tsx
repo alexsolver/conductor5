@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, MapPin, Users, Building, Search } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X, Plus, MapPin, Users, Building, Search, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import SimpleMapWithButtons from "@/components/SimpleMapWithButtons";
@@ -51,6 +53,319 @@ interface RegiaoFormProps {
 const TIPO_LOGRADOURO_OPTIONS = [
   'Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo'
 ];
+
+// Componentes de seleção
+function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
+  const { token, refreshToken } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const getValidToken = async () => {
+    if (!token) {
+      await refreshToken();
+      return localStorage.getItem('access_token');
+    }
+    return token;
+  };
+
+  const { data: clientes = [] } = useQuery({
+    queryKey: ['/api/locations-new/integration/clientes'],
+    queryFn: async () => {
+      const validToken = await getValidToken();
+      const response = await fetch('/api/locations-new/integration/clientes', {
+        headers: { 'Authorization': `Bearer ${validToken}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        return result.data || [];
+      }
+      return [];
+    }
+  });
+
+  const toggleCliente = (clienteId: string) => {
+    const newValue = value.includes(clienteId)
+      ? value.filter(id => id !== clienteId)
+      : [...value, clienteId];
+    onChange(newValue);
+  };
+
+  const selectedClientes = clientes.filter((c: any) => value.includes(c.id));
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full justify-between"
+        >
+          {selectedClientes.length > 0 
+            ? `${selectedClientes.length} cliente(s) selecionado(s)`
+            : "Selecionar clientes"
+          }
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+        
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+            {clientes.map((cliente: any) => (
+              <div
+                key={cliente.id}
+                className="flex items-center space-x-2 p-2 hover:bg-gray-50 cursor-pointer"
+                onClick={() => toggleCliente(cliente.id)}
+              >
+                <Checkbox checked={value.includes(cliente.id)} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{cliente.name}</p>
+                  <p className="text-xs text-gray-500">{cliente.email}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {selectedClientes.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selectedClientes.map((cliente: any) => (
+            <Badge key={cliente.id} variant="secondary" className="flex items-center gap-1">
+              {cliente.name}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => toggleCliente(cliente.id)}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: string) => void }) {
+  const { token, refreshToken } = useAuth();
+
+  const getValidToken = async () => {
+    if (!token) {
+      await refreshToken();
+      return localStorage.getItem('access_token');
+    }
+    return token;
+  };
+
+  const { data: tecnicos = [] } = useQuery({
+    queryKey: ['/api/locations-new/integration/tecnicos'],
+    queryFn: async () => {
+      const validToken = await getValidToken();
+      const response = await fetch('/api/locations-new/integration/tecnicos', {
+        headers: { 'Authorization': `Bearer ${validToken}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        return result.data || [];
+      }
+      return [];
+    }
+  });
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Selecionar técnico principal" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="">Nenhum</SelectItem>
+        {tecnicos.map((tecnico: any) => (
+          <SelectItem key={tecnico.id} value={tecnico.id}>
+            <div>
+              <p className="font-medium">{tecnico.name}</p>
+              <p className="text-sm text-gray-500">{tecnico.email} - {tecnico.role}</p>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
+  const { token, refreshToken } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const getValidToken = async () => {
+    if (!token) {
+      await refreshToken();
+      return localStorage.getItem('access_token');
+    }
+    return token;
+  };
+
+  const { data: grupos = [] } = useQuery({
+    queryKey: ['/api/locations-new/integration/grupos'],
+    queryFn: async () => {
+      const validToken = await getValidToken();
+      const response = await fetch('/api/locations-new/integration/grupos', {
+        headers: { 'Authorization': `Bearer ${validToken}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        return result.data || [];
+      }
+      return [];
+    }
+  });
+
+  const toggleGrupo = (grupoId: string) => {
+    const newValue = value.includes(grupoId)
+      ? value.filter(id => id !== grupoId)
+      : [...value, grupoId];
+    onChange(newValue);
+  };
+
+  const selectedGrupos = grupos.filter((g: any) => value.includes(g.id));
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full justify-between"
+        >
+          {selectedGrupos.length > 0 
+            ? `${selectedGrupos.length} grupo(s) selecionado(s)`
+            : "Selecionar grupos"
+          }
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+        
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+            {grupos.map((grupo: any) => (
+              <div
+                key={grupo.id}
+                className="flex items-center space-x-2 p-2 hover:bg-gray-50 cursor-pointer"
+                onClick={() => toggleGrupo(grupo.id)}
+              >
+                <Checkbox checked={value.includes(grupo.id)} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{grupo.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {grupo.description} ({grupo.memberCount} membro(s))
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {selectedGrupos.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selectedGrupos.map((grupo: any) => (
+            <Badge key={grupo.id} variant="secondary" className="flex items-center gap-1">
+              {grupo.name}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => toggleGrupo(grupo.id)}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
+  const { token, refreshToken } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const getValidToken = async () => {
+    if (!token) {
+      await refreshToken();
+      return localStorage.getItem('access_token');
+    }
+    return token;
+  };
+
+  const { data: locais = [] } = useQuery({
+    queryKey: ['/api/locations-new/integration/locais'],
+    queryFn: async () => {
+      const validToken = await getValidToken();
+      const response = await fetch('/api/locations-new/integration/locais', {
+        headers: { 'Authorization': `Bearer ${validToken}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        return result.data || [];
+      }
+      return [];
+    }
+  });
+
+  const toggleLocal = (localId: string) => {
+    const newValue = value.includes(localId)
+      ? value.filter(id => id !== localId)
+      : [...value, localId];
+    onChange(newValue);
+  };
+
+  const selectedLocais = locais.filter((l: any) => value.includes(l.id));
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full justify-between"
+        >
+          {selectedLocais.length > 0 
+            ? `${selectedLocais.length} local(is) selecionado(s)`
+            : "Selecionar locais de atendimento"
+          }
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+        
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+            {locais.map((local: any) => (
+              <div
+                key={local.id}
+                className="flex items-center space-x-2 p-2 hover:bg-gray-50 cursor-pointer"
+                onClick={() => toggleLocal(local.id)}
+              >
+                <Checkbox checked={value.includes(local.id)} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{local.name}</p>
+                  <p className="text-xs text-gray-500">{local.displayName}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {selectedLocais.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selectedLocais.map((local: any) => (
+            <Badge key={local.id} variant="secondary" className="flex items-center gap-1">
+              {local.name}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => toggleLocal(local.id)}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }: RegiaoFormProps) {
   const { toast } = useToast();
@@ -300,38 +615,34 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         <CardContent className="space-y-4">
           <div>
             <Label>Clientes Vinculados (Multi-seleção)</Label>
-            <div className="mt-2 p-3 border rounded-md bg-gray-50">
-              <p className="text-sm text-gray-600">
-                Integração FK com módulo de clientes - implementação pendente
-              </p>
-            </div>
+            <ClientesMultiSelect
+              value={watchedValues.clientesVinculados || []}
+              onChange={(clientes) => setValue('clientesVinculados', clientes)}
+            />
           </div>
 
           <div>
             <Label>Técnico Principal</Label>
-            <div className="mt-2 p-3 border rounded-md bg-gray-50">
-              <p className="text-sm text-gray-600">
-                Integração FK com membros da equipe - implementação pendente
-              </p>
-            </div>
+            <TecnicoSelect
+              value={watchedValues.tecnicoPrincipalId || ""}
+              onChange={(tecnicoId) => setValue('tecnicoPrincipalId', tecnicoId)}
+            />
           </div>
 
           <div>
             <Label>Grupos Vinculados (Multi-seleção)</Label>
-            <div className="mt-2 p-3 border rounded-md bg-gray-50">
-              <p className="text-sm text-gray-600">
-                Integração FK com grupos de usuários em gestão de equipe - implementação pendente
-              </p>
-            </div>
+            <GruposMultiSelect
+              value={watchedValues.gruposVinculados || []}
+              onChange={(grupos) => setValue('gruposVinculados', grupos)}
+            />
           </div>
 
           <div>
             <Label>Locais de Atendimento Vinculados (Multi-seleção)</Label>
-            <div className="mt-2 p-3 border rounded-md bg-gray-50">
-              <p className="text-sm text-gray-600">
-                Integração com módulo de locais - implementação pendente
-              </p>
-            </div>
+            <LocaisMultiSelect
+              value={watchedValues.locaisAtendimento || []}
+              onChange={(locais) => setValue('locaisAtendimento', locais)}
+            />
           </div>
         </CardContent>
       </Card>

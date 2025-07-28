@@ -12,6 +12,95 @@ export class LocationsNewRepository {
     this.db = db;
   }
 
+  // Integration methods for region relationships
+  async getClientes(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT id, nome, email, telefone, ativo, created_at
+      FROM "${schemaName}".locais
+      WHERE tenant_id = $1 AND ativo = true
+      ORDER BY nome ASC
+    `;
+
+    const result = await this.db.execute(sql`${sql.raw(query)}`, [tenantId]);
+    return result.rows.map(row => ({
+      id: row.id,
+      nome: row.nome,
+      email: row.email,
+      telefone: row.telefone,
+      ativo: row.ativo,
+      createdAt: row.created_at
+    }));
+  }
+
+  async getTecnicosEquipe(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT id, nome, email, tipo_usuario, ativo, created_at
+      FROM "${schemaName}".usuarios
+      WHERE tenant_id = $1 
+        AND tipo_usuario IN ('agent', 'workspaceAdmin') 
+        AND ativo = true
+      ORDER BY nome ASC
+    `;
+
+    const result = await this.db.execute(sql`${sql.raw(query)}`, [tenantId]);
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.nome,
+      email: row.email,
+      role: row.tipo_usuario,
+      status: row.ativo,
+      createdAt: row.created_at
+    }));
+  }
+
+  async getGruposEquipe(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT g.id, g.nome, g.descricao, g.created_at,
+             COUNT(gm.usuario_id) as member_count
+      FROM "${schemaName}".grupos g
+      LEFT JOIN "${schemaName}".grupo_membros gm ON g.id = gm.grupo_id
+      WHERE g.tenant_id = $1 AND g.ativo = true
+      GROUP BY g.id, g.nome, g.descricao, g.created_at
+      ORDER BY g.nome ASC
+    `;
+
+    const result = await this.db.execute(sql`${sql.raw(query)}`, [tenantId]);
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.nome,
+      description: row.descricao,
+      memberCount: parseInt(row.member_count) || 0,
+      createdAt: row.created_at
+    }));
+  }
+
+  async getLocaisAtendimento(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const query = `
+      SELECT id, nome, descricao, cep, municipio, estado, 
+             ativo, created_at
+      FROM "${schemaName}".locais
+      WHERE tenant_id = $1 AND ativo = true
+      ORDER BY nome ASC
+    `;
+
+    const result = await this.db.execute(sql`${sql.raw(query)}`, [tenantId]);
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.nome,
+      description: row.descricao,
+      cep: row.cep,
+      municipio: row.municipio,
+      estado: row.estado,
+      active: row.ativo,
+      createdAt: row.created_at,
+      displayName: `${row.nome}${row.municipio ? ` - ${row.municipio}/${row.estado}` : ''}`
+    }));
+  }
+
   // Get records by type with filtering
   async getRecordsByType(tenantId: string, recordType: string, filters?: { search?: string; status?: string }) {
     const tableNames: { [key: string]: string } = {
@@ -85,7 +174,7 @@ export class LocationsNewRepository {
 
     const result = await this.db.execute(sql`${sql.raw(query)}`, [tenantId]);
     const stats = result[0] || { total: 0, active: 0, inactive: 0 };
-    
+
     return {
       total: parseInt(stats.total) || 0,
       active: parseInt(stats.active) || 0,
