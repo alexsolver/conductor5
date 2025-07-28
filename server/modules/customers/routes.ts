@@ -273,6 +273,63 @@ customersRouter.get('/:customerId/companies', jwtAuth, async (req: Authenticated
   }
 });
 
+// GET /api/customers/companies/:companyId/available - Get customers not associated with company
+customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    const companyId = req.params.companyId;
+    
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    
+    // Get customers not associated with this company
+    const result = await pool.query(
+      `SELECT 
+        c.id,
+        c.first_name,
+        c.last_name,
+        c.email,
+        c.customer_type,
+        c.company_name,
+        c.status
+       FROM "${schemaName}".customers c
+       WHERE c.tenant_id = $1
+       AND c.id NOT IN (
+         SELECT ccm.customer_id 
+         FROM "${schemaName}"."customer_company_memberships" ccm 
+         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
+       )
+       ORDER BY c.first_name, c.last_name`,
+      [req.user.tenantId, companyId]
+    );
+
+    const availableCustomers = result.rows.map(row => ({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      customerType: row.customer_type,
+      companyName: row.company_name,
+      status: row.status
+    }));
+
+    res.json({
+      success: true,
+      data: availableCustomers
+    });
+  } catch (error) {
+    console.error('Error fetching available customers:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch available customers' 
+    });
+  }
+});
+
 // GET /api/customers/companies/:companyId/members - Get members of a company
 customersRouter.get('/companies/:companyId/members', jwtAuth, (req: AuthenticatedRequest, res) => {
   customerCompanyController.getCompanyMemberships(req, res);
@@ -319,6 +376,103 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
   } catch (error) {
     console.error('Error adding customer to company:', error);
     res.status(500).json({ message: 'Failed to add customer to company' });
+  }
+});
+
+// POST /api/customers/companies/:companyId/associate-multiple - Associate multiple customers to a company
+customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    const companyId = req.params.companyId;
+    const { customerIds, role = 'member', isPrimary = false } = req.body;
+    
+    if (!customerIds || !Array.isArray(customerIds) || customerIds.length === 0) {
+      return res.status(400).json({ message: 'Customer IDs array is required' });
+    }
+
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    
+    // Verify company exists
+    const companyCheck = await pool.query(
+      `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (companyCheck.rows.length === 0) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    // Check for existing memberships
+    const existingQuery = `
+      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
+    `;
+    
+    const existingResult = await pool.query(existingQuery, [companyId, customerIds, req.user.tenantId]);
+    const existingCustomerIds = existingResult.rows.map(row => row.customer_id);
+    
+    // Filter out customers that are already associated
+    const newCustomerIds = customerIds.filter(id => !existingCustomerIds.includes(id));
+    
+    if (newCustomerIds.length === 0) {
+      return res.status(400).json({ 
+        message: 'All selected customers are already associated with this company',
+        existingAssociations: existingCustomerIds.length
+      });
+    }
+
+    // Insert new memberships
+    const insertValues = newCustomerIds.map((customerId, index) => {
+      const paramOffset = index * 6;
+      return `($${paramOffset + 1}, $${paramOffset + 2}, $${paramOffset + 3}, $${paramOffset + 4}, $${paramOffset + 5}, $${paramOffset + 6})`;
+    }).join(', ');
+
+    const insertParams = newCustomerIds.flatMap(customerId => [
+      customerId,
+      companyId,
+      role,
+      isPrimary,
+      req.user.tenantId,
+      req.user.id
+    ]);
+
+    const insertQuery = `
+      INSERT INTO "${schemaName}"."customer_company_memberships" 
+      (customer_id, company_id, role, is_primary, tenant_id, created_by)
+      VALUES ${insertValues}
+      RETURNING *
+    `;
+    
+    const result = await pool.query(insertQuery, insertParams);
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully associated ${result.rowCount} customers to company`,
+      data: {
+        companyId,
+        associatedCustomers: result.rowCount,
+        skippedExisting: existingCustomerIds.length,
+        memberships: result.rows.map(row => ({
+          id: row.id,
+          customerId: row.customer_id,
+          companyId: row.company_id,
+          role: row.role,
+          isPrimary: row.is_primary
+        }))
+      }
+    });
+  } catch (error: any) {
+    console.error('Error associating multiple customers to company:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to associate customers to company',
+      error: error.message
+    });
   }
 });
 

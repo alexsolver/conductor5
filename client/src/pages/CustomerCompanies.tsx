@@ -25,10 +25,12 @@ import {
   Trash2,
   Users,
   Star,
-  Calendar
+  Calendar,
+  UserPlus
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 
 const companySchema = z.object({
   name: z.string().min(1, "Nome da empresa é obrigatório"),
@@ -69,6 +71,9 @@ export default function CustomerCompanies() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<CustomerCompany | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+   // Associate multiple customers modal
+   const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
+   const [selectedCompanyForAssociation, setSelectedCompanyForAssociation] = useState<any>(null);
 
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
@@ -207,6 +212,21 @@ export default function CustomerCompanies() {
     company.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleOpenAssociateModal = (company: any) => {
+    setSelectedCompanyForAssociation(company);
+    setIsAssociateModalOpen(true);
+  };
+
+  const handleCloseAssociateModal = () => {
+    setIsAssociateModalOpen(false);
+    setSelectedCompanyForAssociation(null);
+  };
+
+    const handleAssociationSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+  };
+
 
   if (isLoading) {
     return (
@@ -499,7 +519,7 @@ export default function CustomerCompanies() {
                   {company.description}
                 </p>
               )}
-              
+
               <div className="space-y-2">
                 {company.industry && (
                   <div className="flex items-center text-sm text-gray-500">
@@ -539,14 +559,34 @@ export default function CustomerCompanies() {
                   <Calendar className="w-3 h-3 mr-1" />
                   {new Date(company.createdAt).toLocaleDateString('pt-BR')}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditCompany(company)}
-                >
-                  <Edit className="w-4 h-4 mr-1" />
-                  Editar
-                </Button>
+                <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenAssociateModal(company)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <UserPlus className="w-4 h-4 mr-1" />
+                      Associar Clientes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditCompany(company)}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {}}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Excluir
+                    </Button>
+                  </div>
               </div>
             </CardContent>
           </Card>
@@ -781,6 +821,14 @@ export default function CustomerCompanies() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Associate Multiple Customers Modal */}
+      <AssociateMultipleCustomersModal
+        isOpen={isAssociateModalOpen}
+        onClose={handleCloseAssociateModal}
+        company={selectedCompanyForAssociation}
+        onSuccess={handleAssociationSuccess}
+      />
     </div>
   );
 }
