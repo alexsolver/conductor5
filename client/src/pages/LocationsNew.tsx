@@ -84,15 +84,38 @@ export default function LocationsNew() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
 
-  // Update token on component mount to ensure authentication
+  // Enhanced token management with automatic refresh
   useEffect(() => {
-    updateTokenForTesting();
-    // Force fresh token with new timestamp
-    const forceFreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYxMTY2LCJleHAiOjE3NTM3NDc1NjYsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.rYmf0jKHD5LB-3rOmfApLTOuKuR-sGZiCrjlUYA6SWc";
-    localStorage.setItem('accessToken', forceFreshToken);
-    console.log('Fresh token forced update for LocationsNew');
-  }, []);
+    const handleTokenRefresh = () => {
+      const currentToken = localStorage.getItem('accessToken');
+      if (currentToken && currentToken !== token) {
+        setToken(currentToken);
+        console.log('LocationsNew: Token refreshed successfully');
+      }
+    };
+
+    // Listen for storage changes (token updates from other components)
+    window.addEventListener('storage', handleTokenRefresh);
+
+    // Check token validity periodically
+    const tokenCheckInterval = setInterval(() => {
+      const currentToken = localStorage.getItem('accessToken');
+      if (!currentToken) {
+        console.log('LocationsNew: No token found, user may need to login');
+        setToken(null);
+      } else if (currentToken !== token) {
+        setToken(currentToken);
+        console.log('LocationsNew: Token updated from periodic check');
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => {
+      window.removeEventListener('storage', handleTokenRefresh);
+      clearInterval(tokenCheckInterval);
+    };
+  }, [token]);
 
   const refetch = () => {
     // TODO: Implement data refetching logic
@@ -225,6 +248,141 @@ export default function LocationsNew() {
         return null;
     }
   };
+
+  // Real data queries for all record types
+  const { data: locaisData } = useQuery({
+    queryKey: ['/api/locations-new/local'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/local', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch locais');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  const { data: regioesData } = useQuery({
+    queryKey: ['/api/locations-new/regiao'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/regiao', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch regioes');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  const { data: rotasDinamicasData } = useQuery({
+    queryKey: ['/api/locations-new/rota-dinamica'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/rota-dinamica', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch rotas dinamicas');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  const { data: trechosData } = useQuery({
+    queryKey: ['/api/locations-new/trecho'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/trecho', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch trechos');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  const { data: rotaTrechosData } = useQuery({
+    queryKey: ['/api/locations-new/rota-trecho'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/rota-trecho', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch rota-trechos');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  const { data: areasData } = useQuery({
+    queryKey: ['/api/locations-new/area'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/area', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch areas');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  const { data: agrupamentosData } = useQuery({
+    queryKey: ['/api/locations-new/agrupamento'],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/agrupamento', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch agrupamentos');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!token
+  });
+
+  // Enhanced error and loading states
+  const isAnyLoading = [locaisData, regioesData, rotasDinamicasData, trechosData, rotaTrechosData, areasData, agrupamentosData]
+    .some(query => query?.isLoading);
+
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Usuário não autenticado</p>
+          <Button onClick={() => window.location.href = '/auth'}>
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAnyLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Carregando dados dos locais...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentData = getCurrentData();
+
+  function getCurrentData() {
+    // Real data from API
+    return {
+      locais: locaisData || [],
+      regioes: regioesData || [],
+      rotasDinamicas: rotasDinamicasData || [],
+      trechos: trechosData || [],
+      rotaTrechos: rotaTrechosData || [],
+      areas: areasData || [],
+      agrupamentos: agrupamentosData || [],
+    };
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -375,7 +533,7 @@ export default function LocationsNew() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <currentType.icon className="h-5 w-5" />
-            {currentType.label}s ({recordsData?.data?.length || (activeRecordType === 'local' ? 4 : 0)})
+            {currentType.label}s ({recordsData?.data?.length || (activeRecordType === 'local' ? 0 : 0)})
             {/* Debug info */}
             <span className="text-xs text-gray-500 ml-2">
               {recordsData ? `Dados: ${JSON.stringify(recordsData).substring(0, 50)}...` : 'Carregando...'}
@@ -400,67 +558,7 @@ export default function LocationsNew() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* Temporary hardcoded data to show locations exist */}
-                {activeRecordType === 'local' && !recordsData?.data ? [
-                  {
-                    id: "cb2c7ec3-447e-4300-9dd3-ed0f79521920",
-                    nome: "Local Teste Autenticação",
-                    descricao: "Teste final de autenticação",
-                    ativo: true
-                  },
-                  {
-                    id: "4ce85698-aa78-4bbc-9ebb-919879f14590", 
-                    nome: "Local Teste Final",
-                    descricao: "Teste final de funcionamento",
-                    ativo: true
-                  },
-                  {
-                    id: "513a25ef-3dac-4e38-aa7f-ae02eb4962c1",
-                    nome: "Local Teste Salvar", 
-                    descricao: "Sistema funcionando",
-                    ativo: true
-                  },
-                  {
-                    id: "4eacccb8-6fff-4693-ab7c-0674901daa38",
-                    nome: "Local Teste Completo",
-                    descricao: "Sistema 100% funcional após correções", 
-                    ativo: true
-                  }
-                ].map((record: any) => (
-                  <TableRow key={record.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{record.nome}</div>
-                        <div className="text-sm text-muted-foreground">{record.descricao}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">Backend tem dados reais</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">Não definido</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="default">Ativo</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {currentType.sections.map((section) => (
-                          <Badge key={section} variant="secondary" className="text-xs">
-                            {section}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )) : recordsData?.data?.map((record: any) => (
+                {currentData[activeRecordType + 's']?.map((record: any) => (
                   <TableRow key={record.id}>
                     <TableCell>
                       <div>
@@ -534,7 +632,7 @@ export default function LocationsNew() {
                   </TableRow>
                 ))}
 
-                {(!recordsData?.data || recordsData.data.length === 0) && !isLoading && activeRecordType !== 'local' && (
+                {(!currentData[activeRecordType + 's'] || currentData[activeRecordType + 's'].length === 0) && !isLoading && activeRecordType !== 'local' && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
