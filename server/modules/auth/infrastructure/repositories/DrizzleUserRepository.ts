@@ -121,6 +121,10 @@ export class DrizzleUserRepository implements IUserRepository {
     }
   }
 
+  async update(user: User): Promise<User> {
+    return this.save(user); // Delegate to save method which handles update logic
+  }
+
   async delete(id: string): Promise<boolean> {
     const result = await db
       .delete(users)
@@ -197,16 +201,16 @@ export class DrizzleUserRepository implements IUserRepository {
     return User.fromPersistence({
       id: data.id,
       email: data.email,
-      password: data.password, // This is actually the password hash
-      firstName: data.firstName,
-      lastName: data.lastName,
+      password: data.passwordHash || data.password_hash, // Handle both field names
+      firstName: data.firstName || data.first_name,
+      lastName: data.lastName || data.last_name,
       role: data.role,
-      tenantId: data.tenantId,
-      active: data.active,
-      verified: data.verified,
-      lastLogin: data.lastLogin,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt
+      tenantId: data.tenantId || data.tenant_id,
+      active: data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
+      verified: data.verified || false,
+      lastLogin: data.lastLoginAt || data.last_login_at || data.lastLogin,
+      createdAt: data.createdAt || data.created_at || new Date(),
+      updatedAt: data.updatedAt || data.updated_at || new Date()
     });
   }
 
@@ -214,14 +218,14 @@ export class DrizzleUserRepository implements IUserRepository {
     return {
       id: user.getId(),
       email: user.getEmail(),
-      password: user.getPasswordHash(),
+      passwordHash: user.getPasswordHash(), // Correct field name
       firstName: user.getFirstName(),
       lastName: user.getLastName(),
       role: user.getRole(),
       tenantId: user.getTenantId(),
-      active: user.isActive(),
+      isActive: user.isActive(), // Correct field name
       verified: user.isVerified(),
-      lastLogin: user.getLastLogin(),
+      lastLoginAt: user.getLastLogin(), // Correct field name
       createdAt: user.getCreatedAt(),
       updatedAt: user.getUpdatedAt()
     };

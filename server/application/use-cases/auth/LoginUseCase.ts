@@ -44,12 +44,12 @@ export class LoginUseCase {
     }
 
     // Check if user is active
-    if (!user.isActive) {
+    if (!user.isActive()) {
       throw new Error('Account is deactivated');
     }
 
     // Verify password
-    const isPasswordValid = await this.passwordHasher.verify(password, user.passwordHash);
+    const isPasswordValid = await this.passwordHasher.verify(password, user.getPasswordHash());
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
     }
