@@ -810,7 +810,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Combine ticket history and internal actions for a complete timeline
+    // First try to get ticket history
     const historyQuery = `
       SELECT 
         'history' as source,
@@ -828,10 +828,12 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.session_id,
         th.metadata
       FROM "${schemaName}".ticket_history th
-      WHERE th.ticket_id = $1::uuid
+      WHERE th.ticket_id = $1 AND th.tenant_id = $2
+      ORDER BY th.created_at DESC
+    `;
 
-      UNION ALL
-
+    // Get internal actions separately  
+    const actionsQuery = `
       SELECT 
         'action' as source,
         ta.id,
@@ -839,8 +841,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         COALESCE(ta.work_log, ta.description) as description,
         ta.created_by as performed_by,
         u2.first_name || ' ' || u2.last_name as performed_by_name,
-        null<replit_final_file>
- as old_value,
+        null as old_value,
         null as new_value,
         null as field_name,
         ta.created_at,
@@ -856,12 +857,22 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         ) as metadata
       FROM "${schemaName}".ticket_actions ta
       LEFT JOIN public.users u2 ON ta.created_by = u2.id
-      WHERE ta.ticket_id = $1::uuid AND ta.is_active = true
-
-      ORDER BY created_at DESC
+      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
+      ORDER BY ta.created_at DESC
     `;
 
-    const result = await pool.query(historyQuery, [id]);
+    const [historyResult, actionsResult] = await Promise.all([
+      pool.query(historyQuery, [id, tenantId]),
+      pool.query(actionsQuery, [id, tenantId])
+    ]);
+
+    // Combine and sort results
+    const combinedResults = [
+      ...historyResult.rows,
+      ...actionsResult.rows
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const result = { rows: combinedResults };
 
     res.json({
       success: true,
