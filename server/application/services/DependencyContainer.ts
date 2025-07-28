@@ -1,5 +1,5 @@
 // Dependency Injection Container - Clean Architecture
-import { UserRepository } from "../../infrastructure/repositories/UserRepository";
+import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
 import { TenantRepository } from "../../infrastructure/repositories/TenantRepository";
 import { PasswordHasher } from "../../infrastructure/services/PasswordHasher";
 import { SimpleTokenService } from "../../infrastructure/services/SimpleTokenService";
@@ -12,7 +12,7 @@ export class DependencyContainer {
   private static instance: DependencyContainer;
   
   // Repositories
-  private _userRepository?: UserRepository;
+  private _userRepository?: DrizzleUserRepository;
   private _tenantRepository?: TenantRepository;
   
   // Services
@@ -32,10 +32,10 @@ export class DependencyContainer {
   }
 
   // Repositories
-  get userRepository(): UserRepository {
+  get userRepository(): DrizzleUserRepository {
     if (!this._userRepository) {
-      // Use the working infrastructure repository
-      this._userRepository = new UserRepository();
+      // Use the working Drizzle repository
+      this._userRepository = new DrizzleUserRepository();
     }
     return this._userRepository;
   }
