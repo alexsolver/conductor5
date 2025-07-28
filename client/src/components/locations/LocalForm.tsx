@@ -355,45 +355,63 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
   const handleSubmit = async (data: any) => {
     try {
+      console.log('LocalForm.handleSubmit - Starting submission with data:', data);
+
       // Ensure we have a valid token before submitting
       const validToken = await validateAndRefreshToken();
 
       if (!validToken) {
+        console.error('LocalForm.handleSubmit - No valid token available');
         toast({
           title: "Erro de autenticação",
-          description: "Não foi possível identificar o tenant. Faça login novamente.",
+          description: "Token de acesso inválido. Faça login novamente.",
           variant: "destructive"
         });
         return;
       }
 
-      // Get user data from localStorage or auth context
-      const userDataStr = localStorage.getItem('user');
+      console.log('LocalForm.handleSubmit - Valid token obtained');
+
+      // Extract tenant ID from token payload
       let tenantId = null;
-  
-      if (userDataStr) {
-        try {
-          const userData = JSON.parse(userDataStr);
-          tenantId = userData.tenantId;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
+      try {
+        const payload = JSON.parse(atob(validToken.split('.')[1]));
+        tenantId = payload.tenantId;
+        console.log('LocalForm.handleSubmit - Tenant ID from token:', tenantId);
+      } catch (e) {
+        console.error('LocalForm.handleSubmit - Error parsing token:', e);
+      }
+
+      // Fallback: Try to get tenant ID from localStorage
+      if (!tenantId) {
+        const userDataStr = localStorage.getItem('user');
+        if (userDataStr) {
+          try {
+            const userData = JSON.parse(userDataStr);
+            tenantId = userData.tenantId;
+            console.log('LocalForm.handleSubmit - Tenant ID from localStorage user:', tenantId);
+          } catch (e) {
+            console.error('LocalForm.handleSubmit - Error parsing user data:', e);
+          }
         }
       }
-  
-      // Try alternative storage locations
+
+      // Another fallback: Check authData
       if (!tenantId) {
         const authDataStr = localStorage.getItem('authData');
         if (authDataStr) {
           try {
             const authData = JSON.parse(authDataStr);
             tenantId = authData.tenantId || authData.user?.tenantId;
+            console.log('LocalForm.handleSubmit - Tenant ID from authData:', tenantId);
           } catch (e) {
-            console.error('Error parsing auth data:', e);
+            console.error('LocalForm.handleSubmit - Error parsing auth data:', e);
           }
         }
       }
-  
+
       if (!tenantId) {
+        console.error('LocalForm.handleSubmit - No tenant ID found anywhere');
         toast({
           title: "Erro de autenticação",
           description: "Não foi possível identificar o tenant. Faça login novamente.",
@@ -401,19 +419,25 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
         });
         return;
       }
-  
+
+      console.log('LocalForm.handleSubmit - Preparing form data with tenant:', tenantId);
+
+      // Prepare the complete form data
       const formDataWithTenant = {
         ...data,
         tenantId
       };
 
-      onSubmit(formDataWithTenant);
+      console.log('LocalForm.handleSubmit - Calling onSubmit with data:', formDataWithTenant);
+
+      // Call the parent onSubmit function
+      await onSubmit(formDataWithTenant);
 
     } catch (error) {
-      console.error('Erro ao salvar local:', error);
+      console.error('LocalForm.handleSubmit - Error during submission:', error);
       toast({
         title: "Erro ao salvar local",
-        description: "Ocorreu um erro ao salvar o local. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao salvar o local. Tente novamente.",
         variant: "destructive"
       });
     }

@@ -296,31 +296,69 @@ export class LocationsNewController {
   async createLocal(req: AuthenticatedRequest, res: Response) {
     try {
       console.log('LocationsNewController.createLocal - Starting request');
-      console.log('LocationsNewController.createLocal - User:', req.user);
-      console.log('LocationsNewController.createLocal - Request body:', req.body);
+      console.log('LocationsNewController.createLocal - Headers:', {
+        authorization: req.headers.authorization ? 'Present' : 'Missing',
+        contentType: req.headers['content-type']
+      });
+      console.log('LocationsNewController.createLocal - User from middleware:', req.user);
+      console.log('LocationsNewController.createLocal - Request body keys:', Object.keys(req.body || {}));
 
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        console.error('LocationsNewController.createLocal - No tenant ID found');
-        return sendError(res, "Não foi possível identificar o tenant. Faça login novamente.", 401);
+      // Enhanced authentication validation
+      if (!req.user) {
+        console.error('LocationsNewController.createLocal - No user object from JWT middleware');
+        return sendError(res, "Usuário não autenticado. Faça login novamente.", 401);
       }
 
-      console.log(`LocationsNewController.createLocal - Tenant ID: ${tenantId}`);
+      const tenantId = req.user.tenantId;
+      const userId = req.user.userId;
 
-      const validation = localSchema.safeParse(req.body);
+      if (!tenantId) {
+        console.error('LocationsNewController.createLocal - No tenant ID in user object:', req.user);
+        return sendError(res, "Tenant não identificado. Verifique sua autenticação.", 401);
+      }
+
+      if (!userId) {
+        console.error('LocationsNewController.createLocal - No user ID in user object:', req.user);
+        return sendError(res, "Usuário não identificado. Verifique sua autenticação.", 401);
+      }
+
+      console.log(`LocationsNewController.createLocal - Authenticated user: ${userId}, tenant: ${tenantId}`);
+
+      // Ensure request body exists
+      if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('LocationsNewController.createLocal - Empty request body');
+        return sendError(res, "Dados do local são obrigatórios.", 400);
+      }
+
+      // Add tenant validation to request data
+      const requestData = {
+        ...req.body,
+        tenantId: tenantId // Ensure tenant ID from token is used
+      };
+
+      console.log('LocationsNewController.createLocal - Data to validate:', {
+        hasNome: !!requestData.nome,
+        hasTenantId: !!requestData.tenantId,
+        tenantIdMatch: requestData.tenantId === tenantId
+      });
+
+      const validation = localSchema.safeParse(requestData);
       if (!validation.success) {
-        console.error('LocationsNewController.createLocal - Validation failed:', validation.error);
+        console.error('LocationsNewController.createLocal - Validation failed:', {
+          errors: validation.error.errors,
+          receivedData: Object.keys(requestData)
+        });
         return sendValidationError(res, validation.error);
       }
 
       console.log('LocationsNewController.createLocal - Validation passed, creating local');
       const local = await this.repository.createLocal(tenantId, validation.data);
       
-      console.log('LocationsNewController.createLocal - Local created successfully:', local);
-      return sendSuccess(res, local, "Local created successfully", 201);
+      console.log('LocationsNewController.createLocal - Local created successfully with ID:', local?.id);
+      return sendSuccess(res, local, "Local criado com sucesso", 201);
     } catch (error) {
       console.error('LocationsNewController.createLocal - Error:', error);
-      return sendError(res, `Failed to create local: ${error.message}`, 500);
+      return sendError(res, `Erro ao criar local: ${error.message}`, 500);
     }
   }
 

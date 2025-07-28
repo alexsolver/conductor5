@@ -205,13 +205,14 @@ function LocationsNewContent() {
         return (
           <LocalForm
                 onSubmit={async (data) => {
-                  console.log('Local form submitted:', data);
+                  console.log('LocationsNew - Local form submitted with data:', data);
                   try {
-                    // Validate and refresh token if needed
+                    // Get the most current token
                     let currentToken = localStorage.getItem('accessToken') || token;
+                    console.log('LocationsNew - Current token available:', !!currentToken);
                     
                     if (!currentToken) {
-                      console.log('No token found, attempting refresh');
+                      console.log('LocationsNew - No token found, attempting refresh');
                       const refreshResponse = await fetch('/api/auth/refresh', {
                         method: 'POST',
                         credentials: 'include',
@@ -225,18 +226,26 @@ function LocationsNewContent() {
                         currentToken = refreshData.accessToken;
                         localStorage.setItem('accessToken', currentToken);
                         setToken(currentToken);
+                        console.log('LocationsNew - Token refreshed successfully');
                       } else {
-                        throw new Error('Não foi possível identificar o tenant. Faça login novamente.');
+                        const refreshError = await refreshResponse.text();
+                        console.error('LocationsNew - Token refresh failed:', refreshError);
+                        throw new Error('Sessão expirada. Faça login novamente.');
                       }
                     }
 
-                    // Check if token is expired and refresh if needed
+                    // Validate token and check expiration
                     try {
                       const payload = JSON.parse(atob(currentToken.split('.')[1]));
                       const isExpired = payload.exp * 1000 < Date.now();
+                      console.log('LocationsNew - Token payload:', { 
+                        userId: payload.userId, 
+                        tenantId: payload.tenantId, 
+                        isExpired 
+                      });
                       
                       if (isExpired) {
-                        console.log('Token expired, refreshing');
+                        console.log('LocationsNew - Token expired, attempting refresh');
                         const refreshResponse = await fetch('/api/auth/refresh', {
                           method: 'POST',
                           credentials: 'include',
@@ -250,15 +259,24 @@ function LocationsNewContent() {
                           currentToken = refreshData.accessToken;
                           localStorage.setItem('accessToken', currentToken);
                           setToken(currentToken);
+                          console.log('LocationsNew - Expired token refreshed successfully');
                         } else {
-                          throw new Error('Token expirado. Faça login novamente.');
+                          throw new Error('Token expirado e não foi possível renovar. Faça login novamente.');
                         }
                       }
+
+                      // Ensure tenant ID is in the data
+                      if (!data.tenantId && payload.tenantId) {
+                        data.tenantId = payload.tenantId;
+                        console.log('LocationsNew - Added tenant ID to data:', payload.tenantId);
+                      }
+
                     } catch (tokenError) {
-                      console.error('Token validation error:', tokenError);
+                      console.error('LocationsNew - Token validation error:', tokenError);
                       throw new Error('Token inválido. Faça login novamente.');
                     }
 
+                    console.log('LocationsNew - Making API request to create local');
                     const response = await fetch('/api/locations-new/local', {
                       method: 'POST',
                       headers: {
@@ -268,21 +286,24 @@ function LocationsNewContent() {
                       body: JSON.stringify(data)
                     });
 
+                    console.log('LocationsNew - API response status:', response.status);
+
                     if (!response.ok) {
                       if (response.status === 401) {
-                        throw new Error('Erro de autenticação. Faça login novamente.');
+                        throw new Error('Erro de autenticação. Verifique suas credenciais e tente novamente.');
                       }
                       const errorData = await response.json().catch(() => ({}));
-                      throw new Error(errorData.message || 'Falha ao criar local');
+                      console.error('LocationsNew - API error response:', errorData);
+                      throw new Error(errorData.message || `Erro HTTP ${response.status}: Falha ao criar local`);
                     }
 
                     const result = await response.json();
-                    console.log('Local created successfully:', result);
+                    console.log('LocationsNew - Local created successfully:', result);
 
                     // Show success message and refresh data
                     toast({
-                      title: "Local criado com sucesso",
-                      description: "O local foi adicionado ao sistema"
+                      title: "Sucesso!",
+                      description: "Local criado e salvo com sucesso no sistema."
                     });
 
                     // Close the dialog and refresh data
@@ -291,10 +312,10 @@ function LocationsNewContent() {
                     queryClient.invalidateQueries({ queryKey: [`/api/locations-new/local/stats`] });
 
                   } catch (error) {
-                    console.error('Error creating local:', error);
+                    console.error('LocationsNew - Error creating local:', error);
                     toast({
                       title: "Erro ao criar local",
-                      description: error.message || "Ocorreu um erro ao salvar o local. Tente novamente.",
+                      description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
                       variant: "destructive"
                     });
                   }
