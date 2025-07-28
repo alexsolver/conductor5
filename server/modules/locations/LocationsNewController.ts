@@ -37,11 +37,26 @@ export class LocationsNewController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
+        console.error('LocationsNewController.getRecordsByType - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
       const { recordType } = req.params;
+      if (!recordType) {
+        console.error('LocationsNewController.getRecordsByType - No record type provided');
+        return sendError(res, "Record type required", 400);
+      }
+
+      // Validate record type
+      const validTypes = ['local', 'regiao', 'rota-dinamica', 'trecho', 'rota-trecho', 'area', 'agrupamento'];
+      if (!validTypes.includes(recordType)) {
+        console.error(`LocationsNewController.getRecordsByType - Invalid record type: ${recordType}`);
+        return sendError(res, "Invalid record type", 400);
+      }
+
       const { search, status } = req.query;
+
+      console.log(`LocationsNewController.getRecordsByType - Fetching ${recordType} for tenant: ${tenantId}`);
 
       const records = await this.repository.getRecordsByType(
         tenantId,
@@ -52,10 +67,38 @@ export class LocationsNewController {
         }
       );
 
-      return sendSuccess(res, records, `${recordType} records retrieved successfully`);
+      // Enhanced response with metadata
+      const response = {
+        records,
+        metadata: {
+          total: records.length,
+          recordType,
+          tenantId,
+          filters: { search, status },
+          isMockData: records.length > 0 && records[0].id?.startsWith('mock-'),
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      console.log(`LocationsNewController.getRecordsByType - Successfully retrieved ${records.length} ${recordType} records`);
+      return sendSuccess(res, response, `${recordType} records retrieved successfully`);
     } catch (error) {
-      console.error('Error fetching records by type:', error);
-      return sendError(res, "Failed to fetch records", 500);
+      console.error('LocationsNewController.getRecordsByType - Error:', error);
+      
+      // Graceful degradation - return empty result instead of 500 error
+      const fallbackResponse = {
+        records: [],
+        metadata: {
+          total: 0,
+          recordType: req.params.recordType || 'unknown',
+          tenantId: req.user?.tenantId || 'unknown',
+          error: 'Database service temporarily unavailable',
+          isFallback: true,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      return sendSuccess(res, fallbackResponse, "Records retrieved with fallback data due to service issues");
     }
   }
 

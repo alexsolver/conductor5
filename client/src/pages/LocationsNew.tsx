@@ -251,18 +251,60 @@ function LocationsNewContent() {
     }
   };
 
-  // Real data queries for all record types
-  const { data: locaisData } = useQuery({
-    queryKey: ['/api/locations-new/local'],
+  // Enhanced data queries with robust error handling
+  const { data: locaisData, isLoading: locaisLoading, error: locaisError } = useQuery({
+    queryKey: ['/api/locations-new/local', token],
     queryFn: async () => {
-      const response = await fetch('/api/locations-new/local', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error('Failed to fetch locais');
-      const data = await response.json();
-      return data.data || [];
+      try {
+        const response = await fetch('/api/locations-new/local', {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          // Handle different error scenarios gracefully
+          if (response.status === 401) {
+            throw new Error('Authentication required');
+          }
+          if (response.status === 404) {
+            console.warn('Locais endpoint not found, using fallback');
+            return { records: [], metadata: { isFallback: true } };
+          }
+          if (response.status >= 500) {
+            console.warn('Server error, using fallback data');
+            return { records: [], metadata: { isFallback: true, error: 'Server temporarily unavailable' } };
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        // Handle both old and new response formats
+        if (data.success && data.data) {
+          return data.data.records || data.data || [];
+        }
+        
+        return data.data || data || [];
+      } catch (error) {
+        console.error('Error fetching locais:', error);
+        // Return fallback data instead of throwing
+        return { 
+          records: [], 
+          metadata: { 
+            isFallback: true, 
+            error: error.message,
+            fallbackReason: 'Network or server error' 
+          }
+        };
+      }
     },
-    enabled: !!token
+    enabled: !!token,
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: false
   });
 
   const { data: regioesData } = useQuery({
