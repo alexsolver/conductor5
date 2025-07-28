@@ -104,6 +104,15 @@ const baseNavigation: Array<{
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
   { name: "Compliance", href: "/compliance", icon: Shield },
+  {
+    name: "Reports",
+    icon: PieChart,
+    children: [
+      { name: "Productivity Reports", href: "/productivity-reports", icon: PieChart },
+      { name: "Team Performance", href: "/team-performance", icon: TrendingUp },
+      { name: "System Analytics", href: "/system-analytics", icon: BarChart3 },
+    ]
+  },
 
 ];
 
