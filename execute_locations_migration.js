@@ -1,5 +1,11 @@
 
-const { Pool } = require('pg');
+import { Pool } from 'pg';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function executeLocationsMigration() {
   const pool = new Pool({
@@ -11,9 +17,6 @@ async function executeLocationsMigration() {
     console.log('🚀 Starting Locations New Module Migration...');
     
     // Read and execute the migration file
-    const fs = require('fs');
-    const path = require('path');
-    
     const migrationSQL = fs.readFileSync(
       path.join(__dirname, 'server/database/migrations/create_locations_new_tables.sql'), 
       'utf8'
@@ -48,8 +51,8 @@ async function executeLocationsMigration() {
 }
 
 // Execute if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   executeLocationsMigration();
 }
 
-module.exports = executeLocationsMigration;
+export default executeLocationsMigration;
