@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, MapPin, Users, Building, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import SimpleMapWithButtons from "@/components/SimpleMapWithButtons";
 
 const regiaoSchema = z.object({
@@ -53,6 +54,7 @@ const TIPO_LOGRADOURO_OPTIONS = [
 
 export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }: RegiaoFormProps) {
   const { toast } = useToast();
+  const { token, refreshToken } = useAuth();
   const [showMap, setShowMap] = useState(false);
   const [newCep, setNewCep] = useState("");
 
@@ -76,11 +78,26 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
   const { register, handleSubmit, setValue, watch, formState: { errors } } = form;
   const watchedValues = watch();
 
+  const getValidToken = async () => {
+    if (!token) {
+      await refreshToken();
+      return localStorage.getItem('access_token');
+    }
+    return token;
+  };
+
   const handleCepLookup = async (cep: string) => {
     if (!cep || cep.length < 8) return;
 
     try {
-      const response = await fetch(`/api/locations-new/cep/${cep.replace('-', '')}`);
+      const validToken = await getValidToken();
+      const response = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')}`, {
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -93,9 +110,38 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             description: "Dados do endereço preenchidos automaticamente",
           });
         }
+      } else if (response.status === 401) {
+        await refreshToken();
+        // Retry with fresh token
+        const freshToken = localStorage.getItem('access_token');
+        const retryResponse = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')}`, {
+          headers: {
+            'Authorization': `Bearer ${freshToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (retryResponse.ok) {
+          const data = await retryResponse.json();
+          if (data.success) {
+            setValue('estado', data.data.uf);
+            setValue('municipio', data.data.localidade);
+            setValue('bairro', data.data.bairro);
+            setValue('logradouro', data.data.logradouro);
+            toast({
+              title: "CEP encontrado",
+              description: "Dados do endereço preenchidos automaticamente",
+            });
+          }
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar CEP:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar CEP. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -122,8 +168,76 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
     setValue('cepsAbrangidos', currentCeps.filter((_, i) => i !== index));
   };
 
+  const handleFormSubmit = async (data: RegiaoFormData) => {
+    try {
+      const validToken = await getValidToken();
+      
+      // Add the token to the data or pass it to onSubmit
+      const response = await fetch('/api/locations-new/regiao', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Sucesso",
+          description: "Região criada com sucesso!",
+        });
+        onSubmit(data);
+      } else if (response.status === 401) {
+        // Token expired, refresh and retry
+        await refreshToken();
+        const freshToken = localStorage.getItem('access_token');
+        
+        const retryResponse = await fetch('/api/locations-new/regiao', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${freshToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (retryResponse.ok) {
+          const result = await retryResponse.json();
+          toast({
+            title: "Sucesso",
+            description: "Região criada com sucesso!",
+          });
+          onSubmit(data);
+        } else {
+          const error = await retryResponse.json();
+          toast({
+            title: "Erro",
+            description: error.message || "Erro ao criar região",
+            variant: "destructive",
+          });
+        }
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Erro",
+          description: error.message || "Erro ao criar região",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao salvar região:', error);
+      toast({
+        title: "Erro",
+        description: "Erro de conexão. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Identificação */}
       <Card>
         <CardHeader>

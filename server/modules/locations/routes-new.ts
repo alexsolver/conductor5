@@ -24,7 +24,12 @@ router.use('*', async (req: AuthenticatedRequest, res: Response, next: NextFunct
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
-      return res.status(401).json({ success: false, message: 'Não foi possível identificar o tenant. Faça login novamente.' });
+      console.error('No tenant ID found in token:', req.user);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid or expired token',
+        error: 'No tenant ID found'
+      });
     }
 
     // Get the database pool directly for SQL queries

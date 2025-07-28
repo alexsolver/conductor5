@@ -46,7 +46,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  
+
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!token) {
         return null;
       }
-      
+
       try {
         const response = await fetch('/api/auth/user', {
           headers: {
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
           credentials: 'include',
         });
-        
+
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('accessToken');
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.warn(`Auth check failed: ${response.status}`);
           return null;
         }
-        
+
         const userData = await response.json();
         return userData || null;
       } catch (error) {
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMessage = error.message?.includes('400:') 
         ? error.message.split('400:')[1]?.trim() || 'Invalid credentials'
         : error.message || 'Please check your credentials and try again.';
-      
+
       toast({
         title: 'Login failed',
         description: errorMessage,
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
       localStorage.setItem('accessToken', result.accessToken);
       queryClient.setQueryData(['/api/auth/user'], result.user);
-      
+
       if (result.tenant) {
         toast({
           title: 'Workspace criado com sucesso!',
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMessage = error.message?.includes('400:') 
         ? error.message.split('400:')[1]?.trim() || 'Registration failed'
         : error.message || 'Please try again with a different email.';
-      
+
       toast({
         title: 'Registration failed',
         description: errorMessage,
@@ -203,5 +203,57 @@ export function useAuth() {
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context;
+
+  const { logoutMutation: { mutate: logout } } = useAuthContext();
+  const [token, setToken] = React.useState(localStorage.getItem('access_token'));
+
+  const refreshToken = async () => {
+    try {
+      const refresh = localStorage.getItem('refresh_token');
+      if (!refresh) {
+        console.warn('No refresh token available');
+        logout();
+        return false;
+      }
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken: refresh }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('access_token', data.accessToken);
+        if (data.refreshToken) {
+          localStorage.setItem('refresh_token', data.refreshToken);
+        }
+        setToken(data.accessToken);
+        return true;
+      } else {
+        console.error('Failed to refresh token:', response.status);
+        logout();
+        return false;
+      }
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      logout();
+      return false;
+    }
+  };
+
+  return {
+        ...context,
+        refreshToken
+    };
 }
+
+const useAuthContext = () => {
+    const context = useContext(AuthContext);
+    if (context === null) {
+        throw new Error("useAuthContext must be used within a AuthProvider");
+    }
+    return context;
+};

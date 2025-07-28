@@ -19,10 +19,17 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('No authorization header found');
       return res.status(401).json({ message: 'Access token required' });
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const token = authHeader.substring(7);
+
+    if (!token || token === 'null' || token === 'undefined') {
+      console.error('Invalid token format:', token);
+      return res.status(401).json({ message: 'Invalid token format' });
+    }
+
     const container = DependencyContainer.getInstance();
     const tokenService = container.tokenService;
 
