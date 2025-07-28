@@ -295,21 +295,32 @@ export class LocationsNewController {
   // Create Local
   async createLocal(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.createLocal - Starting request');
+      console.log('LocationsNewController.createLocal - User:', req.user);
+      console.log('LocationsNewController.createLocal - Request body:', req.body);
+
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return sendError(res, "Tenant ID required", 401);
+        console.error('LocationsNewController.createLocal - No tenant ID found');
+        return sendError(res, "Não foi possível identificar o tenant. Faça login novamente.", 401);
       }
+
+      console.log(`LocationsNewController.createLocal - Tenant ID: ${tenantId}`);
 
       const validation = localSchema.safeParse(req.body);
       if (!validation.success) {
+        console.error('LocationsNewController.createLocal - Validation failed:', validation.error);
         return sendValidationError(res, validation.error);
       }
 
+      console.log('LocationsNewController.createLocal - Validation passed, creating local');
       const local = await this.repository.createLocal(tenantId, validation.data);
+      
+      console.log('LocationsNewController.createLocal - Local created successfully:', local);
       return sendSuccess(res, local, "Local created successfully", 201);
     } catch (error) {
-      console.error('Error creating local:', error);
-      return sendError(res, "Failed to create local", 500);
+      console.error('LocationsNewController.createLocal - Error:', error);
+      return sendError(res, `Failed to create local: ${error.message}`, 500);
     }
   }
 

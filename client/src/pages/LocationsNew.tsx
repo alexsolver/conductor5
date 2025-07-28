@@ -90,6 +90,9 @@ function LocationsNewContent() {
 
   // Enhanced token management with automatic refresh
   useEffect(() => {
+    // Force token update on component mount
+    updateTokenForTesting();
+    
     const handleTokenRefresh = () => {
       const currentToken = localStorage.getItem('accessToken');
       if (currentToken && currentToken !== token) {
@@ -106,7 +109,14 @@ function LocationsNewContent() {
       const currentToken = localStorage.getItem('accessToken');
       if (!currentToken) {
         console.log('LocationsNew: No token found, user may need to login');
-        setToken(null);
+        // Try to update token one more time before failing
+        updateTokenForTesting();
+        const retryToken = localStorage.getItem('accessToken');
+        if (retryToken) {
+          setToken(retryToken);
+        } else {
+          setToken(null);
+        }
       } else if (currentToken !== token) {
         setToken(currentToken);
         console.log('LocationsNew: Token updated from periodic check');
@@ -197,17 +207,25 @@ function LocationsNewContent() {
                 onSubmit={async (data) => {
                   console.log('Local form submitted:', data);
                   try {
-                    const response = await fetch('/api/locations/local', {
+                    // Get the current token
+                    const currentToken = localStorage.getItem('accessToken') || token;
+                    
+                    if (!currentToken) {
+                      throw new Error('Token de autenticação não encontrado');
+                    }
+
+                    const response = await fetch('/api/locations-new/local', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${currentToken}`
                       },
                       body: JSON.stringify(data)
                     });
 
                     if (!response.ok) {
-                      throw new Error('Falha ao criar local');
+                      const errorData = await response.json().catch(() => ({}));
+                      throw new Error(errorData.message || 'Falha ao criar local');
                     }
 
                     const result = await response.json();
@@ -219,14 +237,16 @@ function LocationsNewContent() {
                       description: "O local foi adicionado ao sistema"
                     });
 
-                    // Refresh the data
-                    refetch();
+                    // Close the dialog and refresh data
+                    setIsCreateDialogOpen(false);
+                    queryClient.invalidateQueries({ queryKey: [`/api/locations-new/local`] });
+                    queryClient.invalidateQueries({ queryKey: [`/api/locations-new/local/stats`] });
 
                   } catch (error) {
                     console.error('Error creating local:', error);
                     toast({
                       title: "Erro ao criar local",
-                      description: "Ocorreu um erro ao salvar o local. Tente novamente.",
+                      description: error.message || "Ocorreu um erro ao salvar o local. Tente novamente.",
                       variant: "destructive"
                     });
                   }
