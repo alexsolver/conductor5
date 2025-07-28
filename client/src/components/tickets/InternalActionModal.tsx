@@ -141,10 +141,10 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            Ações Internas do Agente
+            Nova Ação Interna
           </DialogTitle>
           <DialogDescription>
-            Registre todas as interações e ações realizadas neste ticket. Escolha se a ação será visível ao solicitante.
+            Registre uma nova ação interna realizada neste ticket. Defina se a ação será visível ao solicitante ou apenas para agentes.
           </DialogDescription>
         </DialogHeader>
 
@@ -373,7 +373,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                       variant="outline"
                       onClick={onClose}
                     >
-                      Fechar
+                      Cancelar
                     </Button>
                     <Button
                       onClick={handleSubmit}
@@ -389,60 +389,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
             </CardContent>
           </Card>
 
-          {/* Actions History */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Histórico de Ações ({actions.length})</h3>
-            
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500">Carregando ações...</p>
-              </div>
-            ) : actions.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Nenhuma ação registrada</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {actions.map((action: InternalAction) => (
-                  <Card key={action.id} className={`border-l-4 ${
-                    action.isPublic 
-                      ? 'border-l-green-500 bg-green-50' 
-                      : 'border-l-gray-500 bg-gray-50'
-                  }`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <User className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium text-sm">{action.createdByName}</span>
-                            <Badge variant={action.isPublic ? 'default' : 'secondary'}>
-                              {action.isPublic ? (
-                                <>
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  Público
-                                </>
-                              ) : (
-                                <>
-                                  <EyeOff className="w-3 h-3 mr-1" />
-                                  Privado
-                                </>
-                              )}
-                            </Badge>
-                            <span className="text-xs text-gray-500">
-                              {new Date(action.createdAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <p className="text-gray-800 whitespace-pre-wrap">{action.content}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+          
         </div>
       </DialogContent>
     </Dialog>
