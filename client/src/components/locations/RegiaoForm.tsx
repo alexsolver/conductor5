@@ -55,13 +55,14 @@ const TIPO_LOGRADOURO_OPTIONS = [
 
 // Componentes de seleção
 function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
-  const { token, refreshToken } = useAuth();
+  const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const getValidToken = async () => {
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       await refreshToken();
-      return localStorage.getItem('access_token');
+      return localStorage.getItem('accessToken');
     }
     return token;
   };
@@ -143,12 +144,13 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
 }
 
 function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: string) => void }) {
-  const { token, refreshToken } = useAuth();
+  const { refreshToken } = useAuth();
 
   const getValidToken = async () => {
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       await refreshToken();
-      return localStorage.getItem('access_token');
+      return localStorage.getItem('accessToken');
     }
     return token;
   };
@@ -189,13 +191,14 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
 }
 
 function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
-  const { token, refreshToken } = useAuth();
+  const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const getValidToken = async () => {
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       await refreshToken();
-      return localStorage.getItem('access_token');
+      return localStorage.getItem('accessToken');
     }
     return token;
   };
@@ -279,13 +282,14 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
 }
 
 function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
-  const { token, refreshToken } = useAuth();
+  const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const getValidToken = async () => {
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       await refreshToken();
-      return localStorage.getItem('access_token');
+      return localStorage.getItem('accessToken');
     }
     return token;
   };
@@ -368,7 +372,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
 
 export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }: RegiaoFormProps) {
   const { toast } = useToast();
-  const { token, refreshToken } = useAuth();
+  const { refreshToken } = useAuth();
   const [showMap, setShowMap] = useState(false);
   const [newCep, setNewCep] = useState("");
 
@@ -394,9 +398,10 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
   const watchedValues = watch();
 
   const getValidToken = async () => {
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       await refreshToken();
-      return localStorage.getItem('access_token');
+      return localStorage.getItem('accessToken');
     }
     return token;
   };
@@ -428,7 +433,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       } else if (response.status === 401) {
         await refreshToken();
         // Retry with fresh token
-        const freshToken = localStorage.getItem('access_token');
+        const freshToken = localStorage.getItem('accessToken');
         const retryResponse = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')}`, {
           headers: {
             'Authorization': `Bearer ${freshToken}`,
@@ -512,7 +517,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       } else if (response.status === 401) {
         // Token expired, refresh and retry
         await refreshToken();
-        const freshToken = localStorage.getItem('access_token');
+        const freshToken = localStorage.getItem('accessToken');
 
         const retryResponse = await fetch('/api/locations-new/regiao', {
           method: 'POST',
@@ -711,8 +716,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               <SimpleMapWithButtons
                 onCoordinateSelect={handleMapCoordinateSelect}
                 onCancel={() => setShowMap(false)}
-                initialLat={watchedValues.latitude ? parseFloat(watchedValues.latitude) : undefined}
-                initialLng={watchedValues.longitude ? parseFloat(watchedValues.longitude) : undefined}
+                initialLat={watchedValues.latitude ? parseFloat(watchedValues.latitude) : 0}
+                initialLng={watchedValues.longitude ? parseFloat(watchedValues.longitude) : 0}
               />
             </div>
           )}

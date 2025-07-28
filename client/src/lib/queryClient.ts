@@ -2,20 +2,42 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function refreshAccessToken(): Promise<string | null> {
   try {
+    // Get refresh token from localStorage (if stored) or cookies
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    if (!refreshToken) {
+      console.log('No refresh token available');
+      return null;
+    }
+
     const response = await fetch('/api/auth/refresh', {
       method: 'POST',
       credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
+      console.log('Refresh token failed, redirecting to login');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/auth';
       return null;
     }
 
     const data = await response.json();
     localStorage.setItem('accessToken', data.accessToken);
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
     return data.accessToken;
   } catch (error) {
     console.error('Token refresh failed:', error);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    window.location.href = '/auth';
     return null;
   }
 }
@@ -46,11 +68,11 @@ export async function apiRequest(
   // Add authorization header if token exists
   let token = localStorage.getItem('accessToken');
   
-  // Ensure we have a valid token - update with fresh one
-  if (!token || token.includes('expired')) {
-    const freshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwOTE1LCJleHAiOjE3NTM3NDczMTUsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.uKufQKQzrHvxMVgaNOfiAQpGVgdRGGNlT8sGj0CSx_Y";
-    localStorage.setItem('accessToken', freshToken);
-    token = freshToken;
+  // Check if token exists
+  if (!token) {
+    console.log('No token found, redirecting to login');
+    window.location.href = '/auth';
+    return new Response('Unauthorized', { status: 401 });
   }
   
   if (token) {
@@ -86,6 +108,11 @@ export async function apiRequest(
       }
 
       res = await fetch(url, retryOptions);
+    } else {
+      // If refresh failed, redirect to login
+      console.log('Token refresh failed, redirecting to login');
+      window.location.href = '/auth';
+      return new Response('Unauthorized', { status: 401 });
     }
   }
 
@@ -104,11 +131,10 @@ export const getQueryFn: <T>(options: {
     // Add authorization header if token exists
     let token = localStorage.getItem('accessToken');
     
-    // Ensure we have a valid token - update with fresh one
-    if (!token || token.includes('expired')) {
-      const freshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwOTE1LCJleHAiOjE3NTM3NDczMTUsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.uKufQKQzrHvxMVgaNOfiAQpGVgdRGGNlT8sGj0CSx_Y";
-      localStorage.setItem('accessToken', freshToken);
-      token = freshToken;
+    // Check if token exists
+    if (!token) {
+      console.log('No token found for query');
+      return null;
     }
     
     if (token) {

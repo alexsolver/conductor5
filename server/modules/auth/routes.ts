@@ -20,8 +20,11 @@ const authRateLimit = createRateLimitMiddleware({
 authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
+    const cookieRefreshToken = req.cookies?.refreshToken;
 
-    if (!refreshToken) {
+    const tokenToUse = refreshToken || cookieRefreshToken;
+
+    if (!tokenToUse) {
       return res.status(400).json({ message: 'Refresh token required' });
     }
 
@@ -29,7 +32,7 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
     const userRepository = container.userRepository;
 
     // Verify refresh token
-    const payload = tokenService.verifyRefreshToken(refreshToken);
+    const payload = tokenService.verifyRefreshToken(tokenToUse);
     if (!payload) {
       return res.status(401).json({ message: 'Invalid refresh token' });
     }
@@ -40,10 +43,22 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
-    // Generate new access token
+    // Generate new tokens
     const accessToken = tokenService.generateAccessToken(user.id, user.email);
+    const newRefreshToken = tokenService.generateRefreshToken(user.id, user.email);
 
-    res.json({ accessToken });
+    // Set new refresh token as httpOnly cookie
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json({ 
+      accessToken,
+      refreshToken: newRefreshToken
+    });
   } catch (error) {
     console.error('Token refresh error:', error);
     res.status(401).json({ message: 'Token refresh failed' });
@@ -73,7 +88,8 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
 
     res.json({
       user: result.user,
-      accessToken: result.accessToken
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -181,7 +197,11 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
 authRouter.post('/logout', async (req, res) => {
   try {
     // Clear refresh token cookie
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
