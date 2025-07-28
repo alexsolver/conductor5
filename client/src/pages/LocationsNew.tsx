@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays, Edit, Trash2, Layers, Palette, FileUp, Target, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +76,8 @@ function LocationsNewContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [trechos, setTrechos] = useState([]);
   const [novoTrecho, setNovoTrecho] = useState({ de: "", trecho: "", para: "" });
+  const [tipoArea, setTipoArea] = useState("faixa-cep");
+  const [corArea, setCorArea] = useState("#3b82f6");
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -1680,6 +1682,303 @@ function LocationsNewContent() {
                             Nenhum trecho adicionado. Use o formulário acima para adicionar trechos sequenciais.
                           </div>
                         )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Form for ÁREA */}
+                  {activeRecordType === "area" && (
+                    <>
+                      {/* Seção: Identificação */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Grid3X3 className="h-5 w-5 mr-2" />
+                          Identificação
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="ativo"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ativo</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="nome"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome *</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Nome da área" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="descricao"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Descrição</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="Descrição detalhada da área" rows={3} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="codigoIntegracao"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Código de Integração</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Código único para integração" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Seção: Classificação */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Layers className="h-5 w-5 mr-2" />
+                          Classificação
+                        </h3>
+                        
+                        {/* Seletor de Tipo de Área */}
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Tipo de Área</Label>
+                              <Select onValueChange={setTipoArea} defaultValue={tipoArea}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="faixa-cep">Faixa CEP</SelectItem>
+                                  <SelectItem value="shape">Shape</SelectItem>
+                                  <SelectItem value="coordenadas">Coordenadas</SelectItem>
+                                  <SelectItem value="raio">Raio</SelectItem>
+                                  <SelectItem value="linha">Linha</SelectItem>
+                                  <SelectItem value="importar">Importar Área</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Cor no Mapa</Label>
+                              <div className="flex items-center space-x-2">
+                                <Input 
+                                  type="color" 
+                                  value={corArea}
+                                  onChange={(e) => setCorArea(e.target.value)}
+                                  className="w-16 h-10 p-1 border rounded"
+                                />
+                                <Input 
+                                  value={corArea}
+                                  onChange={(e) => setCorArea(e.target.value)}
+                                  placeholder="#3b82f6"
+                                  className="flex-1"
+                                />
+                                <Button variant="outline" size="sm">
+                                  <Palette className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Configurações específicas por tipo */}
+                          {tipoArea === "faixa-cep" && (
+                            <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <MapPin className="h-4 w-4 mr-2" />
+                                Configuração de Faixa CEP
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="CEP Inicial (ex: 01000-000)" />
+                                  <Input placeholder="CEP Final (ex: 01999-999)" />
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full">
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Adicionar Faixa CEP
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {tipoArea === "shape" && (
+                            <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <Map className="h-4 w-4 mr-2" />
+                                Ferramentas de Shape
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                <Button variant="outline" size="sm">
+                                  <FileUp className="h-4 w-4 mr-2" />
+                                  Importar Shape
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Desenhar Shape
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {tipoArea === "coordenadas" && (
+                            <div className="p-4 border rounded-lg bg-purple-50 dark:bg-purple-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <Target className="h-4 w-4 mr-2" />
+                                Coordenadas do Polígono
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="Latitude" type="number" step="any" />
+                                  <Input placeholder="Longitude" type="number" step="any" />
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button variant="outline" size="sm" className="flex-1">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Adicionar Ponto
+                                  </Button>
+                                  <Button variant="outline" size="sm" className="flex-1">
+                                    <Search className="h-4 w-4 mr-2" />
+                                    Buscar Endereço
+                                  </Button>
+                                </div>
+                                <Alert>
+                                  <AlertTriangle className="h-4 w-4" />
+                                  <AlertDescription>
+                                    Mínimo de 3 pontos necessários para formar um polígono válido.
+                                  </AlertDescription>
+                                </Alert>
+                              </div>
+                            </div>
+                          )}
+
+                          {tipoArea === "raio" && (
+                            <div className="p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <Target className="h-4 w-4 mr-2" />
+                                Configuração de Raio
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="Latitude do centro" type="number" step="any" />
+                                  <Input placeholder="Longitude do centro" type="number" step="any" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="Raio (metros)" type="number" min="1" />
+                                  <Select>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Unidade" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="metros">Metros</SelectItem>
+                                      <SelectItem value="quilometros">Quilômetros</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full">
+                                  <MapPin className="h-4 w-4 mr-2" />
+                                  Selecionar no Mapa
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {tipoArea === "linha" && (
+                            <div className="p-4 border rounded-lg bg-red-50 dark:bg-red-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <Zap className="h-4 w-4 mr-2" />
+                                Desenhar Linha
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input placeholder="Espessura (pixels)" type="number" min="1" defaultValue="3" />
+                                  <Select>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Estilo da linha" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="solida">Sólida</SelectItem>
+                                      <SelectItem value="tracejada">Tracejada</SelectItem>
+                                      <SelectItem value="pontilhada">Pontilhada</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full">
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Iniciar Desenho no Mapa
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {tipoArea === "importar" && (
+                            <div className="p-4 border rounded-lg bg-indigo-50 dark:bg-indigo-900/20">
+                              <h4 className="font-semibold mb-3 flex items-center">
+                                <FileUp className="h-4 w-4 mr-2" />
+                                Importar Arquivo
+                              </h4>
+                              <div className="space-y-3">
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                  <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                  <p className="text-sm text-gray-600">
+                                    Arraste arquivos ou clique para selecionar
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Formatos suportados: .shp, .kml, .geojson
+                                  </p>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full">
+                                  <Search className="h-4 w-4 mr-2" />
+                                  Selecionar Arquivo
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Preview do Mapa */}
+                        <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                          <h4 className="font-semibold mb-3 flex items-center">
+                            <Map className="h-4 w-4 mr-2" />
+                            Preview do Mapa
+                          </h4>
+                          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                            <div className="text-center text-gray-500">
+                              <Map className="h-8 w-8 mx-auto mb-2" />
+                              <p>Mapa interativo será exibido aqui</p>
+                              <p className="text-sm">Cor selecionada: <span className="inline-block w-4 h-4 rounded ml-1" style={{backgroundColor: corArea}}></span></p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </>
                   )}
