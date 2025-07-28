@@ -820,38 +820,129 @@ export default function TicketDetails() {
   }
 
   // Render tab content based on activeTab
-  function renderTabContent() {
+  const renderTabContent = () => {
     switch (activeTab) {
       case "informacoes":
         return (
-          <div className="space-y-4">
+          <Form {...form}>
+            <div className="space-y-4">
 
-            {/* Classificação */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
+              {/* Classificação */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prioridade *</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <DynamicSelect
+                              fieldName="priority"
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione a prioridade"
+                              disabled={!isEditMode}
+                            />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                              <DynamicBadge value={field.value}>
+                                {field.value}
+                              </DynamicBadge>
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status *</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <DynamicSelect
+                              fieldName="status"
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione o status"
+                              disabled={!isEditMode}
+                            />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                              <DynamicBadge value={field.value}>
+                                {field.value}
+                              </DynamicBadge>
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="subject"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assunto *</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição *</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <RichTextEditor
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          disabled={false}
+                        />
+                      ) : (
+                        <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Resto dos campos do formulário */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="priority"
+                  name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prioridade *</FormLabel>
+                      <FormLabel>Categoria</FormLabel>
                       <FormControl>
                         {isEditMode ? (
-                          <DynamicSelect
-                            fieldName="priority"
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Selecione a prioridade"
-                            disabled={!isEditMode}
-                          />
+                          <Input {...field} />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge value={field.value}>
-                              {field.value}
-                            </DynamicBadge>
-                          </div>
+                          <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
                         )}
                       </FormControl>
                       <FormMessage />
@@ -861,25 +952,15 @@ export default function TicketDetails() {
 
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="subcategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status *</FormLabel>
+                      <FormLabel>Subcategoria</FormLabel>
                       <FormControl>
                         {isEditMode ? (
-                          <DynamicSelect
-                            fieldName="status"
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Selecione o status"
-                            disabled={!isEditMode}
-                          />
+                          <Input {...field} />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge value={field.value}>
-                              {field.value}
-                            </DynamicBadge>
-                          </div>
+                          <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
                         )}
                       </FormControl>
                       <FormMessage />
@@ -887,292 +968,29 @@ export default function TicketDetails() {
                   )}
                 />
               </div>
-            </div>
 
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assunto *</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Input {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição *</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <RichTextEditor 
-                        value={field.value || ''}
-                        onChange={field.onChange}
-                        disabled={false}
-                      />
-                    ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Resto dos campos do formulário */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input {...field} />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="subcategory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subcategoria</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input {...field} />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Impacto e Urgência */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="impact"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Impacto</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione o impacto" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {impactOptions && impactOptions.map((option: any) => (
-                              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="urgency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Urgência</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione a urgência" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {urgencyOptions && urgencyOptions.map((option: any) => (
-                              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="businessImpact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Impacto no Negócio</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="symptoms"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sintomas</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="workaround"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Workaround</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="resolution"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Resolução</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="environment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ambiente</FormLabel>
-                  <FormControl>
-                    {isEditMode ? (
-                      <Textarea {...field} />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="templateName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Template</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input {...field} />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="templateAlternative"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Template Alternativo</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input {...field} />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Linking Section */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">
-                RELACIONAMENTO COM OUTROS TICKETS
-              </h3>
-
+              {/* Impacto e Urgência */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="linkTicketNumber"
+                  name="impact"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número do Ticket Linkado</FormLabel>
+                      <FormLabel>Impacto</FormLabel>
                       <FormControl>
                         {isEditMode ? (
-                          <Input {...field} />
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione o impacto" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {impactOptions && impactOptions.map((option: any) => (
+                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {field.value || "N/A"}
-                          </div>
+                          <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
                         )}
                       </FormControl>
                       <FormMessage />
@@ -1182,17 +1000,24 @@ export default function TicketDetails() {
 
                 <FormField
                   control={form.control}
-                  name="linkType"
+                  name="urgency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Link</FormLabel>
+                      <FormLabel>Urgência</FormLabel>
                       <FormControl>
                         {isEditMode ? (
-                          <Input {...field} />
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione a urgência" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {urgencyOptions && urgencyOptions.map((option: any) => (
+                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {field.value || "N/A"}
-                          </div>
+                          <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
                         )}
                       </FormControl>
                       <FormMessage />
@@ -1203,213 +1028,468 @@ export default function TicketDetails() {
 
               <FormField
                 control={form.control}
-                name="linkComment"
+                name="businessImpact"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Comentário do Link</FormLabel>
+                    <FormLabel>Impacto no Negócio</FormLabel>
                     <FormControl>
                       {isEditMode ? (
                         <Textarea {...field} />
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          {field.value || "N/A"}
-                        </div>
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
                       )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            {/* Time Tracking */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">
-                RASTREIO DE TEMPO
-              </h3>
+              <FormField
+                control={form.control}
+                name="symptoms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sintomas</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="estimatedHours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horas Estimadas</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Input type="number" {...field} />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {field.value || "0"}
-                          </div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="workaround"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Workaround</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="actualHours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horas Atuais</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Input type="number" {...field} />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {field.value || "0"}
-                          </div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+              <FormField
+                control={form.control}
+                name="resolution"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Resolução</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Customer and Company */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">
-                CLIENTE E EMPRESA
-              </h3>
-
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="customerCompanyId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Empresa do Cliente *</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Select
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              handleCompanyChange(value);
-                            }}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Selecione a empresa" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.isArray(companiesData?.companies) &&
-                                companiesData.companies.map((company: any) => (
-                                  <SelectItem key={company.id} value={company.id}>
-                                    {company.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {
-                              companiesData?.companies?.find((c: any) => c.id === field.value)?.name || "N/A"
-                            }
-                          </div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="callerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cliente *</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Selecione o cliente" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableCustomers &&
-                                availableCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id}>
-                                    {customer.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {
-                              availableCustomers?.find((c: any) => c.id === field.value)?.name || "N/A"
-                            }
-                          </div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Assignment */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">
-                ATRIBUIÇÃO
-              </h3>
+              <FormField
+                control={form.control}
+                name="environment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ambiente</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="assignedToId"
+                  name="templateName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Atribuído A</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Selecione o usuário" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {users &&
-                                users.map((user: any) => (
-                                  <SelectItem key={user.id} value={user.id}>
-                                    {user.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {
-                              users?.find((u: any) => u.id === field.value)?.name || "N/A"
-                            }
-                          </div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="assignmentGroup"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Grupo de Atribuição</FormLabel>
+                      <FormLabel>Nome do Template</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <Input {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="templateAlternative"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Template Alternativo</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || "N/A"}</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Linking Section */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                  RELACIONAMENTO COM OUTROS TICKETS
+                </h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="linkTicketNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número do Ticket Linkado</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Input {...field} />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {field.value || "N/A"}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="linkType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Link</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Input {...field} />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {field.value || "N/A"}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="linkComment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comentário do Link</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Textarea {...field} />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "N/A"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Time Tracking */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                  RASTREIO DE TEMPO
+                </h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="estimatedHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Horas Estimadas</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Input type="number" {...field} />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {field.value || "0"}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="actualHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Horas Atuais</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Input type="number" {...field} />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {field.value || "0"}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Customer and Company */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                  CLIENTE E EMPRESA
+                </h3>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="customerCompanyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Empresa do Cliente *</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Select
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                handleCompanyChange(value);
+                              }}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione a empresa" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.isArray(companiesData?.companies) &&
+                                  companiesData.companies.map((company: any) => (
+                                    <SelectItem key={company.id} value={company.id}>
+                                      {company.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {
+                                companiesData?.companies?.find((c: any) => c.id === field.value)?.name || "N/A"
+                              }
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="callerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cliente *</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione o cliente" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableCustomers &&
+                                  availableCustomers.map((customer: any) => (
+                                    <SelectItem key={customer.id} value={customer.id}>
+                                      {customer.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {
+                                availableCustomers?.find((c: any) => c.id === field.value)?.name || "N/A"
+                              }
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Assignment */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                  ATRIBUIÇÃO
+                </h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="assignedToId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Atribuído A</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione o usuário" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {users &&
+                                  users.map((user: any) => (
+                                    <SelectItem key={user.id} value={user.id}>
+                                      {user.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {
+                                users?.find((u: any) => u.id === field.value)?.name || "N/A"
+                              }
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="assignmentGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Grupo de Atribuição</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <Input {...field} />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded">
+                              {field.value || "N/A"}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                  LOCALIZAÇÃO
+                </h3>
+
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Localização</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione a localização" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {locationsData &&
+                                locationsData.map((location: any) => (
+                                  <SelectItem key={location.id} value={location.name}>
+                                    {location.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value || "N/A"}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Contact Type */}
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-sm font-semibold text-gray-600 mb-4">
+                  TIPO DE CONTATO
+                </h3>
+
+                <FormField
+                  control={form.control}
+                  name="contactType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Contato</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione o tipo de contato" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="email">Email</SelectItem>
+                              <SelectItem value="phone">Telefone</SelectItem>
+                              <SelectItem value="in_person">Pessoalmente</SelectItem>
+                            </SelectContent>
+                          </Select>
                         ) : (
                           <div className="p-2 bg-gray-50 rounded">
                             {field.value || "N/A"}
@@ -1422,85 +1502,7 @@ export default function TicketDetails() {
                 />
               </div>
             </div>
-
-            {/* Location */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">
-                LOCALIZAÇÃO
-              </h3>
-
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Localização</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione a localização" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {locationsData &&
-                              locationsData.map((location: any) => (
-                                <SelectItem key={location.id} value={location.name}>
-                                  {location.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          {field.value || "N/A"}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Contact Type */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">
-                TIPO DE CONTATO
-              </h3>
-
-              <FormField
-                control={form.control}
-                name="contactType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Contato</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione o tipo de contato" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="email">Email</SelectItem>
-                            <SelectItem value="phone">Telefone</SelectItem>
-                            <SelectItem value="in_person">Pessoalmente</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          {field.value || "N/A"}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          </Form>
         );
 
       case "attachments":
