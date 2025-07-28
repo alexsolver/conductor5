@@ -424,7 +424,7 @@ function LocationsNewContent() {
     queryFn: async () => {
       try {
         const response = await apiRequest("GET", "/api/locations-new/locais-atendimento");
-        
+
         if (!response.ok) {
           // Graceful degradation for API errors
           if (response.status === 400 || response.status === 500) {
@@ -676,7 +676,7 @@ function LocationsNewContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentData[activeRecordType + 's']?.map((record: any) => (
+                  {Array.isArray(currentData[activeRecordType + 's']) && currentData[activeRecordType + 's']?.map((record: any) => (
                   <TableRow key={record.id}>
                     <TableCell>
                       <div>
