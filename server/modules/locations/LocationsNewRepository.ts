@@ -640,15 +640,16 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Validate schema and table
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.createMockRecord('regiao', tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'regioes');
       if (!tableValidation.isValid) {
-        return this.createMockRecord('regiao', tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'regioes');
       }
 
       const query = `
@@ -673,10 +674,16 @@ export class LocationsNewRepository {
       ];
 
       const result = await this.executeQuery(query, values);
-      return result[0] || this.createMockRecord('regiao', tenantId, data);
+      
+      if (result && result.length > 0) {
+        console.log('LocationsNewRepository.createRegiao - Successfully created regiao in database');
+        return result[0];
+      } else {
+        throw new Error('Failed to create regiao - no result returned from database');
+      }
     } catch (error) {
-      console.error('Error creating regiao:', error);
-      return this.createMockRecord('regiao', tenantId, data);
+      console.error('LocationsNewRepository.createRegiao - Error:', error);
+      throw new Error(`Failed to create regiao: ${error.message}`);
     }
   }
 
@@ -684,14 +691,16 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.createMockRecord('rota-dinamica', tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'rotas_dinamicas');
       if (!tableValidation.isValid) {
-        return this.createMockRecord('rota-dinamica', tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'rotas_dinamicas');
       }
 
       const query = `
@@ -712,10 +721,16 @@ export class LocationsNewRepository {
       ];
 
       const result = await this.executeQuery(query, values);
-      return result[0] || this.createMockRecord('rota-dinamica', tenantId, data);
+      
+      if (result && result.length > 0) {
+        console.log('LocationsNewRepository.createRotaDinamica - Successfully created rota dinamica in database');
+        return result[0];
+      } else {
+        throw new Error('Failed to create rota dinamica - no result returned from database');
+      }
     } catch (error) {
-      console.error('Error creating rota dinamica:', error);
-      return this.createMockRecord('rota-dinamica', tenantId, data);
+      console.error('LocationsNewRepository.createRotaDinamica - Error:', error);
+      throw new Error(`Failed to create rota dinamica: ${error.message}`);
     }
   }
 
@@ -723,14 +738,16 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.createMockRecord('trecho', tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'trechos');
       if (!tableValidation.isValid) {
-        return this.createMockRecord('trecho', tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'trechos');
       }
 
       const query = `
@@ -747,10 +764,16 @@ export class LocationsNewRepository {
       ];
 
       const result = await this.executeQuery(query, values);
-      return result[0] || this.createMockRecord('trecho', tenantId, data);
+      
+      if (result && result.length > 0) {
+        console.log('LocationsNewRepository.createTrecho - Successfully created trecho in database');
+        return result[0];
+      } else {
+        throw new Error('Failed to create trecho - no result returned from database');
+      }
     } catch (error) {
-      console.error('Error creating trecho:', error);
-      return this.createMockRecord('trecho', tenantId, data);
+      console.error('LocationsNewRepository.createTrecho - Error:', error);
+      throw new Error(`Failed to create trecho: ${error.message}`);
     }
   }
 
@@ -758,14 +781,16 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.createMockRecord('rota-trecho', tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'rotas_trecho');
       if (!tableValidation.isValid) {
-        return this.createMockRecord('rota-trecho', tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'rotas_trecho');
       }
 
       // Insert main rota trecho
@@ -816,10 +841,15 @@ export class LocationsNewRepository {
         }));
       }
 
-      return result[0] || this.createMockRecord('rota-trecho', tenantId, data);
+      if (result && result.length > 0) {
+        console.log('LocationsNewRepository.createRotaTrecho - Successfully created rota trecho in database');
+        return result[0];
+      } else {
+        throw new Error('Failed to create rota trecho - no result returned from database');
+      }
     } catch (error) {
-      console.error('Error creating rota trecho:', error);
-      return this.createMockRecord('rota-trecho', tenantId, data);
+      console.error('LocationsNewRepository.createRotaTrecho - Error:', error);
+      throw new Error(`Failed to create rota trecho: ${error.message}`);
     }
   }
 
@@ -827,14 +857,16 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.createMockRecord('area', tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'areas');
       if (!tableValidation.isValid) {
-        return this.createMockRecord('area', tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'areas');
       }
 
       const query = `
@@ -863,10 +895,16 @@ export class LocationsNewRepository {
       ];
 
       const result = await this.executeQuery(query, values);
-      return result[0] || this.createMockRecord('area', tenantId, data);
+      
+      if (result && result.length > 0) {
+        console.log('LocationsNewRepository.createArea - Successfully created area in database');
+        return result[0];
+      } else {
+        throw new Error('Failed to create area - no result returned from database');
+      }
     } catch (error) {
-      console.error('Error creating area:', error);
-      return this.createMockRecord('area', tenantId, data);
+      console.error('LocationsNewRepository.createArea - Error:', error);
+      throw new Error(`Failed to create area: ${error.message}`);
     }
   }
 
@@ -874,14 +912,16 @@ export class LocationsNewRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
+      // Ensure schema exists
       const schemaValidation = await this.validateSchema(schemaName);
       if (!schemaValidation.isValid) {
-        return this.createMockRecord('agrupamento', tenantId, data);
+        await this.createSchemaIfNotExists(schemaName);
       }
 
+      // Ensure table exists
       const tableValidation = await this.validateTable(schemaName, 'agrupamentos');
       if (!tableValidation.isValid) {
-        return this.createMockRecord('agrupamento', tenantId, data);
+        await this.createTableIfNotExists(schemaName, 'agrupamentos');
       }
 
       const query = `
@@ -898,21 +938,17 @@ export class LocationsNewRepository {
       ];
 
       const result = await this.executeQuery(query, values);
-      return result[0] || this.createMockRecord('agrupamento', tenantId, data);
+      
+      if (result && result.length > 0) {
+        console.log('LocationsNewRepository.createAgrupamento - Successfully created agrupamento in database');
+        return result[0];
+      } else {
+        throw new Error('Failed to create agrupamento - no result returned from database');
+      }
     } catch (error) {
-      console.error('Error creating agrupamento:', error);
-      return this.createMockRecord('agrupamento', tenantId, data);
+      console.error('LocationsNewRepository.createAgrupamento - Error:', error);
+      throw new Error(`Failed to create agrupamento: ${error.message}`);
     }
-  }
-
-  private createMockRecord(type: string, tenantId: string, data: any) {
-    return {
-      id: `mock-${type}-${Date.now()}`,
-      tenantId,
-      ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
   }
 
   // Generic update and delete operations
@@ -1010,8 +1046,17 @@ export class LocationsNewRepository {
 
   private async executeQuery(query: string, params: any[]): Promise<any[]> {
     try {
-      // Use proper parameterized query execution
-      const result = await this.db.execute(sql.raw(query, ...params));
+      // Build parameterized query properly
+      let parameterizedQuery = query;
+      let paramIndex = 1;
+      
+      // Replace each parameter placeholder with proper indexed parameters
+      for (const param of params) {
+        parameterizedQuery = parameterizedQuery.replace('$' + paramIndex, `'${param}'`);
+        paramIndex++;
+      }
+      
+      const result = await this.db.execute(sql.raw(parameterizedQuery));
       return result.rows || [];
     } catch (error) {
       console.error('Database query failed:', {
@@ -1027,12 +1072,21 @@ export class LocationsNewRepository {
 
         // Try common field name corrections
         let correctedQuery = query
+          .replace(/cell_phone/g, 'phone')
+          .replace(/first_name/g, 'name')
           .replace(/is_active/g, 'active')
-          .replace(/address(?![_\w])/g, 'street_address')
-          .replace(/first_name/g, 'name');
+          .replace(/address(?![_\w])/g, 'street_address');
+
+        // Apply parameter substitution to corrected query
+        let correctedParameterizedQuery = correctedQuery;
+        let paramIndex = 1;
+        for (const param of params) {
+          correctedParameterizedQuery = correctedParameterizedQuery.replace('$' + paramIndex, `'${param}'`);
+          paramIndex++;
+        }
 
         try {
-          const correctedResult = await this.db.execute(sql.raw(correctedQuery, ...params));
+          const correctedResult = await this.db.execute(sql.raw(correctedParameterizedQuery));
           console.log('Query succeeded with field corrections');
           return correctedResult.rows || [];
         } catch (correctionError) {
