@@ -81,6 +81,8 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         title: "Sucesso",
         description: "Ação interna adicionada com sucesso",
       });
+      
+      // Reset form data
       setFormData({
         startDateTime: "",
         endDateTime: "",
@@ -92,11 +94,18 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         attachments: []
       });
       setIsPublic(false);
+      
+      // Clear editor content
       if (editor) {
         editor.commands.clearContent();
       }
+      
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId] });
+      
+      // Close modal after successful creation
+      onClose();
     },
     onError: (error: Error) => {
       toast({

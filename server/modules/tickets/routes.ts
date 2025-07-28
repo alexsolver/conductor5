@@ -369,23 +369,24 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tact.description,
         'active' as status,
         COALESCE(tact.estimated_hours, 0) as time_spent,
-        tact.created_at as start_time,
-        tact.updated_at as end_time,
-        tact.customer_id,
+        tact.start_time,
+        tact.end_time,
         '[]'::text as linked_items,
         false as has_file,
         'system' as contact_method,
         '' as vendor,
-        COALESCE(tact.is_active, true) as is_public,
+        COALESCE(tact.is_public, true) as is_public,
         tact.created_at,
-        'Sistema' as agent_name
+        tact.created_by,
+        u.first_name || ' ' || u.last_name as agent_name,
+        u.first_name || ' ' || u.last_name as "createdByName"
       FROM "${schemaName}".ticket_actions tact
-      WHERE tact.tenant_id = $1::uuid
+      LEFT JOIN public.users u ON tact.created_by = u.id
+      WHERE tact.ticket_id = $1::uuid AND tact.tenant_id = $2::uuid AND tact.is_active = true
       ORDER BY tact.created_at DESC
-      LIMIT 10
     `;
 
-    const result = await pool.query(query, [tenantId]);
+    const result = await pool.query(query, [id, tenantId]);
 
     res.json({
       success: true,

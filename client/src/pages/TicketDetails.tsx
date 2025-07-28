@@ -490,13 +490,12 @@ export default function TicketDetails() {
       setNotes([]);
     }
 
-    // Set actions from API
+    // Set actions from API - all actions are internal by default from ticket_actions table
     if (ticketActions?.success && ticketActions?.data) {
       const actions = ticketActions.data;
-      const internal = actions.filter((a: any) => a.type === 'internal' || a.actionType === 'internal');
-      const external = actions.filter((a: any) => a.type === 'external' || a.actionType === 'external');
-      setInternalActions(internal);
-      setExternalActions(external);
+      // All actions from ticket_actions table are internal actions
+      setInternalActions(actions);
+      setExternalActions([]); // External actions would come from a different endpoint
     } else {
       setInternalActions([]);
       setExternalActions([]);
@@ -1409,15 +1408,26 @@ export default function TicketDetails() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <User className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium text-sm">{action.createdByName}</span>
-                            <Badge variant={action.isPublic ? 'default' : 'secondary'}>
-                              {action.isPublic ? 'Público' : 'Privado'}
+                            <span className="font-medium text-sm">{action.createdByName || action.agent_name || 'Sistema'}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {action.actionType || action.type || 'Ação'}
+                            </Badge>
+                            <Badge variant={action.is_public ? 'default' : 'secondary'}>
+                              {action.is_public ? 'Público' : 'Privado'}
                             </Badge>
                             <span className="text-xs text-gray-500">
-                              {new Date(action.createdAt).toLocaleString()}
+                              {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                             </span>
                           </div>
-                          <p className="text-gray-800 whitespace-pre-wrap">{action.content}</p>
+                          <div className="space-y-2">
+                            <p className="text-gray-800 whitespace-pre-wrap">{action.content || action.description}</p>
+                            {action.time_spent && action.time_spent !== '0:00:00:00' && (
+                              <div className="text-xs text-gray-600 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                Tempo gasto: {action.time_spent}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>
