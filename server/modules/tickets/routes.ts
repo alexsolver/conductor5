@@ -780,42 +780,75 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    // CORREÇÃO PROBLEMA 4: Eliminar dados hardcoded - usar apenas dados reais da API
-    // Conectar à API real de histórico de tickets
-    try {
-      const { pool } = await import('../../db');
-      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      const historyQuery = `
-        SELECT 
-          th.id,
-          th.action_type as type,
-          th.description as action,
-          th.description,
-          th.user_id as actor,
-          u.first_name || ' ' || u.last_name as "actorName",
-          'user' as "actorType",
-          th.old_value as "oldValue",
-          th.new_value as "newValue", 
-          th.field_name as "fieldName",
-          true as "isPublic",
-          th.created_at as "createdAt"
-        FROM "${schemaName}".ticket_history th
-        LEFT JOIN public.users u ON th.user_id = u.id
-        WHERE th.ticket_id = $1
-        ORDER BY th.created_at DESC
-      `;
+    // Combine ticket history and internal actions for a complete timeline
+    const historyQuery = `
+      SELECT 
+        'history' as source,
+        th.id,
+        th.action_type,
+        th.description,
+        th.user_id as performed_by,
+        u.first_name || ' ' || u.last_name as performed_by_name,
+        th.old_value,
+        th.new_value,
+        th.field_name,
+        th.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        null as metadata
+      FROM "${schemaName}".ticket_history th
+      LEFT JOIN public.users u ON th.user_id = u.id
+      WHERE th.ticket_id = $1::uuid
+      
+      UNION ALL
+      
+      SELECT 
+        'action' as source,
+        ta.id,
+        ta.action_type,
+        ta.description,
+        ta.created_by as performed_by,
+        u2.first_name || ' ' || u2.last_name as performed_by_name,
+        null as old_value,
+        null as new_value,
+        null as field_name,
+        ta.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        jsonb_build_object(
+          'work_log', ta.work_log,
+          'time_spent', ta.time_spent,
+          'estimated_hours', ta.estimated_hours,
+          'is_public', ta.is_public
+        ) as metadata
+      FROM "${schemaName}".ticket_actions ta
+      LEFT JOIN public.users u2 ON ta.created_by = u2.id
+      WHERE ta.ticket_id = $1::uuid AND ta.is_active = true
+      
+      ORDER BY created_at DESC
+    `;
 
-      const historyResult = await pool.query(historyQuery, [ticketId]);
-      return sendSuccess(res, historyResult.rows, "Ticket history retrieved successfully");
+    const result = await pool.query(historyQuery, [id]);
 
-    } catch (dbError) {
-      console.log("Database history not available, returning empty array");
-      return sendSuccess(res, [], "No ticket history available");
-    }
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
+
   } catch (error) {
-    console.error("Error fetching history:", error);
-    res.status(500).json({ message: "Failed to fetch history" });
+    console.error("Error fetching ticket history:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch ticket history" 
+    });
   }
 });
 

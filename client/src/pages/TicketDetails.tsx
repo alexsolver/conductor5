@@ -408,9 +408,9 @@ export default function TicketDetails() {
 
   // Fetch real ticket history data from API
   const { data: ticketHistoryData } = useQuery({
-    queryKey: ["/api/ticket-history/tickets", id, "history"],
+    queryKey: ["/api/tickets", id, "history"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/ticket-history/tickets/${id}/history`);
+      const response = await apiRequest("GET", `/api/tickets/${id}/history`);
       return response.json();
     },
     enabled: !!id,
@@ -921,7 +921,8 @@ export default function TicketDetails() {
                         disabled={false}
                       />
                     ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
+                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerously<replit_final_file>
+SetInnerHTML={{ __html: field.value || '' }} />
                     )}
                   </FormControl>
                   <FormMessage />
@@ -1447,7 +1448,7 @@ export default function TicketDetails() {
                 {externalActions.length} ações disponíveis
               </Badge>
             </div>
-            
+
             {/* 🚨 CORREÇÃO: Dados reais da API eliminando botões hardcoded */}
             <div className="space-y-4">
               {externalActions.length === 0 ? (

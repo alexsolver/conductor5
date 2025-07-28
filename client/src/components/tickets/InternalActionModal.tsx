@@ -103,6 +103,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
       
       // Close modal after successful creation
       onClose();
