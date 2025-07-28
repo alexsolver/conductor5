@@ -4,23 +4,20 @@ import { LocationsNewController } from './LocationsNewController';
 import { LocationsNewRepository } from './LocationsNewRepository-fixed';
 import { getTenantDb } from '../../db-tenant';
 import { DatabaseStorage } from "../../storage-simple";
-import { jwtAuth } from "../../middleware/jwtAuth";
+import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 
 const router = Router();
 
-// Middleware to augment request with tenantId
-interface AuthenticatedRequest extends Request {
-  user?: {
-    tenantId: string;
-  };
-  tenantDb: any; // Define the type for tenantDb based on your actual database type
-}
-
-// Apply JWT authentication to all routes FIRST
+// Apply JWT authentication to all routes
 router.use(jwtAuth);
 
+// Extend AuthenticatedRequest interface for locations
+interface LocationsRequest extends AuthenticatedRequest {
+  tenantDb?: any;
+}
+
 // Middleware to get tenant database pool (after authentication)
-router.use('*', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.use('*', async (req: LocationsRequest, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -43,45 +40,45 @@ router.use('*', async (req: AuthenticatedRequest, res: Response, next: NextFunct
 });
 
 // Controller factory function
-const getController = (req: AuthenticatedRequest) => new LocationsNewController(req.tenantDb);
+const getController = (req: LocationsRequest) => new LocationsNewController(req.tenantDb);
 
 // Get statistics by type FIRST to avoid UUID conflict  
-router.get('/:recordType/stats', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.getStatsByType(req, res);
 });
 
 // Get records by type
-router.get('/:recordType', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.getRecordsByType(req, res);
 });
 
 // CEP lookup
-router.get('/services/cep/:cep', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/services/cep/:cep', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.lookupCep(req, res);
 });
 
 // Holidays lookup
-router.get('/holidays', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/holidays', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.lookupHolidays(req, res);
 });
 
 // Geocoding
-router.post('/services/geocode', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/services/geocode', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.geocodeAddress(req, res);
 });
 
 // Create operations
-router.post('/local', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/local', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.createLocal(req, res);
 });
 
-router.post('/regiao', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/regiao', async (req: LocationsRequest, res: Response) => {
   const controller = getController(req);
   return controller.createRegiao(req, res);
 });
