@@ -1395,6 +1395,108 @@ function LocationsNewContent() {
                     </>
                   )}
 
+                  {/* Form for TRECHO */}
+                  {activeRecordType === "trecho" && (
+                    <>
+                      {/* Seção: Identificação do Trecho */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center">
+                          <Settings className="h-5 w-5 mr-2" />
+                          Identificação
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="ativo"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ativo</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="codigoIntegracao"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Código de Integração</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Código único do trecho" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="localA"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Local A</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecionar local de origem" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="local1">Filial Centro - São Paulo/SP</SelectItem>
+                                    <SelectItem value="local2">Unidade Norte - Guarulhos/SP</SelectItem>
+                                    <SelectItem value="local3">Base Sul - Santo André/SP</SelectItem>
+                                    <SelectItem value="local4">Depósito Leste - Mogi das Cruzes/SP</SelectItem>
+                                    <SelectItem value="local5">Escritório Oeste - Osasco/SP</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="localB"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Local B</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecionar local de destino" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="local1">Filial Centro - São Paulo/SP</SelectItem>
+                                    <SelectItem value="local2">Unidade Norte - Guarulhos/SP</SelectItem>
+                                    <SelectItem value="local3">Base Sul - Santo André/SP</SelectItem>
+                                    <SelectItem value="local4">Depósito Leste - Mogi das Cruzes/SP</SelectItem>
+                                    <SelectItem value="local5">Escritório Oeste - Osasco/SP</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button 
                       type="button" 
