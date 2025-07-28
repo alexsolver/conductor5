@@ -207,11 +207,56 @@ function LocationsNewContent() {
                 onSubmit={async (data) => {
                   console.log('Local form submitted:', data);
                   try {
-                    // Get the current token
-                    const currentToken = localStorage.getItem('accessToken') || token;
+                    // Validate and refresh token if needed
+                    let currentToken = localStorage.getItem('accessToken') || token;
                     
                     if (!currentToken) {
-                      throw new Error('Token de autenticação não encontrado');
+                      console.log('No token found, attempting refresh');
+                      const refreshResponse = await fetch('/api/auth/refresh', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        }
+                      });
+
+                      if (refreshResponse.ok) {
+                        const refreshData = await refreshResponse.json();
+                        currentToken = refreshData.accessToken;
+                        localStorage.setItem('accessToken', currentToken);
+                        setToken(currentToken);
+                      } else {
+                        throw new Error('Não foi possível identificar o tenant. Faça login novamente.');
+                      }
+                    }
+
+                    // Check if token is expired and refresh if needed
+                    try {
+                      const payload = JSON.parse(atob(currentToken.split('.')[1]));
+                      const isExpired = payload.exp * 1000 < Date.now();
+                      
+                      if (isExpired) {
+                        console.log('Token expired, refreshing');
+                        const refreshResponse = await fetch('/api/auth/refresh', {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          }
+                        });
+
+                        if (refreshResponse.ok) {
+                          const refreshData = await refreshResponse.json();
+                          currentToken = refreshData.accessToken;
+                          localStorage.setItem('accessToken', currentToken);
+                          setToken(currentToken);
+                        } else {
+                          throw new Error('Token expirado. Faça login novamente.');
+                        }
+                      }
+                    } catch (tokenError) {
+                      console.error('Token validation error:', tokenError);
+                      throw new Error('Token inválido. Faça login novamente.');
                     }
 
                     const response = await fetch('/api/locations-new/local', {
@@ -224,6 +269,9 @@ function LocationsNewContent() {
                     });
 
                     if (!response.ok) {
+                      if (response.status === 401) {
+                        throw new Error('Erro de autenticação. Faça login novamente.');
+                      }
                       const errorData = await response.json().catch(() => ({}));
                       throw new Error(errorData.message || 'Falha ao criar local');
                     }
