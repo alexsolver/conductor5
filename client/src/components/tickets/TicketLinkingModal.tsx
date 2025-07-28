@@ -211,7 +211,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Link2 className="h-5 w-5" />
-            <span>Vincular Tickets - {currentTicket.number || currentTicket.subject}</span>
+            <span>Tickets Vinculados{currentTicket.number || currentTicket.subject}</span>
           </DialogTitle>
         </DialogHeader>
 
