@@ -1,0 +1,54 @@
+🏢 Processing schema: tenant_3f99462f_3621_4b1b_bea8_782acc50d62e
+  ✅ Table exists: locais
+  ✅ Table exists: regioes
+  ✅ Table exists: rotas_dinamicas
+  ✅ Table exists: trechos
+  ✅ Table exists: rotas_trecho
+  ❌ Missing table: trechos_rota - Creating...
+❌ Error fixing locations database: error: function create_locations_new_tables_for_tenant(unknown) does not exist
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async fixLocationsDatabaseIssues (file:///home/runner/workspace/fix_locations_database_issues.js:45:11) {
+  length: 239,
+  severity: 'ERROR',
+  code: '42883',
+  detail: undefined,
+  hint: 'No function matches the given name and argument types. You might need to add explicit type casts.',
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_func.c',
+  line: '629',
+  routine: 'ParseFuncOrColumn'
+}
+node:internal/process/promises:289
+            triggerUncaughtException(err, true /* fromPromise */);
+            ^
+
+error: function create_locations_new_tables_for_tenant(unknown) does not exist
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async fixLocationsDatabaseIssues (file:///home/runner/workspace/fix_locations_database_issues.js:45:11) {
+  length: 239,
+  severity: 'ERROR',
+  code: '42883',
+  detail: undefined,
+  hint: 'No function matches the given name and argument types. You might need to add explicit type casts.',
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_func.c',
+  line: '629',
+  routine: 'ParseFuncOrColumn'
