@@ -65,11 +65,12 @@ export async function apiRequest(
     headers["Content-Type"] = "application/json";
   }
   
-  // Add authorization header if token exists
+  // Add authorization header if token exists (but skip redirect for login/register endpoints)
   let token = localStorage.getItem('accessToken');
+  const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
   
-  // Check if token exists
-  if (!token) {
+  // Check if token exists (skip for auth endpoints)
+  if (!token && !isAuthEndpoint) {
     console.log('No token found, redirecting to login');
     window.location.href = '/auth';
     return new Response('Unauthorized', { status: 401 });

@@ -90,6 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async (credentials: LoginData) => {
       try {
         const res = await apiRequest('POST', '/api/auth/login', credentials);
+        
+        if (!res.ok) {
+          let errorMessage = 'Login failed';
+          try {
+            const errorData = await res.json();
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            errorMessage = res.statusText || errorMessage;
+          }
+          throw new Error(errorMessage);
+        }
+        
         return await res.json();
       } catch (error) {
         // Login API error handled by UI
