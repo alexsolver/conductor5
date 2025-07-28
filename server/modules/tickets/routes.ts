@@ -350,7 +350,7 @@ ticketsRouter.delete('/:id/attachments/:attachmentId', jwtAuth, async (req: Auth
 });
 
 // Get ticket actions
-ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -406,7 +406,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 // Create ticket action
-ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -689,7 +689,7 @@ ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 // Get ticket notes
-ticketsRouter.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -736,7 +736,7 @@ ticketsRouter.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) 
 });
 
 // Create ticket note - IMPLEMENTAÇÃO REAL
-ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
