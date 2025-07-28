@@ -410,29 +410,126 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const { content, is_public } = req.body;
+    const { id } = req.params;
+    const { 
+      actionType, 
+      workLog, 
+      description, 
+      timeSpent, 
+      startDateTime, 
+      endDateTime, 
+      is_public = false 
+    } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Validate required fields
-    if (!content) {
-      return res.status(400).json({ message: "Content is required" });
+    if (!actionType) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Action type is required" 
+      });
     }
 
-    // Placeholder - return success for now
-    res.json({ 
-      success: true, 
+    // Verify ticket exists
+    const ticketCheck = await pool.query(
+      `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
+    );
+
+    if (ticketCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Ticket not found" 
+      });
+    }
+
+    // Parse time spent (format: "0:00:00:25" -> decimal hours)
+    let estimatedHours = 0;
+    if (timeSpent) {
+      const timeParts = timeSpent.split(':');
+      if (timeParts.length >= 3) {
+        const hours = parseInt(timeParts[0]) || 0;
+        const minutes = parseInt(timeParts[1]) || 0;
+        const seconds = parseInt(timeParts[2]) || 0;
+        estimatedHours = hours + (minutes / 60) + (seconds / 3600);
+      }
+    }
+
+    // Insert action into database
+    const insertQuery = `
+      INSERT INTO "${schemaName}".ticket_actions 
+      (id, tenant_id, ticket_id, action_type, description, created_by, created_at, updated_at, is_active, estimated_hours)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW(), true, $6)
+      RETURNING id, action_type, description, created_at, estimated_hours
+    `;
+
+    const actionDescription = workLog || description || `${actionType} action performed`;
+
+    const result = await pool.query(insertQuery, [
+      tenantId,           // tenant_id
+      id,                 // ticket_id
+      actionType,         // action_type
+      actionDescription,  // description
+      req.user.id,        // created_by
+      estimatedHours      // estimated_hours
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to create action" 
+      });
+    }
+
+    const newAction = result.rows[0];
+
+    // Get user name for response
+    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+    const userResult = await pool.query(userQuery, [req.user.id]);
+    const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+    // Update ticket's updated_at timestamp
+    await pool.query(
+      `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
+    );
+
+    res.status(201).json({
+      success: true,
       message: "Action created successfully",
-      action: {
-        id: Date.now().toString(),
-        content,
-        isPublic: is_public || false,
+      data: {
+        id: newAction.id,
+        actionType: newAction.action_type,
+        type: newAction.action_type,
+        content: newAction.description,
+        description: newAction.description,
+        status: 'active',
+        time_spent: estimatedHours,
+        start_time: newAction.created_at,
+        end_time: endDateTime || newAction.created_at,
+        customer_id: null,
+        linked_items: '[]',
+        has_file: false,
+        contact_method: 'system',
+        vendor: '',
+        is_public: is_public,
+        isPublic: is_public,
         createdBy: req.user.id,
-        createdByName: req.user.name || req.user.email,
-        createdAt: new Date().toISOString()
+        createdByName: userName,
+        createdAt: newAction.created_at,
+        agent_name: userName
       }
     });
+
   } catch (error) {
-    console.error("Error creating action:", error);
-    res.status(500).json({ message: "Failed to create action" });
+    console.error("Error creating ticket action:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to create action",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 });
 
