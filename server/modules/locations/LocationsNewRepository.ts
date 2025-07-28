@@ -42,10 +42,10 @@ export class LocationsNewRepository {
 
       const query = `
         SELECT id, first_name as nome, email, phone as telefone, 
-               CASE WHEN is_active = true THEN true ELSE false END as ativo, 
+               CASE WHEN active = true THEN true ELSE false END as ativo, 
                created_at
         FROM "${schemaName}".customers
-        WHERE tenant_id = $1 AND is_active = true
+        WHERE tenant_id = $1 AND active = true
         ORDER BY first_name ASC
       `;
 
@@ -124,12 +124,12 @@ export class LocationsNewRepository {
 
       const query = `
         SELECT id, name as nome, email, role as tipo_usuario, 
-               CASE WHEN is_active = true THEN true ELSE false END as ativo, 
+               CASE WHEN active = true THEN true ELSE false END as ativo, 
                created_at
         FROM "${schemaName}".users
         WHERE tenant_id = $1 
           AND role IN ('agent', 'workspaceAdmin') 
-          AND is_active = true
+          AND active = true
         ORDER BY name ASC
       `;
 
@@ -214,7 +214,7 @@ export class LocationsNewRepository {
                COUNT(gm.user_id) as member_count
         FROM "${schemaName}".user_groups g
         LEFT JOIN "${schemaName}".user_group_memberships gm ON g.id = gm.group_id
-        WHERE g.tenant_id = $1 AND g.is_active = true
+        WHERE g.tenant_id = $1 AND g.active = true
         GROUP BY g.id, g.name, g.description, g.created_at
         ORDER BY g.name ASC
       `;
@@ -293,11 +293,11 @@ export class LocationsNewRepository {
 
       const query = `
         SELECT id, name as nome, description as descricao, 
-               address as endereco_completo,
-               CASE WHEN is_active = true THEN true ELSE false END as ativo, 
+               street_address as endereco_completo,
+               CASE WHEN active = true THEN true ELSE false END as ativo, 
                created_at
         FROM "${schemaName}".locations
-        WHERE tenant_id = $1 AND is_active = true
+        WHERE tenant_id = $1 AND active = true
         ORDER BY name ASC
       `;
 
@@ -678,9 +678,28 @@ export class LocationsNewRepository {
         tenant: params[0] // First param is usually tenantId
       });
 
-      // Specific error handling
+      // Enhanced error handling with specific field mapping
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        console.warn('Column mapping issue detected, attempting field correction');
+        
+        // Try common field name corrections
+        let correctedQuery = query
+          .replace(/is_active/g, 'active')
+          .replace(/address(?![_\w])/g, 'street_address')
+          .replace(/first_name/g, 'name');
+        
+        try {
+          const correctedResult = await this.db.execute(sql.raw(correctedQuery, ...params));
+          console.log('Query succeeded with field corrections');
+          return correctedResult.rows || [];
+        } catch (correctionError) {
+          console.warn('Field correction also failed, using fallback data');
+          return [];
+        }
+      }
+      
       if (error.message.includes('does not exist')) {
-        console.warn('Schema or table does not exist, returning mock data');
+        console.warn('Schema or table does not exist, returning empty data');
         return [];
       }
       

@@ -89,6 +89,16 @@ router.get("/integration/locais", async (req: AuthenticatedRequest, res: Respons
   }
 });
 
+// Fix para endpoint locais-atendimento
+router.get("/locais-atendimento", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await controller.getLocaisAtendimento(req, res);
+  } catch (error) {
+    console.error('Error in locais-atendimento:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch locais de atendimento', error: error.message });
+  }
+});
+
 // Services endpoints
 router.get('/services/cep/:cep', async (req: LocationsRequest, res: Response) => {
   return controller.lookupCep(req, res);

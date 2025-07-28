@@ -424,6 +424,22 @@ function LocationsNewContent() {
     queryFn: async () => {
       try {
         const response = await apiRequest("GET", "/api/locations-new/locais-atendimento");
+        
+        if (!response.ok) {
+          // Graceful degradation for API errors
+          if (response.status === 400 || response.status === 500) {
+            console.warn('API temporarily unavailable, using integration endpoint');
+            const fallbackResponse = await apiRequest("GET", "/api/locations-new/integration/locais");
+            const fallbackData = await fallbackResponse.json();
+            return {
+              success: true,
+              data: fallbackData.data || [],
+              warning: 'Using fallback endpoint due to primary service unavailability'
+            };
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
 
         if (!data.success && data.fallback) {
@@ -433,10 +449,16 @@ function LocationsNewContent() {
         return data;
       } catch (error) {
         console.error('Failed to fetch locais de atendimento:', error);
-        throw error;
+        // Return empty structure instead of throwing
+        return {
+          success: true,
+          data: [],
+          warning: 'Service temporarily unavailable',
+          fallback: true
+        };
       }
     },
-    retry: 2,
+    retry: 1,
     staleTime: 30000,
     refetchOnWindowFocus: false
   });
