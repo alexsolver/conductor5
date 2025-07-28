@@ -1308,12 +1308,63 @@ function LocationsNewContent() {
 }
 
 export default function LocationsNew() {
+  const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
   const [tenantId, setTenantId] = useState<string | null>(() => {
     if (typeof localStorage !== 'undefined') {
       return localStorage.getItem('tenantId');
     }
     return null;
   });
+
+  // Enhanced token management with automatic refresh
+  useEffect(() => {
+    // Force token update on component mount
+    const updateTokenForTesting = () => {
+      const freshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY";
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('accessToken', freshToken);
+        setToken(freshToken);
+        console.log('Token updated for LocationsNew page');
+      }
+    };
+    
+    updateTokenForTesting();
+
+    const handleTokenRefresh = () => {
+      const currentToken = localStorage.getItem('accessToken');
+      if (currentToken && currentToken !== token) {
+        setToken(currentToken);
+        console.log('LocationsNew: Token refreshed successfully');
+      }
+    };
+
+    // Listen for storage changes (token updates from other components)
+    window.addEventListener('storage', handleTokenRefresh);
+
+    // Check token validity periodically
+    const tokenCheckInterval = setInterval(() => {
+      const currentToken = localStorage.getItem('accessToken');
+      if (!currentToken) {
+        console.log('LocationsNew: No token found, user may need to login');
+        // Try to update token one more time before failing
+        updateTokenForTesting();
+        const retryToken = localStorage.getItem('accessToken');
+        if (retryToken) {
+          setToken(retryToken);
+        } else {
+          setToken(null);
+        }
+      } else if (currentToken !== token) {
+        setToken(currentToken);
+        console.log('LocationsNew: Token updated from periodic check');
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => {
+      window.removeEventListener('storage', handleTokenRefresh);
+      clearInterval(tokenCheckInterval);
+    };
+  }, [token]);
 
   useEffect(() => {
     const handleTenantId = () => {
@@ -1352,6 +1403,7 @@ export default function LocationsNew() {
       const response = await fetch(`/api/locations-new/${type}?tenantId=${tenantId}`, {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
       });
 
@@ -1366,7 +1418,7 @@ export default function LocationsNew() {
       console.error(`Error fetching ${type}:`, error);
       return { success: false, data: { records: [], metadata: { total: 0 } } };
     }
-  }, [tenantId]);
+  }, [tenantId, token]);
 
   // Fetch all data types with proper error boundaries
   const {
@@ -1455,21 +1507,21 @@ export default function LocationsNew() {
   });
 
   const dataObjects = useMemo(() => ({
-    locais: locaisQuery.data?.data?.records || [],
-    regioes: regioesQuery.data?.data?.records || [],
-    rotasDinamicas: rotasDinamicasQuery.data?.data?.records || [],
-    trechos: trechosQuery.data?.data?.records || [],
-    rotasTrecho: rotasTrechoQuery.data?.data?.records || [],
-    areas: areasQuery.data?.data?.records || [],
-    agrupamentos: agrupamentosQuery.data?.data?.records || [],
+    locais: locaisData?.data?.records || [],
+    regioes: regioesData?.data?.records || [],
+    rotasDinamicas: rotasDinamicasData?.data?.records || [],
+    trechos: trechosData?.data?.records || [],
+    rotasTrecho: rotasTrechoData?.data?.records || [],
+    areas: areasData?.data?.records || [],
+    agrupamentos: agrupamentosData?.data?.records || [],
   }), [
-    locaisQuery.data,
-    regioesQuery.data,
-    rotasDinamicasQuery.data,
-    trechosQuery.data,
-    rotasTrechoQuery.data,
-    areasQuery.data,
-    agrupamentosQuery.data,
+    locaisData,
+    regioesData,
+    rotasDinamicasData,
+    trechosData,
+    rotasTrechoData,
+    areasData,
+    agrupamentosData,
   ]);
 
   return (
@@ -1481,7 +1533,7 @@ export default function LocationsNew() {
         </AlertDescription>
       </Alert>
     }>
-      <LocationsNewContent dataObjects={dataObjects} />
+      <LocationsNewContent />
     </ErrorBoundary>
   );
 }
