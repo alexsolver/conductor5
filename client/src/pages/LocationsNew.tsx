@@ -854,7 +854,7 @@ function LocationsNewContent() {
       return [];};
 
     const result = {
-      locais: extractLocaisData(allData.locaisData),
+      locais: extractLocaisData(allData.locaisQuery?.data),
       regioes: allData.regioesData?.data?.records || allData.regioesData?.records || [],
       rotasDinamicas: allData.rotasDinamicasData?.data?.records || allData.rotasDinamicasData?.records || [],
       trechos: allData.trechosData?.data?.records || allData.trechosData?.records || [],
@@ -869,7 +869,7 @@ function LocationsNewContent() {
   };
 
   const currentData = getCurrentData({
-    locaisData: locaisQuery.data,
+    locaisQuery,
     regioesData,
     rotasDinamicasData,
     trechosData,
