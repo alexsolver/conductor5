@@ -781,7 +781,32 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     const userQuery = `SELECT first_name || ' ' || last_name as author_name FROM public.users WHERE id = $1`;
     const userResult = await pool.query(userQuery, [req.user.id]);
 
-    newNote.author_name = userResult.rows[0]?.author_name || 'Unknown User';
+    const userName = userResult.rows[0]?.author_name || 'Unknown User';
+    newNote.author_name = userName;
+
+    // Create history entry for the note creation
+    try {
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
+      `, [
+        tenantId,
+        id,
+        'note_added',
+        `Nota adicionada: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
+        req.user.id,
+        userName,
+        JSON.stringify({
+          note_type: noteType,
+          is_internal: isInternal,
+          is_public: isPublic,
+          content_preview: content.substring(0, 200)
+        })
+      ]);
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
 
     res.status(201).json({
       success: true,
