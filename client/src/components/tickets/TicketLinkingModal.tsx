@@ -261,13 +261,13 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
           {/* Link New Ticket */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Vincular Novo Chamado</h3>
+            <h3 className="text-lg font-semibold mb-3">Vincular Novo Ticket</h3>
             
             {/* Search and Filters */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="search">Buscar Chamado</Label>
+                  <Label htmlFor="search">Buscar Ticket</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
@@ -354,7 +354,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     ))
                   ) : (
                     <div className="p-8 text-center text-gray-500">
-                      Nenhum chamado encontrado com os filtros selecionados
+                      Nenhum ticket encontrado com os filtros selecionados
                     </div>
                   )}
                 </div>
