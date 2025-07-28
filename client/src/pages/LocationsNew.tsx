@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -425,7 +425,7 @@ function LocationsNewContent() {
                         name="tipoClienteFavorecido"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tipo</FormLabel>
+                            <FormLabel>Cliente ou Favorecido</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
@@ -447,7 +447,7 @@ function LocationsNewContent() {
                         name="ativo"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Status</FormLabel>
+                            <FormLabel>Ativo</FormLabel>
                             <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                               <FormControl>
                                 <SelectTrigger>
@@ -455,8 +455,8 @@ function LocationsNewContent() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="true">Ativo</SelectItem>
-                                <SelectItem value="false">Inativo</SelectItem>
+                                <SelectItem value="true">Sim</SelectItem>
+                                <SelectItem value="false">Não</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -464,6 +464,29 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
+
+                    <FormField
+                      control={form.control}
+                      name="tecnicoPrincipalId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Técnico Principal</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecionar técnico responsável" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="tecnico1">João Silva</SelectItem>
+                              <SelectItem value="tecnico2">Maria Santos</SelectItem>
+                              <SelectItem value="tecnico3">Pedro Costa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   {/* Seção: Contato */}
@@ -530,8 +553,28 @@ function LocationsNewContent() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>CEP</FormLabel>
+                            <div className="flex space-x-2">
+                              <FormControl>
+                                <Input {...field} placeholder="00000-000" />
+                              </FormControl>
+                              <Button type="button" variant="outline" size="sm">
+                                <ExternalLink className="h-4 w-4" />
+                                Buscar
+                              </Button>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="pais"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>País</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="00000-000" />
+                              <Input {...field} placeholder="Brasil" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -687,14 +730,22 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
+                    
+                    <Alert>
+                      <MapPin className="h-4 w-4" />
+                      <AlertDescription>
+                        As coordenadas geográficas serão obtidas automaticamente pelo endereço e exibidas em mapa para validação.
+                      </AlertDescription>
+                    </Alert>
                   </div>
 
-                  {/* Seção: Tempo */}
+                  {/* Seção: Tempo e Disponibilidade */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center">
                       <Clock className="h-5 w-5 mr-2" />
-                      Configurações de Tempo
+                      Tempo e Disponibilidade
                     </h3>
+                    
                     <FormField
                       control={form.control}
                       name="fusoHorario"
@@ -718,6 +769,57 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Horário de Funcionamento</Label>
+                        <div className="flex space-x-2">
+                          <Input placeholder="08:00" />
+                          <span className="flex items-center">às</span>
+                          <Input placeholder="18:00" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Intervalos de Funcionamento</Label>
+                        <div className="flex space-x-2">
+                          <Input placeholder="12:00" />
+                          <span className="flex items-center">às</span>
+                          <Input placeholder="13:00" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Feriados</Label>
+                      <div className="flex space-x-2">
+                        <Button type="button" variant="outline" size="sm">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Buscar Feriados Municipais
+                        </Button>
+                        <Button type="button" variant="outline" size="sm">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Buscar Feriados Estaduais
+                        </Button>
+                        <Button type="button" variant="outline" size="sm">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Buscar Feriados Federais
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Indisponibilidades</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Input type="date" placeholder="Data início" />
+                        <Input type="date" placeholder="Data fim" />
+                        <Input placeholder="Observação" />
+                      </div>
+                      <Button type="button" variant="outline" size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Adicionar Indisponibilidade
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex justify-end space-x-2 pt-4 border-t">
