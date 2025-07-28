@@ -839,8 +839,8 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         COALESCE(ta.work_log, ta.description) as description,
         ta.created_by as performed_by,
         u2.first_name || ' ' || u2.last_name as performed_by_name,
-```text
-        null as old_value,
+        null<replit_final_file>
+ as old_value,
         null as new_value,
         null as field_name,
         ta.created_at,
