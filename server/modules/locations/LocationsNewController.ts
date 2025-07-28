@@ -509,60 +509,84 @@ export class LocationsNewController {
   // Integration endpoints for region relationships
   async getClientes(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.getClientes - Starting request');
       const tenantId = req.user?.tenantId;
+      
       if (!tenantId) {
+        console.error('LocationsNewController.getClientes - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
+      console.log(`LocationsNewController.getClientes - Fetching for tenant: ${tenantId}`);
       const clientes = await this.repository.getClientes(tenantId);
+      console.log(`LocationsNewController.getClientes - Found ${clientes.length} clientes`);
+      
       return sendSuccess(res, clientes, "Clientes retrieved successfully");
     } catch (error) {
-      console.error('Error fetching clientes:', error);
+      console.error('LocationsNewController.getClientes - Error:', error);
       return sendError(res, "Failed to fetch clientes", 500);
     }
   }
 
   async getTecnicosEquipe(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.getTecnicosEquipe - Starting request');
       const tenantId = req.user?.tenantId;
+      
       if (!tenantId) {
+        console.error('LocationsNewController.getTecnicosEquipe - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
+      console.log(`LocationsNewController.getTecnicosEquipe - Fetching for tenant: ${tenantId}`);
       const tecnicos = await this.repository.getTecnicosEquipe(tenantId);
+      console.log(`LocationsNewController.getTecnicosEquipe - Found ${tecnicos.length} tecnicos`);
+      
       return sendSuccess(res, tecnicos, "Técnicos retrieved successfully");
     } catch (error) {
-      console.error('Error fetching técnicos:', error);
+      console.error('LocationsNewController.getTecnicosEquipe - Error:', error);
       return sendError(res, "Failed to fetch técnicos", 500);
     }
   }
 
   async getGruposEquipe(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.getGruposEquipe - Starting request');
       const tenantId = req.user?.tenantId;
+      
       if (!tenantId) {
+        console.error('LocationsNewController.getGruposEquipe - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
+      console.log(`LocationsNewController.getGruposEquipe - Fetching for tenant: ${tenantId}`);
       const grupos = await this.repository.getGruposEquipe(tenantId);
+      console.log(`LocationsNewController.getGruposEquipe - Found ${grupos.length} grupos`);
+      
       return sendSuccess(res, grupos, "Grupos retrieved successfully");
     } catch (error) {
-      console.error('Error fetching grupos:', error);
+      console.error('LocationsNewController.getGruposEquipe - Error:', error);
       return sendError(res, "Failed to fetch grupos", 500);
     }
   }
 
   async getLocaisAtendimento(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.getLocaisAtendimento - Starting request');
       const tenantId = req.user?.tenantId;
+      
       if (!tenantId) {
+        console.error('LocationsNewController.getLocaisAtendimento - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
+      console.log(`LocationsNewController.getLocaisAtendimento - Fetching for tenant: ${tenantId}`);
       const locais = await this.repository.getLocaisAtendimento(tenantId);
+      console.log(`LocationsNewController.getLocaisAtendimento - Found ${locais.length} locais`);
+      
       return sendSuccess(res, locais, "Locais retrieved successfully");
     } catch (error) {
-      console.error('Error fetching locais:', error);
+      console.error('LocationsNewController.getLocaisAtendimento - Error:', error);
       return sendError(res, "Failed to fetch locais", 500);
     }
   }

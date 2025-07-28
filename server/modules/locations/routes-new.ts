@@ -136,20 +136,43 @@ router.get("/services/holidays", async (req: AuthenticatedRequest, res: Response
 
   // Integration endpoints for region relationships
 router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
-  return controller.getClientes(req, res);
+  try {
+    const controller = getController(req);
+    await controller.getClientes(req, res);
+  } catch (error) {
+    console.error('Error in clientes integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch clientes', error: error.message });
+  }
 });
+
 router.get("/integration/tecnicos", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
-  return controller.getTecnicosEquipe(req, res);
+  try {
+    const controller = getController(req);
+    await controller.getTecnicosEquipe(req, res);
+  } catch (error) {
+    console.error('Error in tecnicos integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch tecnicos', error: error.message });
+  }
 });
+
 router.get("/integration/grupos", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
-  return controller.getGruposEquipe(req, res);
+  try {
+    const controller = getController(req);
+    await controller.getGruposEquipe(req, res);
+  } catch (error) {
+    console.error('Error in grupos integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch grupos', error: error.message });
+  }
 });
+
 router.get("/integration/locais", async (req: AuthenticatedRequest, res: Response) => {
-  const controller = getController(req);
-  return controller.getLocaisAtendimento(req, res);
+  try {
+    const controller = getController(req);
+    await controller.getLocaisAtendimento(req, res);
+  } catch (error) {
+    console.error('Error in locais integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch locais', error: error.message });
+  }
 });
 
 export default router;
