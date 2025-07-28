@@ -1,20 +1,15 @@
+
 /**
  * Drizzle User Repository Implementation
  * Clean Architecture - Infrastructure Layer
  * Implements IUserRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, or, sql } from 'drizzle-orm';
+import { eq, and, ilike, count, or, sql, desc } from 'drizzle-orm';
 import { User } from '../../domain/entities/User';
-import { IUserRepository, UserFilter } from '../../domain/ports/IUserRepository';
+import { IUserRepository } from '../../domain/ports/IUserRepository';
 import { users } from '@shared/schema';
 import { db } from '../../../../db';
-
-export import { IUserRepository } from '../../../domain/repositories/IUserRepository';
-import { User } from '../../../domain/entities/User';
-import { db } from '../../../../db';
-import { users } from '../../../../../shared/schema';
-import { eq, desc, count, and, or, ilike } from 'drizzle-orm';
 
 interface UserFilter {
   tenantId?: string;
