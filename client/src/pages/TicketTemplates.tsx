@@ -21,6 +21,7 @@ import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelec
 import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
 import TemplateAnalytics from '@/components/templates/TemplateAnalytics';
 import TemplateEditor from '@/components/templates/TemplateEditor';
+import TemplateCanvasEditor from '@/components/templates/TemplateCanvasEditor';
 import { TemplateHierarchyManager } from '@/components/template-builder/hierarchy/TemplateHierarchyManager';
 import { ApprovalWorkflow } from '@/components/template-builder/workflow/ApprovalWorkflow';
 import { AuditTrail } from '@/components/template-builder/audit/AuditTrail';
@@ -501,21 +502,37 @@ export default function TicketTemplates() {
             <CardHeader>
               <CardTitle>Editor Visual de Templates</CardTitle>
               <p className="text-muted-foreground">
-                Crie e edite templates usando a interface drag-and-drop avançada
+                Crie e edite templates usando a interface drag-and-drop que replica o layout de edição de tickets
               </p>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-[800px]">
-                <TemplateEditor
+                <TemplateCanvasEditor
                   onSave={(template) => {
                     console.log('Template salvo:', template);
-                    toast({
-                      title: "Template salvo",
-                      description: "O template foi salvo com sucesso.",
+                    // Aqui você pode implementar a lógica de salvamento
+                    createTemplateMutation.mutate({
+                      name: template.name,
+                      description: template.description,
+                      category: template.category,
+                      defaultTitle: template.name,
+                      defaultDescription: template.description,
+                      priority: 'medium',
+                      urgency: 'medium',
+                      impact: 'medium',
+                      estimatedHours: 2,
+                      requiresApproval: false,
+                      autoAssign: false,
+                      defaultAssigneeRole: '',
+                      customFields: template.fields
                     });
                   }}
                   onPreview={(template) => {
                     console.log('Preview do template:', template);
+                    toast({
+                      title: "Preview do Template",
+                      description: `Template "${template.name}" carregado para preview.`,
+                    });
                   }}
                 />
               </div>
