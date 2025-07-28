@@ -2,6 +2,9 @@
 -- LOCATIONS NEW MODULE - Complete table creation for all 7 record types
 -- This creates tables in tenant-specific schemas
 
+-- Drop function if it exists to avoid conflicts
+DROP FUNCTION IF EXISTS create_locations_new_tables_for_tenant(TEXT);
+
 -- Function to create tables in a specific tenant schema
 CREATE OR REPLACE FUNCTION create_locations_new_tables_for_tenant(tenant_schema_name TEXT)
 RETURNS VOID AS $$

@@ -532,6 +532,84 @@ function LocationsNewContent() {
   };
 
   // Queries for each record type with enhanced error handling
+  const { data: clientesData, error: clientesError, isLoading: clientesLoading } = useQuery({
+    queryKey: ['integration-clientes', token],
+    queryFn: async () => {
+      const response = await fetch('/api/locations-new/integration/clientes', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        // Don't throw for 404 or 500 - handle gracefully
+        if (response.status === 404 || response.status === 500) {
+          return { 
+            success: true, 
+            data: [], 
+            warning: 'Dados de clientes indisponíveis temporariamente' 
+          };
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      // Handle API warnings
+      if (result.warning) {
+        console.warn('API Warning:', result.warning);
+      }
+
+      return result;
+    },
+    enabled: !!token,
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  const { data: locaisAtendimento, isLoading: isLoadingLocais, error: locaisAtendimentoError } = useQuery({
+    queryKey: ["/api/locations-new/locais-atendimento"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/locations-new/locais-atendimento");
+
+        if (!response.ok) {
+          // Graceful degradation for API errors
+          if (response.status === 400 || response.status === 500) {
+            console.warn('API temporarily unavailable, using integration endpoint');
+            const fallbackResponse = await apiRequest("GET", "/api/locations-new/integration/locais");
+            const fallbackData = await fallbackResponse.json();
+            return {
+              success: true,
+              data: fallbackData.data || [],
+              warning: 'Using fallback endpoint due to primary service unavailability'
+            };
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success && data.fallback) {
+          console.warn('Using fallback data due to database service unavailability');
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Failed to fetch locais de atendimento:', error);
+        // Return empty structure instead of throwing
+        return {
+          success: true,
+          data: [],
+          warning: 'Service temporarily unavailable',
+          fallback: true
+        };
+      }
+    },
+    retry: 1,
+    staleTime: 30000,
+    refetchOnWindowFocus: false
+  });
+
+  // Queries for all record types - keeping consistent order
   const locaisQuery = useQuery({
     queryKey: ['locations-new', 'local', { search: searchTerm, status: statusFilter }],
     queryFn: async () => {
@@ -729,84 +807,6 @@ function LocationsNewContent() {
     enabled: !!token
   });
 
-  // Integration data fetching with robust error handling
-  const { data: clientesData, error: clientesError, isLoading: clientesLoading } = useQuery({
-    queryKey: ['integration-clientes', token],
-    queryFn: async () => {
-      const response = await fetch('/api/locations-new/integration/clientes', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        // Don't throw for 404 or 500 - handle gracefully
-        if (response.status === 404 || response.status === 500) {
-          return { 
-            success: true, 
-            data: [], 
-            warning: 'Dados de clientes indisponíveis temporariamente' 
-          };
-        }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      // Handle API warnings
-      if (result.warning) {
-        console.warn('API Warning:', result.warning);
-      }
-
-      return result;
-    },
-    enabled: !!token,
-    retry: 2,
-    retryDelay: 1000
-  });
-
-  const { data: locaisAtendimento, isLoading: isLoadingLocais, error: locaisAtendimentoError } = useQuery({
-    queryKey: ["/api/locations-new/locais-atendimento"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest("GET", "/api/locations-new/locais-atendimento");
-
-        if (!response.ok) {
-          // Graceful degradation for API errors
-          if (response.status === 400 || response.status === 500) {
-            console.warn('API temporarily unavailable, using integration endpoint');
-            const fallbackResponse = await apiRequest("GET", "/api/locations-new/integration/locais");
-            const fallbackData = await fallbackResponse.json();
-            return {
-              success: true,
-              data: fallbackData.data || [],
-              warning: 'Using fallback endpoint due to primary service unavailability'
-            };
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.success && data.fallback) {
-          console.warn('Using fallback data due to database service unavailability');
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Failed to fetch locais de atendimento:', error);
-        // Return empty structure instead of throwing
-        return {
-          success: true,
-          data: [],
-          warning: 'Service temporarily unavailable',
-          fallback: true
-        };
-      }
-    },
-    retry: 1,
-    staleTime: 30000,
-    refetchOnWindowFocus: false
-  });
-
   // Enhanced error and loading states
   const isAnyLoading = [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotasTrechoQuery, areasData, agrupamentosData]
     .some(query => query?.isLoading);
@@ -859,7 +859,6 @@ function LocationsNewContent() {
       if (key.includes('locaisQuery') || key.includes('locaisData')) {
         recordType = 'locais';
         if (dataObj.data?.data?.records) {
-```text
           records = dataObj.data.data.records;
         } else if (dataObj.records) {
           records = dataObj.records;
@@ -925,7 +924,7 @@ function LocationsNewContent() {
     if (regioesData) dataObjects.regioesData = regioesData;
     if (rotasDinamicasData) dataObjects.rotasDinamicasData = rotasDinamicasData;
     if (trechosData) dataObjects.trechosData = trechosData;
-    if (rotasTrechoQuery) dataObjects.rotasTrechoQuery = rotasTrechoQuery; // Fixed: use the correct query object
+    if (rotasTrechoQuery) dataObjects.rotasTrecho = rotasTrechoQuery; // Fixed: use the correct query object
     if (areasData) dataObjects.areasData = areasData;
     if (agrupamentosData) dataObjects.agrupamentosData = agrupamentosData;
 
@@ -1321,6 +1320,141 @@ function LocationsNewContent() {
 }
 
 export default function LocationsNew() {
+  const [tenantId, setTenantId] = useState<string | null>(() => {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('tenantId');
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    const handleTenantId = () => {
+      const currentTenantId = localStorage.getItem('tenantId');
+      if (currentTenantId && currentTenantId !== tenantId) {
+        setTenantId(currentTenantId);
+        console.log('LocationsNew: TenantId refreshed successfully');
+      }
+    };
+
+    window.addEventListener('storage', handleTenantId);
+
+    const tenantCheckInterval = setInterval(() => {
+      const currentTenantId = localStorage.getItem('tenantId');
+      if (!currentTenantId) {
+        console.log('LocationsNew: No TenantId found');
+      } else if (currentTenantId !== tenantId) {
+        setTenantId(currentTenantId);
+        console.log('LocationsNew: TenantId updated from periodic check');
+      }
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('storage', handleTenantId);
+      clearInterval(tenantCheckInterval);
+    };
+  }, [tenantId]);
+
+  const fetchLocationsByType = useCallback(async (type: string) => {
+    if (!tenantId) {
+      console.warn(`Cannot fetch ${type} without tenantId`);
+      return { success: false, data: { records: [], metadata: { total: 0 } } };
+    }
+
+    try {
+      const response = await fetch(`/api/locations-new/${type}?tenantId=${tenantId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to fetch ${type}:`, response.status, response.statusText);
+        return { success: false, data: { records: [], metadata: { total: 0 } } };
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Error fetching ${type}:`, error);
+      return { success: false, data: { records: [], metadata: { total: 0 } } };
+    }
+  }, [tenantId]);
+
+  // Queries for all record types - keeping consistent order
+  const locaisQuery = useQuery({
+    queryKey: ['locations-new', 'local', tenantId],
+    queryFn: () => fetchLocationsByType('local'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const regioesQuery = useQuery({
+    queryKey: ['locations-new', 'regiao', tenantId],
+    queryFn: () => fetchLocationsByType('regiao'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const rotasDinamicasQuery = useQuery({
+    queryKey: ['locations-new', 'rota-dinamica', tenantId],
+    queryFn: () => fetchLocationsByType('rota-dinamica'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const trechosQuery = useQuery({
+    queryKey: ['locations-new', 'trecho', tenantId],
+    queryFn: () => fetchLocationsByType('trecho'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const rotasTrechoQuery = useQuery({
+    queryKey: ['locations-new', 'rota-trecho', tenantId],
+    queryFn: () => fetchLocationsByType('rota-trecho'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const areasQuery = useQuery({
+    queryKey: ['locations-new', 'area', tenantId],
+    queryFn: () => fetchLocationsByType('area'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const agrupamentosQuery = useQuery({
+    queryKey: ['locations-new', 'agrupamento', tenantId],
+    queryFn: () => fetchLocationsByType('agrupamento'),
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const dataObjects = useMemo(() => ({
+    locais: locaisQuery.data?.data?.records || [],
+    regioes: regioesQuery.data?.data?.records || [],
+    rotasDinamicas: rotasDinamicasQuery.data?.data?.records || [],
+    trechos: trechosQuery.data?.data?.records || [],
+    rotasTrecho: rotasTrechoQuery.data?.data?.records || [],
+    areas: areasQuery.data?.data?.records || [],
+    agrupamentos: agrupamentosQuery.data?.data?.records || [],
+  }), [
+    locaisQuery.data,
+    regioesQuery.data,
+    rotasDinamicasQuery.data,
+    trechosQuery.data,
+    rotasTrechoQuery.data,
+    areasQuery.data,
+    agrupamentosQuery.data,
+  ]);
+
   return (
     <ErrorBoundary fallback={
       <Alert variant="destructive">
@@ -1330,7 +1464,7 @@ export default function LocationsNew() {
         </AlertDescription>
       </Alert>
     }>
-      <LocationsNewContent />
+      <LocationsNewContent dataObjects={dataObjects} />
     </ErrorBoundary>
   );
 }

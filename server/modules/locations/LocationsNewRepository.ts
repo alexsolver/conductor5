@@ -596,8 +596,16 @@ export class LocationsNewRepository {
     try {
       console.log(`LocationsNewRepository.executeQuery - Executing query with ${params.length} parameters`);
       
-      // Use sql tagged template literal for proper parameter binding
-      const result = await this.db.execute(sql.raw(query, params));
+      // Manually substitute parameters for raw SQL execution
+      let finalQuery = query;
+      for (let i = 0; i < params.length; i++) {
+        const placeholder = `$${i + 1}`;
+        const value = params[i];
+        const escapedValue = typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : value;
+        finalQuery = finalQuery.replace(new RegExp('\\' + placeholder + '\\b', 'g'), escapedValue);
+      }
+      
+      const result = await this.db.execute(sql.raw(finalQuery));
       return result.rows || [];
     } catch (error) {
       console.error('Database query failed:', {
