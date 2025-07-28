@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -280,11 +279,11 @@ export default function TemplateCanvasEditor({
 
     loadCustomFields();
   }, []);
-  
+
   // Campos organizados por aba
   const [fieldsByTab, setFieldsByTab] = useState<Record<string, TemplateField[]>>({
     opening: [], // Template de Abertura
-    assignment: [] // Template de Atribuição
+    editing: [] // Template de Edição
   });
 
   const [availableFields, setAvailableFields] = useState<TemplateField[]>(DEFAULT_FIELDS);
@@ -353,7 +352,7 @@ export default function TemplateCanvasEditor({
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Paleta de Campos</h2>
-            
+
             {/* Informações do template */}
             <div className="space-y-4 mb-6">
               <div>
@@ -366,7 +365,7 @@ export default function TemplateCanvasEditor({
                   placeholder="Nome do template"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Descrição
@@ -378,7 +377,7 @@ export default function TemplateCanvasEditor({
                   rows={2}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Categoria
@@ -405,7 +404,7 @@ export default function TemplateCanvasEditor({
                   ))}
                 </div>
               </div>
-              
+
               {customFields.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">Campos Customizados</h3>
@@ -461,9 +460,9 @@ export default function TemplateCanvasEditor({
                       <Plus className="w-4 h-4" />
                       Template de Abertura
                     </TabsTrigger>
-                    <TabsTrigger value="assignment" className="flex items-center gap-2">
+                    <TabsTrigger value="editing" className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      Template de Atribuição
+                      Template de Edição
                     </TabsTrigger>
                   </TabsList>
 
@@ -484,17 +483,17 @@ export default function TemplateCanvasEditor({
                     />
                   </TabsContent>
 
-                  <TabsContent value="assignment" className="flex-1">
+                  <TabsContent value="editing" className="flex-1">
                     <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <h4 className="font-medium text-green-800 mb-2">Template de Atribuição</h4>
+                      <h4 className="font-medium text-green-800 mb-2">Template de Edição</h4>
                       <p className="text-sm text-green-600">
                         Configure os campos que aparecerão quando o ticket for atribuído a um técnico. 
                         Estes campos são preenchidos durante o processo de atribuição e resolução.
                       </p>
                     </div>
                     <TabDropZone
-                      tabId="assignment"
-                      fields={fieldsByTab.assignment}
+                      tabId="editing"
+                      fields={fieldsByTab.editing}
                       onDrop={handleFieldDrop}
                       onRemoveField={handleRemoveField}
                       onEditField={handleEditField}
