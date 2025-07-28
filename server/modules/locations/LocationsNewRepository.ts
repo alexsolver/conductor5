@@ -667,17 +667,29 @@ export class LocationsNewRepository {
   
   private async executeQuery(query: string, params: any[]): Promise<any[]> {
     try {
-      // Use sql template literal with proper parameter binding
+      // Use proper parameterized query execution
       const result = await this.db.execute(sql.raw(query, ...params));
       return result.rows || [];
     } catch (error) {
       console.error('Database query failed:', {
         error: error.message,
         query: query.substring(0, 100) + '...',
-        params
+        paramCount: params.length,
+        tenant: params[0] // First param is usually tenantId
       });
 
-      // Return empty array for fallback instead of throwing
+      // Specific error handling
+      if (error.message.includes('does not exist')) {
+        console.warn('Schema or table does not exist, returning mock data');
+        return [];
+      }
+      
+      if (error.message.includes('connection')) {
+        console.error('Database connection issue detected');
+        throw new Error('Database connection failed');
+      }
+
+      // Return empty array for other errors
       console.warn('Returning empty result due to database error');
       return [];
     }

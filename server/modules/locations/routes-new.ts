@@ -52,12 +52,62 @@ try {
 // Controller factory function
 const getController = (req: LocationsRequest) => controller;
 
-// Get statistics by type FIRST to avoid UUID conflict  
+// Integration endpoints FIRST (most specific)
+router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await controller.getClientes(req, res);
+  } catch (error) {
+    console.error('Error in clientes integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch clientes', error: error.message });
+  }
+});
+
+router.get("/integration/tecnicos", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await controller.getTecnicosEquipe(req, res);
+  } catch (error) {
+    console.error('Error in tecnicos integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch tecnicos', error: error.message });
+  }
+});
+
+router.get("/integration/grupos", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await controller.getGruposEquipe(req, res);
+  } catch (error) {
+    console.error('Error in grupos integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch grupos', error: error.message });
+  }
+});
+
+router.get("/integration/locais", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await controller.getLocaisAtendimento(req, res);
+  } catch (error) {
+    console.error('Error in locais integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch locais', error: error.message });
+  }
+});
+
+// Services endpoints
+router.get('/services/cep/:cep', async (req: LocationsRequest, res: Response) => {
+  return controller.lookupCep(req, res);
+});
+
+router.get('/services/holidays', async (req: LocationsRequest, res: Response) => {
+  return controller.lookupHolidays(req, res);
+});
+
+router.post('/services/geocode', async (req: LocationsRequest, res: Response) => {
+  return controller.geocodeAddress(req, res);
+});
+
+// Get statistics by type 
 router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) => {
   return controller.getStatsByType(req, res);
 });
 
-// Get records by type
+// Get records by type (most generic - should be LAST)
 router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
   const { recordType } = req.params;
   
@@ -71,21 +121,6 @@ router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
   }
   
   return controller.getRecordsByType(req, res);
-});
-
-// CEP lookup
-router.get('/services/cep/:cep', async (req: LocationsRequest, res: Response) => {
-  return controller.lookupCep(req, res);
-});
-
-// Holidays lookup
-router.get('/holidays', async (req: LocationsRequest, res: Response) => {
-  return controller.lookupHolidays(req, res);
-});
-
-// Geocoding
-router.post('/services/geocode', async (req: LocationsRequest, res: Response) => {
-  return controller.geocodeAddress(req, res);
 });
 
 // Create operations
@@ -125,54 +160,6 @@ router.put('/:recordType/:id', async (req: AuthenticatedRequest, res: Response) 
 // Delete operations
 router.delete('/:recordType/:id', async (req: AuthenticatedRequest, res: Response) => {
   return controller.deleteRecord(req, res);
-});
-
-// CEP and geocoding services
-router.get("/services/cep/:cep", async (req: AuthenticatedRequest, res: Response) => {
-  return controller.lookupCep(req, res);
-});
-router.post("/services/geocode", async (req: AuthenticatedRequest, res: Response) => {
-  return controller.geocodeAddress(req, res);
-});
-router.get("/services/holidays", async (req: AuthenticatedRequest, res: Response) => {
-  return controller.lookupHolidays(req, res);
-});
-
-  // Integration endpoints for region relationships
-router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    await controller.getClientes(req, res);
-  } catch (error) {
-    console.error('Error in clientes integration:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch clientes', error: error.message });
-  }
-});
-
-router.get("/integration/tecnicos", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    await controller.getTecnicosEquipe(req, res);
-  } catch (error) {
-    console.error('Error in tecnicos integration:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch tecnicos', error: error.message });
-  }
-});
-
-router.get("/integration/grupos", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    await controller.getGruposEquipe(req, res);
-  } catch (error) {
-    console.error('Error in grupos integration:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch grupos', error: error.message });
-  }
-});
-
-router.get("/integration/locais", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    await controller.getLocaisAtendimento(req, res);
-  } catch (error) {
-    console.error('Error in locais integration:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch locais', error: error.message });
-  }
 });
 
 export default router;

@@ -75,8 +75,9 @@ export class LocationsNewController {
           recordType,
           tenantId,
           filters: { search, status },
-          isMockData: records.length > 0 && records[0].id?.startsWith('mock-'),
-          timestamp: new Date().toISOString()
+          isMockData: records.length > 0 && records[0]?.id?.startsWith('mock-'),
+          timestamp: new Date().toISOString(),
+          dataSource: records.length > 0 ? 'database' : 'mock'
         }
       };
 

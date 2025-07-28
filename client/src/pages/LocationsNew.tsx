@@ -262,7 +262,7 @@ function LocationsNewContent() {
             'Content-Type': 'application/json'
           }
         });
-        
+
         if (!response.ok) {
           // Handle different error scenarios gracefully
           if (response.status === 401) {
@@ -280,12 +280,12 @@ function LocationsNewContent() {
         }
 
         const data = await response.json();
-        
+
         // Handle both old and new response formats
         if (data.success && data.data) {
           return data.data.records || data.data || [];
         }
-        
+
         return data.data || data || [];
       } catch (error) {
         console.error('Error fetching locais:', error);
@@ -633,11 +633,7 @@ function LocationsNewContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <currentType.icon className="h-5 w-5" />
-            {currentType.label}s ({recordsData?.data?.length || (activeRecordType === 'local' ? 0 : 0)})
-            {/* Debug info */}
-            <span className="text-xs text-gray-500 ml-2">
-              {recordsData ? `Dados: ${JSON.stringify(recordsData).substring(0, 50)}...` : 'Carregando...'}
-            </span>
+            {currentType.label}s ({recordsData?.data?.records?.length || recordsData?.data?.length || 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
