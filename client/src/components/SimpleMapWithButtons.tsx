@@ -25,12 +25,15 @@ interface SearchResult {
 }
 
 function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
-  const [selectedLat, setSelectedLat] = useState(initialLat);
-  const [selectedLng, setSelectedLng] = useState(initialLng);
+  const defaultLat = initialLat || -23.550520; // São Paulo default
+  const defaultLng = initialLng || -46.633308; // São Paulo default
+  
+  const [selectedLat, setSelectedLat] = useState(defaultLat);
+  const [selectedLng, setSelectedLng] = useState(defaultLng);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [mapCenter, setMapCenter] = useState({ lat: initialLat, lng: initialLng });
+  const [mapCenter, setMapCenter] = useState({ lat: defaultLat, lng: defaultLng });
   const [searchResult, setSearchResult] = useState<string>('');
   const { toast } = useToast();
 
@@ -376,10 +379,10 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
           {/* Coordinates display */}
           <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border">
             <p className="text-sm font-medium text-gray-800">
-              <span className="text-gray-600">Lat:</span> {selectedLat.toFixed(6)}
+              <span className="text-gray-600">Lat:</span> {(selectedLat || 0).toFixed(6)}
             </p>
             <p className="text-sm font-medium text-gray-800">
-              <span className="text-gray-600">Lng:</span> {selectedLng.toFixed(6)}
+              <span className="text-gray-600">Lng:</span> {(selectedLng || 0).toFixed(6)}
             </p>
           </div>
           
@@ -399,7 +402,7 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
           Localização Selecionada
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Latitude: {selectedLat.toFixed(6)} | Longitude: {selectedLng.toFixed(6)}
+          Latitude: {(selectedLat || 0).toFixed(6)} | Longitude: {(selectedLng || 0).toFixed(6)}
         </p>
         {searchResult && (
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -414,7 +417,7 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xs text-gray-500">Zoom: {zoomLevel.toFixed(1)}x</span>
           <span className="text-xs text-gray-500">|</span>
-          <span className="text-xs text-gray-500">Centro: {mapCenter.lat.toFixed(2)}, {mapCenter.lng.toFixed(2)}</span>
+          <span className="text-xs text-gray-500">Centro: {(mapCenter.lat || 0).toFixed(2)}, {(mapCenter.lng || 0).toFixed(2)}</span>
         </div>
       </div>
     </div>
