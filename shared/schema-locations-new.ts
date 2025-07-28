@@ -6,7 +6,7 @@ import { z } from "zod";
 // Status values for all types
 export type LocationStatus = 'active' | 'inactive' | 'maintenance';
 export type AreaType = 'faixa_cep' | 'shape' | 'coordenadas' | 'raio' | 'linha' | 'importar_area';
-export type LogradouroType = 'rua' | 'avenida' | 'travessa' | 'alameda' | 'rodovia' | 'estrada';
+export type LogradouroType = 'Rua' | 'Avenida' | 'Travessa' | 'Alameda' | 'Rodovia' | 'Estrada';
 
 // 1. LOCAL - Complete address and geolocation system per user requirements
 export const locais = pgTable('locais', {

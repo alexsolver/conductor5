@@ -636,12 +636,12 @@ function LocationsNewContent() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="rua">Rua</SelectItem>
-                                <SelectItem value="avenida">Avenida</SelectItem>
-                                <SelectItem value="travessa">Travessa</SelectItem>
-                                <SelectItem value="alameda">Alameda</SelectItem>
-                                <SelectItem value="rodovia">Rodovia</SelectItem>
-                                <SelectItem value="estrada">Estrada</SelectItem>
+                                <SelectItem value="Rua">Rua</SelectItem>
+                                <SelectItem value="Avenida">Avenida</SelectItem>
+                                <SelectItem value="Travessa">Travessa</SelectItem>
+                                <SelectItem value="Alameda">Alameda</SelectItem>
+                                <SelectItem value="Rodovia">Rodovia</SelectItem>
+                                <SelectItem value="Estrada">Estrada</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
