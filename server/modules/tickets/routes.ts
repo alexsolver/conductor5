@@ -843,7 +843,7 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     const { relationshipId } = req.params;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenant_${tenantId.replace(/-/g, '_')}`;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Soft delete the relationship
     const result = await pool.query(
