@@ -859,6 +859,7 @@ function LocationsNewContent() {
       if (key.includes('locaisQuery') || key.includes('locaisData')) {
         recordType = 'locais';
         if (dataObj.data?.data?.records) {
+```text
           records = dataObj.data.data.records;
         } else if (dataObj.records) {
           records = dataObj.records;
