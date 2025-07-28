@@ -72,7 +72,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const [description, setDescription] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -91,13 +91,13 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   // Filter tickets based on search term, status, priority and exclude current ticket
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
     if (currentTicket && ticket.id === currentTicket.id) return false;
-    
+
     // Status filter
     if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
-    
+
     // Priority filter  
     if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false;
-    
+
     // Search filter
     if (searchTerm.length > 0) {
       const searchLower = searchTerm.toLowerCase();
@@ -105,7 +105,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
              (ticket.number && ticket.number.toLowerCase().includes(searchLower)) ||
              ticket.id.toLowerCase().includes(searchLower);
     }
-    
+
     return true;
   });
 
@@ -211,7 +211,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Link2 className="h-5 w-5" />
-            <span>Vincular Chamados - {currentTicket.number || currentTicket.subject}</span>
+            <span>Vincular Tickets - {currentTicket.number || currentTicket.subject}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -262,7 +262,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
           {/* Link New Ticket */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Vincular Novo Ticket</h3>
-            
+
             {/* Search and Filters */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -279,7 +279,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="status-filter">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -296,7 +296,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="priority-filter">Prioridade</Label>
                   <Select value={priorityFilter} onValueChange={setPriorityFilter}>
