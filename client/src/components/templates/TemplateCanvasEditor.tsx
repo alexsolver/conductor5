@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import {
   Hash,
   Tag,
   User,
+  Users,
   Building2,
   MapPin,
   Star,
@@ -110,14 +111,19 @@ const DraggableField = ({ field }: { field: TemplateField }) => {
   return (
     <div
       ref={drag}
-      className={`flex items-center gap-2 p-3 bg-white border rounded-lg cursor-move hover:shadow-md transition-shadow ${
+      className={`flex items-center gap-2 p-3 border rounded-lg cursor-move hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50' : ''
-      }`}
+      } ${field.section === 'custom' ? 'bg-purple-50 border-purple-200' : 'bg-white'}`}
     >
-      <FieldIcon className="w-4 h-4 text-gray-500" />
+      <FieldIcon className={`w-4 h-4 ${field.section === 'custom' ? 'text-purple-600' : 'text-gray-500'}`} />
       <div className="flex-1">
-        <div className="text-sm font-medium">{field.label}</div>
-        <div className="text-xs text-gray-500">{FIELD_TYPES[field.type as keyof typeof FIELD_TYPES]?.label}</div>
+        <div className={`text-sm font-medium ${field.section === 'custom' ? 'text-purple-800' : ''}`}>
+          {field.label}
+          {field.section === 'custom' && <span className="ml-1 text-xs text-purple-500">(Customizado)</span>}
+        </div>
+        <div className={`text-xs ${field.section === 'custom' ? 'text-purple-600' : 'text-gray-500'}`}>
+          {FIELD_TYPES[field.type as keyof typeof FIELD_TYPES]?.label}
+        </div>
       </div>
       {field.required && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
     </div>
@@ -254,18 +260,35 @@ export default function TemplateCanvasEditor({
   const [templateName, setTemplateName] = useState(initialTemplate?.name || '');
   const [templateDescription, setTemplateDescription] = useState(initialTemplate?.description || '');
   const [templateCategory, setTemplateCategory] = useState(initialTemplate?.category || '');
+
+  // Carregar campos customizados
+  useEffect(() => {
+    const loadCustomFields = async () => {
+      try {
+        // Aqui você pode fazer uma chamada para a API para buscar campos customizados
+        // Por enquanto, vamos simular alguns campos customizados
+        const mockCustomFields: TemplateField[] = [
+          { id: 'custom_field_1', type: 'text', label: 'Campo Personalizado 1', required: false, section: 'custom' },
+          { id: 'custom_field_2', type: 'select', label: 'Campo Personalizado 2', required: false, section: 'custom' },
+          { id: 'custom_approval', type: 'checkbox', label: 'Requer Aprovação Especial', required: false, section: 'custom' }
+        ];
+        setCustomFields(mockCustomFields);
+      } catch (error) {
+        console.error('Erro ao carregar campos customizados:', error);
+      }
+    };
+
+    loadCustomFields();
+  }, []);
   
   // Campos organizados por aba
   const [fieldsByTab, setFieldsByTab] = useState<Record<string, TemplateField[]>>({
-    basic: [],
-    template: [],
-    assignment: [],
-    classification: [],
-    details: [],
-    people: []
+    opening: [], // Template de Abertura
+    assignment: [] // Template de Atribuição
   });
 
   const [availableFields, setAvailableFields] = useState<TemplateField[]>(DEFAULT_FIELDS);
+  const [customFields, setCustomFields] = useState<TemplateField[]>([]);
 
   // Adicionar campo à aba
   const handleFieldDrop = useCallback((field: TemplateField, tabId: string) => {
@@ -373,11 +396,26 @@ export default function TemplateCanvasEditor({
 
           {/* Lista de campos disponíveis */}
           <ScrollArea className="flex-1 p-6">
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Campos Disponíveis</h3>
-              {availableFields.map((field) => (
-                <DraggableField key={field.id} field={field} />
-              ))}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Campos do Sistema</h3>
+                <div className="space-y-2">
+                  {availableFields.map((field) => (
+                    <DraggableField key={field.id} field={field} />
+                  ))}
+                </div>
+              </div>
+              
+              {customFields.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Campos Customizados</h3>
+                  <div className="space-y-2">
+                    {customFields.map((field) => (
+                      <DraggableField key={field.id} field={field} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
 
@@ -417,27 +455,51 @@ export default function TemplateCanvasEditor({
                 <CardTitle>Configuração do Template</CardTitle>
               </CardHeader>
               <CardContent className="h-full">
-                <Tabs defaultValue="basic" className="h-full flex flex-col">
-                  <TabsList className="grid w-full grid-cols-6">
-                    <TabsTrigger value="basic">Básico</TabsTrigger>
-                    <TabsTrigger value="template">Template/Ambiente</TabsTrigger>
-                    <TabsTrigger value="assignment">Atribuição</TabsTrigger>
-                    <TabsTrigger value="classification">Classificação</TabsTrigger>
-                    <TabsTrigger value="details">Detalhes</TabsTrigger>
-                    <TabsTrigger value="people">Pessoas</TabsTrigger>
+                <Tabs defaultValue="opening" className="h-full flex flex-col">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="opening" className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      Template de Abertura
+                    </TabsTrigger>
+                    <TabsTrigger value="assignment" className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Template de Atribuição
+                    </TabsTrigger>
                   </TabsList>
 
-                  {Object.keys(fieldsByTab).map(tabId => (
-                    <TabsContent key={tabId} value={tabId} className="flex-1">
-                      <TabDropZone
-                        tabId={tabId}
-                        fields={fieldsByTab[tabId]}
-                        onDrop={handleFieldDrop}
-                        onRemoveField={handleRemoveField}
-                        onEditField={handleEditField}
-                      />
-                    </TabsContent>
-                  ))}
+                  <TabsContent value="opening" className="flex-1">
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">Template de Abertura</h4>
+                      <p className="text-sm text-blue-600">
+                        Configure os campos que aparecerão quando um novo ticket for criado. 
+                        Estes campos são preenchidos pelo usuário que está abrindo o chamado.
+                      </p>
+                    </div>
+                    <TabDropZone
+                      tabId="opening"
+                      fields={fieldsByTab.opening}
+                      onDrop={handleFieldDrop}
+                      onRemoveField={handleRemoveField}
+                      onEditField={handleEditField}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="assignment" className="flex-1">
+                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">Template de Atribuição</h4>
+                      <p className="text-sm text-green-600">
+                        Configure os campos que aparecerão quando o ticket for atribuído a um técnico. 
+                        Estes campos são preenchidos durante o processo de atribuição e resolução.
+                      </p>
+                    </div>
+                    <TabDropZone
+                      tabId="assignment"
+                      fields={fieldsByTab.assignment}
+                      onDrop={handleFieldDrop}
+                      onRemoveField={handleRemoveField}
+                      onEditField={handleEditField}
+                    />
+                  </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>

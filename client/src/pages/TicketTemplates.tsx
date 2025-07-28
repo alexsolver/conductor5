@@ -502,7 +502,7 @@ export default function TicketTemplates() {
             <CardHeader>
               <CardTitle>Editor Visual de Templates</CardTitle>
               <p className="text-muted-foreground">
-                Crie e edite templates usando a interface drag-and-drop que replica o layout de edição de tickets
+                Crie templates de abertura e atribuição usando drag-and-drop. Inclui campos do sistema e campos customizados.
               </p>
             </CardHeader>
             <CardContent className="p-0">
