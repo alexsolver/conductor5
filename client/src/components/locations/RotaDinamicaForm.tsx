@@ -131,7 +131,9 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
     }
   });
 
-  const filteredRegioes = regioes.filter(regiao =>
+  // Ensure regioes is always an array
+  const regioesArray = Array.isArray(regioes) ? regioes : [];
+  const filteredRegioes = regioesArray.filter(regiao =>
     regiao.nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -147,7 +149,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
   };
 
   const getRegiaoNome = (id) => {
-    const regiao = regioes.find(r => r.id === id);
+    const regiao = regioesArray.find(r => r.id === id);
     return regiao?.nome || 'Região não encontrada';
   };
 
