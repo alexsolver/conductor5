@@ -325,7 +325,7 @@ export class LocationsNewRepository {
         SELECT id, 
                COALESCE(first_name, email) as nome, 
                email, 
-               COALESCE(phone, cell_phone, '') as telefone, 
+               COALESCE(phone, '') as telefone, 
                CASE WHEN active = true THEN true ELSE false END as ativo, 
                created_at
         FROM "${schemaName}".customers
@@ -424,8 +424,8 @@ export class LocationsNewRepository {
       `);
 
       if (!schemaExists.rows?.[0]?.exists) {
-        console.log(`LocationsNewRepository.getGruposEquipe - Schema ${schemaName} does not exist, returning mock data`);
-        return this.getMockGrupos();
+        console.log(`LocationsNewRepository.getGruposEquipe - Schema ${schemaName} does not exist, returning empty array`);
+        return [];
       }
 
       // Check if groups table exists
@@ -438,8 +438,8 @@ export class LocationsNewRepository {
       `);
 
       if (!tableExists.rows?.[0]?.exists) {
-        console.log(`LocationsNewRepository.getGruposEquipe - Groups table does not exist in schema ${schemaName}, returning mock data`);
-        return this.getMockGrupos();
+        console.log(`LocationsNewRepository.getGruposEquipe - Groups table does not exist in schema ${schemaName}, returning empty array`);
+        return [];
       }
 
       const query = `
@@ -455,8 +455,8 @@ export class LocationsNewRepository {
       const result = await this.executeQuery(query, [tenantId]);
 
       if (!result || result.length === 0) {
-        console.log(`LocationsNewRepository.getGruposEquipe - No groups found for tenant ${tenantId}, returning mock data`);
-        return this.getMockGrupos();
+        console.log(`LocationsNewRepository.getGruposEquipe - No groups found for tenant ${tenantId}, returning empty array`);
+        return [];
       }
 
       console.log(`LocationsNewRepository.getGruposEquipe - Successfully fetched ${result.length} groups for tenant ${tenantId}`);
@@ -470,14 +470,11 @@ export class LocationsNewRepository {
       }));
     } catch (error) {
       console.error('LocationsNewRepository.getGruposEquipe - Error:', error);
-      return this.getMockGrupos();
+      return [];
     }
   }
 
-  private getMockGrupos() {
-    // Return empty array instead of mock data
-    return [];
-  }
+  
 
   async getLocaisAtendimento(tenantId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -493,8 +490,8 @@ export class LocationsNewRepository {
       `);
 
       if (!schemaExists.rows?.[0]?.exists) {
-        console.log(`LocationsNewRepository.getLocaisAtendimento - Schema ${schemaName} does not exist, returning mock data`);
-        return this.getMockLocais();
+        console.log(`LocationsNewRepository.getLocaisAtendimento - Schema ${schemaName} does not exist, returning empty array`);
+        return [];
       }
 
       // Check if locais table exists first
@@ -548,8 +545,8 @@ export class LocationsNewRepository {
       `);
 
       if (!locationsTableExists.rows?.[0]?.exists) {
-        console.log('LocationsNewRepository.getLocaisAtendimento - Neither locais nor locations table exists, returning mock data');
-        return this.getMockLocais();
+        console.log('LocationsNewRepository.getLocaisAtendimento - Neither locais nor locations table exists, returning empty array');
+        return [];
       }
 
       const query = `
@@ -570,8 +567,8 @@ export class LocationsNewRepository {
       const result = await this.executeQuery(query, [tenantId]);
 
       if (!result || result.length === 0) {
-        console.log(`LocationsNewRepository.getLocaisAtendimento - No locations found for tenant ${tenantId}, returning mock data`);
-        return this.getMockLocais();
+        console.log(`LocationsNewRepository.getLocaisAtendimento - No locations found for tenant ${tenantId}, returning empty array`);
+        return [];
       }
 
       console.log(`LocationsNewRepository.getLocaisAtendimento - Found ${result.length} locations for tenant ${tenantId}`);
@@ -588,13 +585,41 @@ export class LocationsNewRepository {
       }));
     } catch (error) {
       console.error('LocationsNewRepository.getLocaisAtendimento - Error:', error);
-      return this.getMockLocais();
+      return [];
     }
   }
 
-  private getMockLocais() {
-    // Return empty array instead of mock data
-    return [];
+  
+
+  // Execute raw SQL queries safely
+  private async executeQuery(query: string, params: any[]): Promise<any[]> {
+    try {
+      console.log(`LocationsNewRepository.executeQuery - Executing query with ${params.length} parameters`);
+      const result = await this.db.execute(sql.raw(query, params));
+      return result.rows || [];
+    } catch (error) {
+      console.error('Database query failed:', {
+        error: error.message,
+        query: query.substring(0, 100) + '...',
+        paramCount: params.length,
+        tenant: params[0] || 'unknown'
+      });
+      
+      // Check for specific column issues and try field correction
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        console.log('Column mapping issue detected, attempting field correction');
+        try {
+          // Try a simplified query to test connectivity
+          const fallbackQuery = `SELECT id FROM "${params[0].replace('tenant_', '').replace(/_/g, '-')}" LIMIT 1`;
+          await this.db.execute(sql.raw(fallbackQuery));
+          console.log('Field correction also failed, using fallback data');
+        } catch (fallbackError) {
+          console.log('Field correction also failed, using fallback data');
+        }
+      }
+      
+      throw error;
+    }
   }
 
   

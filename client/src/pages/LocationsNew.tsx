@@ -690,7 +690,7 @@ function LocationsNewContent() {
     enabled: !!token
   });
 
-  const { data: rotaTrechosData } = useQuery({
+  const rotasTrechoQuery = useQuery({
     queryKey: ['/api/locations-new/rota-trecho'],
     queryFn: async () => {
       const response = await fetch('/api/locations-new/rota-trecho', {
@@ -808,7 +808,7 @@ function LocationsNewContent() {
   });
 
   // Enhanced error and loading states
-  const isAnyLoading = [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotaTrechosData, areasData, agrupamentosData]
+  const isAnyLoading = [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotasTrechoData, areasData, agrupamentosData]
     .some(query => query?.isLoading);
 
   if (!token) {
@@ -924,12 +924,12 @@ function LocationsNewContent() {
     if (regioesData) dataObjects.regioesData = regioesData;
     if (rotasDinamicasData) dataObjects.rotasDinamicasData = rotasDinamicasData;
     if (trechosData) dataObjects.trechosData = trechosData;
-    if (rotasTrechoData) dataObjects.rotasTrechoData = rotasTrechoData;
+    if (rotasTrechoQuery) dataObjects.rotasTrechoQuery = rotasTrechoQuery; // Fixed: use the correct query object
     if (areasData) dataObjects.areasData = areasData;
     if (agrupamentosData) dataObjects.agrupamentosData = agrupamentosData;
 
     return getCurrentData(dataObjects);
-  }, [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotasTrechoData, areasData, agrupamentosData, getCurrentData]);
+  }, [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotasTrechoQuery, areasData, agrupamentosData, getCurrentData]);
 
   const locaisCount = currentData.locais?.length || 0;
   console.log('LocationsNew - Locais count:', locaisCount);
