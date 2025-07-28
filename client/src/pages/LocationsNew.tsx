@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays, Edit, Trash2, Layers, Palette, FileUp, Target, Zap } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Building2, Phone, MapIcon, Calendar, UserCheck, ExternalLink, Link, CalendarDays, Edit, Trash2, Layers, Palette, FileUp, Target, Zap, X, CheckCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,9 +78,63 @@ function LocationsNewContent() {
   const [novoTrecho, setNovoTrecho] = useState({ de: "", trecho: "", para: "" });
   const [tipoArea, setTipoArea] = useState("faixa-cep");
   const [corArea, setCorArea] = useState("#3b82f6");
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [coordenadaSelecionada, setCoordenadaSelecionada] = useState(null);
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
+
+  // Função para buscar CEP
+  const buscarCEP = async (cep: string) => {
+    if (cep.length !== 8) return;
+    
+    setCepLoading(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        // Preencher campos automaticamente
+        form.setValue("estado", data.uf);
+        form.setValue("municipio", data.localidade);
+        form.setValue("bairro", data.bairro);
+        form.setValue("logradouro", data.logradouro);
+        
+        toast({
+          title: "CEP encontrado",
+          description: `Endereço preenchido automaticamente: ${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`
+        });
+      } else {
+        toast({
+          title: "CEP não encontrado",
+          description: "Verifique o CEP digitado e tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao buscar CEP",
+        description: "Não foi possível consultar o CEP. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  // Função para selecionar coordenada no mapa
+  const selecionarCoordenada = (lat: number, lng: number) => {
+    setCoordenadaSelecionada({ lat, lng });
+    form.setValue("latitude", lat.toFixed(8));
+    form.setValue("longitude", lng.toFixed(8));
+    setIsMapOpen(false);
+    
+    toast({
+      title: "Coordenada selecionada",
+      description: `Latitude: ${lat.toFixed(8)}, Longitude: ${lng.toFixed(8)}`
+    });
+  };
 
   // Form setup
   const form = useForm({
@@ -358,13 +412,129 @@ function LocationsNewContent() {
             </p>
           </div>
 
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo {currentRecordType.label}
-              </Button>
-            </DialogTrigger>
+          <div className="flex space-x-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Gerenciar Horários
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center">
+                    <Clock className="h-5 w-5 mr-2" />
+                    Gerenciamento de Horários de Funcionamento
+                  </DialogTitle>
+                  <DialogDescription>
+                    Configure padrões de horários que podem ser associados a múltiplos locais, regiões e rotas.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Tabs defaultValue="padroes" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
+                    <TabsTrigger value="associacoes">Associações</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="padroes" className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Padrões Cadastrados</h3>
+                        <Button size="sm">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Novo Padrão
+                        </Button>
+                      </div>
+                      
+                      <div className="grid gap-4">
+                        {[
+                          { id: 1, nome: "Comercial Padrão", horario: "08:00-18:00", dias: "Seg-Sex", entidades: 15 },
+                          { id: 2, nome: "Shopping", horario: "10:00-22:00", dias: "Seg-Dom", entidades: 8 },
+                          { id: 3, nome: "Técnico de Campo", horario: "07:00-17:00", dias: "Seg-Sáb", entidades: 12 }
+                        ].map((padrao) => (
+                          <Card key={padrao.id}>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-semibold">{padrao.nome}</h4>
+                                  <p className="text-sm text-gray-600">
+                                    {padrao.horario} • {padrao.dias} • {padrao.entidades} entidades associadas
+                                  </p>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button variant="outline" size="sm">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="associacoes" className="space-y-4">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
+                      
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Selecionar Padrão de Horário</h4>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Escolha um padrão" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="comercial">Comercial Padrão</SelectItem>
+                              <SelectItem value="shopping">Shopping</SelectItem>
+                              <SelectItem value="tecnico">Técnico de Campo</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Aplicar a Entidades</h4>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {[
+                              { tipo: "Local", nome: "Matriz São Paulo", ativo: true },
+                              { tipo: "Local", nome: "Filial Campinas", ativo: false },
+                              { tipo: "Região", nome: "Grande SP", ativo: true },
+                              { tipo: "Rota", nome: "Rota ABC", ativo: false }
+                            ].map((entidade, index) => (
+                              <div key={index} className="flex items-center space-x-3">
+                                <Checkbox defaultChecked={entidade.ativo} />
+                                <Badge variant="outline" className="text-xs">
+                                  {entidade.tipo}
+                                </Badge>
+                                <span className="text-sm">{entidade.nome}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button className="w-full">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Aplicar Horários às Entidades Selecionadas
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo {currentRecordType.label}
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Criar {currentRecordType.label}</DialogTitle>
@@ -717,9 +887,19 @@ function LocationsNewContent() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Latitude</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="-23.550520" step="0.00000001" />
-                            </FormControl>
+                            <div className="flex space-x-2">
+                              <FormControl>
+                                <Input {...field} placeholder="-23.550520" step="0.00000001" />
+                              </FormControl>
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsMapOpen(true)}
+                                size="sm"
+                              >
+                                <MapPin className="h-4 w-4" />
+                              </Button>
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -731,9 +911,19 @@ function LocationsNewContent() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Longitude</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="-46.633309" step="0.00000001" />
-                            </FormControl>
+                            <div className="flex space-x-2">
+                              <FormControl>
+                                <Input {...field} placeholder="-46.633309" step="0.00000001" />
+                              </FormControl>
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsMapOpen(true)}
+                                size="sm"
+                              >
+                                <MapPin className="h-4 w-4" />
+                              </Button>
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -743,7 +933,7 @@ function LocationsNewContent() {
                     <Alert>
                       <MapPin className="h-4 w-4" />
                       <AlertDescription>
-                        As coordenadas geográficas serão obtidas automaticamente pelo endereço e exibidas em mapa para validação.
+                        As coordenadas podem ser coletadas clicando no botão do mapa ao lado dos campos ou preenchidas automaticamente pelo endereço.
                       </AlertDescription>
                     </Alert>
                   </div>
@@ -1076,9 +1266,38 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>CEP</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="00000-000" />
-                                </FormControl>
+                                <div className="flex space-x-2">
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      placeholder="00000-000"
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        const cep = e.target.value.replace(/\D/g, '');
+                                        if (cep.length === 8) {
+                                          buscarCEP(cep);
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <Button 
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                      const cep = field.value?.replace(/\D/g, '');
+                                      if (cep && cep.length === 8) {
+                                        buscarCEP(cep);
+                                      }
+                                    }}
+                                    disabled={cepLoading}
+                                  >
+                                    {cepLoading ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Search className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2135,6 +2354,69 @@ function LocationsNewContent() {
                     </>
                   )}
 
+                  {/* Modal do Mapa para Seleção de Coordenadas */}
+                  {isMapOpen && (
+                    <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
+                      <DialogContent className="max-w-4xl max-h-[80vh]">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center">
+                            <Map className="h-5 w-5 mr-2" />
+                            Selecionar Coordenada no Mapa
+                          </DialogTitle>
+                          <DialogDescription>
+                            Clique no mapa para selecionar a coordenada desejada. A coordenada será automaticamente preenchida nos campos.
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4">
+                          {/* Área do Mapa Placeholder */}
+                          <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                            <div className="text-center text-gray-500">
+                              <Map className="h-12 w-12 mx-auto mb-4" />
+                              <h3 className="font-semibold mb-2">Mapa Interativo Leaflet</h3>
+                              <p className="mb-4">Clique em qualquer ponto do mapa para selecionar a coordenada</p>
+                              <div className="flex justify-center space-x-2">
+                                <Button 
+                                  onClick={() => selecionarCoordenada(-23.550520, -46.633309)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <Target className="h-4 w-4 mr-2" />
+                                  Exemplo: São Paulo Centro
+                                </Button>
+                                <Button 
+                                  onClick={() => selecionarCoordenada(-22.906847, -43.172896)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <Target className="h-4 w-4 mr-2" />
+                                  Exemplo: Rio de Janeiro
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Instruções */}
+                          <Alert>
+                            <Target className="h-4 w-4" />
+                            <AlertDescription>
+                              <strong>Como usar:</strong> Clique em qualquer ponto do mapa para capturar as coordenadas. 
+                              Você pode navegar, dar zoom e clicar no local exato desejado.
+                            </AlertDescription>
+                          </Alert>
+                          
+                          {/* Botões de Ação */}
+                          <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setIsMapOpen(false)}>
+                              <X className="h-4 w-4 mr-2" />
+                              Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+
                   <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button 
                       type="button" 
@@ -2155,8 +2437,9 @@ function LocationsNewContent() {
             </DialogContent>
           </Dialog>
         </div>
+      </div>
 
-        {/* Stats cards */}
+      {/* Stats cards */}
         <div className="grid grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
