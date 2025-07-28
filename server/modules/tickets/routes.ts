@@ -465,11 +465,17 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // Prepare description and work log
     const actionDescription = workLog || description || `${actionType} action performed`;
 
-    // Insert action into database with all fields
+    // Capture IP address, user agent, and session ID
+    const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+    const ipAddress = getClientIP(req);
+    const userAgent = getUserAgent(req);
+    const sessionId = getSessionId(req);
+
+    // Insert action into database with all fields including IP tracking
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_actions 
-      (tenant_id, ticket_id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_by, created_at, updated_at, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), true)
+      (tenant_id, ticket_id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_by, ip_address, user_agent, session_id, created_at, updated_at, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW(), true)
       RETURNING id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_at
     `;
 
@@ -484,7 +490,10 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       endTime,            // $8 end_time
       estimatedHours,     // $9 estimated_hours
       is_public,          // $10 is_public
-      req.user.id         // $11 created_by
+      req.user.id,        // $11 created_by
+      ipAddress,          // $12 ip_address
+      userAgent,          // $13 user_agent
+      sessionId           // $14 session_id
     ]);
 
     if (result.rows.length === 0) {
@@ -506,31 +515,6 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1 AND tenant_id = $2`,
       [id, tenantId]
     );
-
-    // Create history entry for the internal action
-    try {
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
-      `, [
-        tenantId,
-        id,
-        'internal_action',
-        `Ação interna adicionada: ${actionType}`,
-        req.user.id,
-        userName,
-        JSON.stringify({
-          action_type: actionType,
-          work_log: workLog || '',
-          time_spent: timeSpent || '0:00:00:00',
-          estimated_hours: estimatedHours,
-          is_public: is_public
-        })
-      ]);
-    } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-    }
 
     console.log('✅ Ação interna criada com sucesso:', newAction);
 
@@ -845,10 +829,11 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         null as new_value,
         null as field_name,
         ta.created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        jsonb_build_object(
+        ta.ip_address,
+        ta.user_agent,
+        ta.session_id,
+        jsonb_build_object```text
+(
           'work_log', ta.work_log,
           'time_spent', ta.time_spent,
           'estimated_hours', ta.estimated_hours,
