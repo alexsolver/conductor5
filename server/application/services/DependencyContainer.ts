@@ -7,18 +7,20 @@ import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
 import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
 import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
 import { storageSimple } from "../../storage-simple";
+import { UserRepository } from "../../infrastructure/repositories/UserRepository";
+import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
-  
+
   // Repositories
   private _userRepository?: DrizzleUserRepository;
   private _tenantRepository?: TenantRepository;
-  
+
   // Services
   private _passwordHasher?: PasswordHasher;
   private _tokenService?: SimpleTokenService;
-  
+
   // Use Cases
   private _loginUseCase?: LoginUseCase;
   private _registerUseCase?: RegisterUseCase;

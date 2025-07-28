@@ -10,6 +10,22 @@ import { IUserRepository, UserFilter } from '../../domain/ports/IUserRepository'
 import { users } from '@shared/schema';
 import { db } from '../../../../db';
 
+export import { IUserRepository } from '../../../domain/repositories/IUserRepository';
+import { User } from '../../../domain/entities/User';
+import { db } from '../../../../db';
+import { users } from '../../../../../shared/schema';
+import { eq, desc, count, and, or, ilike } from 'drizzle-orm';
+
+interface UserFilter {
+  tenantId?: string;
+  role?: string;
+  active?: boolean;
+  verified?: boolean;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export class DrizzleUserRepository implements IUserRepository {
   
   async findById(id: string): Promise<User | null> {
@@ -212,6 +228,48 @@ export class DrizzleUserRepository implements IUserRepository {
       createdAt: data.createdAt || data.created_at || new Date(),
       updatedAt: data.updatedAt || data.updated_at || new Date()
     });
+  }
+
+  async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
+    const limit = options?.limit || 50;
+    const offset = options?.page ? (options.page - 1) * limit : 0;
+    
+    const results = await db
+      .select()
+      .from(users)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(users.createdAt));
+
+    return results.map(result => this.toDomainEntity(result));
+  }
+
+  async create(userData: { email: string; passwordHash: string; firstName?: string; lastName?: string; role: string; tenantId?: string }): Promise<User> {
+    const user = User.fromPersistence({
+      id: crypto.randomUUID(),
+      email: userData.email,
+      password: userData.passwordHash,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      tenantId: userData.tenantId,
+      active: true,
+      verified: false,
+      lastLogin: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    return await this.save(user);
+  }
+
+  async countByTenant(tenantId: string): Promise<number> {
+    const result = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.tenantId, tenantId));
+    
+    return result[0]?.count || 0;
   }
 
   private toPersistenceData(user: User): any {

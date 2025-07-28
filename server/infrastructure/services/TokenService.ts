@@ -26,12 +26,31 @@ export class TokenService implements ITokenService {
     }
   }
 
-  generateAccessToken(user: User): string {
+  generateAccessToken(userId: string, email: string): string;
+  generateAccessToken(user: User): string;
+  generateAccessToken(userIdOrUser: string | User, email?: string): string {
+    let userId: string;
+    let userEmail: string;
+    let role: string;
+    let tenantId: string | null;
+
+    if (typeof userIdOrUser === 'string') {
+      userId = userIdOrUser;
+      userEmail = email!;
+      role = 'agent'; // Default role for backward compatibility
+      tenantId = null;
+    } else {
+      userId = userIdOrUser.id;
+      userEmail = userIdOrUser.email;
+      role = userIdOrUser.role;
+      tenantId = userIdOrUser.tenantId;
+    }
+
     const payload = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenantId,
+      userId,
+      email: userEmail,
+      role,
+      tenantId,
       type: 'access'
     };
 
@@ -42,9 +61,19 @@ export class TokenService implements ITokenService {
     });
   }
 
-  generateRefreshToken(user: User): string {
+  generateRefreshToken(userId: string, email: string): string;
+  generateRefreshToken(user: User): string;
+  generateRefreshToken(userIdOrUser: string | User, email?: string): string {
+    let userId: string;
+
+    if (typeof userIdOrUser === 'string') {
+      userId = userIdOrUser;
+    } else {
+      userId = userIdOrUser.id;
+    }
+
     const payload = {
-      userId: user.id,
+      userId,
       type: 'refresh'
     };
 

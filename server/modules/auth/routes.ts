@@ -44,8 +44,8 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
     }
 
     // Generate new tokens
-    const accessToken = tokenService.generateAccessToken(user.id, user.email);
-    const newRefreshToken = tokenService.generateRefreshToken(user.id, user.email);
+    const accessToken = tokenService.generateAccessToken(user);
+    const newRefreshToken = tokenService.generateRefreshToken(user);
 
     // Set new refresh token as httpOnly cookie
     res.cookie('refreshToken', newRefreshToken, {
