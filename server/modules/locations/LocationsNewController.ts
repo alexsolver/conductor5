@@ -1,6 +1,6 @@
 // LOCATIONS NEW CONTROLLER - Support for 7 Record Types
 import { Request, Response } from "express";
-import { AuthenticatedRequest } from "../../middleware/auth";
+import { AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { LocationsNewRepository } from "./LocationsNewRepository";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { z } from "zod";
@@ -240,23 +240,7 @@ export class LocationsNewController {
     return municipalHolidays[key] || [];
   }
 
-  // Get statistics by record type
-  async getStatsByType(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return sendError(res, "Tenant ID required", 401);
-      }
-
-      const { recordType } = req.params;
-      const stats = await this.repository.getStatsByType(tenantId, recordType as string);
-
-      return sendSuccess(res, stats, `${recordType} statistics retrieved successfully`);
-    } catch (error) {
-      console.error('Error fetching stats by type:', error);
-      return sendError(res, "Failed to fetch statistics", 500);
-    }
-  }
+  
 
   // Create Local
   async createLocal(req: AuthenticatedRequest, res: Response) {

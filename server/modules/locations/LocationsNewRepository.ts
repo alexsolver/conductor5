@@ -15,6 +15,8 @@ export class LocationsNewRepository {
   // Integration methods for region relationships
   async getClientes(tenantId: string) {
     try {
+      console.log(`LocationsNewRepository.getClientes - Starting fetch for tenant: ${tenantId}`);
+      
       // First check if customers table exists and has data
       const checkQuery = `
         SELECT EXISTS (
@@ -26,7 +28,7 @@ export class LocationsNewRepository {
       const tableCheck = await this.db.execute(sql.raw(checkQuery));
       
       if (!tableCheck[0]?.table_exists) {
-        console.log('Customers table does not exist, returning mock data');
+        console.log('LocationsNewRepository.getClientes - Customers table does not exist, returning mock data');
         return this.getMockClientes();
       }
 
@@ -41,10 +43,11 @@ export class LocationsNewRepository {
       const result = await this.db.execute(sql.raw(query, [tenantId]));
       
       if (!result || result.length === 0) {
-        console.log('No customers found for tenant, returning mock data');
+        console.log(`LocationsNewRepository.getClientes - No customers found for tenant ${tenantId}, returning mock data`);
         return this.getMockClientes();
       }
 
+      console.log(`LocationsNewRepository.getClientes - Found ${result.length} customers for tenant ${tenantId}`);
       return result.map(row => ({
         id: row.id,
         nome: row.nome || row.email,
@@ -54,7 +57,7 @@ export class LocationsNewRepository {
         createdAt: row.created_at
       }));
     } catch (error) {
-      console.error('Error fetching clientes:', error);
+      console.error('LocationsNewRepository.getClientes - Error:', error);
       return this.getMockClientes();
     }
   }
@@ -82,6 +85,23 @@ export class LocationsNewRepository {
 
   async getTecnicosEquipe(tenantId: string) {
     try {
+      console.log(`LocationsNewRepository.getTecnicosEquipe - Starting fetch for tenant: ${tenantId}`);
+      
+      // Check if users table exists
+      const checkQuery = `
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_name = 'users'
+        ) as table_exists
+      `;
+      
+      const tableCheck = await this.db.execute(sql.raw(checkQuery));
+      
+      if (!tableCheck[0]?.table_exists) {
+        console.log('LocationsNewRepository.getTecnicosEquipe - Users table does not exist, returning mock data');
+        return this.getMockTecnicos();
+      }
+
       const query = `
         SELECT id, first_name as nome, email, role as tipo_usuario, is_active as ativo, created_at
         FROM users
@@ -93,6 +113,13 @@ export class LocationsNewRepository {
       `;
 
       const result = await this.db.execute(sql.raw(query, [tenantId]));
+      
+      if (!result || result.length === 0) {
+        console.log(`LocationsNewRepository.getTecnicosEquipe - No users found for tenant ${tenantId}, returning mock data`);
+        return this.getMockTecnicos();
+      }
+
+      console.log(`LocationsNewRepository.getTecnicosEquipe - Found ${result.length} users for tenant ${tenantId}`);
       return result.map(row => ({
         id: row.id,
         name: row.nome || row.email,
@@ -102,33 +129,38 @@ export class LocationsNewRepository {
         createdAt: row.created_at
       }));
     } catch (error) {
-      console.error('Error fetching técnicos:', error);
-      // Return mock data to prevent 500 errors
-      return [
-        {
-          id: 'mock-tech-1',
-          name: 'Técnico Principal',
-          email: 'tecnico1@empresa.com',
-          role: 'agent',
-          status: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'mock-tech-2',
-          name: 'Supervisor Técnico',
-          email: 'supervisor@empresa.com',
-          role: 'workspaceAdmin',
-          status: true,
-          createdAt: new Date().toISOString()
-        }
-      ];
+      console.error('LocationsNewRepository.getTecnicosEquipe - Error:', error);
+      return this.getMockTecnicos();
     }
+  }
+
+  private getMockTecnicos() {
+    return [
+      {
+        id: 'mock-tech-1',
+        name: 'Técnico Principal',
+        email: 'tecnico1@empresa.com',
+        role: 'agent',
+        status: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-tech-2',
+        name: 'Supervisor Técnico',
+        email: 'supervisor@empresa.com',
+        role: 'workspaceAdmin',
+        status: true,
+        createdAt: new Date().toISOString()
+      }
+    ];
   }
 
   async getGruposEquipe(tenantId: string) {
     try {
-      // Return mock data for groups since table may not exist
-      return [
+      console.log(`LocationsNewRepository.getGruposEquipe - Starting fetch for tenant: ${tenantId}`);
+      
+      // Return mock data for groups since table may not exist yet
+      const mockGroups = [
         {
           id: 'grupo-manutencao',
           name: 'Equipe de Manutenção',
@@ -151,14 +183,34 @@ export class LocationsNewRepository {
           createdAt: new Date().toISOString()
         }
       ];
+      
+      console.log(`LocationsNewRepository.getGruposEquipe - Returning ${mockGroups.length} mock groups for tenant ${tenantId}`);
+      return mockGroups;
     } catch (error) {
-      console.error('Error fetching grupos:', error);
+      console.error('LocationsNewRepository.getGruposEquipe - Error:', error);
       return [];
     }
   }
 
   async getLocaisAtendimento(tenantId: string) {
     try {
+      console.log(`LocationsNewRepository.getLocaisAtendimento - Starting fetch for tenant: ${tenantId}`);
+      
+      // Check if locations table exists
+      const checkQuery = `
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_name = 'locations'
+        ) as table_exists
+      `;
+      
+      const tableCheck = await this.db.execute(sql.raw(checkQuery));
+      
+      if (!tableCheck[0]?.table_exists) {
+        console.log('LocationsNewRepository.getLocaisAtendimento - Locations table does not exist, returning mock data');
+        return this.getMockLocais();
+      }
+
       // First try to get from public locations table
       const query = `
         SELECT id, name as nome, description as descricao, address_cep as cep, 
@@ -173,6 +225,7 @@ export class LocationsNewRepository {
       const result = await this.db.execute(sql.raw(query, [tenantId]));
       
       if (result.length > 0) {
+        console.log(`LocationsNewRepository.getLocaisAtendimento - Found ${result.length} locations for tenant ${tenantId}`);
         return result.map(row => ({
           id: row.id,
           name: row.nome,
@@ -186,48 +239,39 @@ export class LocationsNewRepository {
         }));
       }
 
-      // Return mock data if no results
-      return [
-        {
-          id: 'local-sede',
-          name: 'Sede Principal',
-          description: 'Escritório central da empresa',
-          cep: '01310-100',
-          municipio: 'São Paulo',
-          estado: 'SP',
-          active: true,
-          createdAt: new Date().toISOString(),
-          displayName: 'Sede Principal - São Paulo/SP'
-        },
-        {
-          id: 'local-filial',
-          name: 'Filial Zona Sul',
-          description: 'Unidade de atendimento zona sul',
-          cep: '04038-001',
-          municipio: 'São Paulo',
-          estado: 'SP',
-          active: true,
-          createdAt: new Date().toISOString(),
-          displayName: 'Filial Zona Sul - São Paulo/SP'
-        }
-      ];
+      console.log(`LocationsNewRepository.getLocaisAtendimento - No locations found for tenant ${tenantId}, returning mock data`);
+      return this.getMockLocais();
     } catch (error) {
-      console.error('Error fetching locais:', error);
-      // Return mock data to prevent 500 errors
-      return [
-        {
-          id: 'mock-local-1',
-          name: 'Local de Atendimento 1',
-          description: 'Primeiro local de atendimento',
-          cep: '01000-000',
-          municipio: 'São Paulo',
-          estado: 'SP',
-          active: true,
-          createdAt: new Date().toISOString(),
-          displayName: 'Local de Atendimento 1 - São Paulo/SP'
-        }
-      ];
+      console.error('LocationsNewRepository.getLocaisAtendimento - Error:', error);
+      return this.getMockLocais();
     }
+  }
+
+  private getMockLocais() {
+    return [
+      {
+        id: 'local-sede',
+        name: 'Sede Principal',
+        description: 'Escritório central da empresa',
+        cep: '01310-100',
+        municipio: 'São Paulo',
+        estado: 'SP',
+        active: true,
+        createdAt: new Date().toISOString(),
+        displayName: 'Sede Principal - São Paulo/SP'
+      },
+      {
+        id: 'local-filial',
+        name: 'Filial Zona Sul',
+        description: 'Unidade de atendimento zona sul',
+        cep: '04038-001',
+        municipio: 'São Paulo',
+        estado: 'SP',
+        active: true,
+        createdAt: new Date().toISOString(),
+        displayName: 'Filial Zona Sul - São Paulo/SP'
+      }
+    ];
   }
 
   // Get records by type with filtering
