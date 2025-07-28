@@ -2,7 +2,7 @@
 import express from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { ActivityTrackingService } from '../services/ActivityTrackingService';
-import { standardResponse } from '../utils/standardResponse';
+import { createSuccessResponse, createErrorResponse } from '../utils/standardResponse';
 
 const router = express.Router();
 
@@ -73,14 +73,14 @@ router.get('/my-productivity', jwtAuth, async (req: any, res) => {
       };
     });
 
-    res.json(standardResponse(true, 'Productivity data retrieved successfully', {
+    res.json(createSuccessResponse({
       summary,
       rawData: data,
       period: { startDate: start, endDate: end }
-    }));
+    }, 'Productivity data retrieved successfully'));
   } catch (error) {
     console.error('Error getting productivity data:', error);
-    res.status(500).json(standardResponse(false, 'Failed to retrieve productivity data'));
+    res.status(500).json(createErrorResponse('Failed to retrieve productivity data'));
   }
 });
 
@@ -124,14 +124,14 @@ router.get('/team-productivity', jwtAuth, async (req: any, res) => {
       userSummaries[userId].activitiesByType[type].time += parseInt(item.total_duration_seconds || '0');
     });
 
-    res.json(standardResponse(true, 'Team productivity data retrieved successfully', {
+    res.json(createSuccessResponse({
       userSummaries: Object.values(userSummaries),
       rawData: data,
       period: { startDate: start, endDate: end }
-    }));
+    }, 'Team productivity data retrieved successfully'));
   } catch (error) {
     console.error('Error getting team productivity data:', error);
-    res.status(500).json(standardResponse(false, 'Failed to retrieve team productivity data'));
+    res.status(500).json(createErrorResponse('Failed to retrieve team productivity data'));
   }
 });
 
