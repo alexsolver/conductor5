@@ -921,8 +921,7 @@ export default function TicketDetails() {
                         disabled={false}
                       />
                     ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerously<replit_final_file>
-SetInnerHTML={{ __html: field.value || '' }} />
+                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
                     )}
                   </FormControl>
                   <FormMessage />
