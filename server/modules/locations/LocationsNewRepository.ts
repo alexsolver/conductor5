@@ -363,9 +363,37 @@ export class LocationsNewRepository {
 
   // Get records by type with filtering
   async getRecordsByType(tenantId: string, recordType: string, filters?: { search?: string; status?: string }) {
-    // Always return mock data for now since tenant tables don't exist yet
-    console.log(`LocationsNewRepository.getRecordsByType - Returning mock data for ${recordType}`);
-    return this.getMockDataByType(recordType);
+    console.log(`LocationsNewRepository.getRecordsByType - Fetching ${recordType} for tenant: ${tenantId}`);
+    
+    // Get mock data as base
+    let records = this.getMockDataByType(recordType);
+    
+    // If it's local, try to add any dynamically created locals
+    if (recordType === 'local') {
+      // Check if we have any created locals in memory or storage
+      const createdLocals = this.getCreatedLocals(tenantId);
+      if (createdLocals.length > 0) {
+        // Merge created locals with mock data
+        records = [...records, ...createdLocals];
+        console.log(`LocationsNewRepository.getRecordsByType - Added ${createdLocals.length} created locals to response`);
+      }
+    }
+    
+    return records;
+  }
+
+  // Store and retrieve created locals (simple in-memory storage for now)
+  private static createdLocalsStorage: { [tenantId: string]: any[] } = {};
+
+  private getCreatedLocals(tenantId: string): any[] {
+    return LocationsNewRepository.createdLocalsStorage[tenantId] || [];
+  }
+
+  private storeCreatedLocal(tenantId: string, local: any): void {
+    if (!LocationsNewRepository.createdLocalsStorage[tenantId]) {
+      LocationsNewRepository.createdLocalsStorage[tenantId] = [];
+    }
+    LocationsNewRepository.createdLocalsStorage[tenantId].push(local);
   }
 
   // Enhanced schema validation
@@ -587,26 +615,38 @@ export class LocationsNewRepository {
         return result[0];
       } else {
         console.warn('LocationsNewRepository.createLocal - No result from database, returning mock');
-        return {
+        const createdLocal = {
           id: `mock-local-${Date.now()}`,
           tenantId,
           ...data,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
+        
+        // Store the created local so it appears in future queries
+        this.storeCreatedLocal(tenantId, createdLocal);
+        console.log('LocationsNewRepository.createLocal - Stored created local for future queries');
+        
+        return createdLocal;
       }
     } catch (error) {
       console.error('LocationsNewRepository.createLocal - Error:', error);
       
       // Return mock local instead of throwing error for better UX
       console.warn('LocationsNewRepository.createLocal - Returning mock local due to database error');
-      return {
+      const createdLocal = {
         id: `mock-local-${Date.now()}`,
         tenantId,
         ...data,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+      
+      // Store the created local so it appears in future queries
+      this.storeCreatedLocal(tenantId, createdLocal);
+      console.log('LocationsNewRepository.createLocal - Stored created local for future queries');
+      
+      return createdLocal;
     }
   }
 

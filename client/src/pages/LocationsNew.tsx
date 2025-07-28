@@ -308,8 +308,13 @@ function LocationsNewContent() {
 
                     // Close the dialog and refresh data
                     setIsCreateDialogOpen(false);
-                    queryClient.invalidateQueries({ queryKey: [`/api/locations-new/local`] });
-                    queryClient.invalidateQueries({ queryKey: [`/api/locations-new/local/stats`] });
+                    
+                    // Invalidate all related queries to refresh the data
+                    await queryClient.invalidateQueries({ queryKey: ['/api/locations-new/local'] });
+                    await queryClient.invalidateQueries({ queryKey: ['/api/locations-new/local/stats'] });
+                    
+                    // Force refetch the data
+                    await queryClient.refetchQueries({ queryKey: ['/api/locations-new/local'] });
 
                   } catch (error) {
                     console.error('LocationsNew - Error creating local:', error);
@@ -359,16 +364,17 @@ function LocationsNewContent() {
           }
           if (response.status === 404) {
             console.warn('Locais endpoint not found, using fallback');
-            return { records: [], metadata: { isFallback: true } };
+            return [];
           }
           if (response.status >= 500) {
             console.warn('Server error, using fallback data');
-            return { records: [], metadata: { isFallback: true, error: 'Server temporarily unavailable' } };
+            return [];
           }
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('LocationsNew - API response data:', data);
 
         // Normalize response structure to ensure consistent array format
         let normalizedData = [];
@@ -384,6 +390,7 @@ function LocationsNewContent() {
           normalizedData = data;
         }
 
+        console.log('LocationsNew - Normalized data:', normalizedData);
         return normalizedData;
       } catch (error) {
         console.error('Error fetching locais:', error);
@@ -394,8 +401,8 @@ function LocationsNewContent() {
     enabled: !!token,
     retry: 2,
     retryDelay: 1000,
-    staleTime: 30000,
-    refetchOnWindowFocus: false
+    staleTime: 5000, // Reduced to refresh data more frequently
+    refetchOnWindowFocus: true // Enable refetch on focus
   });
 
   const { data: regioesData } = useQuery({
@@ -588,6 +595,17 @@ function LocationsNewContent() {
     // Ensure all data is properly structured as arrays
     const safeArray = (data) => Array.isArray(data) ? data : [];
     
+    // Log current data for debugging
+    console.log('LocationsNew - getCurrentData called with:', {
+      locaisData,
+      regioesData,
+      rotasDinamicasData,
+      trechosData,
+      rotaTrechosData,
+      areasData,
+      agrupamentosData
+    });
+    
     return {
       locais: safeArray(locaisData),
       regioes: safeArray(regioesData),
@@ -770,8 +788,26 @@ function LocationsNewContent() {
               </TableHeader>
               <TableBody>
                 {(() => {
-                  const dataKey = activeRecordType + 's';
+                  // Map record types to their data keys
+                  const dataKeyMap = {
+                    'local': 'locais',
+                    'regiao': 'regioes',
+                    'rota_dinamica': 'rotasDinamicas',
+                    'trecho': 'trechos',
+                    'rota_trecho': 'rotaTrechos',
+                    'area': 'areas',
+                    'agrupamento': 'agrupamentos'
+                  };
+
+                  const dataKey = dataKeyMap[activeRecordType] || activeRecordType + 's';
                   const records = currentData[dataKey];
+                  
+                  console.log('LocationsNew - Rendering table with:', {
+                    activeRecordType,
+                    dataKey,
+                    records,
+                    recordsLength: records?.length
+                  });
                   
                   // Robust validation for array data
                   if (!records || !Array.isArray(records) || records.length === 0) {
