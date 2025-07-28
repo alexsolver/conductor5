@@ -379,6 +379,26 @@ export class LocationsNewRepository {
       }
     }
 
+    // Apply filters if provided
+    if (filters?.search) {
+      const searchTerm = filters.search.toLowerCase();
+      records = records.filter(record => 
+        (record.nome && record.nome.toLowerCase().includes(searchTerm)) ||
+        (record.nomeRota && record.nomeRota.toLowerCase().includes(searchTerm)) ||
+        (record.descricao && record.descricao.toLowerCase().includes(searchTerm)) ||
+        (record.codigoIntegracao && record.codigoIntegracao.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    if (filters?.status) {
+      records = records.filter(record => {
+        if (filters.status === 'ativo') return record.ativo === true;
+        if (filters.status === 'inativo') return record.ativo === false;
+        return true;
+      });
+    }
+
+    console.log(`LocationsNewRepository.getRecordsByType - Returning ${records.length} filtered records`);
     return records;
   }
 

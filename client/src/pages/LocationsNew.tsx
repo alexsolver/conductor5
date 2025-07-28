@@ -775,33 +775,33 @@ function LocationsNewContent() {
     );
   }
 
-  const currentData = getCurrentData();
+  // Enhanced data consolidation function
+  const getCurrentData = (allData: any) => {
+    console.log('LocationsNew - getCurrentData called with:', allData);
 
-  function getCurrentData() {
-    // Ensure all data is properly structured as arrays
-    const safeArray = (data) => Array.isArray(data) ? data : [];
-
-    // Log current data for debugging
-    console.log('LocationsNew - getCurrentData called with:', {
-      locaisData,
-      regioesData,
-      rotasDinamicasData,
-      trechosData,
-      rotaTrechosData,
-      areasData,
-      agrupamentosData
-    });
-
-    return {
-      locais: safeArray(locaisData),
-      regioes: safeArray(regioesData),
-      rotasDinamicas: safeArray(rotasDinamicasData),
-      trechos: safeArray(trechosData),
-      rotaTrechos: safeArray(rotaTrechosData),
-      areas: safeArray(areasData),
-      agrupamentos: safeArray(agrupamentosData),
+    // Handle both direct arrays and nested data structures
+    const consolidated = {
+      locais: Array.isArray(allData.locaisData) ? allData.locaisData : (allData.locaisData?.records || []),
+      regioes: Array.isArray(allData.regioesData) ? allData.regioesData : (allData.regioesData?.records || []),
+      rotasDinamicas: Array.isArray(allData.rotasDinamicasData) ? allData.rotasDinamicasData : (allData.rotasDinamicasData?.records || []),
+      trechos: Array.isArray(allData.trechosData) ? allData.trechosData : (allData.trechosData?.records || []),
+      rotasTrecho: Array.isArray(allData.rotasTrechoData) ? allData.rotasTrechoData : (allData.rotasTrechoData?.records || []),
+      areas: Array.isArray(allData.areasData) ? allData.areasData : (allData.areasData?.records || []),
+      agrupamentos: Array.isArray(allData.agrupamentosData) ? allData.agrupamentosData : (allData.agrupamentosData?.records || [])
     };
-  }
+
+    return consolidated;
+  };
+
+  const currentData = getCurrentData({
+    locaisData,
+    regioesData,
+    rotasDinamicasData,
+    trechosData,
+    rotaTrechosData,
+    areasData,
+    agrupamentosData
+  });
 
   const handleFormSubmit = async (formData: any) => {
     console.log('LocationsNew - Form submitted with data:', formData);
@@ -1046,29 +1046,30 @@ function LocationsNewContent() {
               </TableHeader>
               <TableBody>
                 {(() => {
-                  // Map record types to their data keys
+                  // Map data based on active record type
                   const dataKeyMap = {
                     'local': 'locais',
                     'regiao': 'regioes',
-                    'rota_dinamica': 'rotasDinamicas',
+                    'rota-dinamica': 'rotasDinamicas',
                     'trecho': 'trechos',
-                    'rota_trecho': 'rotaTrechos',
+                    'rota-trecho': 'rotasTrecho',
                     'area': 'areas',
                     'agrupamento': 'agrupamentos'
                   };
 
                   const dataKey = dataKeyMap[activeRecordType] || activeRecordType + 's';
-                  const records = currentData[dataKey];
+                  const records = currentData[dataKey] || [];
 
                   console.log('LocationsNew - Rendering table with:', {
                     activeRecordType,
                     dataKey,
                     records,
-                    recordsLength: records?.length
+                    recordsLength: records?.length,
+                    currentData: Object.keys(currentData)
                   });
 
                   // Robust validation for array data
-                  if (!records || !Array.isArray(records) || records.length === 0) {
+                  if (!Array.isArray(records) || records.length === 0) {
                     return (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8">
@@ -1153,9 +1154,20 @@ function LocationsNewContent() {
 
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Settings className="h-4 w-4" />
-                        </Button>
+                        <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  console.log(`Configurar ${activeRecordType}:`, record);
+                                  toast({
+                                    title: "Configurações",
+                                    description: `Configurações para ${currentType.label} serão implementadas em breve.`,
+                                  });
+                                }}
+                                title="Configurações"
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
                       </div>
                     </TableCell>
                   </TableRow>
