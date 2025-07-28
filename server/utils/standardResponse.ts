@@ -63,7 +63,7 @@ export const sendSuccess = (res: any, data: any, metadata?: { fallbackUsed?: boo
 };
 
 export function sendError(res: Response, error: any, message: string = "Internal server error", statusCode: number = 500) {
-  logger.error('Request failed', {
+  console.error('Request failed', {
     error: error?.message || error,
     stack: error?.stack,
     statusCode,

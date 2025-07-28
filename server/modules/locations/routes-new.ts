@@ -59,6 +59,17 @@ router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) =>
 
 // Get records by type
 router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
+  const { recordType } = req.params;
+  
+  // Validate record type first
+  const validTypes = ['local', 'regiao', 'rota-dinamica', 'trecho', 'rota-trecho', 'area', 'agrupamento'];
+  if (!validTypes.includes(recordType)) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid record type: ${recordType}. Valid types: ${validTypes.join(', ')}`
+    });
+  }
+  
   return controller.getRecordsByType(req, res);
 });
 

@@ -419,7 +419,7 @@ function LocationsNewContent() {
     retryDelay: 1000
   });
 
-  const { data: locaisAtendimento, isLoading: isLoadingLocais, error: locaisError } = useQuery({
+  const { data: locaisAtendimento, isLoading: isLoadingLocais, error: locaisAtendimentoError } = useQuery({
     queryKey: ["/api/locations-new/locais-atendimento"],
     queryFn: async () => {
       try {
