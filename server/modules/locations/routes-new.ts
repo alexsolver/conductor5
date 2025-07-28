@@ -1,7 +1,7 @@
 // LOCATIONS NEW ROUTES - API routes for 7 record types
 import { Router, Request, Response, NextFunction } from "express";
 import { LocationsNewController } from './LocationsNewController';
-import { LocationsNewRepository } from './LocationsNewRepository-fixed';
+import { LocationsNewRepository } from './LocationsNewRepository';
 import { getTenantDb } from '../../db-tenant';
 import { DatabaseStorage } from "../../storage-simple";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
