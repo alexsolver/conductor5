@@ -776,7 +776,6 @@ function LocationsNewContent() {
                       </div>
                     </TableCell>
                   </TableRow>
-                </TableRow>
                   ));
                 })()}
               </TableBody>
