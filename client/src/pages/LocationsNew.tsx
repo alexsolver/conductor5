@@ -808,7 +808,7 @@ function LocationsNewContent() {
   });
 
   // Enhanced error and loading states
-  const isAnyLoading = [locaisData, regioesData, rotasDinamicasData, trechosData, rotaTrechosData, areasData, agrupamentosData]
+  const isAnyLoading = [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotaTrechosData, areasData, agrupamentosData]
     .some(query => query?.isLoading);
 
   if (!token) {
