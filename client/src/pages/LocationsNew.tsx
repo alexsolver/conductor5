@@ -1,5 +1,5 @@
 // LOCATIONS MODULE - COMPLETE RESTRUCTURE FOR 7 RECORD TYPES
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 // Temporary fix for token issues - update token on page load
 const updateTokenForTesting = () => {
@@ -835,119 +835,153 @@ function LocationsNewContent() {
     );
   }
 
-  // Enhanced data consolidation function
-  const getCurrentData = (allData: any) => {
-    console.log('LocationsNew - getCurrentData called with:', allData);
+  // Main data consolidation function
+  const getCurrentData = useCallback((dataObjects: Record<string, any>) => {
+    console.log('LocationsNew - getCurrentData called with:', Object.keys(dataObjects));
 
-    // Enhanced extraction for locais data with multiple fallbacks
-    const extractLocaisData = (data: any) => {
-      if (!data) return [];
-
-      // Try different possible data structures
-      if (data.data?.records) return data.data.records;
-      if (data.records) return data.records;
-      if (data.data?.data?.records) return data.data.data.records;
-      if (Array.isArray(data.data)) return data.data;
-      if (Array.isArray(data)) return data;
-
-      console.warn('LocationsNew - Unable to extract locais data from:', data);
-      return [];};
-
-    const result = {
-      locais: extractLocaisData(allData.locaisQuery?.data),
-      regioes: allData.regioesData?.data?.records || allData.regioesData?.records || [],
-      rotasDinamicas: allData.rotasDinamicasData?.data?.records || allData.rotasDinamicasData?.records || [],
-      trechos: allData.trechosData?.data?.records || allData.trechosData?.records || [],
-      rotasTrecho: allData.rotasTrechoData?.data?.records || allData.rotasTrechoData?.records || [],
-      areas: allData.areasData?.data?.records || allData.areasData?.records || [],
-      agrupamentos: allData.agrupamentosData?.data?.records || allData.agrupamentosData?.records || []
+    const consolidated = {
+      locais: [],
+      regioes: [],
+      rotasDinamicas: [],
+      trechos: [],
+      rotasTrecho: [],
+      areas: [],
+      agrupamentos: []
     };
 
-    console.log('LocationsNew - Consolidated data:', result);
-    console.log('LocationsNew - Locais count:', result.locais?.length || 0);
-    return result;
+    // Process each data type
+    Object.entries(dataObjects).forEach(([key, dataObj]) => {
+      if (!dataObj) return;
+
+      let records = [];
+      let recordType = '';
+
+      if (key.includes('locaisQuery') || key.includes('locaisData')) {
+        recordType = 'locais';
+        if (dataObj.data?.data?.records) {
+          records = dataObj.data.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      } else if (key.includes('regioes')) {
+        recordType = 'regioes';
+        if (dataObj.data?.records) {
+          records = dataObj.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      } else if (key.includes('rotasDinamicas')) {
+        recordType = 'rotasDinamicas';
+        if (dataObj.data?.records) {
+          records = dataObj.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      } else if (key.includes('trechos') && !key.includes('rotasTrecho')) {
+        recordType = 'trechos';
+        if (dataObj.data?.records) {
+          records = dataObj.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      } else if (key.includes('rotasTrecho')) {
+        recordType = 'rotasTrecho';
+        if (dataObj.data?.records) {
+          records = dataObj.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      } else if (key.includes('areas')) {
+        recordType = 'areas';
+        if (dataObj.data?.records) {
+          records = dataObj.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      } else if (key.includes('agrupamentos')) {
+        recordType = 'agrupamentos';
+        if (dataObj.data?.records) {
+          records = dataObj.data.records;
+        } else if (dataObj.records) {
+          records = dataObj.records;
+        }
+      }
+
+      if (records && records.length > 0 && consolidated[recordType as keyof typeof consolidated]) {
+        consolidated[recordType as keyof typeof consolidated] = records;
+      }
+    });
+
+    console.log('LocationsNew - Consolidated data:', consolidated);
+    return consolidated;
+  }, []);
+
+// Get current data based on available queries
+  const currentData = useMemo(() => {
+    const dataObjects: Record<string, any> = {};
+
+    if (locaisQuery) dataObjects.locaisQuery = locaisQuery;
+    if (regioesData) dataObjects.regioesData = regioesData;
+    if (rotasDinamicasData) dataObjects.rotasDinamicasData = rotasDinamicasData;
+    if (trechosData) dataObjects.trechosData = trechosData;
+    if (rotasTrechoData) dataObjects.rotasTrechoData = rotasTrechoData;
+    if (areasData) dataObjects.areasData = areasData;
+    if (agrupamentosData) dataObjects.agrupamentosData = agrupamentosData;
+
+    return getCurrentData(dataObjects);
+  }, [locaisQuery, regioesData, rotasDinamicasData, trechosData, rotasTrechoData, areasData, agrupamentosData, getCurrentData]);
+
+  const locaisCount = currentData.locais?.length || 0;
+  console.log('LocationsNew - Locais count:', locaisCount);
+
+  // Handle loading states
+  if (locaisQuery?.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Handle error states
+  if (locaisQuery?.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-red-600">
+          Erro ao carregar dados: {locaisQuery.error?.message || 'Erro desconhecido'}
+        </div>
+      </div>
+    );
+  }
+
+  const getDataKey = (recordType: string) => {
+    switch (recordType) {
+      case 'local': return 'locais';
+      case 'regiao': return 'regioes';
+      case 'rota-dinamica': return 'rotasDinamicas';
+      case 'trecho': return 'trechos';
+      case 'rota-trecho': return 'rotasTrecho';
+      case 'area': return 'areas';
+      case 'agrupamento': return 'agrupamentos';
+      default: return 'locais';
+    }
   };
 
-  const currentData = getCurrentData({
-    locaisQuery,
-    regioesData,
-    rotasDinamicasData,
-    trechosData,
-    rotaTrechosData,
-    areasData,
-    agrupamentosData
-  });
+  const getActiveRecords = () => {
+    if (!currentData) return [];
 
-  const handleFormSubmit = async (formData: any) => {
-    console.log('LocationsNew - Form submitted with data:', formData);
+    const dataKey = getDataKey(activeRecordType);
+    const records = currentData[dataKey] || [];
 
-    try {
-      setIsSubmitting(true);
+    console.log('LocationsNew - Rendering table with:', {
+      activeRecordType,
+      dataKey,
+      records: records.slice(0, 2), // Log first 2 records only
+      recordsLength: records.length,
+      currentData: Object.keys(currentData)
+    });
 
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('Token de autenticação não encontrado');
-      }
-
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('LocationsNew - Token payload:', {
-        userId: payload.userId,
-        tenantId: payload.tenantId,
-        isExpired: payload.exp && payload.exp < Date.now() / 1000
-      });
-
-      // Ensure tenant ID is in the data
-      if (!formData.tenantId && payload.tenantId) {
-        formData.tenantId = payload.tenantId;
-        console.log('LocationsNew - Added tenant ID to data:', payload.tenantId);
-      }
-
-      console.log('LocationsNew - Making API request to create item');
-      const response = await fetch(`/api/locations-new/${activeRecordType}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      console.log('LocationsNew - API response status:', response.status);
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('LocationsNew - API error response:', result);
-        throw new Error(result.message || 'Erro ao criar item');
-      }
-
-      console.log('LocationsNew - Item created successfully:', result);
-
-      // Show success message
-      toast({
-        title: "Sucesso!",
-        description: "Item criado e salvo com sucesso no sistema."
-      });
-
-      // Close the dialog and refresh data
-      setShowForm(false);
-
-      // Invalidate all related queries to refresh the data
-      await queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
-      await queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
-
-      // Force refetch the data
-      await queryClient.refetchQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
-
-    } catch (error) {
-      console.error('LocationsNew - Error creating item:', error);
-      toast({
-        title: "Erro ao criar item",
-        description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    return records;
   };
 
   return (

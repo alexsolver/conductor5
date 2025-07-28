@@ -239,7 +239,7 @@ BEGIN
     EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_agrupamentos_tenant_id ON %I.agrupamentos(tenant_id)', replace(tenant_schema_name, '-', '_'), tenant_schema_name);
     
     -- Add foreign key constraints for trechos_rota
-    EXECUTE format('ALTER TABLE %I.trechos_rota ADD CONSTRAINT IF NOT EXISTS fk_trechos_rota_rota_trecho_id 
+    EXECUTE format('ALTER TABLE %I.trechos_rota ADD CONSTRAINT fk_trechos_rota_rota_trecho_id 
                    FOREIGN KEY (rota_trecho_id) REFERENCES %I.rotas_trecho(id) ON DELETE CASCADE', 
                    tenant_schema_name, tenant_schema_name);
     

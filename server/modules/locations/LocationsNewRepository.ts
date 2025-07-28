@@ -475,22 +475,8 @@ export class LocationsNewRepository {
   }
 
   private getMockGrupos() {
-    return [
-      {
-        id: 'group-1',
-        name: 'Equipe Técnica',
-        description: 'Grupo principal de técnicos',
-        memberCount: 5,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'group-2', 
-        name: 'Supervisão',
-        description: 'Grupo de supervisores',
-        memberCount: 2,
-        createdAt: new Date().toISOString()
-      }
-    ];
+    // Return empty array instead of mock data
+    return [];
   }
 
   async getLocaisAtendimento(tenantId: string) {
@@ -607,30 +593,8 @@ export class LocationsNewRepository {
   }
 
   private getMockLocais() {
-    return [
-      {
-        id: 'local-sede',
-        name: 'Sede Principal',
-        description: 'Escritório central da empresa',
-        cep: '01310-100',
-        municipio: 'São Paulo',
-        estado: 'SP',
-        active: true,
-        createdAt: new Date().toISOString(),
-        displayName: 'Sede Principal - São Paulo/SP'
-      },
-      {
-        id: 'local-filial',
-        name: 'Filial Zona Sul',
-        description: 'Unidade de atendimento zona sul',
-        cep: '04038-001',
-        municipio: 'São Paulo',
-        estado: 'SP',
-        active: true,
-        createdAt: new Date().toISOString(),
-        displayName: 'Filial Zona Sul - São Paulo/SP'
-      }
-    ];
+    // Return empty array instead of mock data
+    return [];
   }
 
   
@@ -1046,17 +1010,8 @@ export class LocationsNewRepository {
 
   private async executeQuery(query: string, params: any[]): Promise<any[]> {
     try {
-      // Build parameterized query properly
-      let parameterizedQuery = query;
-      let paramIndex = 1;
-      
-      // Replace each parameter placeholder with proper indexed parameters
-      for (const param of params) {
-        parameterizedQuery = parameterizedQuery.replace('$' + paramIndex, `'${param}'`);
-        paramIndex++;
-      }
-      
-      const result = await this.db.execute(sql.raw(parameterizedQuery));
+      // Use proper parameterized query with drizzle
+      const result = await this.db.execute(sql.raw(query, ...params));
       return result.rows || [];
     } catch (error) {
       console.error('Database query failed:', {
