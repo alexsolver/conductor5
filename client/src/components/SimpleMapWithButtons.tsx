@@ -24,7 +24,7 @@ interface SearchResult {
   lon: string;
 }
 
-export function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
+function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
   const [selectedLat, setSelectedLat] = useState(initialLat);
   const [selectedLng, setSelectedLng] = useState(initialLng);
   const [searchQuery, setSearchQuery] = useState('');
