@@ -1,5 +1,5 @@
 import React from 'react';
-import { LeafletMapSelector } from './LeafletMapSelector';
+import LeafletMapSelector from './LeafletMapSelector';
 
 interface MapSelectorProps {
   initialLat: number;

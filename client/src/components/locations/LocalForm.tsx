@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Phone, Home, Globe, Clock, Search, Calendar, Plus, Trash2, Map, Users } from "lucide-react";
 import { localSchema, type NewLocal } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
-import { LeafletMapSelector } from "@/components/LeafletMapSelector";
+import LeafletMapSelector from "@/components/LeafletMapSelector";
 
 interface LocalFormProps {
   onSubmit: (data: NewLocal) => void;
