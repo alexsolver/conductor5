@@ -508,21 +508,62 @@ export class LocationsNewController {
   // Create Rota de Trecho
   async createRotaTrecho(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.createRotaTrecho - Starting request');
+      console.log('LocationsNewController.createRotaTrecho - Request body:', req.body);
+
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
       if (!tenantId) {
+        console.error('LocationsNewController.createRotaTrecho - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
-      const validation = rotaTrechoSchema.safeParse(req.body);
+      if (!userId) {
+        console.error('LocationsNewController.createRotaTrecho - No user ID found');
+        return sendError(res, "User ID required", 401);
+      }
+
+      // Ensure request body exists
+      if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('LocationsNewController.createRotaTrecho - Empty request body');
+        return sendError(res, "Dados da rota de trecho são obrigatórios.", 400);
+      }
+
+      // Add tenant validation to request data
+      const requestData = {
+        ...req.body,
+        tenantId: tenantId
+      };
+
+      console.log('LocationsNewController.createRotaTrecho - Data to validate:', {
+        hasIdRota: !!requestData.idRota,
+        hasLocalAId: !!requestData.localAId,
+        hasLocalBId: !!requestData.localBId,
+        trechosCount: requestData.trechos?.length || 0,
+        hasTenantId: !!requestData.tenantId
+      });
+
+      // Import the schema for validation
+      const { rotaTrechoComSegmentosSchema } = await import('../../../shared/schema-locations-new');
+      const validation = rotaTrechoComSegmentosSchema.safeParse(requestData);
+      
       if (!validation.success) {
+        console.error('LocationsNewController.createRotaTrecho - Validation failed:', {
+          errors: validation.error.errors,
+          receivedData: Object.keys(requestData)
+        });
         return sendValidationError(res, validation.error);
       }
 
+      console.log('LocationsNewController.createRotaTrecho - Validation passed, creating rota de trecho');
       const rotaTrecho = await this.repository.createRotaTrecho(tenantId, validation.data);
-      return sendSuccess(res, rotaTrecho, "Rota de trecho created successfully", 201);
+      
+      console.log('LocationsNewController.createRotaTrecho - Rota de trecho created successfully with ID:', rotaTrecho?.id);
+      return sendSuccess(res, rotaTrecho, "Rota de trecho criada com sucesso", 201);
     } catch (error) {
-      console.error('Error creating rota de trecho:', error);
-      return sendError(res, "Failed to create rota de trecho", 500);
+      console.error('LocationsNewController.createRotaTrecho - Error:', error);
+      return sendError(res, `Erro ao criar rota de trecho: ${error.message}`, 500);
     }
   }
 

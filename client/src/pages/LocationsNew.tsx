@@ -87,12 +87,14 @@ function LocationsNewContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
+  const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Enhanced token management with automatic refresh
   useEffect(() => {
     // Force token update on component mount
     updateTokenForTesting();
-    
+
     const handleTokenRefresh = () => {
       const currentToken = localStorage.getItem('accessToken');
       if (currentToken && currentToken !== token) {
@@ -210,7 +212,7 @@ function LocationsNewContent() {
                     // Get the most current token
                     let currentToken = localStorage.getItem('accessToken') || token;
                     console.log('LocationsNew - Current token available:', !!currentToken);
-                    
+
                     if (!currentToken) {
                       console.log('LocationsNew - No token found, attempting refresh');
                       const refreshResponse = await fetch('/api/auth/refresh', {
@@ -243,7 +245,7 @@ function LocationsNewContent() {
                         tenantId: payload.tenantId, 
                         isExpired 
                       });
-                      
+
                       if (isExpired) {
                         console.log('LocationsNew - Token expired, attempting refresh');
                         const refreshResponse = await fetch('/api/auth/refresh', {
@@ -308,11 +310,11 @@ function LocationsNewContent() {
 
                     // Close the dialog and refresh data
                     setIsCreateDialogOpen(false);
-                    
+
                     // Invalidate all related queries to refresh the data
                     await queryClient.invalidateQueries({ queryKey: ['/api/locations-new/local'] });
                     await queryClient.invalidateQueries({ queryKey: ['/api/locations-new/local/stats'] });
-                    
+
                     // Force refetch the data
                     await queryClient.refetchQueries({ queryKey: ['/api/locations-new/local'] });
 
@@ -335,7 +337,65 @@ function LocationsNewContent() {
       case 'trecho':
         return <TrechoForm {...commonProps} />;
       case 'rota_trecho':
-        return <RotaTrechoForm {...commonProps} />;
+        return (
+          <RotaTrechoForm
+            onSubmit={async (formData) => {
+              console.log('LocationsNew - Rota de trecho form submitted with data:', formData);
+
+              try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                  throw new Error('Token de autenticação não encontrado');
+                }
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('LocationsNew - Token payload:', {
+                  userId: payload.userId,
+                  tenantId: payload.tenantId,
+                  isExpired: payload.exp && payload.exp < Date.now() / 1000
+                });
+
+                console.log('LocationsNew - Making API request to create rota de trecho');
+                const response = await fetch('/api/locations-new/rota-trecho', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify(formData)
+                });
+
+                console.log('LocationsNew - API response status:', response.status);
+                const result = await response.json();
+
+                if (!response.ok) {
+                  console.error('LocationsNew - API error response:', result);
+                  throw new Error(result.message || 'Erro ao criar rota de trecho');
+                }
+
+                console.log('LocationsNew - Rota de trecho created successfully:', result);
+
+                // Refresh the data
+                await Promise.all([
+                  queryClient.invalidateQueries({ queryKey: ['/api/locations-new/rota-trecho'] }),
+                  queryClient.refetchQueries({ queryKey: ['/api/locations-new/rota-trecho'] })
+                ]);
+
+                setIsCreateDialogOpen(false);
+                setActiveRecordType('rota_trecho');
+              } catch (error) {
+                console.error('LocationsNew - Error creating rota de trecho:', error);
+                toast({
+                  title: "Erro ao criar rota de trecho",
+                  description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
+                  variant: "destructive"
+                });
+              }
+            }}
+            isSubmitting={createMutation.isPending}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        );
       case 'area':
         return <AreaForm {...commonProps} />;
       case 'agrupamento':
@@ -594,7 +654,7 @@ function LocationsNewContent() {
   function getCurrentData() {
     // Ensure all data is properly structured as arrays
     const safeArray = (data) => Array.isArray(data) ? data : [];
-    
+
     // Log current data for debugging
     console.log('LocationsNew - getCurrentData called with:', {
       locaisData,
@@ -605,7 +665,7 @@ function LocationsNewContent() {
       areasData,
       agrupamentosData
     });
-    
+
     return {
       locais: safeArray(locaisData),
       regioes: safeArray(regioesData),
@@ -616,6 +676,78 @@ function LocationsNewContent() {
       agrupamentos: safeArray(agrupamentosData),
     };
   }
+
+  const handleFormSubmit = async (formData: any) => {
+    console.log('LocationsNew - Form submitted with data:', formData);
+
+    try {
+      setIsSubmitting(true);
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
+      }
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('LocationsNew - Token payload:', {
+        userId: payload.userId,
+        tenantId: payload.tenantId,
+        isExpired: payload.exp && payload.exp < Date.now() / 1000
+      });
+
+      // Ensure tenant ID is in the data
+      if (!formData.tenantId && payload.tenantId) {
+        formData.tenantId = payload.tenantId;
+        console.log('LocationsNew - Added tenant ID to data:', payload.tenantId);
+      }
+
+      console.log('LocationsNew - Making API request to create item');
+      const response = await fetch(`/api/locations-new/${activeRecordType}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      console.log('LocationsNew - API response status:', response.status);
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('LocationsNew - API error response:', result);
+        throw new Error(result.message || 'Erro ao criar item');
+      }
+
+      console.log('LocationsNew - Item created successfully:', result);
+
+      // Show success message
+      toast({
+        title: "Sucesso!",
+        description: "Item criado e salvo com sucesso no sistema."
+      });
+
+      // Close the dialog and refresh data
+      setShowForm(false);
+
+      // Invalidate all related queries to refresh the data
+      await queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
+
+      // Force refetch the data
+      await queryClient.refetchQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
+
+    } catch (error) {
+      console.error('LocationsNew - Error creating item:', error);
+      toast({
+        title: "Erro ao criar item",
+        description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -801,14 +933,14 @@ function LocationsNewContent() {
 
                   const dataKey = dataKeyMap[activeRecordType] || activeRecordType + 's';
                   const records = currentData[dataKey];
-                  
+
                   console.log('LocationsNew - Rendering table with:', {
                     activeRecordType,
                     dataKey,
                     records,
                     recordsLength: records?.length
                   });
-                  
+
                   // Robust validation for array data
                   if (!records || !Array.isArray(records) || records.length === 0) {
                     return (
@@ -828,7 +960,7 @@ function LocationsNewContent() {
                       </TableRow>
                     );
                   }
-                  
+
                   return records.map((record: any) => (
                     <TableRow key={record.id || Math.random()}>
                       <TableCell>

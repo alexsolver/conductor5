@@ -134,6 +134,10 @@ export const rotasTrecho = pgTable('rotas_trecho', {
   ativo: boolean('ativo').notNull().default(true),
   idRota: varchar('id_rota', { length: 100 }).notNull(),
 
+  // Definição do Trecho - Pontos de origem e destino da rota completa
+  localAId: uuid('local_a_id').notNull(), // Local de origem da rota completa
+  localBId: uuid('local_b_id').notNull(), // Local de destino da rota completa
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -145,9 +149,9 @@ export const trechosRota = pgTable('trechos_rota', {
   rotaTrechoId: uuid('rota_trecho_id').notNull().references(() => rotasTrecho.id, { onDelete: 'cascade' }),
 
   ordem: integer('ordem').notNull(), // Sequence order
-  localOrigemId: uuid('local_origem_id').notNull(), // FK to locais
-  nometrecho: varchar('nome_trecho', { length: 200 }),
-  localDestinoId: uuid('local_destino_id').notNull(), // FK to locais
+  localOrigemId: uuid('local_origem_id').notNull(), // FK to locais - DE
+  nomeTrecho: varchar('nome_trecho', { length: 200 }), // TRECHO
+  localDestinoId: uuid('local_destino_id').notNull(), // FK to locais - PARA
 
   createdAt: timestamp('created_at').defaultNow()
 });
@@ -262,7 +266,45 @@ export const trechoSchema = createInsertSchema(trechos, {
 
 export const rotaTrechoSchema = createInsertSchema(rotasTrecho, {
   idRota: z.string().min(1, "ID da rota é obrigatório").max(100),
+  localAId: z.string().uuid("Local A deve ser selecionado"),
+  localBId: z.string().uuid("Local B deve ser selecionado"),
 }).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+
+// Schema for individual route segments
+export const trechoRotaSchema = createInsertSchema(trechosRota, {
+  ordem: z.number().min(1, "Ordem deve ser maior que 0"),
+  localOrigemId: z.string().uuid("Local de origem deve ser selecionado"),
+  localDestinoId: z.string().uuid("Local de destino deve ser selecionado"),
+  nomeTrecho: z.string().optional(),
+}).omit({ id: true, createdAt: true, tenantId: true, rotaTrechoId: true });
+
+// Combined schema for creating a complete route with segments
+export const rotaTrechoComSegmentosSchema = z.object({
+  ativo: z.boolean().default(true),
+  idRota: z.string().min(1, "ID da rota é obrigatório").max(100),
+  localAId: z.string().uuid("Local A deve ser selecionado"),
+  localBId: z.string().uuid("Local B deve ser selecionado"),
+  trechos: z.array(trechoRotaSchema).min(1, "Pelo menos um trecho deve ser adicionado"),
+}).refine((data) => {
+  // Validate that first segment starts from Local A
+  if (data.trechos[0] && data.trechos[0].localOrigemId !== data.localAId) {
+    return false;
+  }
+  // Validate that last segment ends at Local B
+  const lastTrecho = data.trechos[data.trechos.length - 1];
+  if (lastTrecho && lastTrecho.localDestinoId !== data.localBId) {
+    return false;
+  }
+  // Validate that segments are connected (destination of one = origin of next)
+  for (let i = 0; i < data.trechos.length - 1; i++) {
+    if (data.trechos[i].localDestinoId !== data.trechos[i + 1].localOrigemId) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: "Os trechos devem formar uma sequência válida do Local A ao Local B"
+});
 
 export const areaSchema = createInsertSchema(areas, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
