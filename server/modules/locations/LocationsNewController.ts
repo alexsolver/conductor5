@@ -310,7 +310,7 @@ export class LocationsNewController {
       }
 
       const tenantId = req.user.tenantId;
-      const userId = req.user.userId;
+      const userId = req.user.id; // Changed from req.user.userId to req.user.id
 
       if (!tenantId) {
         console.error('LocationsNewController.createLocal - No tenant ID in user object:', req.user);
