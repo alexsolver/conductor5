@@ -252,7 +252,11 @@ export const rotaDinamicaSchema = createInsertSchema(rotasDinamicas, {
   diasSemana: z.array(z.enum(['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'])).optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
-export const trechoSchema = createInsertSchema(trechos).omit({ 
+export const trechoSchema = createInsertSchema(trechos, {
+  codigoIntegracao: z.string().optional(),
+  localAId: z.string().uuid("Local A deve ser selecionado"),
+  localBId: z.string().uuid("Local B deve ser selecionado"),
+}).omit({ 
   id: true, createdAt: true, updatedAt: true, tenantId: true 
 });
 

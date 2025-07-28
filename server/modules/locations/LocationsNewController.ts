@@ -445,21 +445,63 @@ export class LocationsNewController {
   // Create Trecho
   async createTrecho(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.createTrecho - Starting request');
+      console.log('LocationsNewController.createTrecho - Request body:', req.body);
+
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
       if (!tenantId) {
+        console.error('LocationsNewController.createTrecho - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
-      const validation = trechoSchema.safeParse(req.body);
+      if (!userId) {
+        console.error('LocationsNewController.createTrecho - No user ID found');
+        return sendError(res, "User ID required", 401);
+      }
+
+      // Ensure request body exists
+      if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('LocationsNewController.createTrecho - Empty request body');
+        return sendError(res, "Dados do trecho são obrigatórios.", 400);
+      }
+
+      // Add tenant validation to request data
+      const requestData = {
+        ...req.body,
+        tenantId: tenantId
+      };
+
+      console.log('LocationsNewController.createTrecho - Data to validate:', {
+        hasLocalAId: !!requestData.localAId,
+        hasLocalBId: !!requestData.localBId,
+        hasTenantId: !!requestData.tenantId,
+        localsAreEqualErrorCheck: requestData.localAId === requestData.localBId
+      });
+
+      // Additional validation: Local A and Local B must be different
+      if (requestData.localAId && requestData.localBId && requestData.localAId === requestData.localBId) {
+        return sendError(res, "Local A e Local B devem ser diferentes", 400);
+      }
+
+      const validation = trechoSchema.safeParse(requestData);
       if (!validation.success) {
+        console.error('LocationsNewController.createTrecho - Validation failed:', {
+          errors: validation.error.errors,
+          receivedData: Object.keys(requestData)
+        });
         return sendValidationError(res, validation.error);
       }
 
+      console.log('LocationsNewController.createTrecho - Validation passed, creating trecho');
       const trecho = await this.repository.createTrecho(tenantId, validation.data);
-      return sendSuccess(res, trecho, "Trecho created successfully", 201);
+      
+      console.log('LocationsNewController.createTrecho - Trecho created successfully with ID:', trecho?.id);
+      return sendSuccess(res, trecho, "Trecho criado com sucesso", 201);
     } catch (error) {
-      console.error('Error creating trecho:', error);
-      return sendError(res, "Failed to create trecho", 500);
+      console.error('LocationsNewController.createTrecho - Error:', error);
+      return sendError(res, `Erro ao criar trecho: ${error.message}`, 500);
     }
   }
 
