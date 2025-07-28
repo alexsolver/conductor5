@@ -457,23 +457,33 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       }
     }
 
-    // Insert action into database
-    const insertQuery = `
-      INSERT INTO "${schemaName}".ticket_actions 
-      (id, tenant_id, ticket_id, action_type, description, created_by, created_at, updated_at, is_active, estimated_hours)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW(), true, $6)
-      RETURNING id, action_type, description, created_at, estimated_hours
-    `;
+    // Parse start and end times
+    const startTime = startDateTime ? new Date(startDateTime) : new Date();
+    const endTime = endDateTime ? new Date(endDateTime) : null;
 
+    // Prepare description and work log
     const actionDescription = workLog || description || `${actionType} action performed`;
 
+    // Insert action into database with all fields
+    const insertQuery = `
+      INSERT INTO "${schemaName}".ticket_actions 
+      (tenant_id, ticket_id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_by, created_at, updated_at, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), true)
+      RETURNING id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_at
+    `;
+
     const result = await pool.query(insertQuery, [
-      tenantId,           // tenant_id
-      id,                 // ticket_id
-      actionType,         // action_type
-      actionDescription,  // description
-      req.user.id,        // created_by
-      estimatedHours      // estimated_hours
+      tenantId,           // $1 tenant_id
+      id,                 // $2 ticket_id
+      actionType,         // $3 action_type
+      actionDescription,  // $4 description
+      workLog || '',      // $5 work_log
+      timeSpent || '0:00:00:00', // $6 time_spent
+      startTime,          // $7 start_time
+      endTime,            // $8 end_time
+      estimatedHours,     // $9 estimated_hours
+      is_public,          // $10 is_public
+      req.user.id         // $11 created_by
     ]);
 
     if (result.rows.length === 0) {
@@ -496,26 +506,30 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       [id, tenantId]
     );
 
+    console.log('✅ Ação interna criada com sucesso:', newAction);
+
     res.status(201).json({
       success: true,
-      message: "Action created successfully",
+      message: "Ação interna criada com sucesso",
       data: {
         id: newAction.id,
         actionType: newAction.action_type,
         type: newAction.action_type,
         content: newAction.description,
         description: newAction.description,
+        workLog: newAction.work_log,
+        timeSpent: newAction.time_spent,
         status: 'active',
-        time_spent: estimatedHours,
-        start_time: newAction.created_at,
-        end_time: endDateTime || newAction.created_at,
+        time_spent: newAction.estimated_hours,
+        start_time: newAction.start_time,
+        end_time: newAction.end_time,
         customer_id: null,
         linked_items: '[]',
         has_file: false,
         contact_method: 'system',
         vendor: '',
-        is_public: is_public,
-        isPublic: is_public,
+        is_public: newAction.is_public,
+        isPublic: newAction.is_public,
         createdBy: req.user.id,
         createdByName: userName,
         createdAt: newAction.created_at,
@@ -524,11 +538,11 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     });
 
   } catch (error) {
-    console.error("Error creating ticket action:", error);
+    console.error("❌ Erro ao criar ação interna:", error);
     res.status(500).json({ 
       success: false,
-      message: "Failed to create action",
-      error: error instanceof Error ? error.message : "Unknown error"
+      message: "Falha ao criar ação interna",
+      error: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }
 });
