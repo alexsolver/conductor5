@@ -1,7 +1,7 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Map, Clock, Edit, Trash2, CheckCircle, ArrowRight, Network, Layers, Palette, Folder, Calendar } from "lucide-react";
+import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Map, Clock, Edit, Trash2, CheckCircle, ArrowRight, Network, Layers, Palette, Folder, Calendar, Phone, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -466,7 +466,7 @@ function LocationsNewContent() {
                       
                       <FormField
                         control={form.control}
-                        name="clienteFavorecido"
+                        name="tipoClienteFavorecido"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Cliente ou Favorecido</FormLabel>
@@ -477,9 +477,8 @@ function LocationsNewContent() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="cliente1">Cliente Principal</SelectItem>
-                                <SelectItem value="cliente2">Cliente Secundário</SelectItem>
-                                <SelectItem value="favorecido1">Favorecido A</SelectItem>
+                                <SelectItem value="cliente">Cliente</SelectItem>
+                                <SelectItem value="favorecido">Favorecido</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -487,30 +486,52 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="tecnicoPrincipalId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Técnico Principal</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um técnico" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="tecnico1">João Silva</SelectItem>
+                              <SelectItem value="tecnico2">Maria Santos</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   {/* SEÇÃO 2: CONTATO */}
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 pb-2 border-b">
-                      <MapPin className="h-5 w-5 text-green-500" />
+                      <Phone className="h-5 w-5 text-green-500" />
                       <h3 className="text-lg font-semibold">Contato</h3>
                     </div>
                     
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>E-mail</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="contato@empresa.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
                     <div className="grid grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>E-mail</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="contato@empresa.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
                       <FormField
                         control={form.control}
                         name="ddd"
@@ -529,7 +550,7 @@ function LocationsNewContent() {
                         control={form.control}
                         name="telefone"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="col-span-2">
                             <FormLabel>Telefone</FormLabel>
                             <FormControl>
                               <Input placeholder="99999-9999" {...field} />
@@ -921,6 +942,212 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
+
+                      {/* SEÇÃO 3: GEOLOCALIZAÇÃO */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
+                          <MapPin className="h-5 w-5 text-red-500" />
+                          <h3 className="text-lg font-semibold">Geolocalização</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="latitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Latitude</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="-23.55052000" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="longitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Longitude</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="-46.63331000" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <FormField
+                          control={form.control}
+                          name="cepsAbrangidos"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>CEPs Abrangidos ou Próximos</FormLabel>
+                              <FormControl>
+                                <Textarea placeholder="01000-000, 01001-000, 01002-000..." rows={3} {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* SEÇÃO 4: ENDEREÇO BASE */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
+                          <Home className="h-5 w-5 text-orange-500" />
+                          <h3 className="text-lg font-semibold">Endereço Base</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="cep"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CEP</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="00000-000" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="pais"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>País</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Brasil" defaultValue="Brasil" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="estado"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Estado</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Estado" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="municipio"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Município</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Município" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="bairro"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Bairro</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Bairro" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="tipoLogradouro"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tipo de Logradouro</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Rua">Rua</SelectItem>
+                                    <SelectItem value="Avenida">Avenida</SelectItem>
+                                    <SelectItem value="Travessa">Travessa</SelectItem>
+                                    <SelectItem value="Alameda">Alameda</SelectItem>
+                                    <SelectItem value="Rodovia">Rodovia</SelectItem>
+                                    <SelectItem value="Estrada">Estrada</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="logradouro"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Logradouro</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Nome da rua/avenida" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="numero"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Número</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="123" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="complemento"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Complemento</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Sala, apto, etc" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
                     </>
                   )}
 
@@ -1005,7 +1232,7 @@ function LocationsNewContent() {
                         
                         <FormField
                           control={form.control}
-                          name="descricao"
+                          name="previsaoDias"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Previsão de Dias (1-30)</FormLabel>
@@ -1070,7 +1297,7 @@ function LocationsNewContent() {
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
-                            name="nome"
+                            name="localAId"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Local A (Origem)</FormLabel>
@@ -1092,7 +1319,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="descricao"
+                            name="localBId"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Local B (Destino)</FormLabel>
@@ -1164,16 +1391,55 @@ function LocationsNewContent() {
                         </div>
                         
                         <div className="space-y-3">
-                          <h4 className="font-medium">Trechos da Rota</h4>
-                          <div className="border rounded-lg p-4">
-                            <div className="text-sm text-gray-500 text-center py-4">
-                              Use a tabela abaixo para definir os trechos sequenciais da rota
-                            </div>
-                            <Button type="button" variant="outline" size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Adicionar Trecho
-                            </Button>
+                          <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
+                          <div className="border rounded-lg">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>DE</TableHead>
+                                  <TableHead>TRECHO</TableHead>
+                                  <TableHead>PARA</TableHead>
+                                  <TableHead>AÇÃO</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                <TableRow>
+                                  <TableCell>Local A</TableCell>
+                                  <TableCell>Trecho Intermediário 1</TableCell>
+                                  <TableCell>Local Intermédio</TableCell>
+                                  <TableCell>
+                                    <div className="flex space-x-1">
+                                      <Button variant="outline" size="sm">
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                      <Button variant="outline" size="sm">
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell>Local Intermédio</TableCell>
+                                  <TableCell>Trecho Final</TableCell>
+                                  <TableCell>Local B</TableCell>
+                                  <TableCell>
+                                    <div className="flex space-x-1">
+                                      <Button variant="outline" size="sm">
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                      <Button variant="outline" size="sm">
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
                           </div>
+                          <Button type="button" variant="outline">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Adicionar Trecho
+                          </Button>
                         </div>
                       </div>
                     </>
@@ -1185,7 +1451,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Layers className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação da Área</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -1226,9 +1492,47 @@ function LocationsNewContent() {
                           />
                         </div>
                         
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="descricao"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descrição</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Descrição detalhada da área" rows={3} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="codigoIntegracao"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Código de Integração</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Código único do sistema" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* SEÇÃO 2: CLASSIFICAÇÃO */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
+                          <Grid3X3 className="h-5 w-5 text-teal-500" />
+                          <h3 className="text-lg font-semibold">Classificação</h3>
+                        </div>
+                        
                         <FormField
                           control={form.control}
-                          name="nome"
+                          name="tipoArea"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Tipo de Área</FormLabel>
@@ -1239,12 +1543,12 @@ function LocationsNewContent() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="faixa_cep">Faixa CEP</SelectItem>
+                                  <SelectItem value="faixa-cep">Faixa CEP</SelectItem>
                                   <SelectItem value="shape">Shape</SelectItem>
                                   <SelectItem value="coordenadas">Coordenadas</SelectItem>
                                   <SelectItem value="raio">Raio</SelectItem>
                                   <SelectItem value="linha">Linha</SelectItem>
-                                  <SelectItem value="importar_area">Importar Área</SelectItem>
+                                  <SelectItem value="importar">Importar Área</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -1252,13 +1556,29 @@ function LocationsNewContent() {
                           )}
                         />
                         
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-blue-500 rounded border"></div>
-                          <span className="text-sm">Cor da área no mapa</span>
-                          <Button type="button" variant="outline" size="sm">
-                            <Palette className="h-4 w-4 mr-2" />
-                            Escolher Cor
-                          </Button>
+                        <FormField
+                          control={form.control}
+                          name="corMapa"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cor no Mapa</FormLabel>
+                              <div className="flex space-x-2">
+                                <FormControl>
+                                  <Input type="color" defaultValue="#3b82f6" {...field} />
+                                </FormControl>
+                                <FormControl>
+                                  <Input placeholder="#3b82f6" {...field} />
+                                </FormControl>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <p className="text-sm text-blue-700">
+                            A configuração específica dos parâmetros da área será baseada no tipo selecionado acima.
+                          </p>
                         </div>
                       </div>
                     </>
@@ -1270,7 +1590,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Folder className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação do Agrupamento</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -1311,40 +1631,95 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <FormField
-                          control={form.control}
-                          name="descricao"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Descrição</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Descrição do agrupamento" rows={3} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="descricao"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descrição</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Descrição detalhada do agrupamento" rows={3} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="codigoIntegracao"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Código de Integração</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Código único do sistema" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* SEÇÃO 2: SELEÇÃO DE ÁREAS */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
+                          <Map className="h-5 w-5 text-indigo-500" />
+                          <h3 className="text-lg font-semibold">Seleção de Áreas</h3>
+                        </div>
                         
                         <div className="space-y-3">
-                          <h4 className="font-medium">Seleção de Áreas</h4>
+                          <h4 className="font-medium">Áreas Disponíveis</h4>
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox id="area1" />
-                              <label htmlFor="area1" className="text-sm">Área Centro</label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Checkbox id="area2" />
-                              <label htmlFor="area2" className="text-sm">Área Norte</label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Checkbox id="area3" />
-                              <label htmlFor="area3" className="text-sm">Área Sul</label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Checkbox id="area4" />
-                              <label htmlFor="area4" className="text-sm">Área Leste</label>
-                            </div>
+                            {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <Checkbox id={`area-${index}`} />
+                                <label htmlFor={`area-${index}`} className="text-sm flex items-center space-x-2">
+                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                                  <span>{area}</span>
+                                  <Badge variant="outline" className="text-xs">Faixa CEP</Badge>
+                                </label>
+                              </div>
+                            ))}
                           </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Adicionar Faixas de CEP</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="cepInicio"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>CEP Início</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="01000-000" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="cepFim"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>CEP Fim</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="01999-999" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <Button type="button" variant="outline">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Adicionar Faixa CEP
+                          </Button>
                         </div>
                       </div>
                     </>
