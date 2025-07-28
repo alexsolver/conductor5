@@ -495,25 +495,14 @@ export class LocationsNewController {
     try {
       const tenantId = req.user?.tenantId;
 
-      // Add graceful degradation
-      let clientes = [];
-      try {
-        clientes = await this.repository.getClientes(tenantId);
-      } catch (dbError) {
-        console.warn(`Database error fetching clientes for tenant ${tenantId}:`, dbError.message);
-
-        // Return fallback data instead of failing
-        clientes = [
-          {
-            id: 'fallback-client-1',
-            nome: 'Cliente Padrão',
-            email: 'cliente@empresa.com',
-            telefone: '(11) 99999-9999',
-            ativo: true,
-            createdAt: new Date().toISOString()
-          }
-        ];
+      if (!tenantId) {
+        console.error('LocationsNewController.getClientes - No tenant ID found');
+        return sendError(res, "Tenant ID required", 401);
       }
+
+      console.log(`LocationsNewController.getClientes - Fetching for tenant: ${tenantId}`);
+      const clientes = await this.repository.getClientes(tenantId);
+      console.log(`LocationsNewController.getClientes - Found ${clientes.length} clientes`);
 
       return sendSuccess(res, clientes, "Clientes retrieved successfully");
     } catch (error) {
@@ -524,26 +513,17 @@ export class LocationsNewController {
 
   async getTecnicosEquipe(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.getTecnicosEquipe - Starting request');
       const tenantId = req.user?.tenantId;
 
-      let tecnicos = [];
-      try {
-        tecnicos = await this.repository.getTecnicosEquipe(tenantId);
-      } catch (dbError) {
-        console.warn(`Database error fetching tecnicos for tenant ${tenantId}:`, dbError.message);
-
-        // Return fallback technical team
-        tecnicos = [
-          {
-            id: 'fallback-tech-1',
-            name: 'Técnico Padrão',
-            email: 'tecnico@empresa.com',
-            role: 'agent',
-            status: true,
-            createdAt: new Date().toISOString()
-          }
-        ];
+      if (!tenantId) {
+        console.error('LocationsNewController.getTecnicosEquipe - No tenant ID found');
+        return sendError(res, "Tenant ID required", 401);
       }
+
+      console.log(`LocationsNewController.getTecnicosEquipe - Fetching for tenant: ${tenantId}`);
+      const tecnicos = await this.repository.getTecnicosEquipe(tenantId);
+      console.log(`LocationsNewController.getTecnicosEquipe - Found ${tecnicos.length} técnicos`);
 
       return sendSuccess(res, tecnicos, "Técnicos retrieved successfully");
     } catch (error) {
