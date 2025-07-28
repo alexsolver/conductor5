@@ -9,7 +9,7 @@ import { productionInitializer } from './utils/productionInitializer';
 import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
 import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
 import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
-import timecardRoutes from './routes/timecardRoutes';
+import { timecardRoutes } from './routes/timecardRoutes';
 import productivityRoutes from './routes/productivityRoutes';
 
 const app = express();
