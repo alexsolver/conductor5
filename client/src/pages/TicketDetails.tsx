@@ -1099,7 +1099,7 @@ export default function TicketDetails() {
                               {note.createdBy}
                             </Badge>
                             <span className="text-xs text-gray-500">
-                              {note.createdAt.toLocaleString('pt-BR')}
+                              {note.createdAt ? new Date(note.createdAt).toLocaleString('pt-BR') : 'Data não disponível'}
                             </span>
                           </div>
                           <p className="text-gray-800 whitespace-pre-wrap">{note.content}</p>
@@ -1176,7 +1176,7 @@ export default function TicketDetails() {
                           </span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {comm.timestamp.toLocaleString('pt-BR')}
+                          {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : 'Data não disponível'}
                         </span>
                       </div>
 
@@ -1289,7 +1289,7 @@ export default function TicketDetails() {
                             )}
                           </div>
                           <span className="text-xs text-gray-500">
-                            {new Date(historyItem.created_at).toLocaleString('pt-BR')}
+                            {historyItem.created_at ? new Date(historyItem.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
