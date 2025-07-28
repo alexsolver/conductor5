@@ -1,24 +1,62 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Users, Building, Globe } from "lucide-react";
-import { regiaoSchema, type NewRegiao } from "@/../../shared/schema-locations-new";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, MapPin, Users, Building, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import SimpleMapWithButtons from "@/components/SimpleMapWithButtons";
+
+const regiaoSchema = z.object({
+  ativo: z.boolean().default(true),
+  nome: z.string().min(1, "Nome é obrigatório").max(200),
+  descricao: z.string().optional(),
+  codigoIntegracao: z.string().optional(),
+  clientesVinculados: z.array(z.string().uuid()).optional(),
+  tecnicoPrincipalId: z.string().uuid().optional(),
+  gruposVinculados: z.array(z.string().uuid()).optional(),
+  locaisAtendimento: z.array(z.string().uuid()).optional(),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
+  cepsAbrangidos: z.array(z.string()).optional(),
+  cep: z.string().optional(),
+  pais: z.string().default("Brasil"),
+  estado: z.string().optional(),
+  municipio: z.string().optional(),
+  bairro: z.string().optional(),
+  tipoLogradouro: z.string().optional(),
+  logradouro: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+});
+
+type RegiaoFormData = z.infer<typeof regiaoSchema>;
 
 interface RegiaoFormProps {
-  onSubmit: (data: NewRegiao) => void;
-  onCancel: () => void;
-  isLoading?: boolean;
+  onSubmit: (data: RegiaoFormData) => void;
+  isSubmitting?: boolean;
+  onCancel?: () => void;
 }
 
-export default function RegiaoForm({ onSubmit, onCancel, isLoading = false }: RegiaoFormProps) {
-  const form = useForm<NewRegiao>({
+const TIPO_LOGRADOURO_OPTIONS = [
+  'Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo'
+];
+
+export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }: RegiaoFormProps) {
+  const { toast } = useToast();
+  const [showMap, setShowMap] = useState(false);
+  const [newCep, setNewCep] = useState("");
+
+  const form = useForm<RegiaoFormData>({
     resolver: zodResolver(regiaoSchema),
     defaultValues: {
       ativo: true,
@@ -26,356 +64,382 @@ export default function RegiaoForm({ onSubmit, onCancel, isLoading = false }: Re
       descricao: "",
       codigoIntegracao: "",
       clientesVinculados: [],
-      tecnicoPrincipalId: "",
       gruposVinculados: [],
       locaisAtendimento: [],
-      latitude: undefined,
-      longitude: undefined,
       cepsAbrangidos: [],
-      cep: "",
       pais: "Brasil",
-      estado: "",
-      municipio: "",
-      bairro: "",
-      tipoLogradouro: "",
-      logradouro: "",
-      numero: "",
-      complemento: ""
-    }
+      latitude: "",
+      longitude: "",
+    },
   });
 
-  const handleSubmit = (data: NewRegiao) => {
-    onSubmit(data);
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = form;
+  const watchedValues = watch();
+
+  const handleCepLookup = async (cep: string) => {
+    if (!cep || cep.length < 8) return;
+
+    try {
+      const response = await fetch(`/api/locations-new/cep/${cep.replace('-', '')}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setValue('estado', data.data.uf);
+          setValue('municipio', data.data.localidade);
+          setValue('bairro', data.data.bairro);
+          setValue('logradouro', data.data.logradouro);
+          toast({
+            title: "CEP encontrado",
+            description: "Dados do endereço preenchidos automaticamente",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+    }
+  };
+
+  const handleMapCoordinateSelect = (lat: number, lng: number) => {
+    setValue('latitude', lat.toString());
+    setValue('longitude', lng.toString());
+    setShowMap(false);
+    toast({
+      title: "Coordenadas selecionadas",
+      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`,
+    });
+  };
+
+  const addCepAbrangido = () => {
+    if (newCep.trim()) {
+      const currentCeps = watchedValues.cepsAbrangidos || [];
+      setValue('cepsAbrangidos', [...currentCeps, newCep.trim()]);
+      setNewCep("");
+    }
+  };
+
+  const removeCepAbrangido = (index: number) => {
+    const currentCeps = watchedValues.cepsAbrangidos || [];
+    setValue('cepsAbrangidos', currentCeps.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Nova Região</h2>
-        <p className="text-gray-600 dark:text-gray-400">Configure uma nova região de atendimento</p>
-      </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Identificação */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            Identificação
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={watchedValues.ativo}
+              onCheckedChange={(checked) => setValue('ativo', checked)}
+            />
+            <Label>Ativo</Label>
+          </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          {/* 1. Identificação */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Identificação
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <FormField
-                  control={form.control}
-                  name="ativo"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 w-full">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Status Ativo</FormLabel>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Região disponível para atendimento
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <div>
+            <Label htmlFor="nome">Nome *</Label>
+            <Input
+              id="nome"
+              {...register('nome')}
+              placeholder="Nome da região"
+              className={errors.nome ? "border-red-500" : ""}
+            />
+            {errors.nome && (
+              <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
+            )}
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="nome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome da Região *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Região Centro-Oeste" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div>
+            <Label htmlFor="descricao">Descrição</Label>
+            <Textarea
+              id="descricao"
+              {...register('descricao')}
+              placeholder="Descrição da região"
+              rows={3}
+            />
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="codigoIntegracao"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Código de Integração</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: REG001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <div>
+            <Label htmlFor="codigoIntegracao">Código de Integração</Label>
+            <Input
+              id="codigoIntegracao"
+              {...register('codigoIntegracao')}
+              placeholder="Código para integração com sistemas externos"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-              <FormField
-                control={form.control}
-                name="descricao"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Descreva as características desta região..."
-                        className="min-h-[80px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+      {/* Relacionamentos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Relacionamentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Clientes Vinculados (Multi-seleção)</Label>
+            <div className="mt-2 p-3 border rounded-md bg-gray-50">
+              <p className="text-sm text-gray-600">
+                Integração FK com módulo de clientes - implementação pendente
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Label>Técnico Principal</Label>
+            <div className="mt-2 p-3 border rounded-md bg-gray-50">
+              <p className="text-sm text-gray-600">
+                Integração FK com membros da equipe - implementação pendente
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Label>Grupos Vinculados (Multi-seleção)</Label>
+            <div className="mt-2 p-3 border rounded-md bg-gray-50">
+              <p className="text-sm text-gray-600">
+                Integração FK com grupos de usuários em gestão de equipe - implementação pendente
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Label>Locais de Atendimento Vinculados (Multi-seleção)</Label>
+            <div className="mt-2 p-3 border rounded-md bg-gray-50">
+              <p className="text-sm text-gray-600">
+                Integração com módulo de locais - implementação pendente
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Geolocalização */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Geolocalização
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="latitude">Latitude</Label>
+              <Input
+                id="latitude"
+                {...register('latitude')}
+                placeholder="-23.550520"
+                readOnly
               />
-            </CardContent>
-          </Card>
+            </div>
+            <div>
+              <Label htmlFor="longitude">Longitude</Label>
+              <Input
+                id="longitude"
+                {...register('longitude')}
+                placeholder="-46.633308"
+                readOnly
+              />
+            </div>
+          </div>
 
-          {/* 2. Relacionamentos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Relacionamentos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="tecnicoPrincipalId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Técnico Principal</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ID do técnico responsável" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p>📋 <strong>Configurações Avançadas:</strong></p>
-                <p>• Clientes vinculados, grupos e locais de atendimento serão configurados após a criação</p>
-                <p>• CEPs de abrangência podem ser definidos na edição da região</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 3. Geolocalização */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Geolocalização
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="latitude"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Latitude</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.000001"
-                          placeholder="Ex: -23.550520"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="longitude"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Longitude</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.000001"
-                          placeholder="Ex: -46.633309"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 4. Endereço Base */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Endereço Base
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="cep"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CEP</FormLabel>
-                      <FormControl>
-                        <Input placeholder="00000-000" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="estado"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: SP" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="municipio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Município</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: São Paulo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="bairro"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bairro</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Centro" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="tipoLogradouro"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Logradouro</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Rua, Avenida, Praça" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="logradouro"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Logradouro</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome da rua/avenida" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="numero"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: 123" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="complemento"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Complemento</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Sala 101" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
-              disabled={isLoading}
+              onClick={() => setShowMap(true)}
+              className="flex items-center gap-2"
             >
-              Cancelar
+              <MapPin className="h-4 w-4" />
+              Selecionar no Mapa
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isLoading ? "Criando..." : "Criar Região"}
-            </Button>
+            {watchedValues.latitude && watchedValues.longitude && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setValue('latitude', '');
+                  setValue('longitude', '');
+                }}
+              >
+                Limpar Coordenadas
+              </Button>
+            )}
           </div>
-        </form>
-      </Form>
-    </div>
+
+          {showMap && (
+            <div className="border rounded-lg p-4">
+              <SimpleMapWithButtons
+                onCoordinateSelect={handleMapCoordinateSelect}
+                onCancel={() => setShowMap(false)}
+                initialLat={watchedValues.latitude ? parseFloat(watchedValues.latitude) : undefined}
+                initialLng={watchedValues.longitude ? parseFloat(watchedValues.longitude) : undefined}
+              />
+            </div>
+          )}
+
+          <Separator />
+
+          <div>
+            <Label>CEPs Abrangidos ou Próximos</Label>
+            <div className="flex gap-2 mt-2">
+              <Input
+                value={newCep}
+                onChange={(e) => setNewCep(e.target.value)}
+                placeholder="Digite um CEP (ex: 01234-567)"
+                className="flex-1"
+              />
+              <Button type="button" onClick={addCepAbrangido} size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {watchedValues.cepsAbrangidos && watchedValues.cepsAbrangidos.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {watchedValues.cepsAbrangidos.map((cep, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {cep}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => removeCepAbrangido(index)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Endereço Base */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Endereço Base</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="cep">CEP</Label>
+            <div className="flex gap-2">
+              <Input
+                id="cep"
+                {...register('cep')}
+                placeholder="12345-678"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleCepLookup(watchedValues.cep || '')}
+                disabled={!watchedValues.cep}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="pais">País</Label>
+              <Input
+                id="pais"
+                {...register('pais')}
+                placeholder="Brasil"
+              />
+            </div>
+            <div>
+              <Label htmlFor="estado">Estado</Label>
+              <Input
+                id="estado"
+                {...register('estado')}
+                placeholder="São Paulo"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="municipio">Município</Label>
+              <Input
+                id="municipio"
+                {...register('municipio')}
+                placeholder="São Paulo"
+              />
+            </div>
+            <div>
+              <Label htmlFor="bairro">Bairro</Label>
+              <Input
+                id="bairro"
+                {...register('bairro')}
+                placeholder="Centro"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="tipoLogradouro">Tipo de Logradouro</Label>
+            <Select onValueChange={(value) => setValue('tipoLogradouro', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIPO_LOGRADOURO_OPTIONS.map((tipo) => (
+                  <SelectItem key={tipo} value={tipo}>
+                    {tipo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="logradouro">Logradouro</Label>
+            <Input
+              id="logradouro"
+              {...register('logradouro')}
+              placeholder="Nome da rua, avenida, etc."
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="numero">Número</Label>
+              <Input
+                id="numero"
+                {...register('numero')}
+                placeholder="123"
+              />
+            </div>
+            <div>
+              <Label htmlFor="complemento">Complemento</Label>
+              <Input
+                id="complemento"
+                {...register('complemento')}
+                placeholder="Sala 456"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+        )}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Salvando..." : "Salvar Região"}
+        </Button>
+      </div>
+    </form>
   );
 }

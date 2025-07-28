@@ -64,14 +64,14 @@ export const regioes = pgTable('regioes', {
 
   // Relacionamentos
   clientesVinculados: jsonb('clientes_vinculados'), // Array of customer IDs
-  tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users
-  gruposVinculados: jsonb('grupos_vinculados'), // Array of user group IDs
-  locaisAtendimento: jsonb('locais_atendimento'), // Array of location IDs
+  tecnicoPrincipalId: uuid('tecnico_principal_id'), // FK to users (team members)
+  gruposVinculados: jsonb('grupos_vinculados'), // Array of user group IDs from team management
+  locaisAtendimento: jsonb('locais_atendimento'), // Array of location IDs (multi-selection)
 
   // Geolocalização
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
-  cepsAbrangidos: jsonb('ceps_abrangidos'), // Array of CEP ranges
+  cepsAbrangidos: jsonb('ceps_abrangidos'), // CEPs covered or nearby
 
   // Endereço Base
   cep: varchar('cep', { length: 9 }),
@@ -79,7 +79,7 @@ export const regioes = pgTable('regioes', {
   estado: varchar('estado', { length: 100 }),
   municipio: varchar('municipio', { length: 100 }),
   bairro: varchar('bairro', { length: 100 }),
-  tipoLogradouro: varchar('tipo_logradouro', { length: 50 }),
+  tipoLogradouro: varchar('tipo_logradouro', { length: 50 }), // rua, avenida, etc.
   logradouro: varchar('logradouro', { length: 255 }),
   numero: varchar('numero', { length: 20 }),
   complemento: varchar('complemento', { length: 100 }),
@@ -231,8 +231,16 @@ export const indisponibilidadesSchema = z.array(z.object({
 
 export const regiaoSchema = createInsertSchema(regioes, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
+  descricao: z.string().optional(),
+  codigoIntegracao: z.string().optional(),
+  cep: z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido").optional(),
   latitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Latitude inválida").optional(),
   longitude: z.string().regex(/^-?\d+(\.\d+)?$/, "Longitude inválida").optional(),
+  tipoLogradouro: z.enum(['Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo']).optional(),
+  clientesVinculados: z.array(z.string().uuid()).optional(),
+  gruposVinculados: z.array(z.string().uuid()).optional(),
+  locaisAtendimento: z.array(z.string().uuid()).optional(),
+  cepsAbrangidos: z.array(z.string()).optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const rotaDinamicaSchema = createInsertSchema(rotasDinamicas, {

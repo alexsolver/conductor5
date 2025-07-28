@@ -129,11 +129,33 @@ export class LocationsNewRepository {
   }
 
   async createRegiao(tenantId: string, data: NewRegiao) {
-    const [regiao] = await this.db
-      .insert(regioes)
-      .values({ ...data, tenantId })
-      .returning();
-    return regiao;
+    try {
+      // Use raw SQL for tenant-specific schema
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const query = `
+        INSERT INTO "${schemaName}"."regioes" (
+          tenant_id, ativo, nome, descricao, codigo_integracao,
+          clientes_vinculados, tecnico_principal_id, grupos_vinculados, locais_atendimento,
+          latitude, longitude, ceps_abrangidos,
+          cep, pais, estado, municipio, bairro, tipo_logradouro, logradouro, numero, complemento
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+        ) RETURNING *
+      `;
+
+      const values = [
+        tenantId, data.ativo, data.nome, data.descricao, data.codigoIntegracao,
+        data.clientesVinculados, data.tecnicoPrincipalId, data.gruposVinculados, data.locaisAtendimento,
+        data.latitude, data.longitude, data.cepsAbrangidos,
+        data.cep, data.pais, data.estado, data.municipio, data.bairro, data.tipoLogradouro, data.logradouro, data.numero, data.complemento
+      ];
+
+      const result = await this.db.execute(sql`${sql.raw(query)}`, values);
+      return result[0];
+    } catch (error) {
+      console.error('Error creating regiao:', error);
+      throw error;
+    }
   }
 
   async createRotaDinamica(tenantId: string, data: NewRotaDinamica) {
