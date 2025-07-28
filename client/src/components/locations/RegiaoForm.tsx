@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -106,7 +105,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
-        
+
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {clientes.map((cliente: any) => (
@@ -125,7 +124,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
           </div>
         )}
       </div>
-      
+
       {selectedClientes.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {selectedClientes.map((cliente: any) => (
@@ -175,7 +174,7 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
         <SelectValue placeholder="Selecionar técnico principal" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">Nenhum</SelectItem>
+        <SelectItem value="none">Nenhum</SelectItem>
         {tecnicos.map((tecnico: any) => (
           <SelectItem key={tecnico.id} value={tecnico.id}>
             <div>
@@ -240,7 +239,7 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
-        
+
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {grupos.map((grupo: any) => (
@@ -261,7 +260,7 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           </div>
         )}
       </div>
-      
+
       {selectedGrupos.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {selectedGrupos.map((grupo: any) => (
@@ -330,7 +329,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
-        
+
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {locais.map((local: any) => (
@@ -349,7 +348,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
           </div>
         )}
       </div>
-      
+
       {selectedLocais.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {selectedLocais.map((local: any) => (
@@ -387,6 +386,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       pais: "Brasil",
       latitude: "",
       longitude: "",
+      tecnicoPrincipalId: "none",
     },
   });
 
@@ -412,7 +412,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -435,7 +435,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             'Content-Type': 'application/json',
           },
         });
-        
+
         if (retryResponse.ok) {
           const data = await retryResponse.json();
           if (data.success) {
@@ -486,7 +486,11 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
   const handleFormSubmit = async (data: RegiaoFormData) => {
     try {
       const validToken = await getValidToken();
-      
+
+      const processedData = {
+          ...data,
+          tecnicoPrincipalId: data.tecnicoPrincipalId === "none" ? undefined : data.tecnicoPrincipalId
+      };
       // Add the token to the data or pass it to onSubmit
       const response = await fetch('/api/locations-new/regiao', {
         method: 'POST',
@@ -494,7 +498,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           'Authorization': `Bearer ${validToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(processedData),
       });
 
       if (response.ok) {
@@ -508,14 +512,18 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         // Token expired, refresh and retry
         await refreshToken();
         const freshToken = localStorage.getItem('access_token');
-        
+
         const retryResponse = await fetch('/api/locations-new/regiao', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${freshToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),
+          const processedData = {
+              ...data,
+              tecnicoPrincipalId: data.tecnicoPrincipalId === "none" ? undefined : data.tecnicoPrincipalId
+          };
+          body: JSON.stringify(processedData),
         });
 
         if (retryResponse.ok) {
@@ -624,7 +632,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           <div>
             <Label>Técnico Principal</Label>
             <TecnicoSelect
-              value={watchedValues.tecnicoPrincipalId || ""}
+              value={watchedValues.tecnicoPrincipalId || "none"}
               onChange={(tecnicoId) => setValue('tecnicoPrincipalId', tecnicoId)}
             />
           </div>
