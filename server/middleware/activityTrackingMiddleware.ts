@@ -70,3 +70,11 @@ export const trackTicketEdit = activityTrackingMiddleware('edit_ticket', 'ticket
 export const trackTicketCreate = activityTrackingMiddleware('create_ticket', 'ticket');
 export const trackCustomerView = activityTrackingMiddleware('view_customer', 'customer');
 export const trackMessageSend = activityTrackingMiddleware('send_message', 'communication');
+
+// Notes tracking middleware
+export const trackNoteView = activityTrackingMiddleware('view_notes', 'note');
+export const trackNoteCreate = activityTrackingMiddleware('create_note', 'note');
+
+// Internal actions tracking middleware
+export const trackInternalActionView = activityTrackingMiddleware('view_internal_actions', 'internal_action');
+export const trackInternalActionCreate = activityTrackingMiddleware('create_internal_action', 'internal_action');

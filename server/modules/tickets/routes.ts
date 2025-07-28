@@ -6,7 +6,7 @@ import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/s
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
-import { trackTicketView, trackTicketEdit, trackTicketCreate } from '../../middleware/activityTrackingMiddleware';
+import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate, trackInternalActionView, trackInternalActionCreate } from '../../middleware/activityTrackingMiddleware';
 
 const ticketsRouter = Router();
 
