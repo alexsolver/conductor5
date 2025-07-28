@@ -596,16 +596,29 @@ export class LocationsNewRepository {
     try {
       console.log(`LocationsNewRepository.executeQuery - Executing query with ${params.length} parameters`);
       
-      // Manually substitute parameters for raw SQL execution
-      let finalQuery = query;
-      for (let i = 0; i < params.length; i++) {
-        const placeholder = `$${i + 1}`;
-        const value = params[i];
-        const escapedValue = typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : value;
-        finalQuery = finalQuery.replace(new RegExp('\\' + placeholder + '\\b', 'g'), escapedValue);
+      // Use proper parameterized queries with sql template
+      if (params.length === 0) {
+        const result = await this.db.execute(sql.raw(query));
+        return result.rows || [];
       }
+
+      // For parameterized queries, use sql template with proper escaping
+      const parameterizedQuery = query.replace(/\$(\d+)/g, (match, paramIndex) => {
+        const index = parseInt(paramIndex) - 1;
+        if (index < params.length) {
+          const value = params[index];
+          if (typeof value === 'string') {
+            return `'${value.replace(/'/g, "''")}'`;
+          } else if (value === null || value === undefined) {
+            return 'NULL';
+          } else {
+            return String(value);
+          }
+        }
+        return match;
+      });
       
-      const result = await this.db.execute(sql.raw(finalQuery));
+      const result = await this.db.execute(sql.raw(parameterizedQuery));
       return result.rows || [];
     } catch (error) {
       console.error('Database query failed:', {
@@ -627,12 +640,20 @@ export class LocationsNewRepository {
           .replace(/address(?![_\w])/g, 'street_address');
 
         // Apply parameter substitution to corrected query
-        let correctedParameterizedQuery = correctedQuery;
-        for (let i = 0; i < params.length; i++) {
-          const placeholder = `$${i + 1}`;
-          const value = typeof params[i] === 'string' ? `'${params[i].replace(/'/g, "''")}'` : params[i];
-          correctedParameterizedQuery = correctedParameterizedQuery.replace(placeholder, value);
-        }
+        const correctedParameterizedQuery = correctedQuery.replace(/\$(\d+)/g, (match, paramIndex) => {
+          const index = parseInt(paramIndex) - 1;
+          if (index < params.length) {
+            const value = params[index];
+            if (typeof value === 'string') {
+              return `'${value.replace(/'/g, "''")}'`;
+            } else if (value === null || value === undefined) {
+              return 'NULL';
+            } else {
+              return String(value);
+            }
+          }
+          return match;
+        });
 
         try {
           const correctedResult = await this.db.execute(sql.raw(correctedParameterizedQuery));

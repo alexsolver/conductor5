@@ -1380,61 +1380,90 @@ export default function LocationsNew() {
     }
   }, [tenantId]);
 
-  // Queries for all record types - keeping consistent order
-  const locaisQuery = useQuery({
-    queryKey: ['locations-new', 'local', tenantId],
+  // Fetch all data types with proper error boundaries
+  const {
+    data: locaisData,
+    isLoading: locaisLoading,
+    error: locaisError,
+    refetch: refetchLocais
+  } = useQuery({
+    queryKey: ['locations-new', 'local'],
     queryFn: () => fetchLocationsByType('local'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
-  const regioesQuery = useQuery({
-    queryKey: ['locations-new', 'regiao', tenantId],
+  const {
+    data: regioesData,
+    isLoading: regioesLoading,
+    error: regioesError
+  } = useQuery({
+    queryKey: ['locations-new', 'regiao'],
     queryFn: () => fetchLocationsByType('regiao'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
-  const rotasDinamicasQuery = useQuery({
-    queryKey: ['locations-new', 'rota-dinamica', tenantId],
+  const {
+    data: rotasDinamicasData,
+    isLoading: rotasDinamicasLoading,
+    error: rotasDinamicasError
+  } = useQuery({
+    queryKey: ['locations-new', 'rota-dinamica'],
     queryFn: () => fetchLocationsByType('rota-dinamica'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
-  const trechosQuery = useQuery({
-    queryKey: ['locations-new', 'trecho', tenantId],
+  const {
+    data: trechosData,
+    isLoading: trechosLoading,
+    error: trechosError
+  } = useQuery({
+    queryKey: ['locations-new', 'trecho'],
     queryFn: () => fetchLocationsByType('trecho'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
-  const rotasTrechoQuery = useQuery({
-    queryKey: ['locations-new', 'rota-trecho', tenantId],
+  const {
+    data: rotasTrechoData,
+    isLoading: rotasTrechoLoading,
+    error: rotasTrechoError
+  } = useQuery({
+    queryKey: ['locations-new', 'rota-trecho'],
     queryFn: () => fetchLocationsByType('rota-trecho'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
-  const areasQuery = useQuery({
-    queryKey: ['locations-new', 'area', tenantId],
+  const {
+    data: areasData,
+    isLoading: areasLoading,
+    error: areasError
+  } = useQuery({
+    queryKey: ['locations-new', 'area'],
     queryFn: () => fetchLocationsByType('area'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
-  const agrupamentosQuery = useQuery({
-    queryKey: ['locations-new', 'agrupamento', tenantId],
+  const {
+    data: agrupamentosData,
+    isLoading: agrupamentosLoading,
+    error: agrupamentosError
+  } = useQuery({
+    queryKey: ['locations-new', 'agrupamento'],
     queryFn: () => fetchLocationsByType('agrupamento'),
-    enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
   const dataObjects = useMemo(() => ({
