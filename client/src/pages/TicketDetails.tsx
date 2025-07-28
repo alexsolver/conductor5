@@ -241,10 +241,7 @@ export default function TicketDetails() {
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
   const [isCompanyDetailsOpen, setIsCompanyDetailsOpen] = useState(false);
 
-  // Estados para modal de vinculação
-  const [linkTicketNumber, setLinkTicketNumber] = useState('');
-  const [linkType, setLinkType] = useState('');
-  const [linkComment, setLinkComment] = useState('');
+
 
   // Estados para modal de ação interna
   const [newInternalAction, setNewInternalAction] = useState('');
@@ -2710,72 +2707,19 @@ export default function TicketDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Ticket Linking Modal - IMPLEMENTADO */}
-      <Dialog open={isLinkingModalOpen} onOpenChange={setIsLinkingModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Vincular Ticket</DialogTitle>
-            <DialogDescription>
-              Conecte este ticket a outros tickets relacionados
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Número do Ticket</Label>
-              <Input 
-                placeholder="Ex: T-123456" 
-                value={linkTicketNumber}
-                onChange={(e) => setLinkTicketNumber(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Tipo de Vinculação</Label>
-              <Select value={linkType} onValueChange={setLinkType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="related">🔗 Relacionado</SelectItem>
-                  <SelectItem value="duplicate">🔄 Duplicado</SelectItem>
-                  <SelectItem value="parent">⬆️ Ticket Pai</SelectItem>
-                  <SelectItem value="child">⬇️ Sub-ticket</SelectItem>
-                  <SelectItem value="blocks">🚫 Bloqueia</SelectItem>
-                  <SelectItem value="blocked_by">⏸️ Bloqueado por</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Comentário (opcional)</Label>
-              <Textarea 
-                placeholder="Descreva a relação entre os tickets..."
-                rows={3}
-                value={linkComment}
-                onChange={(e) => setLinkComment(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 justify-end mt-4">
-            <Button variant="outline" onClick={() => setIsLinkingModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={() => {
-                console.log("🔗 Vinculando tickets:", { linkTicketNumber, linkType, linkComment });
-                setIsLinkingModalOpen(false);
-                setLinkTicketNumber('');
-                setLinkType('');
-                setLinkComment('');
-              }}
-              disabled={!linkTicketNumber || !linkType}
-            >
-              <Link2 className="h-4 w-4 mr-2" />
-              Vincular
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* TicketLinkingModal */}
+      <TicketLinkingModal
+        isOpen={isLinkingModalOpen}
+        onClose={() => setIsLinkingModalOpen(false)}
+        currentTicket={ticket}
+      />
 
-
+      {/* Internal Action Modal */}
+      <InternalActionModal 
+        ticketId={id || ''} 
+        isOpen={showInternalActionModal} 
+        onClose={() => setShowInternalActionModal(false)} 
+      />
 
     </div>
   );
