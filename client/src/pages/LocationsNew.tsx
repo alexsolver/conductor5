@@ -531,78 +531,124 @@ function LocationsNewContent() {
     }
   };
 
-  // Enhanced data queries with robust error handling and normalized response structure
-  const { data: locaisData, isLoading: locaisLoading, error: locaisError } = useQuery({
-    queryKey: ['/api/locations-new/local', { search: searchTerm, status: statusFilter }],
+  // Queries for each record type with enhanced error handling
+  const locaisQuery = useQuery({
+    queryKey: ['locations-new', 'local', { search: searchTerm, status: statusFilter }],
     queryFn: async () => {
-      try {
-        const currentToken = localStorage.getItem('accessToken') || token;
-        if (!currentToken) {
-          console.warn('No token available for locais query');
-          return [];
+      // Ensure fresh token before making request
+      let currentToken = localStorage.getItem('accessToken');
+
+      // Check if token is expired or about to expire
+      if (currentToken) {
+        try {
+          const payload = JSON.parse(atob(currentToken.split('.')[1]));
+          const expiryTime = payload.exp * 1000;
+          const currentTime = Date.now();
+          const timeUntilExpiry = expiryTime - currentTime;
+
+          // If token expires in less than 5 minutes, refresh it
+          if (timeUntilExpiry < 5 * 60 * 1000) {
+            console.log('LocationsNew - Token expiring soon, refreshing...');
+            try {
+              const refreshResponse = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') })
+              });
+
+              if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json();
+                localStorage.setItem('accessToken', refreshData.accessToken);
+                currentToken = refreshData.accessToken;
+                console.log('LocationsNew - Token refreshed successfully');
+              }
+            } catch (refreshError) {
+              console.warn('LocationsNew - Token refresh failed:', refreshError);
+            }
+          }
+        } catch (tokenParseError) {
+          console.warn('LocationsNew - Token parsing failed:', tokenParseError);
         }
-
-        const params = new URLSearchParams();
-        if (searchTerm) params.append('search', searchTerm);
-        if (statusFilter !== 'all') params.append('status', statusFilter);
-        
-        const url = `/api/locations-new/local${params.toString() ? `?${params.toString()}` : ''}`;
-        
-        const response = await fetch(url, {
-          headers: { 
-            'Authorization': `Bearer ${currentToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          // Handle different error scenarios gracefully
-          if (response.status === 401) {
-            console.warn('Authentication required for locais');
-            return [];
-          }
-          if (response.status === 404) {
-            console.warn('Locais endpoint not found, using fallback');
-            return [];
-          }
-          if (response.status >= 500) {
-            console.warn('Server error, using fallback data');
-            return [];
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('LocationsNew - API response data:', data);
-
-        // Normalize response structure to ensure consistent array format
-        let normalizedData = [];
-        if (data.success && data.data) {
-          if (data.data.records && Array.isArray(data.data.records)) {
-            normalizedData = data.data.records;
-          } else if (Array.isArray(data.data)) {
-            normalizedData = data.data;
-          } else {
-            normalizedData = [];
-          }
-        } else if (Array.isArray(data)) {
-          normalizedData = data;
-        }
-
-        console.log('LocationsNew - Normalized data:', normalizedData);
-        return normalizedData;
-      } catch (error) {
-        console.error('Error fetching locais:', error);
-        // Return empty array for consistent structure
-        return [];
       }
+
+      if (!currentToken) {
+        console.warn('LocationsNew - No valid token found for locais query');
+        return { success: true, data: { records: [], metadata: { total: 0 } } };
+      }
+
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+
+      const url = `/api/locations-new/local${params.toString() ? `?${params.toString()}` : ''}`;
+
+      const response = await fetch(url, {
+        headers: { 
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        // Handle different error scenarios gracefully
+        if (response.status === 401) {
+          console.warn('Authentication required for locais, attempting token refresh...');
+          // Try one more time with token refresh
+          try {
+            const refreshResponse = await fetch('/api/auth/refresh', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') })
+            });
+
+            if (refreshResponse.ok) {
+              const refreshData = await refreshResponse.json();
+              localStorage.setItem('accessToken', refreshData.accessToken);
+
+              // Retry the original request with new token
+              const retryResponse = await fetch(url, {
+                headers: { 
+                  'Authorization': `Bearer ${refreshData.accessToken}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              if (retryResponse.ok) {
+                const retryData = await retryResponse.json();
+                console.log('LocationsNew - Locais fetched successfully after token refresh');
+                return retryData;
+              }
+            }
+          } catch (retryError) {
+            console.warn('LocationsNew - Retry after token refresh failed:', retryError);
+          }
+
+          return { success: true, data: { records: [], metadata: { total: 0 } } };
+        }
+        if (response.status === 404) {
+          console.warn('Locais endpoint not found, using fallback');
+          return { success: true, data: { records: [], metadata: { total: 0 } } };
+        }
+        if (response.status >= 500) {
+          console.warn('Server error, using fallback data');
+          return { success: true, data: { records: [], metadata: { total: 0 } } };
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('LocationsNew - Fetched locais data:', data);
+      return data;
     },
-    enabled: !!token && activeRecordType === 'local',
-    retry: 1,
-    retryDelay: 2000,
-    staleTime: 30000, // 30 seconds to prevent constant refresh
-    refetchOnWindowFocus: false, // Disable auto refetch on focus
-    refetchInterval: false // Disable automatic polling
+    staleTime: 30000,
+    retry: (failureCount, error) => {
+      if (error?.message?.includes('401') || error?.message?.includes('Authentication')) {
+        return failureCount < 1; // Don't retry auth errors since we handle them in the query function
+      }
+      return failureCount < 1; // Retry other errors once
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!token // Only run query if token exists
   });
 
   const { data: regioesData } = useQuery({
@@ -793,23 +839,37 @@ function LocationsNewContent() {
   const getCurrentData = (allData: any) => {
     console.log('LocationsNew - getCurrentData called with:', allData);
 
-    // Handle both direct arrays and nested data structures
-    const consolidated = {
-      locais: Array.isArray(allData.locaisData) ? allData.locaisData : (allData.locaisData?.data?.records || allData.locaisData?.records || []),
-      regioes: Array.isArray(allData.regioesData) ? allData.regioesData : (allData.regioesData?.data?.records || allData.regioesData?.records || []),
-      rotasDinamicas: Array.isArray(allData.rotasDinamicasData) ? allData.rotasDinamicasData : (allData.rotasDinamicasData?.data?.records || allData.rotasDinamicasData?.records || []),
-      trechos: Array.isArray(allData.trechosData) ? allData.trechosData : (allData.trechosData?.data?.records || allData.trechosData?.records || []),
-      rotasTrecho: Array.isArray(allData.rotasTrechoData) ? allData.rotasTrechoData : (allData.rotasTrechoData?.data?.records || allData.rotasTrechoData?.records || []),
-      areas: Array.isArray(allData.areasData) ? allData.areasData : (allData.areasData?.data?.records || allData.areasData?.records || []),
-      agrupamentos: Array.isArray(allData.agrupamentosData) ? allData.agrupamentosData : (allData.agrupamentosData?.data?.records || allData.agrupamentosData?.records || [])
+    // Enhanced extraction for locais data with multiple fallbacks
+    const extractLocaisData = (data: any) => {
+      if (!data) return [];
+
+      // Try different possible data structures
+      if (data.data?.records) return data.data.records;
+      if (data.records) return data.records;
+      if (data.data?.data?.records) return data.data.data.records;
+      if (Array.isArray(data.data)) return data.data;
+      if (Array.isArray(data)) return data;
+
+      console.warn('LocationsNew - Unable to extract locais data from:', data);
+      return [];};
+
+    const result = {
+      locais: extractLocaisData(allData.locaisData),
+      regioes: allData.regioesData?.data?.records || allData.regioesData?.records || [],
+      rotasDinamicas: allData.rotasDinamicasData?.data?.records || allData.rotasDinamicasData?.records || [],
+      trechos: allData.trechosData?.data?.records || allData.trechosData?.records || [],
+      rotasTrecho: allData.rotasTrechoData?.data?.records || allData.rotasTrechoData?.records || [],
+      areas: allData.areasData?.data?.records || allData.areasData?.records || [],
+      agrupamentos: allData.agrupamentosData?.data?.records || allData.agrupamentosData?.records || []
     };
 
-    console.log('LocationsNew - Consolidated data:', consolidated);
-    return consolidated;
+    console.log('LocationsNew - Consolidated data:', result);
+    console.log('LocationsNew - Locais count:', result.locais?.length || 0);
+    return result;
   };
 
   const currentData = getCurrentData({
-    locaisData,
+    locaisData: locaisQuery.data,
     regioesData,
     rotasDinamicasData,
     trechosData,
@@ -1039,11 +1099,11 @@ function LocationsNewContent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <currentType.icon className="h-5 w-5" />
-            {activeRecordType === 'regiao' ? 'Regiões' : `${currentType.label}s`} ({recordsData?.data?.records?.length || recordsData?.data?.length || 0})
+            {activeRecordType === 'regiao' ? 'Regiões' : `${currentType.label}s`} ({currentData.locais?.length || recordsData?.data?.records?.length || recordsData?.data?.length || 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {locaisQuery.isLoading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>

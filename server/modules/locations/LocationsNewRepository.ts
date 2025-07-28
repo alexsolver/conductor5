@@ -365,43 +365,55 @@ export class LocationsNewRepository {
   async getRecordsByType(tenantId: string, recordType: string, filters?: { search?: string; status?: string }) {
     console.log(`LocationsNewRepository.getRecordsByType - Fetching ${recordType} for tenant: ${tenantId}`);
 
-    // Get mock data as base
-    let records = this.getMockDataByType(recordType);
+    try {
+      // Get mock data as base
+      let records = this.getMockDataByType(recordType);
 
-    // If it's local, try to add any dynamically created locals
-    if (recordType === 'local') {
-      // Check if we have any created locals in memory or storage
-      const createdLocals = this.getCreatedLocals(tenantId);
-      if (createdLocals.length > 0) {
-        // Merge created locals with mock data, ensuring no duplicates
-        const existingIds = new Set(records.map(r => r.id));
-        const newLocals = createdLocals.filter(local => !existingIds.has(local.id));
-        records = [...records, ...newLocals];
-        console.log(`LocationsNewRepository.getRecordsByType - Added ${newLocals.length} new created locals to response (${createdLocals.length} total created)`);
+      // If it's local, try to add any dynamically created locals
+      if (recordType === 'local') {
+        // Check if we have any created locals in memory or storage
+        const createdLocals = this.getCreatedLocals(tenantId);
+        if (createdLocals.length > 0) {
+          // Merge created locals with mock data, ensuring no duplicates
+          const existingIds = new Set(records.map(r => r.id));
+          const newLocals = createdLocals.filter(local => !existingIds.has(local.id));
+          records = [...records, ...newLocals];
+          console.log(`LocationsNewRepository.getRecordsByType - Added ${newLocals.length} new created locals to response (${createdLocals.length} total created)`);
+        }
       }
-    }
 
-    // Apply filters if provided
-    if (filters?.search) {
-      const searchTerm = filters.search.toLowerCase();
-      records = records.filter(record => 
-        (record.nome && record.nome.toLowerCase().includes(searchTerm)) ||
-        (record.nomeRota && record.nomeRota.toLowerCase().includes(searchTerm)) ||
-        (record.descricao && record.descricao.toLowerCase().includes(searchTerm)) ||
-        (record.codigoIntegracao && record.codigoIntegracao.toLowerCase().includes(searchTerm))
-      );
-    }
+      // Apply filters if provided
+      if (filters?.search) {
+        const searchTerm = filters.search.toLowerCase();
+        records = records.filter(record => 
+          (record.nome && record.nome.toLowerCase().includes(searchTerm)) ||
+          (record.nomeRota && record.nomeRota.toLowerCase().includes(searchTerm)) ||
+          (record.descricao && record.descricao.toLowerCase().includes(searchTerm)) ||
+          (record.codigoIntegracao && record.codigoIntegracao.toLowerCase().includes(searchTerm))
+        );
+      }
 
-    if (filters?.status) {
-      records = records.filter(record => {
-        if (filters.status === 'ativo') return record.ativo === true;
-        if (filters.status === 'inativo') return record.ativo === false;
-        return true;
-      });
-    }
+      if (filters?.status) {
+        records = records.filter(record => {
+          if (filters.status === 'ativo') return record.ativo === true;
+          if (filters.status === 'inativo') return record.ativo === false;
+          return true;
+        });
+      }
 
-    console.log(`LocationsNewRepository.getRecordsByType - Returning ${records.length} filtered records`);
-    return records;
+      // Ensure records is always an array
+      if (!Array.isArray(records)) {
+        console.warn(`LocationsNewRepository.getRecordsByType - Records is not an array for ${recordType}, using empty array`);
+        records = [];
+      }
+
+      console.log(`LocationsNewRepository.getRecordsByType - Returning ${records.length} filtered records for ${recordType}`);
+      return records;
+    } catch (error) {
+      console.error(`LocationsNewRepository.getRecordsByType - Error fetching ${recordType}:`, error);
+      // Return empty array instead of throwing to prevent frontend crashes
+      return [];
+    }
   }
 
   // Store and retrieve created locals (simple in-memory storage for now)
