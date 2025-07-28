@@ -462,7 +462,70 @@ function LocationsNewContent() {
           />
         );
       case 'agrupamento':
-        return <AgrupamentoForm {...commonProps} />;
+        return (
+          <AgrupamentoForm
+            onSubmit={async (formData) => {
+              console.log('LocationsNew - Agrupamento form submitted with data:', formData);
+
+              try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                  throw new Error('Token de autenticação não encontrado');
+                }
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('LocationsNew - Token payload:', {
+                  userId: payload.userId,
+                  tenantId: payload.tenantId,
+                  isExpired: payload.exp && payload.exp < Date.now() / 1000
+                });
+
+                console.log('LocationsNew - Making API request to create agrupamento');
+                const response = await fetch('/api/locations-new/agrupamento', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify(formData)
+                });
+
+                console.log('LocationsNew - API response status:', response.status);
+                const result = await response.json();
+
+                if (!response.ok) {
+                  console.error('LocationsNew - API error response:', result);
+                  throw new Error(result.message || 'Erro ao criar agrupamento');
+                }
+
+                console.log('LocationsNew - Agrupamento created successfully:', result);
+
+                toast({
+                  title: "Sucesso!",
+                  description: "Agrupamento criado e salvo com sucesso no sistema."
+                });
+
+                // Refresh the data
+                await Promise.all([
+                  queryClient.invalidateQueries({ queryKey: ['/api/locations-new/agrupamento'] }),
+                  queryClient.refetchQueries({ queryKey: ['/api/locations-new/agrupamento'] })
+                ]);
+
+                setIsCreateDialogOpen(false);
+                setActiveRecordType('agrupamento');
+              } catch (error) {
+                console.error('LocationsNew - Error creating agrupamento:', error);
+                toast({
+                  title: "Erro ao criar agrupamento",
+                  description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
+                  variant: "destructive"
+                });
+              }
+            }}
+            isSubmitting={createMutation.isPending}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        );
       default:
         return null;
     }

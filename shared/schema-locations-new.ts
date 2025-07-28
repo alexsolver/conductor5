@@ -357,6 +357,9 @@ export const areaSchema = createInsertSchema(areas, {
 
 export const agrupamentoSchema = createInsertSchema(agrupamentos, {
   nome: z.string().min(1, "Nome é obrigatório").max(200),
+  descricao: z.string().optional(),
+  codigoIntegracao: z.string().optional(),
+  areasVinculadas: z.array(z.string().uuid()).min(1, "Pelo menos uma área deve ser selecionada").optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 // TypeScript types

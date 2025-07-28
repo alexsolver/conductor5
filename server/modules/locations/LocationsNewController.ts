@@ -650,21 +650,62 @@ export class LocationsNewController {
   // Create Agrupamento
   async createAgrupamento(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.createAgrupamento - Starting request');
+      console.log('LocationsNewController.createAgrupamento - Request body:', req.body);
+
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
       if (!tenantId) {
+        console.error('LocationsNewController.createAgrupamento - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
-      const validation = agrupamentoSchema.safeParse(req.body);
+      if (!userId) {
+        console.error('LocationsNewController.createAgrupamento - No user ID found');
+        return sendError(res, "User ID required", 401);
+      }
+
+      // Ensure request body exists
+      if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('LocationsNewController.createAgrupamento - Empty request body');
+        return sendError(res, "Dados do agrupamento são obrigatórios.", 400);
+      }
+
+      // Add tenant validation to request data
+      const requestData = {
+        ...req.body,
+        tenantId: tenantId
+      };
+
+      console.log('LocationsNewController.createAgrupamento - Data to validate:', {
+        hasNome: !!requestData.nome,
+        areasCount: requestData.areasVinculadas?.length || 0,
+        hasTenantId: !!requestData.tenantId
+      });
+
+      // Validate areas selection
+      if (!requestData.areasVinculadas || requestData.areasVinculadas.length === 0) {
+        return sendError(res, "Pelo menos uma área deve ser selecionada para o agrupamento", 400);
+      }
+
+      const validation = agrupamentoSchema.safeParse(requestData);
       if (!validation.success) {
+        console.error('LocationsNewController.createAgrupamento - Validation failed:', {
+          errors: validation.error.errors,
+          receivedData: Object.keys(requestData)
+        });
         return sendValidationError(res, validation.error);
       }
 
+      console.log('LocationsNewController.createAgrupamento - Validation passed, creating agrupamento');
       const agrupamento = await this.repository.createAgrupamento(tenantId, validation.data);
-      return sendSuccess(res, agrupamento, "Agrupamento created successfully", 201);
+      
+      console.log('LocationsNewController.createAgrupamento - Agrupamento created successfully with ID:', agrupamento?.id);
+      return sendSuccess(res, agrupamento, "Agrupamento criado com sucesso", 201);
     } catch (error) {
-      console.error('Error creating agrupamento:', error);
-      return sendError(res, "Failed to create agrupamento", 500);
+      console.error('LocationsNewController.createAgrupamento - Error:', error);
+      return sendError(res, `Erro ao criar agrupamento: ${error.message}`, 500);
     }
   }
 
