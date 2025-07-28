@@ -507,6 +507,31 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       [id, tenantId]
     );
 
+    // Create history entry for the internal action
+    try {
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
+      `, [
+        tenantId,
+        id,
+        'internal_action',
+        `Ação interna adicionada: ${actionType}`,
+        req.user.id,
+        userName,
+        JSON.stringify({
+          action_type: actionType,
+          work_log: workLog || '',
+          time_spent: timeSpent || '0:00:00:00',
+          estimated_hours: estimatedHours,
+          is_public: is_public
+        })
+      ]);
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
     console.log('✅ Ação interna criada com sucesso:', newAction);
 
     res.status(201).json({
@@ -792,18 +817,17 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.id,
         th.action_type,
         th.description,
-        th.user_id as performed_by,
-        u.first_name || ' ' || u.last_name as performed_by_name,
+        th.performed_by as performed_by,
+        th.performed_by_name,
         th.old_value,
         th.new_value,
         th.field_name,
         th.created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        null as metadata
+        th.ip_address,
+        th.user_agent,
+        th.session_id,
+        th.metadata
       FROM "${schemaName}".ticket_history th
-      LEFT JOIN public.users u ON th.user_id = u.id
       WHERE th.ticket_id = $1::uuid
       
       UNION ALL
@@ -812,7 +836,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         'action' as source,
         ta.id,
         ta.action_type,
-        ta.description,
+        COALESCE(ta.work_log, ta.description) as description,
         ta.created_by as performed_by,
         u2.first_name || ' ' || u2.last_name as performed_by_name,
         null as old_value,
@@ -826,7 +850,8 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           'work_log', ta.work_log,
           'time_spent', ta.time_spent,
           'estimated_hours', ta.estimated_hours,
-          'is_public', ta.is_public
+          'is_public', ta.is_public,
+          'action_type', ta.action_type
         ) as metadata
       FROM "${schemaName}".ticket_actions ta
       LEFT JOIN public.users u2 ON ta.created_by = u2.id

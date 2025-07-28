@@ -63,7 +63,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
     },
     enabled: isOpen,
   });
-  
+
   // Extract data from response to avoid "actions.map is not a function" error
   const actions = actionsResponse?.success ? actionsResponse.data : [];
 
@@ -81,7 +81,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         title: "Sucesso",
         description: "Ação interna adicionada com sucesso",
       });
-      
+
       // Reset form data
       setFormData({
         startDateTime: "",
@@ -94,17 +94,16 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         attachments: []
       });
       setIsPublic(false);
-      
+
       // Clear editor content
       if (editor) {
         editor.commands.clearContent();
       }
-      
-      // Invalidate queries to refresh data
+
+      // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
-      
+
       // Close modal after successful creation
       onClose();
     },
@@ -268,7 +267,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                         className="hidden"
                       />
                     </div>
-                    
+
                     {formData.attachments.length > 0 && (
                       <div className="space-y-1">
                         {formData.attachments.map((file, index) => (
@@ -346,7 +345,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                         1.
                       </Button>
                     </div>
-                    
+
                     {/* Editor Content */}
                     <div className="p-3 min-h-[120px] prose prose-sm max-w-none">
                       <EditorContent editor={editor} />
@@ -399,7 +398,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
             </CardContent>
           </Card>
 
-          
+
         </div>
       </DialogContent>
     </Dialog>
