@@ -87,41 +87,86 @@ function LocationsNewContent() {
     }
   });
 
-  // API queries for each record type
-  const queries = useMemo(() => {
-    const createQuery = (recordType: string) => ({
-      queryKey: [`/api/locations-new/${recordType}`],
-      enabled: true
-    });
+  // API queries for each record type - hooks at top level
+  const locaisQuery = useQuery({
+    queryKey: [`/api/locations-new/local`],
+    enabled: true
+  });
+  const regioesQuery = useQuery({
+    queryKey: [`/api/locations-new/regiao`],
+    enabled: true
+  });
+  const rotasDinamicasQuery = useQuery({
+    queryKey: [`/api/locations-new/rota-dinamica`],
+    enabled: true
+  });
+  const trechosQuery = useQuery({
+    queryKey: [`/api/locations-new/trecho`],
+    enabled: true
+  });
+  const rotasTrechoQuery = useQuery({
+    queryKey: [`/api/locations-new/rota-trecho`],
+    enabled: true
+  });
+  const areasQuery = useQuery({
+    queryKey: [`/api/locations-new/area`],
+    enabled: true
+  });
+  const agrupamentosQuery = useQuery({
+    queryKey: [`/api/locations-new/agrupamento`],
+    enabled: true
+  });
 
-    return {
-      locais: useQuery(createQuery("local")),
-      regioes: useQuery(createQuery("regiao")),
-      rotasDinamicas: useQuery(createQuery("rota-dinamica")),
-      trechos: useQuery(createQuery("trecho")),
-      rotasTrecho: useQuery(createQuery("rota-trecho")),
-      areas: useQuery(createQuery("area")),
-      agrupamentos: useQuery(createQuery("agrupamento"))
-    };
-  }, []);
+  // Stats queries - hooks at top level
+  const localStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/local/stats`],
+    enabled: true
+  });
+  const regiaoStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/regiao/stats`],
+    enabled: true
+  });
+  const rotaDinamicaStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/rota-dinamica/stats`],
+    enabled: true
+  });
+  const trechoStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/trecho/stats`],
+    enabled: true
+  });
+  const rotaTrechoStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/rota-trecho/stats`],
+    enabled: true
+  });
+  const areaStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/area/stats`],
+    enabled: true
+  });
+  const agrupamentoStatsQuery = useQuery({
+    queryKey: [`/api/locations-new/agrupamento/stats`],
+    enabled: true
+  });
 
-  // Stats queries
-  const statsQueries = useMemo(() => {
-    const createStatsQuery = (recordType: string) => ({
-      queryKey: [`/api/locations-new/${recordType}/stats`],
-      enabled: true
-    });
+  // Organize queries into objects for easier access
+  const queries = {
+    locais: locaisQuery,
+    regioes: regioesQuery,
+    rotasDinamicas: rotasDinamicasQuery,
+    trechos: trechosQuery,
+    rotasTrecho: rotasTrechoQuery,
+    areas: areasQuery,
+    agrupamentos: agrupamentosQuery
+  };
 
-    return {
-      localStats: useQuery(createStatsQuery("local")),
-      regiaoStats: useQuery(createStatsQuery("regiao")),
-      rotaDinamicaStats: useQuery(createStatsQuery("rota-dinamica")),
-      trechoStats: useQuery(createStatsQuery("trecho")),
-      rotaTrechoStats: useQuery(createStatsQuery("rota-trecho")),
-      areaStats: useQuery(createStatsQuery("area")),
-      agrupamentoStats: useQuery(createStatsQuery("agrupamento"))
-    };
-  }, []);
+  const statsQueries = {
+    localStats: localStatsQuery,
+    regiaoStats: regiaoStatsQuery,
+    rotaDinamicaStats: rotaDinamicaStatsQuery,
+    trechoStats: trechoStatsQuery,
+    rotaTrechoStats: rotaTrechoStatsQuery,
+    areaStats: areaStatsQuery,
+    agrupamentoStats: agrupamentoStatsQuery
+  };
 
   // Get current data safely
   const getCurrentData = useCallback(() => {
