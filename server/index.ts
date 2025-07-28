@@ -9,6 +9,8 @@ import { productionInitializer } from './utils/productionInitializer';
 import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
 import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
 import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
+import timecardRoutes from './routes/timecardRoutes';
+import productivityRoutes from './routes/productivityRoutes';
 
 const app = express();
 
@@ -81,7 +83,7 @@ app.use((req, res, next) => {
   optimizeViteHMR();
   preventViteReconnections();
   disableVitePolling();
-  
+
   // CRITICAL FIX: Initialize cleanup and stability systems before starting server
   await initializeCleanup();
 
@@ -95,6 +97,8 @@ app.use((req, res, next) => {
   // Initialize production systems
   await productionInitializer.initialize();
 
+  app.use('/api/timecard', timecardRoutes);
+  app.use('/api/productivity', productivityRoutes);
 
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -175,7 +179,7 @@ app.use((req, res, next) => {
   // CRITICAL STABILITY FIX: Enhanced error handling for WebSocket and database connection issues
   process.on('uncaughtException', (error) => {
     const errorMsg = error.message || '';
-    
+
     // VITE STABILITY: Ignore WebSocket and HMR related errors
     if (errorMsg.includes('WebSocket') || 
         errorMsg.includes('ECONNRESET') || 
@@ -184,7 +188,7 @@ app.use((req, res, next) => {
       console.log('[Stability] Ignoring transient connection error:', errorMsg.substring(0, 100));
       return;
     }
-    
+
     console.error('[Uncaught Exception]', error);
     connectionStabilizer.cleanup();
     process.exit(1);
@@ -192,7 +196,7 @@ app.use((req, res, next) => {
 
   process.on('unhandledRejection', (reason, promise) => {
     const reasonStr = String(reason);
-    
+
     // VITE STABILITY: Ignore WebSocket rejections and database connection drops
     if (reasonStr.includes('WebSocket') || 
         reasonStr.includes('terminating connection') ||
@@ -201,7 +205,7 @@ app.use((req, res, next) => {
       console.log('[Stability] Ignoring connection rejection:', reasonStr.substring(0, 100));
       return;
     }
-    
+
     console.warn('[Unhandled Rejection]', reason);
   });
 

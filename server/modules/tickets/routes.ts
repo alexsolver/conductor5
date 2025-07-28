@@ -6,6 +6,7 @@ import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/s
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
+import { trackTicketView, trackTicketEdit, trackTicketCreate } from '../../middleware/activityTrackingMiddleware';
 
 const ticketsRouter = Router();
 
@@ -53,7 +54,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // Get ticket by ID with messages
-ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -93,7 +94,7 @@ ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => 
 });
 
 // Create new ticket
-ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -118,7 +119,7 @@ ticketsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // Update ticket - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
-ticketsRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
