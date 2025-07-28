@@ -99,12 +99,12 @@ export const rotasDinamicas = pgTable('rotas_dinamicas', {
   idRota: varchar('id_rota', { length: 100 }).notNull(),
 
   // Relacionamentos
-  clientesVinculados: jsonb('clientes_vinculados'), // Array of customer IDs
-  regioesAtendidas: jsonb('regioes_atendidas'), // Array of region IDs
+  clientesVinculados: jsonb('clientes_vinculados'), // Array of customer IDs from integration
+  regioesAtendidas: jsonb('regioes_atendidas'), // Array of region IDs (multi-selection)
 
   // Planejamento da Rota
-  diasSemana: jsonb('dias_semana'), // Array of weekdays
-  previsaoDias: integer('previsao_dias').notNull(), // 1-30 days
+  diasSemana: jsonb('dias_semana'), // Array of weekdays ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']
+  previsaoDias: integer('previsao_dias').notNull(), // 1-30 days (valor inteiro)
 
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
@@ -246,7 +246,10 @@ export const regiaoSchema = createInsertSchema(regioes, {
 export const rotaDinamicaSchema = createInsertSchema(rotasDinamicas, {
   nomeRota: z.string().min(1, "Nome da rota é obrigatório").max(100),
   idRota: z.string().min(1, "ID da rota é obrigatório").max(100),
-  previsaoDias: z.number().min(1).max(30, "Deve ser entre 1 e 30 dias"),
+  previsaoDias: z.number().min(1, "Previsão deve ser entre 1 e 30 dias").max(30, "Previsão deve ser entre 1 e 30 dias"),
+  clientesVinculados: z.array(z.string().uuid()).optional(),
+  regioesAtendidas: z.array(z.string().uuid()).optional(),
+  diasSemana: z.array(z.enum(['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'])).optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 export const trechoSchema = createInsertSchema(trechos).omit({ 

@@ -386,21 +386,59 @@ export class LocationsNewController {
   // Create Rota Dinâmica
   async createRotaDinamica(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('LocationsNewController.createRotaDinamica - Starting request');
+      console.log('LocationsNewController.createRotaDinamica - Request body:', req.body);
+
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
       if (!tenantId) {
+        console.error('LocationsNewController.createRotaDinamica - No tenant ID found');
         return sendError(res, "Tenant ID required", 401);
       }
 
-      const validation = rotaDinamicaSchema.safeParse(req.body);
+      if (!userId) {
+        console.error('LocationsNewController.createRotaDinamica - No user ID found');
+        return sendError(res, "User ID required", 401);
+      }
+
+      // Ensure request body exists
+      if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('LocationsNewController.createRotaDinamica - Empty request body');
+        return sendError(res, "Dados da rota dinâmica são obrigatórios.", 400);
+      }
+
+      // Add tenant validation to request data
+      const requestData = {
+        ...req.body,
+        tenantId: tenantId
+      };
+
+      console.log('LocationsNewController.createRotaDinamica - Data to validate:', {
+        hasNomeRota: !!requestData.nomeRota,
+        hasIdRota: !!requestData.idRota,
+        hasTenantId: !!requestData.tenantId,
+        previsaoDias: requestData.previsaoDias,
+        diasSemanaCount: requestData.diasSemana?.length || 0
+      });
+
+      const validation = rotaDinamicaSchema.safeParse(requestData);
       if (!validation.success) {
+        console.error('LocationsNewController.createRotaDinamica - Validation failed:', {
+          errors: validation.error.errors,
+          receivedData: Object.keys(requestData)
+        });
         return sendValidationError(res, validation.error);
       }
 
+      console.log('LocationsNewController.createRotaDinamica - Validation passed, creating rota dinâmica');
       const rota = await this.repository.createRotaDinamica(tenantId, validation.data);
-      return sendSuccess(res, rota, "Rota dinâmica created successfully", 201);
+      
+      console.log('LocationsNewController.createRotaDinamica - Rota dinâmica created successfully with ID:', rota?.id);
+      return sendSuccess(res, rota, "Rota dinâmica criada com sucesso", 201);
     } catch (error) {
-      console.error('Error creating rota dinâmica:', error);
-      return sendError(res, "Failed to create rota dinâmica", 500);
+      console.error('LocationsNewController.createRotaDinamica - Error:', error);
+      return sendError(res, `Erro ao criar rota dinâmica: ${error.message}`, 500);
     }
   }
 
