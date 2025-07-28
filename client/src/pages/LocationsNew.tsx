@@ -2,13 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 // Temporary fix for token issues - update token on page load
-const updateTokenForTesting = () => {
-  const newToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY";
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('accessToken', newToken);
-    console.log('Token updated for LocationsNew page');
-  }
-};
+// Removed hardcoded token - using only dynamic authentication
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Clock, Upload, Map, AlertTriangle, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -595,13 +589,7 @@ function LocationsNewContent() {
         return data;
       } catch (error) {
         console.error('Failed to fetch locais de atendimento:', error);
-        // Return empty structure instead of throwing
-        return {
-          success: true,
-          data: [],
-          warning: 'Service temporarily unavailable',
-          fallback: true
-        };
+        throw error;
       }
     },
     retry: 1,
@@ -651,7 +639,7 @@ function LocationsNewContent() {
 
       if (!currentToken) {
         console.warn('LocationsNew - No valid token found for locais query');
-        return { success: true, data: { records: [], metadata: { total: 0 } } };
+        throw new Error('Authentication required');
       }
 
       const params = new URLSearchParams();

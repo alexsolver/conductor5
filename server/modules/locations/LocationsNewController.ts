@@ -1,5 +1,5 @@
 // LOCATIONS NEW CONTROLLER - Support for 7 Record Types
-import { Request, Response } from "express";
+import { Response as ExpressResponse } from "express";
 import { AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { LocationsNewRepository } from "./LocationsNewRepository";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
@@ -15,7 +15,7 @@ export class LocationsNewController {
   }
 
   // Get statistics by type
-  async getStatsByType(req: AuthenticatedRequest, res: Response) {
+  async getStatsByType(req: AuthenticatedRequest, res: ExpressResponse) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -33,7 +33,7 @@ export class LocationsNewController {
   }
 
   // Get records by type
-  async getRecordsByType(req: AuthenticatedRequest, res: Response) {
+  async getRecordsByType(req: AuthenticatedRequest, res: ExpressResponse) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -733,7 +733,7 @@ export class LocationsNewController {
   }
 
   // Delete records by type
-  async deleteRecord(req: AuthenticatedRequest, res: Response) {
+  async deleteRecord(req: AuthenticatedRequest, res: ExpressResponse) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -750,8 +750,8 @@ export class LocationsNewController {
     }
   }
 
-  // CEP Lookup service
-  async lookupCep(req: AuthenticatedRequest, res: Response) {
+  // CEP Lookup service (updated to ExpressResponse)
+  async lookupCepUpdated(req: AuthenticatedRequest, res: ExpressResponse) {
     try {
       const { cep } = req.params;
 
@@ -777,7 +777,7 @@ export class LocationsNewController {
   }
 
   // Holiday lookup service
-  async lookupHolidays(req: AuthenticatedRequest, res: Response) {
+  async lookupHolidays(req: AuthenticatedRequest, res: ExpressResponse) {
     try {
       const { municipio, estado, ano } = req.query;
 
