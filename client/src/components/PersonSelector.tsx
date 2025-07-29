@@ -35,7 +35,7 @@ export function PersonSelector({
   allowedTypes = ['user', 'customer'],
   companyFilter,
   disabled = false,
-  className
+  className = ""
 }: PersonSelectorProps) {
   const [open, setOpen] = useState(false);
   const [people, setPeople] = useState<Person[]>([]);

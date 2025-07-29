@@ -749,7 +749,7 @@ export default function TicketsTable() {
 
   const onSubmit = (data: TicketFormData) => {
     console.log('🚀 Form submission started with data:', data);
-    
+
     // Validate required fields
     if (!data.shortDescription) {
       console.error('❌ Short description is required');
@@ -760,7 +760,7 @@ export default function TicketsTable() {
       });
       return;
     }
-    
+
     if (!data.companyId) {
       console.error('❌ Company is required');
       toast({
@@ -770,7 +770,7 @@ export default function TicketsTable() {
       });
       return;
     }
-    
+
     if (!data.callerId) {
       console.error('❌ Customer is required');
       toast({
@@ -780,10 +780,10 @@ export default function TicketsTable() {
       });
       return;
     }
-    
+
     // Map shortDescription to subject for legacy compatibility
     const subject = data.shortDescription || data.subject;
-    
+
     const submitData = {
       // Core ticket fields (using ServiceNow-style naming)
       subject: subject,
@@ -808,7 +808,7 @@ export default function TicketsTable() {
 
       // Company relationship
       customer_company_id: data.companyId,
-      
+
       // Contact and location info
       contact_type: data.contactType || "email",
       location: data.location || "",
@@ -843,7 +843,14 @@ export default function TicketsTable() {
 
   const TicketForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error('❌ Form validation errors:', errors);
+              toast({
+                title: "Erro de Validação",
+                description: "Por favor, corrija os erros no formulário",
+                variant: "destructive",
+              });
+            })} className="space-y-6">
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Basic Information</h3>
@@ -894,7 +901,7 @@ export default function TicketsTable() {
                       onValueChange={field.onChange}
                       placeholder="Select category"
                     />
-                  </FormControl>
+                  </FormControl>```python
                   <FormMessage />
                 </FormItem>
               )}
@@ -1760,7 +1767,14 @@ export default function TicketsTable() {
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error('❌ Form validation errors:', errors);
+              toast({
+                title: "Erro de Validação",
+                description: "Por favor, corrija os erros no formulário",
+                variant: "destructive",
+              });
+            })} className="space-y-6">
 
               {/* Layout principal idêntico ao TicketDetails - sem sidebar direita */}
               <div className="space-y-6">
@@ -1847,7 +1861,7 @@ export default function TicketsTable() {
                               onValueChange={(value) => {
                                 // Don't allow unspecified for required field
                                 if (value === "unspecified") return;
-                                
+
                                 field.onChange(value);
                                 setSelectedCompanyId(value);
                                 // Reset customer selection when company changes
