@@ -42,6 +42,7 @@ const companySchema = z.object({
 });
 
 const categorySchema = z.object({
+  id: z.string(),
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   color: z.string().default("#3b82f6"),
@@ -51,6 +52,7 @@ const categorySchema = z.object({
 });
 
 const subcategorySchema = z.object({
+  id: z.string(),
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   categoryId: z.string().min(1, "Categoria é obrigatória"),
@@ -61,6 +63,7 @@ const subcategorySchema = z.object({
 });
 
 const actionSchema = z.object({
+  id: z.string(),
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   subcategoryId: z.string().min(1, "Subcategoria é obrigatória"),
@@ -72,6 +75,7 @@ const actionSchema = z.object({
 });
 
 const fieldOptionSchema = z.object({
+  id: z.string(),
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
   value: z.string().min(1, "Valor é obrigatório"),
   displayLabel: z.string().min(1, "Rótulo é obrigatório"),
@@ -93,6 +97,7 @@ const fieldOptionSchema = z.object({
 });
 
 const numberingConfigSchema = z.object({
+  id: z.string(),
   prefix: z.string().min(1, "Prefixo é obrigatório"),
   yearFormat: z.enum(['2', '4']).default('4'),
   sequentialDigits: z.number().min(4).max(10).default(6),
@@ -104,6 +109,7 @@ interface Company {
   id: string;
   name: string;
   active: boolean;
+  company_name?: string;
 }
 
 interface Category {
@@ -177,6 +183,7 @@ const TicketConfiguration: React.FC = () => {
   const categoryForm = useForm({
     resolver: zodResolver(categorySchema),
     defaultValues: {
+      id: '',
       name: '',
       description: '',
       color: '#3b82f6',
@@ -189,6 +196,7 @@ const TicketConfiguration: React.FC = () => {
   const subcategoryForm = useForm({
     resolver: zodResolver(subcategorySchema),
     defaultValues: {
+      id: '',
       name: '',
       description: '',
       categoryId: '',
@@ -202,6 +210,7 @@ const TicketConfiguration: React.FC = () => {
   const actionForm = useForm({
     resolver: zodResolver(actionSchema),
     defaultValues: {
+      id: '',
       name: '',
       description: '',
       subcategoryId: '',
@@ -216,6 +225,7 @@ const TicketConfiguration: React.FC = () => {
   const fieldOptionForm = useForm({
     resolver: zodResolver(fieldOptionSchema),
     defaultValues: {
+      id: '',
       fieldName: '',
       value: '',
       displayLabel: '',
@@ -231,6 +241,7 @@ const TicketConfiguration: React.FC = () => {
   const numberingForm = useForm({
     resolver: zodResolver(numberingConfigSchema),
     defaultValues: {
+      id: '',
       prefix: 'T',
       yearFormat: '4' as const,
       sequentialDigits: 6,
@@ -507,6 +518,7 @@ const TicketConfiguration: React.FC = () => {
     // Initialize form values based on dialog type
     if (type === 'subcategory') {
       const formData = {
+        id: item?.id || '',
         name: item?.name || '',
         description: item?.description || '',
         categoryId: item?.categoryId || '',
@@ -518,6 +530,7 @@ const TicketConfiguration: React.FC = () => {
       subcategoryForm.reset(formData);
     } else if (type === 'category') {
       categoryForm.reset({
+        id: item?.id || '',
         name: item?.name || '',
         description: item?.description || '',
         color: item?.color || '#3b82f6',
@@ -527,6 +540,7 @@ const TicketConfiguration: React.FC = () => {
       });
     } else if (type === 'action') {
       actionForm.reset({
+        id: item?.id || '',
         name: item?.name || '',
         description: item?.description || '',
         subcategoryId: item?.subcategoryId || '',
@@ -538,6 +552,7 @@ const TicketConfiguration: React.FC = () => {
       });
     } else if (type === 'field-option') {
       fieldOptionForm.reset({
+        id: item?.id || '',
         fieldName: item?.fieldName || '',
         value: item?.value || '',
         displayLabel: item?.displayLabel || '',
@@ -862,7 +877,7 @@ const TicketConfiguration: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  {/* Ações da Subcategoria */}
+                                    {/* Ações da Subcategoria */}
                                   <div className="pl-16 pr-4 pb-4">
                                     {actions
                                       .filter((action: Action) => {
@@ -1370,11 +1385,34 @@ const TicketConfiguration: React.FC = () => {
                     </div>
 
                     <Button type="submit" disabled={saveNumberingMutation.isPending}>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Configuração
+                      {saveNumberingMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
                     </Button>
                   </form>
                 </Form>
+
+                {/* Preview da numeração */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2">Preview da Numeração</h4>
+                  <div className="text-sm text-gray-600">
+                    <p><strong>Exemplo:</strong> {numberingForm.watch('prefix') || 'INC'}-{new Date().getFullYear()}-000001</p>
+                    <p><strong>Formato:</strong> Prefixo + Separador + Ano + Separador + Número Sequencial</p>
+                    <p><strong>Específico para:</strong> {selectedCompany?.company_name || 'Empresa não selecionada'}</p>
+                  </div>
+                </div>
+
+                {/* Explicação sobre numeração por empresa */}
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">📋 Numeração por Empresa Cliente</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Cada empresa cliente pode ter seu próprio formato de numeração</li>
+                    <li>• Prefixos personalizados: INC, REQ, CHG, etc.</li>
+                    <li>• Contadores independentes por empresa</li>
+                    <li>• Exemplos:</li>
+                    <li className="ml-4">- Empresa A: INC-2025-000001, INC-2025-000002...</li>
+                    <li className="ml-4">- Empresa B: REQ25-0001, REQ25-0002...</li>
+                    <li className="ml-4">- Empresa C: CHG-2025-000001...</li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

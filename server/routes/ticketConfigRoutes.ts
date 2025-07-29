@@ -746,8 +746,41 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
 // NUMBERING CONFIGURATION - Configuração de numeração
 // ============================================================================
 
+// GET /api/ticket-config/numbering/companies - Lista configurações de todas as empresas
+router.get('/numbering/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const result = await db.execute(sql`
+      SELECT nc.*, cc.company_name 
+      FROM "${sql.raw(schemaName)}"."ticket_numbering_config" nc
+      JOIN "${sql.raw(schemaName)}"."customer_companies" cc ON nc.company_id = cc.id
+      WHERE nc.tenant_id = ${tenantId}
+      ORDER BY cc.company_name
+    `);
+
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching numbering configs:', error);
+    res.status(500).json({
+      error: 'Failed to fetch numbering configs',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // GET /api/ticket-config/numbering
 router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
+</old_str>
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
@@ -849,6 +882,59 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
     console.error('Error saving numbering config:', error);
     res.status(500).json({
       error: 'Failed to save numbering config',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Preview ticket numbering format
+router.get('/numbering/preview', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const companyId = req.query.companyId as string;
+
+    if (!tenantId || !companyId) {
+      return res.status(400).json({ message: 'Tenant and company ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Buscar configuração
+    const configResult = await db.execute(sql`
+      SELECT prefix, year_format, sequential_digits, separator, reset_yearly
+      FROM "${sql.raw(schemaName)}"."ticket_numbering_config" 
+      WHERE tenant_id = ${tenantId} AND company_id = ${companyId}
+      LIMIT 1
+    `);
+
+    const config = configResult.rows[0] || {
+      prefix: 'INC',
+      year_format: '4',
+      sequential_digits: 6,
+      separator: '-',
+      reset_yearly: true
+    };
+
+    const currentYear = new Date().getFullYear();
+    const yearString = config.year_format === '2' 
+      ? currentYear.toString().slice(-2)
+      : currentYear.toString();
+
+    // Exemplo de numeração
+    const exampleNumber = `${config.prefix}${config.separator}${yearString}${config.separator}${'1'.padStart(config.sequential_digits, '0')}`;
+
+    res.json({
+      success: true,
+      data: {
+        config,
+        preview: exampleNumber,
+        description: `Formato: ${config.prefix}${config.separator}${yearString}${config.separator}XXXXXX`
+      }
+    });
+  } catch (error) {
+    console.error('Error generating preview:', error);
+    res.status(500).json({
+      error: 'Failed to generate preview',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
