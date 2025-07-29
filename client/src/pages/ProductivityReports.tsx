@@ -19,7 +19,9 @@ import {
   Filter,
   FileText,
   Wrench,
-  Settings
+  Settings,
+  Download,
+  User
 } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
