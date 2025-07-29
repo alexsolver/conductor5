@@ -25,7 +25,7 @@ import templateRoutes from './routes/templateRoutes';
 import contractRoutes from './routes/contractRoutes';
 import { timecardRoutes } from './routes/timecardRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
-import userProfileRoutes from './routes/userProfileRoutes';
+import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import tenantAdminTeamRoutes from './routes/tenantAdminTeamRoutes';
 import tenantIntegrations from './routes/tenantIntegrations';
