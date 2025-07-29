@@ -75,28 +75,35 @@ export default function CustomerCompanies() {
    const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
    const [selectedCompanyForAssociation, setSelectedCompanyForAssociation] = useState<any>(null);
 
-  // Query para buscar companies with timestamp to force fresh data
-  const { data: companiesData, isLoading } = useQuery({
-    queryKey: ['/api/customer-companies', Date.now()], // Add timestamp for uniqueness
-    staleTime: 0, // Always fresh data
-    gcTime: 0, // Don't keep in cache
-    refetchOnWindowFocus: true,
+  // Query para buscar companies
+  const { data: companiesData, isLoading, error } = useQuery({
+    queryKey: ['/api/customer-companies'],
+    queryFn: () => apiRequest('GET', '/api/customer-companies'),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
     refetchOnMount: true,
-    refetchInterval: false, // Don't auto-refetch
+    retry: 3,
   });
 
   // Handle different response formats from the API and filter out deleted companies
   const companies = (() => {
+    console.log('Raw companies data:', companiesData);
+    
     let rawCompanies = [];
     if (!companiesData) return [];
     if (Array.isArray(companiesData)) rawCompanies = companiesData;
     else if (companiesData.success && Array.isArray(companiesData.data)) rawCompanies = companiesData.data;
     else if (companiesData.data && Array.isArray(companiesData.data)) rawCompanies = companiesData.data;
     
+    console.log('Processed companies:', rawCompanies);
+    
     // Filter out any companies that might have deleted_at set (client-side safety)
-    return rawCompanies.filter((company: CustomerCompany & { deleted_at?: string }) => 
+    const filteredCompanies = rawCompanies.filter((company: CustomerCompany & { deleted_at?: string }) => 
       !company.deleted_at && company.id
     );
+    
+    console.log('Filtered companies:', filteredCompanies);
+    return filteredCompanies;
   })();
 
   // Mutation para criar company
@@ -293,7 +300,7 @@ export default function CustomerCompanies() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -307,6 +314,30 @@ export default function CustomerCompanies() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="text-center py-12">
+          <div className="text-red-500 mb-4">
+            <Building2 className="w-16 h-16 mx-auto" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Erro ao carregar empresas
+          </h3>
+          <p className="text-gray-500 mb-6">
+            Não foi possível carregar a lista de empresas clientes.
+          </p>
+          <Button 
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] })}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            Tentar Novamente
+          </Button>
         </div>
       </div>
     );
