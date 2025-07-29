@@ -376,7 +376,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  
+  // Delete customer company - temporary implementation to fix deletion issue
+  app.delete('/api/customers/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      console.log(`[DELETE] Deleting company ${companyId} for tenant ${req.user.tenantId}`);
+
+      // Start transaction
+      await pool.query('BEGIN');
+      
+      try {
+        // Check if company exists
+        const companyCheck = await pool.query(
+          `SELECT id, name FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+          [companyId, req.user.tenantId]
+        );
+
+        if (companyCheck.rows.length === 0) {
+          await pool.query('ROLLBACK');
+          return res.status(404).json({
+            success: false,
+            message: 'Company not found'
+          });
+        }
+
+        // Check if company has associated customers
+        const membershipsCheck = await pool.query(
+          `SELECT COUNT(*) as count FROM "${schemaName}"."customer_company_memberships" 
+           WHERE company_id = $1 AND tenant_id = $2`,
+          [companyId, req.user.tenantId]
+        );
+
+        const membershipCount = parseInt(membershipsCheck.rows[0]?.count || '0');
+        if (membershipCount > 0) {
+          await pool.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            message: 'Não é possível excluir empresa que possui clientes associados'
+          });
+        }
+
+        // Soft delete the company (set is_active = false instead of hard delete)
+        const result = await pool.query(
+          `UPDATE "${schemaName}"."customer_companies" 
+           SET is_active = false, updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1 AND tenant_id = $2`,
+          [companyId, req.user.tenantId]
+        );
+
+        await pool.query('COMMIT');
+
+        console.log(`[DELETE] Company ${companyId} deleted successfully. Rows affected: ${result.rowCount}`);
+
+        res.status(200).json({
+          success: true,
+          message: 'Company deleted successfully',
+          deletedId: companyId
+        });
+      } catch (error) {
+        await pool.query('ROLLBACK');
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error deleting customer company:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete customer company'
+      });
+    }
+  });
 
   // Locations routes temporarily removed due to syntax issues
 
