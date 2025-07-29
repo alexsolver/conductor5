@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { jwtAuth } from './middleware/jwtAuth';
 
@@ -27,7 +26,7 @@ import contractRoutes from './routes/contractRoutes';
 import timecardRoutes from './routes/timecardRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
 import userProfileRoutes from './routes/userProfileRoutes';
-import teamManagementRoutes from './routes/teamManagementRoutes';
+import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import tenantAdminTeamRoutes from './routes/tenantAdminTeamRoutes';
 import tenantIntegrations from './routes/tenantIntegrations';
 import tenantProvisioning from './routes/tenant-provisioning';
