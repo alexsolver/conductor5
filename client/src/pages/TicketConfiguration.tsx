@@ -730,33 +730,36 @@ const TicketConfiguration: React.FC = () => {
                               </div>
                             )}
 
-                                  <div className="ml-6 space-y-1">
-                                    {actions
-                                      .filter((action: Action) => action.subcategoryId === subcategory.id)
-                                      .map((action: Action) => (
-                                        <div key={action.id} className="flex items-center justify-between py-1">
-                                          <div className="flex items-center space-x-2">
-                                            <div 
-                                              className="w-2 h-2 rounded"
-                                              style={{ backgroundColor: action.color }}
-                                            />
-                                            <span className="text-sm">{action.name}</span>
-                                            {action.estimatedTimeMinutes && (
-                                              <Badge variant="outline" className="text-xs">
-                                                {action.estimatedTimeMinutes}min
-                                              </Badge>
-                                            )}
-                                          </div>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => openDialog('action', action)}
-                                          >
-                                            <Edit className="w-3 h-3" />
-                                          </Button>
+                            {/* Actions for each subcategory */}
+                            {subcategories
+                              .filter((sub: Subcategory) => sub.categoryId === category.id)
+                              .map((subcategory: Subcategory) => (
+                                <div key={subcategory.id} className="ml-6 space-y-1">
+                                  {actions
+                                    .filter((action: Action) => action.subcategoryId === subcategory.id)
+                                    .map((action: Action) => (
+                                      <div key={action.id} className="flex items-center justify-between py-1">
+                                        <div className="flex items-center space-x-2">
+                                          <div 
+                                            className="w-2 h-2 rounded"
+                                            style={{ backgroundColor: action.color }}
+                                          />
+                                          <span className="text-sm">{action.name}</span>
+                                          {action.estimatedTimeMinutes && (
+                                            <Badge variant="outline" className="text-xs">
+                                              {action.estimatedTimeMinutes}min
+                                            </Badge>
+                                          )}
                                         </div>
-                                      ))}
-                                  </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => openDialog('action', action)}
+                                        >
+                                          <Edit className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
                                 </div>
                               ))}
                           </div>
