@@ -472,10 +472,10 @@ export class DatabaseStorage implements IStorage {
           ${ticketNumber},
           ${ticketData.subject},
           ${ticketData.description || null},
-          ${ticketData.status || 'open'},
+          ${ticketData.status || 'new'},
           ${ticketData.priority || 'medium'},
           ${customerId},
-          ${ticketData.caller_id || customerId},
+          ${customerId},
           ${validatedTenantId},
           NOW(),
           NOW()

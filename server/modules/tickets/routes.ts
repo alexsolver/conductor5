@@ -111,15 +111,33 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
     // Debug: Log the incoming request body
     console.log('🔍 Incoming request body:', req.body);
 
-    const ticketData = insertTicketSchema.parse({
+    // Ensure we have the required customer ID from either field
+    const customerId = req.body.customerId || req.body.caller_id;
+    if (!customerId) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Customer ID or caller ID is required" 
+      });
+    }
+
+    const ticketData = {
       ...req.body,
       tenantId: req.user.tenantId,
-      customerId: req.body.customerId || req.body.caller_id, // Map caller_id to customerId for storage compatibility
-      caller_id: req.body.caller_id || req.body.customerId, // Keep caller_id for backend compatibility
-    });
+      customerId: customerId,
+      caller_id: customerId,
+      status: req.body.status || req.body.state || 'new'
+    };
 
-    // Debug: Log the parsed ticket data
-    console.log('🔍 Parsed ticket data:', ticketData);
+    // Debug: Log the processed ticket data
+    console.log('🔍 Processed ticket data:', ticketData);
+
+    // Validate the ticket data manually instead of using Zod
+    if (!ticketData.subject) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Subject is required" 
+      });
+    }
 
     const ticket = await storageSimple.createTicket(req.user.tenantId, ticketData);
 
@@ -164,12 +182,16 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
 
     return sendSuccess(res, ticket, "Ticket created successfully", 201);
   } catch (error) {
+    console.error('❌ Detailed error creating ticket:', error);
     const { logError } = await import('../../utils/logger');
     logError('Error creating ticket', error, { tenantId: req.user?.tenantId });
-    if (error instanceof z.ZodError) {
-      return sendValidationError(res, error.errors.map(e => `${e.path.join('.')}: ${e.message}`), "Invalid ticket data");
-    }
-    return sendError(res, error, "Failed to create ticket", 500);
+    
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create ticket",
+      error: error instanceof Error ? error.message : "Unknown error",
+      details: error
+    });
   }
 });
 
