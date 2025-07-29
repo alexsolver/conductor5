@@ -1856,7 +1856,7 @@ export default function TicketsTable() {
                             <FormControl>
                               <DynamicSelect
                                 fieldName="category"
-                                value{field.value}
+                                value={field.value}
                                 onValueChange={field.onChange}
                                 placeholder="Selecione a categoria"
                               />
