@@ -1,4 +1,3 @@
-typescript
 import { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react";
