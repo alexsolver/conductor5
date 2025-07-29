@@ -1778,13 +1778,18 @@ export default function TicketDetails() {
                 <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
                      onClick={() => setIsCompanyDetailsOpen(true)}>
                   <span className="font-medium text-blue-900 underline decoration-dotted">
-                    {(Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customer_company_id || ticket.customerCompanyId || ticket.company))?.name || 
-                     ticket.customerCompany?.name || 'Não especificado'}
+                    {(() => {
+                      // CORREÇÃO: Buscar empresa pelos dados reais do ticket
+                      const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                      const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
+                      return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
+                    })()}
                   </span>
                 </div>
               )}
               {(() => {
-                const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customer_company_id || ticket.customerCompanyId || ticket.company));
+                const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
                 const industry = ticket.customerCompany?.industry || companyData?.industry;
                 const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
                 
@@ -1848,17 +1853,38 @@ export default function TicketDetails() {
                        onClick={() => console.log('Open customer details')}>
                     <span className="underline decoration-dotted">
                       {(() => {
-                        const customer = availableCustomers.find((c: any) => c.id === (ticket.caller_id || ticket.callerId));
-                        if (!customer) {
-                          return (ticket.caller_id === 'unspecified' || !ticket.caller_id) ? 'Não especificado' : 'Cliente não encontrado';
+                        // CORREÇÃO: Buscar cliente pelos dados reais do ticket
+                        const callerId = ticket.caller_id || ticket.callerId;
+                        const customer = availableCustomers.find((c: any) => c.id === callerId);
+                        
+                        if (!customer && callerId && callerId !== 'unspecified') {
+                          // Se não encontrar nos disponíveis, buscar nos dados gerais dos customers
+                          const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+                          const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
+                          if (fallbackCustomer) {
+                            return fallbackCustomer.fullName || fallbackCustomer.name || 
+                                   `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
+                                   fallbackCustomer.email || 'Cliente encontrado';
+                          }
+                          return 'Cliente não encontrado';
                         }
-                        return customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email || 'Cliente sem nome';
+                        
+                        if (!customer) {
+                          return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
+                        }
+                        
+                        return customer.fullName || customer.name || 
+                               `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
+                               customer.email || 'Cliente sem nome';
                       })()}
                     </span>
                   </div>
                 )}
                 {(() => {
-                  const customer = availableCustomers.find((c: any) => c.id === (ticket.caller_id || ticket.callerId));
+                  const callerId = ticket.caller_id || ticket.callerId;
+                  const customer = availableCustomers.find((c: any) => c.id === callerId) || 
+                                 (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+                  
                   if (customer && customer.email) {
                     return (
                       <div className="text-xs text-purple-600">
@@ -1891,17 +1917,17 @@ export default function TicketDetails() {
               <div className="space-y-2">
                 {isEditMode ? (
                   <Select 
-                    onValueChange={(value) => form.setValue('favorecidoId', value)} 
-                    value={ticket.favorecidoId || ''}
+                    onValueChange={(value) => form.setValue('beneficiaryId', value)} 
+                    value={ticket.beneficiary_id || ticket.beneficiaryId || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Selecione o favorecido" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {customers?.customers?.map((customer: any) => (
+                      {availableCustomers.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
+                          {customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1910,21 +1936,51 @@ export default function TicketDetails() {
                   <div className="text-sm text-indigo-900 font-medium cursor-pointer hover:text-indigo-700 transition-colors"
                        onClick={() => console.log('Open favorecido details')}>
                     <span className="underline decoration-dotted">
-                      {customers?.customers?.find((c: any) => c.id === ticket.favorecidoId)?.name || 
-                       ticket.favorecidoId === 'unspecified' || !ticket.favorecidoId ? 'Não especificado' : 'Favorecido não encontrado'}
+                      {(() => {
+                        // CORREÇÃO: Buscar favorecido pelos dados reais do ticket
+                        const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                        const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                          (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                        
+                        if (!beneficiary) {
+                          return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
+                        }
+                        
+                        return beneficiary.fullName || beneficiary.name || 
+                               `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+                               beneficiary.email || 'Favorecido sem nome';
+                      })()}
                     </span>
                   </div>
                 )}
-                {customers?.customers?.find((c: any) => c.id === ticket.favorecidoId) && (
-                  <div className="text-xs text-indigo-600">
-                    📧 {customers.customers.find((c: any) => c.id === ticket.favorecidoId)?.email || 'Email não informado'}
-                  </div>
-                )}
-                {customers?.customers?.find((c: any) => c.id === ticket.favorecidoId)?.phone && (
-                  <div className="text-xs text-indigo-600">
-                    📞 {customers.customers.find((c: any) => c.id === ticket.favorecidoId)?.phone}
-                  </div>
-                )}
+                {(() => {
+                  const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                  
+                  if (beneficiary && beneficiary.email) {
+                    return (
+                      <div className="text-xs text-indigo-600">
+                        📧 {beneficiary.email}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {(() => {
+                  const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                  
+                  if (beneficiary && beneficiary.phone) {
+                    return (
+                      <div className="text-xs text-indigo-600">
+                        📞 {beneficiary.phone}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
           </div>
@@ -2431,11 +2487,11 @@ export default function TicketDetails() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-600">RG:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.favorecido?.rg || 'Não informado') : '••••••••••'}</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">CPF/CNPJ:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.favorecido?.cpf || 'Não informado') : '•••••••••••••••'}</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
                         </div>
                       </div>
                     </div>
@@ -2443,18 +2499,33 @@ export default function TicketDetails() {
                 </Dialog>
               </div>
               <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Nome:</span>
-                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.favorecido?.name || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">E-mail:</span>
-                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.favorecido?.email || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Telefone:</span>
-                  <span className="text-gray-900 font-medium">{ticket.favorecido?.phone || 'N/A'}</span>
-                </div>
+                {(() => {
+                  const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                  
+                  const name = beneficiary ? (beneficiary.fullName || beneficiary.name || 
+                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
+                  const email = beneficiary?.email || 'Não informado';
+                  const phone = beneficiary?.phone || beneficiary?.mobilePhone || 'Não informado';
+                  
+                  return (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nome:</span>
+                        <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">E-mail:</span>
+                        <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Telefone:</span>
+                        <span className="text-gray-900 font-medium">{phone}</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -2485,11 +2556,11 @@ export default function TicketDetails() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-600">RG:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.customer?.rg || 'Não informado') : '••••••••••'}</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">CPF/CNPJ:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? (ticket.customer?.cpf || 'Não informado') : '•••••••••••••••'}</span>
+                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
                         </div>
                       </div>
                     </div>
@@ -2497,18 +2568,34 @@ export default function TicketDetails() {
                 </Dialog>
               </div>
               <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Nome:</span>
-                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.customer?.name || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">E-mail:</span>
-                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.customer?.email || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Endereço:</span>
-                  <span className="text-gray-900 font-medium truncate ml-2">{ticket.customer?.address || 'N/A'}, {ticket.customer?.addressNumber || ''}</span>
-                </div>
+                {(() => {
+                  const callerId = ticket.caller_id || ticket.callerId;
+                  const caller = availableCustomers.find((c: any) => c.id === callerId) || 
+                               (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+                  
+                  const name = caller ? (caller.fullName || caller.name || 
+                             `${caller.firstName || ''} ${caller.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
+                  const email = caller?.email || 'Não informado';
+                  const address = caller?.address || 'Não informado';
+                  const addressNumber = caller?.addressNumber || '';
+                  
+                  return (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nome:</span>
+                        <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">E-mail:</span>
+                        <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Endereço:</span>
+                        <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && `, ${addressNumber}`}</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
