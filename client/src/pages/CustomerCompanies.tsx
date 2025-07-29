@@ -141,10 +141,30 @@ export default function CustomerCompanies() {
     onSuccess: async (data, deletedId) => {
       console.log('Company deleted successfully:', { deletedId, response: data });
 
-      // Validate response
-      if (!data || (data as any).success === false) {
-        throw new Error((data as any)?.message || 'Falha na exclusão da empresa');
+      // Validate response structure and success
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid response structure:', data);
+        throw new Error('Resposta inválida do servidor');
       }
+
+      const response = data as any;
+      
+      if (response.success === false) {
+        console.error('Server reported deletion failure:', response);
+        throw new Error(response.message || 'Falha na exclusão da empresa');
+      }
+
+      if (!response.success) {
+        console.error('No success confirmation from server:', response);
+        throw new Error('Confirmação de exclusão não recebida do servidor');
+      }
+
+      // Log additional verification info
+      console.log('Deletion verified:', {
+        deletedCompany: response.deletedCompany,
+        remainingCount: response.remainingCount,
+        timestamp: response.timestamp
+      });
 
       // Optimistic update: remove from cache immediately
       queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
