@@ -103,31 +103,3 @@ export function DynamicBadge(props: DynamicBadgeProps) {
 }
 
 export default DynamicBadge;
-
-// DynamicSelect component - some function remains unchanged
-// Find the matching option
-  const matchingOption = options.find(option => {
-    if (fieldName === 'status') {
-      return option.field_name === 'status' && option.value === value;
-    }
-    if (fieldName === 'priority') {
-      return option.field_name === 'priority' && option.value === value;
-    }
-    if (fieldName === 'category') {
-      return option.field_name === 'category' && option.value === value;
-    }
-    if (fieldName === 'subcategory') {
-      return option.field_name === 'subcategory' && option.value === value;
-    }
-    return option.field_name === fieldName && option.value === value;
-  });
-
-  console.log(`🔍 DynamicBadge for ${fieldName} with value "${value}":`, {
-    totalOptions: options.length,
-    matchingOption: matchingOption ? {
-      value: matchingOption.value,
-      label: matchingOption.display_label,
-      color: matchingOption.color,
-      status_type: matchingOption.status_type
-    } : null
-  });
