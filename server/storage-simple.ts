@@ -442,7 +442,7 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      if (!ticketData.subject || !ticketData.customerId) {
+      if (!ticketData.subject || (!ticketData.customerId && !ticketData.caller_id)) {
         throw new Error('Ticket subject and customer ID are required');
       }
 
@@ -451,14 +451,15 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 
-        (number, subject, description, status, priority, customer_id, tenant_id, created_at, updated_at)
+        (number, subject, description, status, priority, customer_id, caller_id, tenant_id, created_at, updated_at)
         VALUES (
           ${ticketNumber},
           ${ticketData.subject},
           ${ticketData.description || null},
           ${ticketData.status || 'open'},
           ${ticketData.priority || 'medium'},
-          ${ticketData.customerId},
+          ${ticketData.customerId || ticketData.caller_id},
+          ${ticketData.caller_id},
           ${validatedTenantId},
           NOW(),
           NOW()
