@@ -780,6 +780,39 @@ router.get('/numbering/companies', jwtAuth, async (req: AuthenticatedRequest, re
 
 // GET /api/ticket-config/numbering
 router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const companyId = req.query.companyId as string;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (!companyId) {
+      return res.status(400).json({ message: 'Company ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const result = await db.execute(sql`
+      SELECT * FROM "${sql.raw(schemaName)}"."ticket_numbering_config" 
+      WHERE tenant_id = ${tenantId} 
+      AND company_id = ${companyId}
+      LIMIT 1
+    `);
+
+    res.json({
+      success: true,
+      data: result.rows[0] || null
+    });
+  } catch (error) {
+    console.error('Error fetching numbering config:', error);
+    res.status(500).json({
+      error: 'Failed to fetch numbering config',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 </old_str>
   try {
     const tenantId = req.user?.tenantId;
