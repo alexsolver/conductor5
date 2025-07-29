@@ -302,7 +302,7 @@ const TicketConfiguration: React.FC = () => {
   });
 
   const { data: fieldOptions = [] } = useQuery({
-    queryKey: ['/api/ticket-config/field-options', selectedCompany],
+    queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}`);
@@ -397,9 +397,9 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: async () => {
-      // Invalidate and refetch field options
-      await queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options', selectedCompany] });
-      await queryClient.refetchQueries({ queryKey: ['/api/ticket-config/field-options', selectedCompany] });
+      // Invalidate and refetch field options with correct query key
+      await queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      await queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] });
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ title: "Opção de campo criada com sucesso" });
