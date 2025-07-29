@@ -107,6 +107,45 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
 
     const ticket = await storageSimple.createTicket(ticketData);
 
+    // Create history entry for ticket creation
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+
+      // Get user name
+      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+      const userResult = await pool.query(userQuery, [req.user.id]);
+      const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+      `, [
+        req.user.tenantId,
+        ticket.id,
+        'ticket_created',
+        `Ticket criado: ${ticketData.subject}`,
+        req.user.id,
+        userName,
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          subject: ticketData.subject,
+          priority: ticketData.priority,
+          category: ticketData.category,
+          status: ticketData.status || 'open'
+        })
+      ]);
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
     return sendSuccess(res, ticket, "Ticket created successfully", 201);
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -155,15 +194,41 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    // Log activity (disabled temporarily - method not implemented)
-    // await storageSimple.createActivityLog({
-    //   tenantId: req.user.tenantId,
-    //   userId: req.user.id,
-    //   entityType: 'ticket',
-    //   entityId: ticketId,
-    //   action: 'updated',
-    //   details: { changes: updates },
-    // });
+    // Create history entry for ticket update
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+
+      // Get user name
+      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+      const userResult = await pool.query(userQuery, [req.user.id]);
+      const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+      `, [
+        req.user.tenantId,
+        ticketId,
+        'ticket_updated',
+        `Ticket atualizado`,
+        req.user.id,
+        userName,
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          changes: backendUpdates
+        })
+      ]);
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
 
     return sendSuccess(res, updatedTicket, "Ticket updated successfully");
   } catch (error) {
@@ -229,7 +294,42 @@ ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res
       return sendError(res, "Ticket not found", "Ticket not found", 404);
     }
 
-    // TODO: Implement activity logging when createActivityLog method is available
+    // Create history entry for ticket assignment
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+
+      // Get user name
+      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+      const userResult = await pool.query(userQuery, [req.user.id]);
+      const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+      `, [
+        req.user.tenantId,
+        ticketId,
+        'ticket_assigned',
+        `Ticket atribuído ao agente`,
+        req.user.id,
+        userName,
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          assigned_to_id: assignedToId,
+          status_changed_to: 'in_progress'
+        })
+      ]);
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
 
     return sendSuccess(res, updatedTicket, "Ticket assigned successfully");
   } catch (error) {
@@ -510,10 +610,15 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
 
     // Create history entry for the internal action
     try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
       `, [
         tenantId,
         id,
@@ -521,6 +626,9 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
         `Ação interna adicionada: ${actionType}`,
         req.user.id,
         userName,
+        ipAddress,
+        userAgent,
+        sessionId,
         JSON.stringify({
           action_type: actionType,
           work_log: workLog || '',
