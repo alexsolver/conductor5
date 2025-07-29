@@ -1843,37 +1843,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // ======================================== 
-  // TICKET CONFIGURATION ROUTES - CATEGORIES, STATUSES, PRIORITIES
+  // TICKET CONFIGURATION ROUTES - HIERARCHICAL SYSTEM
   // ========================================
 
-  // Categories endpoints
-  app.get('/api/ticket-config/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
-      // Use schemaManager for tenant operations
-      const { pool } = await import('./db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."ticket_field_options" 
-         WHERE tenant_id = $1 AND fieldname = 'category' AND is_active = true
-         ORDER BY sort_order`,
-        [tenantId]
-      );
-
-      const categories = result.rows.map(row => ({
-        id: row.id,
-        name: row.display_label,
-        color: row.color_hex,
-        active: row.is_active,
-        order: row.sort_order
-      }));
-
-      res.json(categories);
+  // Import and use ticket configuration routes
+  const ticketConfigRoutes = await import('./routes/ticketConfigRoutes');
+  app.use('/api/ticket-config', ticketConfigRoutes.default);
     } catch (error) {
       console.error('Error fetching categories:', error);
       res.status(500).json({ message: 'Failed to fetch categories' });
