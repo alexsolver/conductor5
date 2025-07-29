@@ -366,9 +366,26 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
 
     const companyId = req.params.id;
 
+    console.log('Deleting company:', { companyId, tenantId: req.user.tenantId });
+
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    // Check if company exists first
+    const companyCheck = await pool.query(
+      `SELECT id, name FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (companyCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Company not found' 
+      });
+    }
+
+    const companyName = companyCheck.rows[0].name;
 
     // Check if company has associated customers
     const membershipsCheck = await pool.query(
@@ -384,50 +401,62 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
       });
     }
 
-    // Check if company exists
-    const companyCheck = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
-      [companyId, req.user.tenantId]
-    );
+    // Start transaction for safe deletion
+    await pool.query('BEGIN');
 
-    if (companyCheck.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Company not found' 
+    try {
+      // Delete any orphaned memberships first (just in case)
+      await pool.query(
+        `DELETE FROM "${schemaName}"."customer_company_memberships" 
+         WHERE company_id = $1 AND tenant_id = $2`,
+        [companyId, req.user.tenantId]
+      );
+
+      // Delete the company
+      const result = await pool.query(
+        `DELETE FROM "${schemaName}"."customer_companies" 
+         WHERE id = $1 AND tenant_id = $2`,
+        [companyId, req.user.tenantId]
+      );
+
+      await pool.query('COMMIT');
+
+      console.log('Company deletion result:', { 
+        companyId, 
+        rowCount: result.rowCount,
+        companyName 
       });
-    }
 
-    // Delete the company
-    const result = await pool.query(
-      `DELETE FROM "${schemaName}"."customer_companies" 
-       WHERE id = $1 AND tenant_id = $2`,
-      [companyId, req.user.tenantId]
-    );
+      if (result.rowCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Company not found or already deleted'
+        });
+      }
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Company not found or already deleted'
+      // Set cache headers to prevent caching
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       });
+
+      res.status(200).json({
+        success: true,
+        message: 'Company deleted successfully',
+        deletedId: companyId,
+        deletedName: companyName
+      });
+    } catch (transactionError) {
+      await pool.query('ROLLBACK');
+      throw transactionError;
     }
-
-    // Set cache headers to prevent caching
-    res.set({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'Company deleted successfully',
-      deletedId: companyId
-    });
   } catch (error) {
     console.error('Error deleting customer company:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Failed to delete customer company' 
+      message: 'Failed to delete customer company',
+      error: error.message
     });
   }
 });

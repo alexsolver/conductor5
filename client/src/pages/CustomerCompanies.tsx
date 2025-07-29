@@ -139,19 +139,17 @@ export default function CustomerCompanies() {
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
     onSuccess: async (data, deletedId) => {
-      // Immediately update local state by filtering out the deleted company
-      queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
-        if (Array.isArray(oldData)) {
-          return oldData.filter((company: CustomerCompany) => company.id !== deletedId);
-        }
-        if (oldData?.data && Array.isArray(oldData.data)) {
-          return {
-            ...oldData,
-            data: oldData.data.filter((company: CustomerCompany) => company.id !== deletedId)
-          };
-        }
-        return oldData;
-      });
+      // Force invalidate all related queries
+      await queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      
+      // Remove from cache immediately
+      queryClient.removeQueries({ queryKey: ['/api/customer-companies'] });
+      
+      // Wait a bit for backend to process, then refetch
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ queryKey: ['/api/customer-companies'] });
+      }, 100);
 
       toast({
         title: "Sucesso",
