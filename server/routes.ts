@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { jwtAuth } from './middleware/jwtAuth';
 
 // Import route modules
-import authRoutes from './modules/auth/routes';
+import { authRouter as authRoutes } from './modules/auth/routes';
 import customersRoutes from './modules/customers/routes';
 import ticketsRoutes from './modules/tickets/routes';
 import dashboardRoutes from './modules/dashboard/routes';
