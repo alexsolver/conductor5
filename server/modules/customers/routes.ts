@@ -247,7 +247,9 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
     const result = await pool.query(
-      `SELECT * FROM "${schemaName}"."customer_companies" WHERE tenant_id = $1 ORDER BY name`,
+      `SELECT * FROM "${schemaName}"."customer_companies" 
+       WHERE tenant_id = $1 AND (deleted_at IS NULL OR deleted_at = '') 
+       ORDER BY name`,
       [req.user.tenantId]
     );
 
@@ -397,10 +399,21 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
       });
     }
 
-    // Delete the company
+    // Add deleted_at column if it doesn't exist
+    try {
+      await pool.query(
+        `ALTER TABLE "${schemaName}"."customer_companies" 
+         ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`
+      );
+    } catch (error) {
+      // Column might already exist, continue
+    }
+
+    // Soft delete the company
     const result = await pool.query(
-      `DELETE FROM "${schemaName}"."customer_companies" 
-       WHERE id = $1 AND tenant_id = $2`,
+      `UPDATE "${schemaName}"."customer_companies" 
+       SET deleted_at = NOW(), updated_at = NOW()
+       WHERE id = $1 AND tenant_id = $2 AND (deleted_at IS NULL OR deleted_at = '')`,
       [companyId, req.user.tenantId]
     );
 
@@ -411,17 +424,20 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
       });
     }
 
-    // Set cache headers to prevent caching
+    // Set comprehensive cache headers to prevent caching
     res.set({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
       'Pragma': 'no-cache',
-      'Expires': '0'
+      'Expires': '0',
+      'Last-Modified': new Date().toUTCString(),
+      'ETag': `"${Date.now()}"`
     });
 
     res.status(200).json({
       success: true,
       message: 'Company deleted successfully',
-      deletedId: companyId
+      deletedId: companyId,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error deleting customer company:', error);

@@ -78,8 +78,10 @@ export default function CustomerCompanies() {
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
     queryKey: ['/api/customer-companies'],
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Always fresh data
+    gcTime: 0, // Don't keep in cache
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Handle different response formats from the API
@@ -139,7 +141,11 @@ export default function CustomerCompanies() {
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
     onSuccess: async (data, deletedId) => {
-      // Immediately update local state by filtering out the deleted company
+      // Force refresh by invalidating all related queries
+      await queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      
+      // Also remove from cache immediately
       queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
         if (Array.isArray(oldData)) {
           return oldData.filter((company: CustomerCompany) => company.id !== deletedId);
@@ -152,6 +158,11 @@ export default function CustomerCompanies() {
         }
         return oldData;
       });
+
+      // Force a fresh fetch
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/customer-companies'] });
+      }, 100);
 
       toast({
         title: "Sucesso",
