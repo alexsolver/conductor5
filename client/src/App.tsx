@@ -121,7 +121,7 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
-        <Route path="/clientes" component={Customers} />
+        <Route path="/customers" component={Customers} />
         <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
         <Route path="/customer-companies" component={CustomerCompanies} />

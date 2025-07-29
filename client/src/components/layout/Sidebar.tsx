@@ -71,7 +71,7 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "Clientes", href: "/clientes", icon: Users },
+  { name: "Clientes", href: "/customers", icon: Users },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   {
     name: "Controle de Jornadas",
@@ -155,7 +155,7 @@ const adminNavigation = [
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
       { name: "Campos Customizados", href: "/custom-fields-admin", icon: Wrench },
-      { name: "Clientes", href: "/clientes", icon: Users },
+      { name: "Clientes", href: "/customers", icon: Users },
       { name: "Gestão de Favorecidos", href: "/tenant-admin/favorecidos", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
 
