@@ -1,66 +1,60 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Plus, 
-  Search, 
-  Package, 
-  Wrench, 
-  Filter,
-  Edit,
-  Trash2,
-  Eye,
-  Link2,
-  Users,
-  Building2,
-  Upload,
-  Paperclip,
-  PlusCircle
-} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
+import { 
+  Search, 
+  Filter, 
+  Plus, 
+  Package, 
+  Wrench, 
+  Edit, 
+  Eye, 
+  Trash2,
+  Loader2
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 // Types
 interface Item {
   id: string;
-  tenantId: string;
-  active: boolean;
-  type: 'material' | 'service';
   name: string;
+  type: 'material' | 'service';
   integrationCode?: string;
   description?: string;
   measurementUnit: string;
-  maintenancePlan?: string;
   group?: string;
-  defaultChecklist?: any;
+  maintenancePlan?: string;
+  defaultChecklist?: string;
   status: 'active' | 'under_review' | 'discontinued';
+  active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-// Schema de validação
 const itemSchema = z.object({
-  active: z.boolean().default(true),
-  type: z.enum(['material', 'service']),
   name: z.string().min(1, "Nome é obrigatório"),
+  type: z.enum(['material', 'service'], {
+    required_error: "Tipo é obrigatório",
+  }),
   integrationCode: z.string().optional(),
   description: z.string().optional(),
-  measurementUnit: z.string().default('UN'),
-  maintenancePlan: z.string().optional(),
+  measurementUnit: z.string().min(1, "Unidade de medida é obrigatória"),
   group: z.string().optional(),
+  maintenancePlan: z.string().optional(),
   defaultChecklist: z.string().optional(),
+  active: z.boolean().default(true),
 });
 
 const measurementUnits = [
@@ -90,15 +84,15 @@ export default function ItemCatalog() {
   const form = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
-      active: true,
-      type: 'material',
       name: '',
+      type: 'material',
       integrationCode: '',
       description: '',
       measurementUnit: 'UN',
-      maintenancePlan: '',
       group: '',
+      maintenancePlan: '',
       defaultChecklist: '',
+      active: true,
     }
   });
 
@@ -123,7 +117,7 @@ export default function ItemCatalog() {
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    
+
     return item.type === 'material' && matchesSearch && matchesStatus;
   });
 
@@ -132,7 +126,7 @@ export default function ItemCatalog() {
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    
+
     return item.type === 'service' && matchesSearch && matchesStatus;
   });
 
@@ -143,7 +137,7 @@ export default function ItemCatalog() {
         title: "Item salvo com sucesso",
         description: `${data.name} foi ${selectedItem ? 'atualizado' : 'criado'} com sucesso.`,
       });
-      
+
       setIsCreateModalOpen(false);
       setIsEditModalOpen(false);
       form.reset();
@@ -165,7 +159,7 @@ export default function ItemCatalog() {
         }`}>
           {item.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
         </div>
-        
+
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
             <h3 className="font-medium">{item.name}</h3>
@@ -176,7 +170,7 @@ export default function ItemCatalog() {
               {item.type === 'material' ? 'Material' : 'Serviço'}
             </Badge>
           </div>
-          
+
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             {item.integrationCode && (
               <span>Código: {item.integrationCode}</span>
@@ -186,7 +180,7 @@ export default function ItemCatalog() {
             )}
             <span>Unidade: {item.measurementUnit}</span>
           </div>
-          
+
           {item.description && (
             <p className="text-sm text-muted-foreground max-w-md truncate">
               {item.description}
@@ -194,7 +188,7 @@ export default function ItemCatalog() {
           )}
         </div>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <Button 
           variant="outline" 
@@ -207,7 +201,7 @@ export default function ItemCatalog() {
         >
           <Edit className="h-4 w-4" />
         </Button>
-        
+
         <Button variant="outline" size="sm">
           <Eye className="h-4 w-4" />
         </Button>
@@ -239,8 +233,152 @@ export default function ItemCatalog() {
                 Cadastre um novo material ou serviço no sistema
               </DialogDescription>
             </DialogHeader>
-            {/* TODO: Implementar formulário de criação */}
-            <p>Formulário de criação em desenvolvimento...</p>
+           <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="material">Material</SelectItem>
+                          <SelectItem value="service">Serviço</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do item" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="integrationCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Código de Integração</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Código de Integração" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Descrição do item" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="measurementUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unidade de Medida</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a unidade" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {measurementUnits.map((unit) => (
+                            <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="group"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Grupo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maintenancePlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plano de Manutenção</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Plano de Manutenção" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="defaultChecklist"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Checklist Padrão</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Checklist Padrão" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel>Ativo</FormLabel>
+                        <FormDescription>
+                          Define se o item está ativo ou inativo.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit">Salvar</Button>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
@@ -256,7 +394,7 @@ export default function ItemCatalog() {
             <div className="text-2xl font-bold">{itemStats.total}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Materiais</CardTitle>
@@ -266,7 +404,7 @@ export default function ItemCatalog() {
             <div className="text-2xl font-bold">{itemStats.materials}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Serviços</CardTitle>
@@ -276,7 +414,7 @@ export default function ItemCatalog() {
             <div className="text-2xl font-bold">{itemStats.services}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ativos</CardTitle>
@@ -305,7 +443,7 @@ export default function ItemCatalog() {
                 />
               </div>
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filtrar por status" />
