@@ -111,7 +111,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
     const ticketData = insertTicketSchema.parse({
       ...req.body,
       tenantId: req.user.tenantId,
-      customerId: req.body.caller_id, // Map caller_id to customerId for storage compatibility
+      customerId: req.body.customerId || req.body.caller_id, // Map caller_id to customerId for storage compatibility
       caller_id: req.body.caller_id, // Keep caller_id for backend compatibility
     });
 
