@@ -106,7 +106,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       caller_id: req.body.customerId, // Map customerId to caller_id for backend compatibility
     });
 
-    const ticket = await storageSimple.createTicket(ticketData);
+    const ticket = await storageSimple.createTicket(req.user.tenantId, ticketData);
 
     // Create history entry for ticket creation
     try {
