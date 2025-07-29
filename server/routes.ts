@@ -529,6 +529,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create customer - temporary implementation
+  app.post('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { firstName, lastName, email, phone, company, address, city, state, zipCode } = req.body;
+
+      if (!firstName || !lastName || !email) {
+        return res.status(400).json({
+          success: false,
+          message: 'First name, last name, and email are required'
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      console.log(`[CREATE-CUSTOMER] Creating customer: ${firstName} ${lastName} (${email})`);
+
+      // Check if customer already exists
+      const existingCustomer = await pool.query(
+        `SELECT id FROM "${schemaName}"."customers" WHERE email = $1 AND tenant_id = $2`,
+        [email, req.user.tenantId]
+      );
+
+      if (existingCustomer.rows.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'Customer with this email already exists'
+        });
+      }
+
+      // Insert new customer
+      const result = await pool.query(
+        `INSERT INTO "${schemaName}"."customers" 
+         (tenant_id, first_name, last_name, email, phone, company, address, city, state, zip_code, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         RETURNING *`,
+        [req.user.tenantId, firstName, lastName, email, phone, company, address, city, state, zipCode]
+      );
+
+      const customer = result.rows[0];
+
+      console.log(`[CREATE-CUSTOMER] Customer created successfully with ID: ${customer.id}`);
+
+      res.status(201).json({
+        success: true,
+        message: 'Customer created successfully',
+        data: {
+          id: customer.id,
+          firstName: customer.first_name,
+          lastName: customer.last_name,
+          email: customer.email,
+          phone: customer.phone,
+          company: customer.company,
+          address: customer.address,
+          city: customer.city,
+          state: customer.state,
+          zipCode: customer.zip_code,
+          createdAt: customer.created_at,
+          updatedAt: customer.updated_at
+        }
+      });
+
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create customer'
+      });
+    }
+  });
+
   // Locations routes temporarily removed due to syntax issues
 
   // Import and mount localization routes
