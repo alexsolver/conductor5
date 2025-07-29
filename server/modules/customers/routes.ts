@@ -11,29 +11,25 @@ export const customersRouter = Router();
 // Get all customers
 customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   const requestId = Math.random().toString(36).substr(2, 9);
-  console.log(`🔍 [${requestId}] Customers API request started`, {
-    method: req.method,
-    url: req.url,
-    userAgent: req.get('User-Agent'),
-    contentType: req.get('Content-Type'),
-    accept: req.get('Accept'),
-    tenantId: req.user?.tenantId,
-    userId: req.user?.id,
-    timestamp: new Date().toISOString()
-  });
-
-  // Always set JSON headers first
-  res.setHeader('Content-Type', 'application/json');
   
-  // Validate query parameters first (outside try block to be accessible in catch)
-  const { limit, offset, search } = req.query;
-  const parsedLimit = limit ? Math.max(1, Math.min(100, parseInt(limit as string) || 50)) : 50;
-  const parsedOffset = offset ? Math.max(0, parseInt(offset as string) || 0) : 0;
-  const searchTerm = search as string;
-
   try {
+    // Always set JSON headers FIRST
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache');
+    
+    console.log(`🔍 [${requestId}] Customers API request started`, {
+      method: req.method,
+      url: req.url,
+      userAgent: req.get('User-Agent'),
+      contentType: req.get('Content-Type'),
+      accept: req.get('Accept'),
+      tenantId: req.user?.tenantId,
+      userId: req.user?.id,
+      timestamp: new Date().toISOString()
+    });
+
     if (!req.user?.tenantId) {
-      console.log('❌ Missing tenant ID for customer request');
+      console.log(`❌ [${requestId}] Missing tenant ID for customer request`);
       return res.status(400).json({ 
         success: false,
         message: "User not associated with a tenant",
@@ -42,125 +38,39 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Direct database query for better reliability
-    const { schemaManager } = await import('../../db');
-    const pool = schemaManager.getPool();
-    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    // Validate query parameters
+    const { limit, offset, search } = req.query;
+    const parsedLimit = limit ? Math.max(1, Math.min(100, parseInt(limit as string) || 50)) : 50;
+    const parsedOffset = offset ? Math.max(0, parseInt(offset as string) || 0) : 0;
+    const searchTerm = search as string;
 
-    let query = `
-      SELECT 
-        id,
-        tenant_id,
-        customer_type,
-        email,
-        first_name,
-        last_name,
-        company_name,
-        cpf,
-        cnpj,
-        phone,
-        mobile_phone,
-        contact_person,
-        responsible,
-        position,
-        supervisor,
-        coordinator,
-        manager,
-        description,
-        internal_code,
-        status,
-        created_at,
-        updated_at
-      FROM "${schemaName}".customers
-      WHERE tenant_id = $1
-    `;
-
-    const queryParams: any[] = [req.user.tenantId];
-    let paramIndex = 2;
-
-    // Add search functionality
-    if (searchTerm && searchTerm.trim()) {
-      query += ` AND (
-        LOWER(first_name) LIKE LOWER($${paramIndex}) OR
-        LOWER(last_name) LIKE LOWER($${paramIndex}) OR
-        LOWER(company_name) LIKE LOWER($${paramIndex}) OR
-        LOWER(email) LIKE LOWER($${paramIndex}) OR
-        LOWER(contact_person) LIKE LOWER($${paramIndex})
-      )`;
-      queryParams.push(`%${searchTerm.trim()}%`);
-      paramIndex++;
-    }
-
-    query += ` ORDER BY 
-      CASE 
-        WHEN customer_type = 'PF' THEN COALESCE(first_name, email)
-        ELSE COALESCE(company_name, email)
-      END
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-
-    queryParams.push(parsedLimit, parsedOffset);
-
-    const result = await pool.query(query, queryParams);
-
-    const customers = result.rows.map(row => ({
-      id: row.id,
-      tenantId: row.tenant_id,
-      customerType: row.customer_type,
-      email: row.email,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      companyName: row.company_name,
-      company: row.company_name, // Add company field for compatibility
-      cpf: row.cpf,
-      cnpj: row.cnpj,
-      phone: row.phone,
-      mobilePhone: row.mobile_phone,
-      contactPerson: row.contact_person,
-      responsible: row.responsible,
-      position: row.position,
-      supervisor: row.supervisor,
-      coordinator: row.coordinator,
-      manager: row.manager,
-      description: row.description,
-      internalCode: row.internal_code,
-      status: row.status || 'Ativo',
-      isActive: (row.status || 'Ativo') === 'Ativo', // Add isActive boolean field
-      role: row.position, // Add role field for compatibility
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      // Computed fields for compatibility
-      name: row.customer_type === 'PJ' 
-        ? row.company_name || row.email
-        : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email,
-      fullName: row.customer_type === 'PJ' 
-        ? row.company_name || row.email
-        : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email
-    }));
-
-    console.log(`✅ Found ${customers.length} customers for tenant ${req.user.tenantId}`);
+  // Use storage-simple for better reliability
+    const { storageSimple } = await import('../../storage-simple');
+    
+    console.log(`📊 [${requestId}] Fetching customers for tenant: ${req.user.tenantId}`);
+    
+    // Get customers using the existing storage method
+    const customers = await storageSimple.getCustomers(req.user.tenantId);
+    
+    console.log(`✅ [${requestId}] Found ${customers.length} customers for tenant ${req.user.tenantId}`);
 
     return res.json({ 
       success: true,
-      customers,
-      count: customers.length,
-      total: customers.length
+      customers: customers || [],
+      count: customers ? customers.length : 0,
+      total: customers ? customers.length : 0
     });
-  } catch (error) {
-    console.error('❌ Critical error in customers API:', {
+
+    
+  } catch (error: any) {
+    console.error(`❌ [${requestId}] Critical error in customers API:`, {
       error: error?.message || 'Unknown error',
       stack: error?.stack?.split('\n').slice(0, 3).join('\n'),
       tenantId: req.user?.tenantId,
       timestamp: new Date().toISOString()
     });
 
-    const { logError } = await import('../../utils/logger');
-    logError("Error fetching customers", error, { 
-      tenantId: req.user?.tenantId,
-      options: { limit: parsedLimit, offset: parsedOffset, search: searchTerm }
-    });
-
-    // Force JSON response regardless of error type
+    // Always ensure JSON response
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'application/json');
       return res.status(500).json({ 
