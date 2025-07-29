@@ -38,6 +38,7 @@ const ticketSchema = z.object({
   state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
 
   // Assignment Fields - Enhanced for flexible person referencing
+  companyId: z.string().min(1, "Empresa é obrigatória"),
   callerId: z.string().min(1, "Solicitante é obrigatório"),
   callerType: z.enum(["user", "customer"]).default("customer"),
   beneficiaryId: z.string().optional(), // Optional - defaults to callerId
@@ -209,6 +210,8 @@ export default function TicketsTable() {
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
 
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
@@ -283,6 +286,16 @@ export default function TicketsTable() {
     retry: 3,
   });
 
+  // Fetch companies for dropdown
+  const { data: companiesData } = useQuery({
+    queryKey: ["/api/companies"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/companies");
+      return response.json();
+    },
+    retry: 3,
+  });
+
   // Fetch ticket views from backend
   const { data: ticketViewsData, refetch: refetchViews } = useQuery({
     queryKey: ["/api/ticket-views"],
@@ -294,6 +307,7 @@ export default function TicketsTable() {
   const pagination = ticketsData?.data?.pagination || { total: 0, totalPages: 0 };
   // Legacy customers array removed
   const users = usersData?.users || [];
+  const companies = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []);
   const ticketViews = ticketViewsData?.data || [];
 
   // Obter visualização ativa
@@ -667,6 +681,7 @@ export default function TicketsTable() {
       impact: "medium",
       urgency: "medium",
       state: "new",
+      companyId: "",
       callerId: "",
       callerType: "customer",
       beneficiaryId: "",
@@ -1740,16 +1755,56 @@ export default function TicketsTable() {
 
                     <FormField
                       control={form.control}
+                      name="companyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Empresa *</FormLabel>
+                          <FormControl>
+                            <Select 
+                              value={field.value} 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedCompanyId(value);
+                                // Reset customer selection when company changes
+                                form.setValue("callerId", "");
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione uma empresa" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unspecified">Não especificado</SelectItem>
+                                {companies.length === 0 ? (
+                                  <SelectItem value="no-companies" disabled>
+                                    Nenhuma empresa encontrada
+                                  </SelectItem>
+                                ) : (
+                                  companies.map((company: any) => (
+                                    <SelectItem key={company.id} value={company.id}>
+                                      {company.name || company.company_name || company.displayName}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="callerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Solicitante *</FormLabel>
+                          <FormLabel>Cliente *</FormLabel>
                           <FormControl>
                             <PersonSelector
                               value={field.value}
                               onChange={field.onChange}
                               onTypeChange={(type) => form.setValue('callerType', type)}
-                              placeholder="Selecione o solicitante"
+                              placeholder="Selecione o cliente"
                             />
                           </FormControl>
                           <FormMessage />
