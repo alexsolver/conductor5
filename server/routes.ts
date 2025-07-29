@@ -23,7 +23,7 @@ import ticketHistoryRoutes from './modules/ticket-history/routes';
 // Import individual route files
 import templateRoutes from './routes/templateRoutes';
 import contractRoutes from './routes/contractRoutes';
-import timecardRoutes from './routes/timecardRoutes';
+import { timecardRoutes } from './routes/timecardRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
 import userProfileRoutes from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
