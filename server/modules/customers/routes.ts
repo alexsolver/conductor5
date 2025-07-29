@@ -312,6 +312,114 @@ customersRouter.post('/companies', jwtAuth, async (req: AuthenticatedRequest, re
   }
 });
 
+// PUT /api/customers/companies/:id - Update customer company
+customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    const companyId = req.params.id;
+    const { name, displayName, description, size, subscriptionTier, status } = req.body;
+
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    const result = await pool.query(
+      `UPDATE "${schemaName}"."customer_companies" 
+       SET name = $1, display_name = $2, description = $3, size = $4, 
+           subscription_tier = $5, status = $6, updated_at = NOW()
+       WHERE id = $7 AND tenant_id = $8
+       RETURNING *`,
+      [name, displayName, description, size, subscriptionTier, status, companyId, req.user.tenantId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    const company = result.rows[0];
+    res.json({
+      success: true,
+      data: {
+        id: company.id,
+        name: company.name,
+        displayName: company.display_name,
+        description: company.description,
+        size: company.size,
+        subscriptionTier: company.subscription_tier,
+        status: company.status,
+        createdAt: company.created_at,
+        updatedAt: company.updated_at
+      }
+    });
+  } catch (error) {
+    console.error('Error updating customer company:', error);
+    res.status(500).json({ message: 'Failed to update customer company' });
+  }
+});
+
+// DELETE /api/customers/companies/:id - Delete customer company
+customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    const companyId = req.params.id;
+
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    // Check if company has associated customers
+    const membershipsCheck = await pool.query(
+      `SELECT COUNT(*) as count FROM "${schemaName}"."customer_company_memberships" 
+       WHERE company_id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (Number(membershipsCheck.rows[0]?.count) > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir empresa que possui clientes associados'
+      });
+    }
+
+    // Check if company exists
+    const companyCheck = await pool.query(
+      `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (companyCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Company not found' 
+      });
+    }
+
+    // Delete the company
+    const result = await pool.query(
+      `DELETE FROM "${schemaName}"."customer_companies" 
+       WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Company deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting customer company:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to delete customer company' 
+    });
+  }
+});
+
 // GET /api/customers/:customerId/companies - Get companies for a customer
 customersRouter.get('/:customerId/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {

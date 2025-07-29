@@ -127,6 +127,25 @@ export default function CustomerCompanies() {
     }
   });
 
+  // Mutation para deletar company
+  const deleteCompanyMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+      toast({
+        title: "Sucesso",
+        description: "Empresa excluída com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir empresa",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Forms
   const createForm = useForm({
     resolver: zodResolver(companySchema),
@@ -184,6 +203,12 @@ export default function CustomerCompanies() {
   const handleUpdateCompany = (data: any) => {
     if (selectedCompany) {
       updateCompanyMutation.mutate({ id: selectedCompany.id, data });
+    }
+  };
+
+  const handleDeleteCompany = (company: CustomerCompany) => {
+    if (window.confirm(`Tem certeza que deseja excluir a empresa "${company.displayName || company.name}"?`)) {
+      deleteCompanyMutation.mutate(company.id);
     }
   };
 
@@ -580,11 +605,12 @@ export default function CustomerCompanies() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {}}
+                      onClick={() => handleDeleteCompany(company)}
+                      disabled={deleteCompanyMutation.isPending}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
-                      Excluir
+                      {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
                     </Button>
                   </div>
               </div>
