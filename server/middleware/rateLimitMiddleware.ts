@@ -43,10 +43,10 @@ export class RateLimitService {
 
   async recordAttempt(ip: string, email?: string, success: boolean = false): Promise<void> {
     this.cleanupExpiredAttempts();
-
+    
     const key = this.getKey(ip, email);
     const now = new Date();
-
+    
     if (success) {
       // Reset attempts on successful login
       attemptStore.delete(key);
@@ -54,7 +54,7 @@ export class RateLimitService {
     }
 
     let attempt = attemptStore.get(key);
-
+    
     if (!attempt) {
       attempt = {
         ip,
@@ -80,28 +80,28 @@ export class RateLimitService {
 
   async isBlocked(ip: string, email?: string): Promise<boolean> {
     this.cleanupExpiredAttempts();
-
+    
     const key = this.getKey(ip, email);
     const attempt = attemptStore.get(key);
-
+    
     if (!attempt) return false;
-
+    
     return attempt.blockedUntil ? new Date() < attempt.blockedUntil : false;
   }
 
   async getRemainingAttempts(ip: string, email?: string): Promise<number> {
     const key = this.getKey(ip, email);
     const attempt = attemptStore.get(key);
-
+    
     if (!attempt) return this.config.maxAttempts;
-
+    
     return Math.max(0, this.config.maxAttempts - attempt.attempts);
   }
 
   async getBlockedUntil(ip: string, email?: string): Promise<Date | null> {
     const key = this.getKey(ip, email);
     const attempt = attemptStore.get(key);
-
+    
     return attempt?.blockedUntil || null;
   }
 
@@ -134,14 +134,14 @@ export const rateLimitService = new RateLimitService(defaultConfig);
 // Middleware factory
 export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
   const service = config ? new RateLimitService({ ...defaultConfig, ...config }) : rateLimitService;
-
+  
   return async (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
     const email = req.body?.email || req.body?.username;
-
+    
     try {
       const isBlocked = await service.isBlocked(ip, email);
-
+      
       if (isBlocked) {
         const blockedUntil = await service.getBlockedUntil(ip, email);
         return res.status(429).json({
@@ -151,13 +151,13 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
           retryAfter: blockedUntil ? Math.ceil((blockedUntil.getTime() - Date.now()) / 1000) : undefined
         });
       }
-
+      
       // Attach rate limit info to request
       req.rateLimitInfo = {
         remainingAttempts: await service.getRemainingAttempts(ip, email),
         service
       };
-
+      
       next();
     } catch (error) {
       console.error('Rate limit middleware error:', error);
@@ -169,32 +169,21 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
 // Login attempt middleware
 export function recordLoginAttempt(req: Request, res: Response, next: NextFunction) {
   const originalSend = res.send;
-
+  
   res.send = function(data: any) {
     const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
     const email = req.body?.email || req.body?.username;
-
-// Different limits for different endpoints
-  if (req.path.startsWith('/api/auth/')) {
-    // Stricter limits for auth endpoints
-    windowMs = 15 * 60 * 1000; // 15 minutes
-    max = 5; // limit each IP to 5 requests per windowMs
-  } else if (req.path.startsWith('/api/tickets') || req.path.startsWith('/api/customers') || req.path.startsWith('/api/customer-companies')) {
-    // Higher limits for data endpoints
-    windowMs = 1 * 60 * 1000; // 1 minute
-    max = 200; // limit each IP to 200 requests per windowMs
-  }
-
+    
     // Check if login was successful based on status code
     const success = res.statusCode >= 200 && res.statusCode < 300;
-
+    
     if (req.rateLimitInfo?.service) {
       req.rateLimitInfo.service.recordAttempt(ip, email, success);
     }
-
+    
     return originalSend.call(this, data);
   };
-
+  
   next();
 }
 

@@ -705,10 +705,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Removed: Multi-tenant routes - functionality eliminated from system
 
-  // Technical Skills
+  // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
 
-  // Advanced ticket configuration routes
+// Advanced ticket configuration routes
   // Custom Fields routes - Universal metadata and dynamic fields system
   app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
@@ -1555,7 +1555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         mostViewed: [
           { id: '3', title: 'Como Redefinir Senha?', view_count: 256, average_rating: '4.8' },
-          { id: '1', title: 'Como Crio Criar um Ticket', view_count: 124, average_rating: '4.5' },
+          { id: '1', title: 'Como Criar um Ticket', view_count: 124, average_rating: '4.5' },
           { id: '2', title: 'Configurações de Notificação', view_count: 89, average_rating: '4.2' },
           { id: '4', title: 'Problemas de Conexão', view_count: 78, average_rating: '4.0' }
         ],
@@ -2808,82 +2808,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Preferências do usuário
   app.get('/api/ticket-views/user/preferences', jwtAuth, ticketViewsController.getUserPreferences.bind(ticketViewsController));
   app.put('/api/ticket-views/user/settings', jwtAuth, ticketViewsController.updatePersonalSettings.bind(ticketViewsController));
-
-  // Get all customer companies (compatibility endpoint)
-  app.get('/api/customer-companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Tenant context required' 
-        });
-      }
-
-      console.log('Fetching customer companies for tenant:', tenantId);
-
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      // Get all customer companies using direct SQL
-      const result = await pool.query(
-        `SELECT 
-          id,
-          name,
-          display_name,
-          description,
-          industry,
-          website,
-          phone,
-          email,
-          size,
-          subscription_tier,
-          status,
-          created_at,
-          updated_at
-        FROM "${schemaName}"."customer_companies"
-        WHERE (deleted_at IS NULL OR deleted_at = '')
-        ORDER BY name`,
-        [tenantId]
-      );
-
-      const companies = result.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        displayName: row.display_name,
-        description: row.description,
-        industry: row.industry,
-        website: row.website,
-        phone: row.phone,
-        email: row.email,
-        size: row.size,
-        subscriptionTier: row.subscription_tier,
-        status: row.status || 'active',
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
-
-      console.log(`Found ${companies.length} companies for tenant ${tenantId}`);
-
-      // Set cache control headers
-      res.set({
-        'Cache-Control': 'public, max-age=300', // 5 minutes
-        'ETag': `"companies-${tenantId}-${Date.now()}"`
-      });
-
-      // Return the format expected by the frontend
-      res.json(companies);
-    } catch (error) {
-      console.error('Error fetching customer companies via compatibility route:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies',
-        error: error.message
-      });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
