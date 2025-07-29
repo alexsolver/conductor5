@@ -37,7 +37,7 @@ import ticketMetadata from './routes/ticketMetadata';
 import ticketRelationships from './routes/ticketRelationships';
 import translationsRoutes from './routes/translations';
 import localizationRoutes from './routes/localization';
-import emailTemplatesRoutes from './routes/emailTemplates';
+import { emailTemplatesRouter as emailTemplatesRoutes } from './routes/emailTemplates';
 import systemScanRoutes from './routes/systemScanRoutes';
 import integrityRoutes from './routes/integrityRoutes';
 import productivityRoutes from './routes/productivityRoutes';
