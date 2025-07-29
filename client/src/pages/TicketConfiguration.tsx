@@ -439,6 +439,59 @@ const TicketConfiguration: React.FC = () => {
 
   const openDialog = (type: string, item?: any) => {
     setEditingItem({ type, ...item });
+    
+    // Initialize form values based on dialog type
+    if (type === 'subcategory') {
+      subcategoryForm.reset({
+        name: item?.name || '',
+        description: item?.description || '',
+        categoryId: item?.categoryId || '',
+        color: item?.color || '#3b82f6',
+        icon: item?.icon || '',
+        active: item?.active !== undefined ? item.active : true,
+        sortOrder: item?.sortOrder || 1
+      });
+    } else if (type === 'category') {
+      categoryForm.reset({
+        name: item?.name || '',
+        description: item?.description || '',
+        color: item?.color || '#3b82f6',
+        icon: item?.icon || '',
+        active: item?.active !== undefined ? item.active : true,
+        sortOrder: item?.sortOrder || 1
+      });
+    } else if (type === 'action') {
+      actionForm.reset({
+        name: item?.name || '',
+        description: item?.description || '',
+        subcategoryId: item?.subcategoryId || '',
+        estimatedTimeMinutes: item?.estimatedTimeMinutes || undefined,
+        color: item?.color || '#3b82f6',
+        icon: item?.icon || '',
+        active: item?.active !== undefined ? item.active : true,
+        sortOrder: item?.sortOrder || 1
+      });
+    } else if (type === 'field-option') {
+      fieldOptionForm.reset({
+        fieldName: item?.fieldName || '',
+        value: item?.value || '',
+        displayLabel: item?.displayLabel || '',
+        color: item?.color || '#3b82f6',
+        icon: item?.icon || '',
+        isDefault: item?.isDefault || false,
+        active: item?.active !== undefined ? item.active : true,
+        sortOrder: item?.sortOrder || 1
+      });
+    } else if (type === 'validation-rule') {
+      validationForm.reset({
+        fieldName: item?.fieldName || '',
+        isRequired: item?.isRequired || false,
+        validationPattern: item?.validationPattern || '',
+        errorMessage: item?.errorMessage || '',
+        defaultValue: item?.defaultValue || ''
+      });
+    }
+    
     setDialogOpen(true);
   };
 
@@ -1052,7 +1105,7 @@ const TicketConfiguration: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Categoria</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={editingItem.categoryId || field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione a categoria" />
