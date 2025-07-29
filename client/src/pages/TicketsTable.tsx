@@ -704,7 +704,7 @@ export default function TicketsTable() {
 
   // Sincronizar subject com shortDescription
   const shortDescriptionValue = form.watch("shortDescription");
-  React.useEffect(() => {
+  useEffect(() => {
     if (shortDescriptionValue) {
       form.setValue("subject", shortDescriptionValue);
     }
