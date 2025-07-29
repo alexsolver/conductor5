@@ -311,13 +311,13 @@ export default function Tickets() {
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  {/* Company Selection - First Field */}
+                  {/* Company Selection - Must be first */}
                   <FormField
                     control={form.control}
                     name="companyId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Empresa *</FormLabel>
+                        <FormLabel className="text-lg font-semibold">Empresa *</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -328,16 +328,22 @@ export default function Tickets() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-12">
                               <SelectValue placeholder="Selecione uma empresa" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {companies.map((company: any) => (
-                              <SelectItem key={company.id} value={company.id}>
-                                {company.name || company.company_name || company.displayName}
+                            {companies.length === 0 ? (
+                              <SelectItem value="no-companies" disabled>
+                                Nenhuma empresa encontrada
                               </SelectItem>
-                            ))}
+                            ) : (
+                              companies.map((company: any) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.name || company.company_name || company.displayName}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -351,19 +357,19 @@ export default function Tickets() {
                     name="customerId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Solicitante *</FormLabel>
+                        <FormLabel className="text-lg font-semibold">Cliente/Solicitante *</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={field.value}
                           disabled={!selectedCompanyId}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-12">
                               <SelectValue 
                                 placeholder={
                                   !selectedCompanyId 
                                     ? "Primeiro selecione uma empresa" 
-                                    : "Selecione o solicitante"
+                                    : "Selecione o cliente/solicitante"
                                 } 
                               />
                             </SelectTrigger>
