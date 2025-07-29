@@ -743,7 +743,10 @@ const TicketConfiguration: React.FC = () => {
                               .map((subcategory: Subcategory) => (
                                 <div key={subcategory.id} className="ml-6 space-y-1">
                                   {actions
-                                    .filter((action: Action) => action.subcategoryId === subcategory.id)
+                                    .filter((action: Action) => {
+                                      const actionSubcategoryId = action.subcategoryId || (action as any).subcategory_id;
+                                      return actionSubcategoryId === subcategory.id;
+                                    })
                                     .map((action: Action) => (
                                       <div key={action.id} className="flex items-center justify-between py-1">
                                         <div className="flex items-center space-x-2">
