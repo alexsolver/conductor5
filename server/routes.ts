@@ -14,7 +14,7 @@ import technicalSkillsRoutes from './modules/technical-skills/routes';
 import locationsRoutes from './modules/locations/routes';
 import locationsNewRoutes from './modules/locations/routes-new';
 import customFieldsRoutes from './modules/custom-fields/routes';
-import fieldLayoutsRoutes from './modules/field-layouts/routes';
+import { fieldLayoutRoutes as fieldLayoutsRoutes } from './modules/field-layouts/routes';
 import favorecidosRoutes from './modules/favorecidos/routes';
 import peopleRoutes from './modules/people/routes';
 import saasAdminRoutes from './modules/saas-admin/routes';
