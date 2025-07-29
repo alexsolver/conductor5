@@ -6,7 +6,7 @@ import { jwtAuth } from './middleware/jwtAuth';
 import { authRouter as authRoutes } from './modules/auth/routes';
 import customersRoutes from './modules/customers/routes';
 import ticketsRoutes from './modules/tickets/routes';
-import dashboardRoutes from './modules/dashboard/routes';
+import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
 import notificationsRoutes from './modules/notifications/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import materialsServicesRoutes from './modules/materials-services/routes';
