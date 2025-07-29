@@ -942,59 +942,241 @@ const TicketConfiguration: React.FC = () => {
 
           {/* Tab: Classificação */}
           <TabsContent value="classification" className="space-y-6">
-            {['status', 'priority', 'impact', 'urgency'].map((fieldName) => (
-              <Card key={fieldName}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+            {/* Header com estatísticas gerais */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Settings className="w-5 h-5 text-blue-600" />
                     <div>
-                      <CardTitle className="capitalize">{fieldName}</CardTitle>
-                      <CardDescription>
-                        Configure as opções para o campo {fieldName}
-                      </CardDescription>
+                      <p className="text-sm font-medium text-gray-600">Status</p>
+                      <p className="text-2xl font-bold">
+                        {fieldOptions.filter(opt => opt.fieldName === 'status').length}
+                      </p>
                     </div>
-                    <Button onClick={() => openDialog('field-option', { fieldName })}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Nova Opção
-                    </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {fieldOptions
-                      .filter((option: FieldOption) => option.fieldName === fieldName)
-                      .sort((a, b) => a.sortOrder - b.sortOrder)
-                      .map((option: FieldOption) => (
-                        <div key={option.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-2">
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-orange-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Prioridades</p>
+                      <p className="text-2xl font-bold">
+                        {fieldOptions.filter(opt => opt.fieldName === 'priority').length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Hash className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Impactos</p>
+                      <p className="text-2xl font-bold">
+                        {fieldOptions.filter(opt => opt.fieldName === 'impact').length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Urgências</p>
+                      <p className="text-2xl font-bold">
+                        {fieldOptions.filter(opt => opt.fieldName === 'urgency').length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Seções de classificação com melhor UX */}
+            {[
+              { 
+                key: 'status', 
+                title: 'Status do Ticket', 
+                description: 'Configure os diferentes estados que um ticket pode ter durante seu ciclo de vida',
+                icon: Settings,
+                color: 'blue'
+              },
+              { 
+                key: 'priority', 
+                title: 'Prioridade', 
+                description: 'Defina os níveis de prioridade para classificar a importância dos tickets',
+                icon: AlertTriangle,
+                color: 'orange'
+              },
+              { 
+                key: 'impact', 
+                title: 'Impacto', 
+                description: 'Configure os níveis de impacto que um problema pode causar no negócio',
+                icon: Hash,
+                color: 'green'
+              },
+              { 
+                key: 'urgency', 
+                title: 'Urgência', 
+                description: 'Defina quão rapidamente um ticket precisa ser resolvido',
+                icon: AlertTriangle,
+                color: 'red'
+              }
+            ].map(({ key, title, description, icon: Icon, color }) => {
+              const fieldOptionsForType = fieldOptions
+                .filter((option: FieldOption) => option.fieldName === key)
+                .sort((a, b) => a.sortOrder - b.sortOrder);
+
+              return (
+                <Card key={key} className="overflow-hidden">
+                  <CardHeader className={`bg-${color}-50 border-b`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 bg-${color}-100 rounded-lg`}>
+                          <Icon className={`w-5 h-5 text-${color}-600`} />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{title}</CardTitle>
+                          <CardDescription className="mt-1">
+                            {description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-sm">
+                          {fieldOptionsForType.length} opções
+                        </Badge>
+                        <Button 
+                          onClick={() => openDialog('field-option', { fieldName: key })}
+                          className={`bg-${color}-600 hover:bg-${color}-700`}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Nova Opção
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {fieldOptionsForType.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className={`w-16 h-16 mx-auto mb-4 bg-${color}-100 rounded-full flex items-center justify-center`}>
+                          <Icon className={`w-8 h-8 text-${color}-400`} />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Nenhuma opção configurada
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          Comece criando sua primeira opção para o campo {title.toLowerCase()}.
+                        </p>
+                        <Button 
+                          onClick={() => openDialog('field-option', { fieldName: key })}
+                          className={`bg-${color}-600 hover:bg-${color}-700`}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Primeira Opção
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {fieldOptionsForType.map((option: FieldOption, index: number) => (
+                          <div 
+                            key={option.id} 
+                            className="relative border rounded-lg p-4 hover:shadow-md transition-all duration-200 bg-white"
+                          >
+                            {/* Indicador de ordem */}
+                            <div className="absolute top-2 right-2 w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+                              {index + 1}
+                            </div>
+                            
+                            {/* Header da opção */}
+                            <div className="flex items-center space-x-3 mb-3">
                               <div 
-                                className="w-4 h-4 rounded"
+                                className="w-6 h-6 rounded-full border-2 border-white shadow-sm flex-shrink-0"
                                 style={{ backgroundColor: option.color }}
                               />
-                              <span className="font-medium">{option.displayLabel}</span>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 truncate">
+                                  {option.displayLabel}
+                                </h4>
+                                <p className="text-sm text-gray-500">
+                                  Valor: <code className="bg-gray-100 px-1 rounded text-xs">{option.value}</code>
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              {option.isDefault && (
-                                <Badge variant="secondary" className="text-xs">Padrão</Badge>
-                              )}
+
+                            {/* Badges de status */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex space-x-2">
+                                {option.isDefault && (
+                                  <Badge className={`bg-${color}-100 text-${color}-800 border-${color}-200`}>
+                                    <span className="w-2 h-2 bg-current rounded-full mr-1"></span>
+                                    Padrão
+                                  </Badge>
+                                )}
+                                <Badge variant={option.active ? "default" : "secondary"} className="text-xs">
+                                  {option.active ? "Ativo" : "Inativo"}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {/* Ações */}
+                            <div className="flex justify-end space-x-1 pt-2 border-t">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => openDialog('field-option', option)}
+                                className="text-gray-600 hover:text-gray-900"
                               >
-                                <Edit className="w-3 h-3" />
+                                <Edit className="w-3 h-3 mr-1" />
+                                Editar
                               </Button>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-600">
-                            Valor: {option.value}
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {/* Card de dicas e boas práticas */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-blue-800">
+                  <Settings className="w-5 h-5" />
+                  <span>Dicas de Configuração</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-blue-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">✨ Boas Práticas</h4>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Mantenha o número de opções gerenciável (3-6 por campo)</li>
+                      <li>• Use cores consistentes para facilitar identificação</li>
+                      <li>• Configure sempre uma opção como padrão</li>
+                      <li>• Use valores únicos e descritivos</li>
+                    </ul>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div>
+                    <h4 className="font-semibold mb-2">🎯 Ordem de Importância</h4>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Prioridade: Crítica → Alta → Média → Baixa</li>
+                      <li>• Urgência: Imediata → Alta → Normal → Baixa</li>
+                      <li>• Impacto: Alto → Médio → Baixo → Mínimo</li>
+                      <li>• Status: Aberto → Em Andamento → Resolvido → Fechado</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Tab: Numeração */}
