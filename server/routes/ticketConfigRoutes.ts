@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -71,7 +72,7 @@ router.post('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const categoryId = crypto.randomUUID();
+    const categoryId = randomUUID();
     
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" (
@@ -220,7 +221,7 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const subcategoryId = crypto.randomUUID();
+    const subcategoryId = randomUUID();
     
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" (
@@ -324,7 +325,7 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const actionId = crypto.randomUUID();
+    const actionId = randomUUID();
     
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
@@ -427,7 +428,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const optionId = crypto.randomUUID();
+    const optionId = randomUUID();
     
     // Se esta opção for marcada como padrão, desmarcar outras do mesmo campo
     if (isDefault) {
@@ -560,7 +561,7 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
       `);
     } else {
       // Criar nova configuração
-      const configId = crypto.randomUUID();
+      const configId = randomUUID();
       await db.execute(sql`
         INSERT INTO "${sql.raw(schemaName)}"."ticket_numbering_config" (
           id, tenant_id, company_id, prefix, year_format, sequential_digits, 
@@ -649,7 +650,7 @@ router.post('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res)
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const ruleId = crypto.randomUUID();
+    const ruleId = randomUUID();
     
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_validation_rules" (
