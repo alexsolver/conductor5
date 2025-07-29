@@ -533,20 +533,37 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
         'Expires': '0'
       });
 
+      // Get final count for verification
+      const finalCountResult = await pool.query(
+        `SELECT COUNT(*) as remaining_count FROM "${schemaName}"."customer_companies" WHERE tenant_id = $1`,
+        [req.user.tenantId]
+      );
+
+      const finalResponse = {
+        success: true,
+        message: 'Company deleted successfully',
+        deletedId: companyId,
+        deletedCompany: {
+          id: companyId,
+          name: companyName
+        },
+        remainingCount: parseInt(finalCountResult.rows[0]?.remaining_count || '0'),
+        timestamp: new Date().toISOString(),
+        debug: {
+          rowCount: result.rowCount,
+          verificationPassed: true,
+          requestId: requestId,
+          duration: Date.now() - startTime
+        }
+      };
+
       console.log('🎉 [DELETE] Company deleted successfully:', { companyId, companyName });
       const duration = Date.now() - startTime;
       console.log(`[DELETE-${requestId}] Transaction completed successfully in ${duration}ms:`, result);
       console.log(`[DELETE-${requestId}] ====== DELETION SUCCESS ====== (Total: ${duration}ms)`);
-      res.status(200).json({
-        success: true,
-        message: 'Company deleted successfully',
-        deletedId: companyId,
-        deletedName: companyName,
-        debug: {
-          rowCount: result.rowCount,
-          verificationPassed: true
-        }
-      });
+      console.log(`[DELETE-${requestId}] Final response:`, finalResponse);
+      
+      res.status(200).json(finalResponse);
     } catch (transactionError) {
       console.error('💥 [DELETE] Transaction error:', transactionError);
       console.error(`[DELETE-${requestId}] Transaction error:`, {
