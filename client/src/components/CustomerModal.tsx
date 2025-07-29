@@ -1004,7 +1004,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               })
                             ) : (
                               <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border">
-                                Nenhuma empresaassociada
+                                Nenhuma empresa associada
                               </div>
                             )}
                           </div>
