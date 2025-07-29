@@ -1,13 +1,18 @@
-const { pool } = require('../db');
-const fs = require('fs');
-const path = require('path');
+
+import { pool } from '../db.js';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function createTicketConfigTables() {
   console.log('🚀 Iniciando criação das tabelas de configuração de tickets...');
 
   try {
     // Ler o script SQL
-    const sqlScript = fs.readFileSync(path.join(__dirname, '../../create_ticket_config_tables.sql'), 'utf8');
+    const sqlScript = readFileSync(join(__dirname, '../../create_ticket_config_tables.sql'), 'utf8');
 
     // Buscar todos os tenants
     const tenantsResult = await pool.query('SELECT id FROM public.tenants');
@@ -70,7 +75,7 @@ async function createTicketConfigTables() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   createTicketConfigTables()
     .then(() => {
       console.log('✅ Script executado com sucesso');
@@ -82,4 +87,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { createTicketConfigTables };
+export { createTicketConfigTables };
