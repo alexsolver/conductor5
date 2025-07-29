@@ -339,15 +339,22 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: 'Name and subcategory ID are required' });
     }
 
+    // Get companyId from query params if not in body
+    const finalCompanyId = companyId || req.query.companyId as string;
+    
+    if (!finalCompanyId) {
+      return res.status(400).json({ message: 'Company ID is required' });
+    }
+
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const actionId = randomUUID();
 
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
-        id, tenant_id, subcategory_id, name, description, estimated_time_minutes, 
+        id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, 
         color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
-        ${actionId}, ${tenantId}, ${subcategoryId}, ${name}, ${description || null}, 
+        ${actionId}, ${tenantId}, ${finalCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
         ${estimatedTimeMinutes || null}, ${color || '#3b82f6'}, ${icon || null}, 
         ${active !== false}, ${sortOrder || 1}, NOW(), NOW()
       )
@@ -364,7 +371,8 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         color: color || '#3b82f6',
         icon,
         active: active !== false,
-        sortOrder: sortOrder || 1
+        sortOrder: sortOrder || 1,
+        companyId: finalCompanyId
       }
     });
   } catch (error) {
