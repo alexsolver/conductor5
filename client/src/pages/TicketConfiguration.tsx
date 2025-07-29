@@ -283,6 +283,8 @@ const TicketConfiguration: React.FC = () => {
       const response = await apiRequest('GET', `/api/ticket-config/subcategories?companyId=${selectedCompany}`);
       const result = await response.json();
       console.log('🔍 Subcategories response:', result);
+      console.log('📊 Subcategories data count:', result?.data?.length || 0);
+      console.log('📋 Subcategories data:', result?.data);
       return result.success ? result.data : [];
     },
     enabled: !!selectedCompany
@@ -520,6 +522,18 @@ const TicketConfiguration: React.FC = () => {
     }
   }, [numberingConfig, numberingForm]);
 
+  // Debug effect para monitorar mudanças nas subcategorias
+  useEffect(() => {
+    console.log('🔄 Subcategories data updated:', subcategories);
+    console.log('📊 Total subcategories:', subcategories.length);
+    if (categories.length > 0) {
+      categories.forEach(cat => {
+        const subCount = subcategories.filter(sub => sub.categoryId === cat.id).length;
+        console.log(`📂 Category "${cat.name}" (${cat.id}): ${subCount} subcategories`);
+      });
+    }
+  }, [subcategories, categories]);
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
@@ -667,38 +681,54 @@ const TicketConfiguration: React.FC = () => {
                         <div className="border-t bg-gray-50 p-4">
                           <div className="space-y-2">
                             {subcategories
-                              .filter((sub: Subcategory) => sub.categoryId === category.id)
-                              .map((subcategory: Subcategory) => (
-                                <div key={subcategory.id} className="bg-white border rounded p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center space-x-2">
-                                      <div 
-                                        className="w-3 h-3 rounded"
-                                        style={{ backgroundColor: subcategory.color }}
-                                      />
-                                      <span className="font-medium">{subcategory.name}</span>
-                                      {subcategory.description && (
-                                        <span className="text-sm text-gray-600">- {subcategory.description}</span>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => openDialog('action', { subcategoryId: subcategory.id })}
-                                      >
-                                        <Plus className="w-3 h-3 mr-1" />
-                                        Ação
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => openDialog('subcategory', subcategory)}
-                                      >
-                                        <Edit className="w-3 h-3" />
-                                      </Button>
+                              .filter((sub: Subcategory) => {
+                                // Debug log to see filtering
+                                console.log('🔍 Filtering subcategory:', sub.name, 'categoryId:', sub.categoryId, 'target:', category.id);
+                                return sub.categoryId === category.id;
+                              })
+                              .map((subcategory: Subcategory) => {
+                                console.log('✅ Rendering subcategory:', subcategory);
+                                return (
+                                  <div key={subcategory.id} className="bg-white border rounded p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center space-x-2">
+                                        <div 
+                                          className="w-3 h-3 rounded"
+                                          style={{ backgroundColor: subcategory.color }}
+                                        />
+                                        <span className="font-medium">{subcategory.name}</span>
+                                        {subcategory.description && (
+                                          <span className="text-sm text-gray-600">- {subcategory.description}</span>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => openDialog('action', { subcategoryId: subcategory.id })}
+                                        >
+                                          <Plus className="w-3 h-3 mr-1" />
+                                          Ação
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => openDialog('subcategory', subcategory)}
+                                        >
+                                          <Edit className="w-3 h-3" />
+                                        </Button>
+                                      </div>
                                     </div>
                                   </div>
+                                );
+                              })}
+                            
+                            {/* Debug info - show all subcategories for this category */}
+                            {process.env.NODE_ENV === 'development' && (
+                              <div className="text-xs text-gray-400 mt-2">
+                                Debug: {subcategories.filter(sub => sub.categoryId === category.id).length} subcategorias encontradas
+                              </div>
+                            )}
 
                                   <div className="ml-6 space-y-1">
                                     {actions
