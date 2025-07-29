@@ -152,6 +152,49 @@ router.put('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
   }
 });
 
+// DELETE /api/ticket-config/categories/:id
+router.delete('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const categoryId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Check if category has subcategories
+    const subcategoriesCheck = await db.execute(sql`
+      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
+      WHERE category_id = ${categoryId} AND tenant_id = ${tenantId}
+    `);
+
+    if (Number(subcategoriesCheck.rows[0]?.count) > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir categoria que possui subcategorias'
+      });
+    }
+
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      WHERE id = ${categoryId} AND tenant_id = ${tenantId}
+    `);
+
+    res.json({
+      success: true,
+      message: 'Category deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    res.status(500).json({
+      error: 'Failed to delete category',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // ============================================================================
 // SUBCATEGORIES - Nível 3 da hierarquia
 // ============================================================================
@@ -270,6 +313,49 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
   }
 });
 
+// DELETE /api/ticket-config/subcategories/:id
+router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const subcategoryId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Check if subcategory has actions
+    const actionsCheck = await db.execute(sql`
+      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_actions" 
+      WHERE subcategory_id = ${subcategoryId} AND tenant_id = ${tenantId}
+    `);
+
+    if (Number(actionsCheck.rows[0]?.count) > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir subcategoria que possui ações'
+      });
+    }
+
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
+      WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
+    `);
+
+    res.json({
+      success: true,
+      message: 'Subcategory deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting subcategory:', error);
+    res.status(500).json({
+      error: 'Failed to delete subcategory',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // ============================================================================
 // ACTIONS - Nível 4 da hierarquia
 // ============================================================================
@@ -379,6 +465,36 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     console.error('Error creating action:', error);
     res.status(500).json({
       error: 'Failed to create action',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// DELETE /api/ticket-config/actions/:id
+router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const actionId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_actions" 
+      WHERE id = ${actionId} AND tenant_id = ${tenantId}
+    `);
+
+    res.json({
+      success: true,
+      message: 'Action deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting action:', error);
+    res.status(500).json({
+      error: 'Failed to delete action',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

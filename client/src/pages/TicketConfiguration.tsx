@@ -430,6 +430,39 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/categories/${categoryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
+      toast({ title: "Categoria excluída com sucesso" });
+    }
+  });
+
+  const deleteSubcategoryMutation = useMutation({
+    mutationFn: async (subcategoryId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/subcategories/${subcategoryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
+      toast({ title: "Subcategoria excluída com sucesso" });
+    }
+  });
+
+  const deleteActionMutation = useMutation({
+    mutationFn: async (actionId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/actions/${actionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['actions', selectedCompany] });
+      toast({ title: "Ação excluída com sucesso" });
+    }
+  });
+
   // Helper functions
   const toggleCategoryExpansion = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -656,6 +689,18 @@ const TicketConfiguration: React.FC = () => {
                           >
                             <Edit className="w-3 h-3" />
                           </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Tem certeza que deseja excluir a categoria "${category.name}"? Esta ação não pode ser desfeita.`)) {
+                                deleteCategoryMutation.mutate(category.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600" />
+                          </Button>
                         </div>
                       </div>
 
@@ -698,6 +743,17 @@ const TicketConfiguration: React.FC = () => {
                                         >
                                           <Edit className="w-3 h-3" />
                                         </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => {
+                                            if (confirm(`Tem certeza que deseja excluir a subcategoria "${subcategory.name}"? Esta ação não pode ser desfeita.`)) {
+                                              deleteSubcategoryMutation.mutate(subcategory.id);
+                                            }
+                                          }}
+                                        >
+                                          <Trash2 className="w-3 h-3 text-red-600" />
+                                        </Button>
                                       </div>
                                     </div>
                                   </div>
@@ -739,6 +795,17 @@ const TicketConfiguration: React.FC = () => {
                                           onClick={() => openDialog('action', action)}
                                         >
                                           <Edit className="w-3 h-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            if (confirm(`Tem certeza que deseja excluir a ação "${action.name}"? Esta ação não pode ser desfeita.`)) {
+                                              deleteActionMutation.mutate(action.id);
+                                            }
+                                          }}
+                                        >
+                                          <Trash2 className="w-3 h-3 text-red-600" />
                                         </Button>
                                       </div>
                                     ))}
