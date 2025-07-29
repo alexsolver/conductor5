@@ -1,5 +1,6 @@
 
-import { Client } from 'pg';
+import pkg from 'pg';
+const { Client } = pkg;
 
 async function executeStatusTypeMigration() {
   const client = new Client({
