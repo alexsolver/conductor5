@@ -31,13 +31,13 @@ export default function Clientes() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: clientesData, isLoading } = useQuery({
-    queryKey: ["/api/clientes", { search: searchTerm }],
+    queryKey: ["/api/customers", { search: searchTerm }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       
       const { apiRequest } = await import('../lib/queryClient');
-      const response = await apiRequest('GET', `/api/clientes?${params}`);
+      const response = await apiRequest('GET', `/api/customers?${params}`);
       return response.json();
     },
     retry: false,
@@ -57,8 +57,8 @@ export default function Clientes() {
     setIsLocationModalOpen(true);
   };
 
-  const clientes = clientesData?.data || [];
-  const total = clientesData?.total || 0;
+  const clientes = clientesData?.customers || [];
+  const total = clientesData?.total || clientes.length;
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -133,18 +133,18 @@ export default function Clientes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientes.length > 0 ? clientes.map((cliente: Cliente) => (
+              {clientes.length > 0 ? clientes.map((cliente: any) => (
                 <TableRow key={cliente.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <TableCell>
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold text-sm">
-                        {getInitials(`${cliente.first_name} ${cliente.last_name || ''}`)}
+                        {getInitials(`${cliente.firstName || ''} ${cliente.lastName || ''}`)}
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {cliente.first_name} {cliente.last_name}
+                      {cliente.firstName} {cliente.lastName}
                     </div>
                     <Badge variant="secondary" className="mt-1">Cliente</Badge>
                   </TableCell>
