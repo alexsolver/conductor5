@@ -263,10 +263,7 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
       updatedAt: row.updated_at
     }));
 
-    res.json({
-      success: true,
-      data: companies
-    });
+    res.json(companies);
   } catch (error) {
     console.error('Error fetching customer companies:', error);
     res.status(500).json({ message: 'Failed to fetch customer companies' });

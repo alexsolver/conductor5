@@ -79,9 +79,17 @@ export default function CustomerCompanies() {
   const { data: companiesData, isLoading } = useQuery({
     queryKey: ['/api/customer-companies'],
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  const companies = companiesData || [];
+  // Handle different response formats from the API
+  const companies = (() => {
+    if (!companiesData) return [];
+    if (Array.isArray(companiesData)) return companiesData;
+    if (companiesData.success && Array.isArray(companiesData.data)) return companiesData.data;
+    if (companiesData.data && Array.isArray(companiesData.data)) return companiesData.data;
+    return [];
+  })();
 
   // Mutation para criar company
   const createCompanyMutation = useMutation({
@@ -131,13 +139,20 @@ export default function CustomerCompanies() {
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
     onSuccess: async (data, deletedId) => {
-      // Clear all related queries
-      queryClient.removeQueries({ queryKey: ['/api/customer-companies'] });
-      queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
-      
-      // Force immediate invalidation
-      await queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
-      
+      // Immediately update local state by filtering out the deleted company
+      queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
+        if (Array.isArray(oldData)) {
+          return oldData.filter((company: CustomerCompany) => company.id !== deletedId);
+        }
+        if (oldData?.data && Array.isArray(oldData.data)) {
+          return {
+            ...oldData,
+            data: oldData.data.filter((company: CustomerCompany) => company.id !== deletedId)
+          };
+        }
+        return oldData;
+      });
+
       toast({
         title: "Sucesso",
         description: "Empresa excluída com sucesso!",
