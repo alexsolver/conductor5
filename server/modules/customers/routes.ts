@@ -10,29 +10,125 @@ export const customersRouter = Router();
 // Get all customers
 customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   // Validate query parameters first (outside try block to be accessible in catch)
-  const { limit, offset } = req.query;
+  const { limit, offset, search } = req.query;
   const parsedLimit = limit ? Math.max(1, Math.min(100, parseInt(limit as string) || 50)) : 50;
   const parsedOffset = offset ? Math.max(0, parseInt(offset as string) || 0) : 0;
+  const searchTerm = search as string;
 
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
     
-    // Performance optimization: Use cache-aware method
-    const customers = await storageSimple.getCustomers(req.user.tenantId, {
-      limit: parsedLimit,
-      offset: parsedOffset
-    });
+    // Direct database query for better reliability
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    
+    let query = `
+      SELECT 
+        id,
+        tenant_id,
+        customer_type,
+        email,
+        first_name,
+        last_name,
+        company_name,
+        cpf,
+        cnpj,
+        phone,
+        mobile_phone,
+        contact_person,
+        responsible,
+        position,
+        supervisor,
+        coordinator,
+        manager,
+        description,
+        internal_code,
+        status,
+        created_at,
+        updated_at
+      FROM "${schemaName}".customers
+      WHERE tenant_id = $1
+    `;
+    
+    const queryParams: any[] = [req.user.tenantId];
+    let paramIndex = 2;
+    
+    // Add search functionality
+    if (searchTerm && searchTerm.trim()) {
+      query += ` AND (
+        LOWER(first_name) LIKE LOWER($${paramIndex}) OR
+        LOWER(last_name) LIKE LOWER($${paramIndex}) OR
+        LOWER(company_name) LIKE LOWER($${paramIndex}) OR
+        LOWER(email) LIKE LOWER($${paramIndex}) OR
+        LOWER(contact_person) LIKE LOWER($${paramIndex})
+      )`;
+      queryParams.push(`%${searchTerm.trim()}%`);
+      paramIndex++;
+    }
+    
+    query += ` ORDER BY 
+      CASE 
+        WHEN customer_type = 'PF' THEN COALESCE(first_name, email)
+        ELSE COALESCE(company_name, email)
+      END
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+    
+    queryParams.push(parsedLimit, parsedOffset);
+    
+    const result = await pool.query(query, queryParams);
+    
+    const customers = result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      customerType: row.customer_type,
+      email: row.email,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      companyName: row.company_name,
+      cpf: row.cpf,
+      cnpj: row.cnpj,
+      phone: row.phone,
+      mobilePhone: row.mobile_phone,
+      contactPerson: row.contact_person,
+      responsible: row.responsible,
+      position: row.position,
+      supervisor: row.supervisor,
+      coordinator: row.coordinator,
+      manager: row.manager,
+      description: row.description,
+      internalCode: row.internal_code,
+      status: row.status || 'Ativo',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      // Computed fields for compatibility
+      name: row.customer_type === 'PJ' 
+        ? row.company_name || row.email
+        : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email,
+      fullName: row.customer_type === 'PJ' 
+        ? row.company_name || row.email
+        : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email
+    }));
 
-    res.json({ customers });
+    console.log(`Found ${customers.length} customers for tenant ${req.user.tenantId}`);
+    
+    res.json({ 
+      success: true,
+      customers,
+      count: customers.length,
+      total: customers.length
+    });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
     logError("Error fetching customers", error, { 
       tenantId: req.user?.tenantId,
-      options: { limit: parsedLimit, offset: parsedOffset }
+      options: { limit: parsedLimit, offset: parsedOffset, search: searchTerm }
     });
-    res.status(500).json({ message: "Failed to fetch customers" });
+    console.error('Error in customers API:', error);
+    res.status(500).json({ message: "Failed to fetch customers", error: error.message });
   }
 });
 
@@ -270,6 +366,190 @@ customersRouter.get('/:customerId/companies', jwtAuth, async (req: Authenticated
   } catch (error) {
     console.error('Error fetching customer companies:', error);
     res.status(500).json({ message: 'Failed to fetch customer companies' });
+  }
+});
+
+// GET /api/companies/:companyId/customers - Get customers for a specific company
+customersRouter.get('/companies/:companyId/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    const companyId = req.params.companyId;
+    
+    console.log('Fetching customers for company:', companyId, 'in tenant', req.user.tenantId);
+    
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    
+    // Check if this is actually a customer ID being used as company
+    const customerQuery = `
+      SELECT 
+        c.id,
+        c.tenant_id,
+        c.customer_type,
+        c.email,
+        c.first_name,
+        c.last_name,
+        c.company_name,
+        c.cpf,
+        c.cnpj,
+        c.phone,
+        c.mobile_phone,
+        c.contact_person,
+        c.responsible,
+        c.position,
+        c.supervisor,
+        c.coordinator,
+        c.manager,
+        c.description,
+        c.internal_code,
+        c.status,
+        c.created_at,
+        c.updated_at
+      FROM "${schemaName}".customers c
+      WHERE c.id = $1 AND c.tenant_id = $2
+    `;
+    
+    const customerResult = await pool.query(customerQuery, [companyId, req.user.tenantId]);
+    
+    if (customerResult.rows.length > 0) {
+      // This is a customer, return it as a single-item array
+      const customer = customerResult.rows[0];
+      const customerData = {
+        id: customer.id,
+        tenantId: customer.tenant_id,
+        customerType: customer.customer_type,
+        email: customer.email,
+        firstName: customer.first_name,
+        lastName: customer.last_name,
+        companyName: customer.company_name,
+        cpf: customer.cpf,
+        cnpj: customer.cnpj,
+        phone: customer.phone,
+        mobilePhone: customer.mobile_phone,
+        contactPerson: customer.contact_person,
+        responsible: customer.responsible,
+        position: customer.position,
+        supervisor: customer.supervisor,
+        coordinator: customer.coordinator,
+        manager: customer.manager,
+        description: customer.description,
+        internalCode: customer.internal_code,
+        status: customer.status || 'Ativo',
+        createdAt: customer.created_at,
+        updatedAt: customer.updated_at,
+        name: customer.customer_type === 'PJ' 
+          ? customer.company_name || customer.email
+          : [customer.first_name, customer.last_name].filter(Boolean).join(' ') || customer.email,
+        fullName: customer.customer_type === 'PJ' 
+          ? customer.company_name || customer.email
+          : [customer.first_name, customer.last_name].filter(Boolean).join(' ') || customer.email
+      };
+      
+      console.log(`Found 1 customer for company ${companyId}`);
+      
+      return res.json({
+        success: true,
+        customers: [customerData],
+        count: 1
+      });
+    }
+    
+    // If not a customer, try to find it as a company
+    const companyMembersQuery = `
+      SELECT 
+        c.id,
+        c.tenant_id,
+        c.customer_type,
+        c.email,
+        c.first_name,
+        c.last_name,
+        c.company_name,
+        c.cpf,
+        c.cnpj,
+        c.phone,
+        c.mobile_phone,
+        c.contact_person,
+        c.responsible,
+        c.position,
+        c.supervisor,
+        c.coordinator,
+        c.manager,
+        c.description,
+        c.internal_code,
+        c.status,
+        c.created_at,
+        c.updated_at,
+        ccm.role,
+        ccm.is_primary
+      FROM "${schemaName}".customers c
+      JOIN "${schemaName}"."customer_company_memberships" ccm ON c.id = ccm.customer_id
+      WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
+      ORDER BY ccm.is_primary DESC, 
+        CASE 
+          WHEN c.customer_type = 'PF' THEN COALESCE(c.first_name, c.email)
+          ELSE COALESCE(c.company_name, c.email)
+        END
+    `;
+    
+    const result = await pool.query(companyMembersQuery, [companyId, req.user.tenantId]);
+    
+    const customers = result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      customerType: row.customer_type,
+      email: row.email,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      companyName: row.company_name,
+      cpf: row.cpf,
+      cnpj: row.cnpj,
+      phone: row.phone,
+      mobilePhone: row.mobile_phone,
+      contactPerson: row.contact_person,
+      responsible: row.responsible,
+      position: row.position,
+      supervisor: row.supervisor,
+      coordinator: row.coordinator,
+      manager: row.manager,
+      description: row.description,
+      internalCode: row.internal_code,
+      status: row.status || 'Ativo',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      role: row.role,
+      isPrimary: row.is_primary,
+      name: row.customer_type === 'PJ' 
+        ? row.company_name || row.email
+        : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email,
+      fullName: row.customer_type === 'PJ' 
+        ? row.company_name || row.email
+        : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email
+    }));
+
+    console.log(`Found ${customers.length} customers for company ${companyId}`);
+    
+    res.json({
+      success: true,
+      customers,
+      count: customers.length
+    });
+  } catch (error: any) {
+    console.error('Error fetching customers for company:', {
+      error: error.message,
+      stack: error.stack,
+      companyId: req.params.companyId,
+      tenantId: req.user?.tenantId
+    });
+    
+    res.status(500).json({ 
+      success: false,
+      message: 'Erro ao carregar clientes da empresa',
+      error: error.message
+    });
   }
 });
 

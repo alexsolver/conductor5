@@ -85,9 +85,14 @@ export default function Tickets() {
   });
 
   // Fetch customers for the dropdown
-  const { data: customersData } = useQuery({
+  const { data: customersData, isLoading: customersLoading } = useQuery({
     queryKey: ["/api/customers"],
-    retry: false,
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers");
+      return response.json();
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch companies for filtering
@@ -102,9 +107,12 @@ export default function Tickets() {
     retry: false,
   });
 
-  const customers = (customersData as any)?.customers || [];
+  // Extract customers with proper error handling
+  const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   const companies = Array.isArray(companiesData) ? companiesData : [];
   const users = (usersData as any)?.users || [];
+
+  console.log('Customers data:', { customersData, customers: customers.length });
 
   // Form setup
   const form = useForm<CreateTicketFormData>({
@@ -339,11 +347,20 @@ export default function Tickets() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {filteredCustomers.map((customer: any) => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                {customer.fullName || `${customer.first_name} ${customer.last_name}`} ({customer.email})
+                            {customersLoading ? (
+                              <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
+                            ) : filteredCustomers.length === 0 ? (
+                              <SelectItem value="no-customers" disabled>
+                                Nenhum cliente encontrado
                               </SelectItem>
-                            ))}
+                            ) : (
+                              filteredCustomers.map((customer: any) => (
+                                <SelectItem key={customer.id} value={customer.id}>
+                                  {customer.name || customer.fullName || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || customer.email} 
+                                  {customer.email && ` (${customer.email})`}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
