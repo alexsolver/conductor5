@@ -123,7 +123,7 @@ export function PersonSelector({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("justify-between", className || "")}
           disabled={disabled}
         >
           {selectedPerson ? (

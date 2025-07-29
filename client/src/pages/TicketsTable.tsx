@@ -1,3 +1,4 @@
+typescript
 import { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -845,9 +846,21 @@ export default function TicketsTable() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
               console.error('❌ Form validation errors:', errors);
+
+              // Extract specific error messages
+              const errorMessages = [];
+              if (errors.shortDescription) errorMessages.push('Título do ticket é obrigatório');
+              if (errors.description) errorMessages.push('Descrição é obrigatória');
+              if (errors.companyId) errorMessages.push('Empresa é obrigatória');
+              if (errors.callerId) errorMessages.push('Cliente é obrigatório');
+
+              const errorText = errorMessages.length > 0 
+                ? errorMessages.join('. ') 
+                : 'Por favor, corrija os erros no formulário';
+
               toast({
                 title: "Erro de Validação",
-                description: "Por favor, corrija os erros no formulário",
+                description: errorText,
                 variant: "destructive",
               });
             })} className="space-y-6">
@@ -881,7 +894,7 @@ export default function TicketsTable() {
                     className="min-h-[100px]"
                     {...field} 
                   />
-                </FormControl>
+                                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -901,7 +914,7 @@ export default function TicketsTable() {
                       onValueChange={field.onChange}
                       placeholder="Select category"
                     />
-                  </FormControl>```python
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -1769,9 +1782,21 @@ export default function TicketsTable() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
               console.error('❌ Form validation errors:', errors);
+
+              // Extract specific error messages
+              const errorMessages = [];
+              if (errors.shortDescription) errorMessages.push('Título do ticket é obrigatório');
+              if (errors.description) errorMessages.push('Descrição é obrigatória');
+              if (errors.companyId) errorMessages.push('Empresa é obrigatória');
+              if (errors.callerId) errorMessages.push('Cliente é obrigatório');
+
+              const errorText = errorMessages.length > 0 
+                ? errorMessages.join('. ') 
+                : 'Por favor, corrija os erros no formulário';
+
               toast({
                 title: "Erro de Validação",
-                description: "Por favor, corrija os erros no formulário",
+                description: errorText,
                 variant: "destructive",
               });
             })} className="space-y-6">
@@ -1830,6 +1855,7 @@ export default function TicketsTable() {
                             <FormLabel>Categoria</FormLabel>
                             <FormControl>
                               <DynamicSelect
+```typescript
                                 fieldName="category"
                                 value={field.value}
                                 onValueChange={field.onChange}
