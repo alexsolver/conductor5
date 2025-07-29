@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthenticatedRequest, jwtAuth } from '../middleware/jwtAuth';
-import { storage } from '../storage-simple';
+import { getStorage } from '../storage-simple';
 import { logInfo, logError } from '../utils/logger';
 import { sendSuccess, sendError } from '../utils/standardResponse';
 
@@ -23,8 +23,8 @@ router.get('/search', async (req: AuthenticatedRequest, res) => {
       return sendSuccess(res, [], "Query too short - minimum 3 characters required");
     }
 
-    // Note: searchTickets method needs to be implemented in storage
-    const tickets = [];
+    const storage = await getStorage();
+    const tickets = await storage.searchTickets(tenantId, query);
     return sendSuccess(res, tickets, "Tickets searched successfully");
   } catch (error) {
     logError('Error searching tickets', error as any, { tenantId: req.user?.tenantId, query: req.query.q });
@@ -42,8 +42,8 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
       return sendError(res, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
-    // Note: getTicketRelationships method needs to be implemented in storage
-    const relationships = [];
+    const storage = await getStorage();
+    const relationships = await storage.getTicketRelationships(tenantId, id);
     return sendSuccess(res, relationships, "Ticket relationships retrieved successfully");
   } catch (error) {
     logError('Error fetching ticket relationships', error as any, { tenantId: req.user?.tenantId, ticketId: req.params.id });
@@ -61,8 +61,8 @@ router.post('/:id/relationships', async (req: AuthenticatedRequest, res) => {
       return sendError(res, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
-    // Note: createTicketRelationship method needs to be implemented in storage
-    const relationship = null;
+    const storage = await getStorage();
+    const relationship = await storage.createTicketRelationship(tenantId, id, req.body);
     
     logInfo('Ticket relationship created', { tenantId, ticketId: id, relationshipId: relationship?.id });
     return sendSuccess(res, relationship, "Ticket relationship created successfully", 201);
@@ -82,8 +82,8 @@ router.delete('/relationships/:id', async (req: AuthenticatedRequest, res) => {
       return sendError(res, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
-    // Note: deleteTicketRelationship method needs to be implemented in storage
-    const success = false;
+    const storage = await getStorage();
+    const success = await storage.deleteTicketRelationship(tenantId, id);
     
     if (!success) {
       return sendError(res, "Relationship not found", "Relationship not found", 404);
@@ -107,8 +107,8 @@ router.get('/:id/hierarchy', async (req: AuthenticatedRequest, res) => {
       return sendError(res, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
-    // Note: getTicketHierarchy method needs to be implemented in storage
-    const hierarchy = [];
+    const storage = await getStorage();
+    const hierarchy = await storage.getTicketHierarchy(tenantId, id);
     return sendSuccess(res, hierarchy, "Ticket hierarchy retrieved successfully");
   } catch (error) {
     logError('Error fetching ticket hierarchy', error as any, { tenantId: req.user?.tenantId, ticketId: req.params.id });
