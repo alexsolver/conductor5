@@ -314,10 +314,19 @@ const TicketConfiguration: React.FC = () => {
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
-      const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}`);
+      // Add timestamp to prevent caching issues
+      const timestamp = Date.now();
+      const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}&_t=${timestamp}`);
       const result = await response.json();
       console.log('🔍 Field options query result for company:', selectedCompany, result);
-      return result.success ? result.data : [];
+      
+      // Validate data structure
+      if (!result.success || !Array.isArray(result.data)) {
+        console.error('❌ Invalid field options response:', result);
+        return [];
+      }
+      
+      return result.data;
     },
     enabled: !!selectedCompany,
     staleTime: 0,
@@ -325,7 +334,9 @@ const TicketConfiguration: React.FC = () => {
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: false,
-    retry: 3
+    retry: 3,
+    // Force network requests, ignore cache
+    networkMode: 'always'
   });
 
   const { data: numberingConfig } = useQuery({
@@ -414,17 +425,24 @@ const TicketConfiguration: React.FC = () => {
     onSuccess: async (result) => {
       console.log('✅ Field option created successfully:', result);
 
-      // Force complete cache invalidation
-      queryClient.removeQueries({ queryKey: ['field-options'] });
+      // Complete cache reset strategy
+      const queryKey = ['field-options', selectedCompany];
+      
+      // 1. Remove from cache
+      queryClient.removeQueries({ queryKey });
+      
+      // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
       
-      // Wait for a moment and then refetch
-      setTimeout(async () => {
-        await queryClient.refetchQueries({ 
-          queryKey: ['field-options', selectedCompany], 
-          type: 'active' 
-        });
-      }, 100);
+      // 3. Force immediate refetch with fresh data
+      await queryClient.refetchQueries({ 
+        queryKey, 
+        type: 'active',
+        exact: true 
+      });
+
+      // 4. Reset stale time to force immediate refresh
+      queryClient.setQueryData(queryKey, undefined);
 
       setDialogOpen(false);
       fieldOptionForm.reset();
@@ -1058,17 +1076,46 @@ const TicketConfiguration: React.FC = () => {
                 color: 'red'
               }
             ].map(({ key, title, description, icon: Icon, color }) => {
-              const fieldOptionsForType = fieldOptions
-                .filter((option: FieldOption) => {
-                  const matches = option.fieldName === key;
+              // Ensure we have valid data and map database fields correctly
+              const validFieldOptions = Array.isArray(fieldOptions) ? fieldOptions : [];
+              
+              const fieldOptionsForType = validFieldOptions
+                .filter((option: any) => {
+                  // Handle both camelCase and snake_case field names from DB
+                  const fieldName = option.fieldName || option.field_name;
+                  const matches = fieldName === key;
+                  
                   if (key === 'status') {
-                    console.log('🔍 Filtering status option:', option.displayLabel, 'fieldName:', option.fieldName, 'matches:', matches);
+                    console.log('🔍 Filtering status option:', {
+                      displayLabel: option.displayLabel || option.display_label,
+                      fieldName: fieldName,
+                      expected: key,
+                      matches: matches,
+                      rawOption: option
+                    });
                   }
                   return matches;
                 })
+                .map((option: any) => ({
+                  // Normalize the object structure
+                  id: option.id,
+                  fieldName: option.fieldName || option.field_name,
+                  value: option.value,
+                  displayLabel: option.displayLabel || option.display_label,
+                  color: option.color,
+                  icon: option.icon,
+                  isDefault: option.isDefault || option.is_default,
+                  active: option.active,
+                  sortOrder: option.sortOrder || option.sort_order || 1,
+                  statusType: option.statusType || option.status_type
+                }))
                 .sort((a, b) => a.sortOrder - b.sortOrder);
 
-              console.log(`🔍 Field options for ${key}:`, fieldOptionsForType.length, fieldOptionsForType.map(o => o.displayLabel));
+              console.log(`🔍 Field options for ${key}:`, {
+                total: validFieldOptions.length,
+                filtered: fieldOptionsForType.length,
+                options: fieldOptionsForType.map(o => ({ label: o.displayLabel, value: o.value }))
+              });
 
               return (
                 <Card key={key} className="overflow-hidden">
