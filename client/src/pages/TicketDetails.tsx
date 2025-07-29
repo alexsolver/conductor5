@@ -325,6 +325,8 @@ export default function TicketDetails() {
 
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado
   const handleCompanyChange = async (newCompanyId: string) => {
+    console.log('🏢 Company change:', { newCompanyId, selectedCompany });
+    
     // Only proceed if company actually changed
     if (newCompanyId === selectedCompany) return;
 
@@ -343,6 +345,7 @@ export default function TicketDetails() {
 
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
+          console.log('✅ Customers loaded for company:', data.customers.length);
         } else {
           setSelectedCompanyCustomers([]);
         }
@@ -352,6 +355,21 @@ export default function TicketDetails() {
       }
     } else {
       setSelectedCompanyCustomers([]);
+    }
+  };
+
+  // Handle customer selection with proper form updates
+  const handleCustomerChange = (customerId: string, type: 'caller' | 'beneficiary') => {
+    console.log('👤 Customer change:', { customerId, type });
+    
+    if (type === 'caller') {
+      form.setValue('callerId', customerId);
+      // Se não há beneficiário específico, usar o mesmo cliente
+      if (!form.getValues('beneficiaryId')) {
+        form.setValue('beneficiaryId', customerId);
+      }
+    } else {
+      form.setValue('beneficiaryId', customerId);
     }
   };
 
@@ -1760,10 +1778,16 @@ export default function TicketDetails() {
               {isEditMode ? (
                 <Select 
                   onValueChange={handleCompanyChange}
-                  value={ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
+                  value={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Selecione a empresa cliente" />
+                    <SelectValue placeholder="Selecione a empresa cliente">
+                      {(() => {
+                        const currentValue = form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                        const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === currentValue);
+                        return companyData?.name || (currentValue && currentValue !== 'unspecified' ? 'Empresa não encontrada' : 'Selecione a empresa cliente');
+                      })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unspecified">Não especificado</SelectItem>
@@ -1833,11 +1857,36 @@ export default function TicketDetails() {
               <div className="space-y-2">
                 {isEditMode ? (
                   <Select 
-                    onValueChange={(value) => form.setValue('callerId', value)} 
-                    value={ticket.caller_id || ticket.callerId || ''}
+                    onValueChange={(value) => handleCustomerChange(value, 'caller')} 
+                    value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o cliente" />
+                      <SelectValue placeholder="Selecione o cliente">
+                        {(() => {
+                          const currentValue = form.getValues('callerId') || ticket.caller_id || ticket.callerId;
+                          const customer = availableCustomers.find((c: any) => c.id === currentValue);
+                          
+                          if (!customer && currentValue && currentValue !== 'unspecified') {
+                            // Se não encontrar nos disponíveis, buscar nos dados gerais dos customers
+                            const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+                            const fallbackCustomer = allCustomers.find((c: any) => c.id === currentValue);
+                            if (fallbackCustomer) {
+                              return fallbackCustomer.fullName || fallbackCustomer.name || 
+                                     `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
+                                     fallbackCustomer.email || 'Cliente encontrado';
+                            }
+                            return 'Cliente não encontrado';
+                          }
+                          
+                          if (!customer) {
+                            return (currentValue === 'unspecified' || !currentValue) ? 'Selecione o cliente' : 'Cliente não encontrado';
+                          }
+                          
+                          return customer.fullName || customer.name || 
+                                 `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
+                                 customer.email || 'Cliente sem nome';
+                        })()}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unspecified">Não especificado</SelectItem>
@@ -1917,11 +1966,25 @@ export default function TicketDetails() {
               <div className="space-y-2">
                 {isEditMode ? (
                   <Select 
-                    onValueChange={(value) => form.setValue('beneficiaryId', value)} 
-                    value={ticket.beneficiary_id || ticket.beneficiaryId || ''}
+                    onValueChange={(value) => handleCustomerChange(value, 'beneficiary')} 
+                    value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o favorecido" />
+                      <SelectValue placeholder="Selecione o favorecido">
+                        {(() => {
+                          const currentValue = form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId;
+                          const beneficiary = availableCustomers.find((c: any) => c.id === currentValue) || 
+                                            (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === currentValue);
+                          
+                          if (!beneficiary) {
+                            return (currentValue === 'unspecified' || !currentValue) ? 'Selecione o favorecido' : 'Favorecido não encontrado';
+                          }
+                          
+                          return beneficiary.fullName || beneficiary.name || 
+                                 `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+                                 beneficiary.email || 'Favorecido sem nome';
+                        })()}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unspecified">Não especificado</SelectItem>
@@ -2008,10 +2071,16 @@ export default function TicketDetails() {
                 {isEditMode ? (
                   <Select 
                     onValueChange={(value) => form.setValue('location', value)} 
-                    value={ticket.location || ''}
+                    value={form.getValues('location') || ticket.location || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o local" />
+                      <SelectValue placeholder="Selecione o local">
+                        {(() => {
+                          const currentValue = form.getValues('location') || ticket.location;
+                          const location = locationsData?.data?.locations?.find((l: any) => l.id === currentValue);
+                          return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : 'Selecione o local');
+                        })()}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unspecified">Não especificado</SelectItem>
@@ -2049,10 +2118,17 @@ export default function TicketDetails() {
               {isEditMode ? (
                 <Select 
                   onValueChange={(value) => form.setValue('assignedToId', value)} 
-                  value={ticket.assigned_to_id || ticket.assignedToId || ''}
+                  value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Selecione o responsável" />
+                    <SelectValue placeholder="Selecione o responsável">
+                      {(() => {
+                        const currentValue = form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId;
+                        if (currentValue === 'unassigned' || !currentValue) return 'Não atribuído';
+                        const user = users?.users?.find((u: any) => u.id === currentValue);
+                        return user?.name || 'Usuário não encontrado';
+                      })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unassigned">Não atribuído</SelectItem>
