@@ -694,7 +694,7 @@ export default function TicketDetails() {
         location: ticket.location || "",
         contactType: ticket.contact_type || "email",
         followers: ticket.followers || [],
-        customerCompanyId: ticket.customer_company_id || ticket.customer_id || "",
+        customerCompanyId: ticket.customer_company_id || "",
       });
 
       // Update local states to sync with ticket data
@@ -916,13 +916,20 @@ export default function TicketDetails() {
               <h3 className="text-sm font-semibold text-gray-600 mb-4">BÁSICO</h3>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Número do Ticket */}
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Número do Ticket</label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    <span className="text-sm font-mono">{ticket?.number || "N/A"}</span>
-                  </div>
-                </div>
+                {/* Assunto */}
+                <FormField
+                  control={form.control}
+                  name="subject"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assunto *</FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled={!isEditMode} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Tipo de Contato */}
                 <FormField
@@ -948,23 +955,6 @@ export default function TicketDetails() {
                     </FormItem>
                   )}
                 />
-
-                {/* Assunto - Coluna completa */}
-                <div className="col-span-2">
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Assunto *</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={!isEditMode} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
 
                 {/* Solicitante */}
                 <FormField
@@ -1415,8 +1405,8 @@ export default function TicketDetails() {
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{ticket?.subject || "Carregando..."}</h1>
-            <p className="text-gray-600">Ticket #{ticket?.number || "N/A"}</p>
+            <h1 className="text-2xl font-bold">{ticket.subject}</h1>
+            <p className="text-gray-600">Ticket #{ticket.number}</p>
           </div>
         </div>
         <div className="flex gap-2">
