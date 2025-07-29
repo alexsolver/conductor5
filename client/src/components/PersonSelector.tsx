@@ -140,12 +140,13 @@ export function PersonSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
+          <CommandInput placeholder="Digite para buscar..." />
           <CommandEmpty>
             {!companyFilter || companyFilter === 'unspecified' 
-              ? "Selecione uma empresa primeiro"
+              ? "Selecione uma empresa primeiro para ver os clientes"
               : people.length === 0 
-              ? "Nenhuma pessoa encontrada"
-              : "Digite para filtrar"
+              ? "Nenhuma pessoa encontrada para esta empresa"
+              : "Digite para filtrar pessoas"
             }
           </CommandEmpty>
           <CommandList>

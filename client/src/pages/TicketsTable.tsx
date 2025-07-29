@@ -671,23 +671,6 @@ export default function TicketsTable() {
     hasToken: !!localStorage.getItem('accessToken')
   });
 
-  // Esquema de validação para criação de tickets
-const ticketFormSchema = z.object({
-  companyId: z.string().min(1, "Empresa é obrigatória"),
-  callerId: z.string().min(1, "Solicitante é obrigatório"),
-  callerType: z.enum(["user", "customer"]).default("customer"),
-  beneficiaryId: z.string().optional(),
-  beneficiaryType: z.enum(["user", "customer"]).optional(),
-  subject: z.string().min(1, "Assunto é obrigatório"),
-  description: z.string().min(1, "Descrição é obrigatória"),
-  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
-  category: z.string().optional(),
-  subcategory: z.string().optional(),
-  assignedToId: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  status: z.enum(["open", "in_progress", "resolved", "closed"]).default("open"),
-});
-
   // Form setup
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
@@ -765,14 +748,21 @@ const ticketFormSchema = z.object({
 
 
   const onSubmit = (data: TicketFormData) => {
+    // Map shortDescription to subject for legacy compatibility
+    const subject = data.shortDescription || data.subject;
+    
     const submitData = {
-      // Core ticket fields
-      subject: data.subject,
+      // Core ticket fields (using ServiceNow-style naming)
+      subject: subject,
+      shortDescription: data.shortDescription,
       description: data.description,
       priority: data.priority,
-      status: data.status || "open",
+      status: data.state || data.status || "open",
+      state: data.state || "new",
       category: data.category || "",
       subcategory: data.subcategory || "",
+      impact: data.impact || "medium",
+      urgency: data.urgency || "medium",
 
       // People assignments
       customerId: data.callerId, // Map callerId to customerId for backend
@@ -781,9 +771,19 @@ const ticketFormSchema = z.object({
       beneficiary_id: data.beneficiaryId || data.callerId,
       beneficiary_type: data.beneficiaryType || data.callerType,
       assigned_to_id: data.assignedToId === "unassigned" ? undefined : data.assignedToId,
+      assignment_group: data.assignmentGroup || "",
 
       // Company relationship
       customer_company_id: data.companyId,
+      
+      // Contact and location info
+      contact_type: data.contactType || "email",
+      location: data.location || "",
+
+      // Business fields
+      business_impact: data.businessImpact || "",
+      symptoms: data.symptoms || "",
+      workaround: data.workaround || "",
 
       // Additional fields
       tags: data.tags || [],
@@ -1157,13 +1157,7 @@ const ticketFormSchema = z.object({
         </div>
 
         {/* Legacy Fields (Hidden but mapped) */}
-        <FormField
-          control={form.control}
-          name="subject"
-          render={({ field }) => (
-            <input type="hidden" {...field} value={form.watch("shortDescription")} />
-          )}
-        />
+        <input type="hidden" value={form.watch("shortDescription")} />
 
 
 
