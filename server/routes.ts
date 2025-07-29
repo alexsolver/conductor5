@@ -497,9 +497,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.first_name as "firstName", 
           c.last_name as "lastName", 
           c.email, 
-          c.customer_type as "customerType", 
-          c.company_name as "companyName", 
-          c.status
+          c.phone,
+          c.company
         FROM "${schemaName}"."customers" c
         WHERE c.tenant_id = $1
         AND c.id NOT IN (
