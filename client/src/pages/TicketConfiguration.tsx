@@ -934,7 +934,7 @@ const TicketConfiguration: React.FC = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                  </                  </TableBody>
+                  </TableBody>
                 </Table>
               </CardContent>
             </Card>
