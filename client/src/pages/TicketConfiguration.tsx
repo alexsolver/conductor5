@@ -282,9 +282,6 @@ const TicketConfiguration: React.FC = () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/subcategories?companyId=${selectedCompany}`);
       const result = await response.json();
-      console.log('🔍 Subcategories response:', result);
-      console.log('📊 Subcategories data count:', result?.data?.length || 0);
-      console.log('📋 Subcategories data:', result?.data);
       return result.success ? result.data : [];
     },
     enabled: !!selectedCompany
@@ -353,17 +350,14 @@ const TicketConfiguration: React.FC = () => {
 
   const createSubcategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof subcategorySchema>) => {
-      console.log('🔄 Creating subcategory with data:', data);
       const response = await apiRequest('POST', '/api/ticket-config/subcategories', {
         ...data,
         companyId: selectedCompany
       });
       const result = await response.json();
-      console.log('✅ Subcategory creation response:', result);
       return result;
     },
     onSuccess: async (result) => {
-      console.log('🔄 Invalidating and refetching subcategories query...');
       // Invalidate with the correct query key
       await queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
       // Force refetch to ensure UI updates
@@ -461,7 +455,6 @@ const TicketConfiguration: React.FC = () => {
         active: item?.active !== undefined ? item.active : true,
         sortOrder: item?.sortOrder || 1
       };
-      console.log('🔄 Initializing subcategory form with data:', formData);
       subcategoryForm.reset(formData);
     } else if (type === 'category') {
       categoryForm.reset({
@@ -522,17 +515,7 @@ const TicketConfiguration: React.FC = () => {
     }
   }, [numberingConfig, numberingForm]);
 
-  // Debug effect para monitorar mudanças nas subcategorias
-  useEffect(() => {
-    console.log('🔄 Subcategories data updated:', subcategories);
-    console.log('📊 Total subcategories:', subcategories.length);
-    if (categories.length > 0) {
-      categories.forEach(cat => {
-        const subCount = subcategories.filter(sub => sub.categoryId === cat.id).length;
-        console.log(`📂 Category "${cat.name}" (${cat.id}): ${subCount} subcategories`);
-      });
-    }
-  }, [subcategories, categories]);
+  
 
   return (
     <div className="container mx-auto p-6">
@@ -657,7 +640,6 @@ const TicketConfiguration: React.FC = () => {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log('🔄 Opening subcategory dialog with categoryId:', category.id);
                               openDialog('subcategory', { categoryId: category.id });
                             }}
                           >
@@ -684,11 +666,9 @@ const TicketConfiguration: React.FC = () => {
                               .filter((sub: Subcategory) => {
                                 // Handle both camelCase and snake_case from API
                                 const subCategoryId = sub.categoryId || (sub as any).category_id;
-                                console.log('🔍 Filtering subcategory:', sub.name, 'categoryId:', subCategoryId, 'target:', category.id);
                                 return subCategoryId === category.id;
                               })
                               .map((subcategory: Subcategory) => {
-                                console.log('✅ Rendering subcategory:', subcategory);
                                 return (
                                   <div key={subcategory.id} className="bg-white border rounded p-3">
                                     <div className="flex items-center justify-between mb-2">
@@ -724,15 +704,7 @@ const TicketConfiguration: React.FC = () => {
                                 );
                               })}
                             
-                            {/* Debug info - show all subcategories for this category */}
-                            {process.env.NODE_ENV === 'development' && (
-                              <div className="text-xs text-gray-400 mt-2">
-                                Debug: {subcategories.filter(sub => {
-                                  const subCategoryId = sub.categoryId || (sub as any).category_id;
-                                  return subCategoryId === category.id;
-                                }).length} subcategorias encontradas
-                              </div>
-                            )}
+                            
 
                             {/* Actions for each subcategory */}
                             {subcategories
