@@ -823,7 +823,7 @@ ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: Authenticate
       LEFT JOIN public.users u ON tn.created_by = u.id
       WHERE tn.ticket_id = $1 AND tn.tenant_id = $2 AND tn.is_active = true
       ORDER BY tn.created_at DESC
-    `;
+    `;</query>
 
     const result = await pool.query(query, [id, tenantId]);
 
