@@ -1079,4 +1079,5 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
     });
   }
 });
-export { customersRouter };
+
+export default customersRouter;
