@@ -30,6 +30,21 @@ export default function Customers() {
   const customers = customersData?.customers || [];
   const total = customersData?.total || customers.length;
 
+  // Hook para buscar empresas associadas de cada cliente
+  const useCustomerCompanies = (customerId: string) => {
+    return useQuery({
+      queryKey: [`/api/customers/${customerId}/companies`],
+      queryFn: async () => {
+        const { apiRequest } = await import('../lib/queryClient');
+        const response = await apiRequest('GET', `/api/customers/${customerId}/companies`);
+        const data = await response.json();
+        return Array.isArray(data) ? data : (data?.data || []);
+      },
+      enabled: !!customerId,
+      staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    });
+  };
+
   console.log('Customers data:', { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
@@ -56,6 +71,40 @@ export default function Customers() {
       return firstName[0].toUpperCase();
     }
     return "?";
+  };
+
+  // Componente para renderizar empresas associadas
+  const CustomerCompanies = ({ customerId }: { customerId: string }) => {
+    const { data: companies, isLoading } = useCustomerCompanies(customerId);
+    
+    if (isLoading) {
+      return <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>;
+    }
+    
+    if (!companies || companies.length === 0) {
+      return <span className="text-gray-400">-</span>;
+    }
+    
+    if (companies.length === 1) {
+      return (
+        <div className="flex items-center text-gray-600 dark:text-gray-400">
+          <Building className="h-3 w-3 mr-1" />
+          <span className="truncate">{companies[0].name}</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center text-gray-600 dark:text-gray-400">
+        <Building className="h-3 w-3 mr-1" />
+        <span className="truncate">
+          {companies[0].name}
+          <span className="text-xs text-gray-400 ml-1">
+            +{companies.length - 1}
+          </span>
+        </span>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -183,9 +232,7 @@ export default function Customers() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {customer.companyName || customer.company || "-"}
-                    </span>
+                    <CustomerCompanies customerId={customer.id} />
                   </TableCell>
                   <TableCell>
                     <Badge variant={customer.status === 'Ativo' ? "default" : "secondary"}>
