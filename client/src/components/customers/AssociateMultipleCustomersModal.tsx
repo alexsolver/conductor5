@@ -68,7 +68,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       
       if (!token) {
         throw new Error('Token de autenticação não encontrado');
@@ -158,7 +158,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/customers/companies/${company?.id}/associate-multiple`, {
         method: 'POST',
         headers: {
