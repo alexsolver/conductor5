@@ -71,10 +71,10 @@ export const trackTicketCreate = activityTrackingMiddleware('create_ticket', 'ti
 export const trackCustomerView = activityTrackingMiddleware('view_customer', 'customer');
 export const trackMessageSend = activityTrackingMiddleware('send_message', 'communication');
 
-// Notes tracking middleware
-export const trackNoteView = activityTrackingMiddleware('view_notes', 'note');
-export const trackNoteCreate = activityTrackingMiddleware('create_note', 'note');
-
-// Internal actions tracking middleware
-export const trackInternalActionView = activityTrackingMiddleware('view_internal_actions', 'internal_action');
-export const trackInternalActionCreate = activityTrackingMiddleware('create_internal_action', 'internal_action');
+// Ticket notes and actions tracking
+export const trackNoteCreate = activityTrackingMiddleware('create_note', 'ticket');
+export const trackNoteEdit = activityTrackingMiddleware('edit_note', 'ticket');
+export const trackNoteView = activityTrackingMiddleware('view_notes', 'ticket');
+export const trackInternalActionCreate = activityTrackingMiddleware('create_internal_action', 'ticket');
+export const trackInternalActionEdit = activityTrackingMiddleware('edit_internal_action', 'ticket');
+export const trackInternalActionView = activityTrackingMiddleware('view_actions', 'ticket');

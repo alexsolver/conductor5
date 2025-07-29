@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,22 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Activity, BarChart3, Calendar, Download, User, TrendingUp } from 'lucide-react';
+import { 
+  Activity, 
+  Users, 
+  MessageSquare, 
+  Eye, 
+  Edit, 
+  Plus,
+  Calendar,
+  Clock,
+  BarChart3,
+  TrendingUp,
+  Filter,
+  FileText,
+  Wrench,
+  Settings
+} from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -69,7 +83,13 @@ export default function ProductivityReports() {
       'edit_ticket': 'Editar Tickets',
       'create_ticket': 'Criar Tickets',
       'send_message': 'Enviar Mensagens',
-      'view_customer': 'Visualizar Clientes'
+      'view_customer': 'Visualizar Clientes',
+      'create_note': 'Criar Nota',
+      'edit_note': 'Editar Nota',
+      'view_notes': 'Visualizar Notas',
+      'create_internal_action': 'Criar Ação Interna',
+      'edit_internal_action': 'Editar Ação Interna',
+      'view_actions': 'Visualizar Ações',
     };
     return labels[type] || type;
   };
