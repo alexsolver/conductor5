@@ -1849,11 +1849,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and use ticket configuration routes
   const ticketConfigRoutes = await import('./routes/ticketConfigRoutes');
   app.use('/api/ticket-config', ticketConfigRoutes.default);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      res.status(500).json({ message: 'Failed to fetch categories' });
-    }
-  });
 
   app.post('/api/ticket-config/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
