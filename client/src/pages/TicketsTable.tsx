@@ -846,16 +846,24 @@ export default function TicketsTable() {
       <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
               console.error('❌ Form validation errors:', errors);
 
-              // Extract specific error messages
+              // Extract specific error messages with better detail
               const errorMessages = [];
-              if (errors.shortDescription) errorMessages.push('Título do ticket é obrigatório');
-              if (errors.description) errorMessages.push('Descrição é obrigatória');
-              if (errors.companyId) errorMessages.push('Empresa é obrigatória');
-              if (errors.callerId) errorMessages.push('Cliente é obrigatório');
+              if (errors.shortDescription) {
+                errorMessages.push(errors.shortDescription.message || 'Título do ticket é obrigatório');
+              }
+              if (errors.description) {
+                errorMessages.push(errors.description.message || 'Descrição é obrigatória');
+              }
+              if (errors.companyId) {
+                errorMessages.push(errors.companyId.message || 'Empresa é obrigatória');
+              }
+              if (errors.callerId) {
+                errorMessages.push(errors.callerId.message || 'Cliente é obrigatório');
+              }
 
               const errorText = errorMessages.length > 0 
                 ? errorMessages.join('. ') 
-                : 'Por favor, corrija os erros no formulário';
+                : 'Por favor, preencha todos os campos obrigatórios';
 
               toast({
                 title: "Erro de Validação",
@@ -1782,16 +1790,24 @@ export default function TicketsTable() {
             <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
               console.error('❌ Form validation errors:', errors);
 
-              // Extract specific error messages
+              // Extract specific error messages with better detail
               const errorMessages = [];
-              if (errors.shortDescription) errorMessages.push('Título do ticket é obrigatório');
-              if (errors.description) errorMessages.push('Descrição é obrigatória');
-              if (errors.companyId) errorMessages.push('Empresa é obrigatória');
-              if (errors.callerId) errorMessages.push('Cliente é obrigatório');
+              if (errors.shortDescription) {
+                errorMessages.push(errors.shortDescription.message || 'Título do ticket é obrigatório');
+              }
+              if (errors.description) {
+                errorMessages.push(errors.description.message || 'Descrição é obrigatória');
+              }
+              if (errors.companyId) {
+                errorMessages.push(errors.companyId.message || 'Empresa é obrigatória');
+              }
+              if (errors.callerId) {
+                errorMessages.push(errors.callerId.message || 'Cliente é obrigatório');
+              }
 
               const errorText = errorMessages.length > 0 
                 ? errorMessages.join('. ') 
-                : 'Por favor, corrija os erros no formulário';
+                : 'Por favor, preencha todos os campos obrigatórios';
 
               toast({
                 title: "Erro de Validação",
