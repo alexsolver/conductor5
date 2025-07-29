@@ -21,6 +21,7 @@ export default function Customers() {
   });
 
   const customers = customersData?.data || [];
+  const total = customersData?.total || customers.length;
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
@@ -76,7 +77,7 @@ export default function Customers() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your customer database and relationships</p>
+          <p className="text-gray-600 dark:text-gray-400">Manage your customer database and relationships ({total} registros)</p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
