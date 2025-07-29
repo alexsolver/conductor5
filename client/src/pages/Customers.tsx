@@ -20,7 +20,7 @@ export default function Customers() {
     retry: false,
   });
 
-  const customers = customersData?.data || [];
+  const customers = customersData?.customers || [];
   const total = customersData?.total || customers.length;
 
   const handleAddCustomer = () => {
