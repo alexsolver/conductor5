@@ -74,7 +74,7 @@ export function setupCustomerDependencies(): void {
   ));
 
   // Register customer company controller
-  container.registerSingleton(TOKENS.CUSTOMER_COMPANY_CONTROLLER, () => new CustomerCompanyController(
+  container.register(TOKENS.CUSTOMER_COMPANY_CONTROLLER, () => new CustomerCompanyController(
     container.resolve(TOKENS.CREATE_CUSTOMER_COMPANY_USE_CASE),
     container.resolve(TOKENS.GET_CUSTOMER_COMPANIES_USE_CASE),
     container.resolve(TOKENS.UPDATE_CUSTOMER_COMPANY_USE_CASE),
@@ -83,19 +83,11 @@ export function setupCustomerDependencies(): void {
 }
 
 export function getCustomerController(): CustomerController {
-  // Ensure dependencies are set up before resolving
-  if (!container.isRegistered(TOKENS.CUSTOMER_APPLICATION_SERVICE)) {
-    setupCustomerDependencies();
-  }
   return new CustomerController(
     container.resolve(TOKENS.CUSTOMER_APPLICATION_SERVICE)
   );
 }
 
 export function getCustomerCompanyController(): CustomerCompanyController {
-  // Ensure dependencies are set up before resolving
-  if (!container.isRegistered(TOKENS.CUSTOMER_COMPANY_CONTROLLER)) {
-    setupCustomerDependencies();
-  }
   return container.resolve(TOKENS.CUSTOMER_COMPANY_CONTROLLER);
 }
