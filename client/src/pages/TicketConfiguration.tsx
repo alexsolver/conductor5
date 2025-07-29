@@ -588,7 +588,7 @@ const TicketConfiguration: React.FC = () => {
 
       {selectedCompany && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="hierarchy" className="flex items-center space-x-2">
               <FolderTree className="w-4 h-4" />
               <span>Categorização</span>
@@ -600,10 +600,6 @@ const TicketConfiguration: React.FC = () => {
             <TabsTrigger value="numbering" className="flex items-center space-x-2">
               <Hash className="w-4 h-4" />
               <span>Numeração</span>
-            </TabsTrigger>
-            <TabsTrigger value="styling" className="flex items-center space-x-2">
-              <Palette className="w-4 h-4" />
-              <span>Cores e Estilos</span>
             </TabsTrigger>
             <TabsTrigger value="validation" className="flex items-center space-x-2">
               <AlertTriangle className="w-4 h-4" />
@@ -1298,24 +1294,7 @@ const TicketConfiguration: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Tab: Cores e Estilos */}
-          <TabsContent value="styling" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cores e Ícones</CardTitle>
-                <CardDescription>
-                  Configure a aparência visual dos elementos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-gray-500">
-                  <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>As cores são configuradas individualmente em cada item nas outras abas.</p>
-                  <p className="text-sm mt-2">Vá para "Hierarquia" ou "Classificação" para configurar cores específicas.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          
 
           {/* Tab: Validação */}
           <TabsContent value="validation" className="space-y-6">
@@ -1694,29 +1673,44 @@ const TicketConfiguration: React.FC = () => {
           {editingItem?.type === 'field-option' && (
             <Form {...fieldOptionForm}>
               <form onSubmit={fieldOptionForm.handleSubmit((data) => createFieldOptionMutation.mutate(data))} className="space-y-4">
-                <FormField
-                  control={fieldOptionForm.control}
-                  name="fieldName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Campo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={editingItem.fieldName || field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o campo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="status">Status</SelectItem>
-                          <SelectItem value="priority">Prioridade</SelectItem>
-                          <SelectItem value="impact">Impacto</SelectItem>
-                          <SelectItem value="urgency">Urgência</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {editingItem.fieldName ? (
+                  <div className="space-y-2">
+                    <FormLabel>Campo</FormLabel>
+                    <div className="p-3 bg-gray-50 rounded-md border">
+                      <span className="font-medium capitalize">
+                        {editingItem.fieldName === 'status' && 'Status'}
+                        {editingItem.fieldName === 'priority' && 'Prioridade'}
+                        {editingItem.fieldName === 'impact' && 'Impacto'}
+                        {editingItem.fieldName === 'urgency' && 'Urgência'}
+                      </span>
+                    </div>
+                    <input type="hidden" {...fieldOptionForm.register('fieldName')} value={editingItem.fieldName} />
+                  </div>
+                ) : (
+                  <FormField
+                    control={fieldOptionForm.control}
+                    name="fieldName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Campo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o campo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="status">Status</SelectItem>
+                            <SelectItem value="priority">Prioridade</SelectItem>
+                            <SelectItem value="impact">Impacto</SelectItem>
+                            <SelectItem value="urgency">Urgência</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={fieldOptionForm.control}
