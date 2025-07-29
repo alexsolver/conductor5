@@ -504,12 +504,27 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 // FIELD OPTIONS - Configuração de campos (status, priority, impact, urgency)
 // ============================================================================
 
-async function getFieldOptions(tenantId: string) {
-  const { pool } = await import('../db');
-  const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+
+// Get all field options
+router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const query = `
+    const tenantId = req.user?.tenantId;
+    const companyId = req.query.companyId as string;
+
+    if (!tenantId) {
+      return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+    }
+
+    if (!companyId) {
+      return res.status(400).json({ success: false, message: "Company ID is required" });
+    }
+
+    console.log('🔍 Fetching field options for:', { tenantId, companyId });
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    const result = await db.execute(sql`
       SELECT 
         id,
         tenant_id,
@@ -525,47 +540,27 @@ async function getFieldOptions(tenantId: string) {
         status_type,
         created_at,
         updated_at
-      FROM "${schemaName}".ticket_field_options 
-      WHERE active = true 
+      FROM "${sql.raw(schemaName)}".ticket_field_options 
+      WHERE tenant_id = ${tenantId}
+      AND company_id = ${companyId}
+      AND active = true 
       ORDER BY field_name, sort_order, display_label
-    `;
+    `);
 
-    const result = await pool.query(query);
-
-    console.log('🔍 getFieldOptions query result:', {
+    console.log('🔍 Field options query result for company:', companyId, {
       totalRows: result.rows.length,
-      statusRows: result.rows.filter(row => row.field_name === 'status')
-    });
-
-    return result.rows;
-  } catch (error) {
-    console.error('Error in getFieldOptions:', error);
-    throw error;
-  }
-}
-
-// Get all field options
-router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return res.status(400).json({ success: false, message: "User not associated with a tenant" });
-    }
-
-    const options = await getFieldOptions(req.user.tenantId);
-
-    console.log('🔍 Field options being returned:', {
-      totalOptions: options.length,
-      statusOptions: options.filter(opt => opt.field_name === 'status').map(opt => ({
-        value: opt.value,
-        label: opt.display_label,
-        status_type: opt.status_type,
-        color: opt.color
+      statusRows: result.rows.filter(row => row.field_name === 'status').map(row => ({
+        id: row.id,
+        value: row.value,
+        label: row.display_label,
+        status_type: row.status_type,
+        company_id: row.company_id
       }))
     });
 
     res.json({
       success: true,
-      data: options
+      data: result.rows
     });
   } catch (error) {
     console.error('Error fetching field options:', error);
@@ -621,6 +616,16 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
       `);
     }
 
+    console.log('💾 Creating field option:', {
+      optionId,
+      tenantId,
+      companyId,
+      fieldName,
+      value,
+      displayLabel,
+      statusType: req.body.statusType
+    });
+
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
         id, tenant_id, company_id, field_name, value, display_label, 
@@ -631,6 +636,8 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
         ${active !== false}, ${sortOrder || 1}, ${req.body.statusType || null}, NOW(), NOW()
       )
     `);
+
+    console.log('✅ Field option created successfully with ID:', optionId);
 
     res.status(201).json({
       success: true,

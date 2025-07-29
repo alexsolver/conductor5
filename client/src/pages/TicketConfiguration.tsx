@@ -316,13 +316,15 @@ const TicketConfiguration: React.FC = () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}`);
       const result = await response.json();
+      console.log('🔍 Field options query result for company:', selectedCompany, result);
       return result.success ? result.data : [];
     },
     enabled: !!selectedCompany,
-    staleTime: 0, // Force fresh data after mutations
-    cacheTime: 0, // Don't cache at all
+    staleTime: 0,
+    cacheTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchOnMount: true,
+    refetchInterval: 1000 // Auto refresh every second temporarily
   });
 
   const { data: numberingConfig } = useQuery({
@@ -409,14 +411,16 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: async () => {
-      // Force complete cache refresh
-      await queryClient.removeQueries({ queryKey: ['field-options', selectedCompany] });
-      await queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      console.log('✅ Field option created successfully, refreshing cache...');
       
-      // Wait a bit and force refetch
-      setTimeout(async () => {
-        await queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] });
-      }, 100);
+      // Remove all field-options related cache
+      queryClient.removeQueries({ queryKey: ['field-options'] });
+      
+      // Force immediate refetch
+      await queryClient.refetchQueries({ 
+        queryKey: ['field-options', selectedCompany],
+        exact: true 
+      });
       
       setDialogOpen(false);
       fieldOptionForm.reset();
