@@ -367,7 +367,7 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
 
     const companyId = req.params.id;
 
-    console.log('Deleting company:', { companyId, tenantId: req.user.tenantId });
+    console.log('🗑️ [DELETE] Starting company deletion:', { companyId, tenantId: req.user.tenantId });
 
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
@@ -380,6 +380,7 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
     );
 
     if (companyCheck.rows.length === 0) {
+      console.log('❌ [DELETE] Company not found in database');
       return res.status(404).json({ 
         success: false,
         message: 'Company not found' 
@@ -387,6 +388,7 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
     }
 
     const companyName = companyCheck.rows[0].name;
+    console.log('✅ [DELETE] Company found:', { companyName });
 
     // Check if company has associated customers
     const membershipsCheck = await pool.query(
@@ -395,7 +397,11 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
       [companyId, req.user.tenantId]
     );
 
-    if (Number(membershipsCheck.rows[0]?.count) > 0) {
+    const membershipCount = Number(membershipsCheck.rows[0]?.count);
+    console.log('📊 [DELETE] Membership count:', membershipCount);
+
+    if (membershipCount > 0) {
+      console.log('🚫 [DELETE] Cannot delete company with associated customers');
       return res.status(400).json({
         success: false,
         message: 'Não é possível excluir empresa que possui clientes associados'
@@ -403,15 +409,17 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
     }
 
     // Start transaction for safe deletion
+    console.log('🔄 [DELETE] Starting transaction');
     await pool.query('BEGIN');
 
     try {
       // Delete any orphaned memberships first (just in case)
-      await pool.query(
+      const membershipDeleteResult = await pool.query(
         `DELETE FROM "${schemaName}"."customer_company_memberships" 
          WHERE company_id = $1 AND tenant_id = $2`,
         [companyId, req.user.tenantId]
       );
+      console.log('🧹 [DELETE] Cleaned memberships:', membershipDeleteResult.rowCount);
 
       // Delete the company
       const result = await pool.query(
@@ -420,15 +428,40 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
         [companyId, req.user.tenantId]
       );
 
-      await pool.query('COMMIT');
-
-      console.log('Company deletion result:', { 
-        companyId, 
+      console.log('💀 [DELETE] Company deletion executed:', { 
         rowCount: result.rowCount,
-        companyName 
+        companyId 
       });
 
+      // VERIFICATION: Check if company still exists
+      const verificationCheck = await pool.query(
+        `SELECT id, name FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+        [companyId, req.user.tenantId]
+      );
+
+      console.log('🔍 [DELETE] Post-deletion verification:', { 
+        stillExists: verificationCheck.rows.length > 0,
+        foundRows: verificationCheck.rows.length
+      });
+
+      if (verificationCheck.rows.length > 0) {
+        console.error('🚨 [DELETE] CRITICAL: Company still exists after deletion!');
+        await pool.query('ROLLBACK');
+        return res.status(500).json({
+          success: false,
+          message: 'Deletion failed - company still exists in database',
+          debug: {
+            rowCount: result.rowCount,
+            stillExists: true
+          }
+        });
+      }
+
+      await pool.query('COMMIT');
+      console.log('✅ [DELETE] Transaction committed successfully');
+
       if (result.rowCount === 0) {
+        console.log('⚠️ [DELETE] No rows affected by deletion');
         return res.status(404).json({
           success: false,
           message: 'Company not found or already deleted'
@@ -442,18 +475,25 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
         'Expires': '0'
       });
 
+      console.log('🎉 [DELETE] Company deleted successfully:', { companyId, companyName });
+
       res.status(200).json({
         success: true,
         message: 'Company deleted successfully',
         deletedId: companyId,
-        deletedName: companyName
+        deletedName: companyName,
+        debug: {
+          rowCount: result.rowCount,
+          verificationPassed: true
+        }
       });
     } catch (transactionError) {
+      console.error('💥 [DELETE] Transaction error:', transactionError);
       await pool.query('ROLLBACK');
       throw transactionError;
     }
   } catch (error) {
-    console.error('Error deleting customer company:', error);
+    console.error('💥 [DELETE] Critical deletion error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to delete customer company',
