@@ -813,7 +813,7 @@ router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
     });
   }
 });
-</old_str>
+<old_str>
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
