@@ -1,7 +1,7 @@
 typescript
 import { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -895,7 +895,7 @@ export default function TicketsTable() {
                     {...field} 
                   />
                                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -1855,9 +1855,8 @@ export default function TicketsTable() {
                             <FormLabel>Categoria</FormLabel>
                             <FormControl>
                               <DynamicSelect
-```typescript
                                 fieldName="category"
-                                value={field.value}
+                                value{field.value}
                                 onValueChange={field.onChange}
                                 placeholder="Selecione a categoria"
                               />
@@ -1866,8 +1865,6 @@ export default function TicketsTable() {
                           </FormItem>
                         )}
                       />
-
-
                     </div>
                   </div>
 
