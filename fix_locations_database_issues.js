@@ -104,7 +104,7 @@ async function fixLocationsDatabaseIssues() {
 }
 
 // Execute if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   fixLocationsDatabaseIssues();
 }
 

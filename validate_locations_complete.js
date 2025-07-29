@@ -126,8 +126,9 @@ async function validateLocationsComplete() {
 }
 
 // Execute if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   validateLocationsComplete();
+}();
 }
 
 export default validateLocationsComplete;
