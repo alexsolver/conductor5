@@ -210,12 +210,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User not associated with a tenant" });
       }
 
-      // Simple query to get customers for the tenant
-      const result = await unifiedStorage.getCustomers(req.user.tenantId);
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      console.log(`[GET-CUSTOMERS] Fetching customers for tenant: ${req.user.tenantId}`);
+
+      // Query PostgreSQL directly for consistency with POST route
+      const result = await pool.query(
+        `SELECT * FROM "${schemaName}"."customers" WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [req.user.tenantId]
+      );
+
+      const customers = result.rows.map(row => ({
+        id: row.id,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        company: row.company,
+        companyName: row.company,
+        address: row.address,
+        address_number: row.address_number,
+        complement: row.complement,
+        neighborhood: row.neighborhood,
+        city: row.city,
+        state: row.state,
+        zip_code: row.zip_code,
+        zipCode: row.zip_code,
+        status: "Ativo", // Default status for display
+        role: "Customer", // Default role
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      console.log(`[GET-CUSTOMERS] Found ${customers.length} customers`);
       
       res.json({
-        customers: result,
-        total: result.length
+        customers: customers,
+        total: customers.length
       });
     } catch (error) {
       console.error('Error fetching customers:', error);
