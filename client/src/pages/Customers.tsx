@@ -38,7 +38,24 @@ export default function Customers() {
         const { apiRequest } = await import('../lib/queryClient');
         const response = await apiRequest('GET', `/api/customers/${customerId}/companies`);
         const data = await response.json();
-        return Array.isArray(data) ? data : (data?.data || []);
+
+        
+        // Verificar diferentes estruturas possíveis da resposta
+        if (Array.isArray(data)) {
+          return data;
+        }
+        if (data?.success && data?.data && Array.isArray(data.data)) {
+          return data.data;
+        }
+        if (data?.data && Array.isArray(data.data)) {
+          return data.data;
+        }
+        if (data?.companies && Array.isArray(data.companies)) {
+          return data.companies;
+        }
+        
+        console.warn(`Invalid companies data structure for customer ${customerId}:`, data);
+        return [];
       },
       enabled: !!customerId,
       staleTime: 5 * 60 * 1000, // Cache por 5 minutos
@@ -81,30 +98,37 @@ export default function Customers() {
       return <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>;
     }
     
-    if (!companies || companies.length === 0) {
+
+    
+    // Verificação adicional para garantir que companies é um array
+    if (!companies || !Array.isArray(companies) || companies.length === 0) {
       return <span className="text-gray-400">-</span>;
     }
     
-    if (companies.length === 1) {
+    // Renderizar lista de empresas
+    try {
       return (
-        <div className="flex items-center text-gray-600 dark:text-gray-400">
-          <Building className="h-3 w-3 mr-1" />
-          <span className="truncate">{companies[0].name}</span>
+        <div className="flex flex-col gap-1 max-w-xs">
+          {companies.map((company: any, index: number) => {
+            // Verificação defensiva para evitar erros - usar campos corretos da estrutura
+            const companyName = company?.company_name || company?.display_name || company?.name || company?.displayName || 'Empresa sem nome';
+            const companyId = company?.company_id || company?.id || index;
+            
+            return (
+              <div key={companyId} className="flex items-center text-gray-600 dark:text-gray-400">
+                <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span className="text-sm truncate" title={companyName}>
+                  {companyName}
+                </span>
+              </div>
+            );
+          })}
         </div>
       );
+    } catch (error) {
+      console.error(`Error rendering companies for customer ${customerId}:`, error, companies);
+      return <span className="text-red-400">Erro ao carregar empresas</span>;
     }
-    
-    return (
-      <div className="flex items-center text-gray-600 dark:text-gray-400">
-        <Building className="h-3 w-3 mr-1" />
-        <span className="truncate">
-          {companies[0].name}
-          <span className="text-xs text-gray-400 ml-1">
-            +{companies.length - 1}
-          </span>
-        </span>
-      </div>
-    );
   };
 
   if (isLoading) {
