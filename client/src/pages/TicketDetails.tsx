@@ -223,6 +223,7 @@ export default function TicketDetails() {
   const [attachments, setAttachments] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
   const [communications, setCommunications] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [internalActions, setInternalActions] = useState<any[]>([]);
@@ -570,7 +571,9 @@ export default function TicketDetails() {
   };
 
   const addNote = async () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim() || isAddingNote) return;
+
+    setIsAddingNote(true);
 
     try {
       const response = await apiRequest("POST", `/api/tickets/${id}/notes`, {
@@ -603,6 +606,8 @@ export default function TicketDetails() {
         description: "Erro ao adicionar nota. Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setIsAddingNote(false);
     }
   };
 
@@ -1073,9 +1078,12 @@ export default function TicketDetails() {
                   className="resize-none"
                 />
                 <div className="flex justify-end">
-                  <Button onClick={addNote} disabled={!newNote.trim()}>
+                  <Button 
+                    onClick={addNote} 
+                    disabled={!newNote.trim() || isAddingNote}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Nota
+                    {isAddingNote ? "Salvando..." : "Adicionar Nota"}
                   </Button>
                 </div>
               </div>
