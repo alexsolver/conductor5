@@ -68,6 +68,11 @@ export const ticketFormSchema = z.object({
     .max(999, "Horas reais não podem exceder 999")
     .optional(),
   
+  // SLA e Vencimento
+  dueDate: z.string()
+    .datetime("Data de vencimento deve estar em formato ISO válido")
+    .optional(),
+  
   // Arrays JSON
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string().max(50)).default([]),
@@ -135,6 +140,7 @@ const baseTicketSchema = z.object({
   resolution: z.string().max(2000).optional(),
   estimatedHours: z.number().min(0).max(999).optional(),
   actualHours: z.number().min(0).max(999).optional(),
+  dueDate: z.string().datetime().optional(),
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string().max(50)).default([]),
   customerCompanyId: z.string().uuid().optional(),

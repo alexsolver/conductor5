@@ -49,6 +49,9 @@ export const ticketFormSchema = z.object({
   workaround: z.string().optional(),
   costCenter: z.string().optional(), // Centro de Custo
   
+  // SLA FIELDS
+  dueDate: z.string().datetime().optional(), // Data de vencimento do ticket
+  
   // TEMPLATE/ENVIRONMENT FIELDS
   environment: z.string().optional(),
   templateName: z.string().optional(),
@@ -146,6 +149,9 @@ export const ticketBackendSchema = z.object({
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
   cost_center: z.string().optional(), // Centro de Custo (snake_case para backend)
+  
+  // SLA fields (snake_case para backend)
+  due_date: z.string().datetime().optional(), // Data de vencimento
   
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string()).default([]),
