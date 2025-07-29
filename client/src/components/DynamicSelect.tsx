@@ -30,12 +30,39 @@ export function DynamicSelect(props: DynamicSelectProps) {
     showAllOption = false,
     ...restProps
   } = props;
-  
+
   // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'onValueChange', 'showAllOption']);
   const { getFieldOptions, isLoading } = useTicketMetadata();
-  
+
   const options = getFieldOptions(fieldName);
+
+  // Filter options based on field name
+  const fieldOptions = options.filter(option => {
+    if (fieldName === 'status') {
+      return option.field_name === 'status';
+    }
+    if (fieldName === 'priority') {
+      return option.field_name === 'priority';
+    }
+    if (fieldName === 'category') {
+      return option.field_name === 'category';
+    }
+    if (fieldName === 'subcategory') {
+      return option.field_name === 'subcategory';
+    }
+    return option.field_name === fieldName;
+  });
+
+  console.log(`🔍 DynamicSelect for ${fieldName}:`, {
+    totalOptions: options.length,
+    filteredOptions: fieldOptions.length,
+    fieldOptions: fieldOptions.map(opt => ({
+      value: opt.value,
+      label: opt.display_label,
+      status_type: opt.status_type
+    }))
+  });
 
   if (isLoading) {
     return (
