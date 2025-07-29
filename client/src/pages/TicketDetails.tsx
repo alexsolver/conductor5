@@ -898,7 +898,6 @@ export default function TicketDetails() {
                             disabled={!isEditMode}
                           />
                         ) : (
-                          ```text
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             <DynamicBadge value={field.value}>
                               {field.value}
