@@ -203,6 +203,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === CUSTOMERS ROUTES - Standardized to use /api/customers ===
 
+  // Main customers route - temporary implementation until router is fixed
+  app.get('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ message: "User not associated with a tenant" });
+      }
+
+      // Simple query to get customers for the tenant
+      const result = await unifiedStorage.getCustomers(req.user.tenantId);
+      
+      res.json({
+        customers: result,
+        total: result.length
+      });
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      res.status(500).json({ 
+        customers: [],
+        total: 0,
+        message: "Failed to fetch customers" 
+      });
+    }
+  });
+
   // === CUSTOMER COMPANIES ROUTES ===
   // Get all companies
   app.get('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
