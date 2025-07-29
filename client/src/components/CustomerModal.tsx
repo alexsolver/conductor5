@@ -367,7 +367,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
       // Limpar seleção antes de atualizar dados
       setSelectedCompanyId('');
-      form.setValue('company', '');
 
       // Atualizar dados
       await refetchCustomerCompanies();
@@ -735,6 +734,22 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <FormLabel>Função</FormLabel>
                           <FormControl>
                             <Input placeholder="Cargo/Função" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="company"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Empresa</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome da empresa onde trabalha" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
