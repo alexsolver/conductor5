@@ -16,7 +16,7 @@ import locationsNewRoutes from './modules/locations/routes-new';
 import customFieldsRoutes from './modules/custom-fields/routes';
 import { fieldLayoutRoutes as fieldLayoutsRoutes } from './modules/field-layouts/routes';
 import favorecidosRoutes from './modules/favorecidos/routes';
-import peopleRoutes from './modules/people/routes';
+import { peopleRouter as peopleRoutes } from './modules/people/routes';
 import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import ticketHistoryRoutes from './modules/ticket-history/routes';
