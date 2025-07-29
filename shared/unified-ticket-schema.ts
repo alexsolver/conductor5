@@ -47,6 +47,7 @@ export const ticketFormSchema = z.object({
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
+  costCenter: z.string().optional(), // Centro de Custo
   
   // TEMPLATE/ENVIRONMENT FIELDS
   environment: z.string().optional(),
@@ -144,6 +145,7 @@ export const ticketBackendSchema = z.object({
   business_impact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
+  cost_center: z.string().optional(), // Centro de Custo (snake_case para backend)
   
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string()).default([]),

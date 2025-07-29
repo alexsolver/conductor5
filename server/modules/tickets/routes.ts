@@ -812,7 +812,7 @@ ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: Authenticate
       SELECT 
         tn.id,
         tn.content,
-        tn.note_type,
+tn.note_type,
         tn.is_internal,
         tn.is_public,
         tn.created_by,
