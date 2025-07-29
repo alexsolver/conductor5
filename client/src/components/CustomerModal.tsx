@@ -140,12 +140,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       }
     },
     onSuccess: () => {
+      // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      toast({
-        title: "Sucesso",
-        description: customer?.id ? "Cliente atualizado com sucesso!" : "Cliente criado com sucesso!",
-      });
+      queryClient.refetchQueries({ queryKey: ["/api/customers"] });
       onClose();
+      toast({
+        title: "Cliente salvo com sucesso",
+        description: customer ? "Cliente atualizado." : "Novo cliente criado."
+      });
     },
     onError: (error: any) => {
       toast({
@@ -987,7 +989,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               })
                             ) : (
                               <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border">
-                                Nenhuma empresa associada
+                                Nenhuma empresaassociada
                               </div>
                             )}
                           </div>

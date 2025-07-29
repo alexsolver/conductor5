@@ -90,6 +90,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       firstName: row.first_name,
       lastName: row.last_name,
       companyName: row.company_name,
+      company: row.company_name, // Add company field for compatibility
       cpf: row.cpf,
       cnpj: row.cnpj,
       phone: row.phone,
@@ -103,6 +104,8 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       description: row.description,
       internalCode: row.internal_code,
       status: row.status || 'Ativo',
+      isActive: (row.status || 'Ativo') === 'Ativo', // Add isActive boolean field
+      role: row.position, // Add role field for compatibility
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       // Computed fields for compatibility

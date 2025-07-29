@@ -15,18 +15,22 @@ export default function Customers() {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
-  const { data: customersData, isLoading } = useQuery({
+  const { data: customersData, isLoading, error } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const { apiRequest } = await import('../lib/queryClient');
       const response = await apiRequest('GET', '/api/customers');
-      return response.json();
+      const data = await response.json();
+      console.log('Customers API Response:', data);
+      return data;
     },
     retry: false,
   });
 
   const customers = customersData?.customers || [];
   const total = customersData?.total || customers.length;
+
+  console.log('Customers data:', { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
@@ -71,6 +75,32 @@ export default function Customers() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
+        </div>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="text-red-500 mb-4">
+              <h4 className="text-lg font-medium mb-2">Erro ao carregar clientes</h4>
+              <p className="text-sm text-gray-600">
+                {error?.message || 'Não foi possível carregar os dados dos clientes.'}
+              </p>
+            </div>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+            >
+              Tentar novamente
+            </Button>
           </CardContent>
         </Card>
       </div>
