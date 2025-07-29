@@ -108,12 +108,18 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       });
     }
 
+    // Debug: Log the incoming request body
+    console.log('🔍 Incoming request body:', req.body);
+
     const ticketData = insertTicketSchema.parse({
       ...req.body,
       tenantId: req.user.tenantId,
       customerId: req.body.customerId || req.body.caller_id, // Map caller_id to customerId for storage compatibility
-      caller_id: req.body.caller_id, // Keep caller_id for backend compatibility
+      caller_id: req.body.caller_id || req.body.customerId, // Keep caller_id for backend compatibility
     });
+
+    // Debug: Log the parsed ticket data
+    console.log('🔍 Parsed ticket data:', ticketData);
 
     const ticket = await storageSimple.createTicket(req.user.tenantId, ticketData);
 

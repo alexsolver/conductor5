@@ -442,16 +442,25 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      if (!ticketData.subject || (!ticketData.customerId && !ticketData.caller_id)) {
+      // Debug: Log all ticket data fields for debugging
+      console.log('🔍 All ticket data fields:', Object.keys(ticketData));
+      console.log('🔍 Ticket data values:', {
+        subject: ticketData.subject,
+        customerId: ticketData.customerId,
+        caller_id: ticketData.caller_id,
+        customer_id: ticketData.customer_id
+      });
+
+      const customerId = ticketData.customerId || ticketData.caller_id || ticketData.customer_id;
+
+      if (!ticketData.subject || !customerId) {
         console.log('🐛 Validation failed:', { 
           subject: ticketData.subject, 
-          customerId: ticketData.customerId, 
-          caller_id: ticketData.caller_id 
+          finalCustomerId: customerId,
+          allFields: Object.keys(ticketData)
         });
         throw new Error('Ticket subject and customer ID are required');
       }
-
-      const customerId = ticketData.customerId || ticketData.caller_id;
 
       // Generate ticket number
       const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
