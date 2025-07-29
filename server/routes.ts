@@ -709,7 +709,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
 
-  ```python
   // Custom Fields routes - Universal metadata and dynamic fields system
   app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
@@ -1556,8 +1555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         mostViewed: [
           { id: '3', title: 'Como Redefinir Senha?', view_count: 256, average_rating: '4.8' },
-          { id: '1', title: 'Como```python
- Criar um Ticket', view_count: 124, average_rating: '4.5' },
+          { id: '1', title: 'Como Criar um Ticket', view_count: 124, average_rating: '4.5' },
           { id: '2', title: 'Configurações de Notificação', view_count: 89, average_rating: '4.2' },
           { id: '4', title: 'Problemas de Conexão', view_count: 78, average_rating: '4.0' }
         ],
@@ -2400,6 +2398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize ticket metadata endpoint - criar dados de exemplo
   app.post("/api/admin/initialize-ticket-metadata", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    ```text
     try {      const tenantId = req.user?.tenantId;
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID required' });
