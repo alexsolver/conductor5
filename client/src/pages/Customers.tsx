@@ -14,7 +14,7 @@ export default function Customers() {
   const [, setLocation] = useLocation();
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  
+
   const { data: customersData, isLoading } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {

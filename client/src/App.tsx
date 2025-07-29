@@ -80,7 +80,7 @@ import DragDropDemo from './pages/DragDropDemo';
 import ProductivityReports from './pages/ProductivityReports';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
-import Clientes from "./pages/Clientes";
+import Customers from "./pages/Customers";
 
 
 // Components
@@ -121,8 +121,8 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
-        <Route path="/clientes" component={Clientes} />
-        <Route path="/tenant-admin/solicitantes" component={Clientes} />
+        <Route path="/clientes" component={Customers} />
+        <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/technical-skills" component={TechnicalSkills} />
