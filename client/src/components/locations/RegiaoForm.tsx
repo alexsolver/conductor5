@@ -68,7 +68,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
   };
 
   const { data: clientes = [] } = useQuery({
-    queryKey: ['/api/locations-new/integration/clientes'],
+    queryKey: ['/api/locations-new/integration/customers'],
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/clientes', {

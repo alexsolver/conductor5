@@ -201,32 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 
-  // === CLIENTES ROUTES - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth ===
-  app.get("/api/clientes", jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
-      }
-
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
-      const search = req.query.search as string || "";
-
-      const clientes = await unifiedStorage.getClientes(tenantId, { limit, offset, search });
-      const total = await unifiedStorage.getClientesCount(tenantId);
-
-      res.json({ 
-        success: true, 
-        data: clientes, 
-        total,
-        message: `Encontrados ${clientes.length} clientes`
-      });
-    } catch (error) {
-      console.error("Error fetching clientes:", error);
-      res.status(500).json({ success: false, message: "Erro ao buscar clientes" });
-    }
-  });
+  // === CUSTOMERS ROUTES - Standardized to use /api/customers ===
 
   // === CUSTOMER COMPANIES ROUTES ===
   // Get all companies
@@ -377,74 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/clientes", jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
-      }
-
-      const cliente = await unifiedStorage.createCliente(tenantId, req.body);
-
-      res.status(201).json({ 
-        success: true, 
-        data: cliente,
-        message: "Cliente criado com sucesso"
-      });
-    } catch (error) {
-      console.error("Error creating cliente:", error);
-      res.status(500).json({ success: false, message: "Erro ao criar cliente" });
-    }
-  });
-
-  app.put("/api/clientes/:id", jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
-      }
-
-      const { id } = req.params;
-      const updated = await unifiedStorage.updateCliente(tenantId, id, req.body);
-
-      if (!updated) {
-        return res.status(404).json({ success: false, message: "Cliente não encontrado" });
-      }
-
-      res.json({ 
-        success: true, 
-        data: updated,
-        message: "Cliente atualizado com sucesso"
-      });
-    } catch (error) {
-      console.error("Error updating cliente:", error);
-      res.status(500).json({ success: false, message: "Erro ao atualizar cliente" });
-    }
-  });
-
-  app.delete("/api/clientes/:id", jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
-      }
-
-      const { id } = req.params;
-      const deleted = await unifiedStorage.deleteCliente(tenantId, id);
-
-      if (!deleted) {
-        return res.status(404).json({ success: false, message: "Cliente não encontrado" });
-      }
-
-      res.json({ 
-        success: true,
-        message: "Cliente excluído com sucesso"
-      });
-    } catch (error) {
-      console.error("Error deleting cliente:", error);
-      res.status(500).json({ success: false, message: "Erro ao excluir cliente" });
-    }
-  });
+  
 
   // Locations routes temporarily removed due to syntax issues
 

@@ -20,7 +20,7 @@ const ClientesMultiSelect = ({ value = [], onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const { data: clientes = [] } = useQuery({
-    queryKey: ['integration-clientes'],
+    queryKey: ['integration-customers'],
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations-new/integration/clientes', {
