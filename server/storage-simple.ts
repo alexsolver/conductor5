@@ -449,8 +449,6 @@ export class DatabaseStorage implements IStorage {
 
       // Generate ticket number
       const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
-
-      const customerId = ticketData.customerId || ticketData.caller_id;
       
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 
