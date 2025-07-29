@@ -42,7 +42,7 @@ import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
 import customFieldsRoutes from './modules/custom-fields/routes.ts';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
-import ticketHistoryRoutes from './routes/ticket-history/routes';
+import ticketHistoryRoutes from './modules/ticket-history/routes';
 import { TicketViewsController } from './controllers/TicketViewsController';
 // Hierarchical ticket metadata import - loaded dynamically below
 
