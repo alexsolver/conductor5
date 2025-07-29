@@ -89,6 +89,8 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       email: row.email,
       firstName: row.first_name,
       lastName: row.last_name,
+      first_name: row.first_name, // Keep both for compatibility
+      last_name: row.last_name,   // Keep both for compatibility
       companyName: row.company_name,
       company: row.company_name, // Add company field for compatibility
       cpf: row.cpf,

@@ -46,7 +46,9 @@ export default function Customers() {
     setLocation('/locations');
   };
 
-  const getInitials = (firstName?: string | null, lastName?: string | null) => {
+  const getInitials = (customer: any) => {
+    const firstName = customer.firstName || customer.first_name;
+    const lastName = customer.lastName || customer.last_name;
     if (firstName && lastName) {
       return `${firstName[0]}${lastName[0]}`.toUpperCase();
     }
@@ -150,13 +152,13 @@ export default function Customers() {
                   <TableCell>
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold text-sm">
-                        {getInitials(customer.firstName, customer.lastName)}
+                        {getInitials(customer)}
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {customer.firstName} {customer.lastName}
+                      {customer.firstName || customer.first_name} {customer.lastName || customer.last_name}
                     </div>
                     {customer.role && (
                       <div className="text-sm text-gray-500 dark:text-gray-400">
