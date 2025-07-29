@@ -583,7 +583,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
         id, tenant_id, company_id, field_name, value, display_label, 
-        color_hex, icon, is_default, active, sort_order, status_type, created_at, updated_at
+        color, icon, is_default, active, sort_order, status_type, created_at, updated_at
       ) VALUES (
         ${optionId}, ${tenantId}, ${companyId}, ${fieldName}, ${value}, ${displayLabel}, 
         ${color || '#3b82f6'}, ${icon || null}, ${isDefault || false}, 
