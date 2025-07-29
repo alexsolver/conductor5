@@ -662,6 +662,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update customer - temporary implementation
+  app.patch('/api/customers/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const customerId = req.params.id;
+      if (!customerId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Customer ID is required'
+        });
+      }
+
+      console.log(`[UPDATE-CUSTOMER] Request body:`, req.body);
+
+      // Extract data with support for both formats (frontend form and simple format)
+      const {
+        firstName, lastName, email, phone, mobilePhone, company, companyName,
+        address, city, state, zipCode, zip_code,
+        customerType, status, description, internalCode, internal_code,
+        cpf, cnpj, contactPerson, contact_person, responsible,
+        position, supervisor, coordinator, manager,
+        verified, active, suspended, timezone, locale, language,
+        externalId, external_id, role, notes, avatar, signature
+      } = req.body;
+
+      // Priority-based field selection for phone and company
+      const finalPhone = phone || mobilePhone || '';
+      const finalCompany = company || companyName || '';
+      const finalZipCode = zipCode || zip_code || '';
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      console.log(`[UPDATE-CUSTOMER] Updating customer: ${customerId}`);
+      console.log(`[UPDATE-CUSTOMER] Processed data: phone=${finalPhone}, company=${finalCompany}`);
+
+      // Check if customer exists
+      const existingCustomer = await pool.query(
+        `SELECT id FROM "${schemaName}"."customers" WHERE id = $1 AND tenant_id = $2`,
+        [customerId, req.user.tenantId]
+      );
+
+      if (existingCustomer.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Customer not found'
+        });
+      }
+
+      // Build update query dynamically based on provided fields
+      const updateFields = [];
+      const updateValues = [];
+      let paramCount = 0;
+
+      if (firstName !== undefined) {
+        updateFields.push(`first_name = $${++paramCount}`);
+        updateValues.push(firstName);
+      }
+      if (lastName !== undefined) {
+        updateFields.push(`last_name = $${++paramCount}`);
+        updateValues.push(lastName);
+      }
+      if (email !== undefined) {
+        updateFields.push(`email = $${++paramCount}`);
+        updateValues.push(email);
+      }
+      if (finalPhone !== undefined) {
+        updateFields.push(`phone = $${++paramCount}`);
+        updateValues.push(finalPhone);
+      }
+      if (finalCompany !== undefined) {
+        updateFields.push(`company = $${++paramCount}`);
+        updateValues.push(finalCompany);
+      }
+      if (address !== undefined) {
+        updateFields.push(`address = $${++paramCount}`);
+        updateValues.push(address);
+      }
+      if (city !== undefined) {
+        updateFields.push(`city = $${++paramCount}`);
+        updateValues.push(city);
+      }
+      if (state !== undefined) {
+        updateFields.push(`state = $${++paramCount}`);
+        updateValues.push(state);
+      }
+      if (finalZipCode !== undefined) {
+        updateFields.push(`zip_code = $${++paramCount}`);
+        updateValues.push(finalZipCode);
+      }
+
+      // Always update the updated_at timestamp
+      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+      // Add WHERE conditions
+      updateValues.push(customerId, req.user.tenantId);
+      const whereClause = `WHERE id = $${++paramCount} AND tenant_id = $${++paramCount}`;
+
+      if (updateFields.length > 1) { // More than just updated_at
+        const updateQuery = `
+          UPDATE "${schemaName}"."customers" 
+          SET ${updateFields.join(', ')}
+          ${whereClause}
+          RETURNING *
+        `;
+
+        const result = await pool.query(updateQuery, updateValues);
+        const customer = result.rows[0];
+
+        console.log(`[UPDATE-CUSTOMER] Customer updated successfully`);
+
+        res.status(200).json({
+          success: true,
+          message: 'Customer updated successfully',
+          data: {
+            id: customer.id,
+            firstName: customer.first_name,
+            lastName: customer.last_name,
+            email: customer.email,
+            phone: customer.phone,
+            company: customer.company,
+            address: customer.address,
+            city: customer.city,
+            state: customer.state,
+            zipCode: customer.zip_code,
+            createdAt: customer.created_at,
+            updatedAt: customer.updated_at
+          }
+        });
+      } else {
+        // No fields to update
+        res.status(400).json({
+          success: false,
+          message: 'No fields provided for update'
+        });
+      }
+
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update customer'
+      });
+    }
+  });
+
   // Locations routes temporarily removed due to syntax issues
 
   // Import and mount localization routes
