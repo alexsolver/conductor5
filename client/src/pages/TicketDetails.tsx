@@ -290,7 +290,8 @@ export default function TicketDetails() {
   // PROBLEMA 9 RESOLVIDO: Otimizar fetch de customers - sem logs redundantes
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
-      const companyId = ticket?.customer_id || ticket?.customerCompanyId || ticket?.company;
+      // Use the correct field mapping - customer_company_id is the main field
+      const companyId = ticket?.customer_company_id || ticket?.customerCompanyId || ticket?.company;
 
       // Skip if no company or same as current
       if (!companyId || companyId === 'unspecified' || companyId === selectedCompany) {
@@ -320,7 +321,7 @@ export default function TicketDetails() {
     if (ticket) {
       fetchCompanyCustomers();
     }
-  }, [ticket?.customer_id, ticket?.customerCompanyId, ticket?.company, selectedCompany]);
+  }, [ticket?.customer_company_id, ticket?.customerCompanyId, ticket?.company, selectedCompany]);
 
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado
   const handleCompanyChange = async (newCompanyId: string) => {
@@ -685,8 +686,8 @@ export default function TicketDetails() {
       });
 
       // Update local states to sync with ticket data
-      if (ticket.customer_company_id) {
-        setSelectedCompany(ticket.customer_company_id);
+      if (ticket.customer_company_id || ticket.customerCompanyId) {
+        setSelectedCompany(ticket.customer_company_id || ticket.customerCompanyId);
       }
 
       // Initialize followers from ticket data
@@ -1759,7 +1760,7 @@ export default function TicketDetails() {
               {isEditMode ? (
                 <Select 
                   onValueChange={handleCompanyChange}
-                  value={ticket.customer_id || ticket.customerCompanyId || ticket.company || ''}
+                  value={ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Selecione a empresa cliente" />
@@ -1777,21 +1778,31 @@ export default function TicketDetails() {
                 <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
                      onClick={() => setIsCompanyDetailsOpen(true)}>
                   <span className="font-medium text-blue-900 underline decoration-dotted">
-                    {(Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.name || 
-                     ticket.customerCompany?.name || ticket.company || 'Não especificado'}
+                    {(Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customer_company_id || ticket.customerCompanyId || ticket.company))?.name || 
+                     ticket.customerCompany?.name || 'Não especificado'}
                   </span>
                 </div>
               )}
-              {(ticket.customerCompany?.industry || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry) && (
-                <div className="text-xs text-blue-600 mt-1">
-                  🏷️ Setor: {ticket.customerCompany?.industry || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.industry}
-                </div>
-              )}
-              {(ticket.customerCompany?.cnpj || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj) && (
-                <div className="text-xs text-blue-600">
-                  📄 CNPJ: {ticket.customerCompany?.cnpj || (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customerCompanyId || ticket.company))?.cnpj}
-                </div>
-              )}
+              {(() => {
+                const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === (ticket.customer_company_id || ticket.customerCompanyId || ticket.company));
+                const industry = ticket.customerCompany?.industry || companyData?.industry;
+                const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
+                
+                return (
+                  <>
+                    {industry && (
+                      <div className="text-xs text-blue-600 mt-1">
+                        🏷️ Setor: {industry}
+                      </div>
+                    )}
+                    {cnpj && (
+                      <div className="text-xs text-blue-600">
+                        📄 CNPJ: {cnpj}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
 
@@ -1827,7 +1838,7 @@ export default function TicketDetails() {
                       <SelectItem value="unspecified">Não especificado</SelectItem>
                       {availableCustomers.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.fullName || customer.name || `${customer.firstName} ${customer.lastName}`}
+                          {customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1836,18 +1847,27 @@ export default function TicketDetails() {
                   <div className="text-sm text-purple-900 font-medium cursor-pointer hover:text-purple-700 transition-colors"
                        onClick={() => console.log('Open customer details')}>
                     <span className="underline decoration-dotted">
-                      {availableCustomers.find((c: any) => c.id === ticket.callerId)?.fullName || 
-                       availableCustomers.find((c: any) => c.id === ticket.callerId)?.name ||
-                       `${availableCustomers.find((c: any) => c.id === ticket.callerId)?.firstName || ''} ${availableCustomers.find((c: any) => c.id === ticket.callerId)?.lastName || ''}`.trim() || 
-                       ticket.callerId === 'unspecified' || !ticket.callerId ? 'Não especificado' : 'Cliente não encontrado'}
+                      {(() => {
+                        const customer = availableCustomers.find((c: any) => c.id === (ticket.caller_id || ticket.callerId));
+                        if (!customer) {
+                          return (ticket.caller_id === 'unspecified' || !ticket.caller_id) ? 'Não especificado' : 'Cliente não encontrado';
+                        }
+                        return customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email || 'Cliente sem nome';
+                      })()}
                     </span>
                   </div>
                 )}
-                {availableCustomers.find((c: any) => c.id === ticket.callerId) && (
-                  <div className="text-xs text-purple-600">
-                    📧 {availableCustomers.find((c: any) => c.id === ticket.callerId)?.email || 'Email não informado'}
-                  </div>
-                )}
+                {(() => {
+                  const customer = availableCustomers.find((c: any) => c.id === (ticket.caller_id || ticket.callerId));
+                  if (customer && customer.email) {
+                    return (
+                      <div className="text-xs text-purple-600">
+                        📧 {customer.email}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
 
