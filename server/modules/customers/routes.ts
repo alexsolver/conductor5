@@ -421,7 +421,7 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
       'Expires': '0'
     });
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Company deleted successfully',
       deletedId: companyId

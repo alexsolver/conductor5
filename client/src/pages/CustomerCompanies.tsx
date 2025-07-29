@@ -130,15 +130,13 @@ export default function CustomerCompanies() {
   // Mutation para deletar company
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
-    onSuccess: (data, deletedId) => {
-      // Force immediate cache invalidation and refetch
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+    onSuccess: async (data, deletedId) => {
+      // Clear all related queries
       queryClient.removeQueries({ queryKey: ['/api/customer-companies'] });
+      queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
       
-      // Force a fresh fetch
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/customer-companies'] });
-      }, 100);
+      // Force immediate invalidation
+      await queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
       
       toast({
         title: "Sucesso",
@@ -216,13 +214,7 @@ export default function CustomerCompanies() {
 
   const handleDeleteCompany = (company: CustomerCompany) => {
     if (window.confirm(`Tem certeza que deseja excluir a empresa "${company.displayName || company.name}"?`)) {
-      deleteCompanyMutation.mutate(company.id, {
-        onSuccess: () => {
-          // Force immediate refresh of the companies list
-          queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
-          queryClient.refetchQueries({ queryKey: ['/api/customer-companies'] });
-        }
-      });
+      deleteCompanyMutation.mutate(company.id);
     }
   };
 
