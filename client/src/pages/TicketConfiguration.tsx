@@ -310,7 +310,7 @@ const TicketConfiguration: React.FC = () => {
     enabled: !!selectedCompany
   });
 
-  const { data: fieldOptions = [] } = useQuery({
+  const { data: fieldOptions = [], refetch: refetchFieldOptions } = useQuery({
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
@@ -321,10 +321,8 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany,
     staleTime: 0,
-    cacheTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 1000 // Auto refresh every second temporarily
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   });
 
   const { data: numberingConfig } = useQuery({
@@ -412,16 +410,13 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async () => {
       console.log('✅ Field option created successfully, refreshing cache...');
-      
+
       // Remove all field-options related cache
       queryClient.removeQueries({ queryKey: ['field-options'] });
-      
+
       // Force immediate refetch
-      await queryClient.refetchQueries({ 
-        queryKey: ['field-options', selectedCompany],
-        exact: true 
-      });
-      
+      await refetchFieldOptions();
+
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ title: "Opção de campo criada com sucesso" });
@@ -504,7 +499,7 @@ const TicketConfiguration: React.FC = () => {
 
   const openDialog = (type: string, item?: any) => {
     setEditingItem({ type, ...item });
-    
+
     // Initialize form values based on dialog type
     if (type === 'subcategory') {
       const formData = {
@@ -558,7 +553,7 @@ const TicketConfiguration: React.FC = () => {
         defaultValue: item?.defaultValue || ''
       });
     }
-    
+
     setDialogOpen(true);
   };
 
@@ -577,7 +572,7 @@ const TicketConfiguration: React.FC = () => {
     }
   }, [numberingConfig, numberingForm]);
 
-  
+
 
   return (
     <div className="container mx-auto p-6">
@@ -940,7 +935,7 @@ const TicketConfiguration: React.FC = () => {
                                   </div>
                                 </div>
                               ))}
-                            
+
                             {subcategories.filter(sub => (sub.categoryId || (sub as any).category_id) === category.id).length === 0 && (
                               <div className="p-8 text-center text-gray-500 border-t">
                                 <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -1118,7 +1113,7 @@ const TicketConfiguration: React.FC = () => {
                             <div className="absolute top-2 right-2 w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
                               {index + 1}
                             </div>
-                            
+
                             {/* Header da opção */}
                             <div className="flex items-center space-x-3 mb-3">
                               <div 
@@ -1333,7 +1328,7 @@ const TicketConfiguration: React.FC = () => {
             </Card>
           </TabsContent>
 
-          
+
 
           {/* Tab: Validação */}
           <TabsContent value="validation" className="space-y-6">
@@ -1778,7 +1773,7 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 </div>
-                
+
                 {/* Campo de Tipo de Status - apenas para status */}
                 {fieldOptionForm.watch('fieldName') === 'status' && (
                   <FormField

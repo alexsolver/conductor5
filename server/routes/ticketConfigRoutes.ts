@@ -626,7 +626,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
       statusType: req.body.statusType
     });
 
-    await db.execute(sql`
+    const insertResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
         id, tenant_id, company_id, field_name, value, display_label, 
         color, icon, is_default, active, sort_order, status_type, created_at, updated_at
@@ -635,13 +635,22 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
         ${color || '#3b82f6'}, ${icon || null}, ${isDefault || false}, 
         ${active !== false}, ${sortOrder || 1}, ${req.body.statusType || null}, NOW(), NOW()
       )
+      RETURNING *
     `);
 
-    console.log('✅ Field option created successfully with ID:', optionId);
+    console.log('✅ Field option created successfully:', insertResult.rows[0]);
+
+    // Verify it was actually inserted
+    const verifyResult = await db.execute(sql`
+      SELECT * FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+      WHERE id = ${optionId} AND tenant_id = ${tenantId} AND company_id = ${companyId}
+    `);
+
+    console.log('🔍 Verification query result:', verifyResult.rows[0]);
 
     res.status(201).json({
       success: true,
-      data: {
+      data: insertResult.rows[0] || {
         id: optionId,
         fieldName,
         value,
@@ -650,8 +659,10 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
         icon,
         isDefault: isDefault || false,
         active: active !== false,
-        sortOrder: sortOrder || 1
-      }
+        sortOrder: sortOrder || 1,
+        statusType: req.body.statusType || null
+      },
+      message: 'Field option created successfully'
     });
   } catch (error) {
     console.error('Error creating field option:', error);
