@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS ticket_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     color VARCHAR(7) DEFAULT '#3b82f6',
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS ticket_categories (
 CREATE TABLE IF NOT EXISTS ticket_subcategories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     category_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS ticket_subcategories (
 CREATE TABLE IF NOT EXISTS ticket_actions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     subcategory_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -48,6 +51,7 @@ CREATE TABLE IF NOT EXISTS ticket_actions (
 CREATE TABLE IF NOT EXISTS ticket_field_options (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     field_name VARCHAR(50) NOT NULL,
     value VARCHAR(100) NOT NULL,
     display_label VARCHAR(255) NOT NULL,
@@ -64,6 +68,7 @@ CREATE TABLE IF NOT EXISTS ticket_field_options (
 CREATE TABLE IF NOT EXISTS ticket_numbering_config (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     prefix VARCHAR(10) NOT NULL,
     year_format VARCHAR(1) DEFAULT '4',
     sequential_digits INTEGER DEFAULT 6,
