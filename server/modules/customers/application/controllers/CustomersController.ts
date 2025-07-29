@@ -228,7 +228,7 @@ export class CustomersController {
   }
 
   // GET /api/companies/:companyId/customers - Get customers by company
-  async getCustomersByCompany(req: Request, res: Response) {
+  async getCustomersByCompany(req: AuthenticatedRequest, res: Response) {
     try {
       const { companyId } = req.params;
       const tenantId = req.user.tenantId;
@@ -240,8 +240,9 @@ export class CustomersController {
         });
       }
 
-      // Get customers associated with the company through customer_company_memberships
-      const customers = await this.customerRepository.findByCompany(tenantId, companyId);
+      const customers = await this.customerRepository.getByCompany(tenantId, companyId);
+
+      console.log(`CustomersController: Found ${customers?.length || 0} customers for company ${companyId}`);
 
       res.json({
         success: true,

@@ -1805,9 +1805,12 @@ export default function TicketsTable() {
                           <FormControl>
                             <PersonSelector
                               value={field.value}
-                              onChange={field.onChange}
-                              onTypeChange={(type) => form.setValue('callerType', type)}
+                              onValueChange={(personId, personType) => {
+                                field.onChange(personId);
+                                form.setValue('callerType', personType);
+                              }}
                               placeholder="Selecione o cliente"
+                              allowedTypes={['customer']}
                               companyFilter={form.watch('companyId')}
                               disabled={!form.watch('companyId') || form.watch('companyId') === 'unspecified'}
                             />

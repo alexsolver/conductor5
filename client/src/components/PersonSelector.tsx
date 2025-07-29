@@ -7,12 +7,15 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Person {
   id: string;
   type: 'user' | 'customer';
   email: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface PersonSelectorProps {
@@ -35,36 +38,65 @@ export function PersonSelector({
   className
 }: PersonSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [people, setPeople] = useState<Person[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch people with search
-  const { data: people = [], isLoading } = useQuery({
-    queryKey: ["/api/people/search", searchQuery, allowedTypes],
+  // Fetch users if allowed
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/tenant-admin/users"],
     queryFn: async () => {
-      if (!searchQuery.trim()) return [];
-
-      const token = localStorage.getItem('accessToken');
-      const params = new URLSearchParams({
-        q: searchQuery,
-        types: allowedTypes.join(',')
-      });
-
-      const response = await fetch(`/api/people/search?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to search people');
-      }
-
+      const response = await apiRequest("GET", "/api/tenant-admin/users");
       return response.json();
     },
-    enabled: searchQuery.length > 0,
+    enabled: allowedTypes.includes('user'),
   });
+
+  // Fetch customers filtered by company
+  const { data: customersData } = useQuery({
+    queryKey: ["/api/customers/by-company", companyFilter],
+    queryFn: async () => {
+      if (!companyFilter || companyFilter === 'unspecified') {
+        return { customers: [] };
+      }
+      
+      const response = await apiRequest("GET", `/api/companies/${companyFilter}/customers`);
+      return response.json();
+    },
+    enabled: allowedTypes.includes('customer') && !!companyFilter && companyFilter !== 'unspecified',
+  });
+
+  // Process and combine data
+  useEffect(() => {
+    const combinedPeople: Person[] = [];
+
+    // Add users if allowed
+    if (allowedTypes.includes('user') && usersData?.users) {
+      const users = usersData.users.map((user: any) => ({
+        id: user.id,
+        type: 'user' as const,
+        email: user.email,
+        fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      }));
+      combinedPeople.push(...users);
+    }
+
+    // Add customers if allowed and company is selected
+    if (allowedTypes.includes('customer') && customersData?.customers) {
+      const customers = customersData.customers.map((customer: any) => ({
+        id: customer.id,
+        type: 'customer' as const,
+        email: customer.email,
+        fullName: customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+      }));
+      combinedPeople.push(...customers);
+    }
+
+    setPeople(combinedPeople);
+  }, [usersData, customersData, allowedTypes]);
 
   // Get selected person info
   const selectedPerson = people.find((person: Person) => person.id === value);
@@ -108,15 +140,12 @@ export function PersonSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <CommandInput 
-            placeholder="Buscar por nome ou email..." 
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
           <CommandEmpty>
-            {searchQuery.length < 2 
-              ? "Digite pelo menos 2 caracteres para buscar"
-              : "Nenhuma pessoa encontrada"
+            {!companyFilter || companyFilter === 'unspecified' 
+              ? "Selecione uma empresa primeiro"
+              : people.length === 0 
+              ? "Nenhuma pessoa encontrada"
+              : "Digite para filtrar"
             }
           </CommandEmpty>
           <CommandList>
@@ -129,7 +158,7 @@ export function PersonSelector({
                       .map((person: Person) => (
                         <CommandItem
                           key={`user-${person.id}`}
-                          value={person.id}
+                          value={person.fullName}
                           onSelect={() => handleSelect(person)}
                         >
                           <Check
@@ -157,7 +186,7 @@ export function PersonSelector({
                       .map((person: Person) => (
                         <CommandItem
                           key={`customer-${person.id}`}
-                          value={person.id}
+                          value={person.fullName}
                           onSelect={() => handleSelect(person)}
                         >
                           <Check
