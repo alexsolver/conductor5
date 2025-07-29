@@ -948,4 +948,6 @@ router.post('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res)
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+});
+
 export default router;
