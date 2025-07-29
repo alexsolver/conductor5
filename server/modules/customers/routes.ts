@@ -407,9 +407,24 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
       [companyId, req.user.tenantId]
     );
 
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found or already deleted'
+      });
+    }
+
+    // Set cache headers to prevent caching
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
     res.json({
       success: true,
-      message: 'Company deleted successfully'
+      message: 'Company deleted successfully',
+      deletedId: companyId
     });
   } catch (error) {
     console.error('Error deleting customer company:', error);
