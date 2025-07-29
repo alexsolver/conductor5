@@ -1,5 +1,5 @@
 
-const { Client } = require('pg');
+import { Client } from 'pg';
 
 async function executeStatusTypeMigration() {
   const client = new Client({
