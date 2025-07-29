@@ -16,19 +16,21 @@ interface Person {
 }
 
 interface PersonSelectorProps {
-  value?: string;
+  value: string;
   onValueChange: (personId: string, personType: 'user' | 'customer') => void;
   placeholder?: string;
   allowedTypes?: ('user' | 'customer')[];
-  className?: string;
+  companyFilter?: string;
+  disabled?: boolean;
 }
 
-export function PersonSelector({
-  value,
-  onValueChange,
-  placeholder = "Selecionar pessoa...",
+export function PersonSelector({ 
+  value, 
+  onValueChange, 
+  placeholder = "Selecionar pessoa...", 
   allowedTypes = ['user', 'customer'],
-  className
+  companyFilter,
+  disabled = false
 }: PersonSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,13 +40,13 @@ export function PersonSelector({
     queryKey: ["/api/people/search", searchQuery, allowedTypes],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
-      
+
       const token = localStorage.getItem('accessToken');
       const params = new URLSearchParams({
         q: searchQuery,
         types: allowedTypes.join(',')
       });
-      
+
       const response = await fetch(`/api/people/search?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -52,11 +54,11 @@ export function PersonSelector({
         },
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to search people');
       }
-      
+
       return response.json();
     },
     enabled: searchQuery.length > 0,
@@ -88,6 +90,7 @@ export function PersonSelector({
           role="combobox"
           aria-expanded={open}
           className={cn("justify-between", className)}
+          disabled={disabled}
         >
           {selectedPerson ? (
             <div className="flex items-center gap-2">
@@ -144,7 +147,7 @@ export function PersonSelector({
                       ))}
                   </CommandGroup>
                 )}
-                
+
                 {allowedTypes.includes('customer') && (
                   <CommandGroup heading="Clientes">
                     {people

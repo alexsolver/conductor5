@@ -1769,6 +1769,7 @@ export default function TicketsTable() {
                                 setSelectedCompanyId(value);
                                 // Reset customer selection when company changes
                                 form.setValue("callerId", "");
+                                form.setValue("callerType", "customer");
                               }}
                             >
                               <SelectTrigger>
@@ -1807,6 +1808,8 @@ export default function TicketsTable() {
                               onChange={field.onChange}
                               onTypeChange={(type) => form.setValue('callerType', type)}
                               placeholder="Selecione o cliente"
+                              companyFilter={form.watch('companyId')}
+                              disabled={!form.watch('companyId') || form.watch('companyId') === 'unspecified'}
                             />
                           </FormControl>
                           <FormMessage />
