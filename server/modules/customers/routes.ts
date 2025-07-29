@@ -1675,7 +1675,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 // POST /api/customers/companies/:companyId/associate-multiple - Associate multiple customers to a company
 customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const { companyId } = req.params.companyId;
+    const { companyId } = req.params;
     const { customerIds, isPrimary = false } = req.body;
     const tenantId = req.user?.tenantId;
 
@@ -1742,38 +1742,43 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
       });
     }
 
-    // Insert new memberships
-    const insertValues = newCustomerIds.map((customerId, index) => {
-      const paramOffset = index * 6;
-      return `($${paramOffset + 1}, $${paramOffset + 2}, $${paramOffset + 3}, $${paramOffset + 4}, $${paramOffset + 5}, $${paramOffset + 6})`;
-    }).join(',');
+    // Insert new memberships one by one to avoid parameter issues
+    const results = [];
+    for (const customerId of newCustomerIds) {
+      const insertQuery = `
+        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        (customer_id, company_id, role, is_primary, tenant_id, created_at)
+        VALUES ($1, $2, $3, $4, $5, NOW())
+        RETURNING *
+      `;
 
-    const insertParams = newCustomerIds.flatMap(customerId => [
-      customerId,
-      companyId,
-      'member', // role
-      isPrimary,
-      req.user.tenantId,
-      new Date().toISOString()
-    ]);
+      const result = await pool.query(insertQuery, [
+        customerId,
+        companyId,
+        'member',
+        isPrimary,
+        tenantId
+      ]);
 
-    const insertQuery = `
-      INSERT INTO "${schemaName}"."customer_company_memberships" 
-      (customer_id, company_id, role, is_primary, tenant_id, created_at)
-      VALUES ${insertValues}
-    `;
+      results.push(result.rows[0]);
+    }
 
-    await pool.query(insertQuery, insertParams);
-
-    console.log('Successfully associated customers:', newCustomerIds.length);
+    console.log('Successfully associated customers:', results.length);
 
     res.json({
       success: true,
       message: 'Customers associated successfully',
       data: {
-        associatedCustomers: newCustomerIds.length,
+        associatedCustomers: results.length,
         skippedExisting: existingCustomerIds.length,
-        totalRequested: customerIds.length
+        totalRequested: customerIds.length,
+        memberships: results.map(row => ({
+          id: row.id,
+          customerId: row.customer_id,
+          companyId: row.company_id,
+          role: row.role,
+          isPrimary: row.is_primary
+        }))
       }
     });
 
