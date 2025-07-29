@@ -1,0 +1,87 @@
+Crie uma página administrativa completa para gerenciar a classificação e parametrização de tickets de atendimento.
+A página deve atender aos seguintes requisitos:
+
+1. Hierarquia e Classificação
+
+Criar um sistema de categorização hierárquica de 4 níveis, onde a classificação seja organizada por níveis dependentes e vinculada à empresa cliente:
+
+Nível 1 – Empresa Cliente
+	•	Todo ticket deve obrigatoriamente estar associado a uma empresa cliente.
+	•	Este é o primeiro filtro e chave primária da hierarquia.
+
+Nível 2 – Categoria
+	•	Cada empresa cliente define suas próprias categorias macro para agrupar os tickets.
+	•	Exemplos: Incidente, Requisição, Mudança, Consulta/Dúvida, Melhoria.
+
+Nível 3 – Subcategoria
+	•	Detalhamento dentro da categoria.
+	•	Lista dependente da categoria escolhida.
+	•	Exemplos:
+	•	Para Incidente: Sistema fora do ar, Falha em equipamento
+	•	Para Requisição: Criação de acesso, Instalação de software
+
+Nível 4 – Ação
+	•	Define a ação ou tratamento específico a ser executado.
+	•	Lista dependente da subcategoria escolhida.
+	•	Exemplos: Reiniciar serviço, Trocar peça, Resetar senha.
+
+Comportamento esperado:
+	•	Cada seleção filtra o próximo nível.
+	•	As listas são gerenciáveis por empresa cliente.
+	•	Deve permitir relatórios e métricas baseados em Empresa Cliente > Categoria > Subcategoria > Ação.
+	•	Interface deve permitir adicionar, editar e remover opções facilmente.
+
+Campos de Classificação adicionais a serem gerenciados nesta tela:
+	•	Status (status) – Select configurável
+	•	Prioridade (priority) – Select configurável
+	•	Impacto (impact) – Select configurável
+	•	Urgência (urgency) – Select configurável
+
+⸻
+
+2. Numeração Customizável
+
+Permitir configuração dos padrões de numeração de ticket:
+	•	Prefixo do Número (ex: INC)
+	•	Formato do Ano (2 ou 4 dígitos)
+	•	Dígitos Sequenciais (ex: 6 dígitos)
+
+⸻
+
+3. Cores e Estilos
+
+Criar interface para configurar estilos visuais:
+	•	Cores de Status (por valor)
+	•	Cores de Prioridade (por valor)
+	•	Ícones por campo (seleção de biblioteca)
+
+⸻
+
+4. Validação Configurável
+
+Permitir parametrizar regras de validação:
+	•	Campos obrigatórios (por field_name)
+	•	Regras de validação personalizadas (por campo)
+	•	Valores padrão (por campo)
+
+⸻
+
+Comportamento Geral da Página
+	•	Sempre exibir um filtro inicial de Empresa Cliente; a partir daí, todas as configurações são específicas daquela empresa.
+	•	A página deve suportar CRUD (criar, ler, atualizar, excluir) para todos os metadados listados acima.
+	•	Alterações devem atualizar as APIs dinâmicas já existentes.
+	•	Permitir pesquisa e ordenação nos cadastros.
+	•	A interface pode ser em formato de árvore expandível ou listas encadeadas para categorias, subcategorias e ações.
+
+⸻
+
+Objetivo final
+
+Entregar uma tela administrativa centralizada que permite configurar:
+	•	Hierarquia: Empresa Cliente > Categoria > Subcategoria > Ação
+	•	Classificação: status, prioridade, impacto e urgência
+	•	Numeração customizável
+	•	Cores e ícones
+	•	Regras de validação e obrigatoriedade
+
+O sistema resultante deve deixar as opções prontas para uso no formulário de tickets e permitir evoluções futuras.
