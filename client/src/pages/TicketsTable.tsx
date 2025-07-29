@@ -288,9 +288,9 @@ export default function TicketsTable() {
 
   // Fetch companies for dropdown
   const { data: companiesData } = useQuery({
-    queryKey: ["/api/companies"],
+    queryKey: ["/api/customers/companies"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/companies");
+      const response = await apiRequest("GET", "/api/customers/companies");
       return response.json();
     },
     retry: 3,
@@ -307,7 +307,9 @@ export default function TicketsTable() {
   const pagination = ticketsData?.data?.pagination || { total: 0, totalPages: 0 };
   // Legacy customers array removed
   const users = usersData?.users || [];
-  const companies = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []);
+  const companies = Array.isArray(companiesData?.companies) ? companiesData.companies : 
+                   Array.isArray(companiesData?.data) ? companiesData.data :
+                   Array.isArray(companiesData) ? companiesData : [];
   const ticketViews = ticketViewsData?.data || [];
 
   // Obter visualização ativa
