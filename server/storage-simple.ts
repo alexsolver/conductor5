@@ -442,13 +442,16 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      if (!ticketData.subject || (!ticketData.customerId && !ticketData.caller_id)) {
+      const customerId = ticketData.customerId || ticketData.caller_id;
+      if (!ticketData.subject || !customerId) {
         throw new Error('Ticket subject and customer ID are required');
       }
 
       // Generate ticket number
       const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
+      const customerId = ticketData.customerId || ticketData.caller_id;
+      
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 
         (number, subject, description, status, priority, customer_id, caller_id, tenant_id, created_at, updated_at)
@@ -458,8 +461,8 @@ export class DatabaseStorage implements IStorage {
           ${ticketData.description || null},
           ${ticketData.status || 'open'},
           ${ticketData.priority || 'medium'},
-          ${ticketData.customerId || ticketData.caller_id},
-          ${ticketData.caller_id},
+          ${customerId},
+          ${ticketData.caller_id || customerId},
           ${validatedTenantId},
           NOW(),
           NOW()

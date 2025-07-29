@@ -100,6 +100,14 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
+    // Ensure we have required fields before parsing
+    if (!req.body.subject || !req.body.caller_id) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Subject and caller ID are required" 
+      });
+    }
+
     const ticketData = insertTicketSchema.parse({
       ...req.body,
       tenantId: req.user.tenantId,
