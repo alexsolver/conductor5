@@ -76,34 +76,79 @@ export default function CustomerCompanies() {
    const [selectedCompanyForAssociation, setSelectedCompanyForAssociation] = useState<any>(null);
 
   // Query para buscar companies
-  const { data: companiesData, isLoading, error } = useQuery({
+  const { data: companiesData, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/customer-companies'],
-    queryFn: () => apiRequest('GET', '/api/customer-companies'),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/customer-companies');
+        console.log('API Response:', response);
+        return response;
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+        throw error;
+      }
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Handle different response formats from the API and filter out deleted companies
+  // Handle different response formats from the API
   const companies = (() => {
     console.log('Raw companies data:', companiesData);
     
+    if (!companiesData) {
+      console.log('No companies data available');
+      return [];
+    }
+    
     let rawCompanies = [];
-    if (!companiesData) return [];
-    if (Array.isArray(companiesData)) rawCompanies = companiesData;
-    else if (companiesData.success && Array.isArray(companiesData.data)) rawCompanies = companiesData.data;
-    else if (companiesData.data && Array.isArray(companiesData.data)) rawCompanies = companiesData.data;
+    
+    // Handle direct array response
+    if (Array.isArray(companiesData)) {
+      rawCompanies = companiesData;
+    } 
+    // Handle wrapped success response
+    else if (companiesData.success && Array.isArray(companiesData.data)) {
+      rawCompanies = companiesData.data;
+    }
+    // Handle other wrapped formats
+    else if (companiesData.data && Array.isArray(companiesData.data)) {
+      rawCompanies = companiesData.data;
+    }
+    // Handle case where data is directly under a property
+    else if (typeof companiesData === 'object' && companiesData !== null) {
+      // Try to find array data in the object
+      for (const key in companiesData) {
+        if (Array.isArray(companiesData[key])) {
+          rawCompanies = companiesData[key];
+          break;
+        }
+      }
+    }
     
     console.log('Processed companies:', rawCompanies);
     
-    // Filter out any companies that might have deleted_at set (client-side safety)
-    const filteredCompanies = rawCompanies.filter((company: CustomerCompany & { deleted_at?: string }) => 
-      !company.deleted_at && company.id
-    );
+    // Ensure we have valid company objects and filter out deleted ones
+    const validCompanies = rawCompanies.filter((company: any) => {
+      const isValid = company && 
+                     typeof company === 'object' && 
+                     company.id && 
+                     company.name &&
+                     !company.deleted_at &&
+                     company.status !== 'deleted';
+      
+      if (!isValid) {
+        console.log('Filtering out invalid company:', company);
+      }
+      
+      return isValid;
+    });
     
-    console.log('Filtered companies:', filteredCompanies);
-    return filteredCompanies;
+    console.log('Valid companies after filtering:', validCompanies);
+    return validCompanies;
   })();
 
   // Mutation para criar company
@@ -352,10 +397,21 @@ export default function CustomerCompanies() {
             Empresas Clientes
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Gerencie empresas clientes e suas informações
+            Gerencie empresas clientes e suas informações ({companies.length} empresas carregadas)
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              console.log('Manual refresh triggered');
+              refetch();
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? "Carregando..." : "Atualizar"}
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
               <Plus className="w-4 h-4 mr-2" />
@@ -692,20 +748,40 @@ export default function CustomerCompanies() {
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Nenhuma empresa encontrada
+            {error ? 'Erro ao carregar empresas' : 'Nenhuma empresa encontrada'}
           </h3>
           <p className="text-gray-500 mb-6">
-            {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando sua primeira empresa cliente.'}
+            {error ? 
+              `Erro: ${error}` : 
+              searchTerm ? 
+                'Tente ajustar sua busca.' : 
+                'Comece criando sua primeira empresa cliente.'
+            }
           </p>
-          {!searchTerm && (
-            <Button 
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Primeira Empresa
-            </Button>
-          )}
+          <div className="flex justify-center gap-2">
+            {error && (
+              <Button 
+                variant="outline"
+                onClick={() => refetch()}
+                className="mr-2"
+              >
+                Tentar Novamente
+              </Button>
+            )}
+            {!searchTerm && (
+              <Button 
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Primeira Empresa
+              </Button>
+            )}
+          </div>
+          {/* Debug information */}
+          <div className="mt-4 text-xs text-gray-400">
+            Debug: Data={companiesData ? 'Present' : 'Null'}, Companies={companies.length}, Error={error ? 'Yes' : 'No'}
+          </div>
         </div>
       )}
 
