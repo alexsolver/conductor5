@@ -23,8 +23,8 @@ import { useLocation } from "wouter";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
-  customerId: z.string().min(1, "Cliente é obrigatório"),
-  companyId: z.string().optional(),
+  customerId: z.string().min(1, "Solicitante é obrigatório"),
+  companyId: z.string().min(1, "Empresa é obrigatória"),
   subject: z.string().min(1, "Subject is required"),
   description: z.string().min(1, "Description is required"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
@@ -196,8 +196,8 @@ export default function Tickets() {
   const onSubmit = (data: CreateTicketFormData) => {
     const submitData = {
       ...data,
-      companyId: selectedCompanyId || undefined,
       callerId: data.customerId, // Ensure customer is mapped to caller for backend
+      customerCompanyId: data.companyId, // Map company to backend field
     };
     createTicketMutation.mutate(submitData);
   };
@@ -311,47 +311,73 @@ export default function Tickets() {
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  {/* Company Selection */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Empresa
-                    </label>
-                    <select
-                      value={selectedCompanyId}
-                      onChange={(e) => {
-                        setSelectedCompanyId(e.target.value);
-                        // Reset customer selection when company changes
-                        form.setValue("customerId", "");
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="">Todas as empresas</option>
-                      {companies.map((company: any) => (
-                        <option key={company.id} value={company.id}>
-                          {company.company_name || company.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Company Selection - First Field */}
+                  <FormField
+                    control={form.control}
+                    name="companyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Empresa *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedCompanyId(value);
+                            // Reset customer selection when company changes
+                            form.setValue("customerId", "");
+                          }} 
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma empresa" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {companies.map((company: any) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {company.name || company.company_name || company.displayName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  {/* Customer/Solicitante Selection - Filtered by Company */}
                   <FormField
                     control={form.control}
                     name="customerId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cliente *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormLabel>Solicitante *</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={!selectedCompanyId}
+                        >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione um cliente" />
+                              <SelectValue 
+                                placeholder={
+                                  !selectedCompanyId 
+                                    ? "Primeiro selecione uma empresa" 
+                                    : "Selecione o solicitante"
+                                } 
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {customersLoading ? (
                               <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
+                            ) : !selectedCompanyId ? (
+                              <SelectItem value="no-company" disabled>
+                                Selecione uma empresa primeiro
+                              </SelectItem>
                             ) : filteredCustomers.length === 0 ? (
                               <SelectItem value="no-customers" disabled>
-                                Nenhum cliente encontrado
+                                Nenhum cliente encontrado para esta empresa
                               </SelectItem>
                             ) : (
                               filteredCustomers.map((customer: any) => (
