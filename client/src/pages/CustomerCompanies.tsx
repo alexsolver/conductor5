@@ -75,22 +75,28 @@ export default function CustomerCompanies() {
    const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
    const [selectedCompanyForAssociation, setSelectedCompanyForAssociation] = useState<any>(null);
 
-  // Query para buscar companies
+  // Query para buscar companies with timestamp to force fresh data
   const { data: companiesData, isLoading } = useQuery({
-    queryKey: ['/api/customer-companies'],
+    queryKey: ['/api/customer-companies', Date.now()], // Add timestamp for uniqueness
     staleTime: 0, // Always fresh data
     gcTime: 0, // Don't keep in cache
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+    refetchInterval: false, // Don't auto-refetch
   });
 
-  // Handle different response formats from the API
+  // Handle different response formats from the API and filter out deleted companies
   const companies = (() => {
+    let rawCompanies = [];
     if (!companiesData) return [];
-    if (Array.isArray(companiesData)) return companiesData;
-    if (companiesData.success && Array.isArray(companiesData.data)) return companiesData.data;
-    if (companiesData.data && Array.isArray(companiesData.data)) return companiesData.data;
-    return [];
+    if (Array.isArray(companiesData)) rawCompanies = companiesData;
+    else if (companiesData.success && Array.isArray(companiesData.data)) rawCompanies = companiesData.data;
+    else if (companiesData.data && Array.isArray(companiesData.data)) rawCompanies = companiesData.data;
+    
+    // Filter out any companies that might have deleted_at set (client-side safety)
+    return rawCompanies.filter((company: CustomerCompany & { deleted_at?: string }) => 
+      !company.deleted_at && company.id
+    );
   })();
 
   // Mutation para criar company

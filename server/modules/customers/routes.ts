@@ -234,6 +234,50 @@ customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
 const customerCompanyController = getCustomerCompanyController();
 
 // Customer Company Routes
+// GET /api/customers/companies/verify/:id - Verify company exists and is not deleted
+customersRouter.get('/companies/verify/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ message: 'Tenant context required' });
+    }
+
+    const companyId = req.params.id;
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    // Ensure deleted_at column exists
+    try {
+      await pool.query(
+        `ALTER TABLE "${schemaName}"."customer_companies" 
+         ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL`
+      );
+    } catch (error) {
+      // Column might already exist
+    }
+
+    const result = await pool.query(
+      `SELECT id, name, deleted_at FROM "${schemaName}"."customer_companies" 
+       WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ exists: false, deleted: false });
+    }
+
+    const company = result.rows[0];
+    res.json({ 
+      exists: true, 
+      deleted: !!company.deleted_at,
+      name: company.name
+    });
+  } catch (error) {
+    console.error('Error verifying company:', error);
+    res.status(500).json({ message: 'Failed to verify company' });
+  }
+});
+
 // GET /api/customers/companies - Get all customer companies
 customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -246,9 +290,20 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
+    // Ensure deleted_at column exists first
+    try {
+      await pool.query(
+        `ALTER TABLE "${schemaName}"."customer_companies" 
+         ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL`
+      );
+    } catch (error) {
+      // Column might already exist
+    }
+
     const result = await pool.query(
-      `SELECT * FROM "${schemaName}"."customer_companies" 
-       WHERE tenant_id = $1 AND (deleted_at IS NULL OR deleted_at = '') 
+      `SELECT id, name, display_name, description, size, subscription_tier, status, created_at, updated_at, deleted_at
+       FROM "${schemaName}"."customer_companies" 
+       WHERE tenant_id = $1 AND deleted_at IS NULL
        ORDER BY name`,
       [req.user.tenantId]
     );
@@ -399,21 +454,42 @@ customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedReque
       });
     }
 
-    // Add deleted_at column if it doesn't exist
+    // Ensure deleted_at column exists with proper type
     try {
       await pool.query(
         `ALTER TABLE "${schemaName}"."customer_companies" 
-         ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`
+         ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL`
+      );
+      
+      // Also ensure we have an index for performance
+      await pool.query(
+        `CREATE INDEX IF NOT EXISTS idx_customer_companies_deleted_at 
+         ON "${schemaName}"."customer_companies" (deleted_at) 
+         WHERE deleted_at IS NULL`
       );
     } catch (error) {
-      // Column might already exist, continue
+      console.log('Column setup info:', error.message);
+    }
+
+    // First check if already deleted
+    const checkDeleted = await pool.query(
+      `SELECT deleted_at FROM "${schemaName}"."customer_companies" 
+       WHERE id = $1 AND tenant_id = $2`,
+      [companyId, req.user.tenantId]
+    );
+
+    if (checkDeleted.rows.length > 0 && checkDeleted.rows[0].deleted_at) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company already deleted'
+      });
     }
 
     // Soft delete the company
     const result = await pool.query(
       `UPDATE "${schemaName}"."customer_companies" 
        SET deleted_at = NOW(), updated_at = NOW()
-       WHERE id = $1 AND tenant_id = $2 AND (deleted_at IS NULL OR deleted_at = '')`,
+       WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
       [companyId, req.user.tenantId]
     );
 
