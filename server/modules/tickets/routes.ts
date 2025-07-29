@@ -807,7 +807,7 @@ ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 // Get ticket notes
-ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: AuthenticatedRequest, res) =>{
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
