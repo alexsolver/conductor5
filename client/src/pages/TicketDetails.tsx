@@ -1252,6 +1252,7 @@ export default function TicketDetails() {
                       case 'email_received': return { icon: Mail, color: 'indigo' };
                       case 'communication': return { icon: MessageSquare, color: 'teal' };
                       case 'attachment_added': return { icon: Paperclip, color: 'pink' };
+                      case 'note_added': return { icon: FileText, color: 'blue' };
                       default: return { icon: Activity, color: 'gray' };
                     }
                   };
@@ -1277,7 +1278,8 @@ export default function TicketDetails() {
                               {historyItem.action_type === 'communication' && 'Comunicação'}
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
                               {historyItem.action_type === 'internal_action' && 'Ação Interna'}
-                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action'].includes(historyItem.action_type) && 'Atividade'}
+                              {historyItem.action_type === 'note_added' && 'Nota'}
+                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'note_added'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
                               <Badge variant="secondary" className="text-xs">
