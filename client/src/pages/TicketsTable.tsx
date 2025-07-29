@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -944,10 +944,7 @@ export default function TicketsTable() {
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select agent" />
-```text
-
-                      </SelectTrigger>
+                        <SelectValue placeholder="Select agent" />                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
@@ -1913,7 +1910,7 @@ export default function TicketsTable() {
                   type="button" 
                   variant="outline" 
                   onClick={() => setIsNewTicketModalOpen(false)}
-                  disabled={createTicketMutation.isPending}
+                                    disabled={createTicketMutation.isPending}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Cancelar
