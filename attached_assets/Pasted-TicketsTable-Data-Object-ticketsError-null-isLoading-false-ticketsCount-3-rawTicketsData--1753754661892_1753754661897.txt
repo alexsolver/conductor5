@@ -1,0 +1,36 @@
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+❌ Form validation errors: 
+Object {subject: {…}}
+
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
+TicketsTable - Data: 
+Object {ticketsError: null, isLoading: false, ticketsCount: 3, rawTicketsData: {…}, ticketsStructure: Array(4), …}
