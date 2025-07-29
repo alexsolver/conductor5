@@ -58,7 +58,7 @@ export function PersonSelector({
       if (!companyFilter || companyFilter === 'unspecified') {
         return { customers: [] };
       }
-      
+
       const response = await apiRequest("GET", `/api/companies/${companyFilter}/customers`);
       return response.json();
     },

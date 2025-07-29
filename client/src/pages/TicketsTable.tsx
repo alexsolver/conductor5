@@ -671,6 +671,23 @@ export default function TicketsTable() {
     hasToken: !!localStorage.getItem('accessToken')
   });
 
+  // Esquema de validação para criação de tickets
+const ticketFormSchema = z.object({
+  companyId: z.string().min(1, "Empresa é obrigatória"),
+  callerId: z.string().min(1, "Solicitante é obrigatório"),
+  callerType: z.enum(["user", "customer"]).default("customer"),
+  beneficiaryId: z.string().optional(),
+  beneficiaryType: z.enum(["user", "customer"]).optional(),
+  subject: z.string().min(1, "Assunto é obrigatório"),
+  description: z.string().min(1, "Descrição é obrigatória"),
+  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  assignedToId: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  status: z.enum(["open", "in_progress", "resolved", "closed"]).default("open"),
+});
+
   // Form setup
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
@@ -702,33 +719,44 @@ export default function TicketsTable() {
     },
   });
 
-  // Create ticket mutation
+  // Mutação para criar ticket
   const createTicketMutation = useMutation({
-    mutationFn: async (data: TicketFormData) => {
-      const submitData = {
-        ...data,
-        assignedToId: data.assignedToId === "unassigned" ? undefined : data.assignedToId,
-        // Ensure beneficiary defaults to caller if not set
-        beneficiaryId: data.beneficiaryId || data.callerId,
-        beneficiaryType: data.beneficiaryType || data.callerType,
-      };
-      const response = await apiRequest("POST", "/api/tickets", submitData);
-      return response.json();
+    mutationFn: async (data: any) => {
+      console.log('🚀 Starting ticket creation with data:', data);
+      try {
+        const response = await apiRequest("POST", "/api/tickets", data);
+        console.log('📡 API Response status:', response.status);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('❌ API Error Response:', errorData);
+          throw new Error(errorData.message || "Erro ao criar ticket");
+        }
+
+        const result = await response.json();
+        console.log('✅ API Success Response:', result);
+        return result;
+      } catch (error) {
+        console.error('💥 Mutation Error:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ Ticket criado com sucesso:", data);
       toast({
-        title: "Success",
-        description: "Ticket created successfully",
+        title: "Sucesso",
+        description: "Ticket criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-      setIsCreateDialogOpen(false);
+      setIsNewTicketModalOpen(false);
       form.reset();
     },
     onError: (error: Error) => {
+      console.error("❌ Erro ao criar ticket:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create ticket",
+        title: "Erro",
+        description: error.message || "Erro ao criar ticket",
         variant: "destructive",
       });
     },
@@ -737,7 +765,32 @@ export default function TicketsTable() {
 
 
   const onSubmit = (data: TicketFormData) => {
-    createTicketMutation.mutate(data);
+    const submitData = {
+      // Core ticket fields
+      subject: data.subject,
+      description: data.description,
+      priority: data.priority,
+      status: data.status || "open",
+      category: data.category || "",
+      subcategory: data.subcategory || "",
+
+      // People assignments
+      customerId: data.callerId, // Map callerId to customerId for backend
+      caller_id: data.callerId,
+      caller_type: data.callerType,
+      beneficiary_id: data.beneficiaryId || data.callerId,
+      beneficiary_type: data.beneficiaryType || data.callerType,
+      assigned_to_id: data.assignedToId === "unassigned" ? undefined : data.assignedToId,
+
+      // Company relationship
+      customer_company_id: data.companyId,
+
+      // Additional fields
+      tags: data.tags || [],
+    };
+
+    console.log('Submitting ticket data:', submitData);
+    createTicketMutation.mutate(submitData);
   };
 
   const handleDelete = (ticketId: string) => {
