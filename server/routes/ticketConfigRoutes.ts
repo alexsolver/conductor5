@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
@@ -16,7 +15,7 @@ router.get('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -26,7 +25,7 @@ router.get('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT * FROM "${sql.raw(schemaName)}"."ticket_categories" 
       WHERE tenant_id = ${tenantId} 
@@ -52,7 +51,7 @@ router.get('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
 router.post('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -73,7 +72,7 @@ router.post('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const categoryId = randomUUID();
-    
+
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" (
         id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at
@@ -111,7 +110,7 @@ router.put('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
   try {
     const tenantId = req.user?.tenantId;
     const categoryId = req.params.id;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -126,7 +125,7 @@ router.put('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
     } = req.body;
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     await db.execute(sql`
       UPDATE "${sql.raw(schemaName)}"."ticket_categories" 
       SET 
@@ -162,7 +161,7 @@ router.get('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) => 
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -172,7 +171,7 @@ router.get('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) => 
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT s.*, c.name as category_name 
       FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
@@ -200,55 +199,71 @@ router.get('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) => 
 router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
 
+    console.log('🔄 Creating subcategory with data:', req.body);
+
     const {
+      categoryId,
       name,
       description,
-      categoryId,
-      color,
+      color = '#3b82f6',
       icon,
-      active,
-      sortOrder,
-      companyId
+      active = true,
+      sortOrder = 1
     } = req.body;
 
-    if (!name || !categoryId) {
-      return res.status(400).json({ message: 'Name and category ID are required' });
+    // Validate required fields
+    if (!categoryId || !name) {
+      console.error('❌ Missing required fields:', { categoryId, name });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Category ID and name are required' 
+      });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const subcategoryId = randomUUID();
-    
-    await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" (
-        id, tenant_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at
-      ) VALUES (
-        ${subcategoryId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, 
-        ${color || '#3b82f6'}, ${icon || null}, ${active !== false}, ${sortOrder || 1}, 
-        NOW(), NOW()
-      )
+
+    console.log('🔍 Checking if category exists:', categoryId);
+
+    // Check if category exists
+    const categoryCheck = await db.execute(sql`
+      SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      WHERE id = ${categoryId} AND tenant_id = ${tenantId}
     `);
+
+    if (categoryCheck.rows.length === 0) {
+      console.error('❌ Category not found:', categoryId);
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    console.log('✅ Category found, creating subcategory...');
+
+    // Insert subcategory with proper company_id field
+    const result = await db.execute(sql`
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+      (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+      VALUES (gen_random_uuid(), ${tenantId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${active}, ${sortOrder}, NOW(), NOW())
+      RETURNING *
+    `);
+
+    console.log('✅ Subcategory created successfully:', result.rows[0]);
 
     res.status(201).json({
       success: true,
-      data: {
-        id: subcategoryId,
-        name,
-        description,
-        categoryId,
-        color: color || '#3b82f6',
-        icon,
-        active: active !== false,
-        sortOrder: sortOrder || 1
-      }
+      data: result.rows[0],
+      message: 'Subcategory created successfully'
     });
   } catch (error) {
-    console.error('Error creating subcategory:', error);
+    console.error('❌ Error creating subcategory:', error);
     res.status(500).json({
+      success: false,
       error: 'Failed to create subcategory',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
@@ -264,7 +279,7 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -274,7 +289,7 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT a.*, s.name as subcategory_name, c.name as category_name 
       FROM "${sql.raw(schemaName)}"."ticket_actions" a
@@ -303,7 +318,7 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
 router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -326,7 +341,7 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const actionId = randomUUID();
-    
+
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
         id, tenant_id, subcategory_id, name, description, estimated_time_minutes, 
@@ -370,7 +385,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -380,7 +395,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT * FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE tenant_id = ${tenantId} 
@@ -406,7 +421,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
 router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -429,7 +444,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const optionId = randomUUID();
-    
+
     // Se esta opção for marcada como padrão, desmarcar outras do mesmo campo
     if (isDefault) {
       await db.execute(sql`
@@ -440,7 +455,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
         AND field_name = ${fieldName}
       `);
     }
-    
+
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
         id, tenant_id, company_id, field_name, value, display_label, color, icon, 
@@ -484,7 +499,7 @@ router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -494,7 +509,7 @@ router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT * FROM "${sql.raw(schemaName)}"."ticket_numbering_config" 
       WHERE tenant_id = ${tenantId} 
@@ -519,7 +534,7 @@ router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
 router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -538,7 +553,7 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     // Verificar se já existe configuração para esta empresa
     const existingResult = await db.execute(sql`
       SELECT id FROM "${sql.raw(schemaName)}"."ticket_numbering_config" 
@@ -596,7 +611,7 @@ router.get('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res) 
   try {
     const tenantId = req.user?.tenantId;
     const companyId = req.query.companyId as string;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -606,7 +621,7 @@ router.get('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res) 
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT * FROM "${sql.raw(schemaName)}"."ticket_validation_rules" 
       WHERE tenant_id = ${tenantId} 
@@ -631,7 +646,7 @@ router.get('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res) 
 router.post('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
@@ -651,7 +666,7 @@ router.post('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res)
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const ruleId = randomUUID();
-    
+
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_validation_rules" (
         id, tenant_id, company_id, field_name, is_required, validation_pattern, 
