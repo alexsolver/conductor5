@@ -282,6 +282,7 @@ const TicketConfiguration: React.FC = () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/subcategories?companyId=${selectedCompany}`);
       const result = await response.json();
+      console.log('🔍 Subcategories response:', result);
       return result.success ? result.data : [];
     },
     enabled: !!selectedCompany
@@ -350,14 +351,19 @@ const TicketConfiguration: React.FC = () => {
 
   const createSubcategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof subcategorySchema>) => {
+      console.log('🔄 Creating subcategory with data:', data);
       const response = await apiRequest('POST', '/api/ticket-config/subcategories', {
         ...data,
         companyId: selectedCompany
       });
-      return response.json();
+      const result = await response.json();
+      console.log('✅ Subcategory creation response:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log('🔄 Invalidating subcategories query...');
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/subcategories'] });
+      queryClient.refetchQueries({ queryKey: ['/api/ticket-config/subcategories', selectedCompany] });
       setDialogOpen(false);
       subcategoryForm.reset();
       toast({ title: "Subcategoria criada com sucesso" });
@@ -442,7 +448,7 @@ const TicketConfiguration: React.FC = () => {
     
     // Initialize form values based on dialog type
     if (type === 'subcategory') {
-      subcategoryForm.reset({
+      const formData = {
         name: item?.name || '',
         description: item?.description || '',
         categoryId: item?.categoryId || '',
@@ -450,7 +456,9 @@ const TicketConfiguration: React.FC = () => {
         icon: item?.icon || '',
         active: item?.active !== undefined ? item.active : true,
         sortOrder: item?.sortOrder || 1
-      });
+      };
+      console.log('🔄 Initializing subcategory form with data:', formData);
+      subcategoryForm.reset(formData);
     } else if (type === 'category') {
       categoryForm.reset({
         name: item?.name || '',
@@ -633,6 +641,7 @@ const TicketConfiguration: React.FC = () => {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
+                              console.log('🔄 Opening subcategory dialog with categoryId:', category.id);
                               openDialog('subcategory', { categoryId: category.id });
                             }}
                           >
