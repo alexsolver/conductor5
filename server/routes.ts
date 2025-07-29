@@ -39,7 +39,7 @@ import translationsRoutes from './routes/translations';
 import localizationRoutes from './routes/localization';
 import { emailTemplatesRouter as emailTemplatesRoutes } from './routes/emailTemplates';
 import systemScanRoutes from './routes/systemScanRoutes';
-import integrityRoutes from './routes/integrityRoutes';
+import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import productivityRoutes from './routes/productivityRoutes';
 import authSecurityRoutes from './routes/authSecurity';
 import validationRoutes from './routes/validation';
