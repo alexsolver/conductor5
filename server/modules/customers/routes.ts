@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
+import { requirePermission } from "../../middleware/rbacMiddleware";
 import { storageSimple } from "../../storage-simple";
 import { insertCustomerSchema } from "@shared/schema";
 import { z } from "zod";
@@ -358,7 +359,7 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
 });
 
 // DELETE /api/customers/companies/:id - Delete customer company
-customersRouter.delete('/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 'delete'), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(401).json({ message: 'Tenant context required' });

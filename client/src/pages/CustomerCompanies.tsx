@@ -139,17 +139,29 @@ export default function CustomerCompanies() {
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
     onSuccess: async (data, deletedId) => {
-      // Force invalidate all related queries
-      await queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
-      
-      // Remove from cache immediately
-      queryClient.removeQueries({ queryKey: ['/api/customer-companies'] });
-      
-      // Wait a bit for backend to process, then refetch
-      setTimeout(async () => {
-        await queryClient.refetchQueries({ queryKey: ['/api/customer-companies'] });
-      }, 100);
+      console.log('Company deleted successfully:', { deletedId, response: data });
+
+      // Validate response
+      if (!data || (data as any).success === false) {
+        throw new Error((data as any)?.message || 'Falha na exclusão da empresa');
+      }
+
+      // Optimistic update: remove from cache immediately
+      queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData)) return oldData;
+        return oldData.filter(company => company.id !== deletedId);
+      });
+
+      // Invalidate and refetch only necessary queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
+        // Invalidate any customer-specific queries that might reference this company
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/customers'], 
+          refetchType: 'inactive' 
+        })
+      ]);
 
       toast({
         title: "Sucesso",
@@ -157,9 +169,18 @@ export default function CustomerCompanies() {
       });
     },
     onError: (error: any) => {
+      console.error('Error deleting company:', error);
+
+      // Revert optimistic update if it was applied
+      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          "Erro ao excluir empresa";
+
       toast({
         title: "Erro",
-        description: error.message || "Erro ao excluir empresa",
+        description: errorMessage,
         variant: "destructive",
       });
     }
