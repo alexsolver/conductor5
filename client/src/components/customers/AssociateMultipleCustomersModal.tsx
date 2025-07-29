@@ -50,7 +50,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [role, setRole] = useState('member');
   const [isPrimary, setIsPrimary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,7 +167,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
         },
         body: JSON.stringify({
           customerIds: selectedCustomerIds,
-          role,
           isPrimary,
         }),
       });
@@ -183,7 +181,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       
       // Reset form
       setSelectedCustomerIds([]);
-      setRole('member');
       setIsPrimary(false);
       
       // Notify parent component
@@ -203,7 +200,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const handleClose = () => {
     setSelectedCustomerIds([]);
     setSearchTerm('');
-    setRole('member');
     setIsPrimary(false);
     setError(null);
     setSuccess(null);
@@ -241,30 +237,13 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="role">Função</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Membro</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="owner">Proprietário</SelectItem>
-                    <SelectItem value="contact">Contato</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center space-x-2 pt-6">
-                <Checkbox
-                  id="isPrimary"
-                  checked={isPrimary}
-                  onCheckedChange={setIsPrimary}
-                />
-                <Label htmlFor="isPrimary">Empresa principal</Label>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isPrimary"
+                checked={isPrimary}
+                onCheckedChange={setIsPrimary}
+              />
+              <Label htmlFor="isPrimary">Empresa principal</Label>
             </div>
           </div>
 
