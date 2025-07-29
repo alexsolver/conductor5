@@ -20,7 +20,7 @@ const locationSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(['cliente', 'ativo', 'filial', 'tecnico', 'parceiro']),
   status: z.enum(['ativo', 'inativo', 'manutencao', 'suspenso']).default('ativo'),
-  
+
   // Address fields
   address: z.string().min(1, "Endereço é obrigatório"),
   number: z.string().optional(),
@@ -30,14 +30,14 @@ const locationSchema = z.object({
   state: z.string().min(1, "Estado é obrigatório"),
   zipCode: z.string().min(1, "CEP é obrigatório"),
   country: z.string().default('Brasil'),
-  
+
   // Geographic coordinates
   latitude: z.string().optional(),
   longitude: z.string().optional(),
-  
+
   // Business hours and SLA
   timezone: z.string().default('America/Sao_Paulo'),
-  
+
   // Access and security
   accessInstructions: z.string().optional(),
   requiresAuthorization: z.boolean().default(false),

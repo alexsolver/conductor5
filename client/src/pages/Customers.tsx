@@ -16,7 +16,12 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   
   const { data: customersData, isLoading } = useQuery({
-    queryKey: ["/api/clientes"],
+    queryKey: ["/api/customers"],
+    queryFn: async () => {
+      const { apiRequest } = await import('../lib/queryClient');
+      const response = await apiRequest('GET', '/api/customers');
+      return response.json();
+    },
     retry: false,
   });
 

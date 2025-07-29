@@ -23,33 +23,33 @@ const customerSchema = z.object({
   // Tipo e status
   customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
   status: z.enum(['Ativo', 'Inativo']).default('Ativo'),
-  
+
   // Informações básicas
   email: z.string().email('Email inválido'),
   description: z.string().optional(),
   internalCode: z.string().optional(),
-  
+
   // Dados pessoa física
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   cpf: z.string().optional(),
-  
+
   // Dados pessoa jurídica
   companyName: z.string().optional(),
   cnpj: z.string().optional(),
-  
+
   // Contatos
   contactPerson: z.string().optional(),
   responsible: z.string().optional(),
   phone: z.string().optional(),
   mobilePhone: z.string().optional(),
-  
+
   // Hierarquia
   position: z.string().optional(),
   supervisor: z.string().optional(),
   coordinator: z.string().optional(),
   manager: z.string().optional(),
-  
+
   // Campos técnicos (mantidos)
   company: z.string().optional(),
   verified: z.boolean().default(false),
@@ -134,13 +134,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const mutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
-        return apiRequest('PATCH', `/api/clientes/${customer.id}`, data);
+        return apiRequest('PATCH', `/api/customers/${customer.id}`, data);
       } else {
-        return apiRequest('POST', '/api/clientes', data);
+        return apiRequest('POST', '/api/customers', data);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/clientes'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
         title: "Sucesso",
         description: customer?.id ? "Cliente atualizado com sucesso!" : "Cliente criado com sucesso!",
@@ -172,7 +172,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     // Parse available companies - API returns direct array
     const availableCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
-    
+
     if (availableCompaniesError) {
       console.error('Available companies error:', availableCompaniesError);
     }
@@ -202,7 +202,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     } else if (customerCompaniesData?.data && Array.isArray(customerCompaniesData.data)) {
       companies = customerCompaniesData.data;
     }
-    
+
     setCustomerCompanies(companies);
   }, [customerCompaniesData, customer?.id]);
 
@@ -212,7 +212,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       // Clear cache and force fresh data
       queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
       queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
-      
+
       // Force immediate refresh
       setTimeout(() => {
         refetchCustomerCompanies();
@@ -356,7 +356,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         companyId: selectedCompanyId,
         currentAssociations: customerCompanies?.length || 0
       });
-      
+
       const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
         companyId: selectedCompanyId,
         role: 'member',
@@ -366,10 +366,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       // Limpar seleção antes de atualizar dados
       setSelectedCompanyId('');
       form.setValue('company', '');
-      
+
       // Atualizar dados
       await refetchCustomerCompanies();
-      
+
       toast({
         title: "Sucesso",
         description: "Empresa associada com sucesso!",
@@ -408,15 +408,15 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         customerId: customer.id, 
         companyId
       });
-      
+
       // Fazer a requisição de exclusão
       const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
       console.log('Delete response:', result);
-      
+
       if (result && (result as any).success === false) {
         throw new Error((result as any).message || 'Falha ao remover empresa');
       }
-      
+
       // Atualizar estado local imediatamente
       setCustomerCompanies(prevCompanies => {
         const filtered = prevCompanies.filter(company => 
@@ -429,18 +429,18 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         });
         return filtered;
       });
-      
+
       // Invalidar cache e fazer refetch simples
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
-      
+
       // Aguardar um pouco para o backend processar
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Refetch simples
       await refetchCustomerCompanies();
       await refetchAvailableCompanies();
-      
+
       toast({
         title: "Sucesso",
         description: "Empresa removida com sucesso!",
@@ -453,7 +453,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         errorMessage: error?.message,
         errorResponse: error?.response
       });
-      
+
       toast({
         title: "Erro",
         description: error?.message || "Erro ao remover empresa",
@@ -786,7 +786,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
                   <div className="border-t pt-4">
                     <h3 className="text-lg font-medium mb-4">Configurações Técnicas</h3>
-                    
+
                     <div className="grid grid-cols-3 gap-6">
                       <FormField
                         control={form.control}
@@ -958,7 +958,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 const membershipId = membership.membership_id || membership.id || index;
                                 // Chave única garantida usando múltiplos identificadores
                                 const uniqueKey = `membership-${membershipId}-${companyId}-${index}`;
-                                
+
                                 return (
                                   <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                                     <div className="flex items-center gap-2">
@@ -991,9 +991,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               </div>
                             )}
                           </div>
-                        </FormItem>
-
-                        {/* Adicionar nova empresa */}
+                        </FormItem>{/* Adicionar nova empresa */}
                         <div className="mt-4 space-y-2">
                           <FormLabel className="text-sm font-medium">Adicionar Empresa</FormLabel>
                           <div className="flex gap-2">

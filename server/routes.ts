@@ -42,7 +42,7 @@ import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import { slaController } from './modules/tickets/SlaController';
 import customFieldsRoutes from './modules/custom-fields/routes.ts';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
-import ticketHistoryRoutes from './modules/ticket-history/routes';
+import ticketHistoryRoutes from './routes/ticket-history/routes';
 import { TicketViewsController } from './controllers/TicketViewsController';
 // Hierarchical ticket metadata import - loaded dynamically below
 
@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
-  // app.use('/api/customers', customersRouter); // Temporarily disabled due to schema issues
+  // Removed - using standardized /api/customers route
   app.use('/api/favorecidos', favorecidosRouter.default);
   app.use('/api/tickets', ticketsRouter);
 
@@ -709,7 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/technical-skills', technicalSkillsRoutes);
 
 // Advanced ticket configuration routes
-  // Custom Fields routes - Universal metadata and dynamic fields system
+  // CustomFields routes - Universal metadata and dynamic fields system
   app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
   // Holiday routes for journey control system
@@ -1555,7 +1555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         mostViewed: [
           { id: '3', title: 'Como Redefinir Senha?', view_count: 256, average_rating: '4.8' },
-          { id: '1', title: 'Como Criar um Ticket', view_count: 124, average_rating: '4.5' },
+          { id: '1', title: 'Como Criar um Ticket', viewcount: 124, average_rating: '4.5' },
           { id: '2', title: 'Configurações de Notificação', view_count: 89, average_rating: '4.2' },
           { id: '4', title: 'Problemas de Conexão', view_count: 78, average_rating: '4.0' }
         ],
