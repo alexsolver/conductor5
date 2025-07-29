@@ -86,6 +86,9 @@ import Clientes from "./pages/Clientes";
 // Components
 import { AppShell } from "./components/layout/AppShell";
 
+// Assuming TicketAdvancedConfiguration is in the same directory
+import TicketAdvancedConfiguration from "./pages/TicketAdvancedConfiguration";
+
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -147,6 +150,7 @@ function AppRouter() {
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/ticket-configuration" component={TicketConfiguration} />
+        <Route path="/ticket-configuration/advanced" component={TicketAdvancedConfiguration} />
         <Route path="/user-management" component={UserManagement} />
         {/* Removed: Multi-tenant management route - functionality eliminated */}
         <Route path="/settings" component={Settings} />

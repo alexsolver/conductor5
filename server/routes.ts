@@ -10,7 +10,6 @@ import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, customerCompanies } from "@shared/schema-master";
 import { eq, and, sql, asc } from "drizzle-orm";
-import { z } from "zod";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
 
@@ -709,6 +708,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
 
+Adicionando as rotas para configurações avançadas de tickets.
+```python
   // Custom Fields routes - Universal metadata and dynamic fields system
   app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
@@ -2830,7 +2831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/ticket-views/:id', jwtAuth, ticketViewsController.updateView.bind(ticketViewsController));
 
   // Deletar visualização
-  app.delete('/api/ticket-views/:id', jwtAuth, ticketViewsController.deleteView.bind(ticketViewsController));
+  app.delete('/api/ticket-views/:id', ticketViewsController.deleteView.bind(ticketViewsController));
 
   // Definir visualização ativa para o usuário
   app.post('/api/ticket-views/:id/set-active', jwtAuth, ticketViewsController.setActiveView.bind(ticketViewsController));
