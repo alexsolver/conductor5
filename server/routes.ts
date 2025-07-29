@@ -708,8 +708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Technical Skills routes
   app.use('/api/technical-skills', technicalSkillsRoutes);
 
-Adicionando as rotas para configurações avançadas de tickets.
-```python
+// Advanced ticket configuration routes
   // Custom Fields routes - Universal metadata and dynamic fields system
   app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
