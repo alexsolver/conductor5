@@ -573,7 +573,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const { firstName, lastName, email, phone, company, address, city, state, zipCode } = req.body;
+      console.log(`[CREATE-CUSTOMER] Request body:`, req.body);
+
+      // Extract data with support for both formats (frontend form and simple format)
+      const {
+        firstName, lastName, email, phone, mobilePhone, company, companyName,
+        address, city, state, zipCode, zip_code,
+        customerType, status, description, internalCode, internal_code,
+        cpf, cnpj, contactPerson, contact_person, responsible,
+        position, supervisor, coordinator, manager,
+        verified, active, suspended, timezone, locale, language,
+        externalId, external_id, role, notes, avatar, signature
+      } = req.body;
+
+      // Priority-based field selection for phone and company
+      const finalPhone = phone || mobilePhone || '';
+      const finalCompany = company || companyName || '';
+      const finalZipCode = zipCode || zip_code || '';
+      const finalInternalCode = internalCode || internal_code || '';
+      const finalExternalId = externalId || external_id || '';
+      const finalContactPerson = contactPerson || contact_person || '';
 
       if (!firstName || !lastName || !email) {
         return res.status(400).json({
@@ -587,6 +606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
       console.log(`[CREATE-CUSTOMER] Creating customer: ${firstName} ${lastName} (${email})`);
+      console.log(`[CREATE-CUSTOMER] Processed data: phone=${finalPhone}, company=${finalCompany}`);
 
       // Check if customer already exists
       const existingCustomer = await pool.query(
@@ -601,13 +621,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Insert new customer
+      // Insert new customer with all supported fields
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."customers" 
          (tenant_id, first_name, last_name, email, phone, company, address, city, state, zip_code, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
          RETURNING *`,
-        [req.user.tenantId, firstName, lastName, email, phone, company, address, city, state, zipCode]
+        [req.user.tenantId, firstName, lastName, email, finalPhone, finalCompany, address, city, state, finalZipCode]
       );
 
       const customer = result.rows[0];
