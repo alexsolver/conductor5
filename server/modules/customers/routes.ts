@@ -10,6 +10,21 @@ export const customersRouter = Router();
 
 // Get all customers
 customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  const requestId = Math.random().toString(36).substr(2, 9);
+  console.log(`🔍 [${requestId}] Customers API request started`, {
+    method: req.method,
+    url: req.url,
+    userAgent: req.get('User-Agent'),
+    contentType: req.get('Content-Type'),
+    accept: req.get('Accept'),
+    tenantId: req.user?.tenantId,
+    userId: req.user?.id,
+    timestamp: new Date().toISOString()
+  });
+
+  // Always set JSON headers first
+  res.setHeader('Content-Type', 'application/json');
+  
   // Validate query parameters first (outside try block to be accessible in catch)
   const { limit, offset, search } = req.query;
   const parsedLimit = limit ? Math.max(1, Math.min(100, parseInt(limit as string) || 50)) : 50;
@@ -18,7 +33,13 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      console.log('❌ Missing tenant ID for customer request');
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant",
+        customers: [],
+        total: 0
+      });
     }
 
     // Direct database query for better reliability
@@ -117,32 +138,40 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
         : [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email
     }));
 
-    console.log(`Found ${customers.length} customers for tenant ${req.user.tenantId}`);
+    console.log(`✅ Found ${customers.length} customers for tenant ${req.user.tenantId}`);
 
-    res.setHeader('Content-Type', 'application/json');
-    res.json({ 
+    return res.json({ 
       success: true,
       customers,
       count: customers.length,
       total: customers.length
     });
   } catch (error) {
+    console.error('❌ Critical error in customers API:', {
+      error: error?.message || 'Unknown error',
+      stack: error?.stack?.split('\n').slice(0, 3).join('\n'),
+      tenantId: req.user?.tenantId,
+      timestamp: new Date().toISOString()
+    });
+
     const { logError } = await import('../../utils/logger');
     logError("Error fetching customers", error, { 
       tenantId: req.user?.tenantId,
       options: { limit: parsedLimit, offset: parsedOffset, search: searchTerm }
     });
-    console.error('Error in customers API:', error);
 
-    // Ensure we always return JSON, never HTML
-    res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({ 
-      success: false,
-      message: "Failed to fetch customers", 
-      error: error?.message || "Internal server error",
-      customers: [],
-      total: 0
-    });
+    // Force JSON response regardless of error type
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch customers", 
+        error: error?.message || "Internal server error",
+        customers: [],
+        total: 0,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 });
 
