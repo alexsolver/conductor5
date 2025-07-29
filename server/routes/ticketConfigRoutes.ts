@@ -504,9 +504,7 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 // FIELD OPTIONS - Configuração de campos (status, priority, impact, urgency)
 // ============================================================================
 
-
-
-// Get all field options
+// GET /api/ticket-config/field-options
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
@@ -523,7 +521,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     console.log('🔍 Fetching field options for:', { tenantId, companyId });
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const result = await db.execute(sql`
       SELECT 
         id,
@@ -549,13 +547,25 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
 
     console.log('🔍 Field options query result for company:', companyId, {
       totalRows: result.rows.length,
+      byFieldName: result.rows.reduce((acc, row) => {
+        acc[row.field_name] = (acc[row.field_name] || 0) + 1;
+        return acc;
+      }, {}),
       statusRows: result.rows.filter(row => row.field_name === 'status').map(row => ({
         id: row.id,
         value: row.value,
         label: row.display_label,
         status_type: row.status_type,
-        company_id: row.company_id
+        company_id: row.company_id,
+        created_at: row.created_at
       }))
+    });
+
+    // Force fresh response headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
 
     res.json({

@@ -321,8 +321,11 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany,
     staleTime: 0,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true
+    cacheTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: false,
+    retry: 3
   });
 
   const { data: numberingConfig } = useQuery({
@@ -408,14 +411,20 @@ const TicketConfiguration: React.FC = () => {
       });
       return response.json();
     },
-    onSuccess: async () => {
-      console.log('✅ Field option created successfully, refreshing cache...');
+    onSuccess: async (result) => {
+      console.log('✅ Field option created successfully:', result);
 
-      // Remove all field-options related cache
+      // Force complete cache invalidation
       queryClient.removeQueries({ queryKey: ['field-options'] });
-
-      // Force immediate refetch
-      await refetchFieldOptions();
+      queryClient.invalidateQueries({ queryKey: ['field-options'] });
+      
+      // Wait for a moment and then refetch
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ 
+          queryKey: ['field-options', selectedCompany], 
+          type: 'active' 
+        });
+      }, 100);
 
       setDialogOpen(false);
       fieldOptionForm.reset();
@@ -1050,8 +1059,16 @@ const TicketConfiguration: React.FC = () => {
               }
             ].map(({ key, title, description, icon: Icon, color }) => {
               const fieldOptionsForType = fieldOptions
-                .filter((option: FieldOption) => option.fieldName === key)
+                .filter((option: FieldOption) => {
+                  const matches = option.fieldName === key;
+                  if (key === 'status') {
+                    console.log('🔍 Filtering status option:', option.displayLabel, 'fieldName:', option.fieldName, 'matches:', matches);
+                  }
+                  return matches;
+                })
                 .sort((a, b) => a.sortOrder - b.sortOrder);
+
+              console.log(`🔍 Field options for ${key}:`, fieldOptionsForType.length, fieldOptionsForType.map(o => o.displayLabel));
 
               return (
                 <Card key={key} className="overflow-hidden">
