@@ -480,6 +480,39 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  const deleteFieldOptionMutation = useMutation({
+    mutationFn: async (optionId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/field-options/${optionId}`);
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Complete cache reset strategy
+      const queryKey = ['field-options', selectedCompany];
+      
+      // 1. Remove from cache
+      queryClient.removeQueries({ queryKey });
+      
+      // 2. Invalidate all related queries
+      queryClient.invalidateQueries({ queryKey: ['field-options'] });
+      
+      // 3. Force immediate refetch with fresh data
+      await queryClient.refetchQueries({ 
+        queryKey, 
+        type: 'active',
+        exact: true 
+      });
+
+      toast({ title: "Opção de campo excluída com sucesso" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Erro ao excluir opção", 
+        description: error.message || "Erro desconhecido",
+        variant: "destructive" 
+      });
+    }
+  });
+
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: string) => {
       const response = await apiRequest('DELETE', `/api/ticket-config/categories/${categoryId}`);
@@ -1045,7 +1078,7 @@ const TicketConfiguration: React.FC = () => {
               </Card>
             </div>
 
-            {/* Seções de classificação com melhor UX */}
+            {/* Seções de classificação em formato de lista */}
             {[
               { 
                 key: 'status', 
@@ -1146,7 +1179,7 @@ const TicketConfiguration: React.FC = () => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6">
+                  <CardContent className="p-0">
                     {fieldOptionsForType.length === 0 ? (
                       <div className="text-center py-12">
                         <div className={`w-16 h-16 mx-auto mb-4 bg-${color}-100 rounded-full flex items-center justify-center`}>
@@ -1167,73 +1200,95 @@ const TicketConfiguration: React.FC = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {fieldOptionsForType.map((option: FieldOption, index: number) => (
-                          <div 
-                            key={option.id} 
-                            className="relative border rounded-lg p-4 hover:shadow-md transition-all duration-200 bg-white"
-                          >
-                            {/* Indicador de ordem */}
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
-                              {index + 1}
-                            </div>
-
-                            {/* Header da opção */}
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div 
-                                className="w-6 h-6 rounded-full border-2 border-white shadow-sm flex-shrink-0"
-                                style={{ backgroundColor: option.color }}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-gray-900 truncate">
-                                  {option.displayLabel}
-                                </h4>
-                                <p className="text-sm text-gray-500">
-                                  Valor: <code className="bg-gray-100 px-1 rounded text-xs">{option.value}</code>
-                                </p>
-                                {option.fieldName === 'status' && option.statusType && (
-                                  <p className="text-sm text-blue-600 mt-1">
-                                    Tipo: {
-                                      option.statusType === 'open' ? 'Aberto' :
-                                      option.statusType === 'paused' ? 'Pausado' :
-                                      option.statusType === 'resolved' ? 'Resolvido' :
-                                      option.statusType === 'closed' ? 'Fechado' : option.statusType
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Badges de status */}
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex space-x-2">
-                                {option.isDefault && (
-                                  <Badge className={`bg-${color}-100 text-${color}-800 border-${color}-200`}>
-                                    <span className="w-2 h-2 bg-current rounded-full mr-1"></span>
-                                    Padrão
-                                  </Badge>
-                                )}
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">#</TableHead>
+                            <TableHead>Opção</TableHead>
+                            <TableHead>Valor</TableHead>
+                            {key === 'status' && <TableHead>Tipo</TableHead>}
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {fieldOptionsForType.map((option: FieldOption, index: number) => (
+                            <TableRow key={option.id} className="hover:bg-gray-50">
+                              <TableCell className="font-medium text-center">
+                                {option.sortOrder}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center space-x-3">
+                                  <div 
+                                    className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"
+                                    style={{ backgroundColor: option.color }}
+                                  />
+                                  <div>
+                                    <div className="font-medium text-gray-900">
+                                      {option.displayLabel}
+                                    </div>
+                                    {option.isDefault && (
+                                      <Badge variant="outline" className="text-xs mt-1">
+                                        Padrão
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                                  {option.value}
+                                </code>
+                              </TableCell>
+                              {key === 'status' && (
+                                <TableCell>
+                                  {option.statusType ? (
+                                    <Badge variant="outline" className="text-xs">
+                                      {
+                                        option.statusType === 'open' ? 'Aberto' :
+                                        option.statusType === 'paused' ? 'Pausado' :
+                                        option.statusType === 'resolved' ? 'Resolvido' :
+                                        option.statusType === 'closed' ? 'Fechado' : option.statusType
+                                      }
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-gray-400 text-sm">-</span>
+                                  )}
+                                </TableCell>
+                              )}
+                              <TableCell>
                                 <Badge variant={option.active ? "default" : "secondary"} className="text-xs">
                                   {option.active ? "Ativo" : "Inativo"}
                                 </Badge>
-                              </div>
-                            </div>
-
-                            {/* Ações */}
-                            <div className="flex justify-end space-x-1 pt-2 border-t">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openDialog('field-option', option)}
-                                className="text-gray-600 hover:text-gray-900"
-                              >
-                                <Edit className="w-3 h-3 mr-1" />
-                                Editar
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end space-x-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openDialog('field-option', option)}
+                                    className="text-gray-600 hover:text-gray-900"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (confirm(`Tem certeza que deseja excluir a opção "${option.displayLabel}"? Esta ação não pode ser desfeita.`)) {
+                                        deleteFieldOptionMutation.mutate(option.id);
+                                      }
+                                    }}
+                                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     )}
                   </CardContent>
                 </Card>

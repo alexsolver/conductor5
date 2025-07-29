@@ -581,7 +581,66 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
   }
 });
 
-// POST /api/ticket-config/field-options
+// Delete field option endpoint
+router.delete('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const optionId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    console.log('🗑️ Deleting field option:', { tenantId, optionId });
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // First check if the field option exists
+    const checkResult = await db.execute(sql`
+      SELECT id, display_label, field_name FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+    `);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Field option not found' 
+      });
+    }
+
+    // Delete the field option
+    const deleteResult = await db.execute(sql`
+      DELETE FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+    `);
+
+    console.log('✅ Field option deleted successfully:', { 
+      optionId,
+      affectedRows: deleteResult.rowCount 
+    });
+
+    // Force fresh response headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    res.json({
+      success: true,
+      message: 'Field option deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting field option:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to delete field option',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Create field option endpoint
 router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
@@ -889,6 +948,4 @@ router.post('/validation-rules', jwtAuth, async (req: AuthenticatedRequest, res)
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-});
-
 export default router;
