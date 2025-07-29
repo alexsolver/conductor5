@@ -103,6 +103,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
     const ticketData = insertTicketSchema.parse({
       ...req.body,
       tenantId: req.user.tenantId,
+      caller_id: req.body.customerId, // Map customerId to caller_id for backend compatibility
     });
 
     const ticket = await storageSimple.createTicket(ticketData);

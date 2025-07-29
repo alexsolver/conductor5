@@ -23,7 +23,7 @@ import { useLocation } from "wouter";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
-  customerId: z.string().min(1, "Customer is required"),
+  customerId: z.string().min(1, "Cliente é obrigatório"),
   companyId: z.string().optional(),
   subject: z.string().min(1, "Subject is required"),
   description: z.string().min(1, "Description is required"),
@@ -188,7 +188,8 @@ export default function Tickets() {
   const onSubmit = (data: CreateTicketFormData) => {
     const submitData = {
       ...data,
-      companyId: selectedCompanyId || undefined
+      companyId: selectedCompanyId || undefined,
+      callerId: data.customerId, // Ensure customer is mapped to caller for backend
     };
     createTicketMutation.mutate(submitData);
   };
@@ -330,7 +331,7 @@ export default function Tickets() {
                     name="customerId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cliente</FormLabel>
+                        <FormLabel>Cliente *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
