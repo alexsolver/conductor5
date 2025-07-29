@@ -103,3 +103,9 @@ router.get('/customer-companies', jwtAuth, async (req, res) => {
 });
 
 export default router;
+
+// Named export for compatibility with server/index.ts
+export function registerRoutes(app: any) {
+  app.use('/api', router);
+  return Promise.resolve(app);
+}
