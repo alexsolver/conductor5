@@ -1151,34 +1151,6 @@ export default function TicketsTable() {
             <Plus className="h-4 w-4 mr-2" />
             Novo Ticket
           </Button>
-
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                New Ticket (Old)
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="flex flex-row items-center justify-between">
-              <DialogTitle className="text-2xl font-semibold">Create New Ticket</DialogTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setIsCreateDialogOpen(false);
-                  form.reset();
-                }}
-                className="h-8 w-8 p-0"
-              >
-                ×
-              </Button>
-            </DialogHeader>
-            <div className="mt-4">
-              <TicketForm />
-            </div>
-          </DialogContent>
-          </Dialog>
         </div>
       </div>
       {/* Seletor de Visualizações */}
@@ -1738,7 +1710,7 @@ export default function TicketsTable() {
                         )}
                       />
 
-                      
+
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1761,7 +1733,7 @@ export default function TicketsTable() {
                         )}
                       />
 
-                      
+
                     </div>
                   </div>
 
