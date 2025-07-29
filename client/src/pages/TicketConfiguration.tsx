@@ -100,14 +100,6 @@ const numberingConfigSchema = z.object({
   resetYearly: z.boolean().default(true)
 });
 
-const validationRuleSchema = z.object({
-  fieldName: z.string().min(1, "Nome do campo é obrigatório"),
-  isRequired: z.boolean().default(false),
-  validationPattern: z.string().optional(),
-  errorMessage: z.string().optional(),
-  defaultValue: z.string().optional()
-});
-
 interface Company {
   id: string;
   name: string;
@@ -168,16 +160,6 @@ interface NumberingConfig {
   sequentialDigits: number;
   separator: string;
   resetYearly: boolean;
-  companyId: string;
-}
-
-interface ValidationRule {
-  id: string;
-  fieldName: string;
-  isRequired: boolean;
-  validationPattern?: string;
-  errorMessage?: string;
-  defaultValue?: string;
   companyId: string;
 }
 
@@ -257,17 +239,6 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
-  const validationForm = useForm({
-    resolver: zodResolver(validationRuleSchema),
-    defaultValues: {
-      fieldName: '',
-      isRequired: false,
-      validationPattern: '',
-      errorMessage: '',
-      defaultValue: ''
-    }
-  });
-
   // Queries
   const { data: companies = [] } = useQuery({
     queryKey: ['/api/customers/companies'],
@@ -319,13 +290,13 @@ const TicketConfiguration: React.FC = () => {
       const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}&_t=${timestamp}`);
       const result = await response.json();
       console.log('🔍 Field options query result for company:', selectedCompany, result);
-      
+
       // Validate data structure
       if (!result.success || !Array.isArray(result.data)) {
         console.error('❌ Invalid field options response:', result);
         return [];
       }
-      
+
       return result.data;
     },
     enabled: !!selectedCompany,
@@ -346,17 +317,6 @@ const TicketConfiguration: React.FC = () => {
       const response = await apiRequest('GET', `/api/ticket-config/numbering?companyId=${selectedCompany}`);
       const result = await response.json();
       return result.success ? result.data : null;
-    },
-    enabled: !!selectedCompany
-  });
-
-  const { data: validationRules = [] } = useQuery({
-    queryKey: ['/api/ticket-config/validation-rules', selectedCompany],
-    queryFn: async () => {
-      if (!selectedCompany) return [];
-      const response = await apiRequest('GET', `/api/ticket-config/validation-rules?companyId=${selectedCompany}`);
-      const result = await response.json();
-      return result.success ? result.data : [];
     },
     enabled: !!selectedCompany
   });
@@ -427,13 +387,13 @@ const TicketConfiguration: React.FC = () => {
 
       // Complete cache reset strategy
       const queryKey = ['field-options', selectedCompany];
-      
+
       // 1. Remove from cache
       queryClient.removeQueries({ queryKey });
-      
+
       // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
-      
+
       // 3. Force immediate refetch with fresh data
       await queryClient.refetchQueries({ 
         queryKey, 
@@ -464,22 +424,6 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
-  const createValidationRuleMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof validationRuleSchema>) => {
-      const response = await apiRequest('POST', '/api/ticket-config/validation-rules', {
-        ...data,
-        companyId: selectedCompany
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/validation-rules'] });
-      setDialogOpen(false);
-      validationForm.reset();
-      toast({ title: "Regra de validação criada com sucesso" });
-    }
-  });
-
   const deleteFieldOptionMutation = useMutation({
     mutationFn: async (optionId: string) => {
       const response = await apiRequest('DELETE', `/api/ticket-config/field-options/${optionId}`);
@@ -488,13 +432,13 @@ const TicketConfiguration: React.FC = () => {
     onSuccess: async () => {
       // Complete cache reset strategy
       const queryKey = ['field-options', selectedCompany];
-      
+
       // 1. Remove from cache
       queryClient.removeQueries({ queryKey });
-      
+
       // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
-      
+
       // 3. Force immediate refetch with fresh data
       await queryClient.refetchQueries({ 
         queryKey, 
@@ -604,14 +548,6 @@ const TicketConfiguration: React.FC = () => {
         sortOrder: item?.sortOrder || 1,
         statusType: item?.statusType || undefined
       });
-    } else if (type === 'validation-rule') {
-      validationForm.reset({
-        fieldName: item?.fieldName || '',
-        isRequired: item?.isRequired || false,
-        validationPattern: item?.validationPattern || '',
-        errorMessage: item?.errorMessage || '',
-        defaultValue: item?.defaultValue || ''
-      });
     }
 
     setDialogOpen(true);
@@ -639,7 +575,7 @@ const TicketConfiguration: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Configurações de Tickets</h1>
         <p className="text-gray-600 mt-2">
-          Configure hierarquia, classificação, numeração e validação dos tickets
+          Configure hierarquia, classificação e numeração dos tickets
         </p>
       </div>
 
@@ -672,7 +608,7 @@ const TicketConfiguration: React.FC = () => {
 
       {selectedCompany && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="hierarchy" className="flex items-center space-x-2">
               <FolderTree className="w-4 h-4" />
               <span>Categorização</span>
@@ -684,10 +620,6 @@ const TicketConfiguration: React.FC = () => {
             <TabsTrigger value="numbering" className="flex items-center space-x-2">
               <Hash className="w-4 h-4" />
               <span>Numeração</span>
-            </TabsTrigger>
-            <TabsTrigger value="validation" className="flex items-center space-x-2">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Validação</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1111,13 +1043,13 @@ const TicketConfiguration: React.FC = () => {
             ].map(({ key, title, description, icon: Icon, color }) => {
               // Ensure we have valid data and map database fields correctly
               const validFieldOptions = Array.isArray(fieldOptions) ? fieldOptions : [];
-              
+
               const fieldOptionsForType = validFieldOptions
                 .filter((option: any) => {
                   // Handle both camelCase and snake_case field names from DB
                   const fieldName = option.fieldName || option.field_name;
                   const matches = fieldName === key;
-                  
+
                   if (key === 'status') {
                     console.log('🔍 Filtering status option:', {
                       displayLabel: option.displayLabel || option.display_label,
@@ -1447,77 +1379,6 @@ const TicketConfiguration: React.FC = () => {
             </Card>
           </TabsContent>
 
-
-
-          {/* Tab: Validação */}
-          <TabsContent value="validation" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Regras de Validação</CardTitle>
-                    <CardDescription>
-                      Configure campos obrigatórios e regras personalizadas
-                    </CardDescription>
-                  </div>
-                  <Button onClick={() => openDialog('validation-rule')}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Regra
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Campo</TableHead>
-                      <TableHead>Obrigatório</TableHead>
-                      <TableHead>Validação</TableHead>
-                      <TableHead>Valor Padrão</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {validationRules.map((rule: ValidationRule) => (
-                      <TableRow key={rule.id}>
-                        <TableCell className="font-medium">{rule.fieldName}</TableCell>
-                        <TableCell>
-                          {rule.isRequired ? (
-                            <Badge className="bg-red-100 text-red-800">Obrigatório</Badge>
-                          ) : (
-                            <Badge variant="outline">Opcional</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {rule.validationPattern ? (
-                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                              {rule.validationPattern}
-                            </code>
-                          ) : (
-                            <span className="text-gray-400">Nenhuma</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {rule.defaultValue || (
-                            <span className="text-gray-400">Nenhum</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDialog('validation-rule', rule)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       )}
 
@@ -1530,7 +1391,6 @@ const TicketConfiguration: React.FC = () => {
               {editingItem?.type === 'subcategory' && 'Nova Subcategoria'}
               {editingItem?.type === 'action' && 'Nova Ação'}
               {editingItem?.type === 'field-option' && 'Nova Opção de Campo'}
-              {editingItem?.type === 'validation-rule' && 'Nova Regra de Validação'}
             </DialogTitle>
           </DialogHeader>
 
@@ -1969,105 +1829,6 @@ const TicketConfiguration: React.FC = () => {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createFieldOptionMutation.isPending}>
-                    Salvar
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          )}
-
-          {/* Formulário de Regra de Validação */}
-          {editingItem?.type === 'validation-rule' && (
-            <Form {...validationForm}>
-              <form onSubmit={validationForm.handleSubmit((data) => createValidationRuleMutation.mutate(data))} className="space-y-4">
-                <FormField
-                  control={validationForm.control}
-                  name="fieldName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Campo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o campo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="subject">Assunto</SelectItem>
-                          <SelectItem value="description">Descrição</SelectItem>
-                          <SelectItem value="priority">Prioridade</SelectItem>
-                          <SelectItem value="impact">Impacto</SelectItem>
-                          <SelectItem value="urgency">Urgência</SelectItem>
-                          <SelectItem value="category">Categoria</SelectItem>
-                          <SelectItem value="subcategory">Subcategoria</SelectItem>
-                          <SelectItem value="action">Ação</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={validationForm.control}
-                  name="validationPattern"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Padrão de Validação (Regex)</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="^[A-Za-z0-9]+$" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={validationForm.control}
-                  name="errorMessage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mensagem de Erro</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Mensagem exibida em caso de erro" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={validationForm.control}
-                  name="defaultValue"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor Padrão</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Valor padrão do campo" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={validationForm.control}
-                  name="isRequired"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                      <div className="space-y-0.5">
-                        <FormLabel>Campo Obrigatório</FormLabel>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={closeDialog}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={createValidationRuleMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
