@@ -682,9 +682,10 @@ const TicketConfiguration: React.FC = () => {
                           <div className="space-y-2">
                             {subcategories
                               .filter((sub: Subcategory) => {
-                                // Debug log to see filtering
-                                console.log('🔍 Filtering subcategory:', sub.name, 'categoryId:', sub.categoryId, 'target:', category.id);
-                                return sub.categoryId === category.id;
+                                // Handle both camelCase and snake_case from API
+                                const subCategoryId = sub.categoryId || (sub as any).category_id;
+                                console.log('🔍 Filtering subcategory:', sub.name, 'categoryId:', subCategoryId, 'target:', category.id);
+                                return subCategoryId === category.id;
                               })
                               .map((subcategory: Subcategory) => {
                                 console.log('✅ Rendering subcategory:', subcategory);
@@ -726,13 +727,19 @@ const TicketConfiguration: React.FC = () => {
                             {/* Debug info - show all subcategories for this category */}
                             {process.env.NODE_ENV === 'development' && (
                               <div className="text-xs text-gray-400 mt-2">
-                                Debug: {subcategories.filter(sub => sub.categoryId === category.id).length} subcategorias encontradas
+                                Debug: {subcategories.filter(sub => {
+                                  const subCategoryId = sub.categoryId || (sub as any).category_id;
+                                  return subCategoryId === category.id;
+                                }).length} subcategorias encontradas
                               </div>
                             )}
 
                             {/* Actions for each subcategory */}
                             {subcategories
-                              .filter((sub: Subcategory) => sub.categoryId === category.id)
+                              .filter((sub: Subcategory) => {
+                                const subCategoryId = sub.categoryId || (sub as any).category_id;
+                                return subCategoryId === category.id;
+                              })
                               .map((subcategory: Subcategory) => (
                                 <div key={subcategory.id} className="ml-6 space-y-1">
                                   {actions
