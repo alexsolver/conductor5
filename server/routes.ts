@@ -455,6 +455,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get available customers for company association - temporary implementation
+  app.get('/api/customers/companies/:companyId/available', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      if (!companyId || companyId === 'undefined' || companyId === 'null') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Valid company ID is required' 
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      console.log(`[AVAILABLE-CUSTOMERS] Getting available customers for company ${companyId}`);
+
+      // First verify the company exists and is active
+      const companyCheck = await pool.query(
+        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2 AND is_active = true`,
+        [companyId, req.user.tenantId]
+      );
+
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Company not found' 
+        });
+      }
+
+      // Get customers that are NOT already associated with this company  
+      const query = `
+        SELECT DISTINCT 
+          c.id, 
+          c.first_name as "firstName", 
+          c.last_name as "lastName", 
+          c.email, 
+          c.customer_type as "customerType", 
+          c.company_name as "companyName", 
+          c.status
+        FROM "${schemaName}"."customers" c
+        WHERE c.tenant_id = $1
+        AND c.id NOT IN (
+          SELECT ccm.customer_id 
+          FROM "${schemaName}"."customer_company_memberships" ccm
+          WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
+        )
+        ORDER BY c.first_name, c.last_name
+        LIMIT 100
+      `;
+
+      const result = await pool.query(query, [req.user.tenantId, companyId]);
+
+      console.log(`[AVAILABLE-CUSTOMERS] Found ${result.rows.length} available customers`);
+
+      res.json({
+        success: true,
+        message: 'Available customers retrieved successfully',
+        data: result.rows
+      });
+
+    } catch (error) {
+      console.error('Error fetching available customers:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch available customers'
+      });
+    }
+  });
+
   // Locations routes temporarily removed due to syntax issues
 
   // Import and mount localization routes
