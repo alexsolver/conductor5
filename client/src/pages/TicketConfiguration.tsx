@@ -81,6 +81,15 @@ const fieldOptionSchema = z.object({
   active: z.boolean().default(true),
   sortOrder: z.number().default(1),
   statusType: z.enum(['open', 'paused', 'resolved', 'closed']).optional()
+}).refine((data) => {
+  // Se o campo for 'status', statusType é obrigatório
+  if (data.fieldName === 'status') {
+    return data.statusType !== undefined;
+  }
+  return true;
+}, {
+  message: "Tipo de status é obrigatório para o campo Status",
+  path: ["statusType"]
 });
 
 const numberingConfigSchema = z.object({
@@ -310,7 +319,10 @@ const TicketConfiguration: React.FC = () => {
       return result.success ? result.data : [];
     },
     enabled: !!selectedCompany,
-    staleTime: 0 // Force fresh data after mutations
+    staleTime: 0, // Force fresh data after mutations
+    cacheTime: 0, // Don't cache at all
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   const { data: numberingConfig } = useQuery({
@@ -397,9 +409,15 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: async () => {
-      // Invalidate and refetch field options with correct query key
+      // Force complete cache refresh
+      await queryClient.removeQueries({ queryKey: ['field-options', selectedCompany] });
       await queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-      await queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] });
+      
+      // Wait a bit and force refetch
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] });
+      }, 100);
+      
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ title: "Opção de campo criada com sucesso" });
@@ -1764,8 +1782,8 @@ const TicketConfiguration: React.FC = () => {
                     name="statusType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tipo de Status</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormLabel>Tipo de Status *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} required>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione o tipo de status" />

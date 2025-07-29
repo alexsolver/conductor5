@@ -594,11 +594,17 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
       isDefault,
       active,
       sortOrder,
-      companyId
+      companyId,
+      statusType
     } = req.body;
 
     if (!fieldName || !value || !displayLabel) {
       return res.status(400).json({ message: 'Field name, value, and display label are required' });
+    }
+
+    // Validate that statusType is required for status field
+    if (fieldName === 'status' && !statusType) {
+      return res.status(400).json({ message: 'Status type is required for status field options' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
