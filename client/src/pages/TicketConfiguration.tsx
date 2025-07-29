@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -441,6 +440,10 @@ const TicketConfiguration: React.FC = () => {
   const openDialog = (type: string, item?: any) => {
     setEditingItem({ type, ...item });
     setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
   };
 
   const filteredCategories = categories.filter((cat: Category) =>
@@ -931,7 +934,7 @@ const TicketConfiguration: React.FC = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                  </TableBody>
+                  </                  </TableBody>
                 </Table>
               </CardContent>
             </Card>
@@ -1028,7 +1031,7 @@ const TicketConfiguration: React.FC = () => {
                   )}
                 />
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createCategoryMutation.isPending}>
@@ -1121,8 +1124,8 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                 <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createSubcategoryMutation.isPending}>
@@ -1229,7 +1232,7 @@ const TicketConfiguration: React.FC = () => {
                   />
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createActionMutation.isPending}>
@@ -1341,7 +1344,7 @@ const TicketConfiguration: React.FC = () => {
                   )}
                 />
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createFieldOptionMutation.isPending}>
@@ -1440,7 +1443,7 @@ const TicketConfiguration: React.FC = () => {
                   )}
                 />
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createValidationRuleMutation.isPending}>
