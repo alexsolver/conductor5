@@ -266,7 +266,7 @@ const TicketConfiguration: React.FC = () => {
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/ticket-config/categories', selectedCompany],
+    queryKey: ['categories', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/categories?companyId=${selectedCompany}`);
@@ -277,7 +277,7 @@ const TicketConfiguration: React.FC = () => {
   });
 
   const { data: subcategories = [] } = useQuery({
-    queryKey: ['/api/ticket-config/subcategories', selectedCompany],
+    queryKey: ['subcategories', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/subcategories?companyId=${selectedCompany}`);
@@ -289,7 +289,7 @@ const TicketConfiguration: React.FC = () => {
   });
 
   const { data: actions = [] } = useQuery({
-    queryKey: ['/api/ticket-config/actions', selectedCompany],
+    queryKey: ['actions', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
       const response = await apiRequest('GET', `/api/ticket-config/actions?companyId=${selectedCompany}`);
@@ -342,7 +342,7 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
       setDialogOpen(false);
       categoryForm.reset();
       toast({ title: "Categoria criada com sucesso" });
@@ -360,10 +360,12 @@ const TicketConfiguration: React.FC = () => {
       console.log('✅ Subcategory creation response:', result);
       return result;
     },
-    onSuccess: (result) => {
-      console.log('🔄 Invalidating subcategories query...');
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/subcategories'] });
-      queryClient.refetchQueries({ queryKey: ['/api/ticket-config/subcategories', selectedCompany] });
+    onSuccess: async (result) => {
+      console.log('🔄 Invalidating and refetching subcategories query...');
+      // Invalidate with the correct query key
+      await queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
+      // Force refetch to ensure UI updates
+      await queryClient.refetchQueries({ queryKey: ['subcategories', selectedCompany] });
       setDialogOpen(false);
       subcategoryForm.reset();
       toast({ title: "Subcategoria criada com sucesso" });
@@ -379,7 +381,7 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/actions'] });
+      queryClient.invalidateQueries({ queryKey: ['actions', selectedCompany] });
       setDialogOpen(false);
       actionForm.reset();
       toast({ title: "Ação criada com sucesso" });
