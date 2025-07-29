@@ -663,6 +663,7 @@ export default function TicketDetails() {
   useEffect(() => {
     if (ticket) {
       form.reset({
+        number: ticket.number || "",
         subject: ticket.subject || "",
         description: ticket.description || "",
         priority: ticket.priority || "medium",
@@ -897,6 +898,7 @@ export default function TicketDetails() {
                             disabled={!isEditMode}
                           />
                         ) : (
+                          ```text
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             <DynamicBadge value={field.value}>
                               {field.value}
@@ -916,13 +918,19 @@ export default function TicketDetails() {
               <h3 className="text-sm font-semibold text-gray-600 mb-4">BÁSICO</h3>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Número do Ticket */}
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Número do Ticket</label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    <span className="text-sm font-mono">{ticket?.number || "N/A"}</span>
-                  </div>
-                </div>
+                {/* Número do Ticket - Fora do form pois é read-only */}
+                <FormField
+                  control={form.control}
+                  name="number"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Número do Ticket</FormLabel>
+                      <div className="p-2 bg-gray-50 rounded border">
+                        <span className="text-sm font-mono">{ticket?.number || "N/A"}</span>
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
                 {/* Tipo de Contato */}
                 <FormField
@@ -931,19 +939,23 @@ export default function TicketDetails() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Contato</FormLabel>
-                      <Select disabled={!isEditMode} onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={!isEditMode}
+                        >
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder="Selecione o tipo de contato" />
                           </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Telefone</SelectItem>
-                          <SelectItem value="chat">Chat</SelectItem>
-                          <SelectItem value="onsite">Presencial</SelectItem>
-                        </SelectContent>
-                      </Select>
+                          <SelectContent>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="phone">Telefone</SelectItem>
+                            <SelectItem value="chat">Chat</SelectItem>
+                            <SelectItem value="onsite">Presencial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -1460,7 +1472,11 @@ export default function TicketDetails() {
           ))}
         </TabsList>
         <TabsContent value="informacoes">
-          {renderTabContent()}
+          <Form {...form}>
+            <form id="ticket-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {renderTabContent()}
+            </form>
+          </Form>
         </TabsContent>
         <TabsContent value="attachments">
           {renderTabContent()}
@@ -1485,3 +1501,37 @@ export default function TicketDetails() {
     </div>
   );
 }
+
+const formSchema = z.object({
+    number: z.string().optional(),
+    subject: z.string().min(1, "Assunto é obrigatório"),
+    description: z.string().min(1, "Descrição é obrigatória"),
+    priority: z.enum(["low", "medium", "high", "critical"]),
+    status: z.enum(["open", "pending", "resolved", "closed"]),
+    category: z.string().optional(),
+    subcategory: z.string().optional(),
+    impact: z.string().optional(),
+    urgency: z.string().optional(),
+    callerId: z.string().optional(),
+    callerType: z.enum(["customer", "agent", "system"]).optional(),
+    beneficiaryId: z.string().optional(),
+    beneficiaryType: z.enum(["customer", "agent", "system"]).optional(),
+    assignedToId: z.string().optional(),
+    assignmentGroup: z.string().optional(),
+    location: z.string().optional(),
+    contactType: z.enum(["email", "phone", "chat", "onsite"]),
+    businessImpact: z.string().optional(),
+    symptoms: z.string().optional(),
+    workaround: z.string().optional(),
+    resolution: z.string().optional(),
+    environment: z.string().optional(),
+    templateName: z.string().optional(),
+    templateAlternative: z.string().optional(),
+    linkTicketNumber: z.string().optional(),
+    linkType: z.string().optional(),
+    linkComment: z.string().optional(),
+    estimatedHours: z.number().optional(),
+    actualHours: z.number().optional(),
+    followers: z.array(z.string()).optional(),
+    customerCompanyId: z.string().optional(),
+  });
