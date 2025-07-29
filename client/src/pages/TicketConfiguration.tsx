@@ -79,7 +79,8 @@ const fieldOptionSchema = z.object({
   icon: z.string().optional(),
   isDefault: z.boolean().default(false),
   active: z.boolean().default(true),
-  sortOrder: z.number().default(1)
+  sortOrder: z.number().default(1),
+  statusType: z.enum(['open', 'paused', 'resolved', 'closed']).optional()
 });
 
 const numberingConfigSchema = z.object({
@@ -148,6 +149,7 @@ interface FieldOption {
   isDefault: boolean;
   active: boolean;
   sortOrder: number;
+  statusType?: 'open' | 'paused' | 'resolved' | 'closed';
 }
 
 interface NumberingConfig {
@@ -230,7 +232,8 @@ const TicketConfiguration: React.FC = () => {
       icon: '',
       isDefault: false,
       active: true,
-      sortOrder: 1
+      sortOrder: 1,
+      statusType: undefined
     }
   });
 
@@ -518,7 +521,8 @@ const TicketConfiguration: React.FC = () => {
         icon: item?.icon || '',
         isDefault: item?.isDefault || false,
         active: item?.active !== undefined ? item.active : true,
-        sortOrder: item?.sortOrder || 1
+        sortOrder: item?.sortOrder || 1,
+        statusType: item?.statusType || undefined
       });
     } else if (type === 'validation-rule') {
       validationForm.reset({
@@ -1103,6 +1107,16 @@ const TicketConfiguration: React.FC = () => {
                                 <p className="text-sm text-gray-500">
                                   Valor: <code className="bg-gray-100 px-1 rounded text-xs">{option.value}</code>
                                 </p>
+                                {option.fieldName === 'status' && option.statusType && (
+                                  <p className="text-sm text-blue-600 mt-1">
+                                    Tipo: {
+                                      option.statusType === 'open' ? 'Aberto' :
+                                      option.statusType === 'paused' ? 'Pausado' :
+                                      option.statusType === 'resolved' ? 'Resolvido' :
+                                      option.statusType === 'closed' ? 'Fechado' : option.statusType
+                                    }
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -1739,6 +1753,33 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 </div>
+                
+                {/* Campo de Tipo de Status - apenas para status */}
+                {fieldOptionForm.watch('fieldName') === 'status' && (
+                  <FormField
+                    control={fieldOptionForm.control}
+                    name="statusType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo de status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="open">Aberto</SelectItem>
+                            <SelectItem value="paused">Pausado</SelectItem>
+                            <SelectItem value="resolved">Resolvido</SelectItem>
+                            <SelectItem value="closed">Fechado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={fieldOptionForm.control}
