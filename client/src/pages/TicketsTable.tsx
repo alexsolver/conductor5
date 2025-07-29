@@ -748,6 +748,39 @@ export default function TicketsTable() {
 
 
   const onSubmit = (data: TicketFormData) => {
+    console.log('🚀 Form submission started with data:', data);
+    
+    // Validate required fields
+    if (!data.shortDescription) {
+      console.error('❌ Short description is required');
+      toast({
+        title: "Erro de Validação",
+        description: "Título do ticket é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.companyId) {
+      console.error('❌ Company is required');
+      toast({
+        title: "Erro de Validação", 
+        description: "Empresa é obrigatória",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.callerId) {
+      console.error('❌ Customer is required');
+      toast({
+        title: "Erro de Validação",
+        description: "Cliente é obrigatório", 
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Map shortDescription to subject for legacy compatibility
     const subject = data.shortDescription || data.subject;
     
@@ -767,10 +800,10 @@ export default function TicketsTable() {
       // People assignments
       customerId: data.callerId, // Map callerId to customerId for backend
       caller_id: data.callerId,
-      caller_type: data.callerType,
+      caller_type: data.callerType || "customer",
       beneficiary_id: data.beneficiaryId || data.callerId,
-      beneficiary_type: data.beneficiaryType || data.callerType,
-      assigned_to_id: data.assignedToId === "unassigned" ? undefined : data.assignedToId,
+      beneficiary_type: data.beneficiaryType || data.callerType || "customer",
+      assigned_to_id: data.assignedToId === "unassigned" ? null : data.assignedToId,
       assignment_group: data.assignmentGroup || "",
 
       // Company relationship
@@ -1812,6 +1845,9 @@ export default function TicketsTable() {
                             <Select 
                               value={field.value} 
                               onValueChange={(value) => {
+                                // Don't allow unspecified for required field
+                                if (value === "unspecified") return;
+                                
                                 field.onChange(value);
                                 setSelectedCompanyId(value);
                                 // Reset customer selection when company changes
@@ -1823,7 +1859,6 @@ export default function TicketsTable() {
                                 <SelectValue placeholder="Selecione uma empresa" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="unspecified">Não especificado</SelectItem>
                                 {companies.length === 0 ? (
                                   <SelectItem value="no-companies" disabled>
                                     Nenhuma empresa encontrada
