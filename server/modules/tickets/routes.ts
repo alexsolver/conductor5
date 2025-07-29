@@ -894,10 +894,15 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
 
     // Create history entry for the note creation
     try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
       `, [
         tenantId,
         id,
@@ -905,6 +910,9 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
         `Nota adicionada: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
         req.user.id,
         userName,
+        ipAddress,
+        userAgent,
+        sessionId,
         JSON.stringify({
           note_type: noteType,
           is_internal: isInternal,
