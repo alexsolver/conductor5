@@ -22,6 +22,7 @@ interface PersonSelectorProps {
   allowedTypes?: ('user' | 'customer')[];
   companyFilter?: string;
   disabled?: boolean;
+  className?: string;
 }
 
 export function PersonSelector({ 
@@ -30,7 +31,8 @@ export function PersonSelector({
   placeholder = "Selecionar pessoa...", 
   allowedTypes = ['user', 'customer'],
   companyFilter,
-  disabled = false
+  disabled = false,
+  className
 }: PersonSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
