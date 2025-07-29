@@ -11,7 +11,7 @@ import notificationsRoutes from './modules/notifications/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import materialsServicesRoutes from './modules/materials-services/routes';
 import technicalSkillsRoutes from './modules/technical-skills/routes';
-import locationsRoutes from './modules/locations/routes';
+import { locationsRouter as locationsRoutes } from './modules/locations/routes';
 import locationsNewRoutes from './modules/locations/routes-new';
 import customFieldsRoutes from './modules/custom-fields/routes';
 import { fieldLayoutRoutes as fieldLayoutsRoutes } from './modules/field-layouts/routes';
