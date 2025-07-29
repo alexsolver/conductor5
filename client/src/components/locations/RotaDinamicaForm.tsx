@@ -23,7 +23,7 @@ const ClientesMultiSelect = ({ value = [], onChange }) => {
     queryKey: ['integration-customers'],
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/locations-new/integration/clientes', {
+      const response = await fetch('/api/locations-new/integration/customers', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const result = await response.json();

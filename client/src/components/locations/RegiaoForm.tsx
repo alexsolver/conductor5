@@ -71,7 +71,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
     queryKey: ['/api/locations-new/integration/customers'],
     queryFn: async () => {
       const validToken = await getValidToken();
-      const response = await fetch('/api/locations-new/integration/clientes', {
+      const response = await fetch('/api/locations-new/integration/customers', {
         headers: { 'Authorization': `Bearer ${validToken}` }
       });
       if (response.ok) {
