@@ -92,10 +92,10 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       first_name: row.first_name, // Keep both for compatibility
       last_name: row.last_name,   // Keep both for compatibility
       companyName: row.company_name,
-      company: row.company_name, // Add company field for compatibility
+      company: row.company_name || row.company || null, // Add company field for compatibility
       cpf: row.cpf,
       cnpj: row.cnpj,
-      phone: row.phone,
+      phone: row.phone || row.mobile_phone || null, // Use phone or mobile_phone
       mobilePhone: row.mobile_phone,
       contactPerson: row.contact_person,
       responsible: row.responsible,

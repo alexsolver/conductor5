@@ -173,10 +173,10 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {customer.phone ? (
+                    {customer.phone || customer.mobilePhone ? (
                       <div className="flex items-center text-gray-600 dark:text-gray-400">
                         <Phone className="h-3 w-3 mr-1" />
-                        <span>{customer.phone}</span>
+                        <span>{customer.phone || customer.mobilePhone}</span>
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
@@ -184,12 +184,12 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <span className="text-gray-600 dark:text-gray-400">
-                      {customer.company || "-"}
+                      {customer.companyName || customer.company || "-"}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={customer.isActive ? "default" : "secondary"}>
-                      {customer.isActive ? "Ativo" : "Inativo"}
+                    <Badge variant={customer.status === 'Ativo' ? "default" : "secondary"}>
+                      {customer.status || "Ativo"}
                     </Badge>
                   </TableCell>
                   <TableCell>
