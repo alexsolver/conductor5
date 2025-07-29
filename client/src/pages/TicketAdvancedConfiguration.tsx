@@ -44,7 +44,7 @@ import {
   Database,
   Layers3
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 
 // Schema para configurações avançadas
 const advancedFieldSchema = z.object({
@@ -119,7 +119,7 @@ function TicketAdvancedConfiguration() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("field-management");
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -297,7 +297,7 @@ function TicketAdvancedConfiguration() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/ticket-configuration')}
+            onClick={() => setLocation('/ticket-configuration')}
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
