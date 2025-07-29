@@ -484,7 +484,13 @@ export default function TicketDetails() {
 
     // Set notes from API
     if (ticketNotes?.success && ticketNotes?.data) {
-      setNotes(ticketNotes.data);
+      // Map the notes data to ensure consistent field names
+      const mappedNotes = ticketNotes.data.map((note: any) => ({
+        ...note,
+        createdBy: note.author_name || note.createdBy || 'Sistema',
+        createdAt: note.created_at || note.createdAt
+      }));
+      setNotes(mappedNotes);
     } else if (ticketRelationships?.notes) {
       setNotes(ticketRelationships.notes);
     } else {
@@ -1100,10 +1106,12 @@ export default function TicketDetails() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <Badge variant="secondary" className="text-xs">
-                              {note.createdBy}
+                              {note.author_name || note.createdBy || 'Sistema'}
                             </Badge>
                             <span className="text-xs text-gray-500">
-                              {note.createdAt ? new Date(note.createdAt).toLocaleString('pt-BR') : 'Data não disponível'}
+                              {note.created_at ? new Date(note.created_at).toLocaleString('pt-BR') : 
+                               note.createdAt ? new Date(note.createdAt).toLocaleString('pt-BR') : 
+                               'Data não disponível'}
                             </span>
                           </div>
                           <p className="text-gray-800 whitespace-pre-wrap">{note.content}</p>
