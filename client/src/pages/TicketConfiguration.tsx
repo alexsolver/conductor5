@@ -309,7 +309,8 @@ const TicketConfiguration: React.FC = () => {
       const result = await response.json();
       return result.success ? result.data : [];
     },
-    enabled: !!selectedCompany
+    enabled: !!selectedCompany,
+    staleTime: 0 // Force fresh data after mutations
   });
 
   const { data: numberingConfig } = useQuery({
@@ -395,8 +396,10 @@ const TicketConfiguration: React.FC = () => {
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] });
+    onSuccess: async () => {
+      // Invalidate and refetch field options
+      await queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options', selectedCompany] });
+      await queryClient.refetchQueries({ queryKey: ['/api/ticket-config/field-options', selectedCompany] });
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ title: "Opção de campo criada com sucesso" });
