@@ -613,210 +613,329 @@ const TicketConfiguration: React.FC = () => {
 
           {/* Tab: Hierarquia */}
           <TabsContent value="hierarchy" className="space-y-6">
+            {/* Header com estatísticas e ações */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <FolderTree className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Categorias</p>
+                      <p className="text-2xl font-bold">{categories.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Settings className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Subcategorias</p>
+                      <p className="text-2xl font-bold">{subcategories.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Plus className="w-5 h-5 text-orange-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Ações</p>
+                      <p className="text-2xl font-bold">{actions.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <Button 
+                    onClick={() => openDialog('category')} 
+                    className="w-full h-full flex flex-col items-center justify-center space-y-2"
+                  >
+                    <Plus className="w-6 h-6" />
+                    <span className="text-sm">Nova Categoria</span>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Hierarquia de Classificação</CardTitle>
-                    <CardDescription>
-                      Categoria → Subcategoria → Ação
+                    <CardTitle className="flex items-center space-x-2">
+                      <FolderTree className="w-5 h-5" />
+                      <span>Estrutura Hierárquica</span>
+                    </CardTitle>
+                    <CardDescription className="mt-2">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                          <span>Categoria (Nível 1)</span>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-gray-400" />
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-green-500 rounded"></div>
+                          <span>Subcategoria (Nível 2)</span>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-gray-400" />
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-orange-500 rounded"></div>
+                          <span>Ação (Nível 3)</span>
+                        </div>
+                      </div>
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <div className="relative">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
-                        placeholder="Buscar..."
+                        placeholder="Buscar categorias..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
                       />
                     </div>
-                    <Button onClick={() => openDialog('category')}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Nova Categoria
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {filteredCategories.map((category: Category) => (
-                    <div key={category.id} className="border rounded-lg">
-                      <div 
-                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
-                        onClick={() => toggleCategoryExpansion(category.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          {expandedCategories.has(category.id) ? (
-                            <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4" />
-                          )}
-                          <div 
-                            className="w-4 h-4 rounded"
-                            style={{ backgroundColor: category.color }}
-                          />
-                          <div>
-                            <h4 className="font-medium">{category.name}</h4>
-                            {category.description && (
-                              <p className="text-sm text-gray-600">{category.description}</p>
+                {filteredCategories.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FolderTree className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma categoria encontrada</h3>
+                    <p className="text-gray-600 mb-4">
+                      {searchTerm ? 'Tente ajustar os termos da busca.' : 'Comece criando sua primeira categoria.'}
+                    </p>
+                    {!searchTerm && (
+                      <Button onClick={() => openDialog('category')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Criar Primeira Categoria
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredCategories.map((category: Category) => (
+                      <div key={category.id} className="border rounded-lg overflow-hidden">
+                        {/* Header da Categoria */}
+                        <div 
+                          className="flex items-center justify-between p-4 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors"
+                          onClick={() => toggleCategoryExpansion(category.id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            {expandedCategories.has(category.id) ? (
+                              <ChevronDown className="w-5 h-5 text-blue-600" />
+                            ) : (
+                              <ChevronRight className="w-5 h-5 text-blue-600" />
                             )}
+                            <div 
+                              className="w-5 h-5 rounded border-2 border-white shadow-sm"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3">
+                                <h4 className="font-semibold text-gray-900">{category.name}</h4>
+                                <Badge variant={category.active ? "default" : "secondary"} className="text-xs">
+                                  {category.active ? "Ativo" : "Inativo"}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {subcategories.filter(sub => (sub.categoryId || (sub as any).category_id) === category.id).length} subcategorias
+                                </Badge>
+                              </div>
+                              {category.description && (
+                                <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDialog('subcategory', { categoryId: category.id });
+                              }}
+                              className="text-green-600 border-green-200 hover:bg-green-50"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Subcategoria
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDialog('category', category);
+                              }}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Tem certeza que deseja excluir a categoria "${category.name}"? Esta ação não pode ser desfeita.`)) {
+                                  deleteCategoryMutation.mutate(category.id);
+                                }
+                              }}
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={category.active ? "default" : "secondary"}>
-                            {category.active ? "Ativo" : "Inativo"}
-                          </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDialog('subcategory', { categoryId: category.id });
-                            }}
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Subcategoria
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDialog('category', category);
-                            }}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm(`Tem certeza que deseja excluir a categoria "${category.name}"? Esta ação não pode ser desfeita.`)) {
-                                deleteCategoryMutation.mutate(category.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3 text-red-600" />
-                          </Button>
-                        </div>
-                      </div>
 
-                      {expandedCategories.has(category.id) && (
-                        <div className="border-t bg-gray-50 p-4">
-                          <div className="space-y-2">
-                            {subcategories
-                              .filter((sub: Subcategory) => {
-                                // Handle both camelCase and snake_case from API
-                                const subCategoryId = sub.categoryId || (sub as any).category_id;
-                                return subCategoryId === category.id;
-                              })
-                              .map((subcategory: Subcategory) => {
-                                return (
-                                  <div key={subcategory.id} className="bg-white border rounded p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <div className="flex items-center space-x-2">
-                                        <div 
-                                          className="w-3 h-3 rounded"
-                                          style={{ backgroundColor: subcategory.color }}
-                                        />
-                                        <span className="font-medium">{subcategory.name}</span>
-                                        {subcategory.description && (
-                                          <span className="text-sm text-gray-600">- {subcategory.description}</span>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => openDialog('action', { subcategoryId: subcategory.id })}
-                                        >
-                                          <Plus className="w-3 h-3 mr-1" />
-                                          Ação
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => openDialog('subcategory', subcategory)}
-                                        >
-                                          <Edit className="w-3 h-3" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => {
-                                            if (confirm(`Tem certeza que deseja excluir a subcategoria "${subcategory.name}"? Esta ação não pode ser desfeita.`)) {
-                                              deleteSubcategoryMutation.mutate(subcategory.id);
-                                            }
-                                          }}
-                                        >
-                                          <Trash2 className="w-3 h-3 text-red-600" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            
-                            
-
-                            {/* Actions for each subcategory */}
+                        {/* Conteúdo Expandido - Subcategorias */}
+                        {expandedCategories.has(category.id) && (
+                          <div className="bg-white">
                             {subcategories
                               .filter((sub: Subcategory) => {
                                 const subCategoryId = sub.categoryId || (sub as any).category_id;
                                 return subCategoryId === category.id;
                               })
                               .map((subcategory: Subcategory) => (
-                                <div key={subcategory.id} className="ml-6 space-y-1">
-                                  {actions
-                                    .filter((action: Action) => {
-                                      const actionSubcategoryId = action.subcategoryId || (action as any).subcategory_id;
-                                      return actionSubcategoryId === subcategory.id;
-                                    })
-                                    .map((action: Action) => (
-                                      <div key={action.id} className="flex items-center justify-between py-1">
-                                        <div className="flex items-center space-x-2">
-                                          <div 
-                                            className="w-2 h-2 rounded"
-                                            style={{ backgroundColor: action.color }}
-                                          />
-                                          <span className="text-sm">{action.name}</span>
-                                          {action.estimatedTimeMinutes && (
-                                            <Badge variant="outline" className="text-xs">
-                                              {action.estimatedTimeMinutes}min
-                                            </Badge>
-                                          )}
+                                <div key={subcategory.id} className="border-t border-gray-100">
+                                  {/* Header da Subcategoria */}
+                                  <div className="flex items-center justify-between p-4 pl-12 bg-green-50 hover:bg-green-100 transition-colors">
+                                    <div className="flex items-center space-x-3 flex-1">
+                                      <div 
+                                        className="w-4 h-4 rounded border border-white shadow-sm"
+                                        style={{ backgroundColor: subcategory.color }}
+                                      />
+                                      <div className="flex-1">
+                                        <div className="flex items-center space-x-3">
+                                          <span className="font-medium text-gray-900">{subcategory.name}</span>
+                                          <Badge variant="outline" className="text-xs">
+                                            {actions.filter(action => (action.subcategoryId || (action as any).subcategory_id) === subcategory.id).length} ações
+                                          </Badge>
                                         </div>
+                                        {subcategory.description && (
+                                          <p className="text-sm text-gray-600 mt-1">{subcategory.description}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => openDialog('action', { subcategoryId: subcategory.id })}
+                                        className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                      >
+                                        <Plus className="w-3 h-3 mr-1" />
+                                        Ação
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => openDialog('subcategory', subcategory)}
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          if (confirm(`Tem certeza que deseja excluir a subcategoria "${subcategory.name}"? Esta ação não pode ser desfeita.`)) {
+                                            deleteSubcategoryMutation.mutate(subcategory.id);
+                                          }
+                                        }}
+                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {/* Ações da Subcategoria */}
+                                  <div className="pl-16 pr-4 pb-4">
+                                    {actions
+                                      .filter((action: Action) => {
+                                        const actionSubcategoryId = action.subcategoryId || (action as any).subcategory_id;
+                                        return actionSubcategoryId === subcategory.id;
+                                      })
+                                      .map((action: Action) => (
+                                        <div key={action.id} className="flex items-center justify-between py-2 px-3 bg-orange-50 rounded-md mb-2 last:mb-0">
+                                          <div className="flex items-center space-x-3">
+                                            <div 
+                                              className="w-3 h-3 rounded border border-white shadow-sm"
+                                              style={{ backgroundColor: action.color }}
+                                            />
+                                            <span className="text-sm font-medium text-gray-900">{action.name}</span>
+                                            {action.estimatedTimeMinutes && (
+                                              <Badge variant="outline" className="text-xs">
+                                                {action.estimatedTimeMinutes}min
+                                              </Badge>
+                                            )}
+                                            {action.description && (
+                                              <span className="text-xs text-gray-500">- {action.description}</span>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center space-x-1">
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => openDialog('action', action)}
+                                            >
+                                              <Edit className="w-3 h-3" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => {
+                                                if (confirm(`Tem certeza que deseja excluir a ação "${action.name}"? Esta ação não pode ser desfeita.`)) {
+                                                  deleteActionMutation.mutate(action.id);
+                                                }
+                                              }}
+                                              className="text-red-600 hover:bg-red-50"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    {actions.filter(action => (action.subcategoryId || (action as any).subcategory_id) === subcategory.id).length === 0 && (
+                                      <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
+                                        <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">Nenhuma ação cadastrada</p>
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          onClick={() => openDialog('action', action)}
+                                          onClick={() => openDialog('action', { subcategoryId: subcategory.id })}
+                                          className="mt-2 text-orange-600"
                                         >
-                                          <Edit className="w-3 h-3" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => {
-                                            if (confirm(`Tem certeza que deseja excluir a ação "${action.name}"? Esta ação não pode ser desfeita.`)) {
-                                              deleteActionMutation.mutate(action.id);
-                                            }
-                                          }}
-                                        >
-                                          <Trash2 className="w-3 h-3 text-red-600" />
+                                          <Plus className="w-3 h-3 mr-1" />
+                                          Adicionar primeira ação
                                         </Button>
                                       </div>
-                                    ))}
+                                    )}
+                                  </div>
                                 </div>
                               ))}
+                            
+                            {subcategories.filter(sub => (sub.categoryId || (sub as any).category_id) === category.id).length === 0 && (
+                              <div className="p-8 text-center text-gray-500 border-t">
+                                <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                <p className="text-sm mb-4">Nenhuma subcategoria cadastrada nesta categoria</p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => openDialog('subcategory', { categoryId: category.id })}
+                                  className="text-green-600 border-green-200 hover:bg-green-50"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Criar primeira subcategoria
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
