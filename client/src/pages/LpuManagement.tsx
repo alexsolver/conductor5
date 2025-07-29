@@ -11,35 +11,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DollarSign,
   List,
   Plus,
   Search,
-  Filter,
   Eye,
   Edit,
-  Trash2,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  Users,
-  Building,
-  Percent,
-  Calculator,
-  FileText,
-  Download,
-  Upload,
   Copy,
+  Calendar,
+  Percent,
   Tag,
   Clock,
-  CheckCircle,
   AlertTriangle,
   Activity,
-  BarChart3,
-  Settings
+  BarChart3
 } from "lucide-react";
 
 interface PriceList {
@@ -51,6 +37,7 @@ interface PriceList {
   status: 'active' | 'inactive' | 'draft' | 'expired';
   priority: number;
   validFrom: string;
+  validTo: string;
   validTo?: string;
   currency: string;
   defaultDiscount: number;
@@ -58,7 +45,6 @@ interface PriceList {
   customerSegments: string[];
   regions: string[];
   autoUpdate: boolean;
-  items: PriceListItem[];
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -66,85 +52,46 @@ interface PriceList {
   approvedAt?: string;
 }
 
-interface PriceListItem {
-  id: string;
-  priceListId: string;
-  itemId: string;
-  itemCode: string;
-  itemName: string;
-  category: string;
-  unitPrice: number;
-  discount: number;
-  finalPrice: number;
-  margin: number;
-  minimumQuantity: number;
-  maximumQuantity?: number;
-  bulkPricing: BulkPricing[];
-  validFrom: string;
-  validTo?: string;
-  active: boolean;
+interface LPUStats {
+  totalLists: number;
+  activeLists: number;
+  draftLists: number;
+  pendingApproval: number;
+  approvedVersions: number;
+  activeRules: number;
+  approvalRate: number;
 }
 
-interface BulkPricing {
-  id: string;
-  minQuantity: number;
-  maxQuantity?: number;
-  unitPrice: number;
-  discount: number;
-  description: string;
-}
-
-interface PriceRule {
+interface PricingRule {
   id: string;
   name: string;
   type: 'markup' | 'discount' | 'fixed' | 'competitive';
   value: number;
   isPercentage: boolean;
-  conditions: PriceCondition[];
+  conditions: any[];
   priority: number;
   active: boolean;
 }
 
-interface PriceCondition {
-  field: string;
-  operator: string;
-  value: string;
-}
-
-interface PriceStats {
-  totalPriceLists: number;
-  activePriceLists: number;
-  totalItems: number;
-  avgMargin: number;
-  totalRevenue: number;
-  pendingApprovals: number;
-  expiringSoon: number;
-  priceChanges: number;
-}
-
-export function LpuManagement() {
-  const [selectedTab, setSelectedTab] = useState("overview");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [isCreateListOpen, setIsCreateListOpen] = useState(false);
-  const [isCreateRuleOpen, setIsCreateRuleOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedPriceList, setSelectedPriceList] = useState<PriceList | null>(null);
-
+export default function LpuManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mock data for development - would be replaced with real API calls
-  const mockPriceStats: PriceStats = {
-    totalPriceLists: 24,
-    activePriceLists: 18,
-    totalItems: 487,
-    avgMargin: 32.5,
-    totalRevenue: 2850000,
-    pendingApprovals: 3,
-    expiringSoon: 5,
-    priceChanges: 12
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isCreateListOpen, setIsCreateListOpen] = useState(false);
+  const [isCreateRuleOpen, setIsCreateRuleOpen] = useState(false);
+  const [selectedList, setSelectedList] = useState<PriceList | null>(null);
+
+  // Mock data para desenvolvimento - será substituído por dados reais da API
+  const mockStats: LPUStats = {
+    totalLists: 24,
+    activeLists: 18,
+    draftLists: 4,
+    pendingApproval: 3,
+    approvedVersions: 15,
+    activeRules: 8,
+    approvalRate: 85.2
   };
 
   const mockPriceLists: PriceList[] = [
@@ -164,7 +111,6 @@ export function LpuManagement() {
       customerSegments: ["Premium", "VIP"],
       regions: ["Sudeste", "Sul"],
       autoUpdate: true,
-      items: [],
       createdAt: "2024-01-01T10:00:00Z",
       updatedAt: "2024-12-15T14:30:00Z",
       createdBy: "admin@empresa.com",
@@ -172,7 +118,7 @@ export function LpuManagement() {
       approvedAt: "2024-01-02T09:00:00Z"
     },
     {
-      id: "2",
+      id: "2", 
       name: "Lista Atacado Geral",
       code: "LAG002",
       description: "Preços para vendas em atacado com desconto por volume",
@@ -186,7 +132,6 @@ export function LpuManagement() {
       customerSegments: ["Atacado", "Distribuidores"],
       regions: ["Nacional"],
       autoUpdate: false,
-      items: [],
       createdAt: "2024-01-01T10:00:00Z",
       updatedAt: "2024-11-20T16:45:00Z",
       createdBy: "admin@empresa.com",
@@ -209,7 +154,6 @@ export function LpuManagement() {
       customerSegments: [],
       regions: ["Nacional"],
       autoUpdate: true,
-      items: [],
       createdAt: "2024-05-15T09:30:00Z",
       updatedAt: "2024-12-01T11:20:00Z",
       createdBy: "compras@empresa.com"
@@ -229,67 +173,33 @@ export function LpuManagement() {
       customerSegments: ["Empresarial"],
       regions: ["Sudeste"],
       autoUpdate: false,
-      items: [],
       createdAt: "2024-12-01T15:00:00Z",
       updatedAt: "2024-12-20T10:15:00Z",
       createdBy: "servicos@empresa.com"
     }
   ];
 
-  const mockPriceRules: PriceRule[] = [
-    {
-      id: "1",
-      name: "Desconto por Volume",
-      type: "discount",
-      value: 10,
-      isPercentage: true,
-      conditions: [
-        { field: "quantity", operator: ">=", value: "100" }
-      ],
-      priority: 1,
-      active: true
-    },
-    {
-      id: "2",
-      name: "Markup Categoria Premium",
-      type: "markup",
-      value: 50,
-      isPercentage: true,
-      conditions: [
-        { field: "category", operator: "=", value: "Premium" }
-      ],
-      priority: 2,
-      active: true
-    }
-  ];
-
-  // Simulated queries - would use real API endpoints
-  const { data: priceLists = mockPriceLists, isLoading: isLoadingPriceLists } = useQuery({
-    queryKey: ["/api/materials-services/price-lists"],
-    queryFn: () => Promise.resolve(mockPriceLists),
-    enabled: true
+  // Fetch price lists (mockado por enquanto)
+  const { data: priceLists = mockPriceLists, isLoading: listsLoading } = useQuery({
+    queryKey: ['/api/materials-services/price-lists'],
+    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists'),
+    initialData: mockPriceLists
   });
 
-  const { data: priceRules = mockPriceRules } = useQuery({
-    queryKey: ["/api/materials-services/price-rules"],
-    queryFn: () => Promise.resolve(mockPriceRules),
-    enabled: true
+  // Fetch LPU stats (mockado por enquanto)
+  const { data: stats = mockStats } = useQuery<LPUStats>({
+    queryKey: ['/api/materials-services/price-lists/stats'],
+    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists/stats'),
+    initialData: mockStats
   });
 
-  const { data: priceStats = mockPriceStats } = useQuery({
-    queryKey: ["/api/materials-services/price-lists/stats"],
-    queryFn: () => Promise.resolve(mockPriceStats),
-    enabled: true
-  });
-
-  // Mutations for price list management
+  // Create price list mutation
   const createPriceListMutation = useMutation({
     mutationFn: async (data: Partial<PriceList>) => {
-      // Simulate API call
-      return Promise.resolve({ success: true, data });
+      return apiRequest('POST', '/api/materials-services/price-lists', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/price-lists"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({ title: "Sucesso", description: "Lista de preços criada com sucesso!" });
       setIsCreateListOpen(false);
     },
@@ -302,35 +212,14 @@ export function LpuManagement() {
     }
   });
 
-  const updatePriceListMutation = useMutation({
-    mutationFn: async ({ id, ...data }: Partial<PriceList> & { id: string }) => {
-      // Simulate API call
-      return Promise.resolve({ success: true, data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/price-lists"] });
-      toast({ title: "Sucesso", description: "Lista de preços atualizada com sucesso!" });
-      setIsEditOpen(false);
-      setSelectedPriceList(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao atualizar lista de preços",
-        variant: "destructive"
-      });
-    }
-  });
-
   // Filter price lists
   const filteredPriceLists = priceLists.filter((priceList: PriceList) => {
     const matchesSearch = priceList.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          priceList.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          priceList.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || priceList.status === statusFilter;
-    const matchesType = typeFilter === "all" || priceList.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
+
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -382,14 +271,13 @@ export function LpuManagement() {
       description: formData.get('description') as string,
       type: formData.get('type') as PriceList['type'],
       currency: formData.get('currency') as string,
-      defaultDiscount: parseFloat(formData.get('defaultDiscount') as string),
-      baseMarkup: parseFloat(formData.get('baseMarkup') as string),
+      defaultDiscount: parseFloat(formData.get('defaultDiscount') as string) || 0,
+      baseMarkup: parseFloat(formData.get('baseMarkup') as string) || 0,
       status: 'draft' as const,
       priority: 999,
       customerSegments: [],
       regions: [],
-      autoUpdate: false,
-      items: []
+      autoUpdate: false
     };
 
     createPriceListMutation.mutate(priceListData);
@@ -410,7 +298,7 @@ export function LpuManagement() {
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   };
 
-  if (isLoadingPriceLists) {
+  if (listsLoading) {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center">Carregando listas de preços...</div>
@@ -448,50 +336,48 @@ export function LpuManagement() {
             <List className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{priceStats.activePriceLists}</div>
+            <div className="text-2xl font-bold">{stats.activeLists}</div>
             <p className="text-xs text-muted-foreground">
-              {priceStats.totalPriceLists} total
+              {stats.totalLists} total
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Margem Média</CardTitle>
+            <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{priceStats.avgMargin}%</div>
+            <div className="text-2xl font-bold">{stats.approvalRate}%</div>
             <p className="text-xs text-muted-foreground">
-              {priceStats.totalItems} itens
+              últimos 30 dias
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Versões Aprovadas</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(priceStats.totalRevenue)}
-            </div>
+            <div className="text-2xl font-bold">{stats.approvedVersions}</div>
             <p className="text-xs text-muted-foreground">
-              último período
+              este mês
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aprovações</CardTitle>
+            <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{priceStats.pendingApprovals}</div>
+            <div className="text-2xl font-bold">{stats.pendingApproval}</div>
             <p className="text-xs text-muted-foreground">
-              {priceStats.expiringSoon} expirando
+              {stats.draftLists} rascunhos
             </p>
           </CardContent>
         </Card>
@@ -522,19 +408,6 @@ export function LpuManagement() {
             <SelectItem value="expired">Expirada</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os Tipos</SelectItem>
-            <SelectItem value="customer">Cliente</SelectItem>
-            <SelectItem value="supplier">Fornecedor</SelectItem>
-            <SelectItem value="product">Produto</SelectItem>
-            <SelectItem value="service">Serviço</SelectItem>
-            <SelectItem value="regional">Regional</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Price Lists Table */}
@@ -549,7 +422,7 @@ export function LpuManagement() {
           <div className="space-y-4">
             {filteredPriceLists.map((priceList) => {
               const expiringSoon = isExpiringSoon(priceList.validTo);
-              
+
               return (
                 <div
                   key={priceList.id}
@@ -604,36 +477,15 @@ export function LpuManagement() {
                         Prioridade: {priceList.priority}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPriceList(priceList);
-                          // View price list details logic
-                        }}
-                      >
+                      <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPriceList(priceList);
-                          setIsEditOpen(true);
-                        }}
-                      >
+                      <Button variant="ghost" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          // Copy price list logic
-                          toast({ title: "Sucesso", description: "Lista de preços copiada!" });
-                        }}
-                      >
+                      <Button variant="ghost" size="sm">
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
@@ -660,7 +512,7 @@ export function LpuManagement() {
               Crie uma nova lista de preços para gestão comercial
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
