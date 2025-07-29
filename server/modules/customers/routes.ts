@@ -119,6 +119,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log(`Found ${customers.length} customers for tenant ${req.user.tenantId}`);
 
+    res.setHeader('Content-Type', 'application/json');
     res.json({ 
       success: true,
       customers,
@@ -132,7 +133,16 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       options: { limit: parsedLimit, offset: parsedOffset, search: searchTerm }
     });
     console.error('Error in customers API:', error);
-    res.status(500).json({ message: "Failed to fetch customers", error: error.message });
+    
+    // Ensure we always return JSON, never HTML
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch customers", 
+      error: error?.message || "Internal server error",
+      customers: [],
+      total: 0
+    });
   }
 });
 

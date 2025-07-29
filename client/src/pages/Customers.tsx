@@ -18,13 +18,34 @@ export default function Customers() {
   const { data: customersData, isLoading, error } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
-      const { apiRequest } = await import('../lib/queryClient');
-      const response = await apiRequest('GET', '/api/customers');
-      const data = await response.json();
-      console.log('Customers API Response:', data);
-      return data;
+      try {
+        const { apiRequest } = await import('../lib/queryClient');
+        const response = await apiRequest('GET', '/api/customers');
+        
+        // Check if response is HTML instead of JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('API returned non-JSON response:', text.substring(0, 200));
+          throw new Error('Server returned HTML instead of JSON - check server logs');
+        }
+        
+        const data = await response.json();
+        console.log('Customers API Response:', data);
+        
+        // Ensure we have a valid response structure
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid response structure from server');
+        }
+        
+        return data;
+      } catch (parseError) {
+        console.error('Error parsing customers response:', parseError);
+        throw new Error(`Failed to load customers: ${parseError.message}`);
+      }
     },
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
   });
 
   const customers = customersData?.customers || [];
@@ -91,9 +112,14 @@ export default function Customers() {
           <CardContent className="p-8 text-center">
             <div className="text-red-500 mb-4">
               <h4 className="text-lg font-medium mb-2">Erro ao carregar clientes</h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mb-2">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
+              {error?.message?.includes('HTML') && (
+                <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                  💡 O servidor está retornando uma página de erro HTML. Verifique se o serviço está rodando corretamente.
+                </p>
+              )}
             </div>
             <Button 
               onClick={() => window.location.reload()} 
