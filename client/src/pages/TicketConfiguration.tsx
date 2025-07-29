@@ -591,7 +591,7 @@ const TicketConfiguration: React.FC = () => {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="hierarchy" className="flex items-center space-x-2">
               <FolderTree className="w-4 h-4" />
-              <span>Hierarquia</span>
+              <span>Categorização</span>
             </TabsTrigger>
             <TabsTrigger value="classification" className="flex items-center space-x-2">
               <Settings className="w-4 h-4" />
