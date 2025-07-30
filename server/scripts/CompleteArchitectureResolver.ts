@@ -241,7 +241,7 @@ server/db.ts → UNIFIED MANAGER (SQL creation + Drizzle integration)
 ### Usage:
 \`\`\`typescript
 // Correct usage:
-import { customers, tickets } from '@shared/schema';
+import { customers, tickets } from '../../shared/schema.js';
 import { schemaManager } from 'server/db';
 
 // Create tenant schema:

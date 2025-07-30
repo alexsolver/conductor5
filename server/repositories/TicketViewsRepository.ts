@@ -6,7 +6,7 @@ import {
   InsertTicketViewShare,
   UserViewPreference,
   InsertUserViewPreference
-} from '@shared/schema';
+} from '../../shared/schema.js';
 
 export class TicketViewsRepository {
   constructor(private pool: Pool) {}

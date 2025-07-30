@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TicketViewsRepository } from '../repositories/TicketViewsRepository';
 import { pool } from '../db';
-import { insertTicketListViewSchema } from '@shared/schema';
+import { insertTicketListViewSchema } from '../../shared/schema.js';
 import { z } from 'zod';
 
 interface AuthenticatedRequest extends Request {

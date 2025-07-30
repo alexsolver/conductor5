@@ -45,7 +45,7 @@ router.post('/contracts', jwtAuth, async (req: AuthenticatedRequest, res) => {
       tenantId: req.user!.tenantId,
       contractNumber: `CTR-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`, // Auto-generate
     };
-    
+
     const validatedData = insertContractSchema.parse(contractData);
     const contract = await contractRepository.createContract(validatedData, req.user!.tenantId, req.user!.id);
     res.status(201).json(contract);

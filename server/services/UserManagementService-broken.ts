@@ -4,7 +4,7 @@ import { db } from '../db';
 import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
 // Removed imports - these tables are not defined in schema-master.ts
 // Using basic users and tenants tables instead
-import { users, tenants, sessions, type User, type Tenant, type Session } from '@shared/schema';
+import { users, tenants, sessions, type User, type Tenant, type Session } from '../../shared/schema.js';
 import { PERMISSIONS } from '../middleware/rbacMiddleware';
 import { nanoid } from 'nanoid';
 import crypto from 'crypto';
