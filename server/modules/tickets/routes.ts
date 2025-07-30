@@ -1055,7 +1055,7 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
         t.number as "targetTicket.number"
       FROM "${schemaName}".ticket_relationships tr
       JOIN "${schemaName}".tickets t ON tr.target_ticket_id = t.id
-      WHERE tr.source_ticket_id = $1 AND tr.tenant_id = $2 AND tr.is_active = true
+      WHERE tr.source_ticket_id = $1 AND tr.tenant_id = $2
       ORDER BY tr.created_at DESC
     `;
 
