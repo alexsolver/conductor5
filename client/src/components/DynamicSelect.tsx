@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { filterDOMProps } from "@/utils/propFiltering";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 // import { useTenant } from "@/hooks/useTenant"; // Removed import
 
@@ -40,55 +40,51 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect']);
   const [fieldOptions, setFieldOptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   // Obter tenant_id do user context
   const tenantId = user?.tenantId;
 
-  useEffect(() => {
-    const fetchFieldOptions = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!fieldName || !accessToken || !tenantId) {
-        console.log('🔍 DynamicSelect missing requirements:', { fieldName, hasToken: !!accessToken, tenantId });
-        return;
-      }
+  const fetchFieldOptions = useCallback(async () => {
+    if (!fieldName || !token || !tenantId) return;
 
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'x-tenant-id': tenantId,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Ensure data is array and has proper structure
-          const options = Array.isArray(data) ? data : (data?.options || []);
-          setFieldOptions(options);
-          console.log(`🔍 DynamicSelect for ${fieldName}:`, {
-            totalOptions: options.length,
-            filteredOptions: options.length,
-            fieldOptions: options,
-            rawResponse: data
-          });
-        } else {
-          const errorText = await response.text();
-          console.error(`Failed to fetch options for ${fieldName}:`, response.status, errorText);
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-tenant-id': tenantId,
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Error fetching field options:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      });
 
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken && tenantId && fieldName) {
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`🔍 Field options response for ${fieldName}:`, data);
+
+        // Handle both direct options array and response wrapper
+        const options = data.options || data.data || data || [];
+        console.log(`✅ Processed ${options.length} options for ${fieldName}:`, options);
+        setFieldOptions(options);
+      } else {
+        console.error(`Failed to fetch field options for ${fieldName}:`, response.status);
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        setFieldOptions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching field options:', error);
+      setFieldOptions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fieldName, token, tenantId]);
+
+  useEffect(() => {
+    if (token && tenantId && fieldName) {
       fetchFieldOptions();
     }
-  }, [tenantId, fieldName]);
+  }, [tenantId, fieldName, token, fetchFieldOptions]);
 
   const handleSelectChange = (value: string) => {
     onChange(value);
@@ -99,6 +95,16 @@ export function DynamicSelect(props: DynamicSelectProps) {
       onOptionSelect(selectedOption);
     }
   };
+
+  // Debug logging
+  console.log(`🔍 DynamicSelect for ${fieldName}:`, {
+    totalOptions: fieldOptions.length,
+    filteredOptions: fieldOptions.length,
+    isLoading,
+    token: token ? 'present' : 'missing',
+    tenantId: tenantId || 'missing',
+    fieldOptions: fieldOptions.slice(0, 3) // Show first 3 options only
+  });
 
   return (
     <Select value={value} onValueChange={handleSelectChange} disabled={disabled}>
