@@ -20,45 +20,66 @@ async function populateTicketFieldOptions() {
   try {
     console.log('📝 Verificando dados existentes...');
     
-    // Verificar se a tabela existe e tem dados
+    const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Verificar se dados já existem
     const existing = await db.execute(sql`
       SELECT COUNT(*) as count 
-      FROM tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_field_options 
+      FROM ${sql.identifier(schemaName, 'ticket_field_options')} 
       WHERE field_name = 'status'
     `);
     
-    console.log('📈 Registros status existentes:', existing.rows[0]?.count || 0);
-    
-    if ((existing.rows[0]?.count || 0) === 0) {
-      console.log('📝 Inserindo dados básicos de configuração...');
-      
-      await db.execute(sql`
-        INSERT INTO tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_field_options 
-        (id, tenant_id, customer_id, field_name, value, label, is_active, display_order, created_at, updated_at)
-        VALUES 
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'status', 'new', 'Novo', true, 1, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'status', 'in_progress', 'Em Progresso', true, 2, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'status', 'resolved', 'Resolvido', true, 3, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'priority', 'low', 'Baixa', true, 1, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'priority', 'medium', 'Média', true, 2, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'priority', 'high', 'Alta', true, 3, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'category', 'hardware', 'Hardware', true, 1, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'category', 'software', 'Software', true, 2, NOW(), NOW()),
-        (gen_random_uuid(), '3f99462f-3621-4b1b-bea8-782acc50d62e', '3f99462f-3621-4b1b-bea8-782acc50d62e', 'category', 'network', 'Rede', true, 3, NOW(), NOW())
-        ON CONFLICT (tenant_id, customer_id, field_name, value) DO NOTHING
-      `);
-      
-      console.log('✅ Dados básicos inseridos com sucesso!');
-    } else {
-      console.log('✅ Dados já existem na tabela');
+    if (existing.rows[0].count > 0) {
+      console.log('✅ Dados já existem, pulando inserção');
+      await pool.end();
+      return;
     }
     
-    // Verificar resultado final
+    console.log('🔄 Inserindo opções de status...');
+    
+    const statusOptions = [
+      { value: 'open', label: 'Aberto', color: '#3b82f6', is_default: true },
+      { value: 'in_progress', label: 'Em Andamento', color: '#f59e0b', is_default: false },
+      { value: 'pending', label: 'Pendente', color: '#8b5cf6', is_default: false },
+      { value: 'resolved', label: 'Resolvido', color: '#10b981', is_default: false },
+      { value: 'closed', label: 'Fechado', color: '#6b7280', is_default: false }
+    ];
+    
+    for (const option of statusOptions) {
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'ticket_field_options')} 
+        (tenant_id, field_name, value, label, color, is_default, is_active, created_at, updated_at)
+        VALUES (${tenantId}, 'status', ${option.value}, ${option.label}, ${option.color}, ${option.is_default}, true, NOW(), NOW())
+        ON CONFLICT (tenant_id, field_name, value) DO NOTHING
+      `);
+    }
+    
+    console.log('🔄 Inserindo opções de prioridade...');
+    
+    const priorityOptions = [
+      { value: 'low', label: 'Baixa', color: '#10b981', is_default: false },
+      { value: 'medium', label: 'Média', color: '#f59e0b', is_default: true },
+      { value: 'high', label: 'Alta', color: '#ef4444', is_default: false },
+      { value: 'urgent', label: 'Urgente', color: '#dc2626', is_default: false }
+    ];
+    
+    for (const option of priorityOptions) {
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName, 'ticket_field_options')} 
+        (tenant_id, field_name, value, label, color, is_default, is_active, created_at, updated_at)
+        VALUES (${tenantId}, 'priority', ${option.value}, ${option.label}, ${option.color}, ${option.is_default}, true, NOW(), NOW())
+        ON CONFLICT (tenant_id, field_name, value) DO NOTHING
+      `);
+    }
+    
+    console.log('📊 Verificando dados inseridos...');
+    
     const final = await db.execute(sql`
-      SELECT field_name, value, label, display_order 
-      FROM tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_field_options 
-      WHERE field_name IN ('status', 'priority', 'category')
-      ORDER BY field_name, display_order
+      SELECT field_name, value, label, color, is_default 
+      FROM ${sql.identifier(schemaName, 'ticket_field_options')} 
+      WHERE tenant_id = ${tenantId}
+      ORDER BY field_name, value
     `);
     
     console.log('📊 DADOS INSERIDOS:');
@@ -74,4 +95,4 @@ async function populateTicketFieldOptions() {
   }
 }
 
-populateTicketFieldOptions();
+populateTicketFieldOptions().catch(console.error);
