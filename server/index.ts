@@ -11,6 +11,7 @@ import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteCo
 import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
 import { timecardRoutes } from './routes/timecardRoutes';
 import productivityRoutes from './routes/productivityRoutes';
+import { db, sql } from "./db";
 
 const app = express();
 
@@ -100,6 +101,43 @@ app.use((req, res, next) => {
   app.use('/api/timecard', timecardRoutes);
   app.use('/api/productivity', productivityRoutes);
 
+  app.get('/health', async (req, res) => {
+    const memoryUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+
+    try {
+      const dbStart = Date.now();
+      await db.execute(sql`SELECT 1`);
+      const dbLatency = Date.now() - dbStart;
+
+      res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        performance: {
+          memory: {
+            rss: Math.round(memoryUsage.rss / 1024 / 1024) + ' MB',
+            heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + ' MB',
+            heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + ' MB'
+          },
+          database: {
+            latency: dbLatency + 'ms',
+            status: dbLatency < 100 ? 'excellent' : dbLatency < 500 ? 'good' : 'needs_attention'
+          },
+          cpu: {
+            user: Math.round(cpuUsage.user / 1000) + 'ms',
+            system: Math.round(cpuUsage.system / 1000) + 'ms'
+          }
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Database connection failed',
+        error: error.message
+      });
+    }
+  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

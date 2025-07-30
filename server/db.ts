@@ -18,12 +18,38 @@ if (!process.env.DATABASE_URL) {
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
 
+// Enhanced connection monitoring with performance metrics
+let connectionStartTime = Date.now();
+
+db.$client.on('connect', () => {
+  const connectionTime = Date.now() - connectionStartTime;
+  console.log(`✅ Database connection established in ${connectionTime}ms`);
+});
+
+db.$client.on('error', (err) => {
+  console.error('❌ Database connection error:', err);
+});
+
+// Performance monitoring
+setInterval(async () => {
+  try {
+    const start = Date.now();
+    await db.execute(sql`SELECT 1`);
+    const latency = Date.now() - start;
+    if (latency > 100) {
+      console.log(`⚠️ Database latency: ${latency}ms`);
+    }
+  } catch (error) {
+    console.error('❌ Database health check failed:', error);
+  }
+}, 30000); // Check every 30 seconds
+
 // Simplified schema manager with all required methods
 export const schemaManager = {
   getPool() {
     return pool;
   },
-  
+
   getSchemaName(tenantId: string) {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   },
@@ -420,3 +446,4 @@ export const schemaManager = {
 
 // Export for backward compatibility
 export default db;
+```
