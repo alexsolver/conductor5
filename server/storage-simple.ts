@@ -1606,7 +1606,6 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships fcr
         JOIN ${sql.identifier(schemaName)}.customers c ON c.id = fcr.customer_id
         WHERE fcr.favorecido_id = ${favorecidoId}
-        AND fcr.tenant_id = ${validatedTenantId}
         ORDER BY fcr.created_at DESC
       `);
 
@@ -1625,8 +1624,8 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.favorecido_customer_relationships
-        (favorecido_id, customer_id, tenant_id, created_at, updated_at)
-        VALUES (${favorecidoId}, ${customerId}, ${validatedTenantId}, NOW(), NOW())
+        (favorecido_id, customer_id, created_at, updated_at)
+        VALUES (${favorecidoId}, ${customerId}, NOW(), NOW())
         ON CONFLICT (favorecido_id, customer_id) DO NOTHING
         RETURNING *
       `);
@@ -1648,7 +1647,6 @@ export class DatabaseStorage implements IStorage {
         DELETE FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships
         WHERE favorecido_id = ${favorecidoId} 
         AND customer_id = ${customerId}
-        AND tenant_id = ${validatedTenantId}
       `);
 
       return result.rowCount > 0;
