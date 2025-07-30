@@ -87,8 +87,8 @@ export default function CustomerCompanies() {
   const companies = (() => {
     if (!companiesData) return [];
     if (Array.isArray(companiesData)) return companiesData;
-    if (companiesData.success && Array.isArray(companiesData.data)) return companiesData.data;
-    if (companiesData.data && Array.isArray(companiesData.data)) return companiesData.data;
+    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) return (companiesData as any).data;
+    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) return (companiesData as any).data;
     return [];
   })();
 
@@ -277,7 +277,7 @@ export default function CustomerCompanies() {
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => {
+  ).sort((a: CustomerCompany, b: CustomerCompany) => {
     // Always put Default company first
     const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
     const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
@@ -679,7 +679,7 @@ export default function CustomerCompanies() {
                   <Calendar className="w-3 h-3 mr-1" />
                   {(() => {
                     // Check multiple possible date fields
-                    const dateValue = company.createdAt || company.created_at || company.dateCreated;
+                    const dateValue = company.createdAt || (company as any).created_at || (company as any).dateCreated;
                     if (dateValue && !isNaN(new Date(dateValue).getTime())) {
                       return new Date(dateValue).toLocaleDateString('pt-BR');
                     }
@@ -698,7 +698,7 @@ export default function CustomerCompanies() {
                   {(() => {
                     const isDefaultCompany = company.name?.toLowerCase().includes('default') || 
                                            company.displayName?.toLowerCase().includes('default');
-                    const hasOtherCompanies = companies.filter(c => 
+                    const hasOtherCompanies = companies.filter((c: CustomerCompany) => 
                       !c.name?.toLowerCase().includes('default') && 
                       !c.displayName?.toLowerCase().includes('default')
                     ).length > 0;

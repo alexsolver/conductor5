@@ -83,11 +83,22 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     queryKey: ['/api/user-management/users'],
   });
 
-  // Ensure data is always arrays
-  const customerCompanies = Array.isArray(customerCompaniesData) ? customerCompaniesData : 
-                           customerCompaniesData?.data ? customerCompaniesData.data : [];
+  // Ensure data is always arrays and sort companies with Default first
+  const customerCompanies = (() => {
+    const companiesList = Array.isArray(customerCompaniesData) ? customerCompaniesData : 
+                          (customerCompaniesData as any)?.data ? (customerCompaniesData as any).data : [];
+    return companiesList.sort((a: any, b: any) => {
+      const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+      const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+      return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
+    });
+  })();
+  
   const users = Array.isArray(usersData) ? usersData : 
-               usersData?.users ? usersData.users : [];
+               (usersData as any)?.users ? (usersData as any).users : [];
 
   // Debug log
   console.log('Customer companies data:', { customerCompaniesData, customerCompanies, companiesLoading, companiesError });

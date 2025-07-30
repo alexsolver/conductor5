@@ -76,12 +76,6 @@ export default function Tickets() {
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
     retry: false,
-    onSuccess: (data) => {
-      console.log('✅ Query SUCCESS - tickets data received:', data);
-    },
-    onError: (error) => {
-      console.log('❌ Query ERROR:', error);
-    }
   });
 
   // Fetch customers for the dropdown
@@ -109,7 +103,20 @@ export default function Tickets() {
 
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-  const companies = Array.isArray(companiesData) ? companiesData : [];
+  
+  // Sort companies to put Default first
+  const companies = (() => {
+    const companiesList = Array.isArray(companiesData) ? companiesData : [];
+    return companiesList.sort((a: any, b: any) => {
+      const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+      const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+      return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
+    });
+  })();
+  
   const users = (usersData as any)?.users || [];
 
   console.log('Customers data:', { customersData, customers: customers.length });
@@ -263,17 +270,17 @@ export default function Tickets() {
   let ticketsCount = 0;
   
   // Testar diferentes estruturas possíveis
-  if (tickets?.data?.tickets) {
-    ticketsList = tickets.data.tickets;
+  if ((tickets as any)?.data?.tickets) {
+    ticketsList = (tickets as any).data.tickets;
     console.log('🔍 Found tickets in: tickets.data.tickets');
-  } else if (tickets?.tickets) {
-    ticketsList = tickets.tickets;
+  } else if ((tickets as any)?.tickets) {
+    ticketsList = (tickets as any).tickets;
     console.log('🔍 Found tickets in: tickets.tickets');
   } else if (Array.isArray(tickets)) {
     ticketsList = tickets;
     console.log('🔍 Found tickets as: direct array');
-  } else if (tickets?.data && Array.isArray(tickets.data)) {
-    ticketsList = tickets.data;
+  } else if ((tickets as any)?.data && Array.isArray((tickets as any).data)) {
+    ticketsList = (tickets as any).data;
     console.log('🔍 Found tickets in: tickets.data (array)');
   } else {
     console.log('🚨 NO TICKETS FOUND - Raw data:', tickets);

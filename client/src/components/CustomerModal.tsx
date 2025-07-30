@@ -172,8 +172,18 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       refetchOnMount: true,
     });
 
-    // Parse available companies - API returns direct array
-    const availableCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
+    // Parse available companies - API returns direct array and sort Default first
+    const availableCompanies = (() => {
+      const companiesList = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
+      return companiesList.sort((a: any, b: any) => {
+        const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+        const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+
+        if (aIsDefault && !bIsDefault) return -1;
+        if (!aIsDefault && bIsDefault) return 1;
+        return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
+      });
+    })();
 
     if (availableCompaniesError) {
       console.error('Available companies error:', availableCompaniesError);
