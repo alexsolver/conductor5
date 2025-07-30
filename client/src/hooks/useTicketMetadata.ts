@@ -1,85 +1,85 @@
-/**
- * Real ticket metadata hook that fetches from backend API
- */
+import { useQuery } from '@tanstack/react-query';
+import { useTenantId } from './useTenantId';
 
-import { useQuery } from "@tanstack/react-query";
-
-export interface FieldOption {
-  id: string;
-  fieldName: string;
-  optionValue: string;
-  optionLabel: string;
-  bgColor: string;
-  textColor: string;
-  sortOrder: number;
-  isActive: boolean;
-}
-
-export interface FieldConfiguration {
-  id: string;
-  fieldName: string;
+interface FieldOption {
+  value: string;
   label: string;
-  fieldType: string;
-  isRequired: boolean;
-  isSystem: boolean;
-  displayOrder: number;
-  isActive: boolean;
+  color?: string;
+  isDefault?: boolean;
 }
 
-interface APIResponse<T> {
+interface FieldOptionsResponse {
   success: boolean;
-  data: T;
+  data: FieldOption[];
+  total?: number;
 }
+
+// Cache inteligente para reduzir chamadas à API
+const fieldOptionsCache = new Map<string, { data: any[], timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
 export const useTicketMetadata = () => {
-  const { data: fieldConfigurations, isLoading: configLoading } = useQuery({
-    queryKey: ['/api/ticket-metadata/field-configurations'],
-    staleTime: 15 * 60 * 1000, // 15 minutes - increased cache time
-    cacheTime: 30 * 60 * 1000, // 30 minutes
-    retry: 1,
-    refetchOnWindowFocus: false, // Prevent unnecessary refetching
-    refetchOnMount: false,
-  });
+  const tenantId = useTenantId();
 
-  const { data: fieldOptions, isLoading: optionsLoading } = useQuery({
-    queryKey: ['/api/ticket-metadata/field-options'],
-    staleTime: 15 * 60 * 1000, // 15 minutes - increased cache time
-    cacheTime: 30 * 60 * 1000, // 30 minutes
-    retry: 1,
-    refetchOnWindowFocus: false, // Prevent unnecessary refetching
-    refetchOnMount: false,
-  });
+  const useFieldOptions = (fieldName: string, companyId?: string) => {
+    return useQuery<FieldOptionsResponse>({
+      queryKey: ['fieldOptions', tenantId, fieldName, companyId || 'default'],
+      queryFn: async () => {
+        const cacheKey = `${tenantId}-${companyId || 'default'}`;
+        const now = Date.now();
 
-  const isLoading = configLoading || optionsLoading;
+        // Verificar cache primeiro
+        const cached = fieldOptionsCache.get(cacheKey);
+        let allOptions: any[] = [];
 
-  const getFieldOptions = (fieldName: string): FieldOption[] => {
-    if (!fieldOptions?.success) return [];
-    return fieldOptions.data.filter((option: FieldOption) => option.fieldName === fieldName);
-  };
+        if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+          console.log(`📦 Using cached field options for ${fieldName}`);
+          allOptions = cached.data;
+        } else {
+          // Buscar da API apenas se necessário
+          const params = new URLSearchParams({
+            tenantId: tenantId || '',
+            ...(companyId && { companyId })
+          });
 
-  const getFieldOption = (fieldName: string, optionValue: string): FieldOption | undefined => {
-    const options = getFieldOptions(fieldName);
-    return options.find(option => option.optionValue === optionValue);
-  };
+          const response = await fetch(`/api/ticket-config/field-options?${params}`);
+          const data = await response.json();
+          allOptions = data.data || [];
 
-  const getFieldConfiguration = (fieldName: string): FieldConfiguration | undefined => {
-    if (!fieldConfigurations?.success) return undefined;
-    return fieldConfigurations.data.find((config: FieldConfiguration) => config.fieldName === fieldName);
-  };
+          // Atualizar cache
+          fieldOptionsCache.set(cacheKey, {
+            data: allOptions,
+            timestamp: now
+          });
 
-  const generateDynamicSchema = () => {
-    // TODO: Implement dynamic Zod schema generation based on field configurations
-    // This will replace hard-coded schemas in forms
-    return null;
-  };
+          console.log(`🔄 Fetched fresh field options for ${fieldName}`);
+        }
 
-  return {
-    getFieldOptions,
-    getFieldOption,
-    getFieldConfiguration,
-    generateDynamicSchema,
-    isLoading,
-    fieldConfigurations: fieldConfigurations?.data || [],
-    fieldOptions: fieldOptions?.data || []
+        // Filter options for specific field
+        const filteredOptions = allOptions.filter((option: any) => 
+          option.field_name === fieldName
+        ).map((option: any) => ({
+          value: option.value,
+          label: option.label,
+          color: option.color,
+          isDefault: option.is_default
+        }));
+
+        console.log(`🔍 Field options for ${fieldName}:`, {
+          total: allOptions.length,
+          filtered: filteredOptions.length,
+          options: filteredOptions.map(opt => ({ value: opt.value }))
+        });
+
+        return {
+          success: true,
+          data: filteredOptions,
+          total: filteredOptions.length
+        };
+      },
+      enabled: !!tenantId && !!fieldName,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    });
   };
 }
