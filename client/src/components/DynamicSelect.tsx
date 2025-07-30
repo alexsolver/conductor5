@@ -50,7 +50,10 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
     setIsLoading(true);
     try {
-      const token = token || localStorage.getItem('token') || localStorage.getItem('access_token');
+      const token = token || localStorage.getItem('accessToken') || 
+               localStorage.getItem('token') || 
+               sessionStorage.getItem('accessToken') || 
+               'missing';
       const tenantId = tenantId || localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
 
       if (!token) {

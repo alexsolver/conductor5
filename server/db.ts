@@ -12,13 +12,21 @@ export { sql };
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Configuração otimizada para ambiente Replit
+neonConfig.fetchConnectionCache = true;
+neonConfig.useSecureWebSocket = false; // Desabilitar WSS para Replit
+neonConfig.pipelineConnect = false; // Simplificar pipeline
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // Necessário para Replit
+  connectionTimeoutMillis: 15000,
+  idleTimeoutMillis: 30000,
+  max: 3, // Limite reduzido para estabilidade no Replit
+  statement_timeout: 30000,
+  query_timeout: 30000
+});
+
 export const db = drizzle({ client: pool, schema });
 
 // Enhanced connection monitoring with performance metrics
@@ -402,8 +410,7 @@ export const schemaManager = {
           ticket_conversion_rules JSONB,
           completed_at TIMESTAMP WITH TIME ZONE,
           is_active BOOLEAN DEFAULT true,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
       `
     };
