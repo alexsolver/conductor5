@@ -62,7 +62,18 @@ async function createTicketConfigTables() {
       await db.execute(`
         DO $$ 
         BEGIN
-          IF NOT EXISTS (
+          -- Check if both tables exist and have the required columns
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema = '${schemaName}' 
+            AND table_name = 'ticket_field_options' 
+            AND column_name = 'field_config_id'
+          ) AND EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema = '${schemaName}' 
+            AND table_name = 'ticket_field_configurations' 
+            AND column_name = 'id'
+          ) AND NOT EXISTS (
             SELECT 1 FROM information_schema.table_constraints 
             WHERE constraint_name = 'fk_field_config' 
             AND table_schema = '${schemaName}' 
