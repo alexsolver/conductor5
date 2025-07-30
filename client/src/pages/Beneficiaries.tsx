@@ -206,24 +206,25 @@ export default function Beneficiaries() {
   });
 
   // Derived values
-  const beneficiaries = beneficiariesData?.beneficiaries || [];
+  const beneficiaries = Array.isArray(beneficiariesData?.data) ? beneficiariesData.data : [];
   const pagination = beneficiariesData?.pagination || { total: 0, totalPages: 0 };
 
   // Filter beneficiaries based on search term
   const filteredBeneficiaries = useMemo(() => {
+    if (!Array.isArray(beneficiaries)) return [];
     if (!searchTerm) return beneficiaries;
     return beneficiaries.filter((beneficiary: Beneficiary) =>
-      beneficiary.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      beneficiary.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      beneficiary.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      beneficiary.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (beneficiary.customerCode && beneficiary.customerCode.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [beneficiaries, searchTerm]);
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredBeneficiaries.length / itemsPerPage);
+  const totalPages = Math.ceil((filteredBeneficiaries?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentBeneficiaries = filteredBeneficiaries.slice(startIndex, endIndex);
+  const currentBeneficiaries = Array.isArray(filteredBeneficiaries) ? filteredBeneficiaries.slice(startIndex, endIndex) : [];
 
   // Handle form submission
   const handleSubmit = (data: BeneficiaryFormData) => {
