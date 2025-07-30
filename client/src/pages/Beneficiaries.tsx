@@ -57,14 +57,15 @@ type BeneficiaryFormData = z.infer<typeof beneficiarySchema>;
 
 interface Beneficiary {
   id: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
+  // Frontend naming
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
   email: string;
   birthDate?: string;
   rg?: string;
   cpfCnpj?: string;
-  isActive: boolean;
+  isActive?: boolean;
   customerCode?: string;
   phone?: string;
   cellPhone?: string;
@@ -72,6 +73,19 @@ interface Beneficiary {
   contactPhone?: string;
   createdAt: string;
   updatedAt: string;
+  // Backend naming (snake_case)
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  birth_date?: string;
+  cpf_cnpj?: string;
+  is_active?: boolean;
+  customer_code?: string;
+  cell_phone?: string;
+  contact_person?: string;
+  contact_phone?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export default function Beneficiaries() {
@@ -214,9 +228,11 @@ export default function Beneficiaries() {
     if (!Array.isArray(beneficiaries)) return [];
     if (!searchTerm) return beneficiaries;
     return beneficiaries.filter((beneficiary: Beneficiary) =>
-      beneficiary.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (beneficiary.fullName || beneficiary.full_name)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       beneficiary.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (beneficiary.customerCode && beneficiary.customerCode.toLowerCase().includes(searchTerm.toLowerCase()))
+      (beneficiary.customerCode || beneficiary.customer_code)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (beneficiary.firstName || beneficiary.first_name)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (beneficiary.lastName || beneficiary.last_name)?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [beneficiaries, searchTerm]);
 
@@ -237,21 +253,27 @@ export default function Beneficiaries() {
 
   // Handle edit
   const handleEdit = (beneficiary: Beneficiary) => {
+    console.log('Editing beneficiary:', beneficiary);
     setEditingBeneficiary(beneficiary);
-    form.reset({
-      firstName: beneficiary.firstName,
-      lastName: beneficiary.lastName,
-      email: beneficiary.email,
-      birthDate: beneficiary.birthDate || "",
+    
+    // Map database fields to form fields
+    const formData = {
+      firstName: beneficiary.first_name || beneficiary.firstName || "",
+      lastName: beneficiary.last_name || beneficiary.lastName || "",
+      email: beneficiary.email || "",
+      birthDate: beneficiary.birth_date || beneficiary.birthDate || "",
       rg: beneficiary.rg || "",
-      cpfCnpj: beneficiary.cpfCnpj || "",
-      isActive: beneficiary.isActive,
-      customerCode: beneficiary.customerCode || "",
+      cpfCnpj: beneficiary.cpf_cnpj || beneficiary.cpfCnpj || "",
+      isActive: beneficiary.is_active !== undefined ? beneficiary.is_active : beneficiary.isActive !== undefined ? beneficiary.isActive : true,
+      customerCode: beneficiary.customer_code || beneficiary.customerCode || "",
       phone: beneficiary.phone || "",
-      cellPhone: beneficiary.cellPhone || "",
-      contactPerson: beneficiary.contactPerson || "",
-      contactPhone: beneficiary.contactPhone || "",
-    });
+      cellPhone: beneficiary.cell_phone || beneficiary.cellPhone || "",
+      contactPerson: beneficiary.contact_person || beneficiary.contactPerson || "",
+      contactPhone: beneficiary.contact_phone || beneficiary.contactPhone || "",
+    };
+    
+    console.log('Form data for editing:', formData);
+    form.reset(formData);
     setIsCreateDialogOpen(true);
   };
 
@@ -548,7 +570,7 @@ export default function Beneficiaries() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {beneficiaries.filter((b: Beneficiary) => b.isActive).length}
+              {beneficiaries.filter((b: Beneficiary) => (b.isActive ?? b.is_active)).length}
             </div>
           </CardContent>
         </Card>
@@ -610,10 +632,10 @@ export default function Beneficiaries() {
                 <TableRow key={beneficiary.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{beneficiary.fullName}</div>
-                      {beneficiary.contactPerson && (
+                      <div className="font-medium">{beneficiary.fullName || beneficiary.full_name}</div>
+                      {(beneficiary.contactPerson || beneficiary.contact_person) && (
                         <div className="text-sm text-muted-foreground">
-                          Contato: {beneficiary.contactPerson}
+                          Contato: {beneficiary.contactPerson || beneficiary.contact_person}
                         </div>
                       )}
                     </div>
@@ -625,14 +647,14 @@ export default function Beneficiaries() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {beneficiary.phone || beneficiary.cellPhone ? (
+                    {(beneficiary.phone || beneficiary.cellPhone || beneficiary.cell_phone) ? (
                       <div className="flex items-center">
                         <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
                         <div>
                           {beneficiary.phone && <div>{beneficiary.phone}</div>}
-                          {beneficiary.cellPhone && (
+                          {(beneficiary.cellPhone || beneficiary.cell_phone) && (
                             <div className="text-sm text-muted-foreground">
-                              {beneficiary.cellPhone}
+                              {beneficiary.cellPhone || beneficiary.cell_phone}
                             </div>
                           )}
                         </div>
@@ -642,17 +664,17 @@ export default function Beneficiaries() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={beneficiary.isActive ? "default" : "secondary"}>
-                      {beneficiary.isActive ? "Ativo" : "Inativo"}
+                    <Badge variant={(beneficiary.isActive ?? beneficiary.is_active) ? "default" : "secondary"}>
+                      {(beneficiary.isActive ?? beneficiary.is_active) ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {beneficiary.customerCode || (
+                    {(beneficiary.customerCode || beneficiary.customer_code) || (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {new Date(beneficiary.createdAt).toLocaleDateString('pt-BR')}
+                    {new Date(beneficiary.createdAt || beneficiary.created_at).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
