@@ -502,7 +502,6 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
     const query = `
       SELECT 
         tact.id,
-        tact.action_type as "actionType",
         tact.action_type as type,
         tact.description as content,
         tact.description,
@@ -516,11 +515,11 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
         '' as vendor,
         COALESCE(tact.is_public, true) as is_public,
         tact.created_at,
-        tact.created_by,
+        tact.performed_by as created_by,
         u.first_name || ' ' || u.last_name as agent_name,
         u.first_name || ' ' || u.last_name as "createdByName"
       FROM "${schemaName}".ticket_actions tact
-      LEFT JOIN public.users u ON tact.created_by = u.id
+      LEFT JOIN public.users u ON tact.performed_by = u.id
       WHERE tact.ticket_id = $1::uuid AND tact.tenant_id = $2::uuid AND tact.is_active = true
       ORDER BY tact.created_at DESC
     `;
