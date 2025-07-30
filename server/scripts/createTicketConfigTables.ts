@@ -37,9 +37,12 @@ async function createTicketConfigTables() {
         )
       `);
 
-      // 2. Criar tabela ticket_field_options COM a coluna field_config_id
+      // 2. Dropar tabela existente se houver inconsistência
+      await db.execute(`DROP TABLE IF EXISTS "${schemaName}".ticket_field_options CASCADE`);
+
+      // 3. Criar tabela ticket_field_options COM estrutura correta
       await db.execute(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}".ticket_field_options (
+        CREATE TABLE "${schemaName}".ticket_field_options (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           customer_id UUID NULL,
@@ -70,42 +73,102 @@ async function createTicketConfigTables() {
 
       console.log(`📊 Tabelas criadas: ${tableCheck.rows.length} colunas encontradas`);
 
-      // 4. Verificar se as colunas necessárias existem antes de criar índices
-      const columnCheck = await db.execute(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = '${schemaName}' 
-        AND table_name = 'ticket_field_options' 
-        AND column_name = 'field_config_id'
+      // 4. Adicionar foreign key constraints
+      await db.execute(`
+        ALTER TABLE "${schemaName}".ticket_field_options 
+        ADD CONSTRAINT fk_field_options_config 
+        FOREIGN KEY (field_config_id) 
+        REFERENCES "${schemaName}".ticket_field_configurations(id) 
+        ON DELETE CASCADE
       `);
 
-      if (columnCheck.rows.length === 0) {
-        throw new Error(`Coluna field_config_id não encontrada na tabela ticket_field_options do schema ${schemaName}`);
+      // 5. Verificar estrutura completa das tabelas
+      const completeCheck = await db.execute(`
+        SELECT 
+          table_name,
+          column_name,
+          data_type,
+          is_nullable
+        FROM information_schema.columns 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name IN ('ticket_field_configurations', 'ticket_field_options')
+        ORDER BY table_name, ordinal_position
+      `);
+
+      console.log(`📋 Estrutura verificada: ${completeCheck.rows.length} colunas nas tabelas de configuração`);
+
+      // 6. Verificar especificamente a coluna field_config_id
+      const fieldConfigIdCheck = completeCheck.rows.find(
+        row => row.table_name === 'ticket_field_options' && row.column_name === 'field_config_id'
+      );
+
+      if (!fieldConfigIdCheck) {
+        throw new Error(`CRITICAL: Coluna field_config_id não encontrada na tabela ticket_field_options do schema ${schemaName}`);
       }
 
-      console.log(`✅ Coluna field_config_id verificada para tenant ${tenant.name}`);
+      console.log(`✅ Coluna field_config_id verificada: ${fieldConfigIdCheck.data_type} (${fieldConfigIdCheck.is_nullable})`);
 
-      // 5. Criar índices para performance (somente APÓS verificar que as colunas existem)
-      try {
+      // 7. Adicionar dados de exemplo básicos
+      console.log(`🎯 Inserindo configurações básicas para tenant ${tenant.name}...`);
+      
+      // Inserir configuração de prioridade
+      const priorityConfigResult = await db.execute(`
+        INSERT INTO "${schemaName}".ticket_field_configurations 
+        (tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order)
+        VALUES ('${tenant.id}', NULL, 'priority', 'Prioridade', 'select', true, true, 1)
+        ON CONFLICT (tenant_id, customer_id, field_name) DO UPDATE SET updated_at = CURRENT_TIMESTAMP
+        RETURNING id
+      `);
+
+      if (priorityConfigResult.rows.length > 0) {
+        const configId = priorityConfigResult.rows[0].id;
+        
+        // Inserir opções de prioridade
         await db.execute(`
-          CREATE INDEX IF NOT EXISTS idx_ticket_field_configs_tenant_customer 
-          ON "${schemaName}".ticket_field_configurations(tenant_id, customer_id)
+          INSERT INTO "${schemaName}".ticket_field_options 
+          (tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default)
+          VALUES 
+          ('${tenant.id}', NULL, '${configId}', 'low', 'Baixa', '#10B981', 1, false),
+          ('${tenant.id}', NULL, '${configId}', 'medium', 'Média', '#F59E0B', 2, true),
+          ('${tenant.id}', NULL, '${configId}', 'high', 'Alta', '#F97316', 3, false),
+          ('${tenant.id}', NULL, '${configId}', 'critical', 'Crítica', '#EF4444', 4, false)
+          ON CONFLICT (tenant_id, customer_id, field_config_id, option_value) DO NOTHING
         `);
 
-        await db.execute(`
-          CREATE INDEX IF NOT EXISTS idx_ticket_field_options_config_id 
-          ON "${schemaName}".ticket_field_options(field_config_id)
-        `);
+        console.log(`✅ Configurações de prioridade criadas para tenant ${tenant.name}`);
+      }
 
-        await db.execute(`
-          CREATE INDEX IF NOT EXISTS idx_ticket_field_options_tenant_customer 
-          ON "${schemaName}".ticket_field_options(tenant_id, customer_id)
-        `);
+      // 8. Criar índices otimizados para performance
+      const indexQueries = [
+        {
+          name: 'idx_ticket_field_configs_tenant_customer',
+          sql: `CREATE INDEX IF NOT EXISTS idx_ticket_field_configs_tenant_customer ON "${schemaName}".ticket_field_configurations(tenant_id, customer_id)`
+        },
+        {
+          name: 'idx_ticket_field_configs_field_name',
+          sql: `CREATE INDEX IF NOT EXISTS idx_ticket_field_configs_field_name ON "${schemaName}".ticket_field_configurations(tenant_id, field_name)`
+        },
+        {
+          name: 'idx_ticket_field_options_config_id',
+          sql: `CREATE INDEX IF NOT EXISTS idx_ticket_field_options_config_id ON "${schemaName}".ticket_field_options(field_config_id)`
+        },
+        {
+          name: 'idx_ticket_field_options_tenant_customer',
+          sql: `CREATE INDEX IF NOT EXISTS idx_ticket_field_options_tenant_customer ON "${schemaName}".ticket_field_options(tenant_id, customer_id)`
+        },
+        {
+          name: 'idx_ticket_field_options_value',
+          sql: `CREATE INDEX IF NOT EXISTS idx_ticket_field_options_value ON "${schemaName}".ticket_field_options(tenant_id, option_value)`
+        }
+      ];
 
-        console.log(`✅ Índices criados para tenant ${tenant.name}`);
-      } catch (indexError) {
-        console.error(`⚠️ Erro ao criar índices para tenant ${tenant.name}:`, indexError.message);
-        // Continuar com o próximo tenant mesmo se houver erro nos índices
+      for (const index of indexQueries) {
+        try {
+          await db.execute(index.sql);
+          console.log(`✅ Índice criado: ${index.name}`);
+        } catch (indexError) {
+          console.error(`⚠️ Erro ao criar índice ${index.name}:`, indexError.message);
+        }
       }
 
       console.log(`✅ Tabelas criadas para tenant ${tenant.name}`);
