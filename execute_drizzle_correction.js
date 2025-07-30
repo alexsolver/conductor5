@@ -2,9 +2,9 @@
 // EXECUTOR DE CORREÇÃO DRIZZLE ORM
 // Executa correção sistemática com monitoramento em tempo real
 
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 console.log('🚀 INICIANDO CORREÇÃO SISTEMÁTICA DRIZZLE ORM');
 console.log('=' .repeat(60));
