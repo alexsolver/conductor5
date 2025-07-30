@@ -981,4 +981,243 @@ export default function TicketEdit() {
                                   onValueChange={field.onChange}
                                   placeholder="Produção"
                                 />
-                              </FormControl
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Close to Publish */}
+                      <FormField
+                        control={form.control}
+                        name="closeToPublish"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel>Pronto para publicar?</FormLabel>
+                              <FormDescription>
+                                Marque se este ticket está pronto para ser publicado.
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+
+                    {/* Tab 4: Classification */}
+                    <TabsContent value="classification" className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Categoria</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Incidente, Requisição" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="subcategory"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Subcategoria</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Hardware, Software" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="contactType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de contato</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Telefone, Email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+
+                    {/* Tab 5: Details */}
+                    <TabsContent value="details" className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="businessImpact"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Impacto no negócio</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Descreva o impacto no negócio" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="symptoms"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sintomas</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Descreva os sintomas" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="workaround"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Workaround</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Descreva o workaround" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+
+                    {/* Tab 6: People */}
+                    <TabsContent value="people" className="space-y-4">
+                    </TabsContent>
+                  </Tabs>
+
+                  <Button type="submit">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar
+                  </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </div>
+          {/* Right Sidebar */}
+          <div className="lg:col-span-1">
+            {/* Ticket Relationships */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Relacionamentos</CardTitle>
+                <CardDescription>
+                  Visualize a hierarquia e links de tickets
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TicketHierarchyView ticketId={id} />
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Ações</CardTitle>
+                <CardDescription>
+                  Gerencie anexos, histórico e outras ações
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start"
+                  onClick={() => setIsAttachmentsModalOpen(true)}
+                >
+                  <Paperclip className="w-4 h-4 mr-2" />
+                  Anexos
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start"
+                  onClick={() => setIsInternalActionModalOpen(true)}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Ações Internas
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start"
+                  onClick={() => setIsEmailHistoryModalOpen(true)}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Histórico de Email
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start"
+                  onClick={() => setIsTicketHistoryModalOpen(true)}
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Histórico do Ticket
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full justify-start"
+                  onClick={() => setIsApprovalRequestModalOpen(true)}
+                >
+                  <FileCheck className="w-4 h-4 mr-2" />
+                  Solicitação de Aprovação
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Modals */}
+        <TicketLinkingModal
+          isOpen={isLinkingModalOpen}
+          onClose={() => setIsLinkingModalOpen(false)}
+          ticketId={id}
+        />
+        <AttachmentsModal
+          isOpen={isAttachmentsModalOpen}
+          onClose={() => setIsAttachmentsModalOpen(false)}
+          ticketId={id}
+        />
+        <InternalActionModal
+          isOpen={isInternalActionModalOpen}
+          onClose={() => setIsInternalActionModalOpen(false)}
+          ticketId={id}
+        />
+        <EmailHistoryModal
+          isOpen={isEmailHistoryModalOpen}
+          onClose={() => setIsEmailHistoryModalOpen(false)}
+          ticketId={id}
+        />
+        <TicketHistoryModal
+          isOpen={isTicketHistoryModalOpen}
+          onClose={() => setIsTicketHistoryModalOpen(false)}
+          ticketId={id}
+        />
+        <ApprovalRequestModal
+          isOpen={isApprovalRequestModalOpen}
+          onClose={() => setIsApprovalRequestModalOpen(false)}
+          ticketId={id}
+        />
+      </div>
+    </CustomFieldsWrapper>
+  );
+}
