@@ -1,0 +1,57 @@
+🚀 CRIANDO TABELAS DE CONFIGURAÇÃO DE TICKETS
+📊 Encontrados 4 tenants ativos
+🔧 Criando tabelas para tenant: Tenant 715c510a (715c510a-3db5-4510-880a-9a1a5c320100)
+❌ ERRO ao criar tabelas: error: column "field_config_id" referenced in foreign key constraint does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at createTicketConfigTables (/home/runner/workspace/server/scripts/createTicketConfigTables.ts:62:7) {
+  length: 525,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'SQL statement "ALTER TABLE "tenant_715c510a_3db5_4510_880a_9a1a5c320100".ticket_field_options \n' +
+    '            ADD CONSTRAINT fk_field_config \n' +
+    '            FOREIGN KEY (field_config_id) \n' +
+    '            REFERENCES "tenant_715c510a_3db5_4510_880a_9a1a5c320100".ticket_field_configurations(id) \n' +
+    '            ON DELETE CASCADE"\n' +
+    'PL/pgSQL function inline_code_block line 9 at SQL statement',
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'tablecmds.c',
+  line: '11532',
+  routine: 'transformColumnNameList'
+}
+❌ Erro na execução: error: column "field_config_id" referenced in foreign key constraint does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at createTicketConfigTables (/home/runner/workspace/server/scripts/createTicketConfigTables.ts:62:7) {
+  length: 525,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'SQL statement "ALTER TABLE "tenant_715c510a_3db5_4510_880a_9a1a5c320100".ticket_field_options \n' +
+    '            ADD CONSTRAINT fk_field_config \n' +
+    '            FOREIGN KEY (field_config_id) \n' +
+    '            REFERENCES "tenant_715c510a_3db5_4510_880a_9a1a5c320100".ticket_field_configurations(id) \n' +
+    '            ON DELETE CASCADE"\n' +
+    'PL/pgSQL function inline_code_block line 9 at SQL statement',
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'tablecmds.c',
+  line: '11532',
+  routine: 'transformColumnNameList'
+}

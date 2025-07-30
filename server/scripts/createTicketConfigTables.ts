@@ -54,9 +54,27 @@ async function createTicketConfigTables() {
           option_config JSONB NULL,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          CONSTRAINT fk_field_config FOREIGN KEY (field_config_id) REFERENCES "${schemaName}".ticket_field_configurations(id) ON DELETE CASCADE,
           CONSTRAINT unique_option_per_field UNIQUE(tenant_id, customer_id, field_config_id, option_value)
         )
+      `);
+
+      // Add foreign key constraint after table creation
+      await db.execute(`
+        DO $$ 
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_name = 'fk_field_config' 
+            AND table_schema = '${schemaName}' 
+            AND table_name = 'ticket_field_options'
+          ) THEN
+            ALTER TABLE "${schemaName}".ticket_field_options 
+            ADD CONSTRAINT fk_field_config 
+            FOREIGN KEY (field_config_id) 
+            REFERENCES "${schemaName}".ticket_field_configurations(id) 
+            ON DELETE CASCADE;
+          END IF;
+        END $$;
       `);
 
       // 3. Criar índices para performance
