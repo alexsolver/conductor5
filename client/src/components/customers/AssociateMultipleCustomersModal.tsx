@@ -15,7 +15,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { ScrollArea } from '../ui/scroll-area';
-import { Search, Users, Building2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Search, Users, Building2, AlertCircle, CheckCircle2, Check, UserCheck } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 
 interface Customer {
@@ -26,6 +26,7 @@ interface Customer {
   customerType: 'PF' | 'PJ';
   companyName?: string;
   status: string;
+  isAssociated?: boolean;
 }
 
 interface Company {
@@ -56,14 +57,14 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Fetch available customers
+  // Fetch all customers with association status
   useEffect(() => {
     if (isOpen && company) {
-      fetchAvailableCustomers();
+      fetchAllCustomers();
     }
   }, [isOpen, company]);
 
-  const fetchAvailableCustomers = async () => {
+  const fetchAllCustomers = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -78,36 +79,65 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
         throw new Error('ID da empresa não encontrado');
       }
 
-      console.log('Fetching available customers for company:', company.id);
+      console.log('Fetching all customers and association status for company:', company.id);
 
-      const response = await fetch(`/api/customers/companies/${company.id}/available`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Fetch all customers and associated customers simultaneously
+      const [allCustomersResponse, associatedCustomersResponse] = await Promise.all([
+        fetch('/api/customers', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+        fetch(`/api/customers/companies/${company.id}/associated`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+      ]);
 
-      const data = await response.json();
-      console.log('Available customers response:', data);
+      const allCustomersData = await allCustomersResponse.json();
+      const associatedCustomersData = await associatedCustomersResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP ${response.status}: Failed to fetch available customers`);
+      console.log('All customers response:', allCustomersData);
+      console.log('Associated customers response:', associatedCustomersData);
+
+      if (!allCustomersResponse.ok || !allCustomersData.success) {
+        throw new Error(allCustomersData.message || `HTTP ${allCustomersResponse.status}: Failed to fetch customers`);
       }
 
-      if (!data.success) {
-        throw new Error(data.message || 'Response indicated failure');
+      if (!associatedCustomersResponse.ok || !associatedCustomersData.success) {
+        throw new Error(associatedCustomersData.message || `HTTP ${associatedCustomersResponse.status}: Failed to fetch associated customers`);
       }
 
-      setCustomers(data.data || []);
+      // Get list of associated customer IDs
+      const associatedIds = new Set(
+        (associatedCustomersData.data || []).map((customer: any) => customer.id)
+      );
+
+      // Add association status to all customers
+      const customersWithStatus = (allCustomersData.customers || allCustomersData.data || []).map((customer: any) => ({
+        ...customer,
+        isAssociated: associatedIds.has(customer.id)
+      }));
+
+      console.log('Customers with association status:', customersWithStatus);
+      setCustomers(customersWithStatus);
     } catch (error: any) {
-      console.error('Error fetching available customers:', error);
-      setError(error.message || 'Erro ao carregar clientes disponíveis');
+      console.error('Error fetching customers:', error);
+      setError(error.message || 'Erro ao carregar clientes');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCustomerToggle = (customerId: string) => {
+  const handleCustomerToggle = (customerId: string, isAssociated: boolean) => {
+    // Only allow selection of customers who are not already associated
+    if (isAssociated) {
+      return;
+    }
+    
     setSelectedCustomerIds(prev => 
       prev.includes(customerId) 
         ? prev.filter(id => id !== customerId)
@@ -117,17 +147,19 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
   const handleSelectAll = () => {
     const filteredCustomers = getFilteredCustomers();
-    const allSelected = filteredCustomers.every(customer => 
+    // Only include customers that are not already associated
+    const availableCustomers = filteredCustomers.filter(customer => !customer.isAssociated);
+    const allAvailableSelected = availableCustomers.every(customer => 
       selectedCustomerIds.includes(customer.id)
     );
 
-    if (allSelected) {
-      // Deselect all filtered customers
-      const filteredIds = filteredCustomers.map(c => c.id);
-      setSelectedCustomerIds(prev => prev.filter(id => !filteredIds.includes(id)));
+    if (allAvailableSelected) {
+      // Deselect all available filtered customers
+      const availableIds = availableCustomers.map(c => c.id);
+      setSelectedCustomerIds(prev => prev.filter(id => !availableIds.includes(id)));
     } else {
-      // Select all filtered customers
-      const newSelections = filteredCustomers
+      // Select all available filtered customers
+      const newSelections = availableCustomers
         .filter(customer => !selectedCustomerIds.includes(customer.id))
         .map(customer => customer.id);
       setSelectedCustomerIds(prev => [...prev, ...newSelections]);
@@ -248,8 +280,9 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   };
 
   const filteredCustomers = getFilteredCustomers();
-  const allFilteredSelected = filteredCustomers.length > 0 && 
-    filteredCustomers.every(customer => selectedCustomerIds.includes(customer.id));
+  const availableCustomers = filteredCustomers.filter(customer => !customer.isAssociated);
+  const allAvailableSelected = availableCustomers.length > 0 && 
+    availableCustomers.every(customer => selectedCustomerIds.includes(customer.id));
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -293,11 +326,11 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             <div className="flex items-center justify-between p-3 border-b bg-gray-50">
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  checked={allFilteredSelected}
+                  checked={allAvailableSelected}
                   onCheckedChange={handleSelectAll}
                 />
                 <Label className="text-sm font-medium">
-                  Selecionar todos ({filteredCustomers.length} clientes)
+                  Selecionar todos disponíveis ({availableCustomers.length} de {filteredCustomers.length})
                 </Label>
               </div>
               <Badge variant="outline">
@@ -326,37 +359,63 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                     return (
                       <div
                         key={customer.id}
-                        className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                          isSelected 
-                            ? 'bg-blue-50 border-blue-200' 
-                            : 'hover:bg-gray-50 border-gray-200'
+                        className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                          customer.isAssociated 
+                            ? 'bg-green-50 border-green-200 cursor-not-allowed opacity-75' 
+                            : isSelected 
+                              ? 'bg-blue-50 border-blue-200 cursor-pointer'
+                              : 'hover:bg-gray-50 border-gray-200 cursor-pointer'
                         }`}
-                        onClick={() => handleCustomerToggle(customer.id)}
+                        onClick={() => handleCustomerToggle(customer.id, customer.isAssociated || false)}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={() => {}} // Controlled by parent div click
-                        />
+                        {customer.isAssociated ? (
+                          <div className="flex items-center justify-center w-4 h-4 rounded bg-green-500 text-white">
+                            <Check className="w-3 h-3" />
+                          </div>
+                        ) : (
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={() => {}} // Controlled by parent div click
+                          />
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm truncate">
+                            <p className={`font-medium text-sm truncate ${
+                              customer.isAssociated ? 'text-green-700' : ''
+                            }`}>
                               {displayName || customer.email}
                             </p>
+                            
+                            {customer.isAssociated && (
+                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                                <UserCheck className="w-3 h-3 mr-1" />
+                                Associado
+                              </Badge>
+                            )}
+                            
                             <Badge 
                               variant={customer.customerType === 'PJ' ? 'default' : 'secondary'}
                               className="text-xs"
                             >
                               {customer.customerType}
                             </Badge>
+                            
                             {customer.status !== 'Ativo' && (
                               <Badge variant="destructive" className="text-xs">
                                 {customer.status}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className={`text-xs truncate ${
+                            customer.isAssociated ? 'text-green-600' : 'text-gray-500'
+                          }`}>
                             {customer.email}
                           </p>
+                          {customer.isAssociated && (
+                            <p className="text-xs text-green-600 mt-1">
+                              ✓ Cliente já está associado à empresa
+                            </p>
+                          )}
                         </div>
                       </div>
                     );
