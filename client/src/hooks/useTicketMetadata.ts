@@ -65,16 +65,33 @@ export const useTicketMetadata = () => {
           isDefault: option.is_default
         }));
 
+        // Sort options to put Default company first
+        const sortedOptions = filteredOptions.sort((a, b) => {
+          // If one is "Default" (case insensitive), put it first
+          const aIsDefault = a.label?.toLowerCase().includes('default') || a.value?.toLowerCase().includes('default');
+          const bIsDefault = b.label?.toLowerCase().includes('default') || b.value?.toLowerCase().includes('default');
+          
+          if (aIsDefault && !bIsDefault) return -1;
+          if (!aIsDefault && bIsDefault) return 1;
+          
+          // Secondary sort by isDefault flag
+          if (a.isDefault && !b.isDefault) return -1;
+          if (!a.isDefault && b.isDefault) return 1;
+          
+          // Tertiary sort alphabetically
+          return (a.label || '').localeCompare(b.label || '');
+        });
+
         console.log(`🔍 Field options for ${fieldName}:`, {
           total: allOptions.length,
-          filtered: filteredOptions.length,
-          options: filteredOptions.map(opt => ({ value: opt.value }))
+          filtered: sortedOptions.length,
+          options: sortedOptions.map(opt => ({ value: opt.value, label: opt.label, isDefault: opt.isDefault }))
         });
 
         return {
           success: true,
-          data: filteredOptions,
-          total: filteredOptions.length
+          data: sortedOptions,
+          total: sortedOptions.length
         };
       },
       enabled: !!tenantId && !!fieldName,

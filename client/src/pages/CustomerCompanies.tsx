@@ -277,7 +277,21 @@ export default function CustomerCompanies() {
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => {
+    // Always put Default company first
+    const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+    const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+    
+    if (aIsDefault && !bIsDefault) return -1;
+    if (!aIsDefault && bIsDefault) return 1;
+    
+    // Secondary sort by status (active first)
+    if (a.status === 'active' && b.status !== 'active') return -1;
+    if (a.status !== 'active' && b.status === 'active') return 1;
+    
+    // Tertiary sort alphabetically
+    return (a.displayName || a.name).localeCompare(b.displayName || b.name);
+  });
 
   const handleOpenAssociateModal = (company: any) => {
     setSelectedCompanyForAssociation(company);
@@ -573,10 +587,18 @@ export default function CustomerCompanies() {
                     )}
                   </div>
                 </div>
-                <Badge className={getStatusColor(company.status)}>
-                  {company.status === 'active' ? 'Ativo' : 
-                   company.status === 'inactive' ? 'Inativo' : 'Suspenso'}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                  <Badge className={getStatusColor(company.status)}>
+                    {company.status === 'active' ? 'Ativo' : 
+                     company.status === 'inactive' ? 'Inativo' : 'Suspenso'}
+                  </Badge>
+                  {(company.name?.toLowerCase().includes('default') || 
+                    company.displayName?.toLowerCase().includes('default')) && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                      Padrão
+                    </Badge>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -648,16 +670,47 @@ export default function CustomerCompanies() {
                     <Edit className="w-4 h-4 mr-1" />
                     Editar
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteCompany(company)}
-                    disabled={deleteCompanyMutation.isPending}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
-                  </Button>
+                  {(() => {
+                    const isDefaultCompany = company.name?.toLowerCase().includes('default') || 
+                                           company.displayName?.toLowerCase().includes('default');
+                    const hasOtherCompanies = companies.filter(c => 
+                      !c.name?.toLowerCase().includes('default') && 
+                      !c.displayName?.toLowerCase().includes('default')
+                    ).length > 0;
+                    
+                    // Show deactivate option for Default company only if there are other companies
+                    if (isDefaultCompany && hasOtherCompanies) {
+                      return (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const updatedData = { ...company, status: 'inactive' };
+                            updateCompanyMutation.mutate({ id: company.id, data: updatedData });
+                          }}
+                          disabled={updateCompanyMutation.isPending}
+                          className="text-orange-600 hover:text-orange-700"
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          {updateCompanyMutation.isPending ? "Desativando..." : "Desativar"}
+                        </Button>
+                      );
+                    }
+                    
+                    // Show delete for non-default companies or if it's the only company
+                    return (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteCompany(company)}
+                        disabled={deleteCompanyMutation.isPending}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
+                      </Button>
+                    );
+                  })()}
                 </div>
               </div>
             </CardContent>

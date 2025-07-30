@@ -41,16 +41,28 @@ export function useCompanyCustomers(companyId: string) {
   const allCustomers: Customer[] = (() => {
     if (!allCustomersQuery.data) return [];
     
+    let customers: Customer[] = [];
+    
     // Handle the format: {"customers": [...]}
     if (allCustomersQuery.data.customers && Array.isArray(allCustomersQuery.data.customers)) {
-      return allCustomersQuery.data.customers;
+      customers = allCustomersQuery.data.customers;
+    } else if (allCustomersQuery.data.success && Array.isArray(allCustomersQuery.data.data)) {
+      customers = allCustomersQuery.data.data;
+    } else if (Array.isArray(allCustomersQuery.data)) {
+      customers = allCustomersQuery.data;
     }
     
-    if (allCustomersQuery.data.success && Array.isArray(allCustomersQuery.data.data)) {
-      return allCustomersQuery.data.data;
-    }
-    if (Array.isArray(allCustomersQuery.data)) return allCustomersQuery.data;
-    return [];
+    // Sort to prioritize Default company customers
+    return customers.sort((a, b) => {
+      const aIsDefault = a.companyName?.toLowerCase().includes('default');
+      const bIsDefault = b.companyName?.toLowerCase().includes('default');
+      
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+      
+      // Secondary sort by name
+      return (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName);
+    });
   })();
 
   // Parse associated customers data
