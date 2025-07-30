@@ -2,7 +2,7 @@ import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { requirePermission } from "../../middleware/rbacMiddleware";
 import { storageSimple } from "../../storage-simple";
-import { insertCustomerSchema } from "@shared/schema";
+import { insertCustomerSchema } from "../../../shared/schema";
 import { z } from "zod";
 import { getCustomerCompanyController } from "./infrastructure/setup/CustomerDependencySetup";
 
