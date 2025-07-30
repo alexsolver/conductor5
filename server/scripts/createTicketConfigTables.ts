@@ -38,7 +38,7 @@ async function createTicketConfigTables() {
         )
       `);
 
-      // 2. Criar tabela ticket_field_options
+      // 2. Criar tabela ticket_field_options COM a coluna field_config_id
       await db.execute(`
         CREATE TABLE IF NOT EXISTS "${schemaName}".ticket_field_options (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -58,22 +58,12 @@ async function createTicketConfigTables() {
         )
       `);
 
-      // Add foreign key constraint after table creation
+      // 3. Adicionar foreign key constraint APÓS criar ambas as tabelas
       await db.execute(`
         DO $$ 
         BEGIN
-          -- Check if both tables exist and have the required columns
-          IF EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_schema = '${schemaName}' 
-            AND table_name = 'ticket_field_options' 
-            AND column_name = 'field_config_id'
-          ) AND EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_schema = '${schemaName}' 
-            AND table_name = 'ticket_field_configurations' 
-            AND column_name = 'id'
-          ) AND NOT EXISTS (
+          -- Verificar se a constraint já existe
+          IF NOT EXISTS (
             SELECT 1 FROM information_schema.table_constraints 
             WHERE constraint_name = 'fk_field_config' 
             AND table_schema = '${schemaName}' 
@@ -88,7 +78,7 @@ async function createTicketConfigTables() {
         END $$;
       `);
 
-      // 3. Criar índices para performance
+      // 4. Criar índices para performance (somente APÓS as tabelas estarem completas)
       await db.execute(`
         CREATE INDEX IF NOT EXISTS idx_ticket_field_configs_tenant_customer 
         ON "${schemaName}".ticket_field_configurations(tenant_id, customer_id)
@@ -99,11 +89,16 @@ async function createTicketConfigTables() {
         ON "${schemaName}".ticket_field_options(field_config_id)
       `);
 
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_ticket_field_options_tenant_customer 
+        ON "${schemaName}".ticket_field_options(tenant_id, customer_id)
+      `);
+
       console.log(`✅ Tabelas criadas para tenant ${tenant.name}`);
     }
 
     console.log('🎉 TODAS AS TABELAS DE CONFIGURAÇÃO FORAM CRIADAS!');
-    console.log('✅ Agora você pode executar initializeTicketMetadata.js');
+    console.log('✅ Agora você pode executar initializeTicketMetadata.ts');
 
   } catch (error) {
     console.error('❌ ERRO ao criar tabelas:', error);
