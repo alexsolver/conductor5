@@ -1,5 +1,5 @@
 
-const { pool } = require("../db.js");
+import { pool } from '../db';
 
 async function validateTicketMetadata() {
   console.log('🔍 Validando sistema de metadados de ticket...');

@@ -1,6 +1,6 @@
 // ENTERPRISE DATABASE OPTIMIZATION: Composite indexes for multi-tenant performance
 import { sql } from 'drizzle-orm';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 
 export class OptimizedIndexStrategy {
   private static instance: OptimizedIndexStrategy;

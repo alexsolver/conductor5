@@ -1,4 +1,4 @@
-import { schemaManager } from "./db";
+import { schemaManager } from '../db';
 
 export class ContractRepository {
   // ========================================

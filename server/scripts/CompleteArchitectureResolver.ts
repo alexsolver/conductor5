@@ -175,7 +175,7 @@ ${content}`;
 // All functionality has been migrated to the unified server/db.ts SchemaManager
 
 // UNIFIED APPROACH: All schema operations now use server/db.ts
-export { schemaManager } from "./db";
+export { schemaManager } from "../../../db";
 
 // DEPRECATED: All hardcoded SQL logic removed
 // Reason: Conflicts with Drizzle schema definitions in schema-master.ts
@@ -249,7 +249,7 @@ import {
   projects, projectActions, projectTimeline,
   sessions, tenants
 } from '../../shared/schema.js';
-import { schemaManager } from "./db";
+import { schemaManager } from 'server/db';
 
 // Create tenant schema:
 await schemaManager.createTenantSchema(tenantId);

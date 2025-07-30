@@ -1,9 +1,9 @@
 // SIMPLIFIED USER MANAGEMENT SERVICE
 // Removed complex user management features that depend on non-existent schema tables
 
-import { schemaManager } from "./db";
+import { schemaManager } from '../db';
 import { storageSimple } from '../storage-simple';
-import { db } from "./db";
+import { db } from '../db';
 import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
 import { users, tenants, sessions, type User, type Tenant, type Session } from '../../shared/schema.js';
 import { PERMISSIONS } from '../middleware/rbacMiddleware';

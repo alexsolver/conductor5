@@ -6,7 +6,7 @@
 import { eq, and } from 'drizzle-orm';
 import { NotificationPreference } from '../../domain/entities/NotificationPreference';
 import { INotificationPreferenceRepository } from '../../domain/ports/INotificationPreferenceRepository';
-import { schemaManager } from "../../../../db";
+import { schemaManager } from '../../../../db';
 import { notificationPreferences } from '../../../../../shared/schema';
 
 export class DrizzleNotificationPreferenceRepository implements INotificationPreferenceRepository {

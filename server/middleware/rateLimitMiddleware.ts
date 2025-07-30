@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 import { sql } from 'drizzle-orm';
 
 interface RateLimitConfig {

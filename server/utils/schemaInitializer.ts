@@ -3,7 +3,7 @@
  * Ensures tenant schemas exist before validation attempts
  */
 
-import { schemaManager } from "./db";
+import { schemaManager } from '../db';
 import { logInfo, logError } from './logger';
 
 /**

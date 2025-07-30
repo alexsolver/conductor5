@@ -2,7 +2,7 @@
 // Resolves inconsistent tenant_id validation and unique constraints across all schemas
 
 import { sql } from 'drizzle-orm';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 
 export class TenantConstraintsUnifier {
   private static instance: TenantConstraintsUnifier;

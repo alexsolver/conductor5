@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { TenantValidator } from './TenantValidator';
 

@@ -1,7 +1,7 @@
 // Infrastructure - Repository Implementation
 import { Customer } from "../../domain/entities/Customer";
 import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
-import { schemaManager } from "./db";
+import { schemaManager } from "../../db";
 import { eq, desc, count } from "drizzle-orm";
 import { logError } from "../../utils/logger";
 

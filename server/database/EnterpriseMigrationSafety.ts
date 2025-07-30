@@ -3,7 +3,7 @@
 // Resolver migration safety gaps com rollback completo
 // ===========================
 
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import * as fs from 'fs';
 import * as path from 'path';

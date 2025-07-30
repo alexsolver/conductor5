@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth.js';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db.js';
 import { ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations } from '../../shared/schema.js';
 import { eq } from 'drizzle-orm';
 

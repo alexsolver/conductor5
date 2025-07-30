@@ -1,4 +1,4 @@
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../../../../db';
 import { 
   complianceAudits, 
   complianceCertifications, 

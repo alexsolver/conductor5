@@ -5,7 +5,7 @@ import { LocationsNewRepository } from "./LocationsNewRepository";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { z } from "zod";
 import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrechoSchema, areaSchema, agrupamentoSchema } from "../../../shared/schema-locations-new";
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../../db';
 
 export class LocationsNewController {
   private repository: LocationsNewRepository;

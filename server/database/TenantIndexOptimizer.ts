@@ -1,6 +1,6 @@
 
 import { sql } from 'drizzle-orm';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 import { logInfo, logError } from '../utils/logger';
 
 /**

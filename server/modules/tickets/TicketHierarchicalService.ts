@@ -3,7 +3,7 @@
  * Sistema completo: Categoria → Subcategoria → Ação
  */
 
-const { pool } = require("../db.js");
+import { pool } from '../../db';
 import {
   TicketCategory,
   TicketSubcategory,

@@ -13,7 +13,7 @@ import {
   CustomerCompanyMembershipFilter 
 } from '../../domain/ports/ICustomerCompanyRepository';
 import { customerCompanies, customerCompanyMemberships, customers } from '../../../../../shared/schema';
-import { schemaManager } from "../../../../db";
+import { schemaManager } from '../../../../db';
 
 // Types will be inferred dynamically from tenant schema
 

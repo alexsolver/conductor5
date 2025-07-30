@@ -9,7 +9,7 @@ import { ComplianceController } from './application/controllers/ComplianceContro
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
 import { StockRepository } from './infrastructure/repositories/StockRepository';
-import { schemaManager } from "../../../../db";
+import { schemaManager } from '../../db';
 
 // Create router
 const router = Router();

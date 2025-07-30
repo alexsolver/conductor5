@@ -1,4 +1,4 @@
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../../../db';
 import { eq, and, like, desc, asc, sql, or, count, isNull } from 'drizzle-orm';
 import {
   kbCategories,

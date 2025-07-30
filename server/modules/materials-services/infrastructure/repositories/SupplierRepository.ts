@@ -1,4 +1,4 @@
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../../../../db';
 import { eq, and, like, desc } from 'drizzle-orm';
 import { suppliers, supplierCatalog } from '../../../../../shared/schema-materials-services';
 import type { Supplier } from '../../domain/entities';

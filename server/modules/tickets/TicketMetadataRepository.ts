@@ -4,7 +4,7 @@
  */
 
 import { eq, and } from "drizzle-orm";
-const { db, schemaManager } = require("../../../../db");
+import { db } from "../../db";
 import { 
   ticketFieldConfigurations, 
   ticketFieldOptions, 

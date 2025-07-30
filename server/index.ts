@@ -11,7 +11,7 @@ import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteCo
 import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
 import { timecardRoutes } from './routes/timecardRoutes';
 import productivityRoutes from './routes/productivityRoutes';
-const { db, schemaManager } = require("../../../../db");
+import { db, sql } from "./db";
 
 const app = express();
 

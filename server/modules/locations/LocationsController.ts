@@ -5,7 +5,7 @@ import { LocationsRepository } from './LocationsRepository';
 import { sendSuccess, sendError, sendValidationError } from '../../utils/standardResponse';
 import { insertLocationSchema, insertLocationSegmentSchema, insertLocationAreaSchema, 
          insertLocationRouteSchema, insertAreaGroupSchema } from '../../../shared/schema-locations';
-const { pool } = require("../db.js");
+import { pool } from '../../db';
 
 export class LocationsController {
   private repository: LocationsRepository;

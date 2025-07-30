@@ -3,7 +3,7 @@
  * Generates unique ticket numbers for each tenant
  */
 
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 import { tickets } from '../../shared/schema.js';
 import { eq } from 'drizzle-orm';
 

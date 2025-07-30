@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db';
 import { 
   users, 
   departments, 

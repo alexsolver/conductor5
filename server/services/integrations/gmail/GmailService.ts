@@ -5,7 +5,7 @@
 
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
-import { schemaManager } from "./db";
+import { schemaManager } from '../../../db';
 import { sql } from 'drizzle-orm';
 
 interface GmailConfig {

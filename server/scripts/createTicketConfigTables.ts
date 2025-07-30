@@ -1,4 +1,4 @@
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db.ts';
 
 async function createTicketConfigTables() {
   console.log('🚀 CRIANDO TABELAS DE CONFIGURAÇÃO DE TICKETS');
@@ -186,7 +186,7 @@ async function createTicketConfigTables() {
 // CREATING TICKET METADATA CONFIGURATION TABLES
 console.log('🔧 CREATING TICKET METADATA CONFIGURATION TABLES...');
 
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../db.js';
 import { ticketFieldConfigurations, ticketFieldOptions } from '../../shared/schema.js';
 
 async function createTicketMetadataConfigTables() {

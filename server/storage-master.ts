@@ -2,7 +2,7 @@
 // Consolidates all storage implementations into one unified approach
 // Replaces: storage.ts, storage-simple.ts, storage-old.ts and fragments
 
-const { db, schemaManager } = require("../../../../db");
+import { db } from "./db";
 import { 
   users, tenants, customers, tickets, ticketMessages, 
   type User, type Tenant, type Customer, type Ticket, type TicketMessage,

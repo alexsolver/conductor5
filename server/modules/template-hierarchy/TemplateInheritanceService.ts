@@ -1,6 +1,6 @@
 
 import { eq, and, inArray } from 'drizzle-orm';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../../db';
 import { ticketTemplates, templateCategories, templateHierarchy } from '../../../@shared/schema';
 
 interface CreateHierarchicalTemplateData {

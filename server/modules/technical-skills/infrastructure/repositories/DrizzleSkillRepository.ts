@@ -2,7 +2,7 @@ import { sql, eq, or, ilike, isNotNull } from 'drizzle-orm';
 import { NeonDatabase } from '@neondatabase/serverless';
 import { Skill } from '../../domain/entities/Skill';
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
-const { db, schemaManager } = require("../../../../db");
+import { db } from '../../../../db';
 import { skills } from '../../../../../shared/schema.js';
 import winston from 'winston';
 
