@@ -17,7 +17,7 @@ neonConfig.fetchConnectionCache = true;
 neonConfig.useSecureWebSocket = false; // Desabilitar WSS para Replit
 neonConfig.pipelineConnect = false; // Simplificar pipeline
 
-const pool = new Pool({ 
+export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }, // Necessário para Replit
   connectionTimeoutMillis: 15000,
