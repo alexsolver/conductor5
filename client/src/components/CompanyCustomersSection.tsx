@@ -99,24 +99,45 @@ export default function CompanyCustomersSection({
       )}
 
       {/* Action Button */}
-      {availableCount > 0 && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onAssociateCustomers}
-          className="text-blue-600 hover:text-blue-700 mt-2 h-8 text-xs w-full"
-        >
-          <UserPlus className="w-3 h-3 mr-1" />
-          Associar Clientes ({availableCount} disponíveis)
-        </Button>
+      {allCustomers.length > 0 && (
+        <div className="mt-2">
+          {availableCount > 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onAssociateCustomers}
+              className="text-blue-600 hover:text-blue-700 h-8 text-xs w-full"
+            >
+              <UserPlus className="w-3 h-3 mr-1" />
+              Associar Clientes ({availableCount} disponíveis)
+            </Button>
+          ) : (
+            <div className="text-center">
+              <Badge variant="outline" className="text-xs px-2 py-1 text-green-700 border-green-300 bg-green-50">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Todos os clientes associados
+              </Badge>
+            </div>
+          )}
+        </div>
       )}
 
-      {availableCount === 0 && allCustomers.length > 0 && (
-        <div className="text-center mt-2">
-          <Badge variant="outline" className="text-xs px-2 py-1 text-green-700 border-green-300 bg-green-50">
-            <CheckCircle2 className="w-3 h-3 mr-1" />
-            Todos os clientes associados
-          </Badge>
+      {/* Empty State - when no customers exist at all */}
+      {allCustomers.length === 0 && (
+        <div className="text-center py-4">
+          <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+          <p className="text-xs text-gray-500 mb-2">
+            Nenhum cliente cadastrado
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onAssociateCustomers}
+            className="text-blue-600 hover:text-blue-700 h-8 text-xs"
+          >
+            <UserPlus className="w-3 h-3 mr-1" />
+            Gerenciar Clientes
+          </Button>
         </div>
       )}
     </div>
