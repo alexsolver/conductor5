@@ -1,14 +1,15 @@
+
 // INICIALIZAÇÃO DE CONFIGURAÇÕES DE METADATA DE TICKETS
 // Corrige o problema de dropdowns vazios (priority, status, etc.)
 
-const { db } = require('../db');
+import { db } from '../db.js';
 
 async function initializeTicketMetadata() {
   console.log('🚀 INICIANDO CONFIGURAÇÃO DE METADATA DE TICKETS');
 
   try {
     // Buscar todos os tenants ativos
-    const tenants = await db.query(`
+    const tenants = await db.execute(`
       SELECT id, name FROM public.tenants WHERE is_active = true
     `);
 
@@ -21,7 +22,7 @@ async function initializeTicketMetadata() {
       console.log(`🔧 Configurando metadata para tenant: ${tenant.name} (${tenantId})`);
 
       // 1. CONFIGURAÇÕES DE CAMPO - PRIORITY
-      await db.query(`
+      await db.execute(`
         INSERT INTO "${schemaName}".ticket_field_configurations 
         (id, tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)
         VALUES 
@@ -39,7 +40,7 @@ async function initializeTicketMetadata() {
       ];
 
       for (const option of priorityOptions) {
-        await db.query(`
+        await db.execute(`
           INSERT INTO "${schemaName}".ticket_field_options 
           (id, tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default, is_active)
           SELECT 
@@ -60,7 +61,7 @@ async function initializeTicketMetadata() {
       }
 
       // 3. CONFIGURAÇÕES DE CAMPO - STATUS  
-      await db.query(`
+      await db.execute(`
         INSERT INTO "${schemaName}".ticket_field_configurations 
         (id, tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)
         VALUES 
@@ -79,7 +80,7 @@ async function initializeTicketMetadata() {
       ];
 
       for (const option of statusOptions) {
-        await db.query(`
+        await db.execute(`
           INSERT INTO "${schemaName}".ticket_field_options 
           (id, tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default, is_active)
           SELECT 
@@ -113,7 +114,7 @@ async function initializeTicketMetadata() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   initializeTicketMetadata()
     .then(() => {
       console.log('✅ Script executado com sucesso');
@@ -125,4 +126,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { initializeTicketMetadata };
+export { initializeTicketMetadata };
