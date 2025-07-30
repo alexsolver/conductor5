@@ -630,9 +630,14 @@ export default function CustomerCompanies() {
               <div className="flex justify-between items-center pt-3 border-t mt-3">
                 <div className="flex items-center text-xs text-gray-400">
                   <Calendar className="w-3 h-3 mr-1" />
-                  {company.createdAt && !isNaN(new Date(company.createdAt).getTime()) 
-                    ? new Date(company.createdAt).toLocaleDateString('pt-BR')
-                    : 'Data não disponível'}
+                  {(() => {
+                    // Check multiple possible date fields
+                    const dateValue = company.createdAt || company.created_at || company.dateCreated;
+                    if (dateValue && !isNaN(new Date(dateValue).getTime())) {
+                      return new Date(dateValue).toLocaleDateString('pt-BR');
+                    }
+                    return 'Cadastrada recentemente';
+                  })()}
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button
