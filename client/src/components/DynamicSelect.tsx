@@ -7,105 +7,113 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { filterDOMProps } from "@/utils/propFiltering";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTenant } from "@/hooks/useTenant";
 
 interface DynamicSelectProps {
   fieldName: string;
   value?: string;
-  onValueChange: (value: string) => void;
+  onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   showAllOption?: boolean;
+  onOptionSelect?: (option: any) => void;
   [key: string]: any; // Para props adicionais que serão filtradas
 }
 
 export function DynamicSelect(props: DynamicSelectProps) {
-  const { 
-    fieldName, 
-    value, 
-    onValueChange, 
-    placeholder, 
+  const {
+    fieldName,
+    value,
+    onChange,
+    placeholder,
     className,
     disabled = false,
     showAllOption = false,
+    onOptionSelect,
     ...restProps
   } = props;
 
   // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
-  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onValueChange', 'showAllOption']);
-  const { getFieldOptions, isLoading } = useTicketMetadata();
+  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect']);
+  const [fieldOptions, setFieldOptions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { token } = useAuth();
+  const { tenantId } = useTenant();
 
-  const options = getFieldOptions(fieldName);
+  useEffect(() => {
+    const fetchFieldOptions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-tenant-id': tenantId,
+          },
+        });
 
-  // Filter options based on field name
-  const fieldOptions = options.filter(option => {
-    if (fieldName === 'status') {
-      return option.field_name === 'status';
+        if (response.ok) {
+          const data = await response.json();
+
+          console.log('🔍 DynamicSelect for', fieldName + ':', {
+            success: data.success,
+            totalOptions: data.options?.length || 0,
+            fieldOptions: data.options || []
+          });
+
+          setFieldOptions(data.options || []);
+        } else {
+          console.error('Failed to fetch field options:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching field options:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (token && tenantId && fieldName) {
+      fetchFieldOptions();
     }
-    if (fieldName === 'priority') {
-      return option.field_name === 'priority';
-    }
-    if (fieldName === 'category') {
-      return option.field_name === 'category';
-    }
-    if (fieldName === 'subcategory') {
-      return option.field_name === 'subcategory';
-    }
-    return option.field_name === fieldName;
-  });
+  }, [token, tenantId, fieldName]);
 
-  console.log(`🔍 DynamicSelect for ${fieldName}:`, {
-    totalOptions: options.length,
-    filteredOptions: fieldOptions.length,
-    fieldOptions: fieldOptions.map(opt => ({
-      value: opt.value,
-      label: opt.display_label,
-      status_type: opt.status_type
-    }))
-  });
+  const handleSelectChange = (value: string) => {
+    onChange(value);
 
-  if (isLoading) {
-    return (
-      <div className={`flex items-center gap-2 p-2 border rounded-md bg-gray-50 ${className}`}>
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm text-gray-500">Carregando opções...</span>
-      </div>
-    );
-  }
-
-  if (options.length === 0) {
-    return (
-      <div className={`flex items-center gap-2 p-2 border rounded-md bg-red-50 border-red-200 ${className}`}>
-        <AlertCircle className="h-4 w-4 text-red-500" />
-        <span className="text-sm text-red-600">
-          Campo "{fieldName}" não configurado
-        </span>
-      </div>
-    );
-  }
+    // Se há uma opção selecionada, pegar seus dados completos
+    const selectedOption = fieldOptions.find(opt => opt.value === value);
+    if (selectedOption && onOptionSelect) {
+      onOptionSelect(selectedOption);
+    }
+  };
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+    <Select value={value} onValueChange={handleSelectChange} disabled={disabled}>
       <SelectTrigger className={className}>
-        <SelectValue placeholder={placeholder || "Selecionar..."} />
+        <SelectValue placeholder={placeholder || `Selecione ${fieldName}...`} />
       </SelectTrigger>
       <SelectContent>
-        {showAllOption && (
-          <SelectItem value="all">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-400" />
-              <span>All</span>
-            </div>
-          </SelectItem>
+        {isLoading ? (
+          <SelectItem value="" disabled>Carregando...</SelectItem>
+        ) : fieldOptions.length === 0 ? (
+          <SelectItem value="" disabled>Nenhuma opção disponível</SelectItem>
+        ) : (
+          fieldOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              <div className="flex items-center space-x-2">
+                {option.color && (
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: option.color }}
+                  />
+                )}
+                <span>{option.label || option.value}</span>
+              </div>
+            </SelectItem>
+          ))
         )}
-        {options.map((option) => (
-          <SelectItem key={option.id} value={option.optionValue}>
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${option.bgColor}`} />
-              <span>{option.optionLabel}</span>
-            </div>
-          </SelectItem>
-        ))}
       </SelectContent>
     </Select>
   );
