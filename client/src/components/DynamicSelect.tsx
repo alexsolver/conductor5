@@ -50,50 +50,29 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
     setIsLoading(true);
     try {
-       // CRITICAL FIX: Enhanced token retrieval with fallback chain
-  const authContext = useAuth();
-  const token = authContext?.token || 
-                localStorage.getItem('accessToken') || 
-                localStorage.getItem('token') ||
-                sessionStorage.getItem('accessToken') ||
-                sessionStorage.getItem('token') ||
-                'missing';
-      const tenantId = tenantId || localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
+      // CRITICAL FIX: Proper token retrieval
+      const token = localStorage.getItem('accessToken') || 
+                   localStorage.getItem('token') || 
+                   sessionStorage.getItem('accessToken') ||
+                   sessionStorage.getItem('token');
 
-      if (!token) {
-        console.warn('Missing authentication token for field options');
+      const tenantId = localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
+
+      if (!token || token === 'null' || token === 'undefined') {
+        console.error(`❌ No valid token found for ${fieldName} field options`);
+        setFieldOptions([]);
         setIsLoading(false);
         return;
       }
 
-      if (!tenantId) {
-        console.warn('Missing tenantId for field options');
-        setIsLoading(false);
-        return;
-      }
-
-      // Enhanced API call with retry logic for token issues
-        const makeAPICall = async (attemptToken: string) => {
-          return await fetch(`/api/ticket-field-options/${fieldName}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${attemptToken}`,
-              'x-tenant-id': tenantId,
-            },
-          });
-        };
-
-        let response = await makeAPICall(token);
-
-        // RETRY LOGIC: If token fails, try to refresh from localStorage
-        if (!response.ok && response.status === 401 && token === 'missing') {
-          console.log(`🔄 Retrying ${fieldName} API call with refreshed token...`);
-          const refreshedToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-          if (refreshedToken && refreshedToken !== 'missing') {
-            response = await makeAPICall(refreshedToken);
-          }
-        }
+      const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-tenant-id': tenantId || '',
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -115,13 +94,13 @@ export function DynamicSelect(props: DynamicSelectProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [fieldName, token, tenantId]);
+  }, [fieldName]);
 
   useEffect(() => {
-    if (token && tenantId && fieldName) {
+    if (fieldName) {
       fetchFieldOptions();
     }
-  }, [tenantId, fieldName, token, fetchFieldOptions]);
+  }, [fieldName, fetchFieldOptions]);
 
   const handleSelectChange = (value: string) => {
     onChange(value);
@@ -137,16 +116,16 @@ export function DynamicSelect(props: DynamicSelectProps) {
     totalOptions: fieldOptions.length,
     filteredOptions: fieldOptions.length,
     isLoading,
-    token: token === 'missing' ? 'missing' : 'present',
-    tokenLength: token !== 'missing' ? token.length : 0,
-    tenantId,
+    token: localStorage.getItem('accessToken') ? 'present' : 'missing',
+    tokenLength: localStorage.getItem('accessToken') ? localStorage.getItem('accessToken')?.length : 0,
+    tenantId: localStorage.getItem('tenantId'),
     fieldOptions: fieldOptions.slice(0, 3), // Show first 3 for debugging
-    authContext: authContext ? 'present' : 'missing',
+    authContext: useAuth ? 'present' : 'missing',
     localStorageToken: localStorage.getItem('accessToken') ? 'present' : 'missing'
   });
 
   // CRITICAL: Log token issue for debugging
-  if (token === 'missing') {
+  if (!localStorage.getItem('accessToken')) {
     console.error(`❌ Token missing for ${fieldName} - this will cause API calls to fail`);
     console.error('Available storage keys:', Object.keys(localStorage));
   }
