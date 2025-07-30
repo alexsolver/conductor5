@@ -45,32 +45,91 @@ export function DynamicSelect(props: DynamicSelectProps) {
   // Obter tenant_id do user context
   const tenantId = user?.tenantId;
 
-  const fetchFieldOptions = useCallback(async () => {
-    if (!fieldName) return;
+  useEffect(() => {
+    const fetchFieldOptions = async () => {
+      // Enhanced token retrieval with multiple fallbacks
+      const getToken = () => {
+        // Try localStorage first
+        const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
+        if (accessToken) return accessToken;
 
-    setIsLoading(true);
-    try {
-      // CRITICAL FIX: Proper token retrieval
-      const token = localStorage.getItem('accessToken') || 
-                   localStorage.getItem('token') || 
-                   sessionStorage.getItem('accessToken') ||
-                   sessionStorage.getItem('token');
+        // Try sessionStorage
+        const sessionToken = sessionStorage.getItem('accessToken') || sessionStorage.getItem('token');
+        if (sessionToken) return sessionToken;
 
-      const tenantId = localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
+        // Try document.cookie as last resort
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'accessToken' || name === 'token') {
+            return value;
+          }
+        }
+        return null;
+      };
 
-      if (!token || token === 'null' || token === 'undefined') {
-        console.error(`❌ No valid token found for ${fieldName} field options`);
-        setFieldOptions([]);
+      // Enhanced tenant ID extraction from token and context
+      const getTenantId = (token) => {
+        // First try from props/context
+        if (tenantId) return tenantId;
+
+        // Try to extract from token payload
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.tenantId) return payload.tenantId;
+            if (payload.tenant_id) return payload.tenant_id;
+          } catch (error) {
+            console.warn('Could not parse token for tenantId:', error);
+          }
+        }
+
+        // Try from localStorage
+        const storedTenantId = localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
+        if (storedTenantId) return storedTenantId;
+
+        // Try from sessionStorage
+        const sessionTenantId = sessionStorage.getItem('tenantId') || sessionStorage.getItem('tenant_id');
+        if (sessionTenantId) return sessionTenantId;
+
+        return null;
+      };
+
+      const token = getToken();
+      const resolvedTenantId = getTenantId(token);
+
+      // Debug: Log all available storage keys
+      const storageKeys = Object.keys(localStorage);
+      const sessionKeys = Object.keys(sessionStorage);
+
+      console.log('🔍 DynamicSelect for ' + fieldName + ':', {
+        totalOptions: fieldOptions.length,
+        filteredOptions: fieldOptions.length,
+        isLoading,
+        token: token ? 'present' : 'missing',
+        tokenLength: token?.length,
+        tenantId: resolvedTenantId,
+        fieldOptions: fieldOptions.slice(0, 3),
+        storageKeys,
+        sessionKeys
+      });
+
+      if (!token || !resolvedTenantId) {
+        console.warn(`🚫 Missing requirements for ${fieldName}:`, { 
+          token: !!token, 
+          tenantId: !!resolvedTenantId,
+          providedTenantId: !!tenantId 
+        });
         setIsLoading(false);
         return;
       }
 
-      const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
+      const response = await fetch(`/api/ticket-field-options/${fieldName}?tenantId=${resolvedTenantId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'x-tenant-id': tenantId || '',
+          'x-tenant-id': resolvedTenantId || '',
         },
       });
 
@@ -94,13 +153,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [fieldName]);
-
-  useEffect(() => {
-    if (fieldName) {
-      fetchFieldOptions();
-    }
-  }, [fieldName, fetchFieldOptions]);
+  }, [fieldName, fetchFieldOptions, tenantId]);
 
   const handleSelectChange = (value: string) => {
     onChange(value);
