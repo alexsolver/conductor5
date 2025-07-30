@@ -26,7 +26,7 @@ async function populateTicketFieldOptions() {
     // Verificar se dados já existem
     const existing = await db.execute(sql`
       SELECT COUNT(*) as count 
-      FROM ${sql.identifier(schemaName, 'ticket_field_options')} 
+      FROM "${schemaName}".ticket_field_options 
       WHERE field_name = 'status'
     `);
     
@@ -48,7 +48,7 @@ async function populateTicketFieldOptions() {
     
     for (const option of statusOptions) {
       await db.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName, 'ticket_field_options')} 
+        INSERT INTO "${schemaName}".ticket_field_options 
         (tenant_id, field_name, value, label, color, is_default, is_active, created_at, updated_at)
         VALUES (${tenantId}, 'status', ${option.value}, ${option.label}, ${option.color}, ${option.is_default}, true, NOW(), NOW())
         ON CONFLICT (tenant_id, field_name, value) DO NOTHING
@@ -66,7 +66,7 @@ async function populateTicketFieldOptions() {
     
     for (const option of priorityOptions) {
       await db.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName, 'ticket_field_options')} 
+        INSERT INTO "${schemaName}".ticket_field_options 
         (tenant_id, field_name, value, label, color, is_default, is_active, created_at, updated_at)
         VALUES (${tenantId}, 'priority', ${option.value}, ${option.label}, ${option.color}, ${option.is_default}, true, NOW(), NOW())
         ON CONFLICT (tenant_id, field_name, value) DO NOTHING
@@ -77,7 +77,7 @@ async function populateTicketFieldOptions() {
     
     const final = await db.execute(sql`
       SELECT field_name, value, label, color, is_default 
-      FROM ${sql.identifier(schemaName, 'ticket_field_options')} 
+      FROM "${schemaName}".ticket_field_options 
       WHERE tenant_id = ${tenantId}
       ORDER BY field_name, value
     `);
