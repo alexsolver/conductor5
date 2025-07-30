@@ -1,4 +1,3 @@
-
 // INICIALIZAÇÃO DE CONFIGURAÇÕES DE METADATA DE TICKETS
 // Corrige o problema de dropdowns vazios (priority, status, etc.)
 
@@ -19,9 +18,9 @@ async function initializeTicketMetadata() {
 
   try {
     // Buscar todos os tenants ativos
-    const tenants = await db.execute(\`
-      SELECT id, name FROM public.tenants WHERE is_active = true
-    \`);
+    const tenants = await db.execute(
+        'SELECT id, name FROM public.tenants WHERE is_active = true'
+      );
 
     console.log(\`📊 Encontrados \${tenants.rows.length} tenants ativos\`);
 
