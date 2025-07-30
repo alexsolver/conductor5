@@ -47,7 +47,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
   useEffect(() => {
     const fetchFieldOptions = async () => {
-      // Enhanced token retrieval with multiple fallbacks
+      try {
+        // Enhanced token retrieval with multiple fallbacks
       const getToken = () => {
         // Try localStorage first
         const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -147,13 +148,17 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.error('Response error:', errorText);
         setFieldOptions([]);
       }
-    } catch (error) {
+      } catch (error) {
       console.error('Error fetching field options:', error);
       setFieldOptions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fieldName, fetchFieldOptions, tenantId]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    setIsLoading(true);
+    fetchFieldOptions();
+  }, [fieldName, tenantId]);
 
   const handleSelectChange = (value: string) => {
     onChange(value);
