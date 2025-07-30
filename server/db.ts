@@ -387,6 +387,7 @@ export const schemaManager = {
           title VARCHAR(255) NOT NULL,
           description TEXT,
           type VARCHAR(50) NOT NULL,
+          action_type VARCHAR(50) NOT NULL DEFAULT 'task',
           status VARCHAR(50) DEFAULT 'pending',
           priority VARCHAR(20) DEFAULT 'medium',
           estimated_hours INTEGER,
