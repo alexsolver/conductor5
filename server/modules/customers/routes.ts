@@ -286,7 +286,20 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
-    console.log(`[UPDATE-COMPANY] Updating company ${id} with status: ${status}`);
+    console.log(`[UPDATE-COMPANY] Updating company ${id} with data:`, { name, status });
+
+    // Verify company exists first
+    const existingCompany = await pool.query(`
+      SELECT * FROM "${schemaName}".customer_companies 
+      WHERE id = $1 AND tenant_id = $2
+    `, [id, req.user.tenantId]);
+
+    if (existingCompany.rows.length === 0) {
+      console.log(`[UPDATE-COMPANY] Company not found: ${id}`);
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    console.log(`[UPDATE-COMPANY] Current company status:`, existingCompany.rows[0].status);
 
     const result = await pool.query(`
       UPDATE "${schemaName}".customer_companies 
@@ -295,11 +308,12 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
       RETURNING *
     `, [name, document, phone, email, address, status || 'active', id, req.user.tenantId]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Company not found' });
-    }
-
-    console.log(`[UPDATE-COMPANY] Company updated successfully:`, result.rows[0]);
+    console.log(`[UPDATE-COMPANY] Company updated successfully:`, {
+      id: result.rows[0].id,
+      name: result.rows[0].name,
+      oldStatus: existingCompany.rows[0].status,
+      newStatus: result.rows[0].status
+    });
 
     res.json({
       success: true,

@@ -122,15 +122,15 @@ const companiesQuery = useQuery({
       console.log('🏢 Raw companies response:', response);
 
       if (Array.isArray(response)) {
-        // Filter out inactive companies (except when editing existing tickets)
+        // Filter out inactive companies - NO EXCEPTIONS
         const activeCompanies = response.filter(company => 
-          company.status !== 'inactive' || company.id === '00000000-0000-0000-0000-000000000001'
+          company.status === 'active'
         );
 
-        // Sort to put Default company first
+        // Sort to put Default company first (only if it's active)
         const sortedCompanies = activeCompanies.sort((a, b) => {
-          const aIsDefault = a.id === '00000000-0000-0000-0000-000000000001';
-          const bIsDefault = b.id === '00000000-0000-0000-0000-000000000001';
+          const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+          const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
 
           if (aIsDefault && !bIsDefault) return -1;
           if (!aIsDefault && bIsDefault) return 1;
@@ -138,11 +138,15 @@ const companiesQuery = useQuery({
         });
 
         console.log('🏢 Filtered and sorted companies:', sortedCompanies);
+        
+        // Clear field options cache when companies change
+        fieldOptionsCache.clear();
+        
         return sortedCompanies;
       }
 
       return [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // Reduced to 30 seconds for faster updates
   });
 }

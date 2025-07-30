@@ -709,15 +709,42 @@ export default function CustomerCompanies() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            // Send only the fields that need to be updated
-                            const updateData = { 
-                              status: 'inactive',
-                              // Include required fields to avoid validation issues
-                              name: company.name,
-                              subscriptionTier: company.subscriptionTier || 'basic'
-                            };
-                            updateCompanyMutation.mutate({ id: company.id, data: updateData });
+                          onClick={async () => {
+                            try {
+                              // Send only the fields that need to be updated
+                              const updateData = { 
+                                status: 'inactive',
+                                // Include required fields to avoid validation issues
+                                name: company.name,
+                                subscriptionTier: company.subscriptionTier || 'basic'
+                              };
+                              
+                              // Optimistically update the company status in cache
+                              queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
+                                if (Array.isArray(oldData)) {
+                                  return oldData.map(comp => 
+                                    comp.id === company.id 
+                                      ? { ...comp, status: 'inactive', isActive: false }
+                                      : comp
+                                  );
+                                }
+                                return oldData;
+                              });
+
+                              await updateCompanyMutation.mutateAsync({ id: company.id, data: updateData });
+                              
+                              // Force invalidate all related caches
+                              await Promise.all([
+                                queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] }),
+                                queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
+                                queryClient.invalidateQueries({ queryKey: ['fieldOptions'] }),
+                                queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
+                              ]);
+                              
+                            } catch (error) {
+                              // Revert optimistic update on error
+                              queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+                            }
                           }}
                           disabled={updateCompanyMutation.isPending}
                           className="text-orange-600 hover:text-orange-700"
