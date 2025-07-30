@@ -374,9 +374,10 @@ export default function Beneficiaries() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {customersData?.data?.customers?.map((customer: any) => (
+                      <SelectItem value="">Nenhum cliente</SelectItem>
+                      {customersData?.data?.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name || customer.companyName || customer.email}
+                          {customer.firstName} {customer.lastName} - {customer.email}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -402,7 +402,7 @@ export default function CustomFieldsAdministrator() {
   // ===========================
 
   return (
-    <div className="container mx-auto py-6 space-y-6 ml-[0px] mr-[0px] pl-[11px] pr-[11px]"></div>
+    <div className="container mx-auto py-6 space-y-6 ml-[0px] mr-[0px] pl-[11px] pr-[11px]">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Administrador de Campos Customizados</h1>
