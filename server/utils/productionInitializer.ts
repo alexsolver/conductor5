@@ -98,8 +98,8 @@ export class ProductionInitializer {
           if (!isValid) {
             logWarn(`Schema validation failed for tenant ${tenant.id}, attempting auto-heal`, {});
             
-            // CRITICAL FIX: Auto-healing com correção automática
-            await schemaManager.createTenantSchema(tenant.id);
+            // CRITICAL FIX: Auto-healing com stub implementation
+            await schemaManager.ensureTenantTables(tenant.id);
             
             // Re-validate after healing
             const isValidAfterHeal = await schemaManager.validateTenantSchema(tenant.id);

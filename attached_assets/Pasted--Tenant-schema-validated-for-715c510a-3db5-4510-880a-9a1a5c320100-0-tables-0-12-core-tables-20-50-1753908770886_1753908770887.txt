@@ -1,0 +1,35 @@
+ Tenant schema validated for 715c510a-3db5-4510-880a-9a1a5c320100: 0 tables (0/12 core tables)
+20:50:45 [warn]: Schema validation failed for tenant 715c510a-3db5-4510-880a-9a1a5c320100, attempting auto-heal
+{
+  "context": {}
+}
+20:50:45 [error]: Critical error during schema validation for tenant 715c510a-3db5-4510-880a-9a1a5c320100
+{
+  "error": {
+    "name": "TypeError",
+    "message": "schemaManager.createTenantSchema is not a function",
+    "stack": "TypeError: schemaManager.createTenantSchema is not a function\n    at ProductionInitializer.validateTenantSchemas (/home/runner/workspace/server/utils/productionInitializer.ts:102:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at ProductionInitializer.initialize (/home/runner/workspace/server/utils/productionInitializer.ts:34:7)\n    at <anonymous> (/home/runner/workspace/server/index.ts:99:3)"
+  }
+}
+✅ Tenant schema validated for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a: 0 tables (0/12 core tables)
+20:50:45 [warn]: Schema validation failed for tenant 78a4c88e-0e85-4f7c-ad92-f472dad50d7a, attempting auto-heal
+{
+  "context": {}
+}
+20:50:45 [error]: Critical error during schema validation for tenant 78a4c88e-0e85-4f7c-ad92-f472dad50d7a
+{
+  "error": {
+    "name": "TypeError",
+    "message": "schemaManager.createTenantSchema is not a function",
+    "stack": "TypeError: schemaManager.createTenantSchema is not a function\n    at ProductionInitializer.validateTenantSchemas (/home/runner/workspace/server/utils/productionInitializer.ts:102:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at ProductionInitializer.initialize (/home/runner/workspace/server/utils/productionInitializer.ts:34:7)\n    at <anonymous> (/home/runner/workspace/server/index.ts:99:3)"
+  }
+}
+✅ Tenant schema validated for cb9056df-d964-43d7-8fd8-b0cc00a72056: 0 tables (0/12 core tables)
+20:50:45 [warn]: Schema validation failed for tenant cb9056df-d964-43d7-8fd8-b0cc00a72056, attempting auto-heal
+{
+  "context": {}
+}
+20:50:45 [error]: Critical error during schema validation for tenant cb9056df-d964-43d7-8fd8-b0cc00a72056
+{
+  "error": {
+    "name": "TypeError",

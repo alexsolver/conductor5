@@ -58,7 +58,7 @@ export const schemaManager = {
         WHERE table_schema = ${schemaName}
       `);
 
-      const tableCount = tableResult[0]?.table_count || 0;
+      const tableCount = parseInt(tableResult[0]?.table_count?.toString() || "0");
 
       // Check for core tables (minimum set required)
       const coreTablesResult = await db.execute(sql`
@@ -73,7 +73,7 @@ export const schemaManager = {
         )
       `);
 
-      const coreTableCount = coreTablesResult[0]?.core_table_count || 0;
+      const coreTableCount = parseInt(coreTablesResult[0]?.core_table_count?.toString() || "0");
 
       console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables)`);
       return coreTableCount >= 8; // Minimum 8 core tables required

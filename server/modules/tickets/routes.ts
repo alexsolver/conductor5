@@ -506,7 +506,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
         tact.description as content,
         tact.description,
         'active' as status,
-        COALESCE(tact.estimated_hours, 0) as time_spent,
+        COALESCE(tact.estimated_time_minutes, 0) as time_spent,
         tact.start_time,
         tact.end_time,
         '[]'::text as linked_items,
@@ -584,15 +584,15 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       });
     }
 
-    // Parse time spent (format: "0:00:00:25" -> decimal hours)
-    let estimatedHours = 0;
+    // Parse time spent (format: "0:00:00:25" -> total minutes)
+    let estimatedMinutes = 0;
     if (timeSpent) {
       const timeParts = timeSpent.split(':');
       if (timeParts.length >= 3) {
         const hours = parseInt(timeParts[0]) || 0;
         const minutes = parseInt(timeParts[1]) || 0;
         const seconds = parseInt(timeParts[2]) || 0;
-        estimatedHours = hours + (minutes / 60) + (seconds / 3600);
+        estimatedMinutes = (hours * 60) + minutes + Math.round(seconds / 60);
       }
     }
 
@@ -606,9 +606,9 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
     // Insert action into database with all fields
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_actions 
-      (tenant_id, ticket_id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_by, created_at, updated_at, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), true)
-      RETURNING id, action_type, description, work_log, time_spent, start_time, end_time, estimated_hours, is_public, created_at
+      (tenant_id, ticket_id, action_type, description, estimated_time_minutes, performed_by, created_at, updated_at, active)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), true)
+      RETURNING id, action_type, description, estimated_time_minutes, created_at
     `;
 
     const result = await pool.query(insertQuery, [
@@ -616,13 +616,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       id,                 // $2 ticket_id
       actionType,         // $3 action_type
       actionDescription,  // $4 description
-      workLog || '',      // $5 work_log
-      timeSpent || '0:00:00:00', // $6 time_spent
-      startTime,          // $7 start_time
-      endTime,            // $8 end_time
-      estimatedHours,     // $9 estimated_hours
-      is_public,          // $10 is_public
-      req.user.id         // $11 created_by
+      estimatedMinutes,   // $5 estimated_time_minutes
+      req.user.id         // $6 performed_by
     ]);
 
     if (result.rows.length === 0) {
