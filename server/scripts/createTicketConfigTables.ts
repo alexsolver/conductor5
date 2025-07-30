@@ -110,7 +110,7 @@ async function createTicketConfigTables() {
 
       // 7. Adicionar dados de exemplo básicos
       console.log(`🎯 Inserindo configurações básicas para tenant ${tenant.name}...`);
-      
+
       // Inserir configuração de prioridade
       const priorityConfigResult = await db.execute(`
         INSERT INTO "${schemaName}".ticket_field_configurations 
@@ -122,7 +122,7 @@ async function createTicketConfigTables() {
 
       if (priorityConfigResult.rows.length > 0) {
         const configId = priorityConfigResult.rows[0].id;
-        
+
         // Inserir opções de prioridade
         await db.execute(`
           INSERT INTO "${schemaName}".ticket_field_options 
@@ -179,6 +179,174 @@ async function createTicketConfigTables() {
 
   } catch (error) {
     console.error('❌ ERRO ao criar tabelas:', error);
+    throw error;
+  }
+}
+
+// CREATING TICKET METADATA CONFIGURATION TABLES
+console.log('🔧 CREATING TICKET METADATA CONFIGURATION TABLES...');
+
+import { db } from '../db.js';
+import { ticketFieldConfigurations, ticketFieldOptions } from '../../shared/schema.js';
+
+async function createTicketMetadataConfigTables() {
+  console.log('🔧 Creating ticket metadata configuration tables...');
+
+  try {
+    // Seed initial configurations with REAL data
+    await seedInitialTicketMetadata();
+
+    console.log('✅ Ticket metadata configuration completed');
+  } catch (error) {
+    console.error('❌ Error creating ticket metadata config:', error);
+    throw error;
+  }
+}
+
+async function seedInitialTicketMetadata() {
+  console.log('📦 Seeding ticket metadata with real field options...');
+
+  const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
+
+  try {
+    // 1. Create Status Field Configuration
+    const statusFieldResult = await db.insert(ticketFieldConfigurations).values({
+      tenantId,
+      customerId: null, // Global configuration
+      fieldName: 'status',
+      displayName: 'Status',
+      description: 'Status do ticket',
+      fieldType: 'select',
+      isRequired: true,
+      isSystemField: true,
+      sortOrder: 1,
+      isActive: true
+    }).returning({ id: ticketFieldConfigurations.id }).onConflictDoNothing();
+
+    if (statusFieldResult.length > 0) {
+      const statusFieldId = statusFieldResult[0].id;
+
+      // Status options
+      const statusOptions = [
+        { value: 'new', label: 'Novo', color: '#3b82f6', sortOrder: 1, isDefault: true },
+        { value: 'open', label: 'Aberto', color: '#10b981', sortOrder: 2 },
+        { value: 'in_progress', label: 'Em Andamento', color: '#f59e0b', sortOrder: 3 },
+        { value: 'pending', label: 'Pendente', color: '#8b5cf6', sortOrder: 4 },
+        { value: 'resolved', label: 'Resolvido', color: '#06b6d4', sortOrder: 5 },
+        { value: 'closed', label: 'Fechado', color: '#6b7280', sortOrder: 6 }
+      ];
+
+      for (const option of statusOptions) {
+        await db.insert(ticketFieldOptions).values({
+          tenantId,
+          customerId: null,
+          fieldConfigId: statusFieldId,
+          optionValue: option.value,
+          displayLabel: option.label,
+          colorHex: option.color,
+          sortOrder: option.sortOrder,
+          isDefault: option.isDefault || false,
+          isActive: true
+        }).onConflictDoNothing();
+      }
+
+      console.log('✅ Status field options seeded successfully');
+    }
+
+    // 2. Create Priority Field Configuration
+    const priorityFieldResult = await db.insert(ticketFieldConfigurations).values({
+      tenantId,
+      customerId: null,
+      fieldName: 'priority',
+      displayName: 'Prioridade',
+      description: 'Prioridade do ticket',
+      fieldType: 'select',
+      isRequired: true,
+      isSystemField: true,
+      sortOrder: 2,
+      isActive: true
+    }).returning({ id: ticketFieldConfigurations.id }).onConflictDoNothing();
+
+    if (priorityFieldResult.length > 0) {
+      const priorityFieldId = priorityFieldResult[0].id;
+
+      // Priority options
+      const priorityOptions = [
+        { value: 'low', label: 'Baixa', color: '#10b981', sortOrder: 1 },
+        { value: 'medium', label: 'Média', color: '#f59e0b', sortOrder: 2, isDefault: true },
+        { value: 'high', label: 'Alta', color: '#ef4444', sortOrder: 3 },
+        { value: 'urgent', label: 'Urgente', color: '#dc2626', sortOrder: 4 },
+        { value: 'critical', label: 'Crítica', color: '#991b1b', sortOrder: 5 }
+      ];
+
+      for (const option of priorityOptions) {
+        await db.insert(ticketFieldOptions).values({
+          tenantId,
+          customerId: null,
+          fieldConfigId: priorityFieldId,
+          optionValue: option.value,
+          displayLabel: option.label,
+          colorHex: option.color,
+          sortOrder: option.sortOrder,
+          isDefault: option.isDefault || false,
+          isActive: true
+        }).onConflictDoNothing();
+      }
+
+      console.log('✅ Priority field options seeded successfully');
+    }
+
+    // 3. Create Category Field Configuration
+    const categoryFieldResult = await db.insert(ticketFieldConfigurations).values({
+      tenantId,
+      customerId: null,
+      fieldName: 'category',
+      displayName: 'Categoria',
+      description: 'Categoria do ticket',
+      fieldType: 'select',
+      isRequired: false,
+      isSystemField: true,
+      sortOrder: 3,
+      isActive: true
+    }).returning({ id: ticketFieldConfigurations.id }).onConflictDoNothing();
+
+    if (categoryFieldResult.length > 0) {
+      const categoryFieldId = categoryFieldResult[0].id;
+
+      // Category options
+      const categoryOptions = [
+        { value: 'hardware', label: 'Hardware', color: '#6b7280', sortOrder: 1 },
+        { value: 'software', label: 'Software', color: '#3b82f6', sortOrder: 2 },
+        { value: 'network', label: 'Rede', color: '#8b5cf6', sortOrder: 3 },
+        { value: 'security', label: 'Segurança', color: '#dc2626', sortOrder: 4 },
+        { value: 'access', label: 'Acesso', color: '#f59e0b', sortOrder: 5 },
+        { value: 'maintenance', label: 'Manutenção', color: '#10b981', sortOrder: 6 },
+        { value: 'support', label: 'Suporte', color: '#06b6d4', sortOrder: 7 },
+        { value: 'other', label: 'Outros', color: '#9ca3af', sortOrder: 8 }
+      ];
+
+      for (const option of categoryOptions) {
+        await db.insert(ticketFieldOptions).values({
+          tenantId,
+          customerId: null,
+          fieldConfigId: categoryFieldId,
+          optionValue: option.value,
+          displayLabel: option.label,
+          colorHex: option.color,
+          sortOrder: option.sortOrder,
+          isDefault: false,
+          isActive: true
+        }).onConflictDoNothing();
+      }
+
+      console.log('✅ Category field options seeded successfully');
+    }
+
+    console.log('🎉 All ticket metadata seeded successfully!');
+    console.log(`📊 Created configurations for tenant: ${tenantId}`);
+
+  } catch (error) {
+    console.error('❌ Error seeding ticket metadata:', error);
     throw error;
   }
 }
