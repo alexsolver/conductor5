@@ -2884,7 +2884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let query = `
         SELECT * FROM "${tenantSchema}".ticket_field_options 
-        WHERE tenant_id = '${tenantId}' AND is_active = true
+        WHERE tenant_id = '${tenantId}' AND active = true
       `;
 
       if (fieldName) {
@@ -2904,7 +2904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bgColor: `bg-[${row.color_hex}]`,
         textColor: 'text-white',
         sortOrder: row.sort_order,
-        isActive: row.is_active
+        isActive: row.active
       }));
 
       res.json({ success: true, data: mappedData });
