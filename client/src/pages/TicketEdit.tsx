@@ -983,8 +983,8 @@ export default function TicketEdit() {
                                 />
                               </FormControl>
                               <FormMessage />
-                            </FormItem>
-                          )}                              <FormMessage />
+                                                      </FormItem>
+                        )}                              <FormMessage />
                             </FormItem>
                           )}
                         />
