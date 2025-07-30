@@ -185,7 +185,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
     console.error('❌ Detailed error creating ticket:', error);
     const { logError } = await import('../../utils/logger');
     logError('Error creating ticket', error, { tenantId: req.user?.tenantId });
-    
+
     return res.status(500).json({
       success: false,
       message: "Failed to create ticket",
