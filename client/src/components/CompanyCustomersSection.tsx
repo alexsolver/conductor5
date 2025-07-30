@@ -1,7 +1,6 @@
-import { Users, UserCheck, UserPlus, Crown } from "lucide-react";
+import { Users, UserCheck, UserPlus, Crown, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useCompanyCustomers } from "@/hooks/useCompanyCustomers";
 
 interface CompanyCustomersSectionProps {
@@ -13,7 +12,7 @@ export default function CompanyCustomersSection({
   companyId, 
   onAssociateCustomers 
 }: CompanyCustomersSectionProps) {
-  const { availableCustomers, associatedCustomers, isLoading } = useCompanyCustomers(companyId);
+  const { allCustomers, isLoading } = useCompanyCustomers(companyId);
 
   if (isLoading) {
     return (
@@ -27,115 +26,97 @@ export default function CompanyCustomersSection({
     );
   }
 
+  const associatedCount = allCustomers.filter(c => c.isAssociated).length;
+  const availableCount = allCustomers.filter(c => !c.isAssociated).length;
+
   return (
     <div className="space-y-3 pt-3 border-t">
-      {/* Associated Customers Section */}
-      {associatedCustomers.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <UserCheck className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-gray-700">
-              Clientes Associados ({associatedCustomers.length})
-            </span>
-          </div>
-          <div className="space-y-1">
-            {associatedCustomers.slice(0, 3).map((customer) => (
-              <div key={customer.id} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1">
-                  {customer.isPrimary && (
-                    <Crown className="w-3 h-3 text-yellow-500" />
-                  )}
-                  <span className="text-gray-600">
-                    {customer.firstName} {customer.lastName}
-                  </span>
-                </div>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs px-1 py-0 ${
-                    customer.isActive ? 'text-green-700 border-green-300' : 'text-gray-500 border-gray-300'
-                  }`}
-                >
-                  {customer.isActive ? 'Ativo' : 'Inativo'}
-                </Badge>
-              </div>
-            ))}
-            {associatedCustomers.length > 3 && (
-              <div className="text-xs text-gray-500 mt-1">
-                +{associatedCustomers.length - 3} outros clientes
-              </div>
-            )}
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-blue-600" />
+          <span className="text-sm font-medium text-gray-700">
+            Clientes ({allCustomers.length})
+          </span>
         </div>
-      )}
+        <div className="flex gap-1">
+          <Badge variant="outline" className="text-xs px-2 py-0 text-green-700 border-green-300">
+            {associatedCount} associados
+          </Badge>
+          <Badge variant="outline" className="text-xs px-2 py-0 text-blue-700 border-blue-300">
+            {availableCount} disponíveis
+          </Badge>
+        </div>
+      </div>
 
-      {/* Available Customers Section */}
-      {availableCustomers.length > 0 && (
-        <>
-          {associatedCustomers.length > 0 && <Separator className="my-2" />}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <UserPlus className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">
-                Disponíveis para Associação ({availableCustomers.length})
-              </span>
-            </div>
-            <div className="space-y-1">
-              {availableCustomers.slice(0, 2).map((customer) => (
-                <div key={customer.id} className="text-xs text-gray-600">
+      {/* All Customers List */}
+      {allCustomers.length > 0 ? (
+        <div className="space-y-1 max-h-32 overflow-y-auto">
+          {allCustomers.slice(0, 6).map((customer) => (
+            <div key={customer.id} className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                {customer.isAssociated ? (
+                  <CheckCircle2 className="w-3 h-3 text-green-600 flex-shrink-0" />
+                ) : (
+                  <div className="w-3 h-3 border border-gray-300 rounded-full flex-shrink-0" />
+                )}
+                <span className={`truncate ${customer.isAssociated ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
                   {customer.firstName} {customer.lastName}
-                </div>
-              ))}
-              {availableCustomers.length > 2 && (
-                <div className="text-xs text-gray-500">
-                  +{availableCustomers.length - 2} outros disponíveis
-                </div>
-              )}
+                </span>
+                {customer.isPrimary && (
+                  <Crown className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                {customer.isAssociated && (
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-1 py-0 ${
+                      customer.associationStatus === 'active' 
+                        ? 'text-green-700 border-green-300 bg-green-50' 
+                        : 'text-gray-500 border-gray-300'
+                    }`}
+                  >
+                    {customer.associationStatus === 'active' ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                )}
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAssociateCustomers}
-              className="text-blue-600 hover:text-blue-700 mt-2 h-8 text-xs"
-            >
-              <UserPlus className="w-3 h-3 mr-1" />
-              Associar Clientes
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* Empty State */}
-      {associatedCustomers.length === 0 && availableCustomers.length === 0 && (
+          ))}
+          {allCustomers.length > 6 && (
+            <div className="text-xs text-gray-500 mt-1 text-center">
+              +{allCustomers.length - 6} outros clientes
+            </div>
+          )}
+        </div>
+      ) : (
         <div className="text-center py-4">
           <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
           <p className="text-xs text-gray-500 mb-2">
-            Nenhum cliente associado
+            Nenhum cliente cadastrado
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAssociateCustomers}
-            className="text-blue-600 hover:text-blue-700 h-8 text-xs"
-          >
-            <UserPlus className="w-3 h-3 mr-1" />
-            Associar Primeiro Cliente
-          </Button>
         </div>
       )}
 
-      {/* Only associated customers, no available ones */}
-      {associatedCustomers.length > 0 && availableCustomers.length === 0 && (
-        <div className="mt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAssociateCustomers}
-            className="text-blue-600 hover:text-blue-700 h-8 text-xs w-full"
-            disabled
-          >
-            <UserCheck className="w-3 h-3 mr-1" />
-            Todos os Clientes Associados
-          </Button>
+      {/* Action Button */}
+      {availableCount > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onAssociateCustomers}
+          className="text-blue-600 hover:text-blue-700 mt-2 h-8 text-xs w-full"
+        >
+          <UserPlus className="w-3 h-3 mr-1" />
+          Associar Clientes ({availableCount} disponíveis)
+        </Button>
+      )}
+
+      {availableCount === 0 && allCustomers.length > 0 && (
+        <div className="text-center mt-2">
+          <Badge variant="outline" className="text-xs px-2 py-1 text-green-700 border-green-300 bg-green-50">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            Todos os clientes associados
+          </Badge>
         </div>
       )}
     </div>

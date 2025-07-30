@@ -15,10 +15,15 @@ interface Customer {
   memberSince?: string;
 }
 
+interface CustomerWithAssociation extends Customer {
+  isAssociated: boolean;
+  associationStatus?: 'active' | 'inactive';
+}
+
 export function useCompanyCustomers(companyId: string) {
-  // Query for available customers (not associated with this company)
-  const availableQuery = useQuery({
-    queryKey: [`/api/customers/companies/${companyId}/available`],
+  // Query for all customers
+  const allCustomersQuery = useQuery({
+    queryKey: ['/api/customers'],
     enabled: !!companyId,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: false,
@@ -32,13 +37,13 @@ export function useCompanyCustomers(companyId: string) {
     refetchOnWindowFocus: false,
   });
 
-  // Parse available customers data
-  const availableCustomers: Customer[] = (() => {
-    if (!availableQuery.data) return [];
-    if (availableQuery.data.success && Array.isArray(availableQuery.data.data)) {
-      return availableQuery.data.data;
+  // Parse all customers data
+  const allCustomers: Customer[] = (() => {
+    if (!allCustomersQuery.data) return [];
+    if (allCustomersQuery.data.success && Array.isArray(allCustomersQuery.data.data)) {
+      return allCustomersQuery.data.data;
     }
-    if (Array.isArray(availableQuery.data)) return availableQuery.data;
+    if (Array.isArray(allCustomersQuery.data)) return allCustomersQuery.data;
     return [];
   })();
 
@@ -52,13 +57,31 @@ export function useCompanyCustomers(companyId: string) {
     return [];
   })();
 
+  // Create a Set of associated customer IDs for quick lookup
+  const associatedCustomerIds = new Set(associatedCustomers.map(customer => customer.id));
+
+  // Combine all customers with association status
+  const customersWithAssociation: CustomerWithAssociation[] = allCustomers.map(customer => ({
+    ...customer,
+    isAssociated: associatedCustomerIds.has(customer.id),
+    associationStatus: (() => {
+      const associatedCustomer = associatedCustomers.find(ac => ac.id === customer.id);
+      return associatedCustomer?.isActive ? 'active' : 'inactive';
+    })()
+  }));
+
+  // Separate for backward compatibility
+  const availableCustomers = customersWithAssociation.filter(c => !c.isAssociated);
+  const onlyAssociatedCustomers = customersWithAssociation.filter(c => c.isAssociated);
+
   return {
+    allCustomers: customersWithAssociation,
     availableCustomers,
-    associatedCustomers,
-    isLoading: availableQuery.isLoading || associatedQuery.isLoading,
-    error: availableQuery.error || associatedQuery.error,
+    associatedCustomers: onlyAssociatedCustomers,
+    isLoading: allCustomersQuery.isLoading || associatedQuery.isLoading,
+    error: allCustomersQuery.error || associatedQuery.error,
     refetch: () => {
-      availableQuery.refetch();
+      allCustomersQuery.refetch();
       associatedQuery.refetch();
     }
   };
