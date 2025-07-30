@@ -46,46 +46,15 @@ export default function ContractManagement() {
 
   // Fetch contract statistics
   const { data: stats, isLoading: statsLoading } = useQuery<ContractStats>({
-    queryKey: ['/api/contracts/dashboard/stats'],
-    queryFn: () => fetch('/api/contracts/dashboard/stats', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
-    }).then(res => {
-      if (!res.ok) throw new Error('Failed to fetch stats');
-      return res.json();
-    }),
+    queryKey: ['/api/contracts/dashboard/stats']
   });
 
   // Fetch contracts with filters
   const { data: contractsData, isLoading: contractsLoading, error: contractsError, refetch: refetchContracts } = useQuery<any>({
     queryKey: ['/api/contracts/contracts', statusFilter, typeFilter, priorityFilter, searchTerm],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (typeFilter && typeFilter !== 'all') params.append('contractType', typeFilter);
-      if (priorityFilter && priorityFilter !== 'all') params.append('priority', priorityFilter);
-      if (searchTerm) params.append('search', searchTerm);
-
-      return fetch(`/api/contracts/contracts?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
-        }
-      }).then(res => {
-        if (!res.ok) {
-          if (res.status === 401) {
-            throw new Error('Token de autenticação inválido ou expirado');
-          }
-          throw new Error('Failed to fetch contracts');
-        }
-        return res.json();
-      });
-    },
     retry: (failureCount, error) => {
       // Don't retry on auth errors
-      if (error.message.includes('401') || error.message.includes('autenticação')) {
+      if (error?.message?.includes('401') || error?.message?.includes('autenticação')) {
         return false;
       }
       return failureCount < 3;

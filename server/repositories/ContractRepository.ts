@@ -1,6 +1,4 @@
-import { db } from '../db';
-import { contracts, contractSlas, contractServices, contractDocuments, contractRenewals, contractBilling, contractEquipment } from '@shared/schema';
-import { eq, and, sql, desc, asc, ilike, between, inArray } from 'drizzle-orm';
+import { schemaManager } from '../db';
 
 export class ContractRepository {
   // ========================================
@@ -11,38 +9,34 @@ export class ContractRepository {
     // Generate contract number automatically
     const contractNumber = await this.generateContractNumber(tenantId);
     
-    const contractData = {
-      ...data,
-      contractNumber,
-      tenantId,
-      createdById: userId,
-      updatedById: userId,
-    };
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    const [newContract] = await db
-      .insert(contracts)
-      .values(contractData)
-      .returning();
+    const result = await pool.query(
+      `INSERT INTO "${schemaName}"."contracts" 
+       (tenant_id, contract_number, title, contract_type, status, priority, total_value, currency, start_date, end_date, customer_company_id, manager_id, description, created_by_id, updated_by_id, created_at, updated_at, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true)
+       RETURNING *`,
+      [tenantId, contractNumber, data.title, data.contractType, data.status, data.priority, data.totalValue, data.currency, data.startDate, data.endDate, data.customerCompanyId, data.managerId, data.description, userId, userId]
+    );
     
-    return newContract;
+    return result.rows[0];
   }
 
   private async generateContractNumber(tenantId: string): Promise<string> {
     try {
       const currentYear = new Date().getFullYear();
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
       
       // Get the count of contracts for this year
-      const result = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(contracts)
-        .where(
-          and(
-            eq(contracts.tenantId, tenantId),
-            sql`EXTRACT(YEAR FROM ${contracts.createdAt}) = ${currentYear}`
-          )
-        );
+      const result = await pool.query(
+        `SELECT COUNT(*) as count FROM "${schemaName}"."contracts" 
+         WHERE tenant_id = $1 AND EXTRACT(YEAR FROM created_at) = $2`,
+        [tenantId, currentYear]
+      );
       
-      const nextNumber = (result[0]?.count || 0) + 1;
+      const nextNumber = (parseInt(result.rows[0]?.count) || 0) + 1;
       return `CTR-${currentYear}-${nextNumber.toString().padStart(3, '0')}`;
     } catch (error) {
       console.error('Error generating contract number:', error);
@@ -62,84 +56,105 @@ export class ContractRepository {
     limit?: number;
     offset?: number;
   }) {
-    const whereConditions: any[] = [eq(contracts.tenantId, tenantId)];
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
+    
+    let whereConditions = [`tenant_id = $1`];
+    let values: any[] = [tenantId];
+    let paramIndex = 2;
     
     if (filters?.status) {
-      whereConditions.push(eq(contracts.status, filters.status));
+      whereConditions.push(`status = $${paramIndex}`);
+      values.push(filters.status);
+      paramIndex++;
     }
     
     if (filters?.contractType) {
-      whereConditions.push(eq(contracts.contractType, filters.contractType));
+      whereConditions.push(`contract_type = $${paramIndex}`);
+      values.push(filters.contractType);
+      paramIndex++;
     }
     
     if (filters?.priority) {
-      whereConditions.push(eq(contracts.priority, filters.priority));
+      whereConditions.push(`priority = $${paramIndex}`);
+      values.push(filters.priority);
+      paramIndex++;
     }
     
     if (filters?.customerId) {
-      whereConditions.push(eq(contracts.customerId, filters.customerId));
+      whereConditions.push(`customer_company_id = $${paramIndex}`);
+      values.push(filters.customerId);
+      paramIndex++;
     }
     
     if (filters?.managerId) {
-      whereConditions.push(eq(contracts.managerId, filters.managerId));
+      whereConditions.push(`manager_id = $${paramIndex}`);
+      values.push(filters.managerId);
+      paramIndex++;
     }
     
     if (filters?.searchTerm) {
-      whereConditions.push(
-        sql`(${contracts.title} ILIKE ${`%${filters.searchTerm}%`} OR ${contracts.contractNumber} ILIKE ${`%${filters.searchTerm}%`} OR ${contracts.description} ILIKE ${`%${filters.searchTerm}%`})`
-      );
+      whereConditions.push(`(title ILIKE $${paramIndex} OR contract_number ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
+      values.push(`%${filters.searchTerm}%`);
+      paramIndex++;
     }
     
-    let query = db
-      .select()
-      .from(contracts)
-      .where(and(...whereConditions))
-      .orderBy(desc(contracts.createdAt));
+    let query = `SELECT * FROM "${schemaName}"."contracts" WHERE ${whereConditions.join(' AND ')} ORDER BY created_at DESC`;
     
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      query += ` LIMIT $${paramIndex}`;
+      values.push(filters.limit);
+      paramIndex++;
     }
     
     if (filters?.offset) {
-      query = query.offset(filters.offset);
+      query += ` OFFSET $${paramIndex}`;
+      values.push(filters.offset);
     }
     
-    return await query;
+    const result = await pool.query(query, values);
+    return result.rows;
   }
   
   async getContractById(id: string, tenantId: string) {
-    const result = await db
-      .select()
-      .from(contracts)
-      .where(and(eq(contracts.id, id), eq(contracts.tenantId, tenantId)));
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    return result[0] || null;
+    const result = await pool.query(
+      `SELECT * FROM "${schemaName}"."contracts" WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
+    );
+    
+    return result.rows[0] || null;
   }
   
   async updateContract(id: string, data: any, tenantId: string, userId: string) {
-    const updateData = {
-      ...data,
-      updatedById: userId,
-      updatedAt: new Date(),
-    };
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    const [updatedContract] = await db
-      .update(contracts)
-      .set(updateData)
-      .where(and(eq(contracts.id, id), eq(contracts.tenantId, tenantId)))
-      .returning();
+    const result = await pool.query(
+      `UPDATE "${schemaName}"."contracts" 
+       SET title = $3, contract_type = $4, status = $5, priority = $6, total_value = $7, currency = $8,
+           start_date = $9, end_date = $10, customer_company_id = $11, manager_id = $12, description = $13,
+           updated_by_id = $14, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND tenant_id = $2 
+       RETURNING *`,
+      [id, tenantId, data.title, data.contractType, data.status, data.priority, data.totalValue, data.currency, data.startDate, data.endDate, data.customerCompanyId, data.managerId, data.description, userId]
+    );
     
-    return updatedContract;
+    return result.rows[0];
   }
   
   async deleteContract(id: string, tenantId: string) {
-    const [deletedContract] = await db
-      .update(contracts)
-      .set({ isActive: false })
-      .where(and(eq(contracts.id, id), eq(contracts.tenantId, tenantId)))
-      .returning();
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    return deletedContract;
+    const result = await pool.query(
+      `UPDATE "${schemaName}"."contracts" SET is_active = false WHERE id = $1 AND tenant_id = $2 RETURNING *`,
+      [id, tenantId]
+    );
+    
+    return result.rows[0];
   }
   
   // ========================================
@@ -147,45 +162,56 @@ export class ContractRepository {
   // ========================================
   
   async createContractSla(data: any, tenantId: string) {
-    const slaData = {
-      ...data,
-      tenantId,
-    };
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    const [newSla] = await db
-      .insert(contractSlas)
-      .values(slaData)
-      .returning();
+    const result = await pool.query(
+      `INSERT INTO "${schemaName}"."contract_slas" (tenant_id, contract_id, service_name, target_resolution_time, penalty_amount, created_at, updated_at, is_active)
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true) RETURNING *`,
+      [tenantId, data.contractId, data.serviceName, data.targetResolutionTime, data.penaltyAmount]
+    );
     
-    return newSla;
+    return result.rows[0];
   }
   
   async getContractSlas(contractId: string, tenantId: string) {
-    return await db
-      .select()
-      .from(contractSlas)
-      .where(and(eq(contractSlas.contractId, contractId), eq(contractSlas.tenantId, tenantId)))
-      .orderBy(desc(contractSlas.createdAt));
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
+    
+    const result = await pool.query(
+      `SELECT * FROM "${schemaName}"."contract_slas" 
+       WHERE contract_id = $1 AND tenant_id = $2 AND is_active = true 
+       ORDER BY created_at DESC`,
+      [contractId, tenantId]
+    );
+    
+    return result.rows;
   }
   
   async updateContractSla(id: string, data: any, tenantId: string) {
-    const [updatedSla] = await db
-      .update(contractSlas)
-      .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(contractSlas.id, id), eq(contractSlas.tenantId, tenantId)))
-      .returning();
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    return updatedSla;
+    const result = await pool.query(
+      `UPDATE "${schemaName}"."contract_slas" 
+       SET service_name = $3, target_resolution_time = $4, penalty_amount = $5, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND tenant_id = $2 RETURNING *`,
+      [id, tenantId, data.serviceName, data.targetResolutionTime, data.penaltyAmount]
+    );
+    
+    return result.rows[0];
   }
   
   async deleteContractSla(id: string, tenantId: string) {
-    const [deletedSla] = await db
-      .update(contractSlas)
-      .set({ isActive: false })
-      .where(and(eq(contractSlas.id, id), eq(contractSlas.tenantId, tenantId)))
-      .returning();
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    return deletedSla;
+    const result = await pool.query(
+      `UPDATE "${schemaName}"."contract_slas" SET is_active = false WHERE id = $1 AND tenant_id = $2 RETURNING *`,
+      [id, tenantId]
+    );
+    
+    return result.rows[0];
   }
   
   // ========================================
@@ -423,41 +449,43 @@ export class ContractRepository {
   // ========================================
   
   async getContractStats(tenantId: string) {
-    const totalContracts = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(contracts)
-      .where(and(eq(contracts.tenantId, tenantId), eq(contracts.isActive, true)));
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
     
-    const activeContracts = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(contracts)
-      .where(and(eq(contracts.tenantId, tenantId), eq(contracts.status, 'active'), eq(contracts.isActive, true)));
+    const totalContracts = await pool.query(
+      `SELECT COUNT(*) as count FROM "${schemaName}"."contracts" WHERE tenant_id = $1 AND is_active = true`,
+      [tenantId]
+    );
     
-    const contractsNearRenewal = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(contracts)
-      .where(and(
-        eq(contracts.tenantId, tenantId),
-        eq(contracts.isActive, true),
-        sql`${contracts.renewalDate} <= NOW() + INTERVAL '30 days'`
-      ));
+    const activeContracts = await pool.query(
+      `SELECT COUNT(*) as count FROM "${schemaName}"."contracts" WHERE tenant_id = $1 AND status = 'active' AND is_active = true`,
+      [tenantId]
+    );
     
-    const totalValue = await db
-      .select({ sum: sql<number>`COALESCE(SUM(${contracts.totalValue}), 0)` })
-      .from(contracts)
-      .where(and(eq(contracts.tenantId, tenantId), eq(contracts.status, 'active'), eq(contracts.isActive, true)));
+    const contractsNearRenewal = await pool.query(
+      `SELECT COUNT(*) as count FROM "${schemaName}"."contracts" 
+       WHERE tenant_id = $1 AND is_active = true AND renewal_date <= NOW() + INTERVAL '30 days'`,
+      [tenantId]
+    );
     
-    const monthlyRecurring = await db
-      .select({ sum: sql<number>`COALESCE(SUM(${contracts.monthlyValue}), 0)` })
-      .from(contracts)
-      .where(and(eq(contracts.tenantId, tenantId), eq(contracts.status, 'active'), eq(contracts.isActive, true)));
+    const totalValue = await pool.query(
+      `SELECT COALESCE(SUM(total_value), 0) as sum FROM "${schemaName}"."contracts" 
+       WHERE tenant_id = $1 AND status = 'active' AND is_active = true`,
+      [tenantId]
+    );
+    
+    const monthlyRecurring = await pool.query(
+      `SELECT COALESCE(SUM(monthly_value), 0) as sum FROM "${schemaName}"."contracts" 
+       WHERE tenant_id = $1 AND status = 'active' AND is_active = true`,
+      [tenantId]
+    );
     
     return {
-      totalContracts: totalContracts[0]?.count || 0,
-      activeContracts: activeContracts[0]?.count || 0,
-      contractsNearRenewal: contractsNearRenewal[0]?.count || 0,
-      totalValue: totalValue[0]?.sum || 0,
-      monthlyRecurring: monthlyRecurring[0]?.sum || 0,
+      totalContracts: parseInt(totalContracts.rows[0]?.count) || 0,
+      activeContracts: parseInt(activeContracts.rows[0]?.count) || 0,
+      contractsNearRenewal: parseInt(contractsNearRenewal.rows[0]?.count) || 0,
+      totalValue: parseFloat(totalValue.rows[0]?.sum) || 0,
+      monthlyRecurring: parseFloat(monthlyRecurring.rows[0]?.sum) || 0,
     };
   }
   

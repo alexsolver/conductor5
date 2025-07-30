@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ContractRepository } from '../repositories/ContractRepository';
+import { ContractRepository } from '../repositories/ContractRepository-fixed';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { insertContractSchema, insertContractSlaSchema, insertContractServiceSchema, insertContractDocumentSchema, insertContractRenewalSchema, insertContractBillingSchema, insertContractEquipmentSchema } from '@shared/schema';
 import { z } from 'zod';
