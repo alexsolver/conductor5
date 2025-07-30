@@ -78,6 +78,11 @@ export function DynamicSelect(props: DynamicSelectProps) {
         if (token) {
           try {
             const payload = JSON.parse(atob(token.split('.')[1]));
+            console.log('🔍 Token payload debug:', { 
+              tenantId: payload.tenantId, 
+              tenant_id: payload.tenant_id,
+              allKeys: Object.keys(payload) 
+            });
             if (payload.tenantId) return payload.tenantId;
             if (payload.tenant_id) return payload.tenant_id;
           } catch (error) {
@@ -97,22 +102,17 @@ export function DynamicSelect(props: DynamicSelectProps) {
       };
 
       const token = getToken();
-      const resolvedTenantId = tenantId || getTenantIdFromToken(token);
+      const resolvedTenantId = tenantId || getTenantId(token);
 
-      // Debug: Log all available storage keys
-      const storageKeys = Object.keys(localStorage);
-      const sessionKeys = Object.keys(sessionStorage);
-
+      // Comprehensive debug for tenant ID resolution
       console.log('🔍 DynamicSelect for ' + fieldName + ':', {
         totalOptions: fieldOptions.length,
-        filteredOptions: fieldOptions.length,
         isLoading,
         token: token ? 'present' : 'missing',
         tokenLength: token?.length,
         tenantId: resolvedTenantId,
-        fieldOptions: fieldOptions.slice(0, 3),
-        storageKeys,
-        sessionKeys
+        providedTenantId: tenantId,
+        fieldOptions: fieldOptions.slice(0, 3)
       });
 
       if (!token || !resolvedTenantId) {
