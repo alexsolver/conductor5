@@ -124,7 +124,7 @@ router.post("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
   } catch (error) {
     console.error("Error creating beneficiary:", error);
     if (error instanceof z.ZodError) {
-      return sendValidationError(res as any, error.errors);
+      return sendValidationError(res as any, error.errors.map(e => e.message));
     }
     return sendError(res as any, error as any, "Failed to create beneficiary", 500);
   }
@@ -151,7 +151,7 @@ router.put("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) => {
   } catch (error) {
     console.error("Error updating beneficiary:", error);
     if (error instanceof z.ZodError) {
-      return sendValidationError(res as any, error.errors);
+      return sendValidationError(res as any, error.errors.map(e => e.message));
     }
     return sendError(res as any, error as any, "Failed to update beneficiary", 500);
   }
@@ -177,6 +177,96 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) =>
   } catch (error) {
     console.error("Error deleting beneficiary:", error);
     return sendError(res as any, error as any, "Failed to delete beneficiary", 500);
+  }
+});
+
+// Get customers associated with a favorecido
+router.get('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant ID required' });
+    }
+
+    const { id } = req.params;
+    const customers = await storage.getFavorecidoCustomers(tenantId, id);
+
+    res.json({
+      success: true,
+      data: customers,
+      message: 'Favorecido customers retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching favorecido customers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch favorecido customers'
+    });
+  }
+});
+
+// Add customer to favorecido
+router.post('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant ID required' });
+    }
+
+    const { id } = req.params;
+    const { customerId } = req.body;
+
+    if (!customerId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Customer ID is required'
+      });
+    }
+
+    const relationship = await storage.addFavorecidoCustomer(tenantId, id, customerId);
+
+    res.json({
+      success: true,
+      data: relationship,
+      message: 'Customer added to favorecido successfully'
+    });
+  } catch (error) {
+    console.error('Error adding customer to favorecido:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add customer to favorecido'
+    });
+  }
+});
+
+// Remove customer from favorecido
+router.delete('/:id/customers/:customerId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant ID required' });
+    }
+
+    const { id, customerId } = req.params;
+    const success = await storage.removeFavorecidoCustomer(tenantId, id, customerId);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: 'Customer removed from favorecido successfully'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Relationship not found'
+      });
+    }
+  } catch (error) {
+    console.error('Error removing customer from favorecido:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to remove customer from favorecido'
+    });
   }
 });
 

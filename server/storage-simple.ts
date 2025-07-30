@@ -1587,6 +1587,78 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==============================
+  // FAVORECIDO-CUSTOMER RELATIONSHIPS METHODS
+  // ==============================
+
+  async getFavorecidoCustomers(tenantId: string, favorecidoId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          c.id,
+          c.first_name,
+          c.last_name,
+          c.email,
+          fcr.created_at as relationship_created_at
+        FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships fcr
+        JOIN ${sql.identifier(schemaName)}.customers c ON c.id = fcr.customer_id
+        WHERE fcr.favorecido_id = ${favorecidoId}
+        AND fcr.tenant_id = ${validatedTenantId}
+        ORDER BY fcr.created_at DESC
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError('Error fetching favorecido customers', error, { tenantId, favorecidoId });
+      return [];
+    }
+  }
+
+  async addFavorecidoCustomer(tenantId: string, favorecidoId: string, customerId: string): Promise<any> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.favorecido_customer_relationships
+        (favorecido_id, customer_id, tenant_id, created_at, updated_at)
+        VALUES (${favorecidoId}, ${customerId}, ${validatedTenantId}, NOW(), NOW())
+        ON CONFLICT (favorecido_id, customer_id) DO NOTHING
+        RETURNING *
+      `);
+
+      return result.rows?.[0];
+    } catch (error) {
+      logError('Error adding favorecido customer relationship', error, { tenantId, favorecidoId, customerId });
+      throw error;
+    }
+  }
+
+  async removeFavorecidoCustomer(tenantId: string, favorecidoId: string, customerId: string): Promise<boolean> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships
+        WHERE favorecido_id = ${favorecidoId} 
+        AND customer_id = ${customerId}
+        AND tenant_id = ${validatedTenantId}
+      `);
+
+      return result.rowCount > 0;
+    } catch (error) {
+      logError('Error removing favorecido customer relationship', error, { tenantId, favorecidoId, customerId });
+      throw error;
+    }
+  }
+
+  // ==============================
   // TICKET RELATIONSHIPS METHODS
   // ==============================
 

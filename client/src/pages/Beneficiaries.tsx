@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -99,6 +100,8 @@ export default function Beneficiaries() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
+  const [favorecidoCustomers, setFavorecidoCustomers] = useState<any[]>([]);
+  const [showCustomerSelector, setShowCustomerSelector] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -163,6 +166,19 @@ export default function Beneficiaries() {
     gcTime: 30000,
   });
 
+  // Query for favorecido customers (when editing)
+  const { data: favorecidoCustomersData } = useQuery({
+    queryKey: ["/api/beneficiaries", editingBeneficiary?.id, "customers"],
+    enabled: !!editingBeneficiary?.id,
+  });
+
+  // Update favorecidoCustomers when data changes
+  React.useEffect(() => {
+    if (favorecidoCustomersData && 'data' in favorecidoCustomersData && favorecidoCustomersData.data) {
+      setFavorecidoCustomers(favorecidoCustomersData.data);
+    }
+  }, [favorecidoCustomersData]);
+
   // Create beneficiary mutation
   const createBeneficiaryMutation = useMutation({
     mutationFn: async (data: BeneficiaryFormData) => {
@@ -186,6 +202,55 @@ export default function Beneficiaries() {
       });
     },
   });
+
+  // Functions for managing many-to-many relationships
+  const handleAddCustomer = async (customerId: string) => {
+    if (!editingBeneficiary?.id) return;
+    
+    try {
+      await apiRequest("POST", `/api/beneficiaries/${editingBeneficiary.id}/customers`, { customerId });
+      
+      // Update local state
+      const customer = (customersData as any)?.customers?.find((c: any) => c.id === customerId);
+      if (customer) {
+        setFavorecidoCustomers(prev => [...prev, customer]);
+      }
+      
+      setShowCustomerSelector(false);
+      toast({
+        title: "Sucesso",
+        description: "Cliente associado com sucesso",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao associar cliente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveCustomer = async (customerId: string) => {
+    if (!editingBeneficiary?.id) return;
+    
+    try {
+      await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId}`);
+      
+      // Update local state
+      setFavorecidoCustomers(prev => prev.filter(c => c.id !== customerId));
+      
+      toast({
+        title: "Sucesso",
+        description: "Cliente desassociado com sucesso",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao desassociar cliente",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Update beneficiary mutation
   const updateBeneficiaryMutation = useMutation({
@@ -370,31 +435,106 @@ export default function Beneficiaries() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="customerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
+            {/* Clientes Associados - Many-to-Many */}
+            {editingBeneficiary && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Clientes Associados</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCustomerSelector(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Cliente
+                  </Button>
+                </div>
+                
+                {/* Lista de clientes associados */}
+                <div className="space-y-2">
+                  {favorecidoCustomers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhum cliente associado</p>
+                  ) : (
+                    favorecidoCustomers.map((customer: any) => (
+                      <div key={customer.id} className="flex items-center justify-between p-2 border rounded-md">
+                        <span className="text-sm">
+                          {customer.first_name} {customer.last_name} - {customer.email}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveCustomer(customer.id)}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Seletor de cliente modal */}
+                {showCustomerSelector && (
+                  <div className="border rounded-md p-3 bg-muted/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Label className="text-sm">Selecionar Cliente:</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCustomerSelector(false)}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                    <Select onValueChange={handleAddCustomer}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
+                        <SelectValue placeholder="Escolha um cliente" />
                       </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum cliente</SelectItem>
-                      {customersData?.customers?.map((customer: any) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.firstName || customer.first_name} {customer.lastName || customer.last_name} - {customer.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <SelectContent>
+                        {((customersData as any)?.customers || []).filter((customer: any) => 
+                          !favorecidoCustomers.some((fc: any) => fc.id === customer.id)
+                        ).map((customer: any) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.firstName || customer.first_name} {customer.lastName || customer.last_name} - {customer.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Campo cliente único para criação */}
+            {!editingBeneficiary && (
+              <FormField
+                control={form.control}
+                name="customerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum cliente</SelectItem>
+                        {((customersData as any)?.customers || []).map((customer: any) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.firstName || customer.first_name} {customer.lastName || customer.last_name} - {customer.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
