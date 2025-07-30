@@ -626,32 +626,14 @@ export default function CustomerCompanies() {
                 onAssociateCustomers={() => handleOpenAssociateModal(company)}
               />
 
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-3 border-t mt-3">
+              {/* Company Info Footer */}
+              <div className="flex justify-center items-center pt-3 border-t mt-3">
                 <div className="flex items-center text-xs text-gray-400">
                   <Calendar className="w-3 h-3 mr-1" />
-                  {new Date(company.createdAt).toLocaleDateString('pt-BR')}
+                  {company.createdAt && !isNaN(new Date(company.createdAt).getTime()) 
+                    ? new Date(company.createdAt).toLocaleDateString('pt-BR')
+                    : 'Data não disponível'}
                 </div>
-                <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditCompany(company)}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteCompany(company)}
-                      disabled={deleteCompanyMutation.isPending}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
-                    </Button>
-                  </div>
               </div>
             </CardContent>
           </Card>

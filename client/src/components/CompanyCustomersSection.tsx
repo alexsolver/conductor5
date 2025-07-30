@@ -49,97 +49,33 @@ export default function CompanyCustomersSection({
         </div>
       </div>
 
-      {/* All Customers List */}
-      {allCustomers.length > 0 ? (
-        <div className="space-y-1 max-h-32 overflow-y-auto">
-          {allCustomers.slice(0, 6).map((customer) => (
-            <div key={customer.id} className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                {customer.isAssociated ? (
-                  <CheckCircle2 className="w-3 h-3 text-green-600 flex-shrink-0" />
-                ) : (
-                  <div className="w-3 h-3 border border-gray-300 rounded-full flex-shrink-0" />
-                )}
-                <span className={`truncate ${customer.isAssociated ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
-                  {customer.firstName} {customer.lastName}
-                </span>
-                {customer.isPrimary && (
-                  <Crown className="w-3 h-3 text-yellow-500 flex-shrink-0" />
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                {customer.isAssociated && (
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs px-1 py-0 ${
-                      customer.associationStatus === 'active' 
-                        ? 'text-green-700 border-green-300 bg-green-50' 
-                        : 'text-gray-500 border-gray-300'
-                    }`}
-                  >
-                    {customer.associationStatus === 'active' ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          ))}
-          {allCustomers.length > 6 && (
-            <div className="text-xs text-gray-500 mt-1 text-center">
-              +{allCustomers.length - 6} outros clientes
-            </div>
+      {/* Simplified Customer Display */}
+      <div className="text-center py-2">
+        <div className="text-sm text-gray-600">
+          {associatedCount > 0 ? (
+            <span className="font-medium text-green-700">
+              {associatedCount} cliente{associatedCount !== 1 ? 's' : ''} associado{associatedCount !== 1 ? 's' : ''}
+            </span>
+          ) : (
+            <span className="text-gray-500">
+              Nenhum cliente associado
+            </span>
           )}
         </div>
-      ) : (
-        <div className="text-center py-4">
-          <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-          <p className="text-xs text-gray-500 mb-2">
-            Nenhum cliente cadastrado
-          </p>
-        </div>
-      )}
+      </div>
 
       {/* Action Button */}
-      {allCustomers.length > 0 && (
-        <div className="mt-2">
-          {availableCount > 0 ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAssociateCustomers}
-              className="text-blue-600 hover:text-blue-700 h-8 text-xs w-full"
-            >
-              <UserPlus className="w-3 h-3 mr-1" />
-              Associar Clientes ({availableCount} disponíveis)
-            </Button>
-          ) : (
-            <div className="text-center">
-              <Badge variant="outline" className="text-xs px-2 py-1 text-green-700 border-green-300 bg-green-50">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Todos os clientes associados
-              </Badge>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Empty State - when no customers exist at all */}
-      {allCustomers.length === 0 && (
-        <div className="text-center py-4">
-          <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-          <p className="text-xs text-gray-500 mb-2">
-            Nenhum cliente cadastrado
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAssociateCustomers}
-            className="text-blue-600 hover:text-blue-700 h-8 text-xs"
-          >
-            <UserPlus className="w-3 h-3 mr-1" />
-            Gerenciar Clientes
-          </Button>
-        </div>
-      )}
+      <div className="mt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onAssociateCustomers}
+          className="text-blue-600 hover:text-blue-700 h-8 text-xs w-full"
+        >
+          <UserCheck className="w-3 h-3 mr-1" />
+          Gerenciar Clientes
+        </Button>
+      </div>
     </div>
   );
 }
