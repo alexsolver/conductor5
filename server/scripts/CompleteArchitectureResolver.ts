@@ -175,7 +175,7 @@ ${content}`;
 // All functionality has been migrated to the unified server/db.ts SchemaManager
 
 // UNIFIED APPROACH: All schema operations now use server/db.ts
-export { schemaManager } from "../../../db";
+export { schemaManager } from "../db";
 
 // DEPRECATED: All hardcoded SQL logic removed
 // Reason: Conflicts with Drizzle schema definitions in schema-master.ts
