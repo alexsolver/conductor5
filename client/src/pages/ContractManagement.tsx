@@ -50,7 +50,7 @@ export default function ContractManagement() {
   });
 
   // Fetch contracts with filters
-  const { data: contractsData, isLoading: contractsLoading, error: contractsError, refetch: refetchContracts } = useQuery<any>({
+  const { data: contractsData, isLoading: contractsLoading, error: contractsError, refetch: refetchContracts } = useQuery<Contract[]>({
     queryKey: ['/api/contracts/contracts', statusFilter, typeFilter, priorityFilter, searchTerm],
     retry: (failureCount, error) => {
       // Don't retry on auth errors
@@ -61,9 +61,8 @@ export default function ContractManagement() {
     }
   });
 
-  // Ensure contracts is always an array
-  const contracts = Array.isArray(contractsData) ? contractsData : 
-                   contractsData?.contracts ? contractsData.contracts : [];
+  // Backend returns array directly
+  const contracts = Array.isArray(contractsData) ? contractsData : [];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -365,7 +364,7 @@ export default function ContractManagement() {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
-          refetch();
+          refetchContracts();
           setShowCreateDialog(false);
         }}
       />
