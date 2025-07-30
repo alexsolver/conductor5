@@ -36,7 +36,7 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     const { page, limit, search } = getFavorecidosSchema.parse(req.query);
-    
+
     const offset = (page - 1) * limit;
     const favorecidos = await storage.getFavorecidos(user.tenantId, {
       limit,
@@ -71,9 +71,9 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     const { id } = favorecidoIdSchema.parse(req.params);
-    
+
     const favorecido = await storage.getFavorecido(id, user.tenantId);
-    
+
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
@@ -90,9 +90,9 @@ router.post("/", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
     const favorecidoData: InsertFavorecido = req.body;
-    
+
     const favorecido = await storage.createFavorecido(user.tenantId, favorecidoData);
-    
+
     return sendSuccess(res, { favorecido }, "Favorecido created successfully", 201);
   } catch (error) {
     console.error("Error creating favorecido:", error);
@@ -107,15 +107,15 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
     if (!user) {
       return sendError(res, "Authentication required", "Authentication required", 401);
     }
-    
+
     const { id } = favorecidoIdSchema.parse(req.params);
     const updateData: Partial<InsertFavorecido> = req.body;
-    
+
     console.log('Route params BEFORE calling storage:', { tenantId: user.tenantId, favorecidoId: id, updateData });
-    
+
     // CRITICAL: Ensure correct parameter order: (tenantId, id, data)
     const favorecido = await storage.updateFavorecido(user.tenantId, id, updateData);
-    
+
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
@@ -134,11 +134,11 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
     if (!user) {
       return sendError(res, "Authentication required", "Authentication required", 401);
     }
-    
+
     const { id } = favorecidoIdSchema.parse(req.params);
-    
+
     const deleted = await storage.deleteFavorecido(user.tenantId, id);
-    
+
     if (!deleted) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
@@ -176,12 +176,12 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
   try {
     const { user } = req;
     const { id } = favorecidoIdSchema.parse(req.params);
-    
+
     const addLocationSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format"),
       isPrimary: z.boolean().optional().default(false)
     });
-    
+
     const { locationId, isPrimary } = addLocationSchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
@@ -243,11 +243,11 @@ router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedReques
       locationId: z.string().uuid("Invalid location ID format")
     });
     const { locationId } = locationIdSchema.parse(req.params);
-    
+
     const updatePrimarySchema = z.object({
       isPrimary: z.boolean()
     });
-    
+
     const { isPrimary } = updatePrimarySchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant

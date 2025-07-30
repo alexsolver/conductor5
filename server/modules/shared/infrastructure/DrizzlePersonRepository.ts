@@ -12,7 +12,7 @@ export class DrizzlePersonRepository implements IPersonRepository {
     try {
       // Sanitize and prepare search pattern
       const searchPattern = `%${query.replace(/[%_]/g, '\\$&')}%`;
-      
+
       // Search users if included in types
       if (types.includes('user')) {
         const userResults = await db

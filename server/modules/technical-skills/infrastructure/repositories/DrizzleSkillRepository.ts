@@ -3,7 +3,7 @@ import { NeonDatabase } from '@neondatabase/serverless';
 import { Skill } from '../../domain/entities/Skill';
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 import { db } from '../../../../db';
-import { skills, userSkills } from '@shared/schema';
+import { skills } from '@shared/schema';
 import winston from 'winston';
 
 export class DrizzleSkillRepository implements ISkillRepository {
@@ -20,7 +20,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .insert(skills)
         .values(skillData)
         .returning();
-      
+
       return this.toDomainEntity(result[0]);
     } catch (error) {
       winston.error('Error creating skill', { error, skillData: skill });
@@ -35,9 +35,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .from(skills)
         .where(eq(skills.id, id))
         .limit(1);
-      
+
       if (result.length === 0) return null;
-      
+
       return this.toDomainEntity(result[0]);
     } catch (error) {
       winston.error('Error finding skill by ID', { error, skillId: id });
@@ -52,11 +52,11 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }): Promise<Skill[]> {
     try {
       let query = this.db.select().from(skills);
-      
+
       if (filters?.category) {
         query = query.where(eq(skills.category, filters.category));
       }
-      
+
       if (filters?.search) {
         query = query.where(
           or(
@@ -65,9 +65,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
           )
         );
       }
-      
+
       const results = await query.orderBy(skills.name);
-      
+
       return results.map(skill => this.toDomainEntity(skill));
     } catch (error) {
       winston.error('Error finding skills', { error, filters });
@@ -86,11 +86,11 @@ export class DrizzleSkillRepository implements ISkillRepository {
         })
         .where(eq(skills.id, skill.id))
         .returning();
-      
+
       if (result.length === 0) {
         throw new Error(`Skill with ID ${skill.id} not found`);
       }
-      
+
       return this.toDomainEntity(result[0]);
     } catch (error) {
       winston.error('Error updating skill', { error, skillId: skill.id });
@@ -116,7 +116,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .from(skills)
         .where(isNotNull(skills.category))
         .orderBy(skills.category);
-      
+
       return results.map(result => result.category);
     } catch (error) {
       winston.error('Error getting distinct skill categories', { error });
@@ -135,7 +135,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .from(skills)
         .where(eq(skills.category, category))
         .orderBy(skills.name);
-      
+
       return results.map(skill => this.toDomainEntity(skill));
     } catch (error) {
       winston.error('Error finding skills by category', { error, category });
@@ -150,7 +150,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
         .from(skills)
         .where(ilike(skills.name, `%${pattern}%`))
         .orderBy(skills.name);
-      
+
       return results.map(skill => this.toDomainEntity(skill));
     } catch (error) {
       winston.error('Error finding skills by name pattern', { error, pattern });
@@ -167,7 +167,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
         })
         .from(skills)
         .groupBy(skills.category);
-      
+
       return results;
     } catch (error) {
       winston.error('Error counting skills by category', { error });

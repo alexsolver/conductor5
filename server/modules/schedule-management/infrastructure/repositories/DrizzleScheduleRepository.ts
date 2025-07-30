@@ -13,7 +13,7 @@ import { IScheduleRepository } from '../../application/repositories/IScheduleRep
 import { ScheduleEntity, ActivityTypeEntity, AgentAvailabilityEntity, ScheduleConflictEntity } from '../../domain/entities/Schedule';
 
 export class DrizzleScheduleRepository implements IScheduleRepository {
-  
+
   // Schedule CRUD
   async createSchedule(scheduleData: Omit<ScheduleEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ScheduleEntity> {
     const [schedule] = await db
@@ -26,7 +26,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
         recurringPattern: scheduleData.recurringPattern ? JSON.stringify(scheduleData.recurringPattern) : null,
       })
       .returning();
-    
+
     return this.mapScheduleToEntity(schedule);
   }
 
@@ -35,7 +35,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .select()
       .from(schedules)
       .where(and(eq(schedules.id, id), eq(schedules.tenantId, tenantId)));
-    
+
     return schedule ? this.mapScheduleToEntity(schedule) : null;
   }
 
@@ -44,26 +44,26 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       eq(schedules.agentId, agentId),
       eq(schedules.tenantId, tenantId)
     ];
-    
+
     if (startDate) {
       conditions.push(gte(schedules.startDateTime, startDate));
     }
     if (endDate) {
       conditions.push(lte(schedules.endDateTime, endDate));
     }
-    
+
     const results = await db
       .select()
       .from(schedules)
       .where(and(...conditions))
       .orderBy(asc(schedules.startDateTime));
-    
+
     return results.map(this.mapScheduleToEntity);
   }
 
   async getSchedulesByDateRange(tenantId: string, startDate: Date, endDate: Date): Promise<ScheduleEntity[]> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const query = `
       SELECT 
         s.id, s.tenant_id, s.agent_id, s.customer_id, s.activity_type_id,
@@ -87,9 +87,9 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
         AND s.end_datetime <= $3
       ORDER BY s.start_datetime ASC
     `;
-    
+
     const result = await pool.query(query, [tenantId, startDate, endDate]);
-    
+
     return result.rows.map(row => ({
       id: row.id,
       tenantId: row.tenant_id,
@@ -125,26 +125,26 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .from(schedules)
       .where(and(eq(schedules.customerId, customerId), eq(schedules.tenantId, tenantId)))
       .orderBy(desc(schedules.startDateTime));
-    
+
     return results.map(this.mapScheduleToEntity);
   }
 
   async updateSchedule(id: string, tenantId: string, updates: Partial<ScheduleEntity>): Promise<ScheduleEntity> {
     const updateData: any = { ...updates };
-    
+
     if (updates.coordinates) {
       updateData.coordinates = JSON.stringify(updates.coordinates);
     }
     if (updates.recurringPattern) {
       updateData.recurringPattern = JSON.stringify(updates.recurringPattern);
     }
-    
+
     const [schedule] = await db
       .update(schedules)
       .set({ ...updateData, updatedAt: new Date() })
       .where(and(eq(schedules.id, id), eq(schedules.tenantId, tenantId)))
       .returning();
-    
+
     return this.mapScheduleToEntity(schedule);
   }
 
@@ -160,22 +160,22 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .insert(activityTypes)
       .values(activityTypeData)
       .returning();
-    
+
     return this.mapActivityTypeToEntity(activityType);
   }
 
   async getActivityTypes(tenantId: string): Promise<ActivityTypeEntity[]> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const query = `
       SELECT id, tenant_id, name, description, color, duration, category, is_active, created_at, updated_at 
       FROM ${schemaName}.activity_types 
       WHERE tenant_id = $1 AND is_active = true 
       ORDER BY name ASC
     `;
-    
+
     const result = await pool.query(query, [tenantId]);
-    
+
     return result.rows.map(row => ({
       id: row.id,
       tenantId: row.tenant_id,
@@ -195,7 +195,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .select()
       .from(activityTypes)
       .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)));
-    
+
     return activityType ? this.mapActivityTypeToEntity(activityType) : null;
   }
 
@@ -205,7 +205,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .set({ ...updates, updatedAt: new Date() })
       .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)))
       .returning();
-    
+
     return this.mapActivityTypeToEntity(activityType);
   }
 
@@ -221,12 +221,12 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       ...availabilityData,
       preferredZones: availabilityData.preferredZones ? JSON.stringify(availabilityData.preferredZones) : null,
     };
-    
+
     const [availability] = await db
       .insert(agentAvailability)
       .values(insertData)
       .returning();
-    
+
     return this.mapAgentAvailabilityToEntity(availability);
   }
 
@@ -236,7 +236,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .from(agentAvailability)
       .where(and(eq(agentAvailability.agentId, agentId), eq(agentAvailability.tenantId, tenantId)))
       .orderBy(asc(agentAvailability.dayOfWeek));
-    
+
     return results.map(this.mapAgentAvailabilityToEntity);
   }
 
@@ -251,7 +251,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
           eq(agentAvailability.dayOfWeek, dayOfWeek)
         )
       );
-    
+
     return availability ? this.mapAgentAvailabilityToEntity(availability) : null;
   }
 
@@ -260,13 +260,13 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     if (updates.preferredZones) {
       updateData.preferredZones = JSON.stringify(updates.preferredZones);
     }
-    
+
     const [availability] = await db
       .update(agentAvailability)
       .set({ ...updateData, updatedAt: new Date() })
       .where(and(eq(agentAvailability.id, id), eq(agentAvailability.tenantId, tenantId)))
       .returning();
-    
+
     return this.mapAgentAvailabilityToEntity(availability);
   }
 
@@ -292,7 +292,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
           scheduleData.id ? sql`${schedules.id} != ${scheduleData.id}` : sql`true`
         )
       );
-    
+
     // Convert to conflict entities
     const conflicts: ScheduleConflictEntity[] = timeOverlaps.map(overlap => ({
       id: '', // Will be generated when created
@@ -305,7 +305,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       isResolved: false,
       createdAt: new Date(),
     }));
-    
+
     return conflicts;
   }
 
@@ -317,7 +317,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
         conflictDetails: conflictData.conflictDetails ? JSON.stringify(conflictData.conflictDetails) : null,
       })
       .returning();
-    
+
     return this.mapConflictToEntity(conflict);
   }
 
@@ -327,7 +327,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       .from(scheduleConflicts)
       .where(and(eq(scheduleConflicts.scheduleId, scheduleId), eq(scheduleConflicts.tenantId, tenantId)))
       .orderBy(desc(scheduleConflicts.createdAt));
-    
+
     return results.map(this.mapConflictToEntity);
   }
 
@@ -367,7 +367,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
           lte(schedules.endDateTime, endDate)
         )
       );
-    
+
     return stats[0] || {
       totalSchedules: 0,
       totalHours: 0,
@@ -399,12 +399,12 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
           lte(schedules.endDateTime, endDate)
         )
       );
-    
+
     const result = overview[0];
     const daysDiff = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
     const totalPossibleMinutes = result.totalAgents * daysDiff * 8 * 60; // 8 hours per day
     const utilizationRate = totalPossibleMinutes > 0 ? (result.totalMinutes / totalPossibleMinutes) * 100 : 0;
-    
+
     return {
       totalAgents: result.totalAgents || 0,
       totalSchedules: result.totalSchedules || 0,
@@ -424,7 +424,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     searchText?: string;
   }): Promise<ScheduleEntity[]> {
     const conditions = [eq(schedules.tenantId, tenantId)];
-    
+
     if (filters.agentIds?.length) {
       conditions.push(inArray(schedules.agentId, filters.agentIds));
     }
@@ -451,13 +451,13 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
         sql`(${schedules.title} ilike ${`%${filters.searchText}%`} or ${schedules.description} ilike ${`%${filters.searchText}%`})`
       );
     }
-    
+
     const results = await db
       .select()
       .from(schedules)
       .where(and(...conditions))
       .orderBy(asc(schedules.startDateTime));
-    
+
     return results.map(this.mapScheduleToEntity);
   }
 
@@ -469,11 +469,11 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     if (!pattern) {
       throw new Error('Recurring pattern is required for recurring schedules');
     }
-    
+
     const scheduleInstances: ScheduleEntity[] = [];
     let currentDate = new Date(baseSchedule.startDateTime);
     const endDate = new Date(recurrenceEnd);
-    
+
     while (currentDate <= endDate) {
       const scheduleData = {
         ...baseSchedule,
@@ -482,10 +482,10 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
         isRecurring: true,
         parentScheduleId: baseSchedule.parentScheduleId,
       };
-      
+
       const schedule = await this.createSchedule(scheduleData);
       scheduleInstances.push(schedule);
-      
+
       // Increment date based on pattern
       switch (pattern.type) {
         case 'daily':
@@ -499,7 +499,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
           break;
       }
     }
-    
+
     return scheduleInstances;
   }
 
@@ -535,10 +535,10 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     const end1 = new Date(schedule1.endDateTime);
     const start2 = new Date(schedule2.startDateTime);
     const end2 = new Date(schedule2.endDateTime);
-    
+
     const overlapStart = new Date(Math.max(start1.getTime(), start2.getTime()));
     const overlapEnd = new Date(Math.min(end1.getTime(), end2.getTime()));
-    
+
     return Math.max(0, (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60));
   }
 }
