@@ -1,7 +1,8 @@
 
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool } from '@neondatabase/serverless';
 import { sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import ws from "ws";
 
 console.log('🔧 INSERINDO DADOS CRÍTICOS: ticket_field_options');
 console.log('📊 Tenant: 3f99462f-3621-4b1b-bea8-782acc50d62e');
@@ -9,8 +10,12 @@ console.log('📊 Tenant: 3f99462f-3621-4b1b-bea8-782acc50d62e');
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres';
 
 async function populateTicketFieldOptions() {
-  const client = postgres(DATABASE_URL);
-  const db = drizzle(client);
+  // Configurar Neon WebSocket
+  const { neonConfig } = await import('@neondatabase/serverless');
+  neonConfig.webSocketConstructor = ws;
+  
+  const pool = new Pool({ connectionString: DATABASE_URL });
+  const db = drizzle({ client: pool });
   
   try {
     console.log('📝 Verificando dados existentes...');
@@ -59,12 +64,12 @@ async function populateTicketFieldOptions() {
     console.log('📊 DADOS INSERIDOS:');
     console.table(final.rows);
     
-    await client.end();
+    await pool.end();
     console.log('🎉 CORREÇÃO CONCLUÍDA - DynamicSelect deve funcionar agora');
     
   } catch (error) {
     console.error('❌ ERRO:', error.message);
-    await client.end();
+    await pool.end();
     process.exit(1);
   }
 }
