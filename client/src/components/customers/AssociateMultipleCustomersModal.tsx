@@ -51,7 +51,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isPrimary, setIsPrimary] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -207,7 +207,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             body: JSON.stringify({
               companyId: company?.id,
               role: 'member',
-              isPrimary,
             }),
           });
 
@@ -254,7 +253,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       
       // Reset form
       setSelectedCustomerIds([]);
-      setIsPrimary(false);
       
       // Notify parent component
       setTimeout(() => {
@@ -273,7 +271,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const handleClose = () => {
     setSelectedCustomerIds([]);
     setSearchTerm('');
-    setIsPrimary(false);
     setError(null);
     setSuccess(null);
     onClose();
@@ -311,14 +308,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isPrimary"
-                checked={isPrimary}
-                onCheckedChange={(checked) => setIsPrimary(checked === true)}
-              />
-              <Label htmlFor="isPrimary">Empresa principal</Label>
-            </div>
+
           </div>
 
           {/* Customer selection */}
