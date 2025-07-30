@@ -36,21 +36,62 @@ async function fixTicketFieldOptions() {
           console.log(`ℹ️  Campo performed_by já existe ou erro: ${error.message}`);
         }
 
-        // Inserir opções básicas se não existirem
-        await pool.query(`
-          INSERT INTO "${schemaName}".ticket_field_options (tenant_id, company_id, field_name, value, display_label, color, is_default, active)
-          VALUES 
-            ($1, gen_random_uuid(), 'status', 'new', 'Novo', '#3b82f6', true, true),
-            ($1, gen_random_uuid(), 'status', 'open', 'Aberto', '#3b82f6', false, true),
-            ($1, gen_random_uuid(), 'status', 'in_progress', 'Em Progresso', '#f59e0b', false, true),
-            ($1, gen_random_uuid(), 'status', 'resolved', 'Resolvido', '#10b981', false, true),
-            ($1, gen_random_uuid(), 'status', 'closed', 'Fechado', '#6b7280', false, true),
-            ($1, gen_random_uuid(), 'priority', 'low', 'Baixa', '#10b981', false, true),
-            ($1, gen_random_uuid(), 'priority', 'medium', 'Média', '#f59e0b', true, true),
-            ($1, gen_random_uuid(), 'priority', 'high', 'Alta', '#f97316', false, true),
-            ($1, gen_random_uuid(), 'priority', 'critical', 'Crítica', '#ef4444', false, true)
-          ON CONFLICT (tenant_id, field_name, value) DO NOTHING
-        `, [tenantId]);
+        // Primeiro, verificar se a coluna field_name existe, se não, criar a estrutura correta
+        try {
+          const columnExists = await pool.query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_schema = $1 AND table_name = 'ticket_field_options' AND column_name = 'field_name'
+          `, [schemaName]);
+
+          if (columnExists.rows.length === 0) {
+            console.log(`  ⚠️ Coluna field_name não existe em ${tenantId}, criando estrutura correta...`);
+            
+            // Dropar e recriar a tabela com estrutura correta
+            await pool.query(`DROP TABLE IF EXISTS "${schemaName}".ticket_field_options CASCADE`);
+            
+            await pool.query(`
+              CREATE TABLE "${schemaName}".ticket_field_options (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                tenant_id UUID NOT NULL,
+                company_id UUID,
+                field_name VARCHAR(50) NOT NULL,
+                option_value VARCHAR(50) NOT NULL,
+                display_label VARCHAR(100) NOT NULL,
+                description TEXT,
+                color_hex VARCHAR(7),
+                icon_name VARCHAR(50),
+                sort_order INTEGER DEFAULT 0,
+                is_default BOOLEAN DEFAULT false,
+                active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP DEFAULT NOW(),
+                UNIQUE(tenant_id, company_id, field_name, option_value)
+              )
+            `);
+            
+            console.log(`  ✅ Tabela ticket_field_options recriada com estrutura correta para ${tenantId}`);
+          }
+
+          // Inserir opções básicas se não existirem
+          await pool.query(`
+            INSERT INTO "${schemaName}".ticket_field_options (tenant_id, company_id, field_name, option_value, display_label, color_hex, is_default, active)
+            VALUES 
+              ($1, NULL, 'status', 'new', 'Novo', '#3b82f6', true, true),
+              ($1, NULL, 'status', 'open', 'Aberto', '#3b82f6', false, true),
+              ($1, NULL, 'status', 'in_progress', 'Em Progresso', '#f59e0b', false, true),
+              ($1, NULL, 'status', 'resolved', 'Resolvido', '#10b981', false, true),
+              ($1, NULL, 'status', 'closed', 'Fechado', '#6b7280', false, true),
+              ($1, NULL, 'priority', 'low', 'Baixa', '#10b981', false, true),
+              ($1, NULL, 'priority', 'medium', 'Média', '#f59e0b', true, true),
+              ($1, NULL, 'priority', 'high', 'Alta', '#f97316', false, true),
+              ($1, NULL, 'priority', 'critical', 'Crítica', '#ef4444', false, true)
+            ON CONFLICT (tenant_id, company_id, field_name, option_value) DO NOTHING
+          `, [tenantId]);
+
+        } catch (error) {
+          console.log(`  ❌ Erro específico ao processar ${tenantId}: ${error.Message}`);
+          continue;
+        }
 
         console.log(`✅ Opções de campo inseridas/verificadas para ${tenantId}`);
       } else {
