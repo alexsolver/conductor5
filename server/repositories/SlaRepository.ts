@@ -1,5 +1,5 @@
 import { and, eq, desc, asc, sql, not, inArray } from "drizzle-orm";
-import { db } from "../db";
+const { db, schemaManager } = require("../../../../db");
 import {
   ticketSlas,
   slaRules,

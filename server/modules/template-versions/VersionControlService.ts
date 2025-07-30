@@ -1,6 +1,6 @@
 
 import { eq, and, desc, asc } from 'drizzle-orm';
-import { db } from '../../db';
+const { db, schemaManager } = require("../../../../db");
 import { templateVersions, templateApprovals, ticketTemplates } from '../../../@shared/schema';
 import * as semver from 'semver';
 

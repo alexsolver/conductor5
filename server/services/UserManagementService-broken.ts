@@ -1,6 +1,6 @@
-import { schemaManager } from '../db';
+import { schemaManager } from "./db";
 import { storageSimple } from '../storage-simple';
-import { db } from '../db';
+import { db } from "./db";
 import { eq, and, or, sql, desc, asc } from 'drizzle-orm';
 // Removed imports - these tables are not defined in schema-master.ts
 // Using basic users and tenants tables instead

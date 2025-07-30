@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { db } from '../db';
+const { db, schemaManager } = require("../../../../db");
 import { 
   ticketFieldConfigurations,
   ticketFieldOptions,

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { CustomFieldsController, AuthenticatedRequest } from './CustomFieldsController.ts';
 import { CustomFieldsRepository } from './CustomFieldsRepository.ts';
 import { jwtAuth } from '../../middleware/jwtAuth.js';
-import { schemaManager } from '../../db.js';
+import { schemaManager } from "../../../../db";
 
 const router = Router();
 

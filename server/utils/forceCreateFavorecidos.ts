@@ -1,4 +1,4 @@
-import { db } from '../db';
+const { db, schemaManager } = require("../../../../db");
 import { sql } from 'drizzle-orm';
 
 export async function forceCreateFavorecidosInAllTenants() {

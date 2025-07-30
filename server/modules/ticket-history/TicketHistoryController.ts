@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { pool } from "../../db";
+const { pool } = require("../db.js");
 
 interface AuthenticatedRequest extends Request {
   user?: {

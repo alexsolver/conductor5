@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { db, pool } from '../db';
+const { db, schemaManager } = require("../../../../db");
 
 // ===========================
 // ENTERPRISE MONITORING & OBSERVABILITY SYSTEM

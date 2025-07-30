@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from '../db';
+import { db } from "./db";
 import { sql } from 'drizzle-orm';
 import { storage } from '../storage';
 

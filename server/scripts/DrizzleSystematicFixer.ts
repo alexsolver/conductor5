@@ -358,9 +358,9 @@ ${content}`;
     if (existsSync(schemaManagerPath)) {
       const migrationContent = `// MIGRATED: HARDCODED SQL CONFLITANTE REMOVIDO
 // Todo SQL hardcoded foi migrado para server/db.ts com compatibilidade Drizzle
-// Uso: import { schemaManager } from 'server/db';
+// Uso: import { schemaManager } from "./db";
 
-export { schemaManager } from "../../../../db";
+export { schemaManager } from "./db";
 
 // DEPRECATED: Lógica SQL hardcoded removida para evitar conflitos
 // Motivo: Conflitos com definições Drizzle schema em schema-master.ts

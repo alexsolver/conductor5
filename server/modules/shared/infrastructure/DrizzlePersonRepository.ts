@@ -1,6 +1,6 @@
 // Drizzle implementation of person repository
 import { eq, or, ilike, and, sql } from "drizzle-orm";
-import { db } from "../../../db";
+const { db, schemaManager } = require("../../../../db");
 import { users, customers } from "@shared/schema";
 import { IPersonRepository, Person, PersonSearchOptions } from "../repositories/IPersonRepository";
 

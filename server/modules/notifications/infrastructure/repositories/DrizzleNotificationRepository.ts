@@ -6,7 +6,7 @@
 import { eq, and, desc, count, sql } from 'drizzle-orm';
 import { Notification } from '../../domain/entities/Notification';
 import { INotificationRepository } from '../../domain/ports/INotificationRepository';
-import { schemaManager } from '../../../../db';
+import { schemaManager } from "../../../../db";
 
 export class DrizzleNotificationRepository implements INotificationRepository {
   async save(notification: Notification): Promise<void> {

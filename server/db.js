@@ -1,17 +1,17 @@
-// EMERGENCY DATABASE MANAGER - ES6 VERSION
-// Fixed for Node.js ES module compatibility
+// EMERGENCY DATABASE MANAGER - COMMONJS VERSION
+// Fixes Node.js ES6/CommonJS import conflicts
 
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { sql } from 'drizzle-orm';
-import ws from "ws";
-import * as schema from "../shared/schema";
+const { Pool, neonConfig } = require('@neondatabase/serverless');
+const { drizzle } = require('drizzle-orm/neon-serverless');
+const { sql } = require('drizzle-orm');
+const ws = require("ws");
+const schema = require("../shared/schema");
 
 // CRITICAL FIX: Patch ErrorEvent bug in Neon driver
 const originalErrorEvent = globalThis.ErrorEvent;
 if (originalErrorEvent) {
   globalThis.ErrorEvent = class PatchedErrorEvent extends originalErrorEvent {
-    constructor(type: any, eventInitDict: any) {
+    constructor(type, eventInitDict) {
       super(type, eventInitDict);
       Object.defineProperty(this, 'message', {
         value: eventInitDict?.message || '',
@@ -28,7 +28,7 @@ neonConfig.useSecureWebSocket = false;
 neonConfig.pipelineConnect = false;
 neonConfig.poolQueryViaFetch = true;
 
-export const pool = new Pool({ 
+const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 30000,
@@ -40,15 +40,18 @@ export const pool = new Pool({
   retryDelay: 2000
 });
 
-export const db = drizzle({ client: pool, schema });
+const db = drizzle({ client: pool, schema });
 
 // Simple schemaManager for backward compatibility
-export const schemaManager = {
+const schemaManager = {
   query: pool.query.bind(pool)
 };
 
-// Re-export everything
-export { sql, schema };
-
-// Default export for CommonJS compatibility
-export default { pool, db, sql, schema, schemaManager };
+// Export everything
+module.exports = {
+  pool,
+  db,
+  sql,
+  schema,
+  schemaManager
+};

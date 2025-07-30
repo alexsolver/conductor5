@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { DrizzleHolidayRepository } from '../repositories/DrizzleHolidayRepository';
 import { insertHolidaySchema } from '../../shared/schema.js';
-import { pool } from '../db';
+const { pool } = require("../db.js");
 
 const router = Router();
 const holidayRepository = new DrizzleHolidayRepository(pool);

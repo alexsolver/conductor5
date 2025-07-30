@@ -1,5 +1,5 @@
 import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm';
-import { db } from '../../../../db';
+const { db, schemaManager } = require("../../../../db");
 import { userSkills, skills as technicalSkills, users, certifications } from '../../../../../shared/schema';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';

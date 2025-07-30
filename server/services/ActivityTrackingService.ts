@@ -1,6 +1,6 @@
 
 import { Request } from 'express';
-import { db } from '../db';
+import { db } from "./db";
 import { sql } from 'drizzle-orm';
 
 interface ActivityData {

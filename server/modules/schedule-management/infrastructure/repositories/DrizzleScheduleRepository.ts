@@ -1,6 +1,6 @@
 // Drizzle Schedule Repository - Infrastructure Layer
 import { eq, and, gte, lte, desc, asc, inArray, like, sql } from 'drizzle-orm';
-import { db, pool } from '../../../../db';
+const { db, schemaManager } = require("../../../../db");
 import { 
   schedules, 
   activityTypes, 

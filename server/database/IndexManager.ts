@@ -2,7 +2,7 @@
 // Resolves duplicate indexes and implements tenant-first indexing strategy
 
 import { sql } from 'drizzle-orm';
-import { db } from '../db';
+const { db, schemaManager } = require("../../../../db");
 
 export class IndexManager {
   private static instance: IndexManager;

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { TicketViewsRepository } from '../repositories/TicketViewsRepository';
-import { pool } from '../db';
+const { pool } = require("../db.js");
 import { insertTicketListViewSchema } from '../../shared/schema.js';
 import { z } from 'zod';
 

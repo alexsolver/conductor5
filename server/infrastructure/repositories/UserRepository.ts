@@ -1,7 +1,7 @@
 // User Repository Implementation
 import { User } from "../../domain/entities/User";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { db } from "../../db";
+import { db } from "./db";
 import { users } from "../../../shared/schema";
 import { eq, desc, count } from "drizzle-orm";
 import { logError } from "../../utils/logger";

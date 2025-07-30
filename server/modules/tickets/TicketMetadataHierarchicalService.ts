@@ -4,7 +4,7 @@
  * Resolution order: Customer → Tenant → System defaults
  */
 
-import { pool } from '../../db';
+const { pool } = require("../db.js");
 
 // System default configurations for fallback
 const SYSTEM_DEFAULT_CONFIGS = {

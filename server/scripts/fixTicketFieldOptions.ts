@@ -1,5 +1,5 @@
 
-import { pool } from '../db';
+const { pool } = require("../db.js");
 
 async function fixTicketFieldOptions() {
   console.log('🔧 Corrigindo opções de campos de ticket...');

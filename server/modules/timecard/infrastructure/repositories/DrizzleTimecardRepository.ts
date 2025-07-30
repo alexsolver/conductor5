@@ -1,5 +1,5 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
-import { db } from '../../../../db';
+const { db, schemaManager } = require("../../../../db");
 import { 
   timecardEntries, 
   hourBankEntries,

@@ -40,7 +40,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect']);
   const [fieldOptions, setFieldOptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   // Obter tenant_id do user context
   const tenantId = user?.tenantId;
@@ -50,19 +50,19 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
     setIsLoading(true);
     try {
-      const token = token || localStorage.getItem('accessToken') || 
+      const authToken = localStorage.getItem('accessToken') || 
                localStorage.getItem('token') || 
                sessionStorage.getItem('accessToken') || 
                'missing';
-      const tenantId = tenantId || localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
+      const userTenantId = tenantId || localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
 
-      if (!token) {
+      if (!authToken) {
         console.warn('Missing authentication token for field options');
         setIsLoading(false);
         return;
       }
 
-      if (!tenantId) {
+      if (!userTenantId) {
         console.warn('Missing tenantId for field options');
         setIsLoading(false);
         return;
@@ -70,8 +70,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
       const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-tenant-id': tenantId,
+          'Authorization': `Bearer ${authToken}`,
+          'x-tenant-id': userTenantId,
           'Content-Type': 'application/json'
         }
       });

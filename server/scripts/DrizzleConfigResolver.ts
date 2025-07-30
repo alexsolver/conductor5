@@ -2,7 +2,7 @@
 // Corrige inconsistências críticas de schema path e validação de tabelas
 
 import { sql } from 'drizzle-orm';
-import { db } from '../db';
+const { db, schemaManager } = require("../../../../db");
 
 export class DrizzleConfigResolver {
   

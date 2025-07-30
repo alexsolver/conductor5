@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
-import { db } from "./db";
+const { db, schemaManager } = require("../../../../db");
 import { users, customers, tickets, tenants } from "@shared/schema";
 
 const app = express();
