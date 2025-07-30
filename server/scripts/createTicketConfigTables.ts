@@ -70,21 +70,43 @@ async function createTicketConfigTables() {
 
       console.log(`📊 Tabelas criadas: ${tableCheck.rows.length} colunas encontradas`);
 
-      // 4. Criar índices para performance (somente APÓS as tabelas estarem completas)
-      await db.execute(`
-        CREATE INDEX IF NOT EXISTS idx_ticket_field_configs_tenant_customer 
-        ON "${schemaName}".ticket_field_configurations(tenant_id, customer_id)
+      // 4. Verificar se as colunas necessárias existem antes de criar índices
+      const columnCheck = await db.execute(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'ticket_field_options' 
+        AND column_name = 'field_config_id'
       `);
 
-      await db.execute(`
-        CREATE INDEX IF NOT EXISTS idx_ticket_field_options_config_id 
-        ON "${schemaName}".ticket_field_options(field_config_id)
-      `);
+      if (columnCheck.rows.length === 0) {
+        throw new Error(`Coluna field_config_id não encontrada na tabela ticket_field_options do schema ${schemaName}`);
+      }
 
-      await db.execute(`
-        CREATE INDEX IF NOT EXISTS idx_ticket_field_options_tenant_customer 
-        ON "${schemaName}".ticket_field_options(tenant_id, customer_id)
-      `);
+      console.log(`✅ Coluna field_config_id verificada para tenant ${tenant.name}`);
+
+      // 5. Criar índices para performance (somente APÓS verificar que as colunas existem)
+      try {
+        await db.execute(`
+          CREATE INDEX IF NOT EXISTS idx_ticket_field_configs_tenant_customer 
+          ON "${schemaName}".ticket_field_configurations(tenant_id, customer_id)
+        `);
+
+        await db.execute(`
+          CREATE INDEX IF NOT EXISTS idx_ticket_field_options_config_id 
+          ON "${schemaName}".ticket_field_options(field_config_id)
+        `);
+
+        await db.execute(`
+          CREATE INDEX IF NOT EXISTS idx_ticket_field_options_tenant_customer 
+          ON "${schemaName}".ticket_field_options(tenant_id, customer_id)
+        `);
+
+        console.log(`✅ Índices criados para tenant ${tenant.name}`);
+      } catch (indexError) {
+        console.error(`⚠️ Erro ao criar índices para tenant ${tenant.name}:`, indexError.message);
+        // Continuar com o próximo tenant mesmo se houver erro nos índices
+      }
 
       console.log(`✅ Tabelas criadas para tenant ${tenant.name}`);
     }
