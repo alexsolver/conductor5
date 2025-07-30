@@ -39,6 +39,7 @@ const beneficiarySchema = z.object({
   cpfCnpj: z.string().optional(),
   isActive: z.boolean().default(true),
   customerCode: z.string().optional(),
+  customerId: z.string().optional(),
   phone: z.string().optional(),
   cellPhone: z.string().optional(),
   contactPerson: z.string().optional(),

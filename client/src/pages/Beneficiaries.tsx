@@ -34,6 +34,8 @@ import {
   Users
 } from "lucide-react";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -47,6 +49,7 @@ const beneficiarySchema = z.object({
   cpfCnpj: z.string().optional(),
   isActive: z.boolean().default(true),
   customerCode: z.string().optional(),
+  customerId: z.string().optional(),
   phone: z.string().optional(),
   cellPhone: z.string().optional(),
   contactPerson: z.string().optional(),
@@ -67,6 +70,7 @@ interface Beneficiary {
   cpfCnpj?: string;
   isActive?: boolean;
   customerCode?: string;
+  customerId?: string;
   phone?: string;
   cellPhone?: string;
   contactPerson?: string;
@@ -81,6 +85,7 @@ interface Beneficiary {
   cpf_cnpj?: string;
   is_active?: boolean;
   customer_code?: string;
+  customer_id?: string;
   cell_phone?: string;
   contact_person?: string;
   contact_phone?: string;
@@ -110,6 +115,7 @@ export default function Beneficiaries() {
       cpfCnpj: "",
       isActive: true,
       customerCode: "",
+      customerId: "",
       phone: "",
       cellPhone: "",
       contactPerson: "",
@@ -147,6 +153,12 @@ export default function Beneficiaries() {
       const data = await response.json();
       return data;
     },
+  });
+
+  // Query for customers
+  const { data: customersData } = useQuery({
+    queryKey: ["/api/customers"],
+    enabled: true,
   });
 
   // Create beneficiary mutation
@@ -266,6 +278,7 @@ export default function Beneficiaries() {
       cpfCnpj: beneficiary.cpf_cnpj || beneficiary.cpfCnpj || "",
       isActive: beneficiary.is_active !== undefined ? beneficiary.is_active : beneficiary.isActive !== undefined ? beneficiary.isActive : true,
       customerCode: beneficiary.customer_code || beneficiary.customerCode || "",
+      customerId: beneficiary.customer_id || beneficiary.customerId || "",
       phone: beneficiary.phone || "",
       cellPhone: beneficiary.cell_phone || beneficiary.cellPhone || "",
       contactPerson: beneficiary.contact_person || beneficiary.contactPerson || "",
@@ -343,6 +356,31 @@ export default function Beneficiaries() {
                   <FormControl>
                     <Input type="email" placeholder="email@exemplo.com" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="customerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cliente</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {customersData?.data?.customers?.map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name || customer.companyName || customer.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
