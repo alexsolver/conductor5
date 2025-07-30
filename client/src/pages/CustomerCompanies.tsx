@@ -685,8 +685,14 @@ export default function CustomerCompanies() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const updatedData = { ...company, status: 'inactive' };
-                            updateCompanyMutation.mutate({ id: company.id, data: updatedData });
+                            // Send only the fields that need to be updated
+                            const updateData = { 
+                              status: 'inactive',
+                              // Include required fields to avoid validation issues
+                              name: company.name,
+                              subscriptionTier: company.subscriptionTier || 'basic'
+                            };
+                            updateCompanyMutation.mutate({ id: company.id, data: updateData });
                           }}
                           disabled={updateCompanyMutation.isPending}
                           className="text-orange-600 hover:text-orange-700"

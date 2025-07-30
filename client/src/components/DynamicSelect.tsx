@@ -50,7 +50,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         }
 
         setIsLoading(true);
-        
+
         // Use the new ticket-config API with automatic fallback to Default company
         const response = await fetch(`/api/ticket-config/field-options`, {
           method: 'GET',
@@ -65,13 +65,13 @@ export function DynamicSelect(props: DynamicSelectProps) {
         }
 
         const result = await response.json();
-        
+
         if (result.success && Array.isArray(result.data)) {
           // Filter options for this specific field
           const filteredOptions = result.data.filter((option: any) => 
             option.field_name === fieldName
           );
-          
+
           console.log(`DynamicSelect ${fieldName}: Found ${filteredOptions.length} options from API`);
           setFieldOptions(filteredOptions);
         } else {

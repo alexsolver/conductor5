@@ -55,14 +55,23 @@ export const useTicketMetadata = () => {
           console.log(`🔄 Fetched fresh field options for ${fieldName}`);
         }
 
-        // Filter options for specific field
-        const filteredOptions = allOptions.filter((option: any) => 
-          option.field_name === fieldName
-        ).map((option: any) => ({
+        // Filter options for specific field and exclude inactive companies
+        const filteredOptions = allOptions.filter((option: any) => {
+          // Basic field filter
+          if (option.field_name !== fieldName) return false;
+          
+          // For customer_company_id field, filter out inactive companies
+          if (fieldName === 'customer_company_id' && option.status === 'inactive') {
+            return false;
+          }
+          
+          return true;
+        }).map((option: any) => ({
           value: option.value,
           label: option.label,
           color: option.color,
-          isDefault: option.is_default
+          isDefault: option.is_default,
+          status: option.status
         }));
 
         // Sort options to put Default company first
