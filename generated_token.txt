@@ -1,0 +1,9 @@
+Generated token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJ0ZW5hbnRfYWRtaW4iLCJ0ZW5hbnRJZCI6IjNmOTk0NjJmLTM2MjEtNGIxYi1iZWE4LTc4MmFjYzUwZDYyZSIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTM5MTAxNTUsImV4cCI6MTc1Mzk5NjU1NSwiYXVkIjoiY29uZHVjdG9yLXVzZXJzIiwiaXNzIjoiY29uZHVjdG9yLXBsYXRmb3JtIn0.h3SjxcUcuipLZO0j1bCt617yMuUmLR-2BG8jC23nqAc
+Token payload: {
+  userId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
+  email: 'alex@lansolver.com',
+  role: 'tenant_admin',
+  tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
+  type: 'access'
+}
+Secret used: dev-access-299d4ab25...

@@ -36,8 +36,18 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Verify JWT token
     const payload = tokenService.verifyAccessToken(token);
     if (!payload) {
+      console.error('🚨 Token verification failed:', { 
+        tokenLength: token.length,
+        tokenStart: token.substring(0, 20) + '...'
+      });
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
+
+    console.log('✅ Token verified successfully:', { 
+      userId: payload.userId,
+      email: payload.email,
+      tenantId: payload.tenantId 
+    });
 
     // Verify user exists and is active
     const userRepository = container.userRepository;
@@ -66,14 +76,18 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       console.log(`[AUTH] Parts-Services access granted for tenant: ${req.user.tenantId}`);
     }
 
-    // Debug: Uncomment for troubleshooting permission issues
-    // console.log('🔑 JWT Debug - User authenticated with permissions:', {
-    //   id: user.id,
-    //   email: user.email, 
-    //   role: user.role,
-    //   tenantId: user.tenantId,
-    //   permissionsCount: permissions.length
-    // });
+    // Debug: Token payload and user authentication
+    console.log('🔑 JWT Debug - User authenticated:', {
+      tokenPayload: payload,
+      userFromDB: {
+        id: user.id,
+        email: user.email, 
+        role: user.role,
+        tenantId: user.tenantId
+      },
+      requestTenantId: req.user?.tenantId,
+      permissionsCount: permissions.length
+    });
 
     next();
   } catch (error) {
