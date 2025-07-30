@@ -4,7 +4,7 @@ import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware';
 import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
-import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '@shared/schema';
+import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 

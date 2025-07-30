@@ -8,7 +8,7 @@ import {
   scheduleConflicts,
   users,
   customers 
-} from '@shared/schema';
+} from '../../../../../shared/schema.js';
 import { IScheduleRepository } from '../../application/repositories/IScheduleRepository';
 import { ScheduleEntity, ActivityTypeEntity, AgentAvailabilityEntity, ScheduleConflictEntity } from '../../domain/entities/Schedule';
 

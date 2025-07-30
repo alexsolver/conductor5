@@ -4,7 +4,7 @@
  */
 
 import { db } from '../db';
-import { tickets } from '@shared/schema';
+import { tickets } from '../../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 class TicketNumberGenerator {

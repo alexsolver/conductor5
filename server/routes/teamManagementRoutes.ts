@@ -8,7 +8,7 @@ import {
   performanceEvaluations,
   userActivityLogs,
   userSessions 
-} from '@shared/schema';
+} from '../../shared/schema.js';
 import { eq, and, count, sql, desc, gte, avg, isNull, or, not } from 'drizzle-orm';
 
 const router = Router();

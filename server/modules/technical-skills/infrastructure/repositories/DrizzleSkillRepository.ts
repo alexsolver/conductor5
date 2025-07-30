@@ -3,7 +3,7 @@ import { NeonDatabase } from '@neondatabase/serverless';
 import { Skill } from '../../domain/entities/Skill';
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 import { db } from '../../../../db';
-import { skills } from '@shared/schema';
+import { skills } from '../../../../../shared/schema.js';
 import winston from 'winston';
 
 export class DrizzleSkillRepository implements ISkillRepository {
