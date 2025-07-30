@@ -1,0 +1,79 @@
+🚀 INICIANDO CONFIGURAÇÃO DE METADATA DE TICKETS
+📊 Encontrados 4 tenants ativos
+🔧 Configurando metadata para tenant: Tenant 715c510a (715c510a-3db5-4510-880a-9a1a5c320100)
+⚠️ Tabelas de configuração não encontradas para tenant_715c510a_3db5_4510_880a_9a1a5c320100
+ℹ️ Execute primeiro o script createTicketConfigTables.js
+🔧 Configurando metadata para tenant: Tenant 78a4c88e (78a4c88e-0e85-4f7c-ad92-f472dad50d7a)
+⚠️ Tabelas de configuração não encontradas para tenant_78a4c88e_0e85_4f7c_ad92_f472dad50d7a
+ℹ️ Execute primeiro o script createTicketConfigTables.js
+🔧 Configurando metadata para tenant: Tenant cb9056df (cb9056df-d964-43d7-8fd8-b0cc00a72056)
+⚠️ Tabelas de configuração não encontradas para tenant_cb9056df_d964_43d7_8fd8_b0cc00a72056
+ℹ️ Execute primeiro o script createTicketConfigTables.js
+🔧 Configurando metadata para tenant: Lan Solver (3f99462f-3621-4b1b-bea8-782acc50d62e)
+❌ ERRO ao configurar metadata: error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at initializeTicketMetadata (/home/runner/workspace/server/scripts/temp-initialize-metadata.ts:36:7) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '269',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+❌ Erro na execução: error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at initializeTicketMetadata (/home/runner/workspace/server/scripts/temp-initialize-metadata.ts:36:7) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '269',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+node:internal/errors:984
+  const err = new Error(message);
+              ^
+
+Error: Command failed: npx tsx /home/runner/workspace/server/scripts/temp-initialize-metadata.ts
+    at genericNodeError (node:internal/errors:984:15)
+    at wrappedFn (node:internal/errors:538:14)
+    at checkExecSyncError (node:child_process:890:11)
+    at execSync (node:child_process:962:15)
+    at file:///home/runner/workspace/server/scripts/initializeTicketMetadata.js:158:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:222:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:323:24)
+    at async loadESM (node:internal/process/esm_loader:28:7)
+    at async handleMainPromise (node:internal/modules/run_main:113:12) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 17953,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v20.12.2
