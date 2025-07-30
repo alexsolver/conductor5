@@ -508,55 +508,81 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    const companyId = req.query.companyId as string;
+    let companyId = req.query.companyId as string;
 
     if (!tenantId) {
       return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
+    // Se nenhuma empresa foi selecionada, usar a empresa padrão Default
     if (!companyId) {
-      return res.status(400).json({ success: false, message: "Company ID is required" });
+      companyId = '00000000-0000-0000-0000-000000000001'; // Empresa Default
+      console.log('🎯 No company selected, using Default company for field options');
     }
 
     console.log('🔍 Fetching field options for:', { tenantId, companyId });
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    const result = await db.execute(sql`
+    // Primeiro, tentar buscar configurações específicas da empresa
+    let result = await db.execute(sql`
       SELECT 
         id,
         tenant_id,
-        company_id,
+        customer_id,
         field_name,
         value,
-        display_label,
+        label,
         color,
-        icon,
-        is_default,
-        active,
         sort_order,
-        status_type,
+        is_active,
+        is_default,
         created_at,
         updated_at
       FROM "${sql.raw(schemaName)}".ticket_field_options 
       WHERE tenant_id = ${tenantId}
-      AND company_id = ${companyId}
-      AND active = true 
-      ORDER BY field_name, sort_order, display_label
+      AND customer_id = ${companyId}
+      AND is_active = true 
+      ORDER BY field_name, sort_order, label
     `);
+
+    // Se não encontrar configurações específicas e não for a empresa Default, buscar na Default
+    if (result.rows.length === 0 && companyId !== '00000000-0000-0000-0000-000000000001') {
+      console.log('🔄 No specific company config found, falling back to Default company');
+      result = await db.execute(sql`
+        SELECT 
+          id,
+          tenant_id,
+          customer_id,
+          field_name,
+          value,
+          label,
+          color,
+          sort_order,
+          is_active,
+          is_default,
+          created_at,
+          updated_at
+        FROM "${sql.raw(schemaName)}".ticket_field_options 
+        WHERE tenant_id = ${tenantId}
+        AND customer_id = '00000000-0000-0000-0000-000000000001'
+        AND is_active = true 
+        ORDER BY field_name, sort_order, label
+      `);
+    }
 
     console.log('🔍 Field options query result for company:', companyId, {
       totalRows: result.rows.length,
-      byFieldName: result.rows.reduce((acc, row) => {
+      byFieldName: result.rows.reduce((acc: any, row: any) => {
         acc[row.field_name] = (acc[row.field_name] || 0) + 1;
         return acc;
       }, {}),
-      statusRows: result.rows.filter(row => row.field_name === 'status').map(row => ({
+      statusRows: result.rows.filter((row: any) => row.field_name === 'status').map((row: any) => ({
         id: row.id,
         value: row.value,
-        label: row.display_label,
-        status_type: row.status_type,
-        company_id: row.company_id,
+        label: row.label,
+        is_default: row.is_default,
+        customer_id: row.customer_id,
         created_at: row.created_at
       }))
     });
