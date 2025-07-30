@@ -113,6 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.refreshToken) {
         localStorage.setItem('refreshToken', result.refreshToken);
       }
+      // Store tenantId for quick access by components
+      if (result.user?.tenantId) {
+        localStorage.setItem('tenantId', result.user.tenantId);
+      }
       queryClient.setQueryData(['/api/auth/user'], result.user);
       toast({
         title: 'Login successful',
@@ -145,6 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
       localStorage.setItem('accessToken', result.accessToken);
+      // Store tenantId for quick access by components
+      if (result.user?.tenantId) {
+        localStorage.setItem('tenantId', result.user.tenantId);
+      }
       queryClient.setQueryData(['/api/auth/user'], result.user);
 
       if (result.tenant) {
@@ -185,6 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tenantId');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
       toast({

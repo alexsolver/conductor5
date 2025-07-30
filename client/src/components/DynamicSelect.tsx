@@ -48,56 +48,106 @@ export function DynamicSelect(props: DynamicSelectProps) {
   useEffect(() => {
     const fetchFieldOptions = async () => {
       try {
-        // Enhanced token retrieval with multiple fallbacks
+        // Enhanced token retrieval with comprehensive fallbacks and debugging
       const getToken = () => {
-        // Try localStorage first
-        const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
-        if (accessToken) return accessToken;
+        // Check all possible localStorage keys
+        const localKeys = ['accessToken', 'token', 'access_token', 'authToken'];
+        for (const key of localKeys) {
+          const token = localStorage.getItem(key);
+          if (token) {
+            console.log(`🔑 Token found in localStorage:${key}`, token.substring(0, 20) + '...');
+            return token;
+          }
+        }
 
-        // Try sessionStorage
-        const sessionToken = sessionStorage.getItem('accessToken') || sessionStorage.getItem('token');
-        if (sessionToken) return sessionToken;
+        // Check sessionStorage
+        for (const key of localKeys) {
+          const token = sessionStorage.getItem(key);
+          if (token) {
+            console.log(`🔑 Token found in sessionStorage:${key}`, token.substring(0, 20) + '...');
+            return token;
+          }
+        }
 
-        // Try document.cookie as last resort
+        // Try document.cookie
         const cookies = document.cookie.split(';');
         for (let cookie of cookies) {
           const [name, value] = cookie.trim().split('=');
-          if (name === 'accessToken' || name === 'token') {
+          if (localKeys.includes(name) && value) {
+            console.log(`🔑 Token found in cookie:${name}`, value.substring(0, 20) + '...');
             return value;
           }
         }
+
+        console.warn('🚫 No token found in any storage location');
         return null;
       };
 
-      // Enhanced tenant ID extraction from token and context
+      // Enhanced tenant ID extraction with comprehensive debugging
       const getTenantId = (token) => {
+        console.log('🔍 getTenantId called with:', { 
+          tokenPresent: !!token, 
+          propTenantId: tenantId,
+          tokenLength: token?.length 
+        });
+
         // First try from props/context
-        if (tenantId) return tenantId;
+        if (tenantId) {
+          console.log('✅ Using tenantId from props:', tenantId);
+          return tenantId;
+        }
 
         // Try to extract from token payload
         if (token) {
           try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log('🔍 Token payload debug:', { 
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+              console.warn('🚫 Invalid JWT format - expected 3 parts, got:', parts.length);
+              return null;
+            }
+
+            const payload = JSON.parse(atob(parts[1]));
+            console.log('🔍 Token payload extracted:', { 
               tenantId: payload.tenantId, 
               tenant_id: payload.tenant_id,
+              userId: payload.userId,
+              email: payload.email,
               allKeys: Object.keys(payload) 
             });
-            if (payload.tenantId) return payload.tenantId;
-            if (payload.tenant_id) return payload.tenant_id;
+
+            if (payload.tenantId) {
+              console.log('✅ Using tenantId from token payload:', payload.tenantId);
+              return payload.tenantId;
+            }
+            if (payload.tenant_id) {
+              console.log('✅ Using tenant_id from token payload:', payload.tenant_id);
+              return payload.tenant_id;
+            }
           } catch (error) {
-            console.warn('Could not parse token for tenantId:', error);
+            console.error('❌ Could not parse token for tenantId:', error);
           }
         }
 
         // Try from localStorage
-        const storedTenantId = localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
-        if (storedTenantId) return storedTenantId;
+        const tenantKeys = ['tenantId', 'tenant_id', 'currentTenantId'];
+        for (const key of tenantKeys) {
+          const storedTenantId = localStorage.getItem(key);
+          if (storedTenantId) {
+            console.log(`✅ Using tenantId from localStorage:${key}:`, storedTenantId);
+            return storedTenantId;
+          }
+        }
 
         // Try from sessionStorage
-        const sessionTenantId = sessionStorage.getItem('tenantId') || sessionStorage.getItem('tenant_id');
-        if (sessionTenantId) return sessionTenantId;
+        for (const key of tenantKeys) {
+          const sessionTenantId = sessionStorage.getItem(key);
+          if (sessionTenantId) {
+            console.log(`✅ Using tenantId from sessionStorage:${key}:`, sessionTenantId);
+            return sessionTenantId;
+          }
+        }
 
+        console.warn('🚫 No tenantId found in any location');
         return null;
       };
 
