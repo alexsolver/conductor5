@@ -1,6 +1,19 @@
+
+#!/usr/bin/env node
+
 // INICIALIZAÇÃO DE CONFIGURAÇÕES DE METADATA DE TICKETS
 // Corrige o problema de dropdowns vazios (priority, status, etc.)
 
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '../..');
+
+// Executar usando tsx para processar TypeScript
+const tsxScript = `
 import { db } from '../db.ts';
 
 async function initializeTicketMetadata() {
@@ -8,26 +21,40 @@ async function initializeTicketMetadata() {
 
   try {
     // Buscar todos os tenants ativos
-    const tenants = await db.execute(`
+    const tenants = await db.execute(\`
       SELECT id, name FROM public.tenants WHERE is_active = true
-    `);
+    \`);
 
-    console.log(`📊 Encontrados ${tenants.rows.length} tenants ativos`);
+    console.log(\`📊 Encontrados \${tenants.rows.length} tenants ativos\`);
 
     for (const tenant of tenants.rows) {
       const tenantId = tenant.id;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const schemaName = \`tenant_\${tenantId.replace(/-/g, '_')}\`;
 
-      console.log(`🔧 Configurando metadata para tenant: ${tenant.name} (${tenantId})`);
+      console.log(\`🔧 Configurando metadata para tenant: \${tenant.name} (\${tenantId})\`);
+
+      // Verificar se as tabelas de configuração existem
+      const configTableExists = await db.execute(\`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = '\${schemaName}' 
+        AND table_name = 'ticket_field_configurations'
+      \`);
+
+      if (configTableExists.rows.length === 0) {
+        console.log(\`⚠️ Tabelas de configuração não encontradas para \${schemaName}\`);
+        console.log(\`ℹ️ Execute primeiro o script createTicketConfigTables.js\`);
+        continue;
+      }
 
       // 1. CONFIGURAÇÕES DE CAMPO - PRIORITY
-      await db.execute(`
-        INSERT INTO "${schemaName}".ticket_field_configurations 
+      await db.execute(\`
+        INSERT INTO "\${schemaName}".ticket_field_configurations 
         (id, tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)
         VALUES 
         (gen_random_uuid(), $1, NULL, 'priority', 'Prioridade', 'select', true, true, 1, true)
         ON CONFLICT (tenant_id, customer_id, field_name) DO NOTHING
-      `, [tenantId]);
+      \`, [tenantId]);
 
       // 2. OPÇÕES DE PRIORIDADE
       const priorityOptions = [
@@ -39,8 +66,8 @@ async function initializeTicketMetadata() {
       ];
 
       for (const option of priorityOptions) {
-        await db.execute(`
-          INSERT INTO "${schemaName}".ticket_field_options 
+        await db.execute(\`
+          INSERT INTO "\${schemaName}".ticket_field_options 
           (id, tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default, is_active)
           SELECT 
             gen_random_uuid(), 
@@ -53,20 +80,20 @@ async function initializeTicketMetadata() {
             $5, 
             $6, 
             true
-          FROM "${schemaName}".ticket_field_configurations tfc 
+          FROM "\${schemaName}".ticket_field_configurations tfc 
           WHERE tfc.field_name = 'priority' AND tfc.customer_id IS NULL
           ON CONFLICT (tenant_id, customer_id, field_config_id, option_value) DO NOTHING
-        `, [tenantId, option.value, option.label, option.color, option.order, option.value === 'medium']);
+        \`, [tenantId, option.value, option.label, option.color, option.order, option.value === 'medium']);
       }
 
       // 3. CONFIGURAÇÕES DE CAMPO - STATUS  
-      await db.execute(`
-        INSERT INTO "${schemaName}".ticket_field_configurations 
+      await db.execute(\`
+        INSERT INTO "\${schemaName}".ticket_field_configurations 
         (id, tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)
         VALUES 
         (gen_random_uuid(), $1, NULL, 'status', 'Status', 'select', true, true, 2, true)
         ON CONFLICT (tenant_id, customer_id, field_name) DO NOTHING
-      `, [tenantId]);
+      \`, [tenantId]);
 
       // 4. OPÇÕES DE STATUS
       const statusOptions = [
@@ -79,8 +106,8 @@ async function initializeTicketMetadata() {
       ];
 
       for (const option of statusOptions) {
-        await db.execute(`
-          INSERT INTO "${schemaName}".ticket_field_options 
+        await db.execute(\`
+          INSERT INTO "\${schemaName}".ticket_field_options 
           (id, tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default, is_active)
           SELECT 
             gen_random_uuid(), 
@@ -93,13 +120,13 @@ async function initializeTicketMetadata() {
             $5, 
             $6, 
             true
-          FROM "${schemaName}".ticket_field_configurations tfc 
+          FROM "\${schemaName}".ticket_field_configurations tfc 
           WHERE tfc.field_name = 'status' AND tfc.customer_id IS NULL
           ON CONFLICT (tenant_id, customer_id, field_config_id, option_value) DO NOTHING
-        `, [tenantId, option.value, option.label, option.color, option.order, option.value === 'new']);
+        \`, [tenantId, option.value, option.label, option.color, option.order, option.value === 'new']);
       }
 
-      console.log(`✅ Metadata configurada para tenant ${tenant.name}`);
+      console.log(\`✅ Metadata configurada para tenant \${tenant.name}\`);
     }
 
     console.log('🎉 CONFIGURAÇÃO DE METADATA CONCLUÍDA COM SUCESSO!');
@@ -113,16 +140,31 @@ async function initializeTicketMetadata() {
 }
 
 // Executar se chamado diretamente
-if (import.meta.url === `file://${process.argv[1]}`) {
-  initializeTicketMetadata()
-    .then(() => {
-      console.log('✅ Script executado com sucesso');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Erro na execução:', error);
-      process.exit(1);
-    });
-}
+initializeTicketMetadata()
+  .then(() => {
+    console.log('✅ Script executado com sucesso');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Erro na execução:', error);
+    process.exit(1);
+  });
+`;
 
-export { initializeTicketMetadata };
+// Criar arquivo temporário e executar com tsx
+import { writeFileSync, unlinkSync } from 'fs';
+const tempFile = join(__dirname, 'temp-initialize-metadata.ts');
+
+try {
+  writeFileSync(tempFile, tsxScript);
+  execSync(`npx tsx ${tempFile}`, { 
+    stdio: 'inherit', 
+    cwd: projectRoot 
+  });
+} finally {
+  try {
+    unlinkSync(tempFile);
+  } catch (e) {
+    // Ignore cleanup errors
+  }
+}
