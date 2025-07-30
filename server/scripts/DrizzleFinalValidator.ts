@@ -481,7 +481,7 @@ interface TestResult {
 }
 
 // Executar validação se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new DrizzleFinalValidator();
   validator.runCompleteValidation()
     .then((results) => {
