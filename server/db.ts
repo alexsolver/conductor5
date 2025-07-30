@@ -40,43 +40,31 @@ export const schemaManager = {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Check if schema exists
-      const schemaResult = await db.execute(sql`
-        SELECT schema_name FROM information_schema.schemata 
-        WHERE schema_name = ${schemaName}
-      `);
-
-      if (schemaResult.length === 0) {
-        console.log(`❌ Schema ${schemaName} does not exist`);
-        return false;
-      }
-
-      // Count tables in schema
-      const tableResult = await db.execute(sql`
+      // Use direct pool query instead of Drizzle for reliable results
+      const result = await pool.query(`
         SELECT COUNT(*) as table_count 
         FROM information_schema.tables 
-        WHERE table_schema = ${schemaName}
-      `);
+        WHERE table_schema = $1
+      `, [schemaName]);
 
-      const tableCount = parseInt(tableResult[0]?.table_count?.toString() || "0");
+      const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // Check for core tables (minimum set required)
-      const coreTablesResult = await db.execute(sql`
+      // Check for core tables
+      const coreResult = await pool.query(`
         SELECT COUNT(*) as core_table_count 
         FROM information_schema.tables 
-        WHERE table_schema = ${schemaName}
+        WHERE table_schema = $1
         AND table_name IN (
-          'users', 'customers', 'tickets', 'companies', 
-          'favorecidos', 'contracts', 'customer_companies',
-          'ticket_field_options', 'ticket_field_configurations',
-          'locations', 'locais', 'regioes'
+          'customers', 'tickets', 'favorecidos', 'contracts', 
+          'customer_companies', 'ticket_field_options', 
+          'locais', 'regioes', 'ticket_actions'
         )
-      `);
+      `, [schemaName]);
 
-      const coreTableCount = parseInt(coreTablesResult[0]?.core_table_count?.toString() || "0");
+      const coreTableCount = parseInt(coreResult.rows[0]?.core_table_count || "0");
 
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables)`);
-      return coreTableCount >= 8; // Minimum 8 core tables required
+      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/9 core tables)`);
+      return tableCount >= 50 && coreTableCount >= 7; // Realistic thresholds
     } catch (error) {
       console.error(`❌ Schema validation failed for ${tenantId}:`, error);
       return false;
