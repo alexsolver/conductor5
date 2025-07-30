@@ -40,6 +40,7 @@ import { materialsServicesRoutes } from './modules/materials-services/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
+import ticketFieldOptionsRoutes from './routes/ticketFieldOptions';
 import { slaController } from './modules/tickets/SlaController';
 import customFieldsRoutes from './modules/custom-fields/routes.ts';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
@@ -3329,6 +3330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
   app.use('/api/field-layouts', fieldLayoutRoutes);
   app.use('/api/ticket-history', ticketHistoryRoutes);
+  app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
 
   // ========================================
   // TICKET VIEWS ROUTES - Sistema de Visualizações Customizáveis

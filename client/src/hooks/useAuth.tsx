@@ -9,7 +9,7 @@ interface User {
   firstName: string | null;
   lastName: string | null;
   role: string;
-  tenantId: string | null;
+  tenantId: string;
   profileImageUrl: string | null;
   isActive: boolean;
   lastLoginAt: string | null;

@@ -4,8 +4,7 @@
 
 import { Router } from 'express';
 import { Request, Response } from 'express';
-import { authenticateToken } from '../middleware/jwtAuth';
-import { validateTenant } from '../middleware/tenantValidator';
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 
 const router = Router();
 
@@ -54,10 +53,10 @@ const FIELD_OPTIONS = {
  * GET /api/ticket-field-options/:fieldName
  * Returns field options for dynamic selects
  */
-router.get('/:fieldName', authenticateToken, validateTenant, async (req: Request, res: Response) => {
+router.get('/:fieldName', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { fieldName } = req.params;
-    const tenantId = req.headers['x-tenant-id'] as string;
+    const tenantId = req.user?.tenantId;
 
     console.log(`🔍 Fetching field options for: ${fieldName}, tenant: ${tenantId}`);
 
@@ -99,9 +98,9 @@ router.get('/:fieldName', authenticateToken, validateTenant, async (req: Request
  * GET /api/ticket-field-options
  * Returns all available field options
  */
-router.get('/', authenticateToken, validateTenant, async (req: Request, res: Response) => {
+router.get('/', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.headers['x-tenant-id'] as string;
+    const tenantId = req.user?.tenantId;
 
     console.log(`🔍 Fetching all field options for tenant: ${tenantId}`);
 
