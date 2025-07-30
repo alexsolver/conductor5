@@ -2,7 +2,7 @@
 
 ```
 <replit_final_file>
-import { db } from '../db.js';
+import { db } from '../db.ts';
 
 async function createTicketConfigTables() {
   console.log('🚀 CRIANDO TABELAS DE CONFIGURAÇÃO DE TICKETS');
