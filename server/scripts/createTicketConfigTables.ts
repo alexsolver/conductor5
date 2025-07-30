@@ -1,4 +1,3 @@
-
 import { db } from '../db.ts';
 
 async function createTicketConfigTables() {
@@ -58,25 +57,18 @@ async function createTicketConfigTables() {
         )
       `);
 
-      // 3. Adicionar foreign key constraint APÓS criar ambas as tabelas
-      await db.execute(`
-        DO $$ 
-        BEGIN
-          -- Verificar se a constraint já existe
-          IF NOT EXISTS (
-            SELECT 1 FROM information_schema.table_constraints 
-            WHERE constraint_name = 'fk_field_config' 
-            AND table_schema = '${schemaName}' 
-            AND table_name = 'ticket_field_options'
-          ) THEN
-            ALTER TABLE "${schemaName}".ticket_field_options 
-            ADD CONSTRAINT fk_field_config 
-            FOREIGN KEY (field_config_id) 
-            REFERENCES "${schemaName}".ticket_field_configurations(id) 
-            ON DELETE CASCADE;
-          END IF;
-        END $$;
+      // 3. Verificar se as tabelas foram criadas corretamente
+      console.log(`📋 Verificando estrutura das tabelas para tenant ${tenant.name}...`);
+
+      const tableCheck = await db.execute(`
+        SELECT table_name, column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name IN ('ticket_field_configurations', 'ticket_field_options')
+        ORDER BY table_name, ordinal_position
       `);
+
+      console.log(`📊 Tabelas criadas: ${tableCheck.rows.length} colunas encontradas`);
 
       // 4. Criar índices para performance (somente APÓS as tabelas estarem completas)
       await db.execute(`
