@@ -7,7 +7,7 @@ import {
   absenceRequests,
   scheduleTemplates,
   users 
-} from '../../../../../@shared/schema';
+} from '../../../../../shared/schema';
 
 export interface TimecardRepository {
   // Timecard Entries
