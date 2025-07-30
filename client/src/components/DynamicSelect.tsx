@@ -211,11 +211,16 @@ export function DynamicSelect(props: DynamicSelectProps) {
   }, [fieldName, tenantId]);
 
   const handleSelectChange = (value: string) => {
-    onChange(value);
+    // Check if onChange is a function before calling
+    if (typeof onChange === 'function') {
+      onChange(value);
+    } else {
+      console.warn('DynamicSelect: onChange is not a function', typeof onChange);
+    }
 
     // Se há uma opção selecionada, pegar seus dados completos
     const selectedOption = fieldOptions.find(opt => opt.value === value);
-    if (selectedOption && onOptionSelect) {
+    if (selectedOption && typeof onOptionSelect === 'function') {
       onOptionSelect(selectedOption);
     }
   };
