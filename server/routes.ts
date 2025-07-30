@@ -566,6 +566,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/customers/companies/:companyId/associate-multiple - Associate multiple customers to a company
+  app.post('/api/customers/companies/:companyId/associate-multiple', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      const { customerIds, isPrimary = false } = req.body;
+      const tenantId = req.user?.tenantId;
+
+      console.log('Associate multiple customers request:', { companyId, customerIds, isPrimary, tenantId });
+
+      if (!tenantId) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Tenant required' 
+        });
+      }
+
+      if (!companyId || companyId === 'undefined' || companyId === 'null') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Valid company ID is required' 
+        });
+      }
+
+      if (!Array.isArray(customerIds) || customerIds.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Customer IDs array is required' 
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user!.tenantId);
+
+      // Verify company exists
+      const companyCheck = await pool.query(
+        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+        [companyId, req.user!.tenantId]
+      );
+
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Company not found' 
+        });
+      }
+
+      // Check for existing memberships
+      const existingQuery = `
+        SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+        WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
+      `;
+
+      const existingResult = await pool.query(existingQuery, [companyId, customerIds, req.user!.tenantId]);
+      const existingCustomerIds = existingResult.rows.map(row => row.customer_id);
+
+      // Filter out customers that are already associated
+      const newCustomerIds = customerIds.filter(id => !existingCustomerIds.includes(id));
+
+      if (newCustomerIds.length === 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'All selected customers are already associated with this company',
+          data: {
+            existingAssociations: existingCustomerIds.length,
+            totalRequested: customerIds.length
+          }
+        });
+      }
+
+      // Insert new memberships one by one to avoid parameter issues
+      const results = [];
+      for (const customerId of newCustomerIds) {
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."customer_company_memberships" 
+          (customer_id, company_id, role, is_primary, tenant_id, created_at)
+          VALUES ($1, $2, $3, $4, $5, NOW())
+          RETURNING *
+        `;
+
+        const result = await pool.query(insertQuery, [
+          customerId,
+          companyId,
+          'member',
+          isPrimary,
+          tenantId
+        ]);
+
+        results.push(result.rows[0]);
+      }
+
+      console.log('Successfully associated customers:', results.length);
+
+      res.json({
+        success: true,
+        message: 'Customers associated successfully',
+        data: {
+          associatedCustomers: results.length,
+          skippedExisting: existingCustomerIds.length,
+          totalRequested: customerIds.length,
+          memberships: results.map(row => ({
+            id: row.id,
+            customerId: row.customer_id,
+            companyId: row.company_id,
+            role: row.role,
+            isPrimary: row.is_primary
+          }))
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error associating multiple customers:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to associate customers',
+        error: error.message
+      });
+    }
+  });
+
   // Create customer - temporary implementation
   app.post('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {

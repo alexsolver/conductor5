@@ -159,25 +159,66 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/customers/companies/${company?.id}/associate-multiple`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customerIds: selectedCustomerIds,
-          isPrimary,
-        }),
-      });
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
 
-      const data = await response.json();
+      // Process customers sequentially to avoid overwhelming the server
+      for (const customerId of selectedCustomerIds) {
+        try {
+          const response = await fetch(`/api/customers/${customerId}/companies`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              companyId: company?.id,
+              role: 'member',
+              isPrimary,
+            }),
+          });
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to associate customers');
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || `HTTP ${response.status}`);
+          }
+
+          successCount++;
+        } catch (error: any) {
+          errorCount++;
+          errors.push(`Cliente ${customerId}: ${error.message}`);
+          console.warn(`Failed to associate customer ${customerId}:`, error);
+        }
+
+        // Small delay between requests to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      setSuccess(`${data.data.associatedCustomers} clientes associados com sucesso!`);
+      // Prepare result summary
+      if (successCount > 0 && errorCount === 0) {
+        setSuccess(`${successCount} clientes associados com sucesso!`);
+      } else if (successCount > 0 && errorCount > 0) {
+        setSuccess(`${successCount} clientes associados com sucesso. ${errorCount} falharam.`);
+        if (errors.length > 0) {
+          console.warn('Association errors:', errors);
+        }
+      } else {
+        throw new Error(`Falha ao associar todos os clientes. Erros: ${errors.join('; ')}`);
+      }
+
+      // Create a summary data structure for backward compatibility
+      const data = {
+        success: true,
+        data: {
+          associatedCustomers: successCount,
+          skippedExisting: errorCount,
+          totalRequested: selectedCustomerIds.length
+        }
+      };
+
+      console.log('Association completed:', data);
       
       // Reset form
       setSelectedCustomerIds([]);
@@ -241,7 +282,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               <Checkbox
                 id="isPrimary"
                 checked={isPrimary}
-                onCheckedChange={setIsPrimary}
+                onCheckedChange={(checked) => setIsPrimary(checked === true)}
               />
               <Label htmlFor="isPrimary">Empresa principal</Label>
             </div>
