@@ -157,7 +157,7 @@ export class SchemaValidationEnforcer {
   private static async addMissingIsActiveFields(): Promise<void> {
     console.log('🔧 Adicionando campos is_active faltantes...');
     
-    const schemaPath = '../../shared/schema-master.ts';
+    const schemaPath = '../../@shared/schema.ts';
     let content = await readFile(schemaPath, 'utf8');
     
     // Adicionar is_active em tabelas que não têm
@@ -192,7 +192,7 @@ export class SchemaValidationEnforcer {
   private static async validateTenantIdConsistency(): Promise<void> {
     console.log('🔧 Validando consistência de campos tenant_id...');
     
-    const schemaPath = '../../shared/schema-master.ts';
+    const schemaPath = '../../@shared/schema.ts';
     const content = await readFile(schemaPath, 'utf8');
     
     // Contar tenantId obrigatórios vs opcionais
@@ -216,7 +216,7 @@ export class SchemaValidationEnforcer {
   static async generateValidationReport(): Promise<void> {
     console.log('\n📊 RELATÓRIO DE VALIDAÇÃO DE SCHEMA:');
     
-    const schemaPath = '../../shared/schema-master.ts';
+    const schemaPath = '../../@shared/schema.ts';
     const content = await readFile(schemaPath, 'utf8');
     
     // Verificar campos is_active

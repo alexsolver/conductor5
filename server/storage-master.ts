@@ -7,7 +7,7 @@ import {
   users, tenants, customers, tickets, ticketMessages, 
   type User, type Tenant, type Customer, type Ticket, type TicketMessage,
   type InsertUser, type InsertTenant, type InsertCustomer, type InsertTicket, type InsertTicketMessage
-} from "@shared/schema-master";
+} from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 // ========================================

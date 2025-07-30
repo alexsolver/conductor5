@@ -8,7 +8,7 @@ import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRou
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
-import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, customerCompanies } from "@shared/schema-master";
+import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, customerCompanies } from "@shared/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";

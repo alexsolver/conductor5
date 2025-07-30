@@ -36,7 +36,7 @@ export class DataTypeOptimizer {
   private static async standardizeFieldLengths(): Promise<void> {
     console.log('🔧 Padronizando tamanhos de campos...');
     
-    let schemaContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    let schemaContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Padronizar phone fields para 20 caracteres (padrão brasileiro)
     // phone: varchar("phone", { length: 50 }) → length: 20
@@ -57,7 +57,7 @@ export class DataTypeOptimizer {
       'name: varchar("name", { length: 255 })'
     );
     
-    await writeFile('../../shared/schema-master.ts', schemaContent);
+    await writeFile('../../@shared/schema.ts', schemaContent);
     console.log('✅ Tamanhos de campos padronizados');
   }
   
@@ -67,7 +67,7 @@ export class DataTypeOptimizer {
   private static async unifyArrayImplementations(): Promise<void> {
     console.log('🔧 Unificando implementação de arrays...');
     
-    let schemaContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    let schemaContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Converter JSONB arrays para native PostgreSQL arrays
     const jsonbArrayPatterns = [
@@ -97,7 +97,7 @@ export class DataTypeOptimizer {
       schemaContent = schemaContent.replace(pattern.old, pattern.new);
     }
     
-    await writeFile('../../shared/schema-master.ts', schemaContent);
+    await writeFile('../../@shared/schema.ts', schemaContent);
     console.log('✅ Arrays unificados para native PostgreSQL');
   }
   
@@ -107,7 +107,7 @@ export class DataTypeOptimizer {
   private static async addMultiTenantConstraints(): Promise<void> {
     console.log('🔧 Adicionando unique constraints multi-tenant...');
     
-    let schemaContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    let schemaContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Adicionar unique constraints para customers
     const customersConstraint = `export const customers = pgTable("customers", {
@@ -135,7 +135,7 @@ export class DataTypeOptimizer {
       );
     }
     
-    await writeFile('../../shared/schema-master.ts', schemaContent);
+    await writeFile('../../@shared/schema.ts', schemaContent);
     console.log('✅ Unique constraints multi-tenant adicionados');
   }
   
@@ -145,7 +145,7 @@ export class DataTypeOptimizer {
   private static async fixImplicitForeignKeys(): Promise<void> {
     console.log('🔧 Corrigindo foreign keys implícitas...');
     
-    let schemaContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    let schemaContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Corrigir managerId para referenciar users
     schemaContent = schemaContent.replace(
@@ -171,14 +171,14 @@ export class DataTypeOptimizer {
       'assignedToId: uuid("assigned_to_id").references(() => users.id),'
     );
     
-    await writeFile('../../shared/schema-master.ts', schemaContent);
+    await writeFile('../../@shared/schema.ts', schemaContent);
     console.log('✅ Foreign keys explícitas implementadas');
   }
   
   static async generateOptimizationReport(): Promise<void> {
     console.log('\n📊 RELATÓRIO DE OTIMIZAÇÃO DE TIPOS DE DADOS:');
     
-    const schemaContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    const schemaContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Verificar padronização de tamanhos
     const phoneFields = (schemaContent.match(/phone.*?length:\s*(\d+)/g) || []);

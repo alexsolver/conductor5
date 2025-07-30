@@ -177,7 +177,7 @@ export * from "./schema-master";
     const conflictingFiles = [
       'server/db-unified.ts.deprecated',
       'server/db-master.ts.deprecated',
-      'shared/schema/index.ts'
+      '@shared/schema.ts'
     ];
     
     for (const file of conflictingFiles) {
@@ -189,7 +189,7 @@ export * from "./schema-master";
 // Use: import from '@shared/schema' instead
 // 
 // Reason: Causes architecture fragmentation and conflicts
-// Migration: Use server/db.ts and shared/schema-master.ts
+// Migration: Use server/db.ts and @shared/schema.ts
 
 ${content}`;
         writeFileSync(fullPath, deprecatedContent);
@@ -202,10 +202,10 @@ ${content}`;
     this.log('  🔍 Procurando arquivos com imports fragmentados...');
     
     const problematicPatterns = [
-      '@shared/schema-master',
-      '@shared/schema/index',
-      'shared/schema-master',
-      'shared/schema/index'
+      '@shared/schema',
+      '@shared/schema',
+      '@shared/schema',
+      '@shared/schema'
     ];
     
     const files: string[] = [];

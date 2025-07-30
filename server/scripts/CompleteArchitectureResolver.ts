@@ -12,8 +12,8 @@ export class CompleteArchitectureResolver {
   /**
    * PROBLEMA CRÍTICO COMPLETO: Arquitetura fragmentada em 5 pontos
    * 1. shared/schema.ts (re-export apenas)
-   * 2. shared/schema/index.ts (modular consolidado) 
-   * 3. shared/schema-master.ts (unificado)
+   * 2. @shared/schema.ts (modular consolidado) 
+   * 3. @shared/schema.ts (unificado)
    * 4. server/db.ts (SQL raw linhas 578+)
    * 5. server/modules/shared/database/SchemaManager.ts (SQL hardcoded)
    */
@@ -29,7 +29,7 @@ export class CompleteArchitectureResolver {
       identifiedIssues: issues,
       consolidationResults: consolidation,
       status: consolidation.success ? 'COMPLETELY_RESOLVED' : 'PARTIAL_RESOLUTION',
-      singleSourceOfTruth: 'shared/schema-master.ts',
+      singleSourceOfTruth: '@shared/schema.ts',
       migratedFiles: consolidation.migratedFiles,
       deprecatedFiles: consolidation.deprecatedFiles,
       recommendations: this.generateFinalRecommendations(consolidation)
@@ -39,17 +39,17 @@ export class CompleteArchitectureResolver {
   private async identifyAllFragmentationIssues(): Promise<FragmentationIssue[]> {
     const issues: FragmentationIssue[] = [];
 
-    // Issue 1: shared/schema/index.ts - Modular conflicting with unified
-    if (existsSync('shared/schema/index.ts')) {
-      const content = readFileSync('shared/schema/index.ts', 'utf-8');
+    // Issue 1: @shared/schema.ts - Modular conflicting with unified
+    if (existsSync('@shared/schema.ts')) {
+      const content = readFileSync('@shared/schema.ts', 'utf-8');
       const exportCount = (content.match(/export \*/g) || []).length;
       
       issues.push({
-        file: 'shared/schema/index.ts',
+        file: '@shared/schema.ts',
         type: 'MODULAR_FRAGMENTATION',
         severity: 'HIGH',
         description: `Modular schema with ${exportCount} exports conflicts with unified approach`,
-        conflictsWith: ['shared/schema-master.ts'],
+        conflictsWith: ['@shared/schema.ts'],
         action: 'DEPRECATE_AND_MIGRATE'
       });
     }
@@ -64,7 +64,7 @@ export class CompleteArchitectureResolver {
         type: 'HARDCODED_SQL_CONFLICT',
         severity: 'CRITICAL',
         description: `Contains ${createTableCount} hardcoded CREATE TABLE statements conflicting with Drizzle schema`,
-        conflictsWith: ['shared/schema-master.ts', 'server/db.ts'],
+        conflictsWith: ['@shared/schema.ts', 'server/db.ts'],
         action: 'MIGRATE_TO_UNIFIED_MANAGER'
       });
     }
@@ -77,7 +77,7 @@ export class CompleteArchitectureResolver {
         type: 'FRAGMENTED_IMPORTS',
         severity: 'MEDIUM',
         description: `${fragmentedImports.length} files still importing from fragmented schema modules`,
-        conflictsWith: ['shared/schema-master.ts'],
+        conflictsWith: ['@shared/schema.ts'],
         action: 'UPDATE_IMPORTS'
       });
     }
@@ -87,7 +87,7 @@ export class CompleteArchitectureResolver {
 
   private async findFragmentedImports(): Promise<string[]> {
     try {
-      const { stdout } = await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec grep -l "shared/schema/index\\|shared/schema/" {} \\;');
+      const { stdout } = await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec grep -l "@shared/schema\\|shared/schema/" {} \\;');
       return stdout.trim().split('\n').filter(file => file.length > 0);
     } catch (error) {
       return [];
@@ -101,12 +101,12 @@ export class CompleteArchitectureResolver {
     let success = true;
 
     try {
-      // Action 1: Deprecate shared/schema/index.ts completely
+      // Action 1: Deprecate @shared/schema.ts completely
       const modularIssue = issues.find(issue => issue.type === 'MODULAR_FRAGMENTATION');
       if (modularIssue) {
         await this.deprecateModularSchema();
-        actions.push('✅ Deprecated shared/schema/index.ts modular approach');
-        deprecatedFiles.push('shared/schema/index.ts');
+        actions.push('✅ Deprecated @shared/schema.ts modular approach');
+        deprecatedFiles.push('@shared/schema.ts');
       }
 
       // Action 2: Migrate hardcoded SQL SchemaManager
@@ -148,7 +148,7 @@ export class CompleteArchitectureResolver {
   }
 
   private async deprecateModularSchema(): Promise<void> {
-    const file = 'shared/schema/index.ts';
+    const file = '@shared/schema.ts';
     if (existsSync(file)) {
       const content = readFileSync(file, 'utf-8');
       const deprecatedContent = `// COMPLETELY DEPRECATED: MODULAR SCHEMA INDEX
@@ -163,7 +163,7 @@ export class CompleteArchitectureResolver {
 ${content}`;
       
       writeFileSync(file, deprecatedContent);
-      console.log('📋 Completely deprecated shared/schema/index.ts');
+      console.log('📋 Completely deprecated @shared/schema.ts');
     }
   }
 
@@ -182,7 +182,7 @@ export { schemaManager } from "../../../db";
 // Migration: Use SchemaManager.createTenantSchema() from server/db.ts
 
 // If you need to add new tables:
-// 1. Add definition to shared/schema-master.ts (Drizzle format)
+// 1. Add definition to @shared/schema.ts (Drizzle format)
 // 2. Update SchemaManager.createTenantTables() in server/db.ts
 // 3. Run npm run db:push to apply changes
 
@@ -197,7 +197,7 @@ console.warn('DEPRECATED: server/modules/shared/database/SchemaManager.ts - Use 
   private async updateFragmentedImports(): Promise<void> {
     try {
       // Update imports from "@shared/schema"
-      await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|shared/schema/index|@shared/schema|g" {} \\;');
+      await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|@shared/schema|@shared/schema|g" {} \\;');
       
       // Update imports from "@shared/schema"
       await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|shared/schema/[^\"]*|@shared/schema|g" {} \\;');
@@ -217,17 +217,17 @@ console.warn('DEPRECATED: server/modules/shared/database/SchemaManager.ts - Use 
   private async createUnifiedDocumentation(): Promise<void> {
     const documentation = `# UNIFIED SCHEMA ARCHITECTURE - FINAL STATE
 
-## Single Source of Truth: shared/schema-master.ts
+## Single Source of Truth: @shared/schema.ts
 
 ### Architecture Overview:
 \`\`\`
 shared/schema.ts → re-exports schema-master.ts
-shared/schema-master.ts → UNIFIED SCHEMA (Drizzle definitions)
+@shared/schema.ts → UNIFIED SCHEMA (Drizzle definitions)
 server/db.ts → UNIFIED MANAGER (SQL creation + Drizzle integration)
 \`\`\`
 
 ### DEPRECATED Files:
-- ❌ shared/schema/index.ts (modular approach)
+- ❌ @shared/schema.ts (modular approach)
 - ❌ server/modules/shared/database/SchemaManager.ts (hardcoded SQL)
 - ❌ server/db-unified.ts.deprecated
 - ❌ server/db-master.ts.deprecated

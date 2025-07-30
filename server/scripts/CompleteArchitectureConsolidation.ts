@@ -3,14 +3,14 @@
  * 
  * PROBLEMA CRÍTICO IDENTIFICADO:
  * - shared/schema.ts (re-export proxy)
- * - shared/schema-master.ts (fonte única verdade)
+ * - @shared/schema.ts (fonte única verdade)
  * - server/db.ts (manager simplificado)
  * - server/db-broken.ts (SQL raw complexo quebrado)
  * - server/modules/shared/database/SchemaManager.ts (hardcoded SQL DEPRECATED)
  * - Múltiplos storage-*.ts com lógicas conflitantes
  * 
  * SOLUÇÃO ENTERPRISE:
- * 1. Consolidar TUDO em shared/schema-master.ts como fonte única absoluta
+ * 1. Consolidar TUDO em @shared/schema.ts como fonte única absoluta
  * 2. Deprecar completamente arquivos fragmentados
  * 3. Atualizar TODOS os imports para @shared/schema (proxy único)
  * 4. Implementar sistema unificado server/db.ts
@@ -50,10 +50,10 @@ export class CompleteArchitectureConsolidation {
   private static async validateMasterSchema(): Promise<void> {
     console.log('🔍 Validating schema-master.ts as single source of truth...');
     
-    const schemaPath = join(process.cwd(), 'shared/schema-master.ts');
+    const schemaPath = join(process.cwd(), '@shared/schema.ts');
     
     if (!existsSync(schemaPath)) {
-      throw new Error('CRÍTICO: shared/schema-master.ts não encontrado');
+      throw new Error('CRÍTICO: @shared/schema.ts não encontrado');
     }
     
     const content = await readFile(schemaPath, 'utf8');
@@ -85,7 +85,7 @@ export class CompleteArchitectureConsolidation {
       'server/storage-broken.ts',
       'server/storage-backup.ts',
       'server/storage-old.ts',
-      'shared/schema-master-broken.ts'
+      '@shared/schema-broken.ts'
     ];
     
     for (const file of fragmentedFiles) {
@@ -95,12 +95,12 @@ export class CompleteArchitectureConsolidation {
           const content = await readFile(fullPath, 'utf8');
           const deprecatedContent = `/**
  * ARQUIVO DEPRECIADO - NÃO USAR
- * Este arquivo foi consolidado em shared/schema-master.ts
+ * Este arquivo foi consolidado em @shared/schema.ts
  * Data de depreciação: ${new Date().toISOString()}
  * Motivo: Fragmentação crítica de arquitetura resolvida
  */
 
-// DEPRECATED - USE shared/schema-master.ts instead
+// DEPRECATED - USE @shared/schema.ts instead
 // ${file} - COMPLETELY DEPRECATED
 
 ${content}`;

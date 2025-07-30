@@ -1,7 +1,7 @@
 
 import { eq, and, desc, gte, lte } from 'drizzle-orm';
 import { db } from '../../db';
-import { templateAuditLog, ticketTemplates, users } from '../../../shared/schema-master';
+import { templateAuditLog, ticketTemplates, users } from '../../../@shared/schema';
 
 interface AuditLogEntry {
   templateId: string;

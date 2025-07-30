@@ -1,7 +1,7 @@
 
 import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '../../db';
-import { ticketTemplates, templateCategories, templateHierarchy } from '../../../shared/schema-master';
+import { ticketTemplates, templateCategories, templateHierarchy } from '../../../@shared/schema';
 
 interface CreateHierarchicalTemplateData {
   parentTemplateId?: string;

@@ -37,7 +37,7 @@ export class ArchitectureConsolidator {
     console.log('🔍 Analisando fragmentação de arquitetura...');
     
     // Contar tabelas no schema master
-    const schemaMasterContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    const schemaMasterContent = await readFile('../../@shared/schema.ts', 'utf8');
     const masterTables = (schemaMasterContent.match(/export const.*pgTable/g) || []).length;
     
     // Verificar re-export em schema.ts
@@ -63,7 +63,7 @@ export class ArchitectureConsolidator {
   private static async consolidateSchemaDefinitions(): Promise<void> {
     console.log('🔧 Consolidando definições de schema...');
     
-    const schemaMasterContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    const schemaMasterContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Extrair todas as tabelas definidas no schema master
     const tableDefinitions = schemaMasterContent.match(/export const \w+ = pgTable/g) || [];
@@ -98,7 +98,7 @@ export class ArchitectureConsolidator {
   private static async alignValidationWithSchema(): Promise<void> {
     console.log('🔧 Alinhando validação com schema real...');
     
-    const schemaMasterContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    const schemaMasterContent = await readFile('../../@shared/schema.ts', 'utf8');
     
     // Extrair tabelas específicas de tenant (excluir públicas)
     const allTables = (schemaMasterContent.match(/export const (\w+) = pgTable\("(\w+)"/g) || [])
@@ -154,7 +154,7 @@ export class ArchitectureConsolidator {
  * TODAS as definições estão em schema-master.ts
  * 
  * ARQUITETURA CONSOLIDADA:
- * ✅ shared/schema-master.ts - Fonte única autoritativa
+ * ✅ @shared/schema.ts - Fonte única autoritativa
  * ✅ shared/schema.ts - Proxy de re-export (este arquivo)
  * ✅ server/db.ts - Validação alinhada com schema real
  */
@@ -169,7 +169,7 @@ export * from './schema-master';
   static async generateArchitectureReport(): Promise<void> {
     console.log('\n📊 RELATÓRIO DE ARQUITETURA CONSOLIDADA:');
     
-    const schemaMasterContent = await readFile('../../shared/schema-master.ts', 'utf8');
+    const schemaMasterContent = await readFile('../../@shared/schema.ts', 'utf8');
     const dbContent = await readFile('../../server/db.ts', 'utf8');
     
     // Contar tabelas

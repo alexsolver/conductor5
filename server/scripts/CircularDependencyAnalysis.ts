@@ -107,7 +107,7 @@ export class CircularDependencyAnalysis {
     
     const schemaFiles = [
       'shared/schema.ts',
-      'shared/schema-master.ts',
+      '@shared/schema.ts',
       'shared/schema-simple.ts',
       'shared/schema-unified.ts'
     ];
@@ -116,7 +116,7 @@ export class CircularDependencyAnalysis {
     console.log(`Arquivos de schema encontrados: ${existingFiles.join(', ')}`);
     
     // Verificação de fonte única de verdade
-    if (existingFiles.includes('shared/schema.ts') && existingFiles.includes('shared/schema-master.ts')) {
+    if (existingFiles.includes('shared/schema.ts') && existingFiles.includes('@shared/schema.ts')) {
       console.log('✅ Estrutura básica correta: schema.ts + schema-master.ts');
     }
     

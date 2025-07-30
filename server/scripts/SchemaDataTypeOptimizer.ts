@@ -15,7 +15,7 @@ export class SchemaDataTypeOptimizer {
   static async optimizeDataTypes(): Promise<void> {
     console.log('🔧 INICIANDO OTIMIZAÇÃO DE TIPOS DE DADOS...');
     
-    const schemaPath = '../../shared/schema-master.ts';
+    const schemaPath = '../../@shared/schema.ts';
     let content = await readFile(schemaPath, 'utf8');
     
     // 1. OTIMIZAR ARRAYS UUID PROBLEMÁTICOS
@@ -150,7 +150,7 @@ export class SchemaDataTypeOptimizer {
   static async generateOptimizationReport(): Promise<void> {
     console.log('\n📊 RELATÓRIO DE OTIMIZAÇÃO DE TIPOS DE DADOS:');
     
-    const schemaPath = '../../shared/schema-master.ts';
+    const schemaPath = '../../@shared/schema.ts';
     const content = await readFile(schemaPath, 'utf8');
     
     // Verificar arrays UUID restantes

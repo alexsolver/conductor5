@@ -1,17 +1,7 @@
-/**
- * SCHEMA PROXY - FONTE ÚNICA DE VERDADE
- * 
- * Este arquivo é apenas um proxy que re-exporta o schema master.
- * TODAS as definições estão em schema-master.ts
- * 
- * ARQUITETURA CONSOLIDADA:
- * ✅ shared/schema-master.ts - Fonte única autoritativa
- * ✅ shared/schema.ts - Proxy de re-export (este arquivo)
- * ✅ server/db.ts - Validação alinhada com schema real
- */
+// UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
+// Re-exports from schema-master.ts as the authoritative source
 
-export * from './schema-master';
-// Note: Other schema files have overlapping exports, importing only master for now
-// export * from './schema-multilocation';
-// export * from './schema-materials-services';
-// export * from './schema-knowledge-base';
+export * from "./schema-master";
+
+// This file serves as the single entry point for all schema definitions
+// All imports should use: import { ... } from '@shared/schema'

@@ -56,8 +56,8 @@ export class DrizzleProgressMonitor {
     try {
       // Buscar imports problemáticos
       const problematicPatterns = [
-        '@shared/schema-master',
-        '@shared/schema/index'
+        '@shared/schema',
+        '@shared/schema'
       ];
       
       let foundIssues = 0;
@@ -149,7 +149,7 @@ export class DrizzleProgressMonitor {
     try {
       // Verificar se o sistema está funcionando
       const criticalFiles = [
-        'shared/schema-master.ts',
+        '@shared/schema.ts',
         'shared/schema.ts',
         'server/db.ts',
         'drizzle.config.ts'

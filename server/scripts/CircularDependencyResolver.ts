@@ -9,7 +9,7 @@ export class CircularDependencyResolver {
   private readonly projectRoot: string;
   private readonly knownSchemaFiles = [
     'shared/schema.ts',
-    'shared/schema-master.ts', 
+    '@shared/schema.ts', 
     'shared/schema-simple.ts',    // Possibly removed
     'shared/schema-unified.ts'    // Possibly removed
   ];
@@ -52,7 +52,7 @@ export class CircularDependencyResolver {
     }
 
     // Check if unified structure is correct
-    if (existingSchemas.includes('shared/schema.ts') && existingSchemas.includes('shared/schema-master.ts')) {
+    if (existingSchemas.includes('shared/schema.ts') && existingSchemas.includes('@shared/schema.ts')) {
       const schemaContent = this.readFileContent('shared/schema.ts');
       if (schemaContent.includes('export * from "./schema-master"')) {
         fixes.push('✅ shared/schema.ts correctly re-exports schema-master.ts');
@@ -218,8 +218,8 @@ export class CircularDependencyResolver {
   private async buildDependencyGraph(): Promise<DependencyGraph> {
     // Simular grafo de dependências
     return {
-      'shared/schema.ts': ['shared/schema-master.ts'],
-      'shared/schema-master.ts': ['shared/schema/index.ts'],
+      'shared/schema.ts': ['@shared/schema.ts'],
+      '@shared/schema.ts': ['@shared/schema.ts'],
       'server/storage.ts': ['shared/schema.ts'],
       'server/routes.ts': ['shared/schema.ts', 'server/storage.ts']
     };

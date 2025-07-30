@@ -112,9 +112,9 @@ export class DrizzleFinalValidator {
     // Teste 1: Nenhum import problemático em server/
     try {
       const problematicPatterns = [
-        '@shared/schema-master',
-        '@shared/schema/index',
-        'shared/schema-master'
+        '@shared/schema',
+        '@shared/schema',
+        '@shared/schema'
       ];
       
       const serverFiles = this.findFilesWithProblematicImports('server', problematicPatterns);
@@ -136,8 +136,8 @@ export class DrizzleFinalValidator {
     // Teste 2: Nenhum import problemático em client/
     try {
       const problematicPatterns = [
-        '@shared/schema-master',
-        '@shared/schema/index'
+        '@shared/schema',
+        '@shared/schema'
       ];
       
       const clientFiles = this.findFilesWithProblematicImports('client/src', problematicPatterns);

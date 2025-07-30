@@ -22,7 +22,7 @@ export class ArchitectureUnificationValidator {
       'server/storage-broken.ts', 
       'server/storage-backup.ts',
       'server/storage-old.ts',
-      'shared/schema-master-broken.ts',
+      '@shared/schema-broken.ts',
       'server/modules/shared/database/SchemaManager.ts'
     ];
     
@@ -35,12 +35,12 @@ export class ArchitectureUnificationValidator {
     }
     
     // 2. Verificar fonte única de verdade
-    const masterSchemaPath = join(process.cwd(), 'shared/schema-master.ts');
+    const masterSchemaPath = join(process.cwd(), '@shared/schema.ts');
     console.log(`🔍 Verificando: ${masterSchemaPath}`);
     if (!existsSync(masterSchemaPath)) {
-      issues.push('❌ CRÍTICO: shared/schema-master.ts não encontrado');
+      issues.push('❌ CRÍTICO: @shared/schema.ts não encontrado');
     } else {
-      console.log('✅ Fonte única de verdade: shared/schema-master.ts existe');
+      console.log('✅ Fonte única de verdade: @shared/schema.ts existe');
       
       const content = readFileSync(masterSchemaPath, 'utf8');
       if (!content.includes('export const customers') || 
@@ -102,7 +102,7 @@ export class ArchitectureUnificationValidator {
     console.log('\n📊 RELATÓRIO DE ARQUITETURA UNIFICADA:');
     
     const files = [
-      { path: 'shared/schema-master.ts', role: 'Fonte única de verdade' },
+      { path: '@shared/schema.ts', role: 'Fonte única de verdade' },
       { path: 'shared/schema.ts', role: 'Proxy re-export' },
       { path: 'server/db.ts', role: 'Database manager unificado' },
       { path: 'UNIFIED_SCHEMA_ARCHITECTURE.md', role: 'Documentação' }
@@ -115,7 +115,7 @@ export class ArchitectureUnificationValidator {
     });
     
     console.log('\n🏗️ ARQUITETURA FINAL:');
-    console.log('   shared/schema-master.ts  (FONTE ÚNICA)');
+    console.log('   @shared/schema.ts  (FONTE ÚNICA)');
     console.log('         ↑');
     console.log('   shared/schema.ts         (PROXY)');
     console.log('         ↑');

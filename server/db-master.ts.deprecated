@@ -1,3 +1,10 @@
+// ❌ DEPRECATED FILE - DO NOT USE
+// This file has been deprecated in favor of unified schema architecture
+// Use: import from '@shared/schema' instead
+// 
+// Reason: Causes architecture fragmentation and conflicts
+// Migration: Use server/db.ts and shared/schema-master.ts
+
 // MASTER DATABASE CONFIGURATION - SINGLE SOURCE OF TRUTH
 // Consolidates all database logic into one unified implementation
 // Replaces: db.ts, db-unified.ts, and SchemaManager fragments
