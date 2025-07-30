@@ -49,9 +49,9 @@ async function initializeTicketMetadata() {
         INSERT INTO "\${schemaName}".ticket_field_configurations 
         (id, tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)
         VALUES 
-        (gen_random_uuid(), $1, NULL, 'priority', 'Prioridade', 'select', true, true, 1, true)
+        (gen_random_uuid(), '\${tenantId}', NULL, 'priority', 'Prioridade', 'select', true, true, 1, true)
         ON CONFLICT (tenant_id, customer_id, field_name) DO NOTHING
-      \`, [tenantId]);
+      \`);
 
       // 2. OPÇÕES DE PRIORIDADE
       const priorityOptions = [
@@ -68,19 +68,19 @@ async function initializeTicketMetadata() {
           (id, tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default, is_active)
           SELECT 
             gen_random_uuid(), 
-            $1, 
+            '\${tenantId}', 
             NULL, 
             tfc.id, 
-            $2, 
-            $3, 
-            $4, 
-            $5, 
-            $6, 
+            '\${option.value}', 
+            '\${option.label}', 
+            '\${option.color}', 
+            \${option.order}, 
+            \${option.value === 'medium'}, 
             true
           FROM "\${schemaName}".ticket_field_configurations tfc 
           WHERE tfc.field_name = 'priority' AND tfc.customer_id IS NULL
           ON CONFLICT (tenant_id, customer_id, field_config_id, option_value) DO NOTHING
-        \`, [tenantId, option.value, option.label, option.color, option.order, option.value === 'medium']);
+        \`);
       }
 
       // 3. CONFIGURAÇÕES DE CAMPO - STATUS  
@@ -88,9 +88,9 @@ async function initializeTicketMetadata() {
         INSERT INTO "\${schemaName}".ticket_field_configurations 
         (id, tenant_id, customer_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)
         VALUES 
-        (gen_random_uuid(), $1, NULL, 'status', 'Status', 'select', true, true, 2, true)
+        (gen_random_uuid(), '\${tenantId}', NULL, 'status', 'Status', 'select', true, true, 2, true)
         ON CONFLICT (tenant_id, customer_id, field_name) DO NOTHING
-      \`, [tenantId]);
+      \`);
 
       // 4. OPÇÕES DE STATUS
       const statusOptions = [
@@ -108,19 +108,19 @@ async function initializeTicketMetadata() {
           (id, tenant_id, customer_id, field_config_id, option_value, display_label, color_hex, sort_order, is_default, is_active)
           SELECT 
             gen_random_uuid(), 
-            $1, 
+            '\${tenantId}', 
             NULL, 
             tfc.id, 
-            $2, 
-            $3, 
-            $4, 
-            $5, 
-            $6, 
+            '\${option.value}', 
+            '\${option.label}', 
+            '\${option.color}', 
+            \${option.order}, 
+            \${option.value === 'new'}, 
             true
           FROM "\${schemaName}".ticket_field_configurations tfc 
           WHERE tfc.field_name = 'status' AND tfc.customer_id IS NULL
           ON CONFLICT (tenant_id, customer_id, field_config_id, option_value) DO NOTHING
-        \`, [tenantId, option.value, option.label, option.color, option.order, option.value === 'new']);
+        \`);
       }
 
       console.log(\`✅ Metadata configurada para tenant \${tenant.name}\`);
