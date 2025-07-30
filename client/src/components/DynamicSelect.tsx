@@ -148,7 +148,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.error('Response error:', errorText);
         setFieldOptions([]);
       }
-      } catch (error) {
+    } catch (error) {
       console.error('Error fetching field options:', error);
       setFieldOptions([]);
       } finally {
