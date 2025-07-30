@@ -8,7 +8,7 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 export class CompleteArchitectureResolver {
-  
+
   /**
    * PROBLEMA CRÍTICO COMPLETO: Arquitetura fragmentada em 5 pontos
    * 1. shared/schema.ts (re-export apenas)
@@ -17,13 +17,13 @@ export class CompleteArchitectureResolver {
    * 4. server/db.ts (SQL raw linhas 578+)
    * 5. server/modules/shared/database/SchemaManager.ts (SQL hardcoded)
    */
-  
+
   async resolveCompleteFragmentation(): Promise<CompleteResolution> {
     console.log('🔧 INICIANDO RESOLUÇÃO COMPLETA DE ARQUITETURA FRAGMENTADA');
-    
+
     const issues = await this.identifyAllFragmentationIssues();
     const consolidation = await this.executeCompleteConsolidation(issues);
-    
+
     return {
       problem: 'Complete Schema Architecture Fragmentation',
       identifiedIssues: issues,
@@ -43,7 +43,7 @@ export class CompleteArchitectureResolver {
     if (existsSync('@shared/schema.ts')) {
       const content = readFileSync('@shared/schema.ts', 'utf-8');
       const exportCount = (content.match(/export \*/g) || []).length;
-      
+
       issues.push({
         file: '@shared/schema.ts',
         type: 'MODULAR_FRAGMENTATION',
@@ -58,7 +58,7 @@ export class CompleteArchitectureResolver {
     if (existsSync('server/modules/shared/database/SchemaManager.ts')) {
       const content = readFileSync('server/modules/shared/database/SchemaManager.ts', 'utf-8');
       const createTableCount = (content.match(/CREATE TABLE/gi) || []).length;
-      
+
       issues.push({
         file: 'server/modules/shared/database/SchemaManager.ts',
         type: 'HARDCODED_SQL_CONFLICT',
@@ -161,7 +161,7 @@ export class CompleteArchitectureResolver {
 // This file will be removed in next version
 
 ${content}`;
-      
+
       writeFileSync(file, deprecatedContent);
       console.log('📋 Completely deprecated @shared/schema.ts');
     }
@@ -188,7 +188,7 @@ export { schemaManager } from "../../../db";
 
 console.warn('DEPRECATED: server/modules/shared/database/SchemaManager.ts - Use server/db.ts instead');
 `;
-      
+
       writeFileSync(file, newContent);
       console.log('✅ Migrated hardcoded SQL SchemaManager to unified approach');
     }
@@ -198,10 +198,10 @@ console.warn('DEPRECATED: server/modules/shared/database/SchemaManager.ts - Use 
     try {
       // Update imports from "@shared/schema"
       await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|@shared/schema|@shared/schema|g" {} \\;');
-      
+
       // Update imports from "@shared/schema"
       await execAsync('find . -name "*.ts" -not -path "./node_modules/*" -exec sed -i "s|shared/schema/[^\"]*|@shared/schema|g" {} \\;');
-      
+
       console.log('✅ Updated all fragmented imports');
     } catch (error) {
       console.error('⚠️ Some imports may need manual update:', error);
@@ -241,7 +241,14 @@ server/db.ts → UNIFIED MANAGER (SQL creation + Drizzle integration)
 ### Usage:
 \`\`\`typescript
 // Correct usage:
-import { customers, tickets } from '../../shared/schema.js';
+import { 
+  tickets, users, customers, activityLogs, ticketMessages, 
+  ticketRelationships, userSkills, skills, certifications,
+  customerCompanies, externalContacts, customerCompanyMemberships,
+  emailResponseTemplates, emailProcessingLogs,
+  projects, projectActions, projectTimeline,
+  sessions, tenants
+} from '../../shared/schema.js';
 import { schemaManager } from 'server/db';
 
 // Create tenant schema:
