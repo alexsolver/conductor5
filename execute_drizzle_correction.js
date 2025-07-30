@@ -1,6 +1,4 @@
 
-#!/usr/bin/env node
-
 // EXECUTOR DE CORREÇÃO DRIZZLE ORM
 // Executa correção sistemática com monitoramento em tempo real
 
