@@ -250,4 +250,42 @@ export class TicketMetadataHierarchicalController {
       });
     }
   }
+
+  async getFieldOptions(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user!;
+      const { customerId } = req.query;
+      const { fieldName } = req.params;
+
+      console.log(`🔍 Fetching field options for ${fieldName}:`, {
+        tenantId,
+        customerId,
+        fieldName
+      });
+
+      const fieldOptions = await this.ticketMetadataService.getFieldOptionsHierarchical(
+        tenantId,
+        fieldName,
+        customerId as string | undefined
+      );
+
+      console.log(`📊 Field options result for ${fieldName}:`, {
+        optionsCount: fieldOptions.length,
+        options: fieldOptions.map(opt => ({ value: opt.optionValue, label: opt.displayLabel }))
+      });
+
+      res.json({
+        success: true,
+        data: fieldOptions,
+        message: `Field options retrieved for ${fieldName}`
+      });
+    } catch (error) {
+      console.error('Error fetching hierarchical field options:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch field options',
+        error: error.message
+      });
+    }
+  }
 }
