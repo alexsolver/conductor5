@@ -103,7 +103,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       console.log('All customers response:', allCustomersData);
       console.log('Associated customers response:', associatedCustomersData);
 
-      if (!allCustomersResponse.ok || !allCustomersData.success) {
+      if (!allCustomersResponse.ok) {
         throw new Error(allCustomersData.message || `HTTP ${allCustomersResponse.status}: Failed to fetch customers`);
       }
 
