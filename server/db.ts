@@ -7,6 +7,9 @@ import { sql } from 'drizzle-orm';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
+// Re-export sql for other modules
+export { sql };
+
 neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
