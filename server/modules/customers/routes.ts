@@ -281,21 +281,25 @@ customersRouter.post('/companies', jwtAuth, async (req: AuthenticatedRequest, re
 customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const { name, document, phone, email, address } = req.body;
+    const { name, document, phone, email, address, status } = req.body;
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
+    console.log(`[UPDATE-COMPANY] Updating company ${id} with status: ${status}`);
+
     const result = await pool.query(`
       UPDATE "${schemaName}".customer_companies 
-      SET name = $1, document = $2, phone = $3, email = $4, address = $5, updated_at = NOW()
-      WHERE id = $6 AND tenant_id = $7
+      SET name = $1, document = $2, phone = $3, email = $4, address = $5, status = $6, updated_at = NOW()
+      WHERE id = $7 AND tenant_id = $8
       RETURNING *
-    `, [name, document, phone, email, address, id, req.user.tenantId]);
+    `, [name, document, phone, email, address, status || 'active', id, req.user.tenantId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Company not found' });
     }
+
+    console.log(`[UPDATE-COMPANY] Company updated successfully:`, result.rows[0]);
 
     res.json({
       success: true,

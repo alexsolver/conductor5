@@ -59,12 +59,12 @@ export const useTicketMetadata = () => {
         const filteredOptions = allOptions.filter((option: any) => {
           // Basic field filter
           if (option.field_name !== fieldName) return false;
-          
+
           // For customer_company_id field, filter out inactive companies
           if (fieldName === 'customer_company_id' && option.status === 'inactive') {
             return false;
           }
-          
+
           return true;
         }).map((option: any) => ({
           value: option.value,
@@ -79,14 +79,14 @@ export const useTicketMetadata = () => {
           // If one is "Default" (case insensitive), put it first
           const aIsDefault = a.label?.toLowerCase().includes('default') || a.value?.toLowerCase().includes('default');
           const bIsDefault = b.label?.toLowerCase().includes('default') || b.value?.toLowerCase().includes('default');
-          
+
           if (aIsDefault && !bIsDefault) return -1;
           if (!aIsDefault && bIsDefault) return 1;
-          
+
           // Secondary sort by isDefault flag
           if (a.isDefault && !b.isDefault) return -1;
           if (!a.isDefault && b.isDefault) return 1;
-          
+
           // Tertiary sort alphabetically
           return (a.label || '').localeCompare(b.label || '');
         });
@@ -108,4 +108,41 @@ export const useTicketMetadata = () => {
       gcTime: 10 * 60 * 1000, // 10 minutes
     });
   };
+
+const companiesQuery = useQuery({
+    queryKey: ['/api/customers/companies'],
+    queryFn: async () => {
+      // Assuming apiRequest is defined elsewhere and handles the API call
+      const apiRequest = async (method: string, url: string) => {
+          const response = await fetch(url);
+          return await response.json();
+      };
+
+      const response = await apiRequest('GET', '/api/customers/companies');
+      console.log('🏢 Raw companies response:', response);
+
+      if (Array.isArray(response)) {
+        // Filter out inactive companies (except when editing existing tickets)
+        const activeCompanies = response.filter(company => 
+          company.status !== 'inactive' || company.id === '00000000-0000-0000-0000-000000000001'
+        );
+
+        // Sort to put Default company first
+        const sortedCompanies = activeCompanies.sort((a, b) => {
+          const aIsDefault = a.id === '00000000-0000-0000-0000-000000000001';
+          const bIsDefault = b.id === '00000000-0000-0000-0000-000000000001';
+
+          if (aIsDefault && !bIsDefault) return -1;
+          if (!aIsDefault && bIsDefault) return 1;
+          return a.name.localeCompare(b.name);
+        });
+
+        console.log('🏢 Filtered and sorted companies:', sortedCompanies);
+        return sortedCompanies;
+      }
+
+      return [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }

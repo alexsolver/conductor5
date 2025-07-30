@@ -281,14 +281,14 @@ export default function CustomerCompanies() {
     // Always put Default company first
     const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
     const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
-    
+
     if (aIsDefault && !bIsDefault) return -1;
     if (!aIsDefault && bIsDefault) return 1;
-    
+
     // Secondary sort by status (active first)
     if (a.status === 'active' && b.status !== 'active') return -1;
     if (a.status !== 'active' && b.status === 'active') return 1;
-    
+
     // Tertiary sort alphabetically
     return (a.displayName || a.name).localeCompare(b.displayName || b.name);
   });
@@ -574,19 +574,44 @@ export default function CustomerCompanies() {
           <Card key={company.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
+                
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
-                    {getSizeIcon(company.size)}
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-semibold">
-                      {company.displayName || company.name}
-                    </CardTitle>
-                    {company.displayName && (
-                      <p className="text-sm text-gray-500">{company.name}</p>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      company.status === 'inactive' ? 'bg-gray-100' : 'bg-blue-100'
+                    }`}>
+                      <Building2 className={`w-5 h-5 ${
+                        company.status === 'inactive' ? 'text-gray-400' : 'text-blue-600'
+                      }`} />
+                    </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <p className={`text-sm font-medium truncate ${
+                        company.status === 'inactive' ? 'text-gray-400' : 'text-gray-900'
+                      }`}>
+                        {company.name}
+                      </p>
+                      {(company.name?.toLowerCase().includes('default') || 
+                    company.displayName?.toLowerCase().includes('default')) && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                          Padrão
+                        </Badge>
+                      )}
+                      {company.status === 'inactive' && (
+                        <Badge variant="outline" className="text-xs px-2 py-0 text-gray-500 border-gray-300">
+                          Inativa
+                        </Badge>
+                      )}
+                    </div>
+                    {company.description && (
+                      <p className={`text-sm truncate ${
+                        company.status === 'inactive' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {company.description}
+                      </p>
                     )}
                   </div>
                 </div>
+                
                 <div className="flex flex-col gap-1">
                   <Badge className={getStatusColor(company.status)}>
                     {company.status === 'active' ? 'Ativo' : 
@@ -677,7 +702,7 @@ export default function CustomerCompanies() {
                       !c.name?.toLowerCase().includes('default') && 
                       !c.displayName?.toLowerCase().includes('default')
                     ).length > 0;
-                    
+
                     // Show deactivate option for Default company only if there are other companies
                     if (isDefaultCompany && hasOtherCompanies) {
                       return (
@@ -702,7 +727,7 @@ export default function CustomerCompanies() {
                         </Button>
                       );
                     }
-                    
+
                     // Show delete for non-default companies or if it's the only company
                     return (
                       <Button
