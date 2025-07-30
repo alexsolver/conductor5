@@ -156,9 +156,11 @@ export default function Beneficiaries() {
   });
 
   // Query for customers
-  const { data: customersData } = useQuery({
+  const { data: customersData, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["/api/customers"],
     enabled: true,
+    staleTime: 5000,
+    gcTime: 30000,
   });
 
   // Create beneficiary mutation
@@ -197,7 +199,7 @@ export default function Beneficiaries() {
         description: "Favorecido atualizado com sucesso",
       });
       setEditingBeneficiary(null);
-      setIsEditDialogOpen(false);
+      setIsCreateDialogOpen(false);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"], exact: false });
     },
@@ -382,9 +384,9 @@ export default function Beneficiaries() {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="none">Nenhum cliente</SelectItem>
-                      {customersData?.data?.map((customer: any) => (
+                      {customersData?.customers?.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.firstName} {customer.lastName} - {customer.email}
+                          {customer.firstName || customer.first_name} {customer.lastName || customer.last_name} - {customer.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
