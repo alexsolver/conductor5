@@ -43,12 +43,13 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const { user } = useAuth();
 
   // Obter tenant_id do user context
-  const tenantId = user?.tenant_id;
+  const tenantId = user?.tenantId;
 
   useEffect(() => {
     const fetchFieldOptions = async () => {
-      if (!fieldName || !user?.access_token || !tenantId) {
-        console.log('🔍 DynamicSelect missing requirements:', { fieldName, hasToken: !!user?.access_token, tenantId });
+      const accessToken = localStorage.getItem('accessToken');
+      if (!fieldName || !accessToken || !tenantId) {
+        console.log('🔍 DynamicSelect missing requirements:', { fieldName, hasToken: !!accessToken, tenantId });
         return;
       }
 
@@ -56,7 +57,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         setIsLoading(true);
         const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
           headers: {
-            'Authorization': `Bearer ${user?.access_token}`,
+            'Authorization': `Bearer ${accessToken}`,
             'x-tenant-id': tenantId,
           },
         });
@@ -83,10 +84,11 @@ export function DynamicSelect(props: DynamicSelectProps) {
       }
     };
 
-    if (user?.access_token && tenantId && fieldName) {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken && tenantId && fieldName) {
       fetchFieldOptions();
     }
-  }, [user?.access_token, tenantId, fieldName]);
+  }, [tenantId, fieldName]);
 
   const handleSelectChange = (value: string) => {
     onChange(value);
@@ -105,9 +107,9 @@ export function DynamicSelect(props: DynamicSelectProps) {
       </SelectTrigger>
       <SelectContent>
         {isLoading ? (
-          <SelectItem value="" disabled>Carregando...</SelectItem>
+          <SelectItem value="loading" disabled>Carregando...</SelectItem>
         ) : fieldOptions.length === 0 ? (
-          <SelectItem value="" disabled>Nenhuma opção disponível</SelectItem>
+          <SelectItem value="no-options" disabled>Nenhuma opção disponível</SelectItem>
         ) : (
           fieldOptions.map((option, index) => {
             // Ensure option has proper structure and non-empty value

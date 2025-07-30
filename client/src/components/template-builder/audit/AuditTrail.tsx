@@ -11,7 +11,7 @@ import { Calendar, User, FileText, GitBranch, Eye, Clock, Filter } from 'lucide-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { apiRequest } from '@/lib/utils';
+import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -139,7 +139,7 @@ export function AuditTrail({ templateId, showFilters = true }: AuditTrailProps) 
                     <SelectValue placeholder="Todas as ações" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as ações</SelectItem>
+                    <SelectItem value="all">Todas as ações</SelectItem>
                     <SelectItem value="created">Criado</SelectItem>
                     <SelectItem value="updated">Atualizado</SelectItem>
                     <SelectItem value="published">Publicado</SelectItem>

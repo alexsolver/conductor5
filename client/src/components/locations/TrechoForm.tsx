@@ -51,7 +51,7 @@ const LocalSelector = ({ value, onChange, label, placeholder }) => {
             </SelectItem>
           ))}
           {locais.length === 0 && (
-            <SelectItem value="" disabled>
+            <SelectItem value="select-local" disabled>
               Nenhum local disponível
             </SelectItem>
           )}

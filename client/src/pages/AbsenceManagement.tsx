@@ -176,8 +176,8 @@ export default function AbsenceManagement() {
     },
   });
 
-  const pendingRequests = pendingRequestsData?.requests || [];
-  const users = usersData?.users || [];
+  const pendingRequests = (pendingRequestsData as any)?.requests || [];
+  const users = (usersData as any)?.users || [];
 
   const handleSubmit = (data: AbsenceFormData) => {
     createAbsenceRequestMutation.mutate(data);
@@ -373,7 +373,7 @@ export default function AbsenceManagement() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Nenhum substituto</SelectItem>
+                          <SelectItem value="none">Nenhum substituto</SelectItem>
                           {users.map((user: User) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.firstName} {user.lastName}
