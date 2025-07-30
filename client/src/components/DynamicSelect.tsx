@@ -47,6 +47,11 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
   useEffect(() => {
     const fetchFieldOptions = async () => {
+      if (!fieldName || !user?.access_token || !tenantId) {
+        console.log('🔍 DynamicSelect missing requirements:', { fieldName, hasToken: !!user?.access_token, tenantId });
+        return;
+      }
+
       try {
         setIsLoading(true);
         const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
@@ -58,16 +63,18 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
         if (response.ok) {
           const data = await response.json();
-
-          console.log('🔍 DynamicSelect for', fieldName + ':', {
-            success: data.success,
-            totalOptions: data.options?.length || 0,
-            fieldOptions: data.options || []
+          // Ensure data is array and has proper structure
+          const options = Array.isArray(data) ? data : (data?.options || []);
+          setFieldOptions(options);
+          console.log(`🔍 DynamicSelect for ${fieldName}:`, {
+            totalOptions: options.length,
+            filteredOptions: options.length,
+            fieldOptions: options,
+            rawResponse: data
           });
-
-          setFieldOptions(data.options || []);
         } else {
-          console.error('Failed to fetch field options:', response.status);
+          const errorText = await response.text();
+          console.error(`Failed to fetch options for ${fieldName}:`, response.status, errorText);
         }
       } catch (error) {
         console.error('Error fetching field options:', error);
@@ -102,19 +109,28 @@ export function DynamicSelect(props: DynamicSelectProps) {
         ) : fieldOptions.length === 0 ? (
           <SelectItem value="" disabled>Nenhuma opção disponível</SelectItem>
         ) : (
-          fieldOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              <div className="flex items-center space-x-2">
-                {option.color && (
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: option.color }}
-                  />
-                )}
-                <span>{option.label || option.value}</span>
-              </div>
-            </SelectItem>
-          ))
+          fieldOptions.map((option, index) => {
+            // Ensure option has proper structure and non-empty value
+            const value = option.value || option.id || `option-${index}`;
+            const label = option.label || option.name || option.display_name || value;
+
+            // Skip items with empty values to avoid Radix error
+            if (!value || value === '') return null;
+
+            return (
+              <SelectItem key={value} value={value}>
+                <div className="flex items-center space-x-2">
+                  {option.color && (
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: option.color }}
+                    />
+                  )}
+                  <span>{label}</span>
+                </div>
+              </SelectItem>
+            );
+          })
         )}
       </SelectContent>
     </Select>
