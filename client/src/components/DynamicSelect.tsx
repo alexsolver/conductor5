@@ -46,10 +46,25 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const tenantId = user?.tenantId;
 
   const fetchFieldOptions = useCallback(async () => {
-    if (!fieldName || !token || !tenantId) return;
+    if (!fieldName) return;
 
     setIsLoading(true);
     try {
+      const token = token || localStorage.getItem('token') || localStorage.getItem('access_token');
+      const tenantId = tenantId || localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
+
+      if (!token) {
+        console.warn('Missing authentication token for field options');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!tenantId) {
+        console.warn('Missing tenantId for field options');
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
