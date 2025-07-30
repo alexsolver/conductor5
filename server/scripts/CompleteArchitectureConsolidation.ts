@@ -12,7 +12,7 @@
  * SOLUÇÃO ENTERPRISE:
  * 1. Consolidar TUDO em @shared/schema.ts como fonte única absoluta
  * 2. Deprecar completamente arquivos fragmentados
- * 3. Atualizar TODOS os imports para @shared/schema (proxy único)
+ * 3. Atualizar TODOS os imports para usar caminhos relativos corretos
  * 4. Implementar sistema unificado server/db.ts
  * 5. Eliminar redundâncias e conflitos
  */

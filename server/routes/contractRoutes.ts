@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { ContractRepository } from '../repositories/ContractRepository-fixed';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { insertContractSchema, insertContractSlaSchema, insertContractServiceSchema, insertContractDocumentSchema, insertContractRenewalSchema, insertContractBillingSchema, insertContractEquipmentSchema } from '@shared/schema';
+import { insertContractSchema, insertContractSlaSchema, insertContractServiceSchema, insertContractDocumentSchema, insertContractRenewalSchema, insertContractBillingSchema, insertContractEquipmentSchema } from '../../shared/schema.js';
 import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';

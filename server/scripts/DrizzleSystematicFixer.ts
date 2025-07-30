@@ -249,12 +249,12 @@ ${content}`;
 
     // Corrigir imports problemáticos
     const corrections = [
-      { from: /@shared\/schema-master/g, to: '@shared/schema' },
-      { from: /@shared\/schema\/index/g, to: '@shared/schema' },
-      { from: /shared\/schema-master/g, to: '@shared/schema' },
-      { from: /shared\/schema\/index/g, to: '@shared/schema' },
-      { from: /from "\.\.\/\.\.\/shared\/schema-master"/g, to: 'from "@shared/schema"' },
-      { from: /from "\.\.\/shared\/schema-master"/g, to: 'from "@shared/schema"' },
+      { from: /@shared\/schema-master/g, to: '../../shared/schema.js' },
+      { from: /@shared\/schema\/index/g, to: '../../shared/schema.js' },
+      { from: /shared\/schema-master/g, to: '../../shared/schema.js' },
+      { from: /shared\/schema\/index/g, to: '../../shared/schema.js' },
+      { from: /from "\.\.\/\.\.\/shared\/schema-master"/g, to: 'from "../../shared/schema.js"' },
+      { from: /from "\.\.\/shared\/schema-master"/g, to: 'from "../../shared/schema.js"' },
       { from: /} from '@shared\/schema';/g, to: '} from \'../../shared/schema.js\';' }
     ];
 
