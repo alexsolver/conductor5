@@ -127,11 +127,11 @@ export default function Beneficiaries() {
       });
 
       if (!response.ok) {
-        console.error(`Beneficiaries fetch failed: ${response.status}`, await response.text());
         throw new Error(`Failed to fetch beneficiaries: ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      return data;
     },
   });
 
@@ -144,7 +144,7 @@ export default function Beneficiaries() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Beneficiário criado com sucesso",
+        description: "Favorecido criado com sucesso",
       });
       setIsCreateDialogOpen(false);
       form.reset();
@@ -153,7 +153,7 @@ export default function Beneficiaries() {
     onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: error.message || "Falha ao criar beneficiário",
+        description: error.message || "Falha ao criar favorecido",
         variant: "destructive",
       });
     },
@@ -168,7 +168,7 @@ export default function Beneficiaries() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Beneficiário atualizado com sucesso",
+        description: "Favorecido atualizado com sucesso",
       });
       setEditingBeneficiary(null);
       form.reset();
@@ -177,7 +177,7 @@ export default function Beneficiaries() {
     onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: error.message || "Falha ao atualizar beneficiário",
+        description: error.message || "Falha ao atualizar favorecido",
         variant: "destructive",
       });
     },
@@ -192,22 +192,22 @@ export default function Beneficiaries() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Beneficiário excluído com sucesso",
+        description: "Favorecido excluído com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"], exact: false });
     },
     onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: error.message || "Falha ao excluir beneficiário",
+        description: error.message || "Falha ao excluir favorecido",
         variant: "destructive",
       });
     },
   });
 
   // Derived values
-  const beneficiaries = Array.isArray(beneficiariesData?.data) ? beneficiariesData.data : [];
-  const pagination = beneficiariesData?.pagination || { total: 0, totalPages: 0 };
+  const beneficiaries = Array.isArray(beneficiariesData?.data?.beneficiaries) ? beneficiariesData.data.beneficiaries : [];
+  const pagination = beneficiariesData?.data?.pagination || { total: 0, totalPages: 0 };
 
   // Filter beneficiaries based on search term
   const filteredBeneficiaries = useMemo(() => {
@@ -257,7 +257,7 @@ export default function Beneficiaries() {
 
   // Handle delete
   const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este beneficiário?")) {
+    if (confirm("Tem certeza que deseja excluir este favorecido?")) {
       deleteBeneficiaryMutation.mutate(id);
     }
   };
@@ -291,7 +291,7 @@ export default function Beneficiaries() {
                   <FormItem>
                     <FormLabel>Nome *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome do beneficiário" {...field} />
+                      <Input placeholder="Nome do favorecido" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -304,7 +304,7 @@ export default function Beneficiaries() {
                   <FormItem>
                     <FormLabel>Sobrenome *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Sobrenome do beneficiário" {...field} />
+                      <Input placeholder="Sobrenome do favorecido" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -363,7 +363,7 @@ export default function Beneficiaries() {
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Ativo</FormLabel>
                     <div className="text-sm text-muted-foreground">
-                      O beneficiário está ativo no sistema
+                      O favorecido está ativo no sistema
                     </div>
                   </div>
                   <FormControl>
@@ -485,7 +485,7 @@ export default function Beneficiaries() {
             type="submit"
             disabled={createBeneficiaryMutation.isPending || updateBeneficiaryMutation.isPending}
           >
-            {editingBeneficiary ? "Atualizar" : "Criar"} Beneficiário
+            {editingBeneficiary ? "Atualizar" : "Criar"} Favorecido
           </Button>
         </div>
       </form>
@@ -497,9 +497,9 @@ export default function Beneficiaries() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Beneficiários</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Favorecidos</h1>
           <p className="text-muted-foreground">
-            Gerencie os beneficiários do sistema
+            Gerencie os favorecidos do sistema
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -511,18 +511,18 @@ export default function Beneficiaries() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Novo Beneficiário
+              Novo Favorecido
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingBeneficiary ? "Editar" : "Criar"} Beneficiário
+                {editingBeneficiary ? "Editar" : "Criar"} Favorecido
               </DialogTitle>
               <DialogDescription>
                 {editingBeneficiary
-                  ? "Atualize as informações do beneficiário."
-                  : "Preencha as informações para criar um novo beneficiário."}
+                  ? "Atualize as informações do favorecido."
+                  : "Preencha as informações para criar um novo favorecido."}
               </DialogDescription>
             </DialogHeader>
             <BeneficiaryForm />
@@ -579,7 +579,7 @@ export default function Beneficiaries() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar beneficiários..."
+            placeholder="Buscar favorecidos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -590,7 +590,7 @@ export default function Beneficiaries() {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Beneficiários ({filteredBeneficiaries.length})</CardTitle>
+          <CardTitle>Favorecidos ({filteredBeneficiaries.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -685,10 +685,10 @@ export default function Beneficiaries() {
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Nenhum beneficiário encontrado
+                Nenhum favorecido encontrado
               </h3>
               <p className="text-gray-500 mb-6">
-                {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando seu primeiro beneficiário.'}
+                {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando seu primeiro favorecido.'}
               </p>
             </div>
           )}
@@ -697,7 +697,7 @@ export default function Beneficiaries() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-6 border-t">
               <div className="text-sm text-muted-foreground">
-                Mostrando {startIndex + 1}-{Math.min(endIndex, filteredBeneficiaries.length)} de {filteredBeneficiaries.length} beneficiários
+                Mostrando {startIndex + 1}-{Math.min(endIndex, filteredBeneficiaries.length)} de {filteredBeneficiaries.length} favorecidos
               </div>
               <div className="flex items-center space-x-2">
                 <Button
