@@ -31,6 +31,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
+import CompanyCustomersSection from "@/components/CompanyCustomersSection";
 
 const companySchema = z.object({
   name: z.string().min(1, "Nome da empresa é obrigatório"),
@@ -619,21 +620,19 @@ export default function CustomerCompanies() {
                 )}
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t">
+              {/* Customers Section */}
+              <CompanyCustomersSection 
+                companyId={company.id}
+                onAssociateCustomers={() => handleOpenAssociateModal(company)}
+              />
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-3 border-t mt-3">
                 <div className="flex items-center text-xs text-gray-400">
                   <Calendar className="w-3 h-3 mr-1" />
                   {new Date(company.createdAt).toLocaleDateString('pt-BR')}
                 </div>
                 <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenAssociateModal(company)}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      <UserPlus className="w-4 h-4 mr-1" />
-                      Associar Clientes
-                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
