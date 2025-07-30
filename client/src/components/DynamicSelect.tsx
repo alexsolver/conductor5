@@ -9,7 +9,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { filterDOMProps } from "@/utils/propFiltering";
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-// import { useTenant } from "@/hooks/useTenant"; // Removed import
+import { getTenantIdFromToken } from "@/hooks/useTenantId";
 
 interface DynamicSelectProps {
   fieldName: string;
@@ -42,8 +42,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { user, token } = useAuth();
 
-  // Obter tenant_id do user context
-  const tenantId = user?.tenantId;
+  // Obter tenant_id do user context com fallback robusto
+  const tenantId = user?.tenantId || localStorage.getItem('tenantId') || localStorage.getItem('tenant_id');
 
   useEffect(() => {
     const fetchFieldOptions = async () => {
@@ -97,7 +97,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
       };
 
       const token = getToken();
-      const resolvedTenantId = getTenantId(token);
+      const resolvedTenantId = tenantId || getTenantIdFromToken(token);
 
       // Debug: Log all available storage keys
       const storageKeys = Object.keys(localStorage);
