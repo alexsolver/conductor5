@@ -1,4 +1,3 @@
-
 // INICIALIZAÇÃO DE CONFIGURAÇÕES DE METADATA DE TICKETS
 // Corrige o problema de dropdowns vazios (priority, status, etc.)
 
